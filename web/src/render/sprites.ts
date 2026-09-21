@@ -14,6 +14,7 @@ import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
   TINT_ATTRIBUTE_OFFSET,
+  WALL_ATTRIBUTE_OFFSET,
   VERTICES_PER_QUAD,
   growCapacity,
   type InstanceArray,
@@ -170,7 +171,8 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
 
 /**
  * Draws every sprite on screen in a single instanced draw call. Depth
- * comes from the instance's z, so no CPU-side sorting is needed. See
+ * starts at the instance's z; edge walls project fragment depth along their
+ * authored plane. No CPU-side sorting is needed. See
  * [D10]: at 100k objects, not sorting beats sorting well.
  *
  * The pure parts of this - the instance layout and the capacity growth
@@ -271,7 +273,7 @@ export class SpriteRenderer {
             stepMode: 'instance',
             attributes: [
               { shaderLocation: 0, offset: 0, format: 'float32x4' },
-              // [ML-tint]. One buffer, two attributes, interleaved -
+              // [ML-tint]. One buffer with interleaved attributes -
               // not a second vertex buffer. Both halves belong to the
               // same instance and are written together by
               // `writeInstance`, so splitting them across buffers would
@@ -282,6 +284,7 @@ export class SpriteRenderer {
                 offset: TINT_ATTRIBUTE_OFFSET,
                 format: 'float32x4',
               },
+              { shaderLocation: 2, offset: WALL_ATTRIBUTE_OFFSET, format: 'float32x2' },
             ],
           },
         ],

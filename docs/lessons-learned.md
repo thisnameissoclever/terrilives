@@ -1,5 +1,25 @@
 # Lessons Learned
 
+## [L-instance-stride-integration] Share row offsets across renderer integration tests
+
+**What happened.** Integrating wall-plane depth expanded instance rows from
+eight to ten floats. Portal rendering used the shared writer correctly, but
+three portal tests still addressed fields with the old eight-float stride.
+
+**Root cause.** Hard-coded test offsets duplicated the instance layout. The
+new wall fields also needed explicit zero values on reused portal rows so
+frame and leaf sprites retained their existing depth ordering.
+
+**Prevention rule.** Allocate and index integration fixtures with
+`FLOATS_PER_INSTANCE` and the named field offsets. Prefill reused rows with
+sentinels and assert both portal layers clear `OFFSET_WALL_MASK` and
+`OFFSET_WALL_DEPTH_STEP`, alongside their geometry, lighting and depth checks.
+
+**How to verify.** All three portal tests pass with shared offsets. Removing
+the wall-mask write and the wall-depth-step write separately makes the
+corresponding assertion fail with `expected -999 to be +0`. Restoring both
+writes returns the source to its recorded SHA-256 and passes all three tests.
+
 ## [L-migration-pins-both-endpoints] Reconstructing a known source does not approve the destination
 
 **What happened.** Final front-door review found that the old bathtub migration
@@ -78,6 +98,27 @@ resulting career state and settled position, not only the rendered door state.
 **How to verify.** The two career arrival regressions must pass; the targeted
 mutation run must catch all eight changed comparisons and coordinate
 subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+## [L-wall-plane-depth-closeups] Review wall contact at object scale
+
+**What happened.** The shipped boundary-wall layout passed a whole-room
+visual review, but walls visibly cut off the laundry stack, toilet tank and
+desk chair. The user caught the missing silhouettes in close-ups.
+
+**Root cause.** A wall panel and an adjacent object could share the same
+anchor depth. Walls drew first and won the equal-depth test. A constant depth
+for an entire panel also cannot describe both sides of its physical plane.
+Moving every wall backward would expose objects on the wrong side.
+
+**Prevention rule.** Give edge-wall fragments depth from their authored plane,
+including exposed far arms at junctions. Review close-ups as well as the room.
+Do not reposition furniture or alter artwork to hide a depth-buffer defect.
+
+**How to verify.** Run `web/proofs/wall-occlusion.js` through the real browser
+renderer. Check foreground and background objects on both axes, three zooms,
+all nine joins, and Sims crossing both door orientations. Disable the wall
+depth calculation and require the same pixel checks to fail; restore and
+compare source hashes. Retain close-up screenshots and an independent review.
+
 ## [L-layout-schema-exporter-impact] Include offline asset tools in schema impact scans
 
 **What happened.** Main CI stopped publication because the exercise-bike

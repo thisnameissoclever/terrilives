@@ -152,7 +152,7 @@ function tileLighting(
 }
 
 /**
- * The eight floats one entity occupies, as the GPU would see them.
+ * The ten floats one entity occupies, as the GPU would see them.
  *
  * `kind` picks the depth LAYER and never reaches the GPU; `sprite` is
  * what the shader indexes the atlas with. Defaulting sprite to kind keeps
@@ -188,6 +188,8 @@ function packed(
     1,
     1,
     emissive,
+    0,
+    0,
   ];
 }
 

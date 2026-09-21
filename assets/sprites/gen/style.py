@@ -22,10 +22,9 @@ Chosen 2026-08-03. See docs/specs/2026-08-03-muted-line-implementation.md.
 TILE_HALF_WIDTH = 32
 TILE_HALF_HEIGHT = 21
 
-# How tall one "tile unit" of height draws. A free parameter - nothing in
-# the renderer reads it - so it is a pure proportion choice. At 38 a wall
-# is 1.75 units and stands 66 px, which reads as a room without hiding the
-# furniture behind it.
+# How tall one tile unit draws. Edge-wall fragment depth depends on this:
+# WALL_H=2 makes the authored plane 76 pixels tall. Keep sprites.wgsl and
+# web/tests/wall-depth.test.ts synchronized when changing these dimensions.
 Z_UNIT = 38
 
 # --------------------------------------------------------------------------

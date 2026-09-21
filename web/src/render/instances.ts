@@ -32,17 +32,17 @@
 export type InstanceArray = Float32Array<ArrayBuffer>;
 
 /**
- * Two `vec4<f32>`s per instance:
+ * Two vec4s and a wall projection vec2 per instance:
  *
  *   0..3  screenX, screenY, depth, sprite  - `@location(0)`
  *   4..7  tintR, tintG, tintB, emissive    - `@location(1)`
+ *   8..9  wall arm mask, depth per tile   - `@location(2)`
  *
- * The second one is [ML-tint]. The first four slots were all spent, so
- * carrying a per-instance colour meant a second attribute rather than a
- * spare component; that doubles the per-frame upload from 16 to 32 bytes
- * an entity, which against [V11]'s measured headroom is not a question.
+ * The tint is [ML-tint]. Wall projection adds eight bytes to the previous
+ * 32-byte row. Furniture and Sims write zero projection values; all callers
+ * retain one shared buffer and one draw call.
  */
-export const FLOATS_PER_INSTANCE = 8;
+export const FLOATS_PER_INSTANCE = 10;
 
 /** The vertex buffer `arrayStride`, in bytes. */
 export const BYTES_PER_INSTANCE =
@@ -60,6 +60,9 @@ export const OFFSET_TINT_R = 4;
 export const OFFSET_TINT_G = 5;
 export const OFFSET_TINT_B = 6;
 export const OFFSET_EMISSIVE = 7;
+export const OFFSET_WALL_MASK = 8;
+export const OFFSET_WALL_DEPTH_STEP = 9;
+export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */
 export const TINT_ATTRIBUTE_OFFSET =
@@ -133,7 +136,7 @@ export const ACTIVITY_AT_WORK = 6;
  *
  * `out` may be longer than the live entity count; callers reuse a scratch
  * buffer across frames and pass the count separately, so this must touch
- * exactly the eight floats belonging to `index` and nothing else.
+ * exactly the ten floats belonging to `index` and nothing else.
  *
  * The tint is four loose numbers with defaults rather than a colour
  * object, and that is [D11] rather than taste: this is the per-entity
@@ -152,6 +155,8 @@ export function writeInstance(
   tintG: number = TINT_NONE,
   tintB: number = TINT_NONE,
   emissive: number = EMISSIVE_NONE,
+  wallMask = 0,
+  wallDepthStep = 0,
 ): void {
   const base = index * FLOATS_PER_INSTANCE;
   out[base + OFFSET_SCREEN_X] = screenX;
@@ -162,6 +167,8 @@ export function writeInstance(
   out[base + OFFSET_TINT_G] = tintG;
   out[base + OFFSET_TINT_B] = tintB;
   out[base + OFFSET_EMISSIVE] = emissive;
+  out[base + OFFSET_WALL_MASK] = wallMask;
+  out[base + OFFSET_WALL_DEPTH_STEP] = wallDepthStep;
 }
 
 /**

@@ -220,13 +220,14 @@ export function buildStaticInstances(
   const instances = scratch;
   let slot = 0;
 
-  /** A prop - a wall - which is depth-sorted per tile like any entity. */
+  /** Wall anchor depth plus optional per-fragment edge-plane projection. */
   const write = (
     x: number,
     y: number,
     layer: number,
     sprite: number,
     emissive = 0,
+    wallMask = 0,
   ): void => {
     writeInstance(
       instances,
@@ -239,6 +240,9 @@ export function buildStaticInstances(
       TINT_NONE,
       TINT_NONE,
       emissive,
+      wallMask,
+      wallMask === 0 ? 0 : layeredDepth(0, 0, gridSize, LAYER_PROP)
+        - layeredDepth(1, 0, gridSize, LAYER_PROP),
     );
   };
 
@@ -285,7 +289,10 @@ export function buildStaticInstances(
         emissive = Math.max(emissive, sampleLight(lighting, x, y));
       }
     }
-    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive);
+    // A wall spans a plane, not the constant-depth billboard used by furniture.
+    // Doors share that plane; their transparent aperture remains in the atlas.
+    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' ? 5 : 10);
+    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask);
   }
   for (const [x, y, sprite] of boundary) {
     write(

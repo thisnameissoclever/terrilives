@@ -1,7 +1,7 @@
 # Front door, then furniture builder
 
 Status: implemented and played locally after integrating main through
-`c0eca30`, including boundary walls and Save V2. Native and browser suites and
+`1d4b9ed`, including boundary walls, corrected wall depth and Save V2. Native and browser suites and
 targeted mutation checks pass. The full GitHub mutation sweep and post-merge
 Pages verification remain release gates; this is not yet a deployed feature.
 
