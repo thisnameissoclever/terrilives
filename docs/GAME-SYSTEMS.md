@@ -293,7 +293,7 @@ Being near the new thing keeps boosting the Sim for a while. The boost fades as 
 
 **Design notes.** Both halves are one mechanism: a familiarity value held by each Sim toward each object and each activity, rising with exposure and falling with absence. The existing per-action value is the start of it. Selling an old object needs a price, so [S-build] must let the player sell.
 
-The game has two values a player might call happiness: mood, which moves minute to minute, and satisfaction, which is the long-term life score. This document assumes the boosts and losses here are moodlets, and that satisfaction follows mood slowly through [P-mood-feedback]. The owner should confirm that reading.
+The game has two values a player might call happiness: mood, which moves minute to minute, and satisfaction, which is the long-term life score. The boosts and losses here are mood effects, delivered as moodlets, and satisfaction follows mood slowly through [P-mood-feedback]. The owner confirmed this reading on 2026-09-21.
 
 **Depends on.** Part one depends on nothing. Part two depends on buy mode in [S-build], item properties in [S-catalogue], and affinities from [S-deep-traits].
 
