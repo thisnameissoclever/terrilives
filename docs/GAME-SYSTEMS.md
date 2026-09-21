@@ -263,7 +263,7 @@ A larger household also needs a larger house, so that six people are not queuein
 
 **Status: Not started, 0%.** No Sim has any sensitivity value today.
 
-**The target.** Each Sim has a sensitivity value in each of four primary categories: visual, auditory, olfactory, and social. The social category measures how much the presence and attention of other people wears on the Sim, which the owner also called antisocial. The category list is content, so more can be added later.
+**The target.** Each Sim has a sensitivity value in each of four primary categories: visual, auditory, olfactory, and social. The social category measures how much the presence and attention of other people wears on the Sim, which the owner also called antisocial and confirmed as the intended meaning on 2026-09-21. The category list is content, so more can be added later.
 
 **How the values are set.** Each value is drawn at random when the Sim is created. The draw comes from the game's seeded random generator and the result is saved, so the same new game always produces the same household. The player can change any value at any time once [S-advanced-controls] is switched on. Such a change is a recorded player command, like an order, so replays still agree.
 
@@ -293,7 +293,7 @@ Being near the new thing keeps boosting the Sim for a while. The boost fades as 
 
 **Design notes.** Both halves are one mechanism: a familiarity value held by each Sim toward each object and each activity, rising with exposure and falling with absence. The existing per-action value is the start of it. Selling an old object needs a price, so [S-build] must let the player sell.
 
-The game has two values a player might call happiness: mood, which moves minute to minute, and satisfaction, which is the long-term life score. This document assumes the boosts and losses here are moodlets, and that satisfaction follows mood slowly through [P-mood-feedback]. The owner should confirm that reading.
+The game has two values a player might call happiness: mood, which moves minute to minute, and satisfaction, which is the long-term life score. The boosts and losses here are mood effects, delivered as moodlets, and satisfaction follows mood slowly through [P-mood-feedback]. The owner confirmed this reading on 2026-09-21.
 
 **Depends on.** Part one depends on nothing. Part two depends on buy mode in [S-build], item properties in [S-catalogue], and affinities from [S-deep-traits].
 
