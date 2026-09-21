@@ -8,6 +8,9 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+#[cfg(test)]
+mod spawn_boundary_tests;
+
 /// The level a non-finite hunger argument is replaced with. Either end of
 /// the range would do; what matters is that it is finite and in range.
 /// `NEED_MAX` is chosen because it is the value the sim itself produces

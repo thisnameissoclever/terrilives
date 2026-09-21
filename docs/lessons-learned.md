@@ -6127,6 +6127,26 @@ with zero survivors or timeouts. The wall-migration OR-to-AND mutation separatel
 fails the `16x0` destination assertion. Restored production files pass all 432
 simulation tests. Production validation and the mutation baseline are unchanged.
 
+## [L-spawn-wall-perimeter-controls] Internal walls and perimeter walls are different cases
+
+**What happened.** The final PR84 mutation shard found three unconstrained
+object-spawning checks: the depth boundary, its extent arithmetic, and requiring
+both adjacent tiles of a solid edge to lie inside the object's footprint.
+
+**Root cause.** Refusal examples alone did not prove that valid perimeter edges
+remain accepted. A weakened guard could over-reject those placements while
+still passing internal-wall tests.
+
+**Prevention rule.** Test solid edges on every perimeter side as accepted cases,
+internal edges on both axes as refusals, and internal doorways as accepted
+controls. A refused public spawn must preserve save bytes, entity count and
+both render buffers rather than merely return false.
+
+**How to verify.** The three exact reported mutations all fail the perimeter
+test after successful compilation, with zero survivors or timeouts. Native
+WASM-boundary tests pass 86/86 after restoring the original source. These are
+test-only changes; neither production validation nor the baseline is relaxed.
+
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 
 **What happened.** The first bathtub-rotation migration rejected an active
