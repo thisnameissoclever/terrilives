@@ -1,20 +1,31 @@
 //! V2 architecture validation. Historical world migration is a separate step.
 
 use super::{SaveError, Sim};
+use crate::portals::ActivePortals;
 use std::collections::BTreeSet;
 use terri_core::{layout::SavedLayout, SaveSnapshotV2, TileGrid};
 use terri_data::ContentPack;
 
+#[cfg(test)]
+#[path = "architecture_boundary_tests.rs"]
+mod boundary_tests;
+
 pub(crate) fn restore(
     snapshot: SaveSnapshotV2,
     content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
     // V2 is complete and current: do not apply V1's optional-tail repair or
     // reinterpret a saved layout from whatever lot content now happens to be.
     super::validate_snapshot(&snapshot.world, content)?;
-    let mut candidate = super::restore_legacy(snapshot.world, content)?;
+    let mut candidate = super::restore_legacy(snapshot.world, content, active_portals)?;
     let grid = candidate.world.resource_mut::<TileGrid>();
     apply_layout(grid.into_inner(), &snapshot.layout)?;
+    super::validate_portal_returns(
+        &candidate.save_snapshot(),
+        candidate.world.resource::<TileGrid>(),
+        content,
+    )?;
     if matches!(snapshot.layout, SavedLayout::EdgeWallsV1 { .. }) {
         validate_edge_world(
             &candidate.save_snapshot(),
@@ -195,6 +206,180 @@ mod tests {
         }
     }
 
+    fn shipped_worker(sim: &mut Sim) -> terri_core::Entity {
+        let mut careers = sim
+            .world_mut()
+            .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<terri_core::Career>>();
+        careers
+            .iter(sim.world())
+            .next()
+            .expect("the shipped household has a worker")
+    }
+
+    #[test]
+    fn v2_load_preserves_the_callers_active_portal_scene() {
+        let mut shipped = Sim::new_from_shipped_lot();
+        let saved = shipped.save_snapshot_v2();
+
+        shipped.load_snapshot_v2(saved.clone()).unwrap();
+        assert!(shipped.world().contains_resource::<ActivePortals>());
+        assert_eq!(shipped.portal_buffer().states.len(), 1);
+
+        let mut blank = Sim::new();
+        blank.load_snapshot_v2(saved).unwrap();
+        assert!(!blank.world().contains_resource::<ActivePortals>());
+        assert!(blank.portal_buffer().states.is_empty());
+    }
+
+    #[test]
+    fn v2_rejects_a_future_portal_return_through_a_solid_saved_edge() {
+        let mut source = Sim::new_from_shipped_lot();
+        let worker = shipped_worker(&mut source);
+        source.world_mut().entity_mut(worker).insert((
+            terri_core::Position { x: 15.0, y: 2.0 },
+            terri_core::AtWork { remaining_ticks: 1 },
+        ));
+        source
+            .world_mut()
+            .entity_mut(worker)
+            .remove::<(terri_core::Commuting, terri_core::Path)>();
+        let mut saved = source.save_snapshot_v2();
+        let return_edge = WallEdge {
+            axis: EdgeAxis::Horizontal,
+            x: 15,
+            y: 3,
+            doorway: false,
+        };
+        saved.layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![return_edge],
+        };
+
+        let mut live = Sim::new_from_shipped_lot();
+        let before = live.save_snapshot_v2();
+        assert_eq!(
+            live.load_snapshot_v2(saved.clone()),
+            Err(SaveError::InvalidGrid)
+        );
+        assert_eq!(live.save_snapshot_v2(), before);
+        assert!(live.world().contains_resource::<ActivePortals>());
+
+        saved.layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![WallEdge {
+                doorway: true,
+                ..return_edge
+            }],
+        };
+        live.load_snapshot_v2(saved).unwrap();
+        live.tick();
+        let worker = live.world().entities().resolve_from_index(worker.index());
+        assert_eq!(
+            live.world()
+                .get::<terri_core::Path>(worker)
+                .and_then(|path| path.steps.last())
+                .copied(),
+            Some((15, 3)),
+            "an open saved edge permits the authored return landing"
+        );
+    }
+
+    #[test]
+    fn v2_rejects_an_at_work_position_whose_return_segment_crosses_a_saved_edge() {
+        let mut source = Sim::new_from_shipped_lot();
+        let worker = shipped_worker(&mut source);
+        source.world_mut().entity_mut(worker).insert((
+            terri_core::Position { x: 13.0, y: 3.0 },
+            terri_core::AtWork { remaining_ticks: 1 },
+        ));
+        source
+            .world_mut()
+            .entity_mut(worker)
+            .remove::<(terri_core::Commuting, terri_core::Path)>();
+        let mut saved = source.save_snapshot_v2();
+        let crossed_edge = WallEdge {
+            axis: EdgeAxis::Vertical,
+            x: 14,
+            y: 3,
+            doorway: false,
+        };
+        saved.layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![crossed_edge],
+        };
+
+        let mut live = Sim::new_from_shipped_lot();
+        let before = live.save_snapshot_v2();
+        assert_eq!(
+            live.load_snapshot_v2(saved.clone()),
+            Err(SaveError::InvalidGrid)
+        );
+        assert_eq!(live.save_snapshot_v2(), before);
+
+        saved.layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![WallEdge {
+                doorway: true,
+                ..crossed_edge
+            }],
+        };
+        live.load_snapshot_v2(saved).unwrap();
+        live.tick();
+        let worker = live.world().entities().resolve_from_index(worker.index());
+        assert_eq!(
+            live.world()
+                .get::<terri_core::Path>(worker)
+                .and_then(|path| path.steps.last())
+                .copied(),
+            Some((15, 3)),
+            "an open saved edge permits the worker's actual return segment"
+        );
+    }
+
+    #[test]
+    fn v2_rejects_a_solid_future_portal_route_while_the_worker_is_home() {
+        let source = Sim::new_from_shipped_lot();
+        let mut saved = source.save_snapshot_v2();
+        let return_edge = WallEdge {
+            axis: EdgeAxis::Horizontal,
+            x: 15,
+            y: 3,
+            doorway: false,
+        };
+        saved.layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![return_edge],
+        };
+
+        let mut live = Sim::new_from_shipped_lot();
+        let before = live.save_snapshot_v2();
+        assert_eq!(
+            live.load_snapshot_v2(saved.clone()),
+            Err(SaveError::InvalidGrid)
+        );
+        assert_eq!(live.save_snapshot_v2(), before);
+
+        saved.layout = SavedLayout::EdgeWallsV1 {
+            edges: vec![WallEdge {
+                doorway: true,
+                ..return_edge
+            }],
+        };
+        live.load_snapshot_v2(saved).unwrap();
+    }
+
+    #[test]
+    fn v1_rejects_a_blocked_future_portal_landing_transactionally() {
+        let source = Sim::new_from_shipped_lot();
+        let open = source.save_snapshot();
+        let mut blocked = open.clone();
+        blocked.blocked_tiles[3 * blocked.grid_width as usize + 15] = true;
+
+        let mut live = Sim::new_from_shipped_lot();
+        let before = live.save_snapshot_v2();
+        assert_eq!(live.load_snapshot(blocked), Err(SaveError::InvalidGrid));
+        assert_eq!(live.save_snapshot_v2(), before);
+        assert!(live.world().contains_resource::<ActivePortals>());
+
+        live.load_snapshot(open).unwrap();
+        assert!(live.world().contains_resource::<ActivePortals>());
+    }
+
     #[test]
     fn v2_restores_geometry_from_the_save_not_live_authored_content() {
         let mut live = Sim::new_with_lot(5, 4);
@@ -318,13 +503,13 @@ mod tests {
                 edges: vec![edge(3, false)],
             };
             assert_eq!(
-                restore(snapshot.clone(), terri_data::pack()).err(),
+                restore(snapshot.clone(), terri_data::pack(), None).err(),
                 Some(SaveError::InvalidGrid)
             );
             snapshot.layout = SavedLayout::EdgeWallsV1 {
                 edges: vec![edge(3, true)],
             };
-            assert!(restore(snapshot, terri_data::pack()).is_ok());
+            assert!(restore(snapshot, terri_data::pack(), None).is_ok());
         }
     }
 

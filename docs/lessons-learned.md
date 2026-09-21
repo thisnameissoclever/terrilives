@@ -1,5 +1,119 @@
 # Lessons Learned
 
+## [L-atlas-append-provenance] Reconcile provenance after another sprite batch merges
+
+**What happened.** Asset notes retained a 1,221-record total and door indices
+1217 through 1220 after main inserted four half-wall sprites before the door.
+
+**Root cause.** The generated atlas and prefix tests were reconciled during
+integration, but the human-readable provenance count was not.
+
+**Prevention rule.** When merging an appended asset batch, verify the total,
+each new interval, dimensions and preserved prefix against the generated
+manifest before publishing its provenance notes.
+
+**How to verify.** The manifest has 1,225 records: half walls at 1217 through
+1220 and the door at 1221 through 1224, in a 4096x7928 atlas. All five prefix
+tests pass, including the complete 1,221-record pre-door pixel digest.
+
+## [L-instance-stride-integration] Share row offsets across renderer integration tests
+
+**What happened.** Integrating wall-plane depth expanded instance rows from
+eight to ten floats. Portal rendering used the shared writer correctly, but
+three portal tests still addressed fields with the old eight-float stride.
+
+**Root cause.** Hard-coded test offsets duplicated the instance layout. The
+new wall fields also needed explicit zero values on reused portal rows so
+frame and leaf sprites retained their existing depth ordering.
+
+**Prevention rule.** Allocate and index integration fixtures with
+`FLOATS_PER_INSTANCE` and the named field offsets. Prefill reused rows with
+sentinels and assert both portal layers clear `OFFSET_WALL_MASK` and
+`OFFSET_WALL_DEPTH_STEP`, alongside their geometry, lighting and depth checks.
+
+**How to verify.** All three portal tests pass with shared offsets. Removing
+the wall-mask write and the wall-depth-step write separately makes the
+corresponding assertion fail with `expected -999 to be +0`. Restoring both
+writes returns the source to its recorded SHA-256 and passes all three tests.
+
+## [L-migration-pins-both-endpoints] Reconstructing a known source does not approve the destination
+
+**What happened.** Final front-door review found that the old bathtub migration
+removed destination portals to reconstruct its historical source digest. That
+could pass the source check after a later portal landing or identity changed,
+outside the intended exact destination bridge. The current reviewed household
+was unaffected; this was a future migration-contract gap.
+
+**Root cause.** Normalizing newly introduced structural fields erased the
+evidence needed to distinguish reviewed and unreviewed destinations. A later
+grid rejection was not a replacement for the content-compatibility decision.
+
+**Prevention rule.** Pin both ends of a structural migration before rebuilding
+the source shape. New reviewed destination digests must be added deliberately;
+presentation-only changes should remain accepted without new exceptions.
+
+**How to verify.** The A-to-B and A-to-D controls load, including presentation
+changes that retain D. Changed portal identity, added portals and moved landings
+must fail with `IncompatibleContent` before final grid validation. The original
+test failed with `InvalidGrid` instead; it passes with the exact B/D gate.
+
+## [L-atlas-palette-test-granularity] Verify independent palettes independently
+
+**What happened.** The combined blue/red palette check exceeded its unchanged
+five-second limit at 5.358 seconds, while 779 other browser tests passed.
+
+**Root cause.** One test bundled two independent 148-frame manifests, including
+296 small PNG reads and 961 assertions. This identified an over-broad test
+unit, not a production rendering regression or a proven Windows I/O defect.
+
+**Prevention rule.** Give each independently authored palette a named test.
+Retain every file hash, registration and interaction-anchor assertion; retain
+the global registry and atlas bounds in their own small case. Do not suppress
+checks or widen the global timeout to get a green result.
+
+**How to verify.** The full one-worker suite passes 782 tests with the original
+five-second budget. If an individual palette times out, investigate the source
+of that delay rather than repeatedly subdividing or increasing the allowance.
+
+## [L-door-landing-edge-validation] A clear tile can still be across a wall
+
+**What happened.** Integrating boundary walls with animated doors exposed a
+compiler gap: the landing tile could be empty but separated from the doorway
+by a solid edge. The regression accepted both a derived horizontal landing
+and an explicit vertical landing that should have been refused.
+
+**Root cause.** The door compiler checked occupied cells, while main's new
+architecture also represents barriers between cells.
+
+**Prevention rule.** Validate the doorway-to-landing step with the same grid
+edge rules used by movement. Carry presentation activation through every save
+restore path, including the new architecture envelope. Validate future career
+returns against the final restored grid even when the worker is currently at
+home: a save without a current path can still encode a blocked future landing.
+
+**How to verify.** `portal_landings_cannot_cross_solid_wall_edges` must reject
+both solid-edge cases and accept their doorway-edge counterparts. Load an
+actual pre-door V2 browser save and confirm its saved architecture is retained;
+reloading an active doorway must preserve its drawing state. Solid saved edges
+and blocked V1 landing cells must fail transactionally for career households;
+their open controls must still load and return normally.
+
+## [L-door-arrival-needs-independent-axis-tests] A working route can hide an untested coordinate
+
+**What happened.** The front-door release passed ordinary tests and its played
+departure/return check, but CI found eight surviving mutations in the career
+arrival predicate. The shipped return changes only the Y coordinate.
+
+**Root cause.** A single route did not independently constrain both sides of
+the X-or-Y distance check, and no test pinned its inclusive arrival tolerance.
+
+**Prevention rule.** Exercise an X-only return, a Y-only return, an exact
+nonzero doorway position, and each tolerance boundary separately. Assert the
+resulting career state and settled position, not only the rendered door state.
+
+**How to verify.** The two career arrival regressions must pass; the targeted
+mutation run must catch all eight changed comparisons and coordinate
+subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
 ## [L-wall-plane-depth-closeups] Review wall contact at object scale
 
 **What happened.** The shipped boundary-wall layout passed a whole-room
@@ -5913,6 +6027,45 @@ reviewed-loader test must accept a valid fixture and reject changed bindings,
 dependencies, raw images and comparison implementation. Keep the old render
 journal when fixing provenance code; never relabel it as a fresh run.
 
+## [L-all-refs-history-is-not-shipped-history] Check ancestry before claiming a feature is on main
+
+**What happened.** The front-door continuation described furniture rotation as
+already on main after finding its commits in a history search across all refs.
+The implementation existed only on an unmerged local branch.
+
+**Root cause.** Commit discovery was mistaken for release provenance.
+
+**Prevention rule.** Fetch, then check the feature commit's ancestry against
+`origin/main` before describing it as merged. A local branch can contain useful
+implementation without being part of the deployed game.
+
+**How to verify.** `git merge-base --is-ancestor <feature> origin/main` must exit
+zero for a merged claim. Verify the merge's Pages deployment separately for a
+live claim. The builder round should reuse the unmerged facing implementation
+after reconciling it with current main.
+
+## [L-portal-runtime-boundaries] Door metadata needs an active lot and a visible-transition test
+
+**What happened.** The first integrated door build drew the shipped doorway
+inside empty test rooms. Review also found that a returning worker's first
+visible interval interpolated outward before the inward walk began.
+
+**Root cause.** Shared content definitions were mistaken for active scene
+instances. The interpolation test checked individual positions but not the
+hidden-to-visible transition that consumes both the previous and current rows.
+
+**Prevention rule.** Activate portal instances with the authored lot, not with
+the content registry. Save restoration must restore that active-lot contract.
+At a visibility boundary, test both interpolation endpoints. A routing field
+such as the return landing is structural content even when nested under a
+table named `visual`; use the existing reviewed migration mechanism when
+adding it to the compatibility digest.
+
+**How to verify.** Empty-room render tests must retain their original instance
+counts. The final hidden work sample and first visible return sample must both
+begin at the physical threshold, followed by inward movement. Changing only
+the landing must change compatibility, while the specifically reviewed
+pre-door public save remains loadable.
 ## [L-cancelled-mutation-sweeps-are-not-local-test-results] Distinguish verification costs and coverage
 
 **What happened.** PR83 waited on two full eight-shard mutation sweeps after
@@ -5952,6 +6105,104 @@ searches. After three failures, get a fresh review instead of another variant.
 
 **How to verify.** `1..5 | Select-Object -Skip 2 -First 2` emits 3 and 4.
 The corrected `-First 50` source read succeeds; no repository edits are needed.
+
+## [L-continuous-wall-rejection-boundaries] Separate the conditions that reject a route
+
+**What happened.** PR84's full mutation sweep found two unconstrained wall
+checks: the upper endpoint of a collinear wall segment and the OR joining
+walkable-center and open-segment requirements during fractional replanning.
+
+**Root cause.** A test spanning the entire wall still collided when the upper
+bound was shortened. Successful replan examples did not distinguish independent
+reasons to refuse an anchor.
+
+**Prevention rule.** Exercise a segment entirely inside each relevant boundary
+region, not only one spanning it. For combined rejection guards, construct each
+failure independently and assert the other condition is valid. Cover horizontal
+and vertical walls, reverse travel, endpoint contact and clear-side controls.
+
+**How to verify.** The new collinear upper-half test fails when `low + 1.0`
+becomes `low * 1.0`. The new anchor test fails when OR becomes AND. Each exact
+mutation was tested independently; restoring the unchanged production file
+passes all 86 core tests. Neither change adds a mutation-baseline allowance.
+
+## [L-wall-approach-completeness] Validate every reachable side of a footprint
+
+**What happened.** The full wall mutation sweep could inflate an object's
+interaction rectangle and silently omit its south-side contact.
+
+**Root cause.** Existing connectivity fixtures did not isolate an unreachable
+south approach while leaving the other sides reachable. Five other survivors
+only weakened a redundant bounds filter; the shared interaction predicate
+still rejected those coordinates before adjacency arithmetic.
+
+**Prevention rule.** Test all usable contacts, not just whether an object has
+one reachable side. Keep bounds ownership in the shared grid predicate rather
+than maintaining duplicate filters with indistinguishable rejection paths.
+
+**How to verify.** The south-contact fixture rejects `(2,3)` behind a divider
+and accepts the same lot with a second opening. The exact depth subtraction
+mutation fails that assertion. The redundant bounds filter was removed after
+independent review of negative coordinates, upper boundaries and signed casts;
+the blocked-cell and interaction checks remain. No baseline allowance was added.
+
+## [L-edge-slot-signed-bounds] Check signed coordinates before unsigned indexing
+
+**What happened.** PR84's mutation sweep found that changing the first OR in
+`edge_slot`'s negative-coordinate guard to AND escaped ordinary grid tests.
+
+**Root cause.** With small dimensions, the later unsigned upper-bound checks
+also reject a negative coordinate after its cast. Those tests did not constrain
+the helper's independent signed-coordinate rejection.
+
+**Prevention rule.** Test scalar index helpers independently of allocations.
+Include each negative axis, reversed endpoints and valid controls. Keep the
+claim narrow: extremely large scalar bounds test a defensive helper contract,
+not a reachable failure in an ordinary allocated household grid.
+
+**How to verify.** The new `edge_slots_reject_negative_coordinates_independently_of_unsigned_bounds`
+test uses no allocation. Changing only the first OR to AND returns an invalid
+index and fails its assertion. Restoring the original source passes all 84 core
+tests. No production behavior or mutation baseline changes are needed.
+
+## [L-saved-wall-independent-guards] Isolate saved-layout validation conditions
+
+**What happened.** PR84's full mutation sweep found 21 unconstrained conditions
+in saved-wall validation and the frozen migration destination check.
+
+**Root cause.** End-to-end invalid saves could fail at a later guard and hide a
+weakened earlier condition. Contact examples did not distinguish an object flush
+with a boundary from one extending past it, or internal edges from its perimeter.
+
+**Prevention rule.** Pair each refusal with a valid control. Test independent
+axes, exact boundaries, repeated path tiles and inactive targets. Use narrow
+helper tests when later fingerprint or geometry checks mask the helper contract;
+do not present those scalar cases as reachable ordinary-household defects.
+
+**How to verify.** The 20 reported architecture mutations all fail new assertions,
+with zero survivors or timeouts. The wall-migration OR-to-AND mutation separately
+fails the `16x0` destination assertion. Restored production files pass all 432
+simulation tests. Production validation and the mutation baseline are unchanged.
+
+## [L-spawn-wall-perimeter-controls] Internal walls and perimeter walls are different cases
+
+**What happened.** The final PR84 mutation shard found three unconstrained
+object-spawning checks: the depth boundary, its extent arithmetic, and requiring
+both adjacent tiles of a solid edge to lie inside the object's footprint.
+
+**Root cause.** Refusal examples alone did not prove that valid perimeter edges
+remain accepted. A weakened guard could over-reject those placements while
+still passing internal-wall tests.
+
+**Prevention rule.** Test solid edges on every perimeter side as accepted cases,
+internal edges on both axes as refusals, and internal doorways as accepted
+controls. A refused public spawn must preserve save bytes, entity count and
+both render buffers rather than merely return false.
+
+**How to verify.** The three exact reported mutations all fail the perimeter
+test after successful compilation, with zero survivors or timeouts. Native
+WASM-boundary tests pass 86/86 after restoring the original source. These are
+test-only changes; neither production validation nor the baseline is relaxed.
 
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 

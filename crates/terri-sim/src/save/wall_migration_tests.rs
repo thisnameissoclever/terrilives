@@ -57,7 +57,7 @@ fn expected_after(mut before: SaveSnapshotV1) -> SaveSnapshotV1 {
 fn wall_migration_releases_only_frozen_wall_cells_and_preserves_every_other_field() {
     let before = source_sim().save_snapshot();
     let pack = destination();
-    let after = restore(before.clone(), pack).unwrap();
+    let after = restore(before.clone(), pack, None).unwrap();
     assert_eq!(
         after.save_snapshot_v2().layout,
         SavedLayout::EdgeWallsV1 { edges: edges() }
@@ -68,7 +68,7 @@ fn wall_migration_releases_only_frozen_wall_cells_and_preserves_every_other_fiel
         29
     );
     let saved = after.save_snapshot_v2();
-    let twice = architecture::restore(saved.clone(), pack).unwrap();
+    let twice = architecture::restore(saved.clone(), pack, None).unwrap();
     assert_eq!(twice.save_snapshot_v2(), saved);
 }
 
@@ -92,7 +92,7 @@ fn wall_migration_preserves_entity_holes_reservations_and_queued_commands() {
     let agent = before.entities.iter().find(|e| e.agent).unwrap().index;
     before.queued_commands = vec![SavedCommand::Select(Some(agent)), SavedCommand::SetSpeed(3)];
     before.sleep_pressure = vec![(agent, 47)];
-    let after = restore(before.clone(), destination()).unwrap();
+    let after = restore(before.clone(), destination(), None).unwrap();
     assert_eq!(after.save_snapshot(), expected_after(before));
     assert!(matches!(
         after.save_snapshot_v2().layout,
@@ -107,7 +107,7 @@ fn wall_migration_never_reinterprets_an_explicit_v2_legacy_world() {
         world,
         layout: SavedLayout::LegacyAuthoredV1,
     };
-    let after = architecture::restore(snapshot.clone(), destination()).unwrap();
+    let after = architecture::restore(snapshot.clone(), destination(), None).unwrap();
     assert_eq!(after.save_snapshot_v2(), snapshot);
 }
 
@@ -148,7 +148,7 @@ fn wall_migration_keeps_custom_current_v1_worlds_byte_exact() {
     changed.entities.push(object);
     cases.push(changed);
     for before in cases {
-        let after = restore(before.clone(), destination()).unwrap();
+        let after = restore(before.clone(), destination(), None).unwrap();
         assert_eq!(after.save_snapshot(), before);
         assert_eq!(
             after.save_snapshot_v2().layout,
@@ -179,7 +179,7 @@ fn wall_migration_requires_the_reviewed_destination_geometry_and_footprints() {
     for pack in cases {
         let mut before = original.clone();
         before.content_fingerprint = terri_data::content_fingerprint(&pack);
-        let after = restore(before.clone(), Box::leak(Box::new(pack))).unwrap();
+        let after = restore(before.clone(), Box::leak(Box::new(pack)), None).unwrap();
         assert_eq!(after.save_snapshot(), before);
         assert_eq!(
             after.save_snapshot_v2().layout,
@@ -193,7 +193,7 @@ fn wall_migration_preserves_all_old_steps_and_object_approaches_and_opens_five_d
     let source = source_sim();
     let before = source.save_snapshot();
     let destination = destination();
-    let after = restore(before.clone(), destination).unwrap();
+    let after = restore(before.clone(), destination, None).unwrap();
     let old = source.world.resource::<TileGrid>();
     let new = after.world.resource::<TileGrid>();
     let mut old_steps = 0;
@@ -279,7 +279,7 @@ fn wall_migration_preserves_sampled_running_legacy_worlds_and_fractional_first_s
             continue;
         }
         let before = source.save_snapshot();
-        let after = restore(before.clone(), pack).unwrap();
+        let after = restore(before.clone(), pack, None).unwrap();
         assert_eq!(
             after.save_snapshot(),
             expected_after(before.clone()),

@@ -791,8 +791,8 @@ translates observed outcomes into a small semantic event vocabulary:
 reading, and exercise cadence, source-owned object sound start and stop edges,
 and reserved door open and close events. Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
-Door events are schema only until the static front door has an authoritative
-transition. Semantic events do not imply audible feedback. Routine staged
+Door audio events remain reserved and are not emitted by the animated portal
+renderer. Semantic events do not imply audible feedback. Routine staged
 commands and completed controls remain silent; `command.rejected` is the only
 current routine-interface event mapped to a sound.
 

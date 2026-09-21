@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from PIL import Image, ImageChops                              # noqa: E402
 
 import objects                                                  # noqa: E402
+import front_door                                               # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
 from offline_sims import load_export, runtime_tables             # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
@@ -113,6 +114,10 @@ SITTING_PIXELS_SHA256 = (
 # from decoded records, not packed coordinates or PNG encoder output.
 SLEEPING_PIXELS_SHA256 = (
     "dd75d83e0947596d5cb63d5aad2eade66bc913f1414aff418f4a243fced92632"
+)
+# Reviewed fixed frame plus closed, ajar, and open left-hinged leaf states.
+FRONT_DOOR_PIXELS_SHA256 = (
+    "8bd47d4e4e07f4b954b02f088fef482216608110b12edf60f10519b40310b64d"
 )
 
 
@@ -729,18 +734,40 @@ def validate_joined_walls_contract(sprites):
                 raise SystemExit("doorway adds a seam at the panel edge")
 
 
-def render_sprites(drawers):
+def render_sprites(drawers, exact=None):
+    exact = objects.EXACT if exact is None else exact
     out = []
     for fn in drawers:
         img, d = canvas()
         fn(d)
-        ew, eh = objects.EXACT.get(fn.__name__, (None, None))
+        ew, eh = exact.get(fn.__name__, (None, None))
         try:
             crop, w, h = emit(img, ew, eh)
         except ValueError as err:
             raise SystemExit(f"{fn.__name__}: {err}") from err
         out.append((fn.__name__, crop, w, h))
     return out
+
+
+def append_front_door_sprites(sprites):
+    """Append the portal after every existing atlas record."""
+    start = len(sprites)
+    records = render_sprites(front_door.SPRITES, exact=front_door.EXACT)
+    if [record[0] for record in records] != [
+        "frontDoorFrameSELeft",
+        "frontDoorClosedSELeft",
+        "frontDoorAjarSELeft",
+        "frontDoorOpenSELeft",
+    ]:
+        raise SystemExit("front-door sprite order changed")
+    if any((record[2], record[3]) != front_door.ENVELOPE for record in records):
+        raise SystemExit("front-door sprites lost their shared envelope")
+    if len({record[1].tobytes() for record in records[1:]}) != 3:
+        raise SystemExit("closed, ajar, and open door leaves must differ")
+    if sprite_record_digest(records) != FRONT_DOOR_PIXELS_SHA256:
+        raise SystemExit("reviewed front-door pixels changed")
+    sprites.extend(records)
+    return start
 
 
 def render_all():
@@ -1064,6 +1091,7 @@ def main():
             interactions.update(more_profiles)
     # Endpoint endcaps append after every imported asset; all prior indices stay fixed.
     sprites.extend(render_sprites(objects.WALL_HALF_SPRITES))
+    append_front_door_sprites(sprites)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

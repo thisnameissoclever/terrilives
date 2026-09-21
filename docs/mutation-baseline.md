@@ -1,5 +1,61 @@
 # Mutation Testing Baseline
 
+## Frozen bathtub migration equivalents, 2026-09-20
+
+The front-door PR's full CI sweep exposed 36 unbaselined survivors inherited
+from the bathtub migration. Eight are equivalent within that migration's
+accepted input domain; regression tests now catch the other 28.
+
+The exact 36-mutant rerun completed in 22 minutes: 28 caught, eight missed,
+zero unviable and zero timeouts. The eight misses exactly match the reviewed
+entries below after the same address normalization used by CI. The isolated
+source snapshot predates `04fd0c8`'s destination guard; these mutations test
+the known-D migration path, whose behavior that guard does not change. This
+targeted result does not replace the full exact-head GitHub sweep.
+
+1. Seven `object_tile` mutations change the lower-bound comparisons or join
+   its bounds predicates with `&&`. Its only caller is `bathtub_origins` in
+   `rotate_world`. The frozen source-layout validator requires the bathtub at
+   exactly `(14,9)` in a `16x12` grid. Every listed mutation returns that same
+   tile for this accepted input. A distinguishing position either fails the
+   bounds check or reaches `source_layout::validate` and fails there, before
+   any collision cells or entities are changed. Both outcomes are
+   `SaveError::InvalidGrid`; neither commits the candidate world. The original
+   finite-position and snapshot validation also remains before this helper.
+   This argument depends on the complete frozen source-layout gate. It must
+   be revisited if that migration starts accepting moved source bathtubs.
+2. The stationary-axis comparison `start < low` changed to `start <= low`
+   in `segment_crosses_cell` cannot distinguish an input. This branch requires
+   `delta == 0`, so `start == end`; the endpoint is an integer tile coordinate.
+   The lower cell boundary is an integer coordinate minus `0.5`. Those values
+   cannot be equal. The conversion to `f64` represents these `i32` coordinates
+   and their half-integer boundaries exactly. This does not excuse the final
+   `enter < leave` comparison: a segment merely touching a boundary is a real,
+   separately tested distinction.
+
+## Front-door equivalent mutants, 2026-09-20
+
+The focused 78-mutant portal sweep found three equivalent operations. These
+are the only portal additions to the baseline; uncovered directional and
+distance-boundary behavior received regression tests instead.
+
+1. `sync_portals`, priority `>` to `>=`: the projection returns only the four
+   declared states, and each has a distinct priority. Equal priority means
+   the same state, so assigning it again cannot change the result.
+2. `sync_portals`, depth `*` to `/`: a cardinal outward normal has one zero
+   coordinate and one coordinate equal to `1` or `-1`. Their sum is exactly
+   `1` or `-1`; multiplying or dividing `0.5` by either produces the same
+   signed depth. The all-facing test constrains the cardinal mapping.
+3. `crossing_position`, cutoff `>` to `>=`: at distance exactly one, the
+   projection scale is zero. Returning before that calculation yields the
+   same displayed position as adding the zero offset. This function has no
+   other side effects or saved state.
+
+The focused sweep reported 65 caught, 10 missed, three unviable and zero
+timeouts. Seven non-equivalent survivors are covered by the all-facing,
+outside-projection-window and inclusive-work-tolerance tests, with targeted
+mutation verification recorded in the front-door release evidence.
+
 **This document is the argument. `docs/mutants-baseline.txt` is the
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.

@@ -9,6 +9,13 @@ fn destination() -> &'static ContentPack {
     Box::leak(Box::new(pack))
 }
 
+fn restore_without_portals(
+    snapshot: SaveSnapshotV1,
+    content: &'static ContentPack,
+) -> Result<Sim, SaveError> {
+    restore(snapshot, content, None)
+}
+
 pub(super) fn old_snapshot() -> SaveSnapshotV1 {
     let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
     for (x, y) in terri_core::layout::LEGACY_WALL_TILES {
@@ -29,7 +36,7 @@ fn agent(snapshot: &mut SaveSnapshotV1) -> &mut SavedEntity {
 fn bathtub_rotation_changes_only_collision_and_resaves_idempotently() {
     let before = old_snapshot();
     let pack = destination();
-    let migrated = restore(before.clone(), pack)
+    let migrated = restore_without_portals(before.clone(), pack)
         .expect("reviewed old footprint migrates")
         .save_snapshot();
     let mut expected = before;
@@ -40,8 +47,122 @@ fn bathtub_rotation_changes_only_collision_and_resaves_idempotently() {
     assert_eq!(migrated, expected);
     assert!(migrated.blocked_tiles[9 * width + 14]);
     assert_eq!(
-        restore(migrated.clone(), pack).unwrap().save_snapshot(),
+        restore_without_portals(migrated.clone(), pack)
+            .unwrap()
+            .save_snapshot(),
         migrated
+    );
+}
+
+#[test]
+fn public_bathtub_and_portal_migrations_keep_their_distinct_source_shapes() {
+    let before_bathtub = old_snapshot();
+    assert_eq!(before_bathtub.content_fingerprint, 0xa020_602a_6acd_3a90);
+    let pack = destination();
+    let after_bathtub = restore_without_portals(before_bathtub, pack)
+        .expect("the exact public pre-bathtub source migrates")
+        .save_snapshot();
+    let mut before_portal = after_bathtub.clone();
+    before_portal.content_fingerprint = 0xbcdd_476e_1e23_8ab0;
+    let after_portal = restore_without_portals(before_portal, pack)
+        .expect("the exact public pre-portal source migrates")
+        .save_snapshot();
+
+    assert_eq!(after_bathtub, after_portal);
+    assert_eq!(
+        after_portal.content_fingerprint,
+        terri_data::content_fingerprint(pack)
+    );
+
+    let mut unpublished = old_snapshot();
+    unpublished.content_fingerprint = 0xd1c8_9f68_9f73_2f30;
+    assert!(matches!(
+        restore_without_portals(unpublished, pack),
+        Err(SaveError::IncompatibleContent)
+    ));
+}
+
+#[test]
+fn bathtub_migration_rejects_an_unreviewed_return_landing_before_grid_validation() {
+    let source = old_snapshot();
+    let width = source.grid_width as usize;
+    assert!(
+        !source.blocked_tiles[3 * width + 14],
+        "the moved landing witness must be clear so occupancy is not the rejection reason"
+    );
+    let mut changed = destination().clone();
+    changed.portals[0].inward = (14, 3);
+    assert_ne!(
+        terri_data::content_fingerprint(&changed),
+        0xfdf5_87d9_437f_bfd0
+    );
+
+    assert_eq!(
+        restore_without_portals(source, Box::leak(Box::new(changed))).err(),
+        Some(SaveError::IncompatibleContent),
+        "the old bathtub migration cannot authorize a future portal route"
+    );
+}
+
+#[test]
+fn bathtub_migration_accepts_only_the_two_reviewed_destination_digests() {
+    let source = old_snapshot();
+    let current = destination();
+    assert_eq!(
+        terri_data::content_fingerprint(current),
+        0xfdf5_87d9_437f_bfd0
+    );
+    assert!(restore_without_portals(source.clone(), current).is_ok());
+
+    let mut before_portal = current.clone();
+    before_portal.portals.clear();
+    assert_eq!(
+        terri_data::content_fingerprint(&before_portal),
+        0xbcdd_476e_1e23_8ab0
+    );
+    let before_portal = Box::leak(Box::new(before_portal));
+    let rotated = restore_without_portals(source.clone(), before_portal)
+        .expect("the public pre-portal release remains a reviewed bathtub destination")
+        .save_snapshot();
+    assert_eq!(rotated.content_fingerprint, 0xbcdd_476e_1e23_8ab0);
+
+    let mut presentation_only = current.clone();
+    let portal = &mut presentation_only.portals[0];
+    portal.facing = terri_data::CompiledSocketFacing::NegativeX;
+    portal.hinge = terri_data::CompiledPortalHinge::Right;
+    portal.frame_sprite = portal.frame_sprite.wrapping_add(1);
+    portal.closed_sprite = portal.closed_sprite.wrapping_add(1);
+    portal.ajar_sprite = portal.ajar_sprite.wrapping_add(1);
+    portal.open_sprite = portal.open_sprite.wrapping_add(1);
+    assert_eq!(
+        terri_data::content_fingerprint(&presentation_only),
+        0xfdf5_87d9_437f_bfd0
+    );
+    assert!(
+        restore_without_portals(source.clone(), Box::leak(Box::new(presentation_only))).is_ok()
+    );
+
+    let mut moved_identity = current.clone();
+    moved_identity.portals[0].position = (0, 2);
+    let mut extra_portal = current.clone();
+    extra_portal.portals.push(extra_portal.portals[0].clone());
+    for (label, changed) in [
+        ("moved portal identity", moved_identity),
+        ("extra portal", extra_portal),
+    ] {
+        assert_eq!(
+            restore_without_portals(source.clone(), Box::leak(Box::new(changed))).err(),
+            Some(SaveError::IncompatibleContent),
+            "{label} must close the old bathtub bridge"
+        );
+    }
+
+    let mut moved_landing = current.clone();
+    moved_landing.portals[0].inward = (14, 3);
+    assert_eq!(
+        restore_without_portals(rotated, Box::leak(Box::new(moved_landing))).err(),
+        Some(SaveError::IncompatibleContent),
+        "the direct pre-portal bridge must remain pinned to its reviewed landing"
     );
 }
 
@@ -58,7 +179,7 @@ fn bathtub_rotation_relocates_newly_blocked_agent_and_repairs_walking_route() {
             steps: vec![(14, 10), (15, 10), (15, 11)],
             cursor: 0,
         });
-        let after = restore(before.clone(), destination())
+        let after = restore_without_portals(before.clone(), destination())
             .unwrap()
             .save_snapshot();
         let a = after.entities.iter().find(|e| e.agent).unwrap();
@@ -71,6 +192,96 @@ fn bathtub_rotation_relocates_newly_blocked_agent_and_repairs_walking_route() {
         expected.path = a.path.clone();
         assert_eq!(*a, expected);
     }
+}
+
+#[test]
+fn bathtub_rotation_keeps_relocated_step_work_beside_its_active_object() {
+    let mut before = old_snapshot();
+    let sink = before
+        .entities
+        .iter_mut()
+        .find(|e| e.smart_object.as_deref() == Some("sink"))
+        .unwrap();
+    sink.reserved = true;
+    let sink_index = sink.index;
+    let a = agent(&mut before);
+    a.position = Some(SavedPosition { x: 14.0, y: 10.0 });
+    a.target = Some(SavedTarget {
+        object: sink_index,
+        interaction: 0,
+    });
+    a.step_work_ticks = Some(39);
+
+    let after = restore_without_portals(before, destination())
+        .unwrap()
+        .save_snapshot();
+    let a = after.entities.iter().find(|e| e.agent).unwrap();
+
+    assert_eq!(a.position, Some(SavedPosition { x: 13.0, y: 10.0 }));
+    assert_eq!(a.step_work_ticks, Some(39));
+    assert_eq!(a.target.unwrap().object, sink_index);
+}
+
+#[test]
+fn bathtub_rotation_replans_an_empty_target_path_after_relocation() {
+    let mut before = old_snapshot();
+    let partner = before
+        .entities
+        .iter_mut()
+        .find(|e| e.sim_id == Some(1))
+        .unwrap();
+    partner.position = Some(SavedPosition { x: 13.0, y: 11.0 });
+    partner.reserved = true;
+    let partner_index = partner.index;
+    let a = agent(&mut before);
+    a.position = Some(SavedPosition { x: 14.0, y: 10.0 });
+    a.target = Some(SavedTarget {
+        object: partner_index,
+        interaction: 0,
+    });
+    a.path = Some(SavedPath {
+        steps: Vec::new(),
+        cursor: 0,
+    });
+
+    let after = restore_without_portals(before, destination())
+        .unwrap()
+        .save_snapshot();
+    let a = after.entities.iter().find(|e| e.agent).unwrap();
+    let steps = &a.path.as_ref().unwrap().steps;
+
+    assert!(
+        !steps.is_empty(),
+        "relocation must rebuild the exhausted approach"
+    );
+    assert_eq!(steps.last(), Some(&(14, 11)));
+}
+
+#[test]
+fn bathtub_rotation_replans_when_only_a_later_path_step_is_newly_blocked() {
+    let mut before = old_snapshot();
+    let a = agent(&mut before);
+    a.position = Some(SavedPosition { x: 13.0, y: 11.0 });
+    a.path = Some(SavedPath {
+        steps: vec![(13, 10), (14, 10), (15, 10)],
+        cursor: 0,
+    });
+
+    let after = restore_without_portals(before, destination())
+        .unwrap()
+        .save_snapshot();
+    let steps = &after
+        .entities
+        .iter()
+        .find(|e| e.agent)
+        .unwrap()
+        .path
+        .as_ref()
+        .unwrap()
+        .steps;
+
+    assert!(!steps.contains(&(14, 10)));
+    assert_eq!(steps.last(), Some(&(15, 10)));
 }
 
 #[test]
@@ -94,7 +305,7 @@ fn bathtub_rotation_repairs_a_fractional_segment_even_when_its_waypoint_is_clear
         object: partner_index,
         interaction: 0,
     });
-    let after = restore(before.clone(), destination())
+    let after = restore_without_portals(before.clone(), destination())
         .unwrap()
         .save_snapshot();
     let a = after.entities.iter().find(|e| e.agent).unwrap();
@@ -126,7 +337,7 @@ fn bathtub_rotation_keeps_a_fractional_segment_that_misses_the_new_cell() {
         object: partner_index,
         interaction: 0,
     });
-    let after = restore(before.clone(), destination())
+    let after = restore_without_portals(before.clone(), destination())
         .unwrap()
         .save_snapshot();
     assert_eq!(after.entities, before.entities);
@@ -161,7 +372,7 @@ fn bathtub_rotation_preserves_active_bath_timers_and_only_moves_nonadjacent_user
             interaction: 0,
             remaining_ticks: 47,
         });
-        let after = restore(before.clone(), destination())
+        let after = restore_without_portals(before.clone(), destination())
             .unwrap()
             .save_snapshot();
         let a = after.entities.iter().find(|e| e.agent).unwrap();
@@ -185,13 +396,13 @@ fn bathtub_rotation_rejects_source_corruption_and_unreviewed_destination() {
     let mut bad = old_snapshot();
     agent(&mut bad).needs = Some([f32::NAN; terri_core::NEED_COUNT]);
     assert!(matches!(
-        restore(bad, destination()),
+        restore_without_portals(bad, destination()),
         Err(SaveError::InvalidValue)
     ));
     let mut changed = destination().clone();
     changed.objects[0].footprint.width += 1;
     assert!(matches!(
-        restore(old_snapshot(), Box::leak(Box::new(changed))),
+        restore_without_portals(old_snapshot(), Box::leak(Box::new(changed))),
         Err(SaveError::IncompatibleContent)
     ));
 }
@@ -226,7 +437,9 @@ fn bathtub_rotation_repairs_a_targeted_walk_to_the_old_far_edge() {
         object: tub,
         interaction: 0,
     });
-    let after = restore(before, destination()).unwrap().save_snapshot();
+    let after = restore_without_portals(before, destination())
+        .unwrap()
+        .save_snapshot();
     let a = after.entities.iter().find(|e| e.agent).unwrap();
     assert!(matches!(
         a.path.as_ref().unwrap().steps.last(),
@@ -300,7 +513,7 @@ fn bathtub_rotation_leaves_a_still_valid_bath_walk_unchanged() {
         steps: vec![(14, 11), (15, 11), (15, 10)],
         cursor: 1,
     });
-    let after = restore(before.clone(), destination())
+    let after = restore_without_portals(before.clone(), destination())
         .unwrap()
         .save_snapshot();
     assert_eq!(after.entities, before.entities);
@@ -311,13 +524,14 @@ fn bathtub_rotation_rejects_a_malformed_source_path_instead_of_repairing_it() {
     for steps in [
         vec![(-1, 10), (14, 10), (15, 10)],
         vec![(13, 8), (14, 10), (15, 10)],
+        vec![(13, 8), (13, 10), (14, 10)],
     ] {
         let mut source = old_snapshot();
         let a = agent(&mut source);
         a.position = Some(SavedPosition { x: 13.0, y: 10.0 });
         a.path = Some(SavedPath { steps, cursor: 0 });
         assert!(matches!(
-            restore(source, destination()),
+            restore_without_portals(source, destination()),
             Err(SaveError::InvalidGrid)
         ));
     }
@@ -369,7 +583,7 @@ fn bathtub_rotation_preserves_an_active_conversation_and_stationary_partner() {
                     e.reserved = true;
                 }
             }
-            let mut after = restore(before.clone(), destination())
+            let mut after = restore_without_portals(before.clone(), destination())
                 .unwrap()
                 .save_snapshot();
             let moved = after
@@ -419,6 +633,7 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
     let mut source_pack = destination().clone();
     let tub = source_pack.find("bathtub").unwrap();
     source_pack.objects[tub.0 as usize].footprint = terri_data::Footprint { width: 2, depth: 1 };
+    source_pack.portals.clear();
     assert_eq!(
         terri_data::content_fingerprint(&source_pack),
         0xa020_602a_6acd_3a90
@@ -437,7 +652,7 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
         source.tick();
         if tick % 10 == 0 {
             let before = source.save_snapshot();
-            let mut restored = restore(before.clone(), pack)
+            let mut restored = restore_without_portals(before.clone(), pack)
                 .unwrap_or_else(|error| panic!("source tick {tick}: {error:?}"));
             let mut after = restored.save_snapshot();
             for (current, previous) in after.entities.iter_mut().zip(&before.entities) {
@@ -501,7 +716,7 @@ fn bathtub_rotation_source_layout_is_frozen_independently_of_destination_lot() {
     let mut changed = destination().clone();
     changed.lot.walls.clear();
     changed.lot.placements.clear();
-    let after = restore(source.clone(), Box::leak(Box::new(changed)))
+    let after = restore_without_portals(source.clone(), Box::leak(Box::new(changed)))
         .unwrap()
         .save_snapshot();
     assert_eq!(after.entities, source.entities);
@@ -529,7 +744,7 @@ fn bathtub_rotation_preserves_permuted_entity_slots_holes_and_reservations() {
         .find(|e| e.smart_object.as_deref() == Some("bathtub"))
         .unwrap()
         .reserved = true;
-    let after = restore(source.clone(), destination())
+    let after = restore_without_portals(source.clone(), destination())
         .unwrap()
         .save_snapshot();
     assert_eq!(after.entities, source.entities);
@@ -547,7 +762,7 @@ fn current_digest_custom_layouts_do_not_enter_bathtub_migration() {
     radio.position.as_mut().unwrap().x += 0.25;
     source.blocked_tiles[8 * source.grid_width as usize + 8] = true;
     assert_eq!(
-        restore(source.clone(), destination())
+        restore_without_portals(source.clone(), destination())
             .unwrap()
             .save_snapshot(),
         source

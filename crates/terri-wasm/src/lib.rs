@@ -8,6 +8,9 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+#[cfg(test)]
+mod spawn_boundary_tests;
+
 /// The level a non-finite hunger argument is replaced with. Either end of
 /// the range would do; what matters is that it is finite and in range.
 /// `NEED_MAX` is chosen because it is the value the sim itself produces
@@ -403,6 +406,35 @@ impl SimHandle {
     /// sentinel. Re-read after every sync or memory growth.
     pub fn foreground_sprites_ptr(&self) -> *const u32 {
         self.sim.render_buffer().foreground_sprites.as_ptr()
+    }
+
+    /// Portals have no entity IDs and cannot become interaction targets.
+    pub fn portal_count(&self) -> usize {
+        self.sim.portal_buffer().states.len()
+    }
+
+    pub fn portal_positions_ptr(&self) -> *const f32 {
+        self.sim.portal_buffer().positions.as_ptr()
+    }
+
+    pub fn portal_frames_ptr(&self) -> *const u32 {
+        self.sim.portal_buffer().frames.as_ptr()
+    }
+
+    pub fn portal_depth_offsets_ptr(&self) -> *const f32 {
+        self.sim.portal_buffer().depth_offsets.as_ptr()
+    }
+
+    pub fn portal_leaves_ptr(&self) -> *const u32 {
+        self.sim.portal_buffer().leaves.as_ptr()
+    }
+
+    pub fn portal_reduced_leaves_ptr(&self) -> *const u32 {
+        self.sim.portal_buffer().reduced_leaves.as_ptr()
+    }
+
+    pub fn portal_states_ptr(&self) -> *const u32 {
+        self.sim.portal_buffer().states.as_ptr()
     }
 
     /// What each row is doing, as `render_buffer::activity` codes -
@@ -1314,6 +1346,51 @@ mod boundary_tests {
     }
 
     #[test]
+    fn actual_previous_main_schema2_save_gains_the_portal_without_rewriting_its_layout() {
+        // Captured from c0eca30's checked-in browser module. The JS and WASM
+        // SHA-256 values were d2e855c70ad938dab7bd44646b4883366f1c6db762eaec900304f5e3946482c5
+        // and eaf35f7b68825a303ccd6c96fc5d3e4b5d40c057cc46846376f29535541ac99f.
+        let hex: String = include_str!("../tests/fixtures/pre-front-door-schema2.hex")
+            .split_whitespace()
+            .collect();
+        let bytes: Vec<u8> = hex
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        assert_eq!(bytes.len(), 2679);
+        assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
+        assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[2, 0]);
+
+        let prior: terri_core::SaveSnapshotV2 =
+            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        assert_eq!(prior.world.content_fingerprint, 0xbcdd_476e_1e23_8ab0);
+        assert!(matches!(
+            &prior.layout,
+            terri_core::layout::SavedLayout::EdgeWallsV1 { edges } if edges.len() == 34
+        ));
+
+        let mut migrated = SimHandle::from_lot();
+        assert_eq!(migrated.portal_count(), 1);
+        assert!(migrated.load_bytes(&bytes));
+        assert_eq!(migrated.portal_count(), 1);
+
+        let current = migrated.sim.save_snapshot_v2();
+        let mut expected_world = prior.world;
+        expected_world.content_fingerprint = 0xfdf5_87d9_437f_bfd0;
+        assert_eq!(current.world, expected_world);
+        assert_eq!(current.layout, prior.layout);
+        assert_eq!(migrated.wall_layout_kind(), 1);
+        assert_eq!(migrated.wall_edges().len(), 34 * 4);
+
+        let resaved = migrated.save_bytes();
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&resaved));
+        assert_eq!(resumed.portal_count(), 1);
+        assert_eq!(resumed.sim.save_snapshot_v2(), current);
+    }
+
+    #[test]
     fn save_bytes_round_trip_and_continue_the_running_sim() {
         let mut uninterrupted = SimHandle::from_lot();
         for _ in 0..173 {
@@ -1862,6 +1939,129 @@ mod boundary_tests {
             "the exported pointer must address the same rows entity_count \
              promises"
         );
+    }
+
+    #[test]
+    fn portal_exports_address_the_shipped_portal_in_closed_opening_and_open_states() {
+        let mut handle = SimHandle::from_lot();
+        let (position, frame, closed, ajar, open) = {
+            let portals = &handle.sim.world().resource::<Content>().0.portals;
+            assert_eq!(portals.len(), 1, "the shipped lot has one front door");
+            let portal = &portals[0];
+            (
+                portal.position,
+                portal.frame_sprite,
+                portal.closed_sprite,
+                portal.ajar_sprite,
+                portal.open_sprite,
+            )
+        };
+        assert_eq!(position, (15, 2), "the test must exercise shipped content");
+        assert_ne!(frame, closed, "the frame and closed leaf must be distinct");
+        assert_ne!(frame, ajar, "the frame and ajar leaf must be distinct");
+        assert_ne!(frame, open, "the frame and open leaf must be distinct");
+        assert_ne!(closed, ajar, "the closed and ajar leaves must be distinct");
+        assert_ne!(closed, open, "the closed and open leaves must be distinct");
+        assert_ne!(ajar, open, "the ajar and open leaves must be distinct");
+
+        assert_eq!(handle.portal_count(), 1);
+        assert_eq!(
+            addressed(handle.portal_positions_ptr(), 2, "portal_positions_ptr"),
+            vec![15.0, 2.0]
+        );
+        assert_eq!(
+            addressed(
+                handle.portal_depth_offsets_ptr(),
+                1,
+                "portal_depth_offsets_ptr"
+            ),
+            vec![0.5]
+        );
+        assert_eq!(
+            addressed(handle.portal_frames_ptr(), 1, "portal_frames_ptr"),
+            vec![frame]
+        );
+        assert_eq!(
+            addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
+            vec![closed]
+        );
+        assert_eq!(
+            addressed(
+                handle.portal_reduced_leaves_ptr(),
+                1,
+                "portal_reduced_leaves_ptr"
+            ),
+            vec![closed]
+        );
+        assert_eq!(
+            addressed(handle.portal_states_ptr(), 1, "portal_states_ptr"),
+            vec![terri_sim::portals::CLOSED]
+        );
+
+        let commuter = handle
+            .sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 15.0, y: 3.25 },
+                terri_core::Commuting,
+                terri_core::Path {
+                    steps: vec![(15, 2)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+        handle.sim.sync_render_buffer();
+
+        assert_eq!(handle.portal_count(), 1);
+        assert_eq!(
+            addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
+            vec![ajar],
+            "ordinary motion exposes the authored transition leaf"
+        );
+        assert_eq!(
+            addressed(
+                handle.portal_reduced_leaves_ptr(),
+                1,
+                "portal_reduced_leaves_ptr"
+            ),
+            vec![open],
+            "reduced motion skips the transition leaf"
+        );
+        assert_eq!(
+            addressed(handle.portal_states_ptr(), 1, "portal_states_ptr"),
+            vec![terri_sim::portals::OPENING]
+        );
+
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(commuter)
+            .insert(Position { x: 15.0, y: 2.25 });
+        handle.sim.sync_render_buffer();
+
+        assert_eq!(
+            addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
+            vec![open]
+        );
+        assert_eq!(
+            addressed(
+                handle.portal_reduced_leaves_ptr(),
+                1,
+                "portal_reduced_leaves_ptr"
+            ),
+            vec![open]
+        );
+        assert_eq!(
+            addressed(handle.portal_states_ptr(), 1, "portal_states_ptr"),
+            vec![terri_sim::portals::OPEN]
+        );
+    }
+
+    #[test]
+    fn an_empty_custom_handle_does_not_export_the_shipped_portal() {
+        let handle = SimHandle::new(8, 8);
+        assert_eq!(handle.portal_count(), 0);
     }
 
     #[test]

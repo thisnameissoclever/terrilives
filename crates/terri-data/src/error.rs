@@ -869,8 +869,49 @@ pub enum ContentError {
         width: u32,
         height: u32,
     },
+    /// An animated front door uses a facing outside the lot-axis vocabulary.
+    UnknownFrontDoorFacing {
+        facing: String,
+    },
+    /// An animated front door is not on exactly one lot edge.
+    FrontDoorNotOnUniqueEdge {
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    },
+    /// An animated front door's facing disagrees with its lot edge.
+    FrontDoorFacingMismatch {
+        x: u32,
+        y: u32,
+        facing: String,
+        expected: String,
+    },
+    /// An authored portal landing is outside the lot or not one cardinal step away.
+    InvalidFrontDoorEntry {
+        door_x: u32,
+        door_y: u32,
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    },
+    /// An animated front door uses a hinge outside the relative vocabulary.
+    UnknownFrontDoorHinge {
+        hinge: String,
+    },
+    /// An animated front door names an atlas sprite that does not exist.
+    UnknownFrontDoorSprite {
+        role: String,
+        sprite: String,
+    },
     /// A front door inside a wall or a footprint.
     FrontDoorBlocked {
+        x: u32,
+        y: u32,
+    },
+    /// The approach and return landing beside an animated front door is blocked.
+    FrontDoorEntryBlocked {
         x: u32,
         y: u32,
     },
@@ -1790,10 +1831,63 @@ impl fmt::Display for ContentError {
                 "the front door at ({x}, {y}) is outside the \
                  {width}x{height} lot"
             ),
+            ContentError::UnknownFrontDoorFacing { facing } => write!(
+                f,
+                "the front door faces '{facing}'; the current vocabulary is \
+                 NE, NW, SE, SW"
+            ),
+            ContentError::FrontDoorNotOnUniqueEdge {
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "the animated front door at ({x}, {y}) must stand on exactly \
+                 one edge of the {width}x{height} lot"
+            ),
+            ContentError::FrontDoorFacingMismatch {
+                x,
+                y,
+                facing,
+                expected,
+            } => write!(
+                f,
+                "the front door at ({x}, {y}) faces '{facing}', but that lot \
+                 edge opens toward '{expected}'"
+            ),
+            ContentError::InvalidFrontDoorEntry {
+                door_x,
+                door_y,
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "the front door at ({door_x}, {door_y}) uses entry ({x}, {y}); \
+                 an entry must be one cardinal step away and inside the \
+                 {width}x{height} lot"
+            ),
+            ContentError::UnknownFrontDoorHinge { hinge } => write!(
+                f,
+                "the front door declares hinge '{hinge}'; a hinge is left or \
+                 right relative to the outward facing"
+            ),
+            ContentError::UnknownFrontDoorSprite { role, sprite } => write!(
+                f,
+                "the front door names {role} sprite '{sprite}', which \
+                 atlas.toml does not hold"
+            ),
             ContentError::FrontDoorBlocked { x, y } => write!(
                 f,
                 "the front door at ({x}, {y}) stands in a wall or a \
                  footprint - nobody can leave through furniture"
+            ),
+            ContentError::FrontDoorEntryBlocked { x, y } => write!(
+                f,
+                "the front door's entry at ({x}, {y}) stands in a wall or a \
+                 footprint - nobody could approach or finish crossing there"
             ),
             ContentError::FrontDoorUnreachable {
                 x,

@@ -28,6 +28,7 @@ import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
+import { writePortals, type PortalSource } from './render/portals.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -777,6 +778,7 @@ export function advanceSimulationFrame(
  * honest about the columns it depends on. Every view is re-read on each call.
  */
 export interface RenderSource {
+  portals?(): PortalSource;
   readonly count: number;
   positions(): Float32Array;
   prevPositions(): Float32Array;
@@ -934,7 +936,8 @@ export function buildInstances(
   // each in the worst case, and the selection ring. Still [D11]-clean: the
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
-  const needed = (count * 4 + 1) * FLOATS_PER_INSTANCE;
+  const portals = source.portals?.();
+  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -1038,6 +1041,9 @@ export function buildInstances(
   // posts, rail and ladder over it without teaching the shell which object
   // owns those pixels.
   let slot = count;
+  if (portals !== undefined) {
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting);
+  }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
       const sprite = foregroundSprites[i];
@@ -1244,7 +1250,8 @@ export function instanceCount(source: RenderSource, selected: number | null,
       extras++;
     }
   }
-  return source.count + extras + (findSelectedRow(source, selected) === null ? 0 : 1);
+  return source.count + extras + (source.portals?.().portalCount ?? 0) * 2
+    + (findSelectedRow(source, selected) === null ? 0 : 1);
 }
 
 /**

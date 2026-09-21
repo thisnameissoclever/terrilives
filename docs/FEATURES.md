@@ -679,11 +679,12 @@ the spatial foundation for visitors, pets, disasters, and neighborhood play.
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
-Commutes already route through the front-door tile, but the door is static.
-The visible contract needs an authored hinge and facing, open and close frames,
-correct sub-object depth, a readable threshold crossing, and interruption-safe
-timing for departure and return. The animation must follow simulation state,
-pause, speed, save, and load like every other action animation.
+Commutes route through the front-door tile. The animated doorway is implemented
+and played locally: authored hinge and facing, open and close frames, body occlusion,
+and a step into the house on return. Door state follows simulation state,
+pause, speed, save and load. See
+`docs/specs/2026-09-20-front-door-and-builder.md` for the contract and release
+checks. Mutation checks, merge and Pages deployment remain open.
 
 ### [B-neighborhood-dynamics] Neighbors and households have a relationship map
 
@@ -805,6 +806,13 @@ than a layout anybody has to get right.
 
 Placement wants rotation, and rotation is what [B-facing] is about, so
 that lands first or alongside.
+
+The next release after the front door is furniture movement and supported
+rotation, as requested on 2026-09-20. Existing unmerged facing work must first
+be reconciled with main. This slice needs placement preview, confirm/cancel,
+collision and route validation, and saved positions and directions. Room and
+wall construction remain subsequent builder work. The implementation sequence
+is recorded in `docs/specs/2026-09-20-front-door-and-builder.md`.
 
 ### [B-facing] Objects know which way they face, and overlap follows
 

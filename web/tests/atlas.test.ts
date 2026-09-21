@@ -389,10 +389,16 @@ describe('the atlas manifest', () => {
     }
   });
 
-  it('preserves registration, sample counts and source hashes for each shirt palette', () => {
-    const green = JSON.parse(readFileSync('../assets/models/sims/sim-01/export/manifest.json', 'utf8'));
+  it('declares exactly the supported shirt palettes within the atlas size limit', () => {
     expect(Object.keys(RIGGED_SIM_VARIANTS).sort()).toEqual(['blue', 'green', 'red']);
-    for (const variant of ['blue', 'red']) {
+    expect(ATLAS_WIDTH).toBeLessThanOrEqual(8192);
+    expect(ATLAS_HEIGHT).toBeLessThanOrEqual(8192);
+  });
+
+  it.each(['blue', 'red'] as const)(
+    'preserves registration, sample counts and source hashes for the %s shirt palette',
+    (variant) => {
+      const green = JSON.parse(readFileSync('../assets/models/sims/sim-01/export/manifest.json', 'utf8'));
       const directory = `../assets/models/sims/sim-01/export/${variant}`;
       const manifest = JSON.parse(readFileSync(`${directory}/manifest.json`, 'utf8'));
       expect(manifest.variant).toBe(variant);
@@ -411,10 +417,8 @@ describe('the atlas manifest', () => {
           expect(SPRITE_HAND_FOREGROUND[index]).toBe(frame.hand_in_front);
         }
       }
-    }
-    expect(ATLAS_WIDTH).toBeLessThanOrEqual(8192);
-    expect(ATLAS_HEIGHT).toBeLessThanOrEqual(8192);
-  });
+    },
+  );
 
   it('appends the same two-pose exercise contract for every shirt without legacy bodies', () => {
     let registration: unknown;

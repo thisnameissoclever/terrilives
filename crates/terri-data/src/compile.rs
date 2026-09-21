@@ -9,9 +9,9 @@ use crate::error::ContentError;
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
-    CompiledPlacementSocket, CompiledSocketFacing, CompiledSoundAction, CompiledVisual,
-    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
-    ContentPack, ObjectDefId, Tuning,
+    CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge, CompiledSocketFacing,
+    CompiledSoundAction, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
+    CompiledVisualFacing, CompiledVoiceClip, ContentPack, ObjectDefId, Tuning,
 };
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
@@ -417,7 +417,7 @@ pub fn compile(
         .iter()
         .map(|object| object.foreground_sprite.clone())
         .collect();
-    let lot = compile_lot(
+    let (lot, portals) = compile_lot(
         lot,
         &compiled,
         &sprite_names,
@@ -533,6 +533,7 @@ pub fn compile(
         circadian,
         sleep_tag,
         voice_clips,
+        portals,
     })
 }
 
@@ -2362,7 +2363,7 @@ fn compile_lot(
     sprite_names: &[String],
     foreground_sprite_names: &[Option<String>],
     sprite_index: &dyn Fn(&str) -> Option<usize>,
-) -> Result<CompiledLot, ContentError> {
+) -> Result<(CompiledLot, Vec<CompiledPortal>), ContentError> {
     // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
     // walkable tile at all, so every agent on it silently never moves.
     // That is the shape of failure [D9] exists to convert into a build
@@ -2711,10 +2712,11 @@ fn compile_lot(
             ring.push((x1 + 1, y));
         }
         ring.into_iter()
-            .filter(|&(x, y)| x >= 0 && y >= 0 && x < lot.width as i64 && y < lot.height as i64)
             .map(|(x, y)| (x as u32, y as u32))
             .filter(|tile| !blocked.contains(tile))
             .filter(|&(x, y)| {
+                // The shared interaction predicate rejects out-of-grid contacts
+                // before adjacency arithmetic, including the ring's -1 edges.
                 grid.can_interact_with_rect(
                     (x as i32, y as i32),
                     (tile.0 as i32, tile.1 as i32),
@@ -2758,6 +2760,7 @@ fn compile_lot(
     // the rest of the lot ([E4]). Bounds and blockage here; the
     // reachability half joins the flood fill below, where the bitmap
     // already exists.
+    let mut portals = Vec::new();
     let front_door = match &lot.front_door {
         None => None,
         Some(door) => {
@@ -2779,6 +2782,17 @@ fn compile_lot(
             }
             if blocked.contains(&(x, y)) {
                 return Err(ContentError::FrontDoorBlocked { x, y });
+            }
+            if let Some(visual) = &door.visual {
+                portals.push(compile_front_door_visual(
+                    x,
+                    y,
+                    lot.width,
+                    lot.height,
+                    visual,
+                    &grid,
+                    sprite_index,
+                )?);
             }
             Some((x, y))
         }
@@ -2818,13 +2832,132 @@ fn compile_lot(
         }
     }
 
-    Ok(CompiledLot {
-        width: lot.width,
-        height: lot.height,
-        walls,
-        placements,
-        front_door,
-        wall_edges,
+    Ok((
+        CompiledLot {
+            width: lot.width,
+            height: lot.height,
+            walls,
+            placements,
+            front_door,
+            wall_edges,
+        },
+        portals,
+    ))
+}
+
+fn compile_front_door_visual(
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    visual: &crate::schema::FrontDoorVisualDef,
+    grid: &TileGrid,
+    sprite_index: &dyn Fn(&str) -> Option<usize>,
+) -> Result<CompiledPortal, ContentError> {
+    let facing = match visual.facing.as_str() {
+        "SE" => CompiledSocketFacing::PositiveX,
+        "NW" => CompiledSocketFacing::NegativeX,
+        "SW" => CompiledSocketFacing::PositiveY,
+        "NE" => CompiledSocketFacing::NegativeY,
+        facing => {
+            return Err(ContentError::UnknownFrontDoorFacing {
+                facing: facing.to_string(),
+            });
+        }
+    };
+
+    let on_positive_x = x == width - 1;
+    let on_negative_x = x == 0;
+    let on_positive_y = y == height - 1;
+    let on_negative_y = y == 0;
+    let edge_count = [on_positive_x, on_negative_x, on_positive_y, on_negative_y]
+        .into_iter()
+        .filter(|on_edge| *on_edge)
+        .count();
+    if edge_count != 1 {
+        return Err(ContentError::FrontDoorNotOnUniqueEdge {
+            x,
+            y,
+            width,
+            height,
+        });
+    }
+
+    let (expected, expected_name, default_entry) = if on_positive_x {
+        (CompiledSocketFacing::PositiveX, "SE", (x - 1, y))
+    } else if on_negative_x {
+        (CompiledSocketFacing::NegativeX, "NW", (x + 1, y))
+    } else if on_positive_y {
+        (CompiledSocketFacing::PositiveY, "SW", (x, y - 1))
+    } else {
+        (CompiledSocketFacing::NegativeY, "NE", (x, y + 1))
+    };
+    if facing != expected {
+        return Err(ContentError::FrontDoorFacingMismatch {
+            x,
+            y,
+            facing: visual.facing.clone(),
+            expected: expected_name.to_string(),
+        });
+    }
+
+    let inward = match &visual.entry {
+        None => default_entry,
+        Some(entry) => {
+            let in_bounds = entry.x >= 0
+                && entry.y >= 0
+                && (entry.x as u32) < width
+                && (entry.y as u32) < height;
+            let cardinally_adjacent = (i64::from(entry.x) - i64::from(x)).abs()
+                + (i64::from(entry.y) - i64::from(y)).abs()
+                == 1;
+            if !in_bounds || !cardinally_adjacent {
+                return Err(ContentError::InvalidFrontDoorEntry {
+                    door_x: x,
+                    door_y: y,
+                    x: entry.x,
+                    y: entry.y,
+                    width,
+                    height,
+                });
+            }
+            (entry.x as u32, entry.y as u32)
+        }
+    };
+    if !grid.can_step((x as i32, y as i32), (inward.0 as i32, inward.1 as i32)) {
+        return Err(ContentError::FrontDoorEntryBlocked {
+            x: inward.0,
+            y: inward.1,
+        });
+    }
+
+    let hinge = match visual.hinge.as_str() {
+        "left" => CompiledPortalHinge::Left,
+        "right" => CompiledPortalHinge::Right,
+        hinge => {
+            return Err(ContentError::UnknownFrontDoorHinge {
+                hinge: hinge.to_string(),
+            });
+        }
+    };
+    let resolve_sprite = |role: &str, sprite: &str| {
+        sprite_index(sprite)
+            .map(|index| index as u32)
+            .ok_or_else(|| ContentError::UnknownFrontDoorSprite {
+                role: role.to_string(),
+                sprite: sprite.to_string(),
+            })
+    };
+
+    Ok(CompiledPortal {
+        position: (x, y),
+        inward,
+        facing,
+        hinge,
+        frame_sprite: resolve_sprite("frame", &visual.frame_sprite)?,
+        closed_sprite: resolve_sprite("closed", &visual.closed_sprite)?,
+        ajar_sprite: resolve_sprite("ajar", &visual.ajar_sprite)?,
+        open_sprite: resolve_sprite("open", &visual.open_sprite)?,
     })
 }
 
@@ -2963,8 +3096,8 @@ mod tests {
     use super::*;
     use crate::schema::{
         ActionSocketDef, ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef,
-        HouseholdSimDef, InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, VisualDef,
-        VoiceClipDef, WallDef,
+        FrontDoorVisualDef, HouseholdSimDef, InteractionDef, NeedDef, ObjectDef, PlacementDef,
+        TraitDef, VisualDef, VoiceClipDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -2985,6 +3118,10 @@ mod tests {
                 "bed_art",
                 "sink_art",
                 "bed_foreground",
+                "door_frame",
+                "door_closed",
+                "door_ajar",
+                "door_open",
             ]
             .iter()
             .map(|name| AtlasSpriteDef {
@@ -3058,7 +3195,13 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **The voice library appended one field, and it is the LAST
+        // **Portal presentation appended one final field.** This fixture's
+        // coordinate-only lot compiles no portal rows, so the last byte is the
+        // new empty-vector length. The byte immediately before it remains the
+        // empty voice list. The golden test separately checks the established
+        // prefix before asserting the complete vector.
+        //
+        // **The voice library appended one field, now the penultimate
         // trailing `0`.** `ContentPack` gained `voice_clips`, and this
         // fixture lists no recordings, so postcard writes an empty sequence
         // as a single zero-length byte after the sleep tag. Every byte
@@ -3072,8 +3215,8 @@ mod tests {
         // rather than a determinism regression. `pack.rs`'s round-trip test
         // covers the encoding of a populated list instead.
         //
-        // **[ML-curve] appended one field before that, the second-to-last
-        // trailing `0`.** `ContentPack` gained `circadian: Option<Circadian>`, and
+        // **[ML-curve] appended one field before that.** `ContentPack` gained
+        // `circadian: Option<Circadian>`, and
         // this fixture authors no rhythm, so postcard writes `None` as one
         // byte at the very end. Every byte before it is unchanged, which
         // is the whole point of the appending rule on `ContentPack::lot`
@@ -3169,7 +3312,7 @@ mod tests {
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
         25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
-        101, 112, 0,
+        101, 112, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -4204,6 +4347,17 @@ mod tests {
         assert!(
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
+        );
+        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 1;
+        assert_eq!(
+            &bytes[..established_prefix_len],
+            &GOLDEN_PACK_BYTES[..established_prefix_len],
+            "adding the portal vector must not move an established pack byte"
+        );
+        assert_eq!(
+            &bytes[established_prefix_len..],
+            &[0],
+            "a coordinate-only lot appends one empty portal-vector byte"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
     }
@@ -5345,7 +5499,11 @@ mod tests {
         // career tests' holders have somewhere to leave from; the
         // doorless-lot rejection builds its own lot below.
         let mut lot = lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]);
-        lot.front_door = Some(crate::schema::FrontDoorDef { x: 3, y: 2 });
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 3,
+            y: 2,
+            visual: None,
+        });
         compile(
             full_needs(),
             one_object(snack),
@@ -5569,6 +5727,18 @@ mod tests {
         );
     }
 
+    fn portal_visual(facing: &str) -> FrontDoorVisualDef {
+        FrontDoorVisualDef {
+            facing: facing.into(),
+            hinge: "left".into(),
+            entry: None,
+            frame_sprite: "door_frame".into(),
+            closed_sprite: "door_closed".into(),
+            ajar_sprite: "door_ajar".into(),
+            open_sprite: "door_open".into(),
+        }
+    }
+
     /// The front door's three rules, each with its accepting side. The
     /// fixture is `compile_people_full`'s own 4x3 lot (wall at (1, 0),
     /// fridge on (2, 1)) so the numbers below are checkable against one
@@ -5579,7 +5749,7 @@ mod tests {
     fn a_front_door_must_stand_on_reachable_floor() {
         let with_door = |x: i32, y: i32| {
             let mut lot = lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]);
-            lot.front_door = Some(crate::schema::FrontDoorDef { x, y });
+            lot.front_door = Some(crate::schema::FrontDoorDef { x, y, visual: None });
             compile_bare(
                 full_needs(),
                 one_object(snack()),
@@ -5617,6 +5787,355 @@ mod tests {
             Some((3, 2)),
             "the compiled lot must carry the door it was authored"
         );
+        assert!(
+            pack.portals.is_empty(),
+            "legacy coordinate-only front doors must not invent portal visuals"
+        );
+    }
+
+    #[test]
+    fn a_visual_front_door_compiles_a_portal_row() {
+        let mut lot = lot_of(4, 3, &[], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 3,
+            y: 1,
+            visual: Some(portal_visual("SE")),
+        });
+
+        let pack = compile_bare(
+            full_needs(),
+            one_object(snack()),
+            lot,
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("an east-edge portal with clear floor is valid");
+
+        assert_eq!(
+            pack.portals,
+            vec![crate::pack::CompiledPortal {
+                position: (3, 1),
+                inward: (2, 1),
+                facing: crate::pack::CompiledSocketFacing::PositiveX,
+                hinge: crate::pack::CompiledPortalHinge::Left,
+                frame_sprite: atlas_index("door_frame"),
+                closed_sprite: atlas_index("door_closed"),
+                ajar_sprite: atlas_index("door_ajar"),
+                open_sprite: atlas_index("door_open"),
+            }]
+        );
+    }
+
+    #[test]
+    fn every_lot_edge_resolves_its_outward_facing_and_inward_tile() {
+        use crate::pack::CompiledSocketFacing::{NegativeX, NegativeY, PositiveX, PositiveY};
+
+        for (position, facing, expected_facing, inward) in [
+            ((4, 2), "SE", PositiveX, (3, 2)),
+            ((0, 2), "NW", NegativeX, (1, 2)),
+            ((2, 4), "SW", PositiveY, (2, 3)),
+            ((2, 0), "NE", NegativeY, (2, 1)),
+        ] {
+            let mut lot = lot_of(5, 5, &[], &[]);
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x: position.0,
+                y: position.1,
+                visual: Some(portal_visual(facing)),
+            });
+
+            let pack = compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .expect("each unique edge accepts its matching outward facing");
+            assert_eq!(
+                pack.portals[0].position,
+                (position.0 as u32, position.1 as u32)
+            );
+            assert_eq!(pack.portals[0].facing, expected_facing);
+            assert_eq!(pack.portals[0].inward, inward);
+        }
+    }
+
+    #[test]
+    fn rejects_visual_front_doors_without_one_unambiguous_outward_edge() {
+        for (x, y, label) in [(2, 2, "interior"), (0, 0, "corner")] {
+            let mut lot = lot_of(5, 5, &[], &[]);
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x,
+                y,
+                visual: Some(portal_visual("SE")),
+            });
+            assert_eq!(
+                compile_bare(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning(),
+                )
+                .unwrap_err(),
+                ContentError::FrontDoorNotOnUniqueEdge {
+                    x: x as u32,
+                    y: y as u32,
+                    width: 5,
+                    height: 5,
+                },
+                "{label}"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_a_visual_front_door_facing_the_wrong_way() {
+        let mut lot = lot_of(5, 5, &[], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 4,
+            y: 2,
+            visual: Some(portal_visual("NW")),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorFacingMismatch {
+                x: 4,
+                y: 2,
+                facing: "NW".into(),
+                expected: "SE".into(),
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_a_blocked_inward_portal_tile() {
+        let mut lot = lot_of(4, 3, &[(2, 1)], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 3,
+            y: 1,
+            visual: Some(portal_visual("SE")),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorEntryBlocked { x: 2, y: 1 }
+        );
+    }
+
+    #[test]
+    fn portal_landings_cannot_cross_solid_wall_edges() {
+        use terri_core::layout::EdgeAxis;
+
+        for (axis, edge_x, edge_y, entry) in [
+            (EdgeAxis::Vertical, 4, 2, None),
+            (EdgeAxis::Horizontal, 4, 3, Some((4, 3))),
+        ] {
+            for doorway in [false, true] {
+                let mut visual = portal_visual("SE");
+                visual.entry = entry.map(|(x, y)| crate::schema::PortalEntryDef { x, y });
+                let mut lot = lot_of(5, 5, &[], &[]);
+                lot.front_door = Some(crate::schema::FrontDoorDef {
+                    x: 4,
+                    y: 2,
+                    visual: Some(visual),
+                });
+                lot.wall_edge.push(crate::schema::WallEdgeDef {
+                    axis,
+                    x: edge_x,
+                    y: edge_y,
+                    doorway,
+                });
+                let result = compile_bare(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning(),
+                );
+                let (x, y) = entry.unwrap_or((3, 2));
+                if doorway {
+                    assert_eq!(
+                        result
+                            .expect("an open edge permits the return step")
+                            .portals[0]
+                            .inward,
+                        (x as u32, y as u32),
+                    );
+                } else {
+                    assert_eq!(
+                        result.unwrap_err(),
+                        ContentError::FrontDoorEntryBlocked {
+                            x: x as u32,
+                            y: y as u32
+                        },
+                        "a clear landing behind a solid edge is not a valid return step",
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn an_explicit_portal_entry_must_be_a_clear_cardinal_neighbor() {
+        let compile_entry = |entry: Option<crate::schema::PortalEntryDef>, walls: &[(i32, i32)]| {
+            let mut visual = portal_visual("SE");
+            visual.entry = entry;
+            let mut lot = lot_of(5, 5, walls, &[]);
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x: 4,
+                y: 2,
+                visual: Some(visual),
+            });
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+        };
+        let entry = |x, y| Some(crate::schema::PortalEntryDef { x, y });
+
+        for (x, y, label) in [(3, 2, "normal"), (4, 1, "north side"), (4, 3, "south side")] {
+            let compiled = compile_entry(entry(x, y), &[])
+                .expect("every clear cardinal approach inside the lot is valid");
+            assert_eq!(compiled.portals[0].inward, (x as u32, y as u32), "{label}");
+        }
+
+        for (x, y, label) in [
+            (2, 2, "nonadjacent"),
+            (5, 2, "outside x"),
+            (4, 5, "outside y"),
+        ] {
+            assert_eq!(
+                compile_entry(entry(x, y), &[]).unwrap_err(),
+                ContentError::InvalidFrontDoorEntry {
+                    door_x: 4,
+                    door_y: 2,
+                    x,
+                    y,
+                    width: 5,
+                    height: 5,
+                },
+                "{label}"
+            );
+        }
+
+        assert_eq!(
+            compile_entry(entry(4, 3), &[(4, 3)]).unwrap_err(),
+            ContentError::FrontDoorEntryBlocked { x: 4, y: 3 }
+        );
+
+        let mut south_visual = portal_visual("SW");
+        south_visual.entry = entry(2, 5);
+        let mut south_lot = lot_of(5, 5, &[], &[]);
+        south_lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 2,
+            y: 4,
+            visual: Some(south_visual),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                south_lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::InvalidFrontDoorEntry {
+                door_x: 2,
+                door_y: 4,
+                x: 2,
+                y: 5,
+                width: 5,
+                height: 5,
+            },
+            "a cardinally adjacent landing beyond the south boundary is invalid"
+        );
+    }
+
+    #[test]
+    fn rejects_each_missing_front_door_sprite_by_role() {
+        for role in ["frame", "closed", "ajar", "open"] {
+            let mut visual = portal_visual("SE");
+            let missing = format!("missing_{role}");
+            match role {
+                "frame" => visual.frame_sprite = missing.clone(),
+                "closed" => visual.closed_sprite = missing.clone(),
+                "ajar" => visual.ajar_sprite = missing.clone(),
+                "open" => visual.open_sprite = missing.clone(),
+                _ => unreachable!(),
+            }
+            let mut lot = lot_of(4, 3, &[], &[]);
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x: 3,
+                y: 1,
+                visual: Some(visual),
+            });
+            assert_eq!(
+                compile_bare(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning(),
+                )
+                .unwrap_err(),
+                ContentError::UnknownFrontDoorSprite {
+                    role: role.into(),
+                    sprite: missing,
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_unknown_front_door_facing_and_hinge_names() {
+        let compile_visual = |visual: FrontDoorVisualDef| {
+            let mut lot = lot_of(4, 3, &[], &[]);
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x: 3,
+                y: 1,
+                visual: Some(visual),
+            });
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+        };
+
+        assert_eq!(
+            compile_visual(portal_visual("east")).unwrap_err(),
+            ContentError::UnknownFrontDoorFacing {
+                facing: "east".into()
+            }
+        );
+        let mut bad_hinge = portal_visual("SE");
+        bad_hinge.hinge = "middle".into();
+        assert_eq!(
+            compile_visual(bad_hinge).unwrap_err(),
+            ContentError::UnknownFrontDoorHinge {
+                hinge: "middle".into()
+            }
+        );
     }
 
     /// The sealed-pocket half, on the sealed-spawn fixture's geometry: a
@@ -5626,7 +6145,11 @@ mod tests {
     #[test]
     fn rejects_a_front_door_sealed_off_from_the_rest_of_the_lot() {
         let mut lot = lot_of(4, 3, &[(2, 0), (2, 1), (2, 2)], &[("fridge", 0.0, 0.0)]);
-        lot.front_door = Some(crate::schema::FrontDoorDef { x: 3, y: 1 });
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 3,
+            y: 1,
+            visual: None,
+        });
         assert_eq!(
             compile_bare(
                 full_needs(),
@@ -6767,6 +7290,30 @@ mod tests {
         (0..4)
             .map(|y| wall_edge("vertical", 2, y, doorway && y == 2))
             .collect()
+    }
+
+    #[test]
+    fn wall_edge_checks_the_south_approach_even_when_other_sides_are_reachable() {
+        for connected in [false, true] {
+            let mut authored = "[[place]]\nobject='fridge'\nx=2\ny=2\n".to_string();
+            for x in 0..5 {
+                authored.push_str(&wall_edge(
+                    "horizontal",
+                    x,
+                    3,
+                    x == 2 || (connected && x == 1),
+                ));
+            }
+            let result = compile_geometry(one_object(snack()), wall_edge_lot(&authored));
+            if connected {
+                result.expect("a second opening connects the south approach to the spawn region");
+            } else {
+                assert!(matches!(
+                    result,
+                    Err(ContentError::UnreachableApproach { x: 2, y: 3, .. })
+                ));
+            }
+        }
     }
 
     #[test]

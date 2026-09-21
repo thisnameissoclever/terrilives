@@ -63,12 +63,10 @@
 width = 16
 height = 12
 
-# Where a commute ends and the worker vanishes - [E4]. The east edge of
-# the living room, one tile south of the coat rack, which is the piece
-# of furniture that has been quietly claiming this is the entrance
-# since M2b. Ordinary floor, not a [B7] door; the boundary stays
-# implicitly solid and this merely names the leaving spot.
-front_door = { x = 15, y = 2 }
+# Where a commute ends and the worker crosses the front door - [E4]. The
+# east edge of the living room, one tile south of the coat rack. The tile
+# stays walkable while the visual portal supplies the frame and animated leaf.
+front_door = { x = 15, y = 2, visual = { facing = "SE", hinge = "left", entry = { x = 15, y = 3 }, frame_sprite = "frontDoorFrameSELeft", closed_sprite = "frontDoorClosedSELeft", ajar_sprite = "frontDoorAjarSELeft", open_sprite = "frontDoorOpenSELeft" } }
 
 wall_edge = [
   { axis = "vertical", x = 8, y = 0 },

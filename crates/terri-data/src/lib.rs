@@ -14,15 +14,17 @@ pub use error::ContentError;
 pub use pack::{
     CompiledActionSocket, CompiledCareer, CompiledChain, CompiledChainStep,
     CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
-    CompiledPlacement, CompiledPlacementSocket, CompiledSocketFacing, CompiledSoundAction,
-    CompiledTrait, CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
-    CompiledVisualFacing, CompiledVoiceClip, ContentPack, Footprint, ObjectDefId, Tuning,
+    CompiledPlacement, CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge,
+    CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
+    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
+    ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
-    ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile,
-    HouseholdSimDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
-    PersonalitiesFile, PlacementDef, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef,
-    VoiceFile, WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
+    ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, FrontDoorDef,
+    FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile, NeedDef,
+    NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile, PlacementDef, PortalEntryDef, TraitDef,
+    TraitsFile, TuningFile, VisualDef, VoiceClipDef, VoiceFile, WallDef, MAX_HOUSEHOLD_SIZE,
+    TRAIT_KINDS,
 };
 
 use std::sync::OnceLock;
@@ -66,13 +68,16 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///   station or hand-off.
 /// * Trait ids and their kind. Trait state is saved by id, but a capability
 ///   level must never be reinterpreted as a condition severity.
-/// * The optional front-door coordinate. Save V1 persists the old collision
-///   grid but career shifts still path to the current pack's door.
+/// * The optional front-door coordinate plus each portal's identity and return
+///   landing. Save V1 persists the old collision grid, but career shifts still
+///   path to the current pack's door and an AtWork worker's future return uses
+///   the current landing.
 ///
 /// What is deliberately NOT hashed: every number in `tuning.toml`, every
 /// advert delta, label, duration, tag, object-interaction visual contract,
 /// chain-step visual contract, object or chain-step sound action, action socket,
-/// every sprite index, every sim's NAME, the rest of the lot, careers,
+/// every sprite index, portal facing or hinge, every sim's NAME, the rest of
+/// the lot, careers,
 /// carried-item declaration order, and the circadian curve. Object, career,
 /// trait, chain, and carried-item string
 /// references are validated against the current pack while loading. Hobbies
@@ -148,6 +153,25 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
             hasher.write_u64(y as u64);
         }
         None => hasher.write_bytes(&[0]),
+    }
+
+    // A portal's identity and return landing change career routing, including
+    // the future route of a worker saved while AtWork. Art, hinge and facing
+    // remain presentation-only, but these coordinates must invalidate a save
+    // unless an exact reviewed migration says otherwise. An empty vector
+    // deliberately writes no bytes so this additive extension preserves every
+    // deployed pre-portal structural digest. Sort by identity because no saved
+    // state refers to the vector's declaration order.
+    if !pack.portals.is_empty() {
+        let mut portals: Vec<_> = pack.portals.iter().collect();
+        portals.sort_unstable_by_key(|portal| (portal.position, portal.inward));
+        hash_count(&mut hasher, portals.len());
+        for portal in portals {
+            hasher.write_u64(portal.position.0 as u64);
+            hasher.write_u64(portal.position.1 as u64);
+            hasher.write_u64(portal.inward.0 as u64);
+            hasher.write_u64(portal.inward.1 as u64);
+        }
     }
 
     let mut chains: Vec<_> = pack.chains.iter().collect();
@@ -227,6 +251,12 @@ const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
 // from 72d67c5 can still be loaded. The player-visible consequence is that
 // this release resets saved games, which the shell already reports as
 // "Saved game is invalid. Starting a new game."
+//
+// Front-door portals moved the reviewed target again without changing the
+// Save V1 wire format. Portal presence, identity and return landing affect a
+// worker's route, so the digest sees them. The separate pre-portal bridge
+// accepts the immediately preceding structural digest only for this exact
+// reviewed landing; moving it later closes the bridge automatically.
 
 /// Reviewed structural-digest migrations that do not carry any legacy data
 /// rewrite. The first bridge adds interaction row zero to two formerly inert
@@ -242,6 +272,15 @@ const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
 const PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
     &[(0x26d5_982c_9af8_3de8, 0xa020_602a_6acd_3a90)];
 
+/// The exact rotated-bathtub digest immediately before front-door portals
+/// gained a route landing. That source already has the current interaction
+/// rows and geometry and needs no legacy data rewrite. Keeping this separate from
+/// [`PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS`] prevents a valid aquarium or
+/// exercise-bike action from being mistaken for an impossible old row-zero
+/// reference during load validation.
+const PRE_PORTAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
+    &[(0xbcdd_476e_1e23_8ab0, 0xfdf5_87d9_437f_bfd0)];
+
 /// Whether a Save V1 fingerprint may load against this content pack.
 ///
 /// New saves carry [`content_fingerprint`]. The small migration table accepts
@@ -255,6 +294,9 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
             .iter()
             .any(|&(legacy, target)| saved == legacy && current == target)
         || PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS
+            .iter()
+            .any(|&(prior, target)| saved == prior && current == target)
+        || PRE_PORTAL_FINGERPRINT_MIGRATIONS
             .iter()
             .any(|&(prior, target)| saved == prior && current == target)
 }
@@ -346,6 +388,20 @@ mod tests {
             act.advertises,
             vec![(terri_core::NeedId::Hunger.index() as u8, 40.0)]
         );
+    }
+
+    #[test]
+    fn the_shipped_front_door_carries_its_boundary_and_side_entry_contract() {
+        let p = pack();
+        assert_eq!(p.portals.len(), 1);
+        let portal = &p.portals[0];
+        assert_eq!(portal.position, (15, 2));
+        assert_eq!(portal.inward, (15, 3));
+        assert_eq!(portal.facing, CompiledSocketFacing::PositiveX);
+        assert_eq!(portal.hinge, CompiledPortalHinge::Left);
+        assert_ne!(portal.frame_sprite, portal.closed_sprite);
+        assert_ne!(portal.closed_sprite, portal.ajar_sprite);
+        assert_ne!(portal.ajar_sprite, portal.open_sprite);
     }
 
     #[test]
@@ -866,6 +922,47 @@ mod tests {
     }
 
     #[test]
+    fn the_fingerprint_allows_portal_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        assert_eq!(original.portals.len(), 1);
+
+        let mut presentation_only = original;
+        let portal = &mut presentation_only.portals[0];
+        portal.facing = CompiledSocketFacing::NegativeX;
+        portal.hinge = CompiledPortalHinge::Right;
+        portal.frame_sprite = portal.frame_sprite.wrapping_add(1);
+        portal.closed_sprite = portal.closed_sprite.wrapping_add(1);
+        portal.ajar_sprite = portal.ajar_sprite.wrapping_add(1);
+        portal.open_sprite = portal.open_sprite.wrapping_add(1);
+
+        assert_eq!(base, content_fingerprint(&presentation_only));
+    }
+
+    #[test]
+    fn the_fingerprint_observes_portal_identity_and_return_landing() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        assert_eq!(original.portals.len(), 1);
+
+        let mut removed_portal = original.clone();
+        removed_portal.portals.clear();
+        assert_ne!(base, content_fingerprint(&removed_portal));
+
+        let mut moved_door = original.clone();
+        moved_door.portals[0].position = (14, 2);
+        assert_ne!(base, content_fingerprint(&moved_door));
+
+        let mut moved_landing = original;
+        moved_landing.portals[0].inward = (14, 2);
+        assert_ne!(base, content_fingerprint(&moved_landing));
+        assert!(
+            !content_fingerprint_matches(&moved_landing, base),
+            "a save cannot resume against a different portal return landing"
+        );
+    }
+
+    #[test]
     fn the_fingerprint_allows_object_visual_presentation_changes() {
         let original = pack().clone();
         let base = content_fingerprint(&original);
@@ -1206,6 +1303,41 @@ mod tests {
     }
 
     #[test]
+    fn the_pre_portal_shape_migrates_only_to_the_reviewed_landing() {
+        let prior_pack = pre_portal_pack();
+        let prior = content_fingerprint(&prior_pack);
+        let current = content_fingerprint(pack());
+        assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
+        assert_eq!(current, 0xfdf5_87d9_437f_bfd0);
+        assert_eq!(
+            PRE_PORTAL_FINGERPRINT_MIGRATIONS,
+            &[(prior, current)],
+            "the pre-portal digest must name one exact reviewed destination"
+        );
+        assert!(content_fingerprint_matches(pack(), prior));
+        assert!(!content_fingerprint_is_legacy(pack(), prior));
+        assert!(!content_fingerprint_is_prior_structural(pack(), prior));
+        assert!(!content_fingerprint_is_pre_aquarium_bike(pack(), prior));
+
+        let mut moved_landing = pack().clone();
+        moved_landing.portals[0].inward = (14, 2);
+        assert!(
+            !content_fingerprint_matches(&moved_landing, prior),
+            "the migration must close again if the reviewed return landing moves"
+        );
+    }
+
+    #[test]
+    fn the_unpublished_old_bathtub_portal_checkpoint_is_not_a_save_bridge() {
+        let mut unpublished = pack().clone();
+        let bathtub = unpublished.find("bathtub").expect("shipped bathtub");
+        unpublished.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        let checkpoint = content_fingerprint(&unpublished);
+        assert_eq!(checkpoint, 0xd1c8_9f68_9f73_2f30);
+        assert!(!content_fingerprint_matches(pack(), checkpoint));
+    }
+
+    #[test]
     fn changing_either_new_interaction_closes_every_old_fingerprint_bridge() {
         let current = pre_rotation_pack();
         for object in ["moving_box", "reference_shelf"] {
@@ -1245,6 +1377,13 @@ mod tests {
         let mut source = pack().clone();
         let bathtub = source.find("bathtub").expect("shipped bathtub");
         source.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        source.portals.clear();
+        source
+    }
+
+    fn pre_portal_pack() -> ContentPack {
+        let mut source = pack().clone();
+        source.portals.clear();
         source
     }
 

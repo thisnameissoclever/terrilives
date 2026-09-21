@@ -12,7 +12,7 @@
 //! own crate's test binary. `terri-sim`'s tests are a separate
 //! compilation unit and would not see one.
 
-use crate::{Content, Sim};
+use crate::{portals::ActivePortals, Content, Sim};
 use terri_core::{Footprint, NeedId, SimRng, SmartObject};
 use terri_data::{CompiledInteraction, CompiledObject, ContentPack, Tuning};
 
@@ -323,6 +323,10 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // from the shared generator while doing it. A test about the voice
         // installs clips explicitly.
         voice_clips: Vec::new(),
+        // Portal rows belong to one specific lot and would make an ordinary
+        // fixture's career return route through shipped geometry it did not
+        // ask to exercise. Portal tests install their own compiled row.
+        portals: Vec::new(),
     }))
 }
 
@@ -349,6 +353,19 @@ pub fn sim_with(width: usize, height: usize, content: &'static ContentPack) -> S
     sim.world_mut().insert_resource(Content(content));
     sim.world_mut()
         .insert_resource(SimRng::from_seed(content.tuning.rng_seed));
+    sim
+}
+
+/// A custom test world that explicitly draws the pack's portal rows.
+///
+/// Most fixture worlds are blank rooms and must not inherit a door merely
+/// because their content catalog was cloned from the shipped pack. Tests about
+/// portal presentation opt in through this constructor. Simulation routing
+/// continues to read the fingerprinted content in every constructor.
+pub fn sim_with_portals(width: usize, height: usize, content: &'static ContentPack) -> Sim {
+    let mut sim = sim_with(width, height, content);
+    sim.world_mut()
+        .insert_resource(ActivePortals::from_content(content));
     sim
 }
 

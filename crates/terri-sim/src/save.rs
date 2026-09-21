@@ -1,7 +1,10 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
 use crate::systems::chain::CHAIN_STEP;
-use crate::{default_action_sockets, Content, ForegroundSprite, ResolvedActionSockets, Sim};
+use crate::{
+    default_action_sockets, portals::ActivePortals, Content, ForegroundSprite,
+    ResolvedActionSockets, Sim,
+};
 use bevy_ecs::{
     entity::EntityIndex,
     prelude::{Entity, World},
@@ -274,19 +277,30 @@ fn capture_command(command: &SimCommand) -> SavedCommand {
 pub(super) fn restore(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
-    let candidate = restore_legacy(snapshot, content)?;
-    Ok(wall_migration::upgrade(candidate, content))
+    let candidate = restore_legacy(snapshot, content, active_portals)?;
+    let candidate = wall_migration::upgrade(candidate, content);
+    validate_portal_returns(
+        &capture(&candidate),
+        candidate.world.resource::<TileGrid>(),
+        content,
+    )?;
+    Ok(candidate)
 }
 
 pub(super) fn restore_legacy(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
     let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
+    if let Some(active_portals) = active_portals {
+        sim.world.insert_resource(active_portals);
+    }
     sim.world.insert_resource(SimClock {
         tick: snapshot.tick,
     });
@@ -775,6 +789,47 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     }
     for command in &snapshot.queued_commands {
         validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?;
+    }
+    Ok(())
+}
+
+fn validate_portal_returns(
+    snapshot: &SaveSnapshotV1,
+    grid: &TileGrid,
+    content: &ContentPack,
+) -> Result<(), SaveError> {
+    let Some(portal) = content.lot.front_door.and_then(|door| {
+        content
+            .portals
+            .iter()
+            .find(|portal| portal.position == door)
+    }) else {
+        return Ok(());
+    };
+    if !snapshot
+        .entities
+        .iter()
+        .any(|entity| entity.agent && entity.career.is_some())
+    {
+        return Ok(());
+    }
+    let door = (portal.position.0 as i32, portal.position.1 as i32);
+    let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
+    if !grid.can_step(door, landing) {
+        return Err(SaveError::InvalidGrid);
+    }
+    for worker in snapshot
+        .entities
+        .iter()
+        .filter(|entity| entity.agent && entity.career.is_some() && entity.at_work_ticks.is_some())
+    {
+        let position = worker.position.ok_or(SaveError::InvalidGrid)?;
+        if !grid.segment_can_cross(
+            (position.x, position.y),
+            (landing.0 as f32, landing.1 as f32),
+        ) {
+            return Err(SaveError::InvalidGrid);
+        }
     }
     Ok(())
 }
@@ -1272,6 +1327,7 @@ fn exceeds_limit(value: usize, inclusive_maximum: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy_ecs::prelude::With;
 
     fn blank_entity(index: u32) -> SavedEntity {
         SavedEntity {
@@ -3646,6 +3702,67 @@ mod tests {
                 "current {object} action must retain its row and remaining duration"
             );
         }
+    }
+
+    #[test]
+    fn the_pre_portal_save_keeps_current_actions_names_and_the_active_lot() {
+        let mut source = Sim::new_from_shipped_lot();
+        let pack = source.world().resource::<Content>().0;
+        let object_def = pack.find("moving_box").expect("shipped exercise bike row");
+        let object = {
+            let mut query = source.world_mut().query::<(Entity, &SmartObject)>();
+            query
+                .iter(source.world())
+                .find_map(|(entity, object)| (object.0 == object_def).then_some(entity))
+                .expect("the shipped lot places the exercise bike")
+        };
+        let worker = {
+            let mut query = source.world_mut().query_filtered::<Entity, With<Agent>>();
+            query
+                .iter(source.world())
+                .next()
+                .expect("the shipped household has a Sim")
+        };
+        source.world_mut().entity_mut(object).insert(Reserved);
+        source.world_mut().entity_mut(worker).insert((
+            SimName("Terri".to_string()),
+            Target {
+                object,
+                interaction: 0,
+            },
+            Eating {
+                object: object_def,
+                interaction: 0,
+                remaining_ticks: 47,
+            },
+        ));
+
+        let mut prior = source.save_snapshot();
+        prior.content_fingerprint = 0xbcdd_476e_1e23_8ab0;
+        let expected_entities = prior.entities.clone();
+
+        let mut restored = Sim::new_from_shipped_lot();
+        assert_eq!(restored.load_snapshot(prior), Ok(()));
+        let current = restored.save_snapshot();
+        assert_eq!(current.entities, expected_entities);
+        assert_eq!(
+            current.content_fingerprint,
+            terri_data::content_fingerprint(terri_data::pack())
+        );
+        assert!(
+            restored.world().contains_resource::<ActivePortals>(),
+            "load must retain the active lot independently of Save V1"
+        );
+        assert_eq!(restored.portal_buffer().states.len(), 1);
+        assert_eq!(
+            current
+                .entities
+                .iter()
+                .find(|entity| entity.index == worker.index_u32())
+                .and_then(|entity| entity.sim_name.as_deref()),
+            Some("Terri"),
+            "the portal-only migration must not invoke the old household rename"
+        );
     }
 
     #[test]
