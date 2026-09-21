@@ -6535,6 +6535,14 @@ pixel-identical reconstruction is not required. Label concepts separately from
 actual model renders and retain prompts, references and review notes. Concept
 selection does not waive later four-facing and rigging verification.
 
+**Outcome.** Approximating the selected concept by hand in Blender did not
+succeed; see [L-concept-to-hair-shape]. The hair that shipped came from a
+different source method: one owner-authorised, hair-only Tripo generation,
+fitted to the retained Blender body and approved on 2026-09-09. That was a
+single approved experiment, not a standing method; a paid generation still
+needs the owner's approval each time. The record is in
+`docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+
 ## [L-concept-to-hair-shape] A clear concept does not validate the construction method
 
 **What happened.** After the owner chose the small-front-curl illustration,
@@ -6568,6 +6576,11 @@ evidence that another long sequence of parameter revisions is justified. Stop
 that track, preserve the failed set, and request the necessary source-method or
 spending decision before expanding the scope.
 
+**Outcome.** That decision was taken. Local modelling stopped after attempt 13
+without reaching the concept, and the owner authorised a single hair-only
+Tripo generation, which cost USD 0.60, was fitted to the Blender body, and
+was approved. Details are in `docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+
 ## [L-store-blender-background-proof] Verify the background script, not the launcher exit
 
 **What happened.** The protected Store-package Blender executable returned
@@ -6583,7 +6596,10 @@ PowerShell can also return success for a later command after a launch error.
 before changing routes. Do not change Windows permissions or copy protected
 binaries. For the authorized Store launcher, use `Start-Process -WindowStyle
 Hidden` and `--background`, with absolute script and output paths. Do not open
-an interactive Blender window without separate foreground permission.
+an interactive Blender window without separate foreground permission. The
+full command, including `--threads 2` and `--python-exit-code 1`, is in
+`assets/models/sims/sim-01/README.md`; copy it from there rather than from
+this summary.
 
 **How to verify.** Require a newly written script result with
 `bpy.app.background` true and the Blender version. For actual renders, also
