@@ -570,7 +570,16 @@ this milestone and is done; what follows is M1b onwards.
   moodlets and a bounded overall label in the normal selected-person HUD.
   Save V1 is unchanged; Load force-refreshes the projection before another
   tick.
-- **Traits:** ~15 to start, affecting utility scoring ([D6])
+- ~~**Traits:** ~15 to start, affecting utility scoring ([D6])~~ - done in
+  PR 87. `content/traits.toml` holds fifteen traits in the three kinds [E3]
+  shipped: nine dispositions, three capabilities and three conditions. Each
+  household member wears three or four, and the selected person's panel lists
+  them in plain words with one sentence each and a percentage for a skill or
+  a severity. Every earlier save still loads, with exactly the traits it was
+  saved with. The design is
+  `docs/specs/2026-09-21-trait-library-and-traits-panel.md` and the played
+  check is [A-trait-library]. Choosing traits for a new sim belongs to
+  Create-a-sim below.
 - **Smart object library:** ~40 objects across the core need categories
 - **Build mode:** walls, floors, doors, windows, roofs
 - **Buy mode:** catalog, placement, rotation, palette recolors ([G4])
@@ -797,9 +806,9 @@ Sims.
 
 ### [B-builder] A builder: rooms, furniture, placement and rotation
 
-The lot starts from `content/lot.toml`. The furniture builder is implemented
-locally; its release checks and public deployment are still pending. Room and
-wall construction remain separate work.
+The lot starts from `content/lot.toml`. The furniture builder shipped in
+PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
+that commit. Room and wall construction remain separate work.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand

@@ -680,6 +680,10 @@ pub struct CompiledTrait {
     pub label: String,
     pub tag: String,
     pub kind: CompiledTraitKind,
+    /// One plain sentence for the Traits panel - [TL-description]. Last,
+    /// because it was appended; it is in no save and not in the
+    /// compatibility digest, so rewording it costs nothing.
+    pub description: String,
 }
 
 /// One member of the authored household - [H2].
@@ -1167,6 +1171,7 @@ mod tests {
                     kind: CompiledTraitKind::Disposition {
                         score_multiplier: 1.375,
                     },
+                    description: String::new(),
                 },
                 CompiledTrait {
                     id: "all_thumbs".to_string(),
@@ -1177,6 +1182,7 @@ mod tests {
                         fail_delta_scale: 0.0625,
                         learn_per_attempt: 0.03125,
                     },
+                    description: String::new(),
                 },
                 CompiledTrait {
                     id: "weary".to_string(),
@@ -1187,6 +1193,7 @@ mod tests {
                         manage_per_completion: 0.015625,
                         start_severity: 0.6875,
                     },
+                    description: String::new(),
                 },
             ],
             // Two careers so the member's Some(1) above means "the

@@ -1,7 +1,7 @@
 # The trait library, and a Traits panel the player can read
 
-Status: working design. Slice [TL-slice-library-and-panel] is in progress on
-branch `twcl/traits-affect-choices`. Nothing here is shipped yet.
+Status: slice [TL-slice-library-and-panel] is built, tested and played locally
+in PR 87. The played check is [A-trait-library] in `docs/alpha-feel-notes.md`.
 
 This design finishes the M1 scope bullet "Traits: ~15 to start, affecting
 utility scoring ([D6])". It adds no new mechanism. [E3] in
@@ -100,8 +100,9 @@ The shell already reads `traitsOf`, `traitLabels` and `traitKinds` for the
 developer overlay. The bridge gains one more startup read,
 `traitDescriptions`, aligned with the other two.
 
-The panel sits in the selected person's HUD below Mood. With nobody selected it
-says so in the same words the Mood panel uses. For each trait it shows:
+The panel sits in the selected person's HUD below the need bars, because the
+bars are read far more often. It is hidden while nobody is selected: the panel
+it sits in already says to select a person. For each trait it shows:
 
 * the label;
 * the description;
@@ -110,19 +111,33 @@ says so in the same words the Mood panel uses. For each trait it shows:
 
 A disposition has no state and shows no number. The panel refreshes on the
 same interval as the Mood panel, because a level moves only when an activity
-completes. It copies bridge arrays before the next bridge call, as the Mood
-panel does, and shows "Traits unavailable" if the arrays disagree.
+completes. It makes one bridge read per refresh, so nothing can detach the
+view it reads. It shows "Traits unavailable" if the three startup columns
+disagree in length, or if a read names a trait the library does not hold.
 
 The panel must fit the compact HUD at 390 by 844 and 320 by 568 without
 covering the action menu.
 
 ### [TL-determinism] What moves, and how it is pinned
 
-The household's behaviour changes, so every golden world hash for the shipped
-lot changes. Each new value is read from a failing assertion on native and
-confirmed identical on release `wasm32`, never computed by hand.
+The household's behaviour changes. No golden world hash moves, because the
+golden vectors pin hand-built worlds and never the shipped household; that is
+deliberate, so that rebalancing content is not a test edit.
+
+Two digests do move, and both new values were read from failing assertions:
+the save compatibility digest of the shipped content, and the digest of the
+pre-rotation source the bathtub migration rebuilds from it at load time.
 
 No command, no save field and no render buffer column changes.
+
+### [TL-engine-fix] The freeze the new traits exposed
+
+The first measured run with the new household froze Casey on the toilet at
+tick 1799 and starved the whole house of it. The cause was already in the
+engine: when a shift starts, the sweep that cancels walks toward the departing
+worker also matched a sim already talking to them, took its target and left
+the conversation running. The fix and its two tests ship in this slice, and
+[L-a-talker-is-not-an-approacher] in `docs/lessons-learned.md` has the detail.
 
 ## Slices
 

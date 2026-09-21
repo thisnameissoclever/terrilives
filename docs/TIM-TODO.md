@@ -50,6 +50,23 @@ for you to veto.
 Cheap to start and easy to stop - and until it happens, the alpha is
 complete but voiceless.
 
+### [T-trait-copy] The twelve new traits need your words `[YOURS]`
+
+The trait library grew from three traits to fifteen (PR 87), and every trait
+now shows a label and one sentence in the selected person's panel. I wrote all
+of it as plain functional copy: "Bookworm", "More drawn to reading." The three
+conditions (Low spirits, Lonely, Restless) are played straight, as [S4] asks.
+
+All of it lives in `content/traits.toml` and none of it is in a save, so
+rewording costs nothing. It belongs in the [T22] voice session.
+
+One decision sits beside it. **A household loaded from an older save keeps
+exactly the traits it was saved with**, one each, and only a new game gets the
+fuller household. I chose that because a load that changes what you saved is a
+bigger promise than I should make on my own. If you would rather old
+households gain the new traits on load, say so and I will build it as its own
+change.
+
 ### [T23] Verdict: should the sim with a job out-earn the one without? `[YOURS]`
 
 A taste call, surfaced rather than decided, because it is exactly the

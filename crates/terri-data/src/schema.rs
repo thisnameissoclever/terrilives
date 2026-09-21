@@ -610,6 +610,10 @@ pub struct TraitDef {
     /// interaction label there is no id-shaped fallback that reads as
     /// anything but a bug in a trait list.
     pub label: String,
+    /// One plain sentence saying what the trait does - [TL-description].
+    /// Required and non-blank for the label's reason: the Traits panel
+    /// prints it, and a blank line there reads as a bug.
+    pub description: String,
     /// `disposition`, `capability` or `condition`. See [`TRAIT_KINDS`].
     pub kind: String,
     /// The activity tag this trait keys on - the same tag space hobbies

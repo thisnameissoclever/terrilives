@@ -1019,6 +1019,9 @@ fn compile_traits(
         if def.label.trim().is_empty() {
             return Err(ContentError::EmptyTraitLabel { id: def.id.clone() });
         }
+        if def.description.trim().is_empty() {
+            return Err(ContentError::EmptyTraitDescription { id: def.id.clone() });
+        }
         if !known_tags.contains(def.tag.as_str()) {
             return Err(ContentError::TraitAboutNothing {
                 id: def.id.clone(),
@@ -1130,6 +1133,7 @@ fn compile_traits(
             label: def.label.clone(),
             tag: def.tag.clone(),
             kind,
+            description: def.description.clone(),
         });
     }
 
@@ -6565,6 +6569,7 @@ mod tests {
         TraitDef {
             id: id.to_string(),
             label: format!("The {id} one"),
+            description: format!("What the {id} one does."),
             kind: "disposition".to_string(),
             tag: "snacking".to_string(),
             score_multiplier: Some(1.25),
@@ -6607,6 +6612,35 @@ mod tests {
                 score_multiplier: 0.0
             }
         );
+    }
+
+    /// The two strings the Traits panel prints are both required, and each
+    /// has its own error so the author is sent to the right line. One blank
+    /// at a time: with both blank a test could not tell which check fired.
+    #[test]
+    fn rejects_a_trait_with_a_blank_label_or_a_blank_description() {
+        let mut unlabelled = a_trait("mute");
+        unlabelled.label = "  ".to_string();
+        assert_eq!(
+            compile_people_with_traits(vec![], vec![], vec![unlabelled]).unwrap_err(),
+            ContentError::EmptyTraitLabel {
+                id: "mute".to_string()
+            }
+        );
+
+        let mut undescribed = a_trait("vague");
+        undescribed.description = " \t".to_string();
+        assert_eq!(
+            compile_people_with_traits(vec![], vec![], vec![undescribed]).unwrap_err(),
+            ContentError::EmptyTraitDescription {
+                id: "vague".to_string()
+            }
+        );
+
+        let described = compile_people_with_traits(vec![], vec![], vec![a_trait("plain")])
+            .expect("a label and a description compile");
+        assert_eq!(described.traits[0].label, "The plain one");
+        assert_eq!(described.traits[0].description, "What the plain one does.");
     }
 
     /// One trait, worn once - the review finding: `Traits` keys state

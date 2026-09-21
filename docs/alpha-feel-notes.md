@@ -2969,3 +2969,56 @@ standing position. This is the existing standing use, not a new bathing pose.
 The remaining gaps beside interior walls are explicitly deferred to the
 separate edge-wall/navigation/save-layout change. Retained screenshots and
 commands are in `assets/review-evidence/bathroom/bathtub-quarter-turn.md`.
+
+## [A-trait-library] Fifteen traits, and a panel that says what they do
+
+Played on 2026-09-21 on the port 5174 dev server, serving this branch's working
+tree, which I confirmed by the Traits block being in the page at all.
+
+**A new game.** Tim shows Low spirits at Severity 60%, Bookworm, and Out of
+shape at Skill 42%. Bill shows Television devotee, Avoids exercise, Fish
+watcher and Private person, none with a number. Casey shows Can't cook at
+Skill 25%, Keen cyclist, Chatterbox and Slow reader at Skill 58%. Each row has
+its sentence under it. The block is hidden until somebody is selected.
+
+**It moves.** I selected Tim, right-clicked the exercise bike, chose Use the
+exercise bike and ran at 3x. After the session, Out of shape read Skill 44%.
+Save, then a reload, brought back "Saved game loaded" and 44%.
+
+**An old save.** I put `pre-trait-library-600.hex`, a save written by the last
+public build, into the page's storage and reloaded. It loaded at Day 1, 10:05
+with one trait each: Low spirits 60%, Television devotee, Can't cook 25%.
+Nothing was granted. For this one check I clicked the roster buttons from
+script rather than by hand.
+
+**The first layout was wrong.** I put the block above the need bars and it
+pushed them down the panel. The bars are read constantly and the traits
+rarely, so it now sits below them.
+
+**Phones.** At 390 by 844 and 320 by 568 Bill's four rows scroll inside the
+person sheet. Nothing overflows sideways, no text is clipped, and the console
+stayed empty throughout.
+
+**Measured, 12000 ticks of the shipped household**, before and after, with
+`cargo run --release -p terri-sim --example trace -- 12000`:
+
+| | before | after |
+| --- | --- | --- |
+| interactions, Tim / Bill / Casey | 82 / 96 / 98 | 86 / 93 / 100 |
+| lowest need floor in the house | 0.2 (Tim, energy) | 10.0 (Tim, energy) |
+| needs flagged "barely being served" | 3 | 0 |
+| Tim at the bookshelf | 9 | 12 |
+| Bill at the television | 10 | 15 |
+| Casey's conversations started | 5 | 7 |
+| life satisfaction, Tim / Bill / Casey | 111 / 87 / 65 | 120 / 118 / 57 |
+
+The first "after" run was not this one. It showed Casey with every need at
+zero and 12 interactions, which led to the engine defect recorded at
+[L-a-talker-is-not-an-approacher]. The table is the run after that fix.
+
+**Not proven here.** The pane composites only while it is on screen, so the
+person sheet's caption lagged a reload until the next drawn frame. That is the
+viewer and not the game ([L14]). The
+exercise bike and the aquarium are still almost never chosen unprompted, which
+the new Keen cyclist and Fish watcher did not change in 12000 ticks. No
+physical phone was used.

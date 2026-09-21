@@ -204,6 +204,7 @@ mod tests {
                 manage_per_completion: 0.01,
                 start_severity: 0.5,
             },
+            description: String::new(),
         }
     }
 
@@ -217,6 +218,7 @@ mod tests {
                 fail_delta_scale: 0.0,
                 learn_per_attempt: 0.01,
             },
+            description: String::new(),
         }
     }
 
@@ -228,6 +230,7 @@ mod tests {
             kind: CompiledTraitKind::Disposition {
                 score_multiplier: 1.5,
             },
+            description: String::new(),
         }
     }
 

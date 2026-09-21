@@ -145,6 +145,9 @@ kinds, each doing exactly one thing:
 | --- | --- |
 | **fumble** | A failed capability roll, live on the current attempt. The meal happens; it just does not feed anybody. |
 | **level** / **severity** | The mutable number the overlay prints beside a capability / condition. |
+| **trait library** | All fifteen traits in `content/traits.toml`. It is append-only: a sim's traits are stored as positions in this list, so a new trait goes at the end. Four of the fifteen are worn by nobody yet and wait for Create-a-sim. |
+| **Traits panel** | The list under the need bars for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
+| **Skill** / **Severity** | What the Traits panel calls a capability's level and a condition's severity, as 0 to 100%. Skill rises with every attempt, pass or fail. Severity falls each time the person finishes the activity that manages the condition. |
 
 ## Career
 

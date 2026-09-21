@@ -6442,3 +6442,81 @@ stationary partners on either side. Deleting passive-contact registration must
 fail the distance assertion. Also sample running source worlds and retain a
 save produced by the previous browser build; freshly encoded fixtures alone
 do not establish that an old runtime's actual bytes load.
+
+## [L-a-talker-is-not-an-approacher] Two states can carry the same component
+
+**What happened.** The first measured run with the larger trait library froze
+Casey on the toilet at tick 1799. She never moved again, she held the only
+toilet's reservation, and within a day every bladder in the house was at zero.
+Every unit test passed and the page looked normal for its first half hour.
+
+**Root cause.** `start_shift` cancels walks toward a departing worker by
+removing `Target` and `Path` from every sim whose `Target` names that worker.
+A sim ALREADY TALKING to the worker also carries that `Target`. The sweep took
+it and left her `Socialising`. With no target she chose the toilet on the same
+tick, was already beside it, and arrived on the same tick. Then the
+conversation's own cleanup removed `Target` a second time, which was now the
+toilet's. `tick_interactions` counts down only a sim that still has its
+`Target`, so `Eating` alone is permanent. The bug was on main already. It
+needed a conversation with the worker, at the shift tick, beside a wanted
+object, and a Chatterbox made that likely.
+
+**Prevention rule.** When a system selects entities by one component, list
+every state that carries it and decide each one on purpose. After any change
+to who lives in the shipped house, run `cargo run -p terri-sim --example trace`
+and read the need floors before anything else; a floor at zero for one sim is
+a stuck sim until proven otherwise.
+
+**How to verify.** Remove `Without<Socialising>` from `start_shift`'s
+approacher query. `a_shift_start_ends_a_running_talk_without_stranding_the_talker`
+fails on its first tick, and
+`the_shipped_household_never_uses_an_object_with_no_target` fails at tick 1799
+naming Casey. With the filter restored, 300000 ticks of the shipped household
+never leave anybody using an object with no target.
+
+## [L-content-additions-move-the-save-digest] Adding a trait refuses every save
+
+**What happened.** Appending twelve traits to `content/traits.toml` made five
+save-bridge tests fail at once. Without a bridge the build would have refused
+every existing save on load.
+
+**Root cause.** The compatibility digest in `crates/terri-data/src/lib.rs`
+hashes every trait id with its kind, along with object interaction rows, the
+social list, voice clips and chains. It is one global hash, so a pure addition
+moves it as surely as a destructive edit does. The file says so; I read it
+after writing the content.
+
+**Prevention rule.** Before adding any trait, object interaction, social
+interaction, voice clip or chain, read the digest's doc comment and plan the
+bridge in the same change: pin the source by removing the addition and
+requiring the previous public digest, pin the new digest as a golden value,
+add the new digest to every reviewed-destination list that names the old one,
+and check in a real save written by the previous public build.
+
+**How to verify.** `removing_the_appended_traits_reproduces_the_previous_public_digest`
+and `the_trait_library_digest_is_pinned` in terri-data, and
+`actual_pre_trait_library_saves_load_with_exactly_their_saved_traits` in
+terri-wasm. Deleting the bridge clause fails the first crate's bridge test.
+
+## [L-unpushed-work-is-invisible-work] Two sessions built the same feature
+
+**What happened.** I built furniture turning for about two days on a local
+branch and never pushed it. In that time another session merged 85 commits to
+main, ending in PR 85, which moves and rotates furniture in Build mode. It
+also took command wire code 7 and introduced Save V3, both of which my branch
+claimed differently. A trial merge conflicted in 22 files. The owner had to
+interrupt and tell me to fetch. The branch was shelved unpushed.
+
+**Root cause.** I fetched once, at the start of the increment. The rule that a
+push costs a long mutation sweep pushed me to batch everything into one push
+at the end, so for two days nobody could see that the item was taken.
+
+**Prevention rule.** Fetch at the start of every working session and before
+each major step of a long increment, and read what landed. Before picking an
+item, check open pull requests, unmerged remote branches, and the status of
+sibling worktrees whose branch sits at main's tip. Claim the item by pushing
+its design as a draft pull request before writing code; a push with no Rust
+change gives the mutation sweep nothing to do.
+
+**How to verify.** PR 87 was opened as a draft holding only its design, one
+commit after the fetch that found PR 85.

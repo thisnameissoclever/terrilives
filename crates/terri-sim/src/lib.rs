@@ -1856,6 +1856,22 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// One plain sentence per pack trait, aligned with [`Self::trait_labels`]
+    /// - what the Traits panel prints under each label ([TL-panel]).
+    pub fn trait_descriptions(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| def.description.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// The kind of each pack trait - "disposition", "capability" or
     /// "condition" - aligned with [`Sim::trait_labels`], so an overlay
     /// can word a level and a severity differently.
@@ -3366,6 +3382,51 @@ mod household_tests {
                 (5, "Person 6".into()),
             ],
             "stable ids follow declaration order through the full supported capacity"
+        );
+    }
+
+    /// The shipped household, played with nobody at the controls, never
+    /// leaves anybody using an object with no target.
+    ///
+    /// `tick_interactions` counts an interaction down only while its sim
+    /// still carries the `Target` it walked to. A sim holding `Eating`
+    /// alone therefore sits where it is for good and never releases what it
+    /// reserved - and with one toilet in the house, that is the whole
+    /// household's bladder. It happened at tick 1799 the first time the
+    /// household was given more traits ([L-a-talker-is-not-an-approacher]),
+    /// and nothing failed: the unit tests passed and the page looked fine
+    /// for the first half hour.
+    ///
+    /// This is the net under content changes. It asserts one invariant over
+    /// the real household rather than a golden value, so rebalancing the
+    /// house does not break it and breaking the invariant does. 2400 ticks
+    /// is two simulated days of shift starts, which is where the race lives.
+    #[test]
+    fn the_shipped_household_never_uses_an_object_with_no_target() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut interactions_seen = 0u32;
+        for tick in 0..2400u32 {
+            sim.tick();
+            let world = sim.world_mut();
+            let mut agents = world.query::<(
+                &terri_core::SimName,
+                Option<&terri_core::Eating>,
+                Option<&terri_core::Target>,
+            )>();
+            for (name, eating, target) in agents.iter(world) {
+                if let Some(eating) = eating {
+                    interactions_seen += 1;
+                    assert!(
+                        target.is_some(),
+                        "tick {tick}: {} is using an object with no target and will never stop ({eating:?})",
+                        name.0
+                    );
+                }
+            }
+        }
+        assert!(
+            interactions_seen > 1000,
+            "the household must actually be using things for this to mean anything"
         );
     }
 

@@ -890,6 +890,17 @@ impl SimHandle {
             .collect()
     }
 
+    /// One plain sentence per pack trait, aligned with `trait_labels` -
+    /// what the Traits panel prints under each label ([TL-panel]). Read
+    /// once at startup, like the labels.
+    pub fn trait_descriptions(&self) -> Vec<String> {
+        self.sim
+            .trait_descriptions()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
     /// The kind of each pack trait - "disposition", "capability" or
     /// "condition" - aligned with `trait_labels`, so the overlay can
     /// word a level and a severity differently.
@@ -1507,6 +1518,119 @@ mod boundary_tests {
         }
     }
 
+    /// [TL-old-saves], with real bytes. Both files were written by the last
+    /// public build before the trait library (main at 097a849), by advancing
+    /// a fresh `SimHandle::from_lot()` and calling `save_bytes()`. See
+    /// tests/fixtures/README.md.
+    ///
+    /// The promise has two halves and the test holds both: the save LOADS,
+    /// and it loads AS IT WAS SAVED - one trait per person, with the level or
+    /// severity it had, and no library trait granted behind the player's back.
+    #[test]
+    fn actual_pre_trait_library_saves_load_with_exactly_their_saved_traits() {
+        for (tick, hex) in [
+            (
+                600,
+                include_str!("../tests/fixtures/pre-trait-library-600.hex"),
+            ),
+            (
+                2400,
+                include_str!("../tests/fixtures/pre-trait-library-2400.hex"),
+            ),
+        ] {
+            let hex: String = hex.split_whitespace().collect();
+            let bytes: Vec<u8> = hex
+                .as_bytes()
+                .chunks_exact(2)
+                .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+                .collect();
+            assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[3, 0]);
+            let old: terri_core::SaveSnapshotV3 =
+                postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+            assert_eq!(old.world.tick, tick);
+            assert_eq!(
+                old.world.content_fingerprint, 0x4dab_6950_757c_1f15,
+                "the fixture must carry the previous public digest, or it proves nothing"
+            );
+            let saved_traits: Vec<_> = old
+                .world
+                .entities
+                .iter()
+                .filter_map(|entity| entity.traits.clone())
+                .collect();
+            assert_eq!(saved_traits.len(), 3, "three people");
+            assert!(saved_traits.iter().all(|worn| worn.len() == 1));
+
+            let mut loaded = SimHandle::from_lot();
+            assert!(
+                loaded.load_bytes(&bytes),
+                "a save from the previous public build must load"
+            );
+            let current = loaded.sim.save_snapshot_v3();
+            assert_eq!(current.world.entities, old.world.entities);
+            assert_eq!(current.world.funds, old.world.funds);
+            assert_eq!(current.world.blocked_tiles, old.world.blocked_tiles);
+            assert_eq!(current.layout, old.layout);
+            assert_eq!(current.object_facings, old.object_facings);
+            let mut expected = old.world.clone();
+            expected.content_fingerprint = current.world.content_fingerprint;
+            assert_eq!(
+                current.world, expected,
+                "only the digest may differ after a load"
+            );
+            assert_ne!(
+                current.world.content_fingerprint,
+                old.world.content_fingerprint
+            );
+
+            let mut resumed = SimHandle::from_lot();
+            assert!(resumed.load_bytes(&loaded.save_bytes()));
+            for _ in 0..320 {
+                loaded.tick();
+                resumed.tick();
+                assert_eq!(resumed.world_hash(), loaded.world_hash());
+            }
+            let after: Vec<usize> = loaded
+                .sim
+                .save_snapshot()
+                .entities
+                .iter()
+                .filter_map(|entity| entity.traits.as_ref().map(Vec::len))
+                .collect();
+            assert_eq!(after, [1, 1, 1], "play grants nothing either");
+        }
+    }
+
+    /// The new game is where the library shows: a fresh household wears what
+    /// household.toml authors, and the boundary's three startup reads agree
+    /// on how many traits there are.
+    #[test]
+    fn a_new_household_wears_the_library_and_the_trait_reads_align() {
+        let handle = SimHandle::from_lot();
+        let labels = handle.trait_labels();
+        let kinds = handle.trait_kinds();
+        let descriptions = handle.trait_descriptions();
+        assert_eq!(labels.len(), 15);
+        assert_eq!(kinds.len(), labels.len());
+        assert_eq!(descriptions.len(), labels.len());
+        assert_eq!(labels[0], "Television devotee");
+        assert_eq!(descriptions[0], "More drawn to watching television.");
+        assert_eq!(labels[14], "Restless");
+        assert_eq!(
+            descriptions[14],
+            "Gets less satisfaction from everything; exercise eases it."
+        );
+
+        let worn: Vec<usize> = handle
+            .sim
+            .save_snapshot()
+            .entities
+            .iter()
+            .filter_map(|entity| entity.traits.as_ref().map(Vec::len))
+            .collect();
+        assert_eq!(worn, [3, 4, 4]);
+    }
+
     #[test]
     fn actual_previous_main_schema2_save_gains_the_portal_without_rewriting_its_layout() {
         // Captured from c0eca30's checked-in browser module. The JS and WASM
@@ -1539,7 +1663,7 @@ mod boundary_tests {
 
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
-        expected_world.content_fingerprint = 0x4dab_6950_757c_1f15;
+        expected_world.content_fingerprint = 0x497a_884d_4d0d_0a5c;
         assert_eq!(current.world, expected_world);
         assert_eq!(current.layout, prior.layout);
         assert_eq!(migrated.wall_layout_kind(), 1);
@@ -4539,12 +4663,28 @@ mod boundary_tests {
             kinds.len(),
             "labels and kinds are two columns of one table"
         );
+        // Tim wears three ([TL-household]), and the pairs come back in pack
+        // order whatever order household.toml wrote them in: the condition
+        // she always had, then a disposition, then a capability. A
+        // disposition carries no state, so its slot reads zero.
         let worn = handle.traits_of(tim);
-        assert_eq!(worn.len(), 2, "one trait is one (index, state) pair");
-        let which = worn[0] as usize;
-        assert_eq!(labels[which], "Low spirits");
-        assert_eq!(kinds[which], "condition");
-        assert_eq!(worn[1], 0.6, "the authored start severity rides as state");
+        assert_eq!(worn.len(), 6, "one trait is one (index, state) pair");
+        let described: Vec<(&str, &str, f32)> = worn
+            .chunks_exact(2)
+            .map(|pair| {
+                let which = pair[0] as usize;
+                (labels[which].as_str(), kinds[which].as_str(), pair[1])
+            })
+            .collect();
+        assert_eq!(
+            described,
+            [
+                ("Low spirits", "condition", 0.6),
+                ("Bookworm", "disposition", 0.0),
+                ("Out of shape", "capability", 0.42),
+            ],
+            "the authored start severity and start level ride as state"
+        );
     }
 
     #[test]

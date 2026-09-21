@@ -637,6 +637,16 @@ closes the old compatibility bridges. The exact new destination digest
 `4dab6950757c1f15` inherits the published D and B shapes; the frozen bathtub
 source `93b0a49525ce6e0c` retains A's distinct migration and legacy row rules.
 
+The trait library moved that destination once more, without touching the wire
+format. Trait ids and kinds are in the digest, so appending twelve traits
+produced `497a884d4d0d0a5c`, and the bathtub source rebuilt from it became
+`b3aa6c07b72c4d60`. Both inherit what their three-trait predecessors accepted,
+and a save carrying `4dab6950757c1f15` loads into the new shape unchanged. The
+bridge is sound because a save names traits by string id and every old id keeps
+its old kind; tests pin both ends of it, so any other structural edit closes
+it. Adding another trait needs the same bridge again: see [TL-old-saves] in
+`docs/specs/2026-09-21-trait-library-and-traits-panel.md`.
+
 Furniture preview and commit share `validate_placement`. It reconstructs the
 fixed architecture from `SavedLayout`, then proves the live occupancy and wall
 edges match that architecture plus every placed object. It does not infer walls

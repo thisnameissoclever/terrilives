@@ -48,6 +48,16 @@ use crate::Content;
 /// else), because arriving beside an empty tile and starting a
 /// conversation with a sim who is at the office is a scene nobody
 /// authored; the approacher re-selects freely next tick.
+///
+/// **A sim already TALKING to the worker is not an approacher**, though
+/// it carries the same `Target{worker}`. It is left whole for
+/// `tick_social`, which ends the talk later this tick and removes
+/// `Socialising` and `Target` together. Taking its Target here and
+/// leaving `Socialising` frees it to choose something new on this very
+/// tick, and the talk's cleanup then deletes the NEW Target: a sim left
+/// using an object with no target never counts down and never lets go of
+/// it. That froze the shipped household
+/// ([L-a-talker-is-not-an-approacher]).
 #[allow(clippy::type_complexity)]
 pub fn start_shift(
     mut commands: Commands,
@@ -58,7 +68,7 @@ pub fn start_shift(
         (Entity, &Position, &Career, Option<&Target>),
         (With<Agent>, Without<AtWork>, Without<Commuting>),
     >,
-    approachers: Query<(Entity, &Target), With<Agent>>,
+    approachers: Query<(Entity, &Target), (With<Agent>, Without<Socialising>)>,
 ) {
     // Post-validation: a pack with a worker carries a door, so this
     // guard is for hand-built test worlds rather than shipped content.
@@ -765,6 +775,133 @@ mod tests {
         assert!(
             sim.world().get::<Reserved>(worker).is_none(),
             "a claimed worker still leaves; the claim is released"
+        );
+    }
+
+    /// [L-a-talker-is-not-an-approacher]. The shipped household froze on
+    /// this at tick 1799: Casey was mid-conversation with Tim, standing
+    /// beside the toilet with her bladder low, when his shift started.
+    ///
+    /// A sim ALREADY TALKING to the worker also carries `Target{worker}`,
+    /// so the approacher sweep took her Target and left her `Socialising`.
+    /// Free of a Target, she chose the toilet the same tick and, being
+    /// beside it, arrived the same tick; then the conversation's own
+    /// cleanup removed `Target` again - the NEW one. That left `Eating`
+    /// with no `Target`, which `tick_interactions` never counts down: she
+    /// sat there for good, holding the only toilet's reservation.
+    ///
+    /// The second half is the general statement, and it is the assertion
+    /// worth keeping whatever else changes: nobody is ever left using an
+    /// object with no target, and the interaction the talker started runs
+    /// to its end.
+    #[test]
+    fn a_shift_start_ends_a_running_talk_without_stranding_the_talker() {
+        let base = test_content::pack_with_social(
+            vec![test_content::object(
+                "toilet",
+                &[(NeedId::Bladder, 90.0)],
+                12,
+            )],
+            vec![test_content::interaction(
+                "chat",
+                &[(NeedId::Social, 20.0)],
+                30,
+            )],
+            terri_data::Tuning {
+                day_ticks: 30,
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            careers: vec![a_career()],
+            ..base.clone()
+        }));
+        let mut sim = test_content::sim_with(16, 12, pack);
+        let toilet_def = pack.find("toilet").expect("fixture");
+        let toilet = sim
+            .world_mut()
+            .spawn((
+                Position { x: 6.0, y: 6.0 },
+                terri_core::SmartObject(toilet_def),
+            ))
+            .id();
+        sim.world_mut()
+            .resource_mut::<TileGrid>()
+            .set_blocked(6, 6, true);
+
+        let worker = a_worker(&mut sim, 5.0, 4.0);
+        sim.world_mut().entity_mut(worker).insert(Reserved);
+        // Beside the toilet, desperate for it, and two ticks into a talk
+        // with the worker that has plenty left to run.
+        let mut needs = Needs::all_at(80.0);
+        needs.set(NeedId::Bladder, 5.0);
+        let talker = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 5.0, y: 6.0 },
+                needs,
+                Satisfaction::default(),
+                Target {
+                    object: worker,
+                    interaction: 0,
+                },
+                Socialising {
+                    interaction: 0,
+                    partner: worker,
+                    remaining_ticks: 25,
+                },
+            ))
+            .id();
+
+        sim.tick();
+        sim.tick();
+        assert!(
+            sim.world().get::<Socialising>(talker).is_some(),
+            "before the shift the talk simply runs"
+        );
+        sim.tick(); // day-tick 3: the shift.
+
+        assert!(
+            sim.world().get::<Socialising>(talker).is_none(),
+            "nobody talks to a sim who left for the office"
+        );
+        assert!(
+            sim.world().get::<Reserved>(worker).is_none(),
+            "the worker sheds the talk's claim and leaves"
+        );
+
+        let mut used_the_toilet = false;
+        for tick in 0..40 {
+            sim.tick();
+            let eating = sim.world().get::<Eating>(talker).copied();
+            let target = sim.world().get::<Target>(talker).copied();
+            if let Some(eating) = eating {
+                assert_eq!(
+                    target.map(|target| target.object),
+                    Some(toilet),
+                    "tick {tick}: using an object with no target never counts down ({eating:?})"
+                );
+                used_the_toilet = true;
+            }
+        }
+        assert!(used_the_toilet, "the fixture must reach the hazard");
+        assert!(
+            sim.world().get::<Eating>(talker).is_none(),
+            "a 12-tick interaction is over well inside 40 ticks"
+        );
+        assert!(
+            sim.world().get::<Reserved>(toilet).is_none(),
+            "and the toilet is free for the next person"
+        );
+        assert!(
+            sim.world()
+                .get::<Needs>(talker)
+                .unwrap()
+                .get(NeedId::Bladder)
+                > 50.0,
+            "she actually got what she went for"
         );
     }
 
