@@ -4,6 +4,7 @@ import { writeInstance } from './instances.js';
 import { LAYER_FOREGROUND, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
 import { emissiveForSprite, sampleLight, type TileLighting } from './lighting.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './sprite-anchors.js';
+import { writeFootprintProjection } from './footprint-depth.js';
 
 const RING = spriteIndex('selectionRing');
 const VALID = [0.75, 0.9, 1] as const;
@@ -37,6 +38,7 @@ export function writePlacementPreview(out: Float32Array, slot: number,
       screenY(x, y, originY, scale) + spriteDrawOffsetY(sprite) * scale,
       layeredDepth(x, y, gridSize, (layer === 0 ? LAYER_PROP : LAYER_FOREGROUND) + 0.5),
       sprite, ...tint, Math.max(light, emissiveForSprite(sprite)));
+    writeFootprintProjection(out, slot - 1, preview.width, preview.depth, sprite, gridSize);
   }
   return slot;
 }

@@ -101,7 +101,7 @@ struct VertexOut {
   // fragment reads exactly what the instance packed.
   @location(1) tint: vec4<f32>,
   @location(5) localPixel: vec2<f32>,
-  @location(6) @interpolate(flat) wall: vec2<f32>,
+  @location(6) @interpolate(flat) wall: vec4<f32>,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -118,7 +118,7 @@ fn vs(
   @builtin(vertex_index) vi: u32,
   @location(0) instance: vec4<f32>,
   @location(1) tint: vec4<f32>,
-  @location(2) wall: vec2<f32>,
+  @location(2) wall: vec4<f32>,
 ) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
@@ -231,6 +231,16 @@ fn fs(in: VertexOut) -> FragmentOut {
   out.depth = in.clip.z;
   if (in.wall.x > 0.0) {
     out.depth = clamp(in.clip.z - wallSumOffset(in.localPixel, u32(in.wall.x)) * in.wall.y, 0.0, 1.0);
+  } else if (in.wall.x < 0.0) {
+    // Intersect the view column x-y=t with the centered rectangular
+    // footprint. Its interval midpoint in x+y is this clamped slope.
+    // Disjoint footprints and wall planes therefore retain their physical
+    // ordering across a wide sprite instead of cutting it at center depth.
+    // This is a 2.5D footprint proxy, not an inferred per-pixel 3D model.
+    let t = (in.localPixel.x + in.wall.w) / 32.0;
+    let span = in.wall.z;
+    let offset = sign(span) * clamp(t, -abs(span), abs(span));
+    out.depth = clamp(in.clip.z - offset * in.wall.y, 0.0, 1.0);
   }
   return out;
 }

@@ -18,6 +18,13 @@ Names in `code font` are what you will see in the debug overlay
 
 ---
 
+## The game's name
+
+| Term | Means |
+| --- | --- |
+| **Natural Causes** | The game's title, chosen by the owner on 2026-09-21. It is what players see. |
+| `terrilives` | The working title, kept as the internal codename: the repository, the play URL, the `terri-*` crates, browser storage keys, and the save file. It stays because renaming those would reset players' settings, invalidate saves, or move the public link. `docs/TIM-TODO.md` [T1] lists exactly what was and was not renamed. |
+
 ## Time
 
 | Term | Means |

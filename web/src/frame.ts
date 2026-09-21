@@ -29,6 +29,7 @@ import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animati
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
+import { writeFootprintProjection } from './render/footprint-depth.js';
 import type { PlacementPreview } from './bridge.js';
 import { placementInstanceCount, writePlacementPreview } from './render/placement-preview.js';
 import {
@@ -807,7 +808,7 @@ export interface RenderSource {
   sprites(): Uint32Array;
   /** Optional authored object layer drawn in front of a socket-projected sim. */
   foregroundSprites?(): Uint32Array;
-  /** Current oriented furniture dimensions, used for overlapping preview replacement. */
+  /** Current oriented furniture dimensions, used for depth and preview replacement. */
   footprintWidths?(): Uint32Array;
   footprintDepths?(): Uint32Array;
   /**
@@ -962,6 +963,8 @@ export function buildInstances(
   const facings = source.facings();
   const ids = source.ids();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  const footprintWidths = source.footprintWidths?.();
+  const footprintDepths = source.footprintDepths?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
 
@@ -1041,6 +1044,8 @@ export function buildInstances(
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),
     );
+    writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
+      footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
   }
 
   // **Authored object foregrounds, in the slots after the entities.** The
@@ -1074,6 +1079,8 @@ export function buildInstances(
         TINT_NONE,
         Math.max(emissiveForSprite(sprite), localLight),
       );
+      writeFootprintProjection(scratch, slot - 1, footprintWidths?.[i] ?? 0,
+        footprintDepths?.[i] ?? 0, sprite, gridSize);
     }
   }
 
@@ -1124,6 +1131,10 @@ export function buildInstances(
       layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
+    // The indicator must stay ahead of every column of its occupied owner,
+    // not merely the owner's center. Its screen X remains that same center.
+    writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
+      footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
   }
 
   // **The carried and eating props, after the bubbles** - [K3]'s hands on

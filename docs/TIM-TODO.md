@@ -18,10 +18,52 @@ move between categories.
 
 ## Decisions only you can make
 
-### [T1] Decide whether "terrilives" is the shipping title `[YOURS]`
+### [T1] Decide whether "terrilives" is the shipping title `[YOURS]` - DECIDED 2026-09-21: "Natural Causes"
 
-A working name from a pun on *terrible lives*. Shapes tone, the domain purchase
-[T18], and store presence [T17]. Cheap now, annoying later.
+The owner chose **Natural Causes** on 2026-09-21. The working name was a pun on
+*terrible lives* that read as a person called Terri and leaned on the name of a
+competing life sim. The new title is the phrase from a death certificate, which
+suits the dark-comedy register and the ghost layer.
+
+**Renamed:** the page title, the README and its Play button, and the startup
+error line.
+
+**Kept as `terrilives` on purpose, and not to be "fixed" by a later pass:**
+
+- browser storage keys such as `terrilives.audio-preferences.v1`: renaming them
+  resets every player's sound, lighting and help settings;
+- the save fingerprint seeds in `terri-data`: renaming them invalidates every
+  existing save;
+- the save file `terri-save-1.bin` and its two backups,
+  `terri-save-1.v1-backup.bin` and `terri-save-1.v2-backup.bin`: the game opens
+  saves only under these names, so renaming them leaves every existing save
+  unfound. At startup the player would see "No save yet" and a new household,
+  while the old save stayed on disk unseen;
+- the save lock name `terrilives-save-slot` and the save worker name
+  `terrilives-save-store`: with a renamed lock, a tab running the old build and
+  a tab running the new one would stop excluding each other on the same save
+  file;
+- the `terri-*` crate names, the `terri_wasm` package, the
+  `terrilives-web` package name, the `TERRILIVES_PLAYWRIGHT_CORE` environment
+  variable, the temporary-directory prefixes in the audio scripts, and the
+  test string hashed by the known-answer hash test in `terri-core`: no player
+  sees them, none affects a save, and the churn would collide with every open
+  branch;
+- dated records in `docs/`: they describe what was true when written.
+
+**Still yours:**
+
+- **[T-title-repo-url] Rename the GitHub repository and the play URL, or keep
+  them.** GitHub redirects a renamed repository but not its Pages site, so the
+  old play link would stop working the moment the repository is renamed. The
+  code side is one line and mine: the play link in the README. The build uses
+  a relative base path, so nothing else has to change. The repository
+  description on GitHub still carries the old pun and is also yours to edit.
+- **A proper availability check.** A web search on 2026-09-21 found no video
+  game with this title, only a case file for a detective board game, a card in
+  a collectible card game, and a mod. That is not a trademark or store search.
+- The domain purchase [T18] and store presence [T17] were waiting on this and
+  can now proceed.
 
 ### [T22] Author the game's VOICE with me `[YOURS]` - the last alpha criterion
 
@@ -314,6 +356,8 @@ neighbors and household dynamics [B-neighborhood-dynamics], family relationships
 
 These are not owner chores. They are recorded here so they remain visible in
 the TODO, while `FEATURES.md` owns their scope and implementation status.
+
+On 2026-09-21 you asked for more systems: skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a fuller build mode. Building all of them is mine. [GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the one place that lists every system, started or not. It gives a build status for everything except the new proposals, names the main dependencies, and suggests a build order for your requests; `FEATURES.md` points to it under [B-game-systems].
 
 The first [A-audio-voices] foundation is now implemented: gesture-gated native
 Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master

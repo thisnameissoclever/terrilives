@@ -1,5 +1,89 @@
 # Wall clipping correction
 
+## Wide furniture follow-up, 2026-09-21
+
+The checkpoint below was incomplete: it covered one-tile props but missed the
+right-hand cuts on the two-tile desk and bunk. This follow-up starts from main
+`097a849`, including the front door and furniture builder. It does not alter
+artwork, footprints, object positions, saves or simulation code.
+
+Furniture now uses the midpoint of the viewing column's intersection with its
+oriented rectangular footprint. The shader applies that depth to the existing
+sprite rather than changing its pixels. Occupied composites use their target's
+footprint; foregrounds, sleep indicators and placement previews follow the same
+rule. All sprite registration is relative to the physical center. Square
+footprints retain flat depth, and portal frames/leaves retain their authored
+depth offsets. Instance rows are now 48 bytes, still one buffer and draw.
+
+This is a 2.5D ordering proxy for disjoint footprints, not exact surface depth
+for overlapping objects or art extending outside its physical footprint.
+
+Run in a dedicated Vite browser as below:
+
+```js
+const walls = await import('/proofs/wall-occlusion.js');
+await walls.wallOcclusionProof({ wide: true });
+await walls.wallOcclusionProof({ wide: true, indicators: true });
+await walls.wallJoinDepthProof();
+await walls.doorTraversalProof();
+await (await import('/proofs/footprint-depth.js')).footprintDepthProof();
+```
+
+1. The actual frame builder is used, with the shipped centers `(6.5,6)` and
+   `(9.5,6)`. Disabling footprint projection reproduces both clipped silhouettes
+   and fails 42 of 171 object cases. Reversing the shader slope also fails 42.
+2. Restored projection passes 171 object cases across four desk/bunk facings,
+   both wall axes, foreground/background controls and zooms 1, 1.75 and 3.
+   Occupied masks reconstruct the selected body, furniture contribution and ink;
+   they include sleeper pixels rather than reusing the empty bed's mask.
+3. All 24 foreground occupied-indicator cases pass. Removing their projection
+   fails all 24 GPU cases and the frame-boundary assertion. Background indicators
+   are excluded from this particular assertion because they may sit above a wall.
+4. All 180 independent ray/rectangle depth brackets pass, including deliberately
+   off-center canvas anchors. Removing anchor correction from the shader fails
+   108. Existing 120 wall-junction and 10 doorway traversal cases still pass.
+5. Focused unit mutations catch swapped dimensions, dropped anchor offsets,
+   using the Sim's footprint instead of its occupied target, sharing body anchors
+   with separately registered foregrounds, and stale projection fields on reused
+   rows. The last mutation also fails portal sentinel checks. No thresholds or
+   test timeouts were widened.
+
+6. Final local checks: `npm test -- --maxWorkers=1` passed 823 tests across
+   69 files. `npm run typecheck`, `npm run build`, `python check-doc-ids.py`
+   and `git diff --check` exited 0. The current-main WASM was regenerated with
+   `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`.
+   No Rust, content, dependency or atlas files changed in this correction.
+7. Restored shader SHA256 is
+   `ce05721488e31619d5ba1a73b41611d53afe641c6f85db7eff96e79c55104565`;
+   helper SHA256 is
+   `f9328efda128f912c7a3dd5b2d59a17f925f62efde0911a58217c126e2dcf5af`.
+   Both match their pre-mutation versions. Shared row-writer SHA256 is
+   `a2b016fd95e00e91161df9fdd45c5c53c0c45aba43cd202bd00eb240aec733f5`.
+
+The frozen production build `index-CtbB62fg.js` /
+`terri_wasm_bg-CfFbLFMP.wasm` was played at disposable origin4188. Ordinary
+UI orders put Bill in the lower bunk at tick6044 (Day5 04:44). The complete
+sleep indicator, desk edge, mattresses, posts and ladder were inspected in
+flat and automatic nighttime lighting. A valid NW desk preview at `(6,8)`
+remained intact against the other wall axis; Cancel restored the original
+desk center `(6.5,6)` and SW facing without advancing the clock. Casey then
+walked to `(8,6)` and used the desk after its Work menu order at tick6788.
+Work still uses the existing standing pose; this change adds no animation.
+
+Retained production screenshots: `wide-props-occupied.png`,
+`wide-props-night.png`, `wide-props-builder.png`, `wide-props-work.png`.
+Browser errors were empty. The first Work observation incorrectly waited for
+an exact pose target, which generic Work does not export; the retry observed
+activity and position instead. Public household saves were not used for testing.
+
+Independent review accepted the production screenshots: the desk and bunk edges,
+occupied sleep indicator and rotated preview had no remaining visual blocker.
+The review also checked the projection math and propagation through the renderer.
+
+Publication is a separate gate. The earlier checkpoint and its limits follow.
+
+## Original one-tile checkpoint, 2026-09-20
+
 Local acceptance on 2026-09-20, based on main `c0eca3018f4b0e8ef41e2f023389d736fe99cd0c`.
 This checkpoint does not claim publication; verify the eventual main commit
 and Pages deployment separately.

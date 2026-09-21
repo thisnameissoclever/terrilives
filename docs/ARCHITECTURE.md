@@ -547,6 +547,14 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
+Edge-wall pixels use depth from the authored wall plane. Rectangular furniture
+uses the midpoint of the viewing column's intersection with its oriented
+collision footprint. Its occupied composite, foreground and indicator share
+that geometry; placement previews use the candidate footprint. Square footprints
+retain constant depth. This is a 2.5D ordering model for disjoint footprints,
+not a reconstruction of each sprite's 3D surfaces or overhangs. See
+`docs/assets/review-evidence/wall-clipping.md` for pixel and mutation checks.
+
 The shipped art direction is **Muted Line**, an original procedural isometric
 atlas generated from code. The renderer draws three stable baked character
 looks and a generated prop vocabulary from that atlas; per-instance tint and
