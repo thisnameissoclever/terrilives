@@ -104,7 +104,9 @@ export class WallTool {
   enter(): void {
     if (this.active) return;
     this.active = true;
-    this.status = CHOOSE_LINE;
+    // Back before an edit left on its way has landed: the line and its status
+    // still describe it, and the next drain reports the result.
+    if (this.pending === null) this.status = CHOOSE_LINE;
     this.hooks.changed();
   }
 
