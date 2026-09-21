@@ -571,7 +571,9 @@ this milestone and is done; what follows is M1b onwards.
   Save V1 is unchanged; Load force-refreshes the projection before another
   tick.
 - ~~**Traits:** ~15 to start, affecting utility scoring ([D6])~~ - done in
-  PR 87. `content/traits.toml` holds fifteen traits in the three kinds [E3]
+  PR 87 at merge `7fb0ff5`; main's CI (run 35663402368) and the Pages deploy
+  (run 35663606297) both passed for that commit, and the public page serves
+  the Traits panel. `content/traits.toml` holds fifteen traits in the three kinds [E3]
   shipped: nine dispositions, three capabilities and three conditions. Each
   household member wears three or four, and the selected person's panel lists
   them in plain words with one sentence each and a percentage for a skill or
