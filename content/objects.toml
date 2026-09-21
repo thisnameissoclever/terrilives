@@ -271,6 +271,8 @@ sprite = "loungeSofaOttoman"
   [[object.interaction]]
   id = "lounge"
   label = "Sit down"
+  # `lounging` is what the couch_averse trait keys on ([TL-library]).
+  tags = ["lounging"]
   advertises = { fun = 18.0, comfort = 34.0 }
   duration_ticks = 50
   slots = 2
@@ -570,6 +572,8 @@ footprint = { width = 2, depth = 1 }
   [[object.interaction]]
   id = "stretch_out"
   label = "Lie down"
+  # `lounging` is what the couch_averse trait keys on ([TL-library]).
+  tags = ["lounging"]
   advertises = { comfort = 43.0, fun = 13.0, energy = 9.0 }
   duration_ticks = 72
   slots = 3
@@ -603,6 +607,8 @@ foreground_sprite = "loungeChairForeground"
   [[object.interaction]]
   id = "take_the_chair"
   label = "Sit down"
+  # `lounging` is what the couch_averse trait keys on ([TL-library]).
+  tags = ["lounging"]
   advertises = { comfort = 29.0 }
   duration_ticks = 41
   slots = 1
@@ -831,8 +837,9 @@ sprite = "offlineChair"
   slots = 1
   # The bookshelf read's twin - one hobby, two chairs' worth of routes,
   # which is also what keeps habituation from parking a reader on a
-  # single object forever.
-  tags = ["reading"]
+  # single object forever. It is an armchair as well, so the couch_averse
+  # trait covers it like the other seats ([TL-library]).
+  tags = ["reading", "lounging"]
   satisfaction = 3.0
   visual = { action = "read", anchor = "object_socket", facing = "socket", socket = "seat" }
 

@@ -2969,3 +2969,67 @@ standing position. This is the existing standing use, not a new bathing pose.
 The remaining gaps beside interior walls are explicitly deferred to the
 separate edge-wall/navigation/save-layout change. Retained screenshots and
 commands are in `assets/review-evidence/bathroom/bathtub-quarter-turn.md`.
+
+## [A-trait-library] Fifteen traits, and a panel that says what they do
+
+Played on 2026-09-21 on the port 5174 dev server, serving this branch's working
+tree, which I confirmed by the Traits block being in the page at all.
+
+**A new game.** Tim shows Low spirits at Severity 60%, Bookworm, and Out of
+shape at Skill 42%. Bill shows Television devotee, Avoids exercise, Fish
+watcher and Private person, none with a number. Casey shows Can't cook at
+Skill 25%, Keen cyclist, Chatterbox and Slow reader at Skill 58%. Each row has
+its sentence under it. The block is hidden until somebody is selected.
+
+**It moves.** I selected Tim, right-clicked the exercise bike, chose Use the
+exercise bike and ran at 3x. After the session, Out of shape read Skill 44%.
+Save, then a reload, brought back "Saved game loaded" and 44%.
+
+**An old save.** I put `pre-trait-library-600.hex`, a save written by the last
+public build, into the page's storage and reloaded. It loaded at Day 1, 10:05
+with one trait each: Low spirits 60%, Television devotee, Can't cook 25%.
+Nothing was granted. For this one check I clicked the roster buttons from
+script rather than by hand.
+
+**The first layout was wrong.** I put the block above the need bars and it
+pushed them down the panel. The bars are read constantly and the traits
+rarely, so it now sits below them.
+
+**Phones.** At 390 by 844 and 320 by 568 Bill's four rows scroll inside the
+person sheet. Nothing overflows sideways, no text is clipped, and the console
+stayed empty throughout.
+
+**Measured, 120000 ticks of the shipped household**, on main and on this
+branch, with `cargo run --release -p terri-sim --example trace -- 120000`:
+
+| | main | this branch |
+| --- | --- | --- |
+| interactions, Tim / Bill / Casey | 808 / 1010 / 974 | 831 / 982 / 1006 |
+| Tim's lowest hunger, energy, bladder, fun | 0.0, 0.0, 0.0, 0.0 | 0.0, 0.0, 0.0, 0.0 |
+| Bill's lowest need | 15.0 (hunger) | 20.1 (hunger) |
+| Casey's lowest need | 6.1 (hunger) | 16.0 (hunger) |
+| bookshelf uses (Tim is a Bookworm) | 81 | 121 |
+| aquarium uses (Bill is a Fish watcher) | 14 | 21 |
+| exercise bike uses | 1 | 4 |
+| television uses | 216 | 191 |
+| conversations | 78 | 89 |
+| life satisfaction, Tim / Bill / Casey | 1460 / 989 / 584 | 1680 / 1070 / 567 |
+
+Tim is the only worker and touches zero on four needs in both columns, so that
+squeeze is main's and not the traits'. [T23] in `docs/TIM-TODO.md` records the
+earlier fix to the worker's day and the question it left with the owner.
+The traits steer choices in the direction each one names.
+
+A 12000-tick run is too short to read. This simulation is chaotic enough that a
+one-tick change in timing reshuffles a short run: two builds of this branch,
+identical but for where the freeze fix lived, gave Tim a lowest need of 10.0 in
+one and 0.0 in the other. The first short run of all showed Casey with every
+need at zero and 12 interactions, which was not noise; it led to the engine
+defect recorded at [L-cleanup-removes-only-what-it-owns]. Every number above is
+from after that fix.
+
+**Not proven here.** The pane composites only while it is on screen, so the
+person sheet's caption lagged a reload until the next drawn frame. That is the
+viewer and not the game ([L14]). The
+exercise bike is still almost never chosen unprompted: four uses in 120000
+ticks, even with a Keen cyclist in the house. No physical phone was used.

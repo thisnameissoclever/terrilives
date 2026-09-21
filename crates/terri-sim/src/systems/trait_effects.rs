@@ -140,6 +140,7 @@ mod tests {
             kind: CompiledTraitKind::Disposition {
                 score_multiplier: multiplier,
             },
+            description: String::new(),
         }
     }
 
@@ -153,6 +154,7 @@ mod tests {
                 manage_per_completion: manage,
                 start_severity: 1.0,
             },
+            description: String::new(),
         }
     }
 
@@ -166,6 +168,7 @@ mod tests {
                 fail_delta_scale: fail_scale,
                 learn_per_attempt: learn,
             },
+            description: String::new(),
         }
     }
 
@@ -287,6 +290,7 @@ mod tests {
                     fail_delta_scale: 0.0,
                     learn_per_attempt: 0.05,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));
@@ -368,6 +372,7 @@ mod tests {
                 kind: CompiledTraitKind::Disposition {
                     score_multiplier: 0.0,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));
@@ -439,6 +444,7 @@ mod tests {
                     manage_per_completion: 0.25,
                     start_severity: 1.0,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));
@@ -512,6 +518,7 @@ mod tests {
                     manage_per_completion: 0.25,
                     start_severity: 1.0,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));
@@ -586,6 +593,7 @@ mod tests {
                 kind: CompiledTraitKind::Disposition {
                     score_multiplier: 1.5,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));
@@ -659,6 +667,7 @@ mod tests {
                 kind: CompiledTraitKind::Disposition {
                     score_multiplier: 1.5,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));

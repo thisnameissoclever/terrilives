@@ -256,6 +256,51 @@
       .mood-track[data-tone='positive'] .mood-marker {
         background: var(--need-fill);
       }
+      #traits-block {
+        display: grid;
+        gap: 4px;
+        margin-top: 7px;
+        padding-top: 5px;
+        border-top: 1px solid var(--hud-edge);
+      }
+      #traits-block[hidden] { display: none; }
+      #traits-empty[hidden] { display: none; }
+      #traits-caption {
+        margin: 0;
+        font: inherit;
+      }
+      #traits-empty {
+        margin: 0;
+        color: var(--hud-muted);
+      }
+      #trait-list {
+        display: grid;
+        gap: 5px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      #trait-list[hidden] { display: none; }
+      .trait-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .trait-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 600;
+      }
+      .trait-state {
+        flex: 0 0 auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .trait-state[hidden] { display: none; }
+      .trait-description {
+        margin: 0;
+        color: var(--hud-muted);
+        overflow-wrap: anywhere;
+      }
       #moodlet-list {
         display: grid;
         gap: 3px;
@@ -976,6 +1021,14 @@
           </div>
         </div>
         </div>
+        <!-- Below the need bars, which are read far more often. Hidden
+             until somebody is selected: the line above already says to
+             select a person, and saying it twice is noise. -->
+        <section id="traits-block" aria-label="Traits" hidden>
+          <p id="traits-caption" class="summary-label" aria-hidden="true">Traits</p>
+          <p id="traits-empty" hidden></p>
+          <ul id="trait-list" hidden></ul>
+        </section>
       </details>
       <details id="people-panel" aria-label="Relationships of the selected sim" open>
         <summary id="people-caption" class="needs-caption">People</summary>

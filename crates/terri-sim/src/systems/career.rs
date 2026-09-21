@@ -48,6 +48,21 @@ use crate::Content;
 /// else), because arriving beside an empty tile and starting a
 /// conversation with a sim who is at the office is a scene nobody
 /// authored; the approacher re-selects freely next tick.
+///
+/// **The sweep also matches a sim ALREADY TALKING to the worker**, because
+/// a talk's initiator carries the same `Target{worker}`. It loses its
+/// Target here, keeps `Socialising` until `tick_social` runs later this
+/// tick, and is free to choose something new in between. That is safe
+/// only because `tick_social` removes a Target it still OWNS and no other
+/// ([L-cleanup-removes-only-what-it-owns]); before that rule the talk's
+/// cleanup deleted the new Target and froze the shipped household.
+///
+/// Known gap, unreachable while one sim has a career: with two workers
+/// whose shifts start on the same tick, a worker walking toward the
+/// OTHER worker has its fresh commute `Path` removed by that worker's
+/// sweep, which still sees the old `Target`, and `commute_and_work` then
+/// reads `Commuting` with no `Path` as an arrival. Whoever adds a second
+/// career owns closing it; [B-jobs-careers] is where that lands.
 #[allow(clippy::type_complexity)]
 pub fn start_shift(
     mut commands: Commands,
@@ -766,6 +781,157 @@ mod tests {
             sim.world().get::<Reserved>(worker).is_none(),
             "a claimed worker still leaves; the claim is released"
         );
+    }
+
+    /// [L-cleanup-removes-only-what-it-owns]. The shipped household froze
+    /// on this at tick 1799: Casey was mid-conversation with Tim, standing
+    /// beside the toilet with her bladder low, when his shift started.
+    ///
+    /// A sim ALREADY TALKING to the worker carries `Target{worker}` too, so
+    /// the approacher sweep took her Target and left her `Socialising`.
+    /// Free of a Target she chose the toilet the same tick, and the
+    /// conversation's cleanup then removed `Target` again - the NEW one.
+    ///
+    /// The same bug had two faces, and the fixture runs both. BESIDE the
+    /// object she arrived that tick, so she was left `Eating` with no
+    /// `Target`, which `tick_interactions` never counts down: she sat there
+    /// for good, holding the only toilet. ACROSS THE ROOM she had only a
+    /// `Path` by then, walked it as a stroll, and the toilet stayed
+    /// reserved for somebody who was never coming.
+    ///
+    /// What is asserted is the general statement, and it holds whichever
+    /// system carries the fix: nobody uses an object with no target, no
+    /// object is reserved with nobody coming, and she gets what she went
+    /// for.
+    #[test]
+    fn a_shift_start_ends_a_running_talk_without_stranding_the_talker() {
+        for (toilet_at, ticks) in [((6.0, 6.0), 40u32), ((12.0, 9.0), 90u32)] {
+            let base = test_content::pack_with_social(
+                vec![test_content::object(
+                    "toilet",
+                    &[(NeedId::Bladder, 90.0)],
+                    12,
+                )],
+                vec![test_content::interaction(
+                    "chat",
+                    &[(NeedId::Social, 20.0)],
+                    30,
+                )],
+                terri_data::Tuning {
+                    day_ticks: 30,
+                    duration_variance: 0.0,
+                    ..test_content::tuning()
+                },
+            );
+            let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+                careers: vec![a_career()],
+                ..base.clone()
+            }));
+            let mut sim = test_content::sim_with(16, 12, pack);
+            let toilet_def = pack.find("toilet").expect("fixture");
+            let toilet = sim
+                .world_mut()
+                .spawn((
+                    Position {
+                        x: toilet_at.0,
+                        y: toilet_at.1,
+                    },
+                    terri_core::SmartObject(toilet_def),
+                ))
+                .id();
+            sim.world_mut().resource_mut::<TileGrid>().set_blocked(
+                toilet_at.0 as usize,
+                toilet_at.1 as usize,
+                true,
+            );
+
+            let worker = a_worker(&mut sim, 5.0, 4.0);
+            sim.world_mut().entity_mut(worker).insert(Reserved);
+            // Desperate for the toilet, and two ticks into a talk with the
+            // worker that has plenty left to run.
+            let mut needs = Needs::all_at(80.0);
+            needs.set(NeedId::Bladder, 5.0);
+            let talker = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x: 5.0, y: 6.0 },
+                    needs,
+                    Satisfaction::default(),
+                    Target {
+                        object: worker,
+                        interaction: 0,
+                    },
+                    Socialising {
+                        interaction: 0,
+                        partner: worker,
+                        remaining_ticks: 25,
+                    },
+                ))
+                .id();
+
+            sim.tick();
+            sim.tick();
+            assert!(
+                sim.world().get::<Socialising>(talker).is_some(),
+                "before the shift the talk simply runs"
+            );
+            sim.tick(); // day-tick 3: the shift.
+
+            assert!(
+                sim.world().get::<Socialising>(talker).is_none(),
+                "nobody talks to a sim who left for the office"
+            );
+            assert!(
+                sim.world().get::<Reserved>(worker).is_none(),
+                "the worker sheds the talk's claim and leaves"
+            );
+
+            let mut used_the_toilet = false;
+            for tick in 0..ticks {
+                sim.tick();
+                let target = sim
+                    .world()
+                    .get::<Target>(talker)
+                    .map(|target| target.object);
+                if let Some(eating) = sim.world().get::<Eating>(talker).copied() {
+                    assert_eq!(
+                        target,
+                        Some(toilet),
+                        "{toilet_at:?} tick {tick}: using an object with no target never \
+                         counts down ({eating:?})"
+                    );
+                    used_the_toilet = true;
+                }
+                if sim.world().get::<Reserved>(toilet).is_some() {
+                    assert_eq!(
+                        target,
+                        Some(toilet),
+                        "{toilet_at:?} tick {tick}: the toilet is reserved for nobody"
+                    );
+                }
+            }
+            assert!(
+                used_the_toilet,
+                "{toilet_at:?}: the fixture must reach the hazard"
+            );
+            assert!(
+                sim.world().get::<Eating>(talker).is_none(),
+                "{toilet_at:?}: a 12-tick interaction is over well inside the run"
+            );
+            assert!(
+                sim.world().get::<Reserved>(toilet).is_none(),
+                "{toilet_at:?}: and the toilet is free for the next person"
+            );
+            assert!(
+                sim.world()
+                    .get::<Needs>(talker)
+                    .unwrap()
+                    .get(NeedId::Bladder)
+                    > 50.0,
+                "{toilet_at:?}: she actually got what she went for"
+            );
+        }
     }
 
     /// The cancellation is AIMED: only walks toward the departing

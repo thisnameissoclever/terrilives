@@ -49,7 +49,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 
 | ID | System | Status | Built |
 |---|---|---|---|
-| [S-traits] | Traits | Partial | 40% |
+| [S-traits] | Traits | Substantial | 85% |
 | [S-moods] | Moods and moodlets | Substantial | 60% |
 | [S-chains] | Multi-step activities | Partial | 50% |
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | 45% |
@@ -140,7 +140,7 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 **Status: Foundation only, about 5%.**
 
-**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. The normal HUD never shows the number; only the developer debug panel does.
+**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. Three of them exist as of PR 87: cooking, exercise and reading. The selected person's Traits panel shows each one's number as "Skill" and a percentage.
 
 **What is missing.** A list of skills defined in content. A level and progress value per person per skill. Skill gain from doing tagged actions, with a tunable curve. A skills panel in the HUD.
 
@@ -349,7 +349,7 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-traits] Traits
 
-**Status: Partial, about 40%.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. One trait of each kind exists. The plan calls for about fifteen. The remaining work is mostly content, plus the owner's voice pass on the names.
+**Status: Substantial, about 85%.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. Fifteen traits exist as of PR 87: nine preferences, three competences and three conditions. Each household member has three or four, and the selected person's panel lists them with one sentence each and a percentage for a competence or a severity. Four of the fifteen belong to nobody yet. The remaining work is the owner's voice pass on the names and sentences ([T-trait-copy] in TIM-TODO.md), choosing traits when a person is created ([S-create-a-sim]), and rolling traits for people the game spawns by itself.
 
 ### [S-moods] Moods and moodlets
 

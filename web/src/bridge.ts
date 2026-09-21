@@ -883,6 +883,11 @@ export class SimBridge {
     return this.handle.trait_kinds();
   }
 
+  /** One plain sentence per pack trait, aligned with traitLabels - [TL-panel]. */
+  traitDescriptions(): string[] {
+    return this.handle.trait_descriptions();
+  }
+
   /**
    * The label of the sim's career, or null for the unemployed and for
    * everything that is not a sim - the boundary's empty string is

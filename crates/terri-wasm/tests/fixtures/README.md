@@ -48,3 +48,18 @@ The web portal test loads the real B-fingerprint Schema 2 fixture above.
 The core wire tests decode and re-encode actual V1 and V2 fixture payloads
 byte-for-byte; the WASM tests separately verify their migration and replay.
 No fixture fingerprint is substituted to impersonate an older wire format.
+
+`pre-trait-library-600.hex` and `pre-trait-library-2400.hex` contain actual
+Save V3 bytes written by the last public build before the trait library, main
+at `097a849`. A fresh `SimHandle::from_lot()` was advanced by 600 or 2400
+ticks in a native test build of that exact tree, then saved with
+`save_bytes()`. Commit `de2a74a`, which followed it on main, changed no Rust
+and no content. Both carry the published digest `4dab6950757c1f15` and one
+trait per person. Their SHA-256 values are
+`e18b8b3fb490fac2f42ed714a7750edc03f3520b0e2c887600fed76991a62ee0` and
+`0c97e223ba2a2af3c0c6e4d6e06068bfb8cf3803478fe45cac66a065ec36f7c7`.
+
+The test requires each to load, to come back field for field except the
+digest, to keep exactly one trait per person through 320 further ticks, and to
+replay identically after a second save and load. They came from a fresh local
+simulation, not the owner's save data.

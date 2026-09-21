@@ -758,6 +758,12 @@ pub enum ContentError {
     EmptyTraitLabel {
         id: String,
     },
+    /// A trait with a blank description. The Traits panel prints one
+    /// sentence per trait, and a trait that cannot say what it does is
+    /// a row of unexplained jargon - [TL-description].
+    EmptyTraitDescription {
+        id: String,
+    },
     /// A trait keyed on a tag no interaction carries: a fear of nothing,
     /// a skill at nothing, a condition managed by nothing - [D9]'s
     /// dangling reference, in the trait file's own words.
@@ -1710,6 +1716,11 @@ impl fmt::Display for ContentError {
                 f,
                 "trait '{id}' has a blank label; a trait list has no \
                  id-shaped fallback that reads as anything but a bug"
+            ),
+            ContentError::EmptyTraitDescription { id } => write!(
+                f,
+                "trait '{id}' has a blank description; the Traits panel \
+                 prints one sentence saying what each trait does"
             ),
             ContentError::TraitAboutNothing { id, tag } => write!(
                 f,

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { buildLightField } from '../src/render/lighting.js';
+import { traitsPanelState } from '../src/ui/traits-panel.js';
 import { dispatch, dispatchMenuAction } from '../src/input.js';
 import {
   clearCommandFeedback,
@@ -90,6 +91,50 @@ describe('SimBridge', () => {
     const kinds = bridge.kinds();
     expect(kinds[0]).toBe(1);
     expect(kinds[1]).toBe(0);
+  });
+
+  it('reads the trait library through release wasm and words a real person with it', () => {
+    // [TL-panel], end to end: the three startup columns come from the real
+    // module, and the panel's pure state function is fed a real household
+    // member rather than a hand-built Float32Array.
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const library = {
+      labels: bridge.traitLabels(),
+      kinds: bridge.traitKinds(),
+      descriptions: bridge.traitDescriptions(),
+    };
+    expect(library.labels).toHaveLength(15);
+    expect(library.kinds).toHaveLength(15);
+    expect(library.descriptions).toHaveLength(15);
+    expect(library.labels[3]).toBe('Bookworm');
+    expect(library.descriptions[3]).toBe('More drawn to reading.');
+
+    const ids = Array.from(bridge.ids());
+    const tim = ids.find((id) => bridge.simName(id) === 'Tim');
+    expect(tim).toBeDefined();
+    const state = traitsPanelState(
+      { selectedIndex: () => tim ?? null, traitsOf: (entity) => bridge.traitsOf(entity) },
+      library,
+    );
+    expect(state).toEqual({
+      kind: 'ready',
+      traits: [
+        {
+          key: 2,
+          label: 'Low spirits',
+          description:
+            'Gets less satisfaction from everything; attending to correspondence eases it.',
+          state: 'Severity 60%',
+        },
+        { key: 3, label: 'Bookworm', description: 'More drawn to reading.', state: '' },
+        {
+          key: 11,
+          label: 'Out of shape',
+          description: 'Often gets less from a workout, and gets fitter with every attempt.',
+          state: 'Skill 42%',
+        },
+      ],
+    });
   });
 
   it('exposes aligned stable Sim ids with a sentinel for unnamed rows', () => {

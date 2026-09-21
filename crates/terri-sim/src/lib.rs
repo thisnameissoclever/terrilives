@@ -1856,6 +1856,22 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// One plain sentence per pack trait, aligned with [`Self::trait_labels`]
+    /// - what the Traits panel prints under each label ([TL-panel]).
+    pub fn trait_descriptions(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| def.description.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// The kind of each pack trait - "disposition", "capability" or
     /// "condition" - aligned with [`Sim::trait_labels`], so an overlay
     /// can word a level and a severity differently.
@@ -3366,6 +3382,76 @@ mod household_tests {
                 (5, "Person 6".into()),
             ],
             "stable ids follow declaration order through the full supported capacity"
+        );
+    }
+
+    /// The shipped household, played with nobody at the controls, never
+    /// strands anybody and never strands an object.
+    ///
+    /// Two invariants over the real house, and they are the two faces of
+    /// one bug ([L-cleanup-removes-only-what-it-owns]):
+    ///
+    /// * **Nobody uses an object with no target.** `tick_interactions`
+    ///   counts an interaction down only while its sim still carries the
+    ///   `Target` it walked to. A sim holding `Eating` alone sits where it
+    ///   is for good and never releases what it reserved - and with one
+    ///   toilet in the house that is the whole household's bladder. It
+    ///   happened at tick 1799 the first time the household was given more
+    ///   traits, and nothing failed: the unit tests passed and the page
+    ///   looked fine for its first half hour.
+    /// * **No object is reserved with nobody coming.** The same bug, met
+    ///   across the room instead of beside the object, leaves no `Eating`
+    ///   at all: the sim walks its leftover path as a stroll and the object
+    ///   stays claimed. Checked after every tick with no grace period,
+    ///   because this household never produces even a one-tick gap; a system
+    ///   that introduces one has to decide that on purpose.
+    ///
+    /// This is the net under content changes. It asserts invariants over the
+    /// real household rather than golden values, so rebalancing the house
+    /// does not break it and breaking an invariant does. 2400 ticks is two
+    /// simulated days of shift starts, which is where the race lives.
+    #[test]
+    fn the_shipped_household_never_strands_a_sim_or_an_object() {
+        use std::collections::BTreeSet;
+        use terri_core::{Eating, Reserved, SimName, SmartObject, Target};
+
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut interactions_seen = 0u32;
+        let mut reservations_seen = 0u32;
+        for tick in 0..2400u32 {
+            sim.tick();
+            let world = sim.world_mut();
+
+            let mut claimed: BTreeSet<Entity> = BTreeSet::new();
+            let mut agents = world.query::<(&SimName, Option<&Eating>, Option<&Target>)>();
+            for (name, eating, target) in agents.iter(world) {
+                if let Some(target) = target {
+                    claimed.insert(target.object);
+                }
+                if let Some(eating) = eating {
+                    interactions_seen += 1;
+                    assert!(
+                        target.is_some(),
+                        "tick {tick}: {} is using an object with no target and will never \
+                         stop ({eating:?})",
+                        name.0
+                    );
+                }
+            }
+
+            let mut objects = world.query_filtered::<Entity, (With<SmartObject>, With<Reserved>)>();
+            for object in objects.iter(world) {
+                reservations_seen += 1;
+                assert!(
+                    claimed.contains(&object),
+                    "tick {tick}: {object:?} is reserved and nobody's target names it"
+                );
+            }
+        }
+        assert!(
+            interactions_seen > 1000 && reservations_seen > 1000,
+            "the household must actually be using things for this to mean anything \
+             ({interactions_seen} interaction ticks, {reservations_seen} reservation ticks)"
         );
     }
 

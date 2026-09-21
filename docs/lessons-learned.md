@@ -6476,6 +6476,97 @@ fail the distance assertion. Also sample running source worlds and retain a
 save produced by the previous browser build; freshly encoded fixtures alone
 do not establish that an old runtime's actual bytes load.
 
+## [L-cleanup-removes-only-what-it-owns] A cleanup deleted a component it no longer owned
+
+**What happened.** The first measured run with the larger trait library froze
+Casey on the toilet at tick 1799. She never moved again, she held the only
+toilet's reservation, and within a day every bladder in the house was at zero.
+Every unit test passed and the page looked normal for its first half hour.
+
+**Root cause.** A conversation's initiator carries `Target{partner}`, and
+`tick_social` removed `Target` whenever a talk ended or was disturbed. It never
+checked that the Target it removed was still the one it had put there.
+`start_shift` takes `Target` from every sim whose Target names a departing
+worker, which includes a sim already talking to them. That sim kept
+`Socialising`, chose something new on the same tick, and then lost the NEW
+Target to the talk's cleanup. Beside the object she had already arrived, so she
+was left `Eating` with no `Target`, which `tick_interactions` never counts
+down. Across the room she would have walked her leftover path as a stroll while
+the object stayed reserved for nobody. The bug was on main already; a
+Chatterbox made the timing likely.
+
+**What I got wrong first.** I fixed the caller: I made `start_shift` skip sims
+that were already talking. It worked, and the reviewer pointed out that it left
+the cause in place, that the same pair had already destroyed a target once
+before, and that my whole-household test could not see the across-the-room
+form at all. Both were true.
+
+**Prevention rule.** A system that removes a component on its way out removes
+it only while the component is still the one it owns; check the value, not the
+presence. When a fix lands in a caller, ask what the callee would do for the
+next caller. After any change to who lives in the shipped house, run
+`cargo run --release -p terri-sim --example trace -- 120000` on main and on the
+branch and read the need floors first: a sim whose every need sits at zero is a
+stuck sim. Do not read a 12000-tick run; a one-tick change in timing reshuffles
+it, and [A-trait-library] has two such runs that disagree.
+
+**How to verify.** Make `owns_target` always true in `tick_social`. Then
+`a_talk_that_ends_removes_the_target_it_owns_and_no_other` fails,
+`a_shift_start_ends_a_running_talk_without_stranding_the_talker` fails in both
+its positions, and `the_shipped_household_never_strands_a_sim_or_an_object`
+fails at tick 1799 naming Casey. With the rule in place, 300000 ticks of the
+shipped household never leave anybody using an object with no target.
+Separately, the build replays a household saved by the previous public build
+field for field for 1800 ticks. That proves old saves keep their meaning; it
+does not test this fix, because that household has no conversation running at
+its shift start.
+
+## [L-content-additions-move-the-save-digest] Adding a trait refuses every save
+
+**What happened.** Appending twelve traits to `content/traits.toml` made five
+save-bridge tests fail at once. Without a bridge the build would have refused
+every existing save on load.
+
+**Root cause.** The compatibility digest in `crates/terri-data/src/lib.rs`
+hashes every trait id with its kind, along with object interaction rows, the
+social list, voice clips and chains. It is one global hash, so a pure addition
+moves it as surely as a destructive edit does. The file says so; I read it
+after writing the content.
+
+**Prevention rule.** Before adding any trait, object interaction, social
+interaction, voice clip or chain, read the digest's doc comment and plan the
+bridge in the same change: pin the source by removing the addition and
+requiring the previous public digest, pin the new digest as a golden value,
+add the new digest to every reviewed-destination list that names the old one,
+and check in a real save written by the previous public build.
+
+**How to verify.** `removing_the_appended_traits_reproduces_the_previous_public_digest`
+and `the_trait_library_digest_is_pinned` in terri-data, and
+`actual_pre_trait_library_saves_load_with_exactly_their_saved_traits` in
+terri-wasm. Deleting the bridge clause fails the first crate's bridge test.
+
+## [L-unpushed-work-is-invisible-work] Two sessions built the same feature
+
+**What happened.** I built furniture turning for about two days on a local
+branch and never pushed it. In that time another session merged 85 commits to
+main, ending in PR 85, which moves and rotates furniture in Build mode. It
+also took command wire code 7 and introduced Save V3, both of which my branch
+claimed differently. A trial merge conflicted in 22 files. The owner had to
+interrupt and tell me to fetch. The branch was shelved unpushed.
+
+**Root cause.** I fetched once, at the start of the increment. The rule that a
+push costs a long mutation sweep pushed me to batch everything into one push
+at the end, so for two days nobody could see that the item was taken.
+
+**Prevention rule.** Fetch at the start of every working session and before
+each major step of a long increment, and read what landed. Before picking an
+item, check open pull requests, unmerged remote branches, and the status of
+sibling worktrees whose branch sits at main's tip. Claim the item by pushing
+its design as a draft pull request before writing code; a push with no Rust
+change gives the mutation sweep nothing to do.
+
+**How to verify.** PR 87 was opened as a draft holding only its design, one
+commit after the fetch that found PR 85.
 ## [L-first-3d-character-checkpoint] Review the actual silhouette before developing the rig
 
 **What happened.** The first local Blender character render clipped its hair
