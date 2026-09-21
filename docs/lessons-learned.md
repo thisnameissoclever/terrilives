@@ -6442,3 +6442,166 @@ stationary partners on either side. Deleting passive-contact registration must
 fail the distance assertion. Also sample running source worlds and retain a
 save produced by the previous browser build; freshly encoded fixtures alone
 do not establish that an old runtime's actual bytes load.
+
+## [L-first-3d-character-checkpoint] Review the actual silhouette before developing the rig
+
+**What happened.** The first local Blender character render clipped its hair
+and shoes. After framing was corrected, independent visual review found that
+the pale rectangular soles read as separate plates beneath the feet. Fitted
+rounded soles resolved that objection. The owner-design checkpoint was still
+open at that point; the reviewer approved showing the early candidate, not
+shipping it.
+
+**Root cause.** Camera-space padding had not been checked after all model
+transforms, and a rounded box was used for a sole whose outline needed to follow
+the shoe. Valid geometry and successful rendering did not establish a convincing
+silhouette.
+
+**Prevention rule.** Inspect all physical facings with safe frame margins and
+labeled native-size samples. Give structural shapes their intended outline,
+then obtain independent visual review. Preserve owner-direction questions such
+as head size, eyes and hair for the requested early pause instead of developing
+a full rig around an unapproved design.
+
+**How to verify.** Check the source PNG alpha bounds against every frame edge;
+visually trace shoe-to-sole contact in all facings; inspect the enlarged and
+native-size outputs. Record the review verdict separately from owner approval.
+
+## [L-small-character-feature-construction] Facial contrast and garment contact need separate checks
+
+**What happened.** The owner found the first Blender Sim's eyes too intense,
+its front hair blobby, and its neckline and collar unconvincing. Replacing the
+collar blocks with fabric-shaped panels initially introduced a different defect:
+parts of the panel edges disappeared into the shirt. That draft was rejected
+internally before the next owner checkpoint.
+
+**Root cause.** Stacked eye layers and contour strokes accumulated contrast;
+separate oval hair pieces remained visibly separate; collar blocks and later
+panel vertices were positioned without following the actual shirt surface.
+
+**Prevention rule.** Judge feature contrast after contour rendering and size
+reduction. Shape a continuous hair surface when a continuous sweep is intended.
+Build collar folds as thin surfaces with deliberate contact and clearance, not
+thick blocks. A simpler hair cap can still look helmet-like, so removing blobs
+alone does not establish owner acceptance.
+
+**How to verify.** Compare unchanged-camera before/after renders, inspect both
+front facings for eye intensity and complete collar contours, then check all
+four silhouettes and labeled native-size samples. Keep the owner's style verdict
+separate from the independent reviewer's readiness-to-show verdict.
+
+## [L-preserve-personality-in-visual-revisions] Correct the defect without replacing the character
+
+**What happened.** A request for less intense eyes and less blobby front hair
+produced small low-contrast eyes and a smooth, flattened hairstyle. The owner
+preferred the original face and fuller hair, asking for a small front curl
+instead of the separate oval locks. Independent show-readiness review had not
+established that the revised character retained its appeal.
+
+**Root cause.** The revision treated reduced detail and contrast as improvements
+by themselves. It changed the character's expression and silhouette more than
+the requested correction required.
+
+**Prevention rule.** Preserve the preferred baseline's expressive features and
+volume. Replace the defective local shape, such as three disconnected-looking
+hair ovals, with an intentional connected form. Keep unrelated successful fixes.
+Do not flatten a hairstyle merely to remove bumps. Reviewers must compare
+personality and shape against the owner's preferred baseline, not only look for
+mechanical defects.
+
+**How to verify.** Show a same-camera original-versus-revision comparison, check
+the change from all four physical rotations, and inspect frame padding after
+adding any protruding curl. Separate the owner's preference from a reviewer's
+technical readiness verdict. Pause again for owner feedback before rigging.
+
+The follow-up curl tests exposed a second distinction: a separate curved mesh
+can look like a piece resting on the head, while a connected hairline notch can
+be mechanically correct without looking like a curl. A fresh-context review
+changed the construction after three misses; a second visual reviewer still
+rejected the new silhouette. Stop that modeling track and clarify the desired
+shape instead of calling the topology correction a visual success.
+
+Review-board generation must also preflight complete source status and all
+four source hashes. An existing comparison filename can contain an older test
+after a failed composition. Inspect images only after verifying the current
+composition succeeded, and label rejected output as rejected.
+
+The owner supplied a better next step: generate several visual concepts first,
+let them choose, and approximate the selected design in Blender. Constrain the
+concepts to broad sculptable masses, clear rooted attachments and tapered
+solid locks. Avoid fine strands, simulated hair or decorative complexity that
+the local model cannot reasonably reproduce. A close visual match is the goal;
+pixel-identical reconstruction is not required. Label concepts separately from
+actual model renders and retain prompts, references and review notes. Concept
+selection does not waive later four-facing and rigging verification.
+
+**Outcome.** Approximating the selected concept by hand in Blender did not
+succeed; see [L-concept-to-hair-shape]. The hair that shipped came from a
+different source method: one owner-authorised, hair-only Tripo generation,
+fitted to the retained Blender body and approved on 2026-09-09. That was a
+single approved experiment, not a standing method; a paid generation still
+needs the owner's approval each time. The record is in
+`docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+
+## [L-concept-to-hair-shape] A clear concept does not validate the construction method
+
+**What happened.** After the owner chose the small-front-curl illustration,
+three Blender drafts still produced inflated lobes, a blunt or pointed fringe,
+and unwanted gaps from other angles. Joining the meshes and improving their
+shading did not establish the intended rolled shape. The drafts were rejected
+before another owner approval request.
+
+**Root cause.** The construction began with swept rounded sections and treated
+their connectedness as progress toward the visual target. A taper is not a curl,
+and a single connected mesh can still have the wrong silhouette. An oblique
+render can also make a front overhang look like a defect at the rear; image
+position alone does not locate the defective part in model coordinates.
+
+**Prevention rule.** Specify the rolled section, its underside and its hooked
+tip in model coordinates, then inspect opposite angles before detailing.
+Evaluate shading separately from shape. After three materially similar misses,
+preserve the source and renders and seek fresh-context review of the
+construction rather than continuing to move the same control points.
+
+**How to verify.** Compare the actual model with the selected concept, inspect
+all four rotations and reduced-size samples, and distinguish gaps caused by
+incorrect construction from intentional curl clearance. Hash and padding checks
+are mechanical evidence only. A new checkpoint still requires independent
+visual review and the owner's response before rigging.
+
+The follow-up connected-cage trial closed the large silhouette gap but still
+failed visual review: it resembled a smooth cap with a pinched crest, without
+the selected roll and side wave. A changed construction method is not itself
+evidence that another long sequence of parameter revisions is justified. Stop
+that track, preserve the failed set, and request the necessary source-method or
+spending decision before expanding the scope.
+
+**Outcome.** That decision was taken. Local modelling stopped after attempt 13
+without reaching the concept, and the owner authorised a single hair-only
+Tripo generation, which cost USD 0.60, was fitted to the Blender body, and
+was approved. Details are in `docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+
+## [L-store-blender-background-proof] Verify the background script, not the launcher exit
+
+**What happened.** The protected Store-package Blender executable returned
+`Access is denied`. After the owner authorized the installed Store launcher,
+it executed a hidden background script successfully in Blender 4.5.13 LTS.
+
+**Root cause.** Direct access to the package executable and execution through
+the installed app launcher are distinct launch paths. A detached launcher's
+return does not establish that the Python script or its renders completed.
+PowerShell can also return success for a later command after a launch error.
+
+**Prevention rule.** Respect a launch permission failure and obtain authorization
+before changing routes. Do not change Windows permissions or copy protected
+binaries. For the authorized Store launcher, use `Start-Process -WindowStyle
+Hidden` and `--background`, with absolute script and output paths. Do not open
+an interactive Blender window without separate foreground permission. The
+full command, including `--threads 2` and `--python-exit-code 1`, is in
+`assets/models/sims/sim-01/README.md`; copy it from there rather than from
+this summary.
+
+**How to verify.** Require a newly written script result with
+`bpy.app.background` true and the Blender version. For actual renders, also
+require the script's complete status, every expected output, hashes and visual
+inspection. A launcher process ID or successful shell exit alone is insufficient.
