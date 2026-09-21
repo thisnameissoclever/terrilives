@@ -613,6 +613,9 @@ Dynamic desks use the SW default art with their existing 2x1 collision shape.
 resolved sockets together. Runtime geometry readers use `placed_footprint`.
 Unsupported directions lack matching primary or required foreground art and
 cannot be applied. The compiler checks sockets for every supported direction.
+Authored and rotated sockets use the same bounds predicate, after resolving
+their coordinates against the appropriate footprint. The authored check stays
+before interaction compilation so invalid content keeps its existing diagnostics.
 
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a

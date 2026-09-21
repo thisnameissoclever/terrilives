@@ -97,3 +97,20 @@ depth. Nearby fridge and laundry silhouettes retained main's correction.
 Warnings/errors were empty, the viewport was reset, and the tab and server
 were closed. The public household was untouched. Exact-head CI and Pages remain
 release gates.
+
+## Socket-validation follow-up
+
+The first release wakeup consolidated duplicated authored/rotated bounds checks
+without changing their call order or error details. Three shared OR mutations
+failed assertions; removing the direction caller failed a compiler test with no
+lot placement. The restored source passed 885 native tests, strict Clippy,
+formatting, TypeScript and all 819 browser tests. No mutation allowance changed.
+
+The regenerated production bundle `index-CNlwmRfW.js` /
+`terri_wasm_bg-Bd_X_DVp.wasm` was played on the disposable 4191 origin.
+UI Load restored tick 3790 and funds 360. The NW table preview remained clean;
+Confirm placed it while paused. Load discarded the unsaved edit. The restored
+return closed the door at 3795 with funds still 360; the Sim stood inside the
+entry and the nearby furniture retained correct wall depth. Warnings and errors
+were empty. The test tab and server were closed; public saves were untouched.
+Exact-head CI and post-merge Pages verification remain outstanding.

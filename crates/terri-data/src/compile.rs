@@ -255,18 +255,7 @@ pub fn compile(
             };
             let x = (object.footprint.width - 1) as f32 / 2.0 + socket.x;
             let y = (object.footprint.depth - 1) as f32 / 2.0 + socket.y;
-            if x.floor() < 0.0
-                || y.floor() < 0.0
-                || x.floor() >= object.footprint.width as f32
-                || y.floor() >= object.footprint.depth as f32
-            {
-                return Err(ContentError::ActionSocketOutsideFootprint {
-                    object: object.id.clone(),
-                    socket: socket.id.clone(),
-                    x,
-                    y,
-                });
-            }
+            check_socket_bounds(&object.id, &socket.id, x, y, object.footprint)?;
             action_sockets.push(CompiledActionSocket {
                 id: socket.id.clone(),
                 x: socket.x,
@@ -2377,6 +2366,28 @@ fn resolve_facing_sprites(
     )
 }
 
+fn check_socket_bounds(
+    object: &str,
+    socket: &str,
+    x: f32,
+    y: f32,
+    footprint: Footprint,
+) -> Result<(), ContentError> {
+    if x.floor() < 0.0
+        || y.floor() < 0.0
+        || x.floor() >= footprint.width as f32
+        || y.floor() >= footprint.depth as f32
+    {
+        return Err(ContentError::ActionSocketOutsideFootprint {
+            object: object.to_string(),
+            socket: socket.to_string(),
+            x,
+            y,
+        });
+    }
+    Ok(())
+}
+
 fn check_direction_sockets(object: &CompiledObject) -> Result<(), ContentError> {
     for facing in Facing::ALL {
         if !object.supports(facing) {
@@ -2388,18 +2399,7 @@ fn check_direction_sockets(object: &CompiledObject) -> Result<(), ContentError> 
             .iter()
             .zip(object.sockets_at(0.0, 0.0, facing))
         {
-            if resolved.x.floor() < 0.0
-                || resolved.y.floor() < 0.0
-                || resolved.x.floor() >= footprint.width as f32
-                || resolved.y.floor() >= footprint.depth as f32
-            {
-                return Err(ContentError::ActionSocketOutsideFootprint {
-                    object: object.id.clone(),
-                    socket: socket.id.clone(),
-                    x: resolved.x,
-                    y: resolved.y,
-                });
-            }
+            check_socket_bounds(&object.id, &socket.id, resolved.x, resolved.y, footprint)?;
         }
     }
     Ok(())
@@ -8651,6 +8651,79 @@ mod tests {
             .expect("the rotated socket remains inside its placement");
             let socket = &pack.lot.placements[0].action_sockets[1];
             assert_eq!((socket.x, socket.y, socket.facing), expected);
+        }
+    }
+
+    #[test]
+    fn socket_bounds_reject_each_axis_independently_and_accept_the_last_fractional_tile() {
+        let footprint = Footprint { width: 3, depth: 2 };
+        for (x, y) in [(0.0, 0.0), (2.75, 1.75)] {
+            assert_eq!(
+                check_socket_bounds("chair", "seat", x, y, footprint),
+                Ok(())
+            );
+        }
+        for (x, y) in [(-0.25, 0.5), (0.5, -0.25), (3.0, 0.5), (0.5, 2.0)] {
+            assert_eq!(
+                check_socket_bounds("chair", "seat", x, y, footprint),
+                Err(ContentError::ActionSocketOutsideFootprint {
+                    object: "chair".to_string(),
+                    socket: "seat".to_string(),
+                    x,
+                    y,
+                }),
+                "outside coordinate ({x}, {y})"
+            );
+        }
+    }
+
+    #[test]
+    fn direction_sockets_reject_one_negative_rotated_axis_without_a_lot_placement() {
+        for (facing, x, y) in [("NW", -0.25, 0.0), ("NE", 0.0, -0.25)] {
+            let compile_socket = |offset| {
+                let mut object = reading_object();
+                object.footprint = Footprint { width: 3, depth: 1 };
+                object.action_socket = vec![ActionSocketDef {
+                    id: "seat".to_string(),
+                    x: offset,
+                    y: 0.0,
+                    facing: "SE".to_string(),
+                }];
+                let atlas = AtlasFile {
+                    sprite: [
+                        "fridge_art".to_string(),
+                        format!("fridge_art{facing}"),
+                        SIM_SPRITE.to_string(),
+                    ]
+                    .into_iter()
+                    .map(|name| AtlasSpriteDef { name })
+                    .collect(),
+                };
+                compile_bare(
+                    full_needs(),
+                    ObjectsFile {
+                        object: vec![object],
+                    },
+                    bare_lot(),
+                    atlas,
+                    full_tuning(),
+                )
+            };
+            let valid =
+                compile_socket(0.75).expect("the centered socket fits both supported directions");
+            assert!(valid.lot.placements.is_empty());
+            assert_eq!(valid.objects[0].action_sockets.len(), 1);
+            assert!(valid.objects[0].supports(Facing::from_suffix(facing).unwrap()));
+            assert_eq!(
+                compile_socket(1.25).unwrap_err(),
+                ContentError::ActionSocketOutsideFootprint {
+                    object: "reading_chair".to_string(),
+                    socket: "seat".to_string(),
+                    x,
+                    y,
+                },
+                "{facing} moves exactly one axis below zero"
+            );
         }
     }
 

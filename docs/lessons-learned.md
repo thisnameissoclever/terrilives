@@ -6334,6 +6334,26 @@ test after successful compilation, with zero survivors or timeouts. Native
 WASM-boundary tests pass 86/86 after restoring the original source. These are
 test-only changes; neither production validation nor the baseline is relaxed.
 
+## [L-shared-socket-bounds] Keep repeated validation on one predicate
+
+**What happened.** The builder mutation sweep found five unconstrained OR
+operators across authored and rotated interaction-point bounds checks.
+
+**Root cause.** The later direction check repeated the authored check at the
+base facing, masking changes to the earlier predicate. Rotation fixtures also
+failed to isolate each negative axis. Removing the early check would change
+which diagnostic wins when content has more than one error.
+
+**Prevention rule.** Share the bounds predicate while retaining both call sites
+and their order. Test every rejection axis independently, with accepted origin
+and fractional upper-tile controls. Keep compiler-level rotation tests without
+lot placements, so placement validation cannot mask a missing direction check.
+
+**How to verify.** Change each of the shared predicate's three OR operators to
+AND separately; each must fail an assertion. Remove the direction-check call
+and require the unplaced rotated-socket test to fail. Restore exact source bytes
+and rerun the complete data suite. Do not add a mutation-baseline allowance.
+
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 
 **What happened.** The first bathtub-rotation migration rejected an active
