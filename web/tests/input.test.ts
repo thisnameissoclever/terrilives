@@ -3,6 +3,7 @@ import {
   clientToCanvas,
   attachPointerInput,
   clientToTile,
+  clientToWorld,
   dispatch,
   dispatchMenuAction,
   handleLeftClick,
@@ -71,6 +72,40 @@ it('routes actual canvas events to editing while preserving pan and suppressing 
   documentListeners.get('keydown')!({ key: 'Escape', defaultPrevented: true });
   expect(menu.handleKey).not.toHaveBeenCalled();
   vi.useRealTimers();
+});
+
+// Copilot's review of PR 95: the Walls tool picks the nearest line from the
+// unrounded point under the pointer, so a click must hand the build editor that
+// point, not the tile it rounds to.
+it('hands the build editor the unrounded world point beside the rounded tile', () => {
+  const listeners = new Map<string, (event: any) => void>();
+  const rect = { left: 10, top: 20, width: 640, height: 360 };
+  const canvas = { width: 1280, height: 720, focus: vi.fn(), setPointerCapture() {},
+    getBoundingClientRect: () => rect,
+    addEventListener: (name: string, listener: (event: any) => void) => listeners.set(name, listener),
+    ownerDocument: { addEventListener: () => undefined },
+  };
+  const rows = source([]);
+  const refuse = vi.fn(() => false);
+  const target = { ...rows, selectedIndex: () => null, select: refuse, useObject: refuse,
+    useObjectFirst: refuse, cancelIntents: refuse, talkTo: refuse, talkToFirst: refuse,
+    entityName: () => '', interactionLabels: () => [], socialLabels: () => [] };
+  const menu = { close: vi.fn(), open: vi.fn(), handleKey: vi.fn(() => false), pointerDown: vi.fn() };
+  const click = vi.fn();
+  const camera = { originX: 100, originY: 100, scale: 2 };
+  attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu,
+    {} as Node, camera, { panBy: vi.fn(), zoomAt: vi.fn() },
+    undefined, undefined, undefined, undefined, undefined, { active: () => true, click });
+  const [clientX, clientY] = [153, 97];
+  const world = clientToWorld(clientX, clientY, rect, 1280, 720, 100, 100, 2)!;
+  // The point only proves anything if rounding would move it.
+  expect(world.some((value) => value !== Math.round(value))).toBe(true);
+  listeners.get('click')!({ clientX, clientY, ctrlKey: false, metaKey: false,
+    preventDefault: vi.fn(), pointerId: 1, pointerType: 'mouse', button: 0 });
+  expect(click).toHaveBeenCalledTimes(1);
+  const [, tile, point] = click.mock.calls[0];
+  expect(point).toEqual(world);
+  expect(tile).toEqual([Math.round(world[0]), Math.round(world[1])]);
 });
 
 describe('command outcome feedback', () => {
