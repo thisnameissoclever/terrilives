@@ -6613,3 +6613,27 @@ this summary.
 `bpy.app.background` true and the Blender version. For actual renders, also
 require the script's complete status, every expected output, hashes and visual
 inspection. A launcher process ID or successful shell exit alone is insufficient.
+
+## [L-a-blind-digest-proves-false-equalities] A hash that cannot see something lets tests call two worlds equal
+
+**What happened.** Adding the saved walls to the world hash for the Walls tool
+failed two save tests. Each round-tripped the shipped house through the old V1
+record and asserted the restored world had the same hash. A V1 record carries
+no wall edges, so the restored house had no walls at all. The assertion had
+only ever held because the hash could not see walls.
+
+**Root cause.** A test that compares digests proves equality only of what the
+digest reads. When state lives outside the digest, "same hash" silently means
+"same except that", and a test can pass for years while asserting something
+false.
+
+**Prevention rule.** When a digest gains a field, expect failures and read each
+one as a question about the test, not the digest: was the test's claim ever
+true? When a test compares two worlds through a lossy format, compare what that
+format carries, or use the format the game writes.
+
+**How to verify.** `fridge_art_replacement_restores_authored_and_dynamic_objects_without_save_changes`
+now round-trips through V3 and compares hashes;
+`load_during_settle_in_reconstructs_the_socketed_render_endpoint_before_another_tick`
+keeps V1 on purpose, because its fixture is only valid there, and compares V1
+records. Both fail if the wall hash is removed and the V3 change is reverted.

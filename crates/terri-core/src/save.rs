@@ -254,4 +254,11 @@ pub enum SavedCommand {
         y: u32,
         facing: crate::Facing,
     },
+    /// [WT-command]. A wall edit staged just before a save.
+    SetWallEdge {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        state: crate::layout::WallState,
+    },
 }

@@ -809,9 +809,13 @@ Sims.
 
 ### [B-builder] A builder: rooms, furniture, placement and rotation
 
-The lot starts from `content/lot.toml`. The furniture builder is implemented
-locally; its release checks and public deployment are still pending. Room and
-wall construction remain separate work.
+The lot starts from `content/lot.toml`. The furniture builder shipped in
+PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
+that commit. The Walls tool shipped in PR 95: in Build mode the player picks the
+line between two floor tiles and makes it a wall, a doorway or nothing, and the
+house they build is saved. The design is `docs/specs/2026-09-21-wall-tool.md`
+and the played check is [A-wall-tool]. Dragging out a whole room in one edit,
+hinged interior doors, floors, windows and a larger lot remain open.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand

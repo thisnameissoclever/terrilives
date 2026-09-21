@@ -10,6 +10,29 @@ const RING = spriteIndex('selectionRing');
 const VALID = [0.75, 0.9, 1] as const;
 const INVALID = [229 / 255, 140 / 255, 133 / 255] as const;
 
+/** Floor tiles ringed in the preview tints: the Walls tool's chosen line. */
+export interface TileHighlight {
+  readonly tiles: readonly (readonly [number, number])[];
+  readonly valid: boolean;
+}
+
+export function tileHighlightCount(highlight: TileHighlight | null): number {
+  return highlight ? highlight.tiles.length : 0;
+}
+
+/** Appends one ring per tile, at the depth the placement preview's rings use. */
+export function writeTileHighlight(out: Float32Array, slot: number,
+  highlight: TileHighlight | null, originX: number, originY: number,
+  gridSize: number, scale: number): number {
+  if (!highlight) return slot;
+  const tint = highlight.valid ? VALID : INVALID;
+  for (const [x, y] of highlight.tiles) {
+    writeInstance(out, slot++, screenX(x, y, originX, scale), screenY(x, y, originY, scale),
+      layeredDepth(x, y, gridSize, LAYER_PROP + 0.25), RING, ...tint, 1);
+  }
+  return slot;
+}
+
 export function placementInstanceCount(preview: PlacementPreview | null): number {
   return preview && preview.width > 0 && preview.depth > 0
     ? preview.width * preview.depth + 1 + (preview.foreground === null ? 0 : 1) : 0;

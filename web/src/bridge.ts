@@ -45,6 +45,29 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   13: 'Keep the front-door landing clear and reachable.',
 };
 
+/** A wall edit's refusal, worded for the Walls tool - [WT-shell]. Same codes. */
+export interface WallEditPreview {
+  readonly valid: boolean;
+  readonly reason: string | null;
+}
+
+const WALL_REASONS: Readonly<Record<number, string>> = {
+  1: 'Choose a line between two floor tiles.',
+  4: "This house's walls cannot be changed.",
+  5: 'The outside wall cannot be changed here.',
+  6: 'A wall there would cut through furniture.',
+  8: 'Someone is using something across that line.',
+  9: 'Someone is standing on that line.',
+  10: "A wall there would block someone's way.",
+  11: 'A wall there would leave furniture out of reach.',
+  12: 'A wall there would cut off the front door.',
+  13: 'A wall there would cut off the front-door landing.',
+};
+
+export function wallReason(code: number): string | null {
+  return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
+}
+
 function placementReason(code: number): string | null {
   return code === 0 ? null : PLACEMENT_REASONS[code] ?? 'This placement is unavailable.';
 }
@@ -136,6 +159,24 @@ export class SimBridge {
 
   lotRevision(): number {
     return Number(this.handle.lot_revision());
+  }
+
+  /** Axis 0 vertical, 1 horizontal; state 0 open, 1 wall, 2 doorway. Never writes. */
+  wallEditPreview(axis: number, x: number, y: number, state: number): WallEditPreview {
+    const code = this.handle.wall_edit_preview(axis, x, y, state);
+    return { valid: code === 0, reason: wallReason(code) };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastWallEditResult`. */
+  setWallEdge(axis: number, x: number, y: number, state: number): boolean {
+    return this.handle.set_wall_edge(axis, x, y, state);
+  }
+
+  lastWallEditResult(): { axis: number; x: number; y: number; state: number;
+    reason: string | null } | null {
+    const values = this.handle.last_wall_edit_result();
+    return values.length === 0 ? null : { axis: values[0], x: values[1], y: values[2],
+      state: values[3], reason: wallReason(values[4]) };
   }
 
   lastPlacementResult(): { object: number; reason: string | null } | null {

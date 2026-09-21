@@ -1031,6 +1031,11 @@
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
         <h2 id="builder-name">Build mode</h2>
         <p class="builder-note">Household paused</p>
+        <div class="builder-row" role="group" aria-label="Build tool">
+          <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true">Furniture</button>
+          <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
+        </div>
+        <div id="furniture-tool">
         <label for="builder-object">Furniture</label>
         <select id="builder-object"><option value="">Choose furniture</option></select>
         <div class="builder-row">
@@ -1045,6 +1050,16 @@
         </div>
         <p id="builder-keyboard-help" class="builder-note">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Escape cancels.</p>
         <p id="builder-touch-help" class="builder-note" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
+        </div>
+        <div id="wall-tool" hidden>
+          <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
+          <div class="builder-row">
+            <button id="wall-build" class="hud-button" type="button">Wall</button>
+            <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
+            <button id="wall-remove" class="hud-button" type="button">Remove</button>
+          </div>
+          <p id="wall-help" class="builder-note">Click or tap near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; Backspace removes; Escape clears the choice.</p>
+        </div>
       </section>
     </div>
     <dialog

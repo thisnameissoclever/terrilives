@@ -2493,6 +2493,31 @@ impl Sim {
             }
         }
 
+        // The walls, now that a player can change them - [WT-hash]. Sorted by
+        // line, so the digest sees what the house IS and not the order it was
+        // built in; the doorway flag is in it because a doorway and a wall
+        // are different houses. Written only when there are edges, so every
+        // hand-built world without architecture keeps its golden value.
+        if let Some(terri_core::layout::SavedLayout::EdgeWallsV1 { edges }) =
+            self.world.get_resource::<terri_core::layout::SavedLayout>()
+        {
+            let mut lines: Vec<(u8, u32, u32, bool)> = edges
+                .iter()
+                .map(|edge| (edge.axis.code(), edge.x, edge.y, edge.doorway))
+                .collect();
+            lines.sort_unstable();
+            if !lines.is_empty() {
+                hasher.write_bytes(b"wall-edges-v1");
+                hasher.write_u64(lines.len() as u64);
+                for (axis, x, y, doorway) in lines {
+                    hasher.write_bytes(&[axis]);
+                    hasher.write_u64(x as u64);
+                    hasher.write_u64(y as u64);
+                    hasher.write_bytes(&[u8::from(doorway)]);
+                }
+            }
+        }
+
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
@@ -2539,6 +2564,13 @@ impl Sim {
                         *x as u64,
                         *y as u64,
                         facing.code() as u64,
+                    ],
+                    SetWallEdge { axis, x, y, state } => vec![
+                        8,
+                        axis.code() as u64,
+                        *x as u64,
+                        *y as u64,
+                        state.code() as u64,
                     ],
                 };
                 for field in fields {

@@ -188,7 +188,9 @@ table. Authored in `content/chains.toml`.
 | **placement** | One object standing at one position. Several placements can share an object definition (two chairs, one `chair`). |
 | **footprint** | How many tiles an object occupies. A 2x1 bed blocks two tiles, and nothing may overlap it. |
 | **facing** | Which of the kit's four pre-rendered directions a placement is drawn with. Presentation only - the simulation neither knows nor cares which way a counter faces. |
-| **doorway** | A GAP in a wall run. There is no door object; a tile is either passable or it is not. |
+| **doorway** | A passable segment of a wall, recorded as its own line so it draws as a frame. There is no interior door object; the front door is the one animated door. |
+| **line** | In the Walls tool, the boundary between two neighbouring floor tiles. Each line is open, a wall, or a doorway. The outside edge of the lot is not a line the tool can change. |
+| **Walls tool** | Build mode's second tool. The player picks a line and presses Wall, Doorway or Remove. A wall is refused if it would cut through furniture, stand on a person, come between a person and what they are using, or cut part of the house off; the status line says which. |
 
 ## Under the hood
 

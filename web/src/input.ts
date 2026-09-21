@@ -237,11 +237,25 @@ export function clientToTile(
   originY: number,
   scale = 1,
 ): [number, number] | null {
+  const world = clientToWorld(clientX, clientY, rect, canvasWidth, canvasHeight, originX, originY, scale);
+  return world === null ? null : [Math.round(world[0]), Math.round(world[1])];
+}
+
+/** `clientToTile` before rounding: the world point under the pointer, or null. */
+export function clientToWorld(
+  clientX: number,
+  clientY: number,
+  rect: ViewRect,
+  canvasWidth: number,
+  canvasHeight: number,
+  originX: number,
+  originY: number,
+  scale = 1,
+): [number, number] | null {
   if (rect.width <= 0 || rect.height <= 0) return null;
   const bufferX = ((clientX - rect.left) * canvasWidth) / rect.width;
   const bufferY = ((clientY - rect.top) * canvasHeight) / rect.height;
-  const [wx, wy] = screenToWorld(bufferX, bufferY, originX, originY, scale);
-  return [Math.round(wx), Math.round(wy)];
+  return screenToWorld(bufferX, bufferY, originX, originY, scale);
 }
 
 /**
@@ -1085,7 +1099,9 @@ export class LongPressGesture {
 
 export interface CanvasEditInput {
   active(): boolean;
-  click(pick: Pick | null, tile: readonly [number, number] | null): void;
+  /** `world` is the unrounded point, for tools that pick a line between tiles. */
+  click(pick: Pick | null, tile: readonly [number, number] | null,
+    world: readonly [number, number] | null): void;
 }
 
 export function attachPointerInput(
@@ -1268,9 +1284,12 @@ export function attachPointerInput(
     if (editing?.active()) {
       canvas.focus();
       const point = canvasPoint(event);
+      const rect = canvas.getBoundingClientRect();
       editing.click(point ? pickSprite(target, point.x, point.y, camera.originX,
         camera.originY, camera.scale, reducedMotion()) : null,
-      clientToTile(event.clientX, event.clientY, canvas.getBoundingClientRect(),
+      clientToTile(event.clientX, event.clientY, rect,
+        canvas.width, canvas.height, camera.originX, camera.originY, camera.scale),
+      clientToWorld(event.clientX, event.clientY, rect,
         canvas.width, canvas.height, camera.originX, camera.originY, camera.scale));
       return;
     }

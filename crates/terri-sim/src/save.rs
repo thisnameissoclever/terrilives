@@ -235,6 +235,12 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand) -> SavedCommand {
     match command {
+        SimCommand::SetWallEdge { axis, x, y, state } => SavedCommand::SetWallEdge {
+            axis: *axis,
+            x: *x,
+            y: *y,
+            state: *state,
+        },
         SimCommand::PlaceObject {
             object,
             x,
@@ -691,6 +697,9 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand) -> SimCommand {
     match command {
+        SavedCommand::SetWallEdge { axis, x, y, state } => {
+            SimCommand::SetWallEdge { axis, x, y, state }
+        }
         SavedCommand::PlaceObject {
             object,
             x,
@@ -873,7 +882,7 @@ fn validate_command(
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
         // Placement is revalidated when its position in the stream drains.
         // Impossible or stale edits must replay as refusals, not prevent Load.
-        SavedCommand::PlaceObject { .. } => Ok(()),
+        SavedCommand::PlaceObject { .. } | SavedCommand::SetWallEdge { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }
@@ -2338,9 +2347,12 @@ mod tests {
         }
         assert_eq!(source.save_snapshot(), before);
         assert_eq!(source.world_hash(), world_hash);
+        // Through the format the game writes. A V1 record carries no wall
+        // edges, so a V1 round trip rebuilds a house with no walls, and the
+        // world hash sees walls since the wall tool ([WT-hash]).
         let mut restored = Sim::new_from_shipped_lot();
         restored
-            .load_snapshot(source.save_snapshot())
+            .load_snapshot_v3(source.save_snapshot_v3())
             .expect("old fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
@@ -2573,14 +2585,19 @@ mod tests {
                 },
             ))
             .id();
+        // Deliberately the V1 path: the saved reader stands far from its
+        // chair to prove the render endpoint comes from the socket, and only
+        // the V1 loader accepts that. A V1 record carries no wall edges, so
+        // the restored house has none and the world hash, which sees walls
+        // since [WT-hash], differs by exactly that. Everything V1 does carry
+        // is compared instead.
         let snapshot = source.save_snapshot();
-        let source_hash = source.world_hash();
 
         let mut restored = Sim::new_from_shipped_lot();
         restored
-            .load_snapshot(snapshot)
+            .load_snapshot(snapshot.clone())
             .expect("active reading save restores");
-        assert_eq!(restored.world_hash(), source_hash);
+        assert_eq!(restored.save_snapshot(), snapshot);
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );
@@ -2617,7 +2634,7 @@ mod tests {
         for _ in 0..3 {
             source.tick();
             restored.tick();
-            assert_eq!(restored.world_hash(), source.world_hash());
+            assert_eq!(restored.save_snapshot(), source.save_snapshot());
         }
     }
 
