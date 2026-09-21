@@ -19,6 +19,25 @@ candidates retain the original artwork.
 assert matching draw counts, untouched other rows and byte-identical saves.
 Played desktop and 390x844 phone checks confirm clean artwork and readable
 controls. Evening and reduced-motion checks are separate visual observations.
+## [L-instance-stride-integration] Share row offsets across renderer integration tests
+
+**What happened.** Integrating wall-plane depth expanded instance rows from
+eight to ten floats. Portal rendering used the shared writer correctly, but
+three portal tests still addressed fields with the old eight-float stride.
+
+**Root cause.** Hard-coded test offsets duplicated the instance layout. The
+new wall fields also needed explicit zero values on reused portal rows so
+frame and leaf sprites retained their existing depth ordering.
+
+**Prevention rule.** Allocate and index integration fixtures with
+`FLOATS_PER_INSTANCE` and the named field offsets. Prefill reused rows with
+sentinels and assert both portal layers clear `OFFSET_WALL_MASK` and
+`OFFSET_WALL_DEPTH_STEP`, alongside their geometry, lighting and depth checks.
+
+**How to verify.** All three portal tests pass with shared offsets. Removing
+the wall-mask write and the wall-depth-step write separately makes the
+corresponding assertion fail with `expected -999 to be +0`. Restoring both
+writes returns the source to its recorded SHA-256 and passes all three tests.
 
 ## [L-builder-shortcuts-preserve-tab] Recognize shortcuts before blocking them
 

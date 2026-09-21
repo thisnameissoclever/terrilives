@@ -194,3 +194,24 @@ All 86 native WASM-boundary tests passed. Independent source review approved
 the test fixtures and refusal observations. A fresh combined workspace run
 passed 823 tests, and the unfiltered release-mode WASM-boundary suite passed
 all 86 tests. The three source mutations and tests add no baseline exceptions.
+
+## Main's wall-depth correction
+
+Main advanced to `1d4b9ed` before release. Its physical wall-plane depth and
+40-byte instance rows were integrated unchanged. Portal tests now use shared
+row offsets and prove that both door layers clear the wall-only fields.
+Removing either field write independently fails the new sentinel assertion.
+TypeScript, all 786 browser tests across 63 files and the production build
+passed. Native sources are unchanged from the 823-test correction checkpoint.
+
+The frozen production bundle `index-CYOG9N3u.js` with the existing
+`terri_wasm_bg-B10R6jV9.wasm` was played in a fresh disposable origin at port
+4192. No fresh WASM generation is claimed for this renderer-only merge.
+Departure was opening at 400 and open at 406. The returning leaf was open at
+887 before payment; at 891 Tim visibly crossed and funds were 120. Save at 891,
+advance to 894/closed, and confirmed Load restored 891/open and funds 120.
+Completing the crossing again left funds at 120. The door frame, leaf and body
+retained their depth ordering while nearby furniture kept its full silhouette.
+`wall-depth-departure.png` and `wall-depth-return-restored.png` record the pass.
+Browser warnings/errors were empty. The test tab and preview server were closed.
+Exact-head CI and public Pages acceptance remain pending.
