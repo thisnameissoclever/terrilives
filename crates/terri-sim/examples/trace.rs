@@ -512,13 +512,14 @@ fn main() {
             let agent_pos = *world.get::<Position>(agent).expect("a sim has a position");
             let hab = world.get::<Habituation>(agent).cloned().unwrap_or_default();
             let personality = world.get::<Personality>(agent).cloned().unwrap_or_default();
+            let worn_traits = world.get::<terri_core::Traits>(agent).cloned();
             let needs = *world.get::<Needs>(agent).expect("a sim has needs");
             let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
 
             println!("\nCANDIDATE TABLE at tick {ticks}: {name} at {from:?}");
             println!(
-                "{:<14} {:>5} {:>6} {:>6} {:>6} {:>9}  contributions",
-                "object", "dist", "hab", "disp", "scale", "score"
+                "{:<14} {:>5} {:>6} {:>6} {:>6} {:>6} {:>9}  contributions",
+                "object", "dist", "hab", "disp", "trait", "scale", "score"
             );
             for (pos, object) in &placed {
                 let def = pack.object(object.0);
@@ -536,7 +537,18 @@ fn main() {
                 for (index, act) in def.interactions.iter().enumerate() {
                     let h = hab.get(object.0, index as u32);
                     let disposition = personality.disposition(object.0, index as u32);
-                    let scale = benefit_scale(h, pack.tuning.habituation_floor) * disposition;
+                    // The worn traits' pull on this activity's tags, the
+                    // second disposition source `select_action` composes.
+                    // Left out, Bill's television printed 0.83 where the
+                    // engine used 0.83 x 1.5, and nine of the fifteen
+                    // traits are dispositions.
+                    let trait_pull = terri_sim::systems::trait_effects::disposition_multiplier(
+                        worn_traits.as_ref(),
+                        pack,
+                        &act.tags,
+                    );
+                    let scale =
+                        benefit_scale(h, pack.tuning.habituation_floor) * disposition * trait_pull;
                     let mut total = 0.0;
                     let mut parts = String::new();
                     for (need_index, delta) in &act.advertises {
@@ -549,8 +561,8 @@ fn main() {
                         parts.push_str(&format!("{id:?} {c:.4} (lvl {:.0}) ", needs.get(id)));
                     }
                     println!(
-                        "{:<14} {:>5.0} {:>6.2} {:>6.2} {:>6.2} {:>9.4}  {}",
-                        def.id, distance, h, disposition, scale, total, parts
+                        "{:<14} {:>5.0} {:>6.2} {:>6.2} {:>6.2} {:>6.2} {:>9.4}  {}",
+                        def.id, distance, h, disposition, trait_pull, scale, total, parts
                     );
                 }
             }

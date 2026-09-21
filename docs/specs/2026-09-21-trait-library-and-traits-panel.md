@@ -37,7 +37,7 @@ from a learning rate.
 
 A trait keys on an activity tag, and the compile step rejects a trait whose
 tag no interaction carries. One new tag is needed: `lounging`, on the sofa,
-the long sofa and the armchair. Tags are not part of any save and are not in
+the long sofa, the armchair and the reading chair. Tags are not part of any save and are not in
 the compatibility digest.
 
 Conditions stay on the managed and improvable side of the line [S4] draws.
@@ -111,8 +111,8 @@ it sits in already says to select a person. For each trait it shows:
 
 A disposition has no state and shows no number. The panel refreshes on the
 same interval as the Mood panel, because a level moves only when an activity
-completes. It makes one bridge read per refresh, so nothing can detach the
-view it reads. It shows "Traits unavailable" if the three startup columns
+completes. It makes one bridge read per refresh, and that read returns its own
+copy of the numbers. It shows "Traits unavailable" if the three startup columns
 disagree in length, or if a read names a trait the library does not hold.
 
 The panel must fit the compact HUD at 390 by 844 and 320 by 568 without
@@ -134,10 +134,17 @@ No command, no save field and no render buffer column changes.
 
 The first measured run with the new household froze Casey on the toilet at
 tick 1799 and starved the whole house of it. The cause was already in the
-engine: when a shift starts, the sweep that cancels walks toward the departing
-worker also matched a sim already talking to them, took its target and left
-the conversation running. The fix and its two tests ship in this slice, and
-[L-a-talker-is-not-an-approacher] in `docs/lessons-learned.md` has the detail.
+engine. When a shift starts, the sweep that cancels walks toward the departing
+worker also matches a sim already talking to them, and takes its target. That
+sim could choose something new on the same tick, and the conversation's own
+cleanup then removed the new target.
+
+The fix is in the cleanup: a conversation that ends removes the target only
+while it still names the partner. Three tests ship with it: the rule on
+hand-built states, the shift-start scene beside the object and across the room,
+and two invariants over the real shipped household.
+[L-cleanup-removes-only-what-it-owns] in `docs/lessons-learned.md` has the
+detail.
 
 ## Slices
 

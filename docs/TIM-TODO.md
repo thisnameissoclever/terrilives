@@ -55,7 +55,10 @@ complete but voiceless.
 The trait library grew from three traits to fifteen (PR 87), and every trait
 now shows a label and one sentence in the selected person's panel. I wrote all
 of it as plain functional copy: "Bookworm", "More drawn to reading." The three
-conditions (Low spirits, Lonely, Restless) are played straight, as [S4] asks.
+conditions (Low spirits, Isolated, Cooped up) are played straight, as [S4]
+asks. The last two avoid words the game already uses: "Lonely" is what a low
+social need says in the Mood panel, and "Restless" is the engine's own word for
+a sim that found nothing worth doing.
 
 All of it lives in `content/traits.toml` and none of it is in a save, so
 rewording costs nothing. It belongs in the [T22] voice session.

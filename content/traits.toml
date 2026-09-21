@@ -152,12 +152,14 @@ kind = "disposition"
 tag = "lounging"
 score_multiplier = 0.5
 
-# A failed workout still delivers about half: the sim gave up early, which
-# is different from a ruined meal delivering nothing.
+# A failed workout still delivers about half, which is different from a
+# ruined meal delivering nothing. It does NOT end early: a fumble scales
+# what an attempt delivers and never how long it takes, so the sentence
+# must not promise a shorter session.
 [[trait_def]]
 id = "out_of_shape"
 label = "Out of shape"
-description = "Often cuts a workout short, and gets fitter with every attempt."
+description = "Often gets less from a workout, and gets fitter with every attempt."
 kind = "capability"
 tag = "exercise"
 start_level = 0.42
@@ -176,9 +178,15 @@ learn_per_attempt = 0.012
 
 # Two more conditions, framed as [S4] requires: managed and improvable,
 # played straight. Each eases when the sim does the thing that helps.
+#
+# Named with care. A condition's label is also projected as a moodlet, so
+# it must not repeat a need moodlet ("Lonely" is what a low social need
+# already says), and "Restless" is this engine's own word for a sim that
+# found nothing worth doing. `no_trait_label_repeats_a_need_moodlet` holds
+# the first rule.
 [[trait_def]]
-id = "lonely"
-label = "Lonely"
+id = "isolated"
+label = "Isolated"
 description = "Gets less satisfaction from everything; chatting with people eases it."
 kind = "condition"
 tag = "socialising"
@@ -187,8 +195,8 @@ manage_per_completion = 0.004
 start_severity = 0.48
 
 [[trait_def]]
-id = "restless"
-label = "Restless"
+id = "cooped_up"
+label = "Cooped up"
 description = "Gets less satisfaction from everything; exercise eases it."
 kind = "condition"
 tag = "exercise"

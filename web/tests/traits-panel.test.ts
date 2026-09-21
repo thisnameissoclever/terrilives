@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -8,6 +9,9 @@ import {
   type TraitsPanelSource,
   type TraitsPanelState,
 } from '../src/ui/traits-panel.js';
+
+const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 
 const LIBRARY: TraitLibrary = {
   labels: ['Television devotee', "Can't cook", 'Low spirits'],
@@ -175,7 +179,7 @@ describe('traitsPanelState', () => {
     expect(traitsPanelState(source, LIBRARY)).toEqual({ kind: 'ready', traits: [] });
   });
 
-  it('makes exactly one bridge read, so the view it reads cannot be detached', () => {
+  it('makes exactly one bridge read per refresh', () => {
     const source = new MutableTraitsSource();
     source.worn = new Float32Array([0, 0, 1, 0.25, 2, 0.6]);
     traitsPanelState(source, LIBRARY);
@@ -328,4 +332,34 @@ describe('TraitsPanel', () => {
       );
     },
   );
+});
+
+describe('the Traits block in the page', () => {
+  // main.ts throws when any of these is missing, and nothing else would say
+  // why the page stopped starting. The markup and the wiring are two files
+  // that have to agree on three ids.
+  const IDS = ['traits-block', 'traits-empty', 'trait-list'];
+
+  it.each(IDS)('declares #%s exactly once and main.ts asks for it by that id', (id) => {
+    expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
+    expect(MAIN_TS).toContain(`'#${id}'`);
+  });
+
+  it('starts hidden, is named for assistive technology, and sits below the need bars', () => {
+    expect(INDEX_HTML).toContain('<section id="traits-block" aria-label="Traits" hidden>');
+    const needs = INDEX_HTML.indexOf('id="needs-content"');
+    const traits = INDEX_HTML.indexOf('id="traits-block"');
+    const people = INDEX_HTML.indexOf('id="people-panel"');
+    expect(needs).toBeGreaterThan(-1);
+    expect(traits).toBeGreaterThan(needs);
+    expect(people).toBeGreaterThan(traits);
+  });
+
+  it('is not a heading, so it does not file itself under the household roster', () => {
+    const block = INDEX_HTML.slice(
+      INDEX_HTML.indexOf('id="traits-block"'),
+      INDEX_HTML.indexOf('id="people-panel"'),
+    );
+    expect(block).not.toMatch(/<h[1-6]/);
+  });
 });

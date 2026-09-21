@@ -2999,26 +2999,37 @@ rarely, so it now sits below them.
 person sheet. Nothing overflows sideways, no text is clipped, and the console
 stayed empty throughout.
 
-**Measured, 12000 ticks of the shipped household**, before and after, with
-`cargo run --release -p terri-sim --example trace -- 12000`:
+**Measured, 120000 ticks of the shipped household**, on main and on this
+branch, with `cargo run --release -p terri-sim --example trace -- 120000`:
 
-| | before | after |
+| | main | this branch |
 | --- | --- | --- |
-| interactions, Tim / Bill / Casey | 82 / 96 / 98 | 86 / 93 / 100 |
-| lowest need floor in the house | 0.2 (Tim, energy) | 10.0 (Tim, energy) |
-| needs flagged "barely being served" | 3 | 0 |
-| Tim at the bookshelf | 9 | 12 |
-| Bill at the television | 10 | 15 |
-| Casey's conversations started | 5 | 7 |
-| life satisfaction, Tim / Bill / Casey | 111 / 87 / 65 | 120 / 118 / 57 |
+| interactions, Tim / Bill / Casey | 808 / 1010 / 974 | 831 / 982 / 1006 |
+| Tim's lowest hunger, energy, bladder, fun | 0.0, 0.0, 0.0, 0.0 | 0.0, 0.0, 0.0, 0.0 |
+| Bill's lowest need | 15.0 (hunger) | 20.1 (hunger) |
+| Casey's lowest need | 6.1 (hunger) | 16.0 (hunger) |
+| bookshelf uses (Tim is a Bookworm) | 81 | 121 |
+| aquarium uses (Bill is a Fish watcher) | 14 | 21 |
+| exercise bike uses | 1 | 4 |
+| television uses | 216 | 191 |
+| conversations | 78 | 89 |
+| life satisfaction, Tim / Bill / Casey | 1460 / 989 / 584 | 1680 / 1070 / 567 |
 
-The first "after" run was not this one. It showed Casey with every need at
-zero and 12 interactions, which led to the engine defect recorded at
-[L-a-talker-is-not-an-approacher]. The table is the run after that fix.
+Tim is the only worker and touches zero on four needs in both columns, so that
+squeeze is main's and not the traits'. [T23] in `docs/TIM-TODO.md` records the
+earlier fix to the worker's day and the question it left with the owner.
+The traits steer choices in the direction each one names.
+
+A 12000-tick run is too short to read. This simulation is chaotic enough that a
+one-tick change in timing reshuffles a short run: two builds of this branch,
+identical but for where the freeze fix lived, gave Tim a lowest need of 10.0 in
+one and 0.0 in the other. The first short run of all showed Casey with every
+need at zero and 12 interactions, which was not noise; it led to the engine
+defect recorded at [L-cleanup-removes-only-what-it-owns]. Every number above is
+from after that fix.
 
 **Not proven here.** The pane composites only while it is on screen, so the
 person sheet's caption lagged a reload until the next drawn frame. That is the
 viewer and not the game ([L14]). The
-exercise bike and the aquarium are still almost never chosen unprompted, which
-the new Keen cyclist and Fish watcher did not change in 12000 ticks. No
-physical phone was used.
+exercise bike is still almost never chosen unprompted: four uses in 120000
+ticks, even with a Keen cyclist in the house. No physical phone was used.

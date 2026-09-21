@@ -1615,7 +1615,7 @@ mod boundary_tests {
         assert_eq!(descriptions.len(), labels.len());
         assert_eq!(labels[0], "Television devotee");
         assert_eq!(descriptions[0], "More drawn to watching television.");
-        assert_eq!(labels[14], "Restless");
+        assert_eq!(labels[14], "Cooped up");
         assert_eq!(
             descriptions[14],
             "Gets less satisfaction from everything; exercise eases it."
@@ -1663,7 +1663,7 @@ mod boundary_tests {
 
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
-        expected_world.content_fingerprint = 0x497a_884d_4d0d_0a5c;
+        expected_world.content_fingerprint = 0xc2cf_2919_84ed_61f7;
         assert_eq!(current.world, expected_world);
         assert_eq!(current.layout, prior.layout);
         assert_eq!(migrated.wall_layout_kind(), 1);

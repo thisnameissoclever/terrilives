@@ -6443,36 +6443,48 @@ fail the distance assertion. Also sample running source worlds and retain a
 save produced by the previous browser build; freshly encoded fixtures alone
 do not establish that an old runtime's actual bytes load.
 
-## [L-a-talker-is-not-an-approacher] Two states can carry the same component
+## [L-cleanup-removes-only-what-it-owns] A cleanup deleted a component it no longer owned
 
 **What happened.** The first measured run with the larger trait library froze
 Casey on the toilet at tick 1799. She never moved again, she held the only
 toilet's reservation, and within a day every bladder in the house was at zero.
 Every unit test passed and the page looked normal for its first half hour.
 
-**Root cause.** `start_shift` cancels walks toward a departing worker by
-removing `Target` and `Path` from every sim whose `Target` names that worker.
-A sim ALREADY TALKING to the worker also carries that `Target`. The sweep took
-it and left her `Socialising`. With no target she chose the toilet on the same
-tick, was already beside it, and arrived on the same tick. Then the
-conversation's own cleanup removed `Target` a second time, which was now the
-toilet's. `tick_interactions` counts down only a sim that still has its
-`Target`, so `Eating` alone is permanent. The bug was on main already. It
-needed a conversation with the worker, at the shift tick, beside a wanted
-object, and a Chatterbox made that likely.
+**Root cause.** A conversation's initiator carries `Target{partner}`, and
+`tick_social` removed `Target` whenever a talk ended or was disturbed. It never
+checked that the Target it removed was still the one it had put there.
+`start_shift` takes `Target` from every sim whose Target names a departing
+worker, which includes a sim already talking to them. That sim kept
+`Socialising`, chose something new on the same tick, and then lost the NEW
+Target to the talk's cleanup. Beside the object she had already arrived, so she
+was left `Eating` with no `Target`, which `tick_interactions` never counts
+down. Across the room she would have walked her leftover path as a stroll while
+the object stayed reserved for nobody. The bug was on main already; a
+Chatterbox made the timing likely.
 
-**Prevention rule.** When a system selects entities by one component, list
-every state that carries it and decide each one on purpose. After any change
-to who lives in the shipped house, run `cargo run -p terri-sim --example trace`
-and read the need floors before anything else; a floor at zero for one sim is
-a stuck sim until proven otherwise.
+**What I got wrong first.** I fixed the caller: I made `start_shift` skip sims
+that were already talking. It worked, and the reviewer pointed out that it left
+the cause in place, that the same pair had already destroyed a target once
+before, and that my whole-household test could not see the across-the-room
+form at all. Both were true.
 
-**How to verify.** Remove `Without<Socialising>` from `start_shift`'s
-approacher query. `a_shift_start_ends_a_running_talk_without_stranding_the_talker`
-fails on its first tick, and
-`the_shipped_household_never_uses_an_object_with_no_target` fails at tick 1799
-naming Casey. With the filter restored, 300000 ticks of the shipped household
-never leave anybody using an object with no target.
+**Prevention rule.** A system that removes a component on its way out removes
+it only while the component is still the one it owns; check the value, not the
+presence. When a fix lands in a caller, ask what the callee would do for the
+next caller. After any change to who lives in the shipped house, run
+`cargo run --release -p terri-sim --example trace -- 120000` on main and on the
+branch and read the need floors first: a sim whose every need sits at zero is a
+stuck sim. Do not read a 12000-tick run; a one-tick change in timing reshuffles
+it, and [A-trait-library] has two such runs that disagree.
+
+**How to verify.** Make `owns_target` always true in `tick_social`. Then
+`a_talk_that_ends_removes_the_target_it_owns_and_no_other` fails,
+`a_shift_start_ends_a_running_talk_without_stranding_the_talker` fails in both
+its positions, and `the_shipped_household_never_strands_a_sim_or_an_object`
+fails at tick 1799 naming Casey. With the rule in place, 300000 ticks of the
+shipped household never leave anybody using an object with no target, and the
+build replays a household saved by the previous public build field for field
+across that same shift start.
 
 ## [L-content-additions-move-the-save-digest] Adding a trait refuses every save
 

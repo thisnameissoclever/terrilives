@@ -44,7 +44,10 @@ function percent(state: number): number {
 }
 
 /**
- * How a trait's state is worded, or `null` when there is nothing to word.
+ * How a trait's state is worded. The empty string is a real answer: a
+ * disposition has no state, and the surface hides the slot when it is empty.
+ * `null` means the row cannot be worded at all, and makes the whole panel
+ * unavailable.
  *
  * `kind` is `undefined` whenever the index did not name a library row: past
  * the end, negative, or fractional. One check covers all of them, and an
@@ -78,8 +81,8 @@ export function traitsPanelState(
     return UNAVAILABLE;
   }
 
-  // Read in place: this is the only bridge call the function makes, so
-  // nothing can grow WebAssembly memory and detach the view under it.
+  // `traitsOf` hands back its own copy, not a view into WebAssembly memory
+  // (see bridge.ts), so it is read in place and cannot be detached.
   const worn = source.traitsOf(selected);
 
   const traits: TraitView[] = [];

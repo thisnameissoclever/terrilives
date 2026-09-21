@@ -312,7 +312,7 @@ const PRE_PORTAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
 /// the digest being left as a new source row, and re-point every row here at
 /// the new destination, in the same change that adds the trait.
 const PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
-    &[(0x4dab_6950_757c_1f15, 0x497a_884d_4d0d_0a5c)];
+    &[(0x4dab_6950_757c_1f15, 0xc2cf_2919_84ed_61f7)];
 
 /// Whether a Save V1 fingerprint may load against this content pack.
 ///
@@ -384,8 +384,8 @@ fn reviewed_pre_facing_target(current: u64) -> u64 {
     match current {
         // With the trait library ([TL-old-saves]): the shipped shape, and the
         // pre-rotation source `save/bathtub.rs` rebuilds from it at load time.
-        0x497a_884d_4d0d_0a5c => 0xfdf5_87d9_437f_bfd0,
-        0xb3aa_6c07_b72c_4d60 => 0xa020_602a_6acd_3a90,
+        0xc2cf_2919_84ed_61f7 => 0xfdf5_87d9_437f_bfd0,
+        0xd396_b3f3_9e3c_6685 => 0xa020_602a_6acd_3a90,
         // The same two shapes with three traits, before the library.
         0x4dab_6950_757c_1f15 => 0xfdf5_87d9_437f_bfd0,
         0x93b0_a495_25ce_6e0c => 0xa020_602a_6acd_3a90,
@@ -456,8 +456,8 @@ mod tests {
                 "couch_averse",
                 "out_of_shape",
                 "slow_reader",
-                "lonely",
-                "restless",
+                "isolated",
+                "cooped_up",
             ],
             "the library is append-only: a sim's Traits component stores these indices"
         );
@@ -476,6 +476,37 @@ mod tests {
                 .count()
         };
         assert_eq!((count(0), count(1), count(2)), (9, 3, 3));
+    }
+
+    /// "Avoids the couch" says sofas and armchairs, so every seat of that kind
+    /// has to carry the tag the trait keys on. The reading chair is an
+    /// armchair too, and was missed the first time.
+    #[test]
+    fn the_couch_trait_covers_every_sofa_and_armchair() {
+        let couch = pack()
+            .traits
+            .iter()
+            .find(|t| t.id == "couch_averse")
+            .expect("shipped trait");
+        assert_eq!(couch.tag, "lounging");
+        for (object, interaction) in [
+            ("sofa", "lounge"),
+            ("long_sofa", "stretch_out"),
+            ("armchair", "take_the_chair"),
+            ("reading_chair", "settle_in"),
+        ] {
+            let id = pack().find(object).expect("shipped seat");
+            let act = pack()
+                .object(id)
+                .interactions
+                .iter()
+                .find(|act| act.id == interaction)
+                .expect("shipped interaction");
+            assert!(
+                act.tags.iter().any(|tag| tag == "lounging"),
+                "{object}.{interaction} is a seat the couch trait claims to cover"
+            );
+        }
     }
 
     /// [L26]/[L29] applied to traits.toml: a multiplier pasted into a learning
@@ -534,7 +565,7 @@ mod tests {
             assert_eq!(
                 text.matches(". ").count(),
                 0,
-                "{}: one sentence, so the row stays one line on a phone",
+                "{}: one sentence, so a row stays a few lines in the half-width phone sheet",
                 t.id
             );
             assert!(text.len() <= 80, "{}: {} characters", t.id, text.len());
@@ -580,13 +611,13 @@ mod tests {
     /// pack. Both values were read from this assertion failing.
     #[test]
     fn the_trait_library_digest_is_pinned() {
-        assert_eq!(content_fingerprint(pack()), 0x497a_884d_4d0d_0a5c);
+        assert_eq!(content_fingerprint(pack()), 0xc2cf_2919_84ed_61f7);
         let mut rebuilt = pack().clone();
         let tub = rebuilt.find("bathtub").unwrap();
         rebuilt.objects[tub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         rebuilt.objects[tub.0 as usize].base_facing = Facing::SouthEast;
         rebuilt.portals.clear();
-        assert_eq!(content_fingerprint(&rebuilt), 0xb3aa_6c07_b72c_4d60);
+        assert_eq!(content_fingerprint(&rebuilt), 0xd396_b3f3_9e3c_6685);
     }
 
     /// The source end of [TL-old-saves], per [L-migration-pins-both-endpoints]:
@@ -1621,7 +1652,7 @@ mod tests {
         let prior = pre_facing_fingerprint(&prior_pack);
         let current = content_fingerprint(pack());
         assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
-        assert_eq!(current, 0x497a_884d_4d0d_0a5c);
+        assert_eq!(current, 0xc2cf_2919_84ed_61f7);
         assert_eq!(
             PRE_PORTAL_FINGERPRINT_MIGRATIONS,
             &[(prior, 0xfdf5_87d9_437f_bfd0)],

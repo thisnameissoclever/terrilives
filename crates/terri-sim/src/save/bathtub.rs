@@ -19,7 +19,7 @@ const REVIEWED_DESTINATION_FINGERPRINTS: [u64; 4] = [
     // docs/specs/2026-09-21-trait-library-and-traits-panel.md. Traits are
     // named by id in a save and no old id changed, so the rotation below
     // is exactly as valid here as at the digest above.
-    0x497a_884d_4d0d_0a5c,
+    0xc2cf_2919_84ed_61f7,
 ];
 const OLD: Footprint = Footprint { width: 2, depth: 1 };
 const NEW: Footprint = Footprint { width: 1, depth: 2 };

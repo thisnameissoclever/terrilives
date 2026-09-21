@@ -837,8 +837,9 @@ sprite = "offlineChair"
   slots = 1
   # The bookshelf read's twin - one hobby, two chairs' worth of routes,
   # which is also what keeps habituation from parking a reader on a
-  # single object forever.
-  tags = ["reading"]
+  # single object forever. It is an armchair as well, so the couch_averse
+  # trait covers it like the other seats ([TL-library]).
+  tags = ["reading", "lounging"]
   satisfaction = 3.0
   visual = { action = "read", anchor = "object_socket", facing = "socket", socket = "seat" }
 
