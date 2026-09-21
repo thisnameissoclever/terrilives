@@ -73,6 +73,45 @@ it('routes actual canvas events to editing while preserving pan and suppressing 
   vi.useRealTimers();
 });
 
+// Copilot's review of PR 95: the Walls tool picks the nearest line from the
+// unrounded point under the pointer, so a click must hand the build editor that
+// point, not the tile it rounds to. The expected point comes from the forward
+// projection, not from the inverse the adapter calls, so a fault in that
+// inverse cannot hide by agreeing with itself.
+it('hands the build editor the unrounded world point beside the rounded tile', () => {
+  const listeners = new Map<string, (event: any) => void>();
+  const rect = { left: 10, top: 20, width: 640, height: 360 };
+  const canvas = { width: 1280, height: 720, focus: vi.fn(), setPointerCapture() {},
+    getBoundingClientRect: () => rect,
+    addEventListener: (name: string, listener: (event: any) => void) => listeners.set(name, listener),
+    ownerDocument: { addEventListener: () => undefined },
+  };
+  const rows = source([]);
+  const refuse = vi.fn(() => false);
+  const target = { ...rows, selectedIndex: () => null, select: refuse, useObject: refuse,
+    useObjectFirst: refuse, cancelIntents: refuse, talkTo: refuse, talkToFirst: refuse,
+    entityName: () => '', interactionLabels: () => [], socialLabels: () => [] };
+  const menu = { close: vi.fn(), open: vi.fn(), handleKey: vi.fn(() => false), pointerDown: vi.fn() };
+  const click = vi.fn();
+  // Distinct origins, so swapping them is caught too.
+  const camera = { originX: 100, originY: 60, scale: 2 };
+  attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu,
+    {} as Node, camera, { panBy: vi.fn(), zoomAt: vi.fn() },
+    undefined, undefined, undefined, undefined, undefined, { active: () => true, click });
+  const [wx, wy] = [2.3, -0.7];
+  // World to canvas buffer pixels, then buffer to client pixels: the canvas
+  // buffer is twice the size it is drawn at, offset by the rect.
+  const clientX = rect.left + screenX(wx, wy, camera.originX, camera.scale) * rect.width / canvas.width;
+  const clientY = rect.top + screenY(wx, wy, camera.originY, camera.scale) * rect.height / canvas.height;
+  listeners.get('click')!({ clientX, clientY, ctrlKey: false, metaKey: false,
+    preventDefault: vi.fn(), pointerId: 1, pointerType: 'mouse', button: 0 });
+  expect(click).toHaveBeenCalledTimes(1);
+  const [, tile, point] = click.mock.calls[0];
+  expect(point[0]).toBeCloseTo(wx, 9);
+  expect(point[1]).toBeCloseTo(wy, 9);
+  expect(tile).toEqual([2, -1]);
+});
+
 describe('command outcome feedback', () => {
   it('routes accepted and rejected outcomes exactly once and ignores no-op clicks', () => {
     const accepted: string[] = [];
