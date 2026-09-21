@@ -6482,9 +6482,11 @@ it, and [A-trait-library] has two such runs that disagree.
 `a_shift_start_ends_a_running_talk_without_stranding_the_talker` fails in both
 its positions, and `the_shipped_household_never_strands_a_sim_or_an_object`
 fails at tick 1799 naming Casey. With the rule in place, 300000 ticks of the
-shipped household never leave anybody using an object with no target, and the
-build replays a household saved by the previous public build field for field
-across that same shift start.
+shipped household never leave anybody using an object with no target.
+Separately, the build replays a household saved by the previous public build
+field for field for 1800 ticks. That proves old saves keep their meaning; it
+does not test this fix, because that household has no conversation running at
+its shift start.
 
 ## [L-content-additions-move-the-save-digest] Adding a trait refuses every save
 

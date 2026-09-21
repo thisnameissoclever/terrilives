@@ -471,7 +471,7 @@ async function main(): Promise<void> {
     ),
     sim.needBarRefreshMs(),
   );
-  // [TL-panel]. Thrown on when absent, for the [L17] reason above.
+  // [TL-panel]. A missing element throws, for the [L17] reason above.
   const traitsBlock = document.querySelector<HTMLElement>('#traits-block');
   const traitsEmpty = document.querySelector<HTMLElement>('#traits-empty');
   const traitList = document.querySelector<HTMLElement>('#trait-list');

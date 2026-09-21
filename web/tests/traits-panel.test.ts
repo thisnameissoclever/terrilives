@@ -353,6 +353,14 @@ describe('the Traits block in the page', () => {
     expect(needs).toBeGreaterThan(-1);
     expect(traits).toBeGreaterThan(needs);
     expect(people).toBeGreaterThan(traits);
+
+    // The need bars are appended to the END of #needs-content at runtime, so
+    // "below the bars" means OUTSIDE that div and after it. Between the two
+    // ids every div that opens must close, plus one more: #needs-content's.
+    const between = INDEX_HTML.slice(needs, traits);
+    const opened = between.split('<div').length - 1;
+    const closed = between.split('</div>').length - 1;
+    expect(closed - opened).toBe(1);
   });
 
   it('is not a heading, so it does not file itself under the household roster', () => {
