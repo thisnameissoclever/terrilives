@@ -34,11 +34,15 @@ error line.
   resets every player's sound, lighting and help settings;
 - the save fingerprint seeds in `terri-data`: renaming them invalidates every
   existing save;
+- the save file `terri-save-1.bin` and its two backups,
+  `terri-save-1.v1-backup.bin` and `terri-save-1.v2-backup.bin`: the game opens
+  saves only under these names, so renaming them leaves every existing save
+  unfound and the player sees "No saved game found";
 - the save lock name `terrilives-save-slot` and the save worker name
   `terrilives-save-store`: with a renamed lock, a tab running the old build and
   a tab running the new one would stop excluding each other on the same save
   file;
-- the `terri-*` crate names, the `terri_wasm` package, `terri-save-1.bin`, the
+- the `terri-*` crate names, the `terri_wasm` package, the
   `terrilives-web` package name, the `TERRILIVES_PLAYWRIGHT_CORE` environment
   variable, the temporary-directory prefixes in the audio scripts, and the
   test string hashed by the known-answer hash test in `terri-core`: no player
