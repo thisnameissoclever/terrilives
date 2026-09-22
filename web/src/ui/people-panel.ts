@@ -144,7 +144,11 @@ export function peoplePanelView(source: PeoplePanelSource): PeoplePanelView | nu
       .map((member) => relationshipFor(
         member,
         feelings.get(member.simId) ?? 0,
-        tieBetween(ties, selected.entity, member.entity),
+        // What the ROW's person is to the selected one, which is how the
+        // row reads: "Bill, their parent" means Bill is the parent. Review
+        // finding [F2] on PR 131 had these the other way round, and partner
+        // and sibling being their own mirror hid it.
+        tieBetween(ties, member.entity, selected.entity),
       )),
   };
 }

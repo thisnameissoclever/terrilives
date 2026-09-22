@@ -235,6 +235,22 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
         );
         assert_eq!(restored.save_bytes(), before);
     }
+    // Review finding [F1] on PR 131: a save written before ties existed but
+    // WITH floors the player painted. Cutting the family byte alone leaves
+    // those floors, and they must survive rather than look invented.
+    let mut painter = SimHandle::from_lot();
+    assert!(painter.set_floor(2.0, 2.0, 1.0));
+    painter.flush_commands();
+    let painted = painter.save_bytes();
+    let before_ties = painted[..painted.len() - 1].to_vec();
+    let mut live = SimHandle::from_lot();
+    assert!(
+        live.load_bytes(&before_ties),
+        "a painted house saved before ties existed must still load"
+    );
+    assert_eq!(live.floor_tiles(), vec![2, 2, 1], "and keep its floors");
+    assert!(live.family_ties().is_empty());
+
     for (cut, what) in [(1, "family"), (2, "floors and family")] {
         let older = valid[..valid.len() - cut].to_vec();
         assert!(

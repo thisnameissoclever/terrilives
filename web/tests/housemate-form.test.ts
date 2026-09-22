@@ -435,6 +435,21 @@ describe('who the newcomer is', () => {
     expect(source.ties).toEqual([[12, 7, 1]]);
   });
 
+  // Review finding [F4] on PR 131: the form is the only way to make a tie,
+  // so a tie the queue refused must not vanish without a word.
+  it('says so when the tie could not be sent', () => {
+    const { housemate: form, source } = form2();
+    source.ties = [];
+    source.setFamilyTie = () => false;
+    form.setName('Ann');
+    form.next();
+    form.chooseRelation(1);
+    form.chooseRelative(7);
+    form.moveIn();
+    movedIn(form, source, 12);
+    expect(form.status).toBe('They moved in, but the family tie could not be sent.');
+  });
+
   it('sends no tie when the newcomer is nobody to anybody', () => {
     const { housemate: form, source } = form2();
     form.setName('Ann');

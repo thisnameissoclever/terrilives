@@ -844,7 +844,8 @@ this being authored data rather than inferred from who shares a house.
 The first slice ships the tie itself. A newcomer arrives as somebody: the New
 housemate form asks who they are to the household, choosing from partner,
 parent, child and sibling and naming the member it is to, and the
-relationship list then says it beside the feeling ("Bill, their parent"). A
+relationship list then says it beside the feeling, from the row's side:
+"Bill, their parent" means Bill is the parent. A
 tie is one stored fact between two people, read from either end so a parent
 one way is a child the other, saved sparsely and appended, and in the world
 hash. Nothing behaves differently for family yet. The design is

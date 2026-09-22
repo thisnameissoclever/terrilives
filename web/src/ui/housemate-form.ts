@@ -160,9 +160,14 @@ export class HousemateForm {
     this.hooks.changed();
   }
 
-  /** Picks which household member the relation is to, by entity index. */
+  /**
+   * Picks which household member the relation is to, by entity index. A
+   * number that is not one is refused, as the personality and trait choices
+   * are, rather than trusted because the view only offers real ones.
+   */
   chooseRelative(entity: number | null): void {
     if (this.pending) return;
+    if (entity !== null && (!Number.isSafeInteger(entity) || entity < 0)) return;
     this.relative = entity;
     this.hooks.changed();
   }
@@ -195,8 +200,13 @@ export class HousemateForm {
       this.source.select(result.sim);
       // [FM-choose]: the tie is its own command, sent once the newcomer
       // exists, because until the drain answers there is nobody to tie.
-      if (this.relation !== NO_RELATION && this.relative !== null) {
-        this.source.setFamilyTie(result.sim, this.relative, this.relation);
+      if (this.relation !== NO_RELATION && this.relative !== null
+        && !this.source.setFamilyTie(result.sim, this.relative, this.relation)) {
+        // The queue was full, so the tie never left. Say so: the form is the
+        // only way to make one, and a silent drop would leave a player
+        // believing they had recorded a family they had not.
+        this.status = 'They moved in, but the family tie could not be sent.';
+        this.hooks.changed();
       }
     }
     this.hooks.movedIn();

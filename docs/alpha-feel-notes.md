@@ -3612,4 +3612,6 @@ New housemate, then a name, then Next. The second page asked it plainly under th
 
 **What the play check caught.** The relationship list did not say it. The tie was stored and the view model carried it, and the panel's own renderer never wrote it, so every row still read just a name and a feeling. That is fixed, and the panel test now covers the row's text rather than only the view behind it. After the fix, with Ann selected and a tie to Bill, the list reads "Bill, their parent" beside his feeling, and the rows with no tie read as they did.
 
+Review afterwards found the row was stating parent and child backwards, which this session's play could not have caught: the tie set here was a sibling, and a sibling reads the same from both sides. That is fixed, and the test that covered it had asserted the wrong answer.
+
 **Not proven here.** The fix was confirmed by setting a tie through the harness on a reloaded page rather than by moving a second person in, because the reload had already cleared the first one. Saving and reloading a household with a tie is covered by tests rather than by hand here. Nothing in the game yet behaves differently for family: a brother is a word on a row, not a reason to do anything.

@@ -228,8 +228,18 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                let invented = snapshot.floors.tiles().len() + snapshot.family.ties().len();
-                return (pad == 0 || invented == 0).then_some(snapshot);
+                // Only the lists the padding could have filled must come
+                // back empty, and that is the LAST `pad` of them. One pad
+                // fills the family list alone, so a save written before
+                // ties existed keeps the floors its player painted. Asking
+                // every appended list to be empty at every pad level is how
+                // review finding [F1] on PR 131 refused those saves.
+                let invented = match pad {
+                    0 => 0,
+                    1 => snapshot.family.ties().len(),
+                    _ => snapshot.family.ties().len() + snapshot.floors.tiles().len(),
+                };
+                return (invented == 0).then_some(snapshot);
             }
             Err(postcard::Error::DeserializeUnexpectedEnd) => padded.push(0),
             _ => return None,
@@ -554,8 +564,8 @@ impl SimHandle {
             .collect()
     }
 
-    /// Three words per family tie: the lower sim index, the higher, and the
-    /// relation the lower one is to the higher - [FM-save] in
+    /// Three words per family tie: the lower entity index, the higher, and
+    /// the relation the lower one is to the higher - [FM-save] in
     /// `docs/specs/2026-09-22-family.md`. Sorted, and empty for a household
     /// of strangers.
     pub fn family_ties(&self) -> Vec<u32> {
@@ -571,9 +581,9 @@ impl SimHandle {
             })
     }
 
-    /// Stages recording that the sim at index `who` is `relation` to the sim
-    /// at index `to`, with 4 for no relation at all - [FM-tie]. False when
-    /// the numbers are not two sims and a relation.
+    /// Stages recording that the sim at entity index `who` is `relation` to
+    /// the sim at index `to`, with 4 for no relation at all - [FM-tie].
+    /// False when the numbers are not two indices and a relation.
     pub fn set_family_tie(&mut self, who: f64, to: f64, relation: f64) -> bool {
         let code = placement_u32(relation).and_then(|code| u8::try_from(code).ok());
         let (Some(who), Some(to), Some(code)) = (placement_u32(who), placement_u32(to), code)

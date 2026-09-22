@@ -210,8 +210,17 @@ impl Relation {
 }
 
 /// Who the household are to each other - [FM-save]. One entry per pair,
-/// stored from the lower sim id to the higher with the relation as the lower
-/// one sees it, so a parent and a child are one fact read from either end.
+/// stored from the lower entity index to the higher with the relation as the
+/// lower one sees it, so a parent and a child are one fact read from either
+/// end.
+///
+/// **Keyed on the entity index today, and that is a debt, not a decision.**
+/// `Relationships` keys on SimId because an index is reused once its entity
+/// is gone ([L47]). No sim can leave or die yet, sold indices are retired
+/// rather than reused, and a load rebuilds every index exactly, so no tie
+/// can transfer to the wrong person in this build. It could the moment
+/// somebody can move out, which is why [T-family-simid] in
+/// `docs/TIM-TODO.md` says this must change before that slice.
 #[derive(Resource, Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FamilyTies {
     ties: Vec<(u32, u32, u8)>,
@@ -224,7 +233,7 @@ impl FamilyTies {
     }
 
     /// What `who` is to `to`, or `None` when they are not related. Reading
-    /// the stored fact from the higher sim's side mirrors it.
+    /// the stored fact from the higher one's side mirrors it.
     pub fn relation(&self, who: u32, to: u32) -> Option<Relation> {
         let (low, high) = (who.min(to), who.max(to));
         let stored = self
@@ -276,7 +285,7 @@ impl FamilyTies {
         }
     }
 
-    /// The saved list, refused whole when a tie names a sim that is not
+    /// The saved list, refused whole when a tie names somebody that is not
     /// there, ties a sim to itself, repeats a pair, is out of order, or
     /// names a relation the game does not have ([FM-save]).
     pub fn from_saved(ties: Vec<(u32, u32, u8)>, known: &dyn Fn(u32) -> bool) -> Option<Self> {
@@ -284,10 +293,11 @@ impl FamilyTies {
         for &(low, high, code) in &ties {
             if low >= high
                 || Relation::from_code(code).is_none()
-                || !known(low)
-                || !known(high)
                 || previous.is_some_and(|last| last >= (low, high))
             {
+                return None;
+            }
+            if !known(low) || !known(high) {
                 return None;
             }
             previous = Some((low, high));
