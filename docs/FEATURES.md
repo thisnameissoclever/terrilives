@@ -761,7 +761,7 @@ Asked for by the owner on 2026-09-22 after playing. A disposition trait's senten
 
 ### [B-options-flyout] Game controls live behind one Options button
 
-Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, and People. The same notes asked for the Traits panel to be collapsible and closed by default, which ships with it.
+Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, and People. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry.
 
 ### [B-walls-in-build] The Walls tool shows every wall
 

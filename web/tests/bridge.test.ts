@@ -129,7 +129,7 @@ describe('SimBridge', () => {
         {
           key: 11,
           label: 'Out of shape',
-          description: 'Gets little from a workout at first, and gets fitter with every attempt.',
+          description: 'Gets less from a workout at first, and gets fitter with every attempt.',
           state: 'Skill 42%',
         },
       ],

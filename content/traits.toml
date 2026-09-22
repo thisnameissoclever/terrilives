@@ -40,7 +40,7 @@ score_multiplier = 1.5
 [[trait_def]]
 id = "cannot_cook"
 label = "Can't cook"
-description = "Ruins meals at first, and gets better with every attempt."
+description = "Ruins most meals at first, and gets better with every attempt."
 kind = "capability"
 tag = "cooking"
 start_level = 0.25
@@ -159,7 +159,7 @@ score_multiplier = 0.5
 [[trait_def]]
 id = "out_of_shape"
 label = "Out of shape"
-description = "Gets little from a workout at first, and gets fitter with every attempt."
+description = "Gets less from a workout at first, and gets fitter with every attempt."
 kind = "capability"
 tag = "exercise"
 start_level = 0.42
@@ -169,7 +169,7 @@ learn_per_attempt = 0.02
 [[trait_def]]
 id = "slow_reader"
 label = "Slow reader"
-description = "Gets little from a book at first, and reads better with every attempt."
+description = "Gets less from a book at first, and reads better with every attempt."
 kind = "capability"
 tag = "reading"
 start_level = 0.58

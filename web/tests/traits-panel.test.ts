@@ -18,7 +18,7 @@ const LIBRARY: TraitLibrary = {
   kinds: ['disposition', 'capability', 'condition'],
   descriptions: [
     'Loves watching television.',
-    'Ruins meals at first, and gets better with every attempt.',
+    'Ruins most meals at first, and gets better with every attempt.',
     'Gets less out of everything; attending to correspondence eases it.',
   ],
 };
@@ -147,7 +147,7 @@ describe('traitsPanelState', () => {
       {
         key: 1,
         label: "Can't cook",
-        description: 'Ruins meals at first, and gets better with every attempt.',
+        description: 'Ruins most meals at first, and gets better with every attempt.',
         state: 'Skill 25%',
       },
       {
