@@ -155,6 +155,147 @@ pub struct WallLine {
     pub y: u32,
 }
 
+/// What one household member is to another - [FM-tie] in
+/// `docs/specs/2026-09-22-family.md`. The order is the wire order and the
+/// codes; append only.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Relation {
+    Partner,
+    Parent,
+    Child,
+    Sibling,
+}
+
+impl Relation {
+    pub const ALL: [Self; 4] = [Self::Partner, Self::Parent, Self::Child, Self::Sibling];
+
+    pub const fn code(self) -> u8 {
+        match self {
+            Self::Partner => 0,
+            Self::Parent => 1,
+            Self::Child => 2,
+            Self::Sibling => 3,
+        }
+    }
+
+    pub const fn from_code(code: u8) -> Option<Self> {
+        match code {
+            0 => Some(Self::Partner),
+            1 => Some(Self::Parent),
+            2 => Some(Self::Child),
+            3 => Some(Self::Sibling),
+            _ => None,
+        }
+    }
+
+    /// The same tie read from the other person's side: a parent's other end
+    /// is a child, and the rest are their own ([FM-tie]).
+    pub const fn mirrored(self) -> Self {
+        match self {
+            Self::Parent => Self::Child,
+            Self::Child => Self::Parent,
+            other => other,
+        }
+    }
+
+    /// The plain word for this relation, as the relationship list says it.
+    pub const fn word(self) -> &'static str {
+        match self {
+            Self::Partner => "partner",
+            Self::Parent => "parent",
+            Self::Child => "child",
+            Self::Sibling => "sibling",
+        }
+    }
+}
+
+/// Who the household are to each other - [FM-save]. One entry per pair,
+/// stored from the lower sim id to the higher with the relation as the lower
+/// one sees it, so a parent and a child are one fact read from either end.
+#[derive(Resource, Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FamilyTies {
+    ties: Vec<(u32, u32, u8)>,
+}
+
+impl FamilyTies {
+    /// Every tie, sorted by the pair it joins.
+    pub fn ties(&self) -> &[(u32, u32, u8)] {
+        &self.ties
+    }
+
+    /// What `who` is to `to`, or `None` when they are not related. Reading
+    /// the stored fact from the higher sim's side mirrors it.
+    pub fn relation(&self, who: u32, to: u32) -> Option<Relation> {
+        let (low, high) = (who.min(to), who.max(to));
+        let stored = self
+            .ties
+            .binary_search_by_key(&(low, high), |&(a, b, _)| (a, b))
+            .ok()
+            .and_then(|at| Relation::from_code(self.ties[at].2))?;
+        Some(if who == low {
+            stored
+        } else {
+            stored.mirrored()
+        })
+    }
+
+    /// Records that `who` is `relation` to `to`, or removes the tie with
+    /// `None`. Returns whether anything changed. A sim tied to itself is
+    /// refused rather than stored.
+    pub fn set(&mut self, who: u32, to: u32, relation: Option<Relation>) -> bool {
+        if who == to {
+            return false;
+        }
+        let (low, high) = (who.min(to), who.max(to));
+        let stored = relation.map(|relation| {
+            if who == low {
+                relation
+            } else {
+                relation.mirrored()
+            }
+        });
+        match (
+            self.ties
+                .binary_search_by_key(&(low, high), |&(a, b, _)| (a, b)),
+            stored,
+        ) {
+            (Ok(at), None) => {
+                self.ties.remove(at);
+                true
+            }
+            (Ok(at), Some(relation)) if self.ties[at].2 == relation.code() => false,
+            (Ok(at), Some(relation)) => {
+                self.ties[at].2 = relation.code();
+                true
+            }
+            (Err(_), None) => false,
+            (Err(at), Some(relation)) => {
+                self.ties.insert(at, (low, high, relation.code()));
+                true
+            }
+        }
+    }
+
+    /// The saved list, refused whole when a tie names a sim that is not
+    /// there, ties a sim to itself, repeats a pair, is out of order, or
+    /// names a relation the game does not have ([FM-save]).
+    pub fn from_saved(ties: Vec<(u32, u32, u8)>, known: &dyn Fn(u32) -> bool) -> Option<Self> {
+        let mut previous: Option<(u32, u32)> = None;
+        for &(low, high, code) in &ties {
+            if low >= high
+                || Relation::from_code(code).is_none()
+                || !known(low)
+                || !known(high)
+                || previous.is_some_and(|last| last >= (low, high))
+            {
+                return None;
+            }
+            previous = Some((low, high));
+        }
+        Some(Self { ties })
+    }
+}
+
 /// What the player has laid on the floor, one entry per painted tile and
 /// nothing for the rest - [FL-save] in `docs/specs/2026-09-22-floors.md`.
 ///
@@ -372,6 +513,64 @@ mod tests {
         assert_eq!(WallState::of(None), WallState::Open);
         assert_eq!(WallState::of(Some(&wall)), WallState::Wall);
         assert_eq!(WallState::of(Some(&doorway)), WallState::Doorway);
+    }
+
+    /// [FM-tie]: one stored fact, read from either end, and a parent's
+    /// other end is a child.
+    #[test]
+    fn a_tie_reads_the_same_from_both_sides() {
+        let mut family = FamilyTies::default();
+        assert!(family.set(7, 2, Some(Relation::Parent)));
+        // Stored once, from the lower sim id.
+        assert_eq!(family.ties(), [(2, 7, Relation::Child.code())]);
+        assert_eq!(family.relation(7, 2), Some(Relation::Parent));
+        assert_eq!(family.relation(2, 7), Some(Relation::Child));
+        assert_eq!(family.relation(2, 3), None);
+
+        for relation in [Relation::Partner, Relation::Sibling] {
+            assert_eq!(
+                relation.mirrored(),
+                relation,
+                "{relation:?} is its own mirror"
+            );
+        }
+        assert_eq!(Relation::Parent.mirrored(), Relation::Child);
+        for relation in Relation::ALL {
+            assert_eq!(Relation::from_code(relation.code()), Some(relation));
+        }
+        assert_eq!(Relation::from_code(4), None);
+
+        // A repeat writes nothing; a change writes; None takes it away.
+        assert!(!family.set(2, 7, Some(Relation::Child)));
+        assert!(family.set(2, 7, Some(Relation::Sibling)));
+        assert_eq!(family.relation(7, 2), Some(Relation::Sibling));
+        assert!(family.set(7, 2, None));
+        assert!(family.ties().is_empty());
+        assert!(
+            !family.set(5, 5, Some(Relation::Partner)),
+            "nobody is their own sibling"
+        );
+    }
+
+    /// [FM-save]: a saved list is refused whole rather than repaired.
+    #[test]
+    fn a_saved_family_is_refused_when_it_cannot_be_true() {
+        let known = |id: u32| id < 4;
+        let ok = FamilyTies::from_saved(vec![(0, 1, 0), (1, 3, 3)], &known).expect("well formed");
+        assert_eq!(ok.relation(1, 0), Some(Relation::Partner));
+        for bad in [
+            vec![(0, 9, 0)],
+            vec![(1, 1, 0)],
+            vec![(1, 0, 0)],
+            vec![(0, 1, 9)],
+            vec![(0, 1, 0), (0, 1, 3)],
+            vec![(1, 3, 0), (0, 1, 0)],
+        ] {
+            assert!(
+                FamilyTies::from_saved(bad.clone(), &known).is_none(),
+                "{bad:?} must be refused"
+            );
+        }
     }
 
     /// [FL-save]: the painted tiles stay sorted whatever order they were
