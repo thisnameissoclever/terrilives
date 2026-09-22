@@ -22,6 +22,7 @@
  * testable in Node.
  */
 
+import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
 import { buildEdgeWallGeometry } from './edge-walls.js';
 import {
@@ -29,6 +30,7 @@ import {
   TINT_NONE,
   writeColourway,
   writeInstance,
+  writeShade,
   type InstanceArray,
 } from './instances.js';
 import {
@@ -168,6 +170,8 @@ export function buildStaticInstances(
   gridSize: number,
   scale = 1,
   lighting: TileLighting | null = null,
+  /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
+  sky: SkyExposure = OPEN_SKY,
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
   const edgePanels = lot.edges == null ? null
@@ -279,6 +283,7 @@ export function buildStaticInstances(
     sprite: number,
     emissive = 0,
     wallMask = 0,
+    shade = 0,
   ): void => {
     writeInstance(
       instances,
@@ -295,6 +300,7 @@ export function buildStaticInstances(
       wallMask === 0 ? 0 : layeredDepth(0, 0, gridSize, LAYER_PROP)
         - layeredDepth(1, 0, gridSize, LAYER_PROP),
     );
+    writeShade(instances, slot - 1, shade);
   };
 
   /**
@@ -318,6 +324,7 @@ export function buildStaticInstances(
       lighting === null ? 0 : sampleLight(lighting, x, y),
     );
     writeColourway(instances, slot - 1, lookShifts, lookOf(x, y));
+    writeShade(instances, slot - 1, sampleShade(sky, x, y));
   };
 
   for (let y = 0; y < lot.height; y++) {
@@ -341,10 +348,17 @@ export function buildStaticInstances(
         emissive = Math.max(emissive, sampleLight(lighting, x, y));
       }
     }
+    // [OS-daylight]: a wall takes the exposure of the more open side on the
+    // lot. The back walls' outer side is off the lot, which is not the sky
+    // the room sees, so it does not count.
+    let shade = 1;
+    for (const [x, y] of panel.lightSamples) {
+      if (x >= 0 && y >= 0 && x < lot.width && y < lot.height) shade = Math.min(shade, sampleShade(sky, x, y));
+    }
     // A wall spans a plane, not the constant-depth billboard used by furniture.
     // Doors share that plane; their transparent aperture remains in the atlas.
     const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' ? 5 : 10);
-    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask);
+    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask, shade);
   }
   for (const [x, y, sprite] of boundary) {
     write(

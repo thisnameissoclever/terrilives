@@ -152,6 +152,18 @@ affinity_hates_to = 0.5
 housemate_name_max_chars = 24
 housemate_max_traits = 4
 
+# How the sky lights the house ([OS-daylight] in
+# docs/specs/2026-09-22-the-outside.md). Every tile outside the house is under
+# open sky; inside, the sky reaches in through open lines and doorways, losing
+# daylight_reach_per_tile for each tile it travels, and walls stop it. At
+# noon a tile the sky cannot reach loses interior_daylight_shade of the day's
+# light; a lamp lifts what it lights as before, and night is untouched. A
+# quarter is enough to make a closed back room read as indoors without making
+# the house gloomy; a fifth a tile lets a room's light fade over the five
+# tiles in from its doorway.
+interior_daylight_shade = 0.25
+daylight_reach_per_tile = 0.2
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

@@ -1275,6 +1275,25 @@ describe('buildInstances', () => {
     expect(reduced[OFFSET_SPRITE]).toBe(aquarium);
   });
 
+  // [OS-daylight] in docs/specs/2026-09-22-the-outside.md: a person takes
+  // the sky shade of the tile they stand on; with no sky, nobody is shaded.
+  it('shades a person by the sky over the tile they stand on', async () => {
+    const { buildSkyExposure } = await import('../src/render/sky.js');
+    const { OFFSET_SHADE } = await import('../src/render/instances.js');
+    const source = new FakeEntities();
+    source.set([
+      [0, 0, 0, 0, KIND_AGENT, 1, 0, 0xffff_ffff, 0, 0],
+      [3, 0, 3, 0, KIND_AGENT, 1, 0, 0xffff_ffff, 0, 0],
+    ]);
+    // A 4 by 1 lot whose house is the west 3 tiles, open on the east.
+    const sky = buildSkyExposure(4, 1, [], [3, 1], 0.25);
+    const shaded = snapshot(buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 0,
+      null, undefined, null, null, 0, sky), 2);
+    expect([shaded[OFFSET_SHADE], shaded[FLOATS_PER_INSTANCE + OFFSET_SHADE]]).toEqual([0.75, 0]);
+    const open = snapshot(buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 0), 2);
+    expect([open[OFFSET_SHADE], open[FLOATS_PER_INSTANCE + OFFSET_SHADE]]).toEqual([0, 0]);
+  });
+
   it('draws authored action poses without reinterpreting activity labels', () => {
     const source = new FakeEntities();
     source.set([

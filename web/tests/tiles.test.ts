@@ -732,6 +732,50 @@ describe('the yard', () => {
       ORIGIN_X, ORIGIN_Y, GRID))).toEqual(drawn);
   });
 
+  // [OS-daylight]: each floor tile carries its sky shade, and a wall the
+  // shade of the more open tile beside it on the lot.
+  it('shades the floor and walls by how far the sky reaches in', async () => {
+    const { buildSkyExposure } = await import('../src/render/sky.js');
+    const { OFFSET_SHADE, FLOATS_PER_INSTANCE } = await import('../src/render/instances.js');
+    // The house is the west 2 by 2 of a 3 by 2 lot, closed on the east
+    // (x = 2) but for a doorway on row 0.
+    const edges = Uint32Array.from([0, 2, 0, 1, 0, 2, 1, 0]);
+    const sky = buildSkyExposure(3, 2, edges, [2, 2], 0.25);
+    const built = buildStaticInstances({ ...lot, edges, house: [2, 2] }, ORIGIN_X, ORIGIN_Y, GRID, 1, null, sky);
+    const floor = spriteIndex('floor');
+    const shades: number[] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] === floor) shades.push(built.instances[base + OFFSET_SHADE]);
+    }
+    // Row by row: (0, 0) 0.5, (1, 0) 0.25, (2, 0) yard; (0, 1) 0.75, (1, 1) 0.5, (2, 1) yard.
+    expect(shades).toEqual([0.5, 0.25, 0, 0.75, 0.5, 0]);
+    const wallShadesOf = (geometry: typeof built) => {
+      const shades: number[] = [];
+      for (let i = 0; i < geometry.count; i++) {
+        const base = i * FLOATS_PER_INSTANCE;
+        if (geometry.instances[base + OFFSET_SPRITE] !== floor) shades.push(geometry.instances[base + OFFSET_SHADE]);
+      }
+      return shades;
+    };
+    // The back walls on the north and west lines see only the house's tiles
+    // on the lot, so they are shaded as the room is, never fully lit.
+    const wallShades = wallShadesOf(built);
+    expect(wallShades.length).toBeGreaterThan(0);
+    for (const shade of wallShades) expect(shade).toBeGreaterThan(0);
+    // The wall on the east line at row 1, drawn only while a wall tool shows
+    // the cut-away walls, has the house tile (1, 1) and the yard tile (2, 1)
+    // beside it: it takes the yard's open sky, so it is the one wall at 0.
+    const shown = buildStaticInstances({ ...lot, edges, house: [2, 2], showCutAwayWalls: true },
+      ORIGIN_X, ORIGIN_Y, GRID, 1, null, sky);
+    const shownShades = wallShadesOf(shown);
+    expect(shownShades.length).toBeGreaterThan(wallShades.length);
+    expect(shownShades.filter((shade) => shade === 0).length).toBeGreaterThan(0);
+    // Without a sky, everything is fully exposed, as before.
+    const open = buildStaticInstances({ ...lot, edges, house: [2, 2] }, ORIGIN_X, ORIGIN_Y, GRID);
+    for (let i = 0; i < open.count; i++) expect(open.instances[i * FLOATS_PER_INSTANCE + OFFSET_SHADE]).toBe(0);
+  });
+
   it('draws the cut-away walls while a wall tool asks, and keeps the yard green', () => {
     const edges = Uint32Array.from([0, 2, 0, 1]);
     const shown = buildStaticInstances({ ...lot, edges, house: [2, 1], showCutAwayWalls: true },

@@ -696,6 +696,17 @@ impl SimHandle {
         ]
     }
 
+    /// How the sky lights the house - [OS-daylight] in
+    /// `docs/specs/2026-09-22-the-outside.md`: `[interior shade at noon,
+    /// exposure lost per tile]`, from the tuning file.
+    pub fn daylight_tuning(&self) -> Vec<f32> {
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        vec![
+            tuning.interior_daylight_shade,
+            tuning.daylight_reach_per_tile,
+        ]
+    }
+
     /// The most characters a new housemate's name may have, and the most
     /// traits - [CS-command]: `[name_chars, traits]`, from the tuning file.
     pub fn housemate_limits(&self) -> Vec<u32> {
@@ -5409,6 +5420,12 @@ mod boundary_tests {
         assert_eq!(handle.street_column(), 19);
         // A lot whose front door has no yard beyond it has no street.
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
+    }
+
+    /// [OS-daylight]: the daylight knobs cross as the tuning file sets them.
+    #[test]
+    fn the_daylight_tuning_crosses_the_boundary() {
+        assert_eq!(SimHandle::from_lot().daylight_tuning(), vec![0.25, 0.2]);
     }
 
     /// [WB-draw]: the shipped front door's line, the one the Walls tool

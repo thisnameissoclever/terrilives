@@ -576,6 +576,21 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
+Daylight indoors works the same way ([OS-daylight] in
+`docs/specs/2026-09-22-the-outside.md`). `render/sky.ts` floods sky exposure
+in from every tile outside the house, losing `daylight_reach_per_tile` per
+step, passing doorways and stopping at walls, and is rebuilt with the lamp
+field. Each instance carries its tile's shade (one minus its exposure) in the
+spare fourth float of its colourway attribute, instance slot 15; static rows
+bake it with the camera block, and people, furniture, doors and the placement
+preview sample it per frame. Markers (the selection and footprint rings, the
+tile highlight and activity bubbles) stay unshaded. The sprite
+uniform grows by one vec4, `sky`, whose first float is
+`interior_daylight_shade` times the sun's strength, or 0 in flat light. The
+shader multiplies the ambient by one minus that times the instance's shade
+before a lamp's lift, so a lamp still lights a shaded room. Like the lamp
+field, it adds no draw, persisted state or world-hash input.
+
 The shell recognises a light by any of its four directional sprites, a set it
 builds by appending each turn's suffix to the light's base sprite name. That
 is the rule the content compiler follows for a sprite drawn facing south-east,

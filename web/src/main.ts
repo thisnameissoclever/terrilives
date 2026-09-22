@@ -19,7 +19,8 @@ import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
-import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
+import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
+import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import {
@@ -988,6 +989,12 @@ async function main(): Promise<void> {
   let cameraDirty = true;
   let lightingDirty = false;
   let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
+  // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
+  // field whenever the lot's walls change.
+  const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
+  const buildSky = (): SkyExposure =>
+    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile);
+  let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
     lightingMode.toggle();
@@ -1044,6 +1051,7 @@ async function main(): Promise<void> {
   function applyCamera(): void {
     if (lightingDirty) {
       lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
+      sky = buildSky();
       lightingDirty = false;
     }
     const ratio = window.devicePixelRatio || 1;
@@ -1081,6 +1089,7 @@ async function main(): Promise<void> {
       depthScale,
       camera.scale,
       lightingMode.isFlat() ? null : lighting,
+      sky,
     );
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
     cameraDirty = false;
@@ -1467,19 +1476,23 @@ async function main(): Promise<void> {
       wallTool.highlight() ?? roomTool.highlight(),
       // A purchase in the Buy tool's colourway; a moved object in its own.
       buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
+      sky,
     );
     // The day/night cycle. `LightingMode` combines the player's saved flat
     // choice with reduced motion's temporary constraint, so one effective
     // state governs ambient light, pools, and the button without rewriting
     // the player's preference.
+    const ambient = lightingMode.isFlat()
+      ? AMBIENT_NEUTRAL
+      : ambientFor(sim.clockTick(), sim.dayTicks());
     renderer.draw(
       instances,
       instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
         wallTool.highlight() ?? roomTool.highlight()),
       camera.scale,
-      lightingMode.isFlat()
-        ? AMBIENT_NEUTRAL
-        : ambientFor(sim.clockTick(), sim.dayTicks()),
+      ambient,
+      // [OS-daylight]: the sky shades the house by day; flat light is even.
+      lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
     );
 
     // Inside the sample below rather than outside it, deliberately: the

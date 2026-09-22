@@ -1105,6 +1105,19 @@ pub enum ContentError {
     /// [CS-command]: `housemate_max_traits` is 0, so a newcomer could wear
     /// nothing from the library.
     HousemateTraitLimitIsZero,
+    /// [OS-daylight]: `interior_daylight_shade` outside `[0, 0.5]`: above a
+    /// half a room the sky cannot reach would fall below the 0.42 legibility
+    /// floor at noon ([ML-a11y]), and below 0 it would be brighter than the
+    /// yard.
+    DaylightShadeOutOfRange {
+        value: f32,
+    },
+    /// [OS-daylight]: `daylight_reach_per_tile` outside `(0, 1]`: at 0 the
+    /// sky would reach every room undimmed, and past 1 it would not get
+    /// past the doorway.
+    DaylightReachOutOfRange {
+        value: f32,
+    },
     /// [OS-yard], [OS-street]: the yard's or the street's look has a number
     /// outside a colourway's range.
     LookOutOfRange {
@@ -2179,6 +2192,16 @@ impl fmt::Display for ContentError {
                 f,
                 "housemate_max_traits is 0; a new housemate must be able to \
                  wear at least one trait"
+            ),
+            ContentError::DaylightShadeOutOfRange { value } => write!(
+                f,
+                "interior_daylight_shade is {value}; must be in [0, 0.5], so a \
+                 room the sky cannot reach keeps at least half the day's light"
+            ),
+            ContentError::DaylightReachOutOfRange { value } => write!(
+                f,
+                "daylight_reach_per_tile is {value}; must be in (0, 1], so the \
+                 sky fades indoors and still reaches through a doorway"
             ),
             ContentError::LookOutOfRange { look, field } => write!(
                 f,

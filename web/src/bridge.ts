@@ -1234,6 +1234,12 @@ export class SimBridge {
     return Uint32Array.from(this.handle.front_door_lines());
   }
 
+  /** `[interior shade at noon, exposure lost per tile]` ([OS-daylight]). */
+  daylightTuning(): [number, number] {
+    const [shade, reach] = this.handle.daylight_tuning();
+    return [shade, reach];
+  }
+
   /** Each personality's name, in pack order ([CS-command] in `docs/specs/2026-09-22-create-a-sim.md`). */
   personalityLabels(): string[] {
     return this.handle.personality_labels();

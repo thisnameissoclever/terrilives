@@ -89,6 +89,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **Help** | The persistent copy of the first-run control guide. Closing it is remembered in browser preferences, separately from the game save. |
 | **needs panel** | The collapsible panel named for the selected person. On a narrow screen it starts folded so controls do not cover most of the house. |
 | **Options flyout** | The panel under the gear at the window's top right. It holds Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help ([OF3]). Opening it pauses nothing; Escape or a press outside closes it. |
+| **sky exposure** | How much open sky a tile sees, from 1 in the yard down to 0 deep inside the house ([OS-daylight]). It falls by `daylight_reach_per_tile` for each step in from the yard, passes every doorway, whether or not a door stands in it, and stops at walls. By day the shader dims a tile by `interior_daylight_shade` times what it lacks, scaled by how strong the sun is; at night and in flat light it changes nothing. It is drawing only and never enters the simulation or the save. |
 | **Light: auto / Light: flat** | In the Options flyout. Auto follows the simulation clock and shows local lamp and television pools. Flat uses neutral daylight and removes local pools. The choice is a browser preference rather than game state. Reduced motion temporarily forces Flat without overwriting the saved choice. |
 
 ## Habituation - "not that again"

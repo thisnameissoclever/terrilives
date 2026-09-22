@@ -21,6 +21,7 @@ import {
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
+  writeShade,
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
@@ -39,6 +40,7 @@ import {
   writeTileHighlight,
   type TileHighlight,
 } from './render/placement-preview.js';
+import { OPEN_SKY, sampleShade, type SkyExposure } from './render/sky.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -951,6 +953,8 @@ export function buildInstances(
   highlight: TileHighlight | null = null,
   /** The colourway the ghost is drawn in: a moved object's, or a purchase's ([RC-render]). */
   placementColourway = 0,
+  /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
+  sky: SkyExposure = OPEN_SKY,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -1061,6 +1065,7 @@ export function buildInstances(
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),
     );
+    writeShade(scratch, i, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
     // [RC-render]: an object takes its own colourway; a sim drawn using an
     // object takes that object's, which the shader applies to the furniture
     // layer only.
@@ -1079,7 +1084,7 @@ export function buildInstances(
   // owns those pixels.
   let slot = count;
   if (portals !== undefined) {
-    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting);
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
   }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
@@ -1104,6 +1109,7 @@ export function buildInstances(
         TINT_NONE,
         Math.max(emissiveForSprite(sprite), localLight),
       );
+      writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
       if (colourways !== null && colourwayShifts !== null) {
         writeColourway(scratch, slot - 1, colourwayShifts, colourways[i]);
       }
@@ -1220,6 +1226,7 @@ export function buildInstances(
       TINT_NONE,
       localLight,
     );
+    writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
   }
 
   // **The selection ring, last, in the slot past the live entities and
@@ -1253,7 +1260,7 @@ export function buildInstances(
   }
 
   slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
-    colourwayShifts, placementColourway);
+    colourwayShifts, placementColourway, sky);
   writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   return scratch;
 }

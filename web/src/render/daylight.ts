@@ -117,5 +117,18 @@ export function ambientFor(tick: number, dayTicks: number): Ambient {
   ];
 }
 
+/**
+ * How strong the sun is, from 0 at night to 1 in full daylight - [OS-daylight]
+ * in `docs/specs/2026-09-22-the-outside.md`. Read off the ambient's green,
+ * which runs from under 0.5 at night to 1 from mid-morning: none before dawn
+ * and after dusk, full through the day, rising through the dawn and tapering
+ * to zero through the dusk.
+ */
+export function sunStrength(ambient: Ambient): number {
+  const g = ambient[1];
+  if (!Number.isFinite(g)) return 0;
+  return Math.min(1, Math.max(0, (g - 0.5) / 0.5));
+}
+
 /** Noon for callers that want the cycle off, including Flat and reduced motion. */
 export const AMBIENT_NEUTRAL: Ambient = [1, 1, 1, 1];

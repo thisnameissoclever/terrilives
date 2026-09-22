@@ -635,8 +635,14 @@ pub struct Tuning {
     /// [CS-command] in `docs/specs/2026-09-22-create-a-sim.md`.
     pub housemate_name_max_chars: u32,
     /// The most traits a new housemate may wear, at least 1 - [CS-command].
-    /// Last in this struct, per the appending rule.
     pub housemate_max_traits: u32,
+    /// How much of the day's light a tile the sky cannot reach loses at
+    /// noon, in `[0, 1)` - [OS-daylight] in
+    /// `docs/specs/2026-09-22-the-outside.md`. Read only by the renderer.
+    pub interior_daylight_shade: f32,
+    /// Sky exposure lost per tile travelled indoors, in `(0, 1]` -
+    /// [OS-daylight]. Last in this struct, per the appending rule.
+    pub daylight_reach_per_tile: f32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -1200,6 +1206,8 @@ mod tests {
             resale_fraction: 0.40625,
             housemate_name_max_chars: 23,
             housemate_max_traits: 5,
+            interior_daylight_shade: 0.15625,
+            daylight_reach_per_tile: 0.21875,
         }
     }
 
@@ -1817,22 +1825,42 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
+        // [OS-daylight]: the two daylight floats close the record; 0.21875
+        // and 0.15625 are 0, 0, 96, 62 and 0, 0, 32, 62, and a change of
+        // either to 0.28125 or 0.34375 moves only its third byte.
+        let len = before.len();
+        assert_eq!(before[len - 8..], [0, 0, 32, 62, 0, 0, 96, 62]);
+        assert_eq!(
+            changed(Tuning {
+                daylight_reach_per_tile: 0.34375,
+                ..a_tuning()
+            }),
+            vec![len - 2]
+        );
+        assert_eq!(
+            changed(Tuning {
+                interior_daylight_shade: 0.28125,
+                ..a_tuning()
+            }),
+            vec![len - 6]
+        );
+        let before_daylight = len - 8;
         assert_eq!(
             changed(Tuning {
                 housemate_max_traits: 6,
                 ..a_tuning()
             }),
-            vec![before.len() - 1]
+            vec![before_daylight - 1]
         );
         assert_eq!(
             changed(Tuning {
                 housemate_name_max_chars: 24,
                 ..a_tuning()
             }),
-            vec![before.len() - 2]
+            vec![before_daylight - 2]
         );
-        assert_eq!(before[before.len() - 2..], [23, 5]);
-        let end = before.len() - 2;
+        assert_eq!(before[before_daylight - 2..before_daylight], [23, 5]);
+        let end = before_daylight - 2;
         // 0.40625 and 0.46875 differ only in their top two bytes.
         assert_eq!(
             changed(Tuning {
