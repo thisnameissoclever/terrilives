@@ -1716,6 +1716,7 @@ quickly to see.
 - **Runtime remained healthy.** The completed reload reported no console errors
   or warnings. Unit tests separately hold Load pending across a simulated-day
   boundary and prove autosave never captures bytes or reaches storage.
+
 ## [A-19] The alpha acceptance pass - all eleven criteria, one build
 
 The first measurement of the criteria against the code-complete alpha systems
@@ -2736,6 +2737,7 @@ supplied phone screenshot.
   server returned one unrelated 404 for `favicon.ico`. Merge, exact-head CI,
   public Pages deployment, safe-area hardware, and a physical-phone pass remain
   open.
+
 ## [A-aquarium-exercise-bike] The new objects are reachable without starving the old lot
 
 The 2026-08-12 implementation replaces two inert, one-tile persistence slots
@@ -2956,6 +2958,7 @@ Evidence and exact proof boundaries are in
 `docs/assets/review-evidence/front-door/README.md`. This entry records local
 play, not a claim that the Pages release has already happened. An outside
 world, room construction and movable furniture are not part of this door slice.
+
 ## [A-bathtub-quarter-turn] Rotated tub and saved-household upgrade
 
 On 2026-09-20, the isolated production build loaded a save produced by the
@@ -3001,6 +3004,7 @@ tests prove the grid refuses the crossing and the pathing already obeys edges.
 The first status read after pressing Wall came one frame before the drain and
 still showed the old state; the screen caught up on the next frame. No physical
 phone was used.
+
 ## [A-trait-library] Fifteen traits, and a panel that says what they do
 
 Played on 2026-09-21 on the port 5174 dev server, serving this branch's working
@@ -3064,6 +3068,7 @@ person sheet's caption lagged a reload until the next drawn frame. That is the
 viewer and not the game ([L14]). The
 exercise bike is still almost never chosen unprompted: four uses in 120000
 ticks, even with a Keen cyclist in the house. No physical phone was used.
+
 ## [A-buy-mode] Buying furniture from a catalogue
 
 Played on 2026-09-21 on the port 5174 dev server serving this branch's working
@@ -3120,6 +3125,7 @@ showed no errors or warnings.
 
 **Not proven here.** No physical phone was used. The chair's use at a table
 was not watched.
+
 ## [A-room-tool] A whole room in one edit
 
 Played on 2026-09-22 on the port 5174 dev server serving this branch's working
@@ -3444,6 +3450,7 @@ the house with the yard below it.
 **Not proven here.** A sim was not seen using the fridge in the yard in the
 time watched. The yard is floor recoloured green, not grass ([T-yard-art]). No
 physical phone was used.
+
 ## [A-rotated-lights] A turned lamp and television still light the room
 
 Played on 2026-09-22 on the port 5174 dev server serving branch

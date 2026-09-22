@@ -1,6 +1,6 @@
 # Build mode: the house is judged from its front door
 
-Status: [RD-slice-root] is built, on branch `twcl/reach-from-the-door`.
+Status: [RD-slice-root] shipped in PR 99 at merge `ed9f5fb`.
 
 This is [B-reach-from-the-door] in `docs/FEATURES.md`, found in review of the
 Room tool (`docs/specs/2026-09-22-room-tool.md`). Every lot edit proves the

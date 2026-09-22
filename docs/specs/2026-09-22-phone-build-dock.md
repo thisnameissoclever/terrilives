@@ -1,6 +1,6 @@
 # The phone Build dock keeps its buttons in view
 
-Status: [PD-slice-dock] is built, on branch `twcl/phone-build-dock`.
+Status: [PD-slice-dock] shipped in PR 102 at merge `909604a`.
 
 This is [B-phone-build-dock] in `docs/FEATURES.md`, found in review of
 catalogue browsing. On a phone the Build panel is a dock capped at 45% of the

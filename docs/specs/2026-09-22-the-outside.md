@@ -1,7 +1,7 @@
 # The outside: a yard, then a street
 
-Status: [OS-slice-yard] is built, on branch `twcl/the-yard`. Its played
-check is [A-yard]. [OS-slice-street] is built on branch `twcl/the-street`, and
+Status: [OS-slice-yard] shipped in PR 106 at merge `00e8c81`. Its played
+check is [A-yard]. [OS-slice-street] shipped in PR 107 at merge `5f7cc73`, and
 its played check is [A-street].
 
 This is [B-outside] in `docs/FEATURES.md` and the larger lot, item 5 of
