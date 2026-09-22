@@ -718,7 +718,8 @@ and played locally: authored hinge and facing, open and close frames, body occlu
 and a step into the house on return. Door state follows simulation state,
 pause, speed, save and load. See
 `docs/specs/2026-09-20-front-door-and-builder.md` for the contract and release
-checks. Mutation checks, merge and Pages deployment remain open.
+checks. Done in PR 84 at merge `d26b60e`; main's CI (run 35553958873) and the
+Pages deployment (run 35554122223) both passed for that commit.
 
 ### [B-neighborhood-dynamics] Neighbors and households have a relationship map
 
@@ -830,8 +831,9 @@ Sims.
 
 The lot starts from `content/lot.toml`. The furniture builder shipped in
 PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
-that commit. PR 95 adds a Walls tool; its merge commit and deployment are
-recorded by the next change. In Build mode the player picks the
+that commit. The Walls tool shipped in PR 95 at merge `1a90a75`; main's CI
+(run 35686858720) and the Pages deployment (run 35687048670) both passed for
+that commit, and the public page serves it. In Build mode the player picks the
 line between two floor tiles and makes it a wall, a doorway or nothing, and the
 house they build is saved. The design is `docs/specs/2026-09-21-wall-tool.md`
 and the played check is [A-wall-tool]. Dragging out a whole room in one edit,
