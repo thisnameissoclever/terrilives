@@ -444,8 +444,9 @@ impl SimHandle {
 
     /// The refusal code this wall edit would get, or zero when it would be
     /// applied - [WT-boundary]. Never writes. Axis 0 is vertical and 1
-    /// horizontal, as `wall_edges` numbers them; state 0 is open, 1 a wall and
-    /// 2 a doorway. Anything else is `InvalidInput`.
+    /// horizontal, as `wall_edges` numbers them; state 0 is open, 1 a wall,
+    /// 2 a doorway and 3 a window ([WN-state]). Anything else is
+    /// `InvalidInput`.
     pub fn wall_edit_preview(&self, axis: f64, x: f64, y: f64, state: f64) -> u32 {
         use terri_sim::placement::{walls::validate_wall_edit, PlacementRefusal};
         let Some(edit) = wall_edit_arguments(axis, x, y, state) else {

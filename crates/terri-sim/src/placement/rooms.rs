@@ -128,6 +128,11 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     for line in lines {
         let doorway = edit.doorway == Some(line);
         let [a, b] = record(line, doorway).cells();
+        // [OS-door] first: a line the front door stands on can never be a
+        // window today, but the guard must not depend on that staying true.
+        if !doorway && line.axis == EdgeAxis::Vertical && front.contains(&(line.x, line.y)) {
+            return Err(BlockedDoor);
+        }
         if windows.contains(&line) {
             if doorway {
                 windows.retain(|held| *held != line);

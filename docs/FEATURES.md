@@ -781,7 +781,7 @@ tile there is ([T-yard-art]).
 ### [B-windows] Windows let light in and let sims look out
 
 Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
-line that stops sims but not light. Fitted with Window in the Walls tool: it
+line that stops sims but not the day. Fitted with Window in the Walls tool: it
 stops people exactly as a wall does, lets the sky in as a doorway does so the
 room behind it brightens by day ([OS-daylight]), and stops a lamp's pool as a
 wall does. The saved layout carries the window lines in an appended variant

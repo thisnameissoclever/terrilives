@@ -2607,10 +2607,18 @@ impl Sim {
         // world are different saves. Legacy layouts are never edited, so
         // they add nothing, and the golden worlds, built with legacy cells,
         // keep their values.
-        if let Some(terri_core::layout::SavedLayout::EdgeWallsV1 { edges }) =
-            self.world.get_resource::<terri_core::layout::SavedLayout>()
+        //
+        // Every edge layout answers here, whichever variant holds it. Naming
+        // one version dropped the whole block for a house with a window,
+        // which is review finding [F3] on PR 126: twenty walls could then be
+        // built without the digest moving.
+        if let Some(layout) = self
+            .world
+            .get_resource::<terri_core::layout::SavedLayout>()
+            .filter(|layout| layout.has_edges())
         {
-            let mut lines: Vec<(u8, u32, u32, bool)> = edges
+            let mut lines: Vec<(u8, u32, u32, bool)> = layout
+                .edges()
                 .iter()
                 .map(|edge| (edge.axis.code(), edge.x, edge.y, edge.doorway))
                 .collect();
@@ -2622,6 +2630,25 @@ impl Sim {
                 hasher.write_u64(x as u64);
                 hasher.write_u64(y as u64);
                 hasher.write_bytes(&[u8::from(doorway)]);
+            }
+            // The windows, appended after the walls and only when there are
+            // any ([WN-state]), so an unglazed house digests exactly as it
+            // did before windows existed. Two houses that differ in where
+            // their windows sit are different houses.
+            let mut glazed: Vec<(u8, u32, u32)> = layout
+                .windows()
+                .iter()
+                .map(|line| (line.axis.code(), line.x, line.y))
+                .collect();
+            if !glazed.is_empty() {
+                glazed.sort_unstable();
+                hasher.write_bytes(b"windows-v1");
+                hasher.write_u64(glazed.len() as u64);
+                for (axis, x, y) in glazed {
+                    hasher.write_bytes(&[axis]);
+                    hasher.write_u64(x as u64);
+                    hasher.write_u64(y as u64);
+                }
             }
         }
 
