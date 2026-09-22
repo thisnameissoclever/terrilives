@@ -823,6 +823,25 @@ pub struct ContentPack {
     /// identity. Portal coordinates affect routing and the save-content
     /// fingerprint; facing, hinge and sprites remain presentation metadata.
     pub portals: Vec<CompiledPortal>,
+    /// The colourways any placed object can be drawn in, in content order -
+    /// [RC-content] in `docs/specs/2026-09-22-colourways.md`. Empty in most
+    /// test packs; when present, the first is the art as drawn. Appended at
+    /// the pack tail.
+    pub colourways: Vec<CompiledColourway>,
+}
+
+/// One colourway, validated. Its index is what a command and the render
+/// buffer carry; its id is what a save records.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledColourway {
+    pub id: String,
+    pub name: String,
+    /// Degrees the art's hues turn.
+    pub hue: f32,
+    /// How strongly the art's colours show, as a factor.
+    pub strength: f32,
+    /// A shift in lightness.
+    pub lightness: f32,
 }
 
 /// One recorded clip, compiled.
@@ -1416,6 +1435,7 @@ mod tests {
                 },
             ],
             portals: vec![],
+            colourways: vec![],
         }
     }
 
