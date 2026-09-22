@@ -278,6 +278,8 @@ meets gets an entry, and a design paper is where you meet these.
 
 ## Naming rules this project follows
 
+For objects using the new identity fields, **type** is the plain primary identification, such as Washing machine; **model name** identifies the particular product, such as Perpetual Cycle; **description** supplies optional context and flavor text. The first slice covers the washing machine, armchair, and dining table. Menu and shop behavior is documented in [object identity](specs/2026-09-22-object-identity.md).
+
 Added the same day the glossary was, after `wears:` and `standing:`
 shipped and neither meant anything to a reader:
 

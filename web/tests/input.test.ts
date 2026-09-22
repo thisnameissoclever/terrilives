@@ -1550,6 +1550,15 @@ describe('resolveRightClick', () => {
     });
   });
 
+  it('carries the clicked object description beside its unchanged action rows', () => {
+    const details = { modelName: 'Staying In', description: 'A chair for sitting.' };
+    const sink = { ...target(6), objectDetails: (entity: number) => entity === 9 ? details : undefined };
+    const described = resolveRightClick(sink, bodyOf([7, 3]), 0, 0);
+    expect(described?.details).toEqual(details);
+    expect(described?.entries).toEqual(resolveRightClick(target(6), bodyOf([7, 3]), 0, 0)?.entries);
+    expect(resolveRightClick(sink, bodyOf([2, 5]), 0, 0)?.details).toBeUndefined();
+  });
+
   /**
    * A right click that hits nothing actionable still offers the cancel,
    * because that is the binding [I4] MOVED into the menu rather than

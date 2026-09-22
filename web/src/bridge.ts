@@ -78,6 +78,7 @@ export interface CatalogueItem {
   /** The pack object index a purchase names. */
   readonly definition: number;
   readonly name: string;
+  readonly details?: import('./ui/object-identity.js').ObjectDetails;
   readonly price: number;
   /** Bit `n` set for each facing code `n` the object has art for. */
   readonly facings: number;
@@ -282,9 +283,11 @@ export class SimBridge {
   catalogue(): CatalogueItem[] {
     const words = this.handle.catalogue();
     const needs = this.handle.catalogue_needs();
+    const details = this.handle.catalogue_details();
     return this.handle.catalogue_names().map((name, row) => ({
       definition: words[row * 4], name, price: words[row * 4 + 1],
       facings: words[row * 4 + 2], baseFacing: words[row * 4 + 3], needs: needs[row],
+      ...(details[row * 2] ? { details: { modelName: details[row * 2], description: details[row * 2 + 1] } } : {}),
     }));
   }
 
@@ -1075,10 +1078,16 @@ export class SimBridge {
     return sim === '' ? this.objectName(entityIndex) : sim;
   }
 
-  /** Authored object name, or an empty string when the entity is not furniture. */
+  /** Primary object type or legacy name; empty when the entity is not furniture. */
   objectName(entityIndex: number): string {
     if (!isU32(entityIndex)) return '';
     return this.handle.object_name_of(entityIndex);
+  }
+
+  objectDetails(entityIndex: number): import('./ui/object-identity.js').ObjectDetails | undefined {
+    if (!isU32(entityIndex)) return undefined;
+    const values = this.handle.object_details_of(entityIndex);
+    return values.length === 2 ? { modelName: values[0], description: values[1] } : undefined;
   }
 
   /**

@@ -18,10 +18,14 @@ const UNAVAILABLE = 'This position is unavailable.';
 const EDIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
   '[', ']', 'r', 'R', 'Enter', 'Escape']);
 
-/** The catalogue in the order the list shows it: by name, then by content order. */
+/** Sort primary labels first, model names second, then retain content order. */
 export function listed(items: readonly CatalogueItem[]): CatalogueItem[] {
-  return [...items].sort((a, b) =>
-    a.name < b.name ? -1 : a.name > b.name ? 1 : a.definition - b.definition);
+  return [...items].sort((a, b) => {
+    if (a.name !== b.name) return a.name < b.name ? -1 : 1;
+    const left = a.details?.modelName ?? '';
+    const right = b.details?.modelName ?? '';
+    return left < right ? -1 : left > right ? 1 : a.definition - b.definition;
+  });
 }
 
 interface Sent { readonly definition: number; readonly x: number; readonly y: number; readonly facing: number }

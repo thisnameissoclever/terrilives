@@ -2106,9 +2106,15 @@ impl Sim {
             .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
     }
 
-    /// The authored display name of a smart object, or `None` for sims,
-    /// stale indices and anything that is not player-interactable furniture.
+    /// The primary type, or legacy name, of a smart object. Includes decorative
+    /// objects; returns `None` for sims and stale indices.
     pub fn object_name_of(&self, index: u32) -> Option<&'static str> {
+        self.object_definition_of(index)
+            .map(|definition| definition.display_name())
+    }
+
+    /// Current content for a placed object, independent of its saved presentation.
+    pub fn object_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledObject> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self
             .world
@@ -2117,9 +2123,7 @@ impl Sim {
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)?
             .1;
-        pack.objects
-            .get((object.0).0 as usize)
-            .map(|definition| definition.name.as_str())
+        pack.objects.get((object.0).0 as usize)
     }
 
     /// The personality multipliers of the sim carrying `index`: `drain`
@@ -2904,6 +2908,7 @@ mod lot_tests {
             .map(|(index, footprint)| CompiledObject {
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
+                presentation: None,
                 sprite: 0,
                 interactions: Vec::new(),
                 footprint: *footprint,

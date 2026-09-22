@@ -189,6 +189,13 @@ pub struct CompiledInteraction {
     pub sound_action: Option<CompiledSoundAction>,
 }
 
+/// Optional object identity copy. It never changes saved simulation state.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ObjectPresentation {
+    pub object_type: String,
+    pub description: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledObject {
     pub id: String,
@@ -244,12 +251,21 @@ pub struct CompiledObject {
     /// Authored geometry and default art orientation. Transforms use a relative turn.
     pub base_facing: Facing,
     /// What the Buy tool charges, or `None` for an object not in the
-    /// catalogue - [BM-price]. Last, because it was appended. Not in the save
+    /// catalogue - [BM-price]. Appended after `base_facing`. Not in the save
     /// compatibility digest: a save stores Funds, never prices.
     pub price: Option<u32>,
+    /// Appended presentation data; absent retains the existing name-only display.
+    pub presentation: Option<ObjectPresentation>,
 }
 
 impl CompiledObject {
+    /// Primary identification for controls and accessible labels.
+    pub fn display_name(&self) -> &str {
+        self.presentation
+            .as_ref()
+            .map_or(&self.name, |text| &text.object_type)
+    }
+
     pub fn footprint_at(&self, facing: Facing) -> Footprint {
         if self.relative_turn(facing).swaps_footprint_sides() {
             Footprint {
@@ -1218,6 +1234,7 @@ mod tests {
                     CompiledObject {
                         id: (*id).to_string(),
                         name: id.to_uppercase(),
+                        presentation: None,
                         sprite: (i as u32) + 4,
                         interactions: vec![use_it],
                         // A different rectangle per object, none of them square
@@ -1520,6 +1537,7 @@ mod tests {
         CompiledObject {
             id: "thing".to_string(),
             name: "Thing".to_string(),
+            presentation: None,
             sprite: 4,
             interactions: vec![],
             footprint: Footprint::SINGLE,

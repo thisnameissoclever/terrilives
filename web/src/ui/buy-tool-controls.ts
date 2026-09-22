@@ -4,6 +4,7 @@
 import { formatFunds } from './game-hud.js';
 import { FACING_NAMES } from './builder.js';
 import type { BuyTool } from './buy-tool.js';
+import { createObjectIdentity } from './object-identity.js';
 
 /**
  * How the list names an item: its name and its price. The price goes in
@@ -39,6 +40,10 @@ export class BuyToolControls {
   private readonly cancel: HTMLButtonElement;
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
+  private readonly identity: HTMLElement;
+  private readonly identityBoundary: HTMLElement;
+  private disposeIdentity: (() => void) | undefined;
+  private shownDefinition: number | null = null;
 
   constructor(document: Document, private readonly tool: BuyTool,
     private readonly needNames: readonly string[]) {
@@ -48,6 +53,8 @@ export class BuyToolControls {
       return element;
     };
     this.selector = required('buy-object');
+    this.identity = required('buy-identity');
+    this.identityBoundary = required('buy-tool');
     this.filter = required('buy-filter');
     this.colour = required('buy-colour');
     // [RC-slice-buy]: the colourways are content, so the list is built once.
@@ -76,7 +83,7 @@ export class BuyToolControls {
     for (const item of tool.items) {
       const option = document.createElement('option');
       option.value = String(item.definition);
-      option.textContent = itemLabel(item.name, item.price);
+      option.textContent = itemLabel(item.details ? `${item.name}: ${item.details.modelName}` : item.name, item.price);
       this.options.push(option);
     }
     // Only the needs something in the catalogue serves, in need order.
@@ -118,6 +125,19 @@ export class BuyToolControls {
 
   render(): void {
     const tool = this.tool;
+    const definition = tool.chosen?.definition ?? null;
+    if (definition !== this.shownDefinition) {
+      this.shownDefinition = definition;
+      this.disposeIdentity?.();
+      this.disposeIdentity = undefined;
+      this.identity.replaceChildren();
+      if (tool.chosen?.details) {
+        const identity = createObjectIdentity(this.identity.ownerDocument, tool.chosen.name, tool.chosen.details, this.identityBoundary);
+        this.disposeIdentity = identity.dispose;
+        this.identity.append(identity.element);
+      }
+    }
+    this.identity.hidden = !tool.chosen?.details;
     // Rebuilt rather than hidden: some phone browsers still list a hidden option.
     this.selector.replaceChildren(this.placeholder,
       ...this.options.filter((_, index) => tool.shows(tool.items[index])));
