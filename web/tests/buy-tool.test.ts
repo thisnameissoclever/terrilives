@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, type CatalogueItem, type PlacementPreview, type PurchaseResult } from '../src/bridge.js';
+import { emissiveForSprite } from '../src/render/lighting.js';
 import { routeBuildKey } from '../src/ui/build-tools.js';
 import { BuyTool, CHOOSE_ITEM, listed } from '../src/ui/buy-tool.js';
 import { BuyToolControls, itemLabel, servesLabel } from '../src/ui/buy-tool-controls.js';
@@ -658,6 +659,32 @@ describe('the Buy tool on real wasm', () => {
     expect([result.definition, result.facing]).toEqual([third.item.definition, third.item.baseFacing]);
     second.handle.free();
     third.handle.free();
+  });
+
+  // [B-rotated-lights] in docs/FEATURES.md, checked against what content
+  // draws rather than against the lighting's own sprite names: every item
+  // glows in each direction it can face exactly when it glows as drawn by
+  // default, and only the floor lamp and the television glow at all.
+  it('lights every direction of a light and nothing else', () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const lights: string[] = [];
+    for (const item of bridge.catalogue()) {
+      const glows = (facing: number) =>
+        emissiveForSprite(bridge.purchasePreview(item.definition, 0, 0, facing).sprite);
+      const drawn = glows(item.baseFacing);
+      if (drawn > 0) lights.push(item.name);
+      for (let facing = 0; facing < 4; facing++) {
+        if ((item.facings & (1 << facing)) === 0) continue;
+        expect(glows(facing), `${item.name} facing ${facing}`).toBe(drawn);
+        // A foreground layer, such as a screen split from its cabinet, glows
+        // with the picture it belongs to.
+        const { foreground } = bridge.purchasePreview(item.definition, 0, 0, facing);
+        if (foreground !== null) {
+          expect(emissiveForSprite(foreground), `${item.name} facing ${facing} foreground`).toBe(drawn);
+        }
+      }
+    }
+    expect(lights.sort()).toEqual(['Cathode Companion', 'Illumination, Ambient']);
   });
 
   it('lists the whole catalogue and words the refusal a household with no money gets', () => {
