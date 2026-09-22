@@ -39,7 +39,8 @@ pub struct PortalBuffer {
     pub states: Vec<u32>,
     /// The tile across each row's line, `[x, y]` pairs: the renderer lights a
     /// portal from the brighter of its own tile and this one, as it lights the
-    /// walls around it. Off the lot for the front door.
+    /// walls around it. Off the lot for a front door on the lot's edge, the
+    /// yard tile beyond it for one on the house's wall ([OS-door]).
     pub far_sides: Vec<f32>,
 }
 
@@ -162,15 +163,28 @@ fn door_line(portal: &terri_data::CompiledPortal, width: u32) -> Option<(u32, u3
         .then_some((x + 1, y))
 }
 
-/// Every front door's line on the lot ([OS-door]). The Walls and Room tools
-/// keep a wall off them, and no interior door is derived on them.
+/// The front door's line on the lot ([OS-door]), read from the content the
+/// world was built with and matched to its portal as the loader and the
+/// other door rules match it, never from the presentation-only
+/// [`ActivePortals`], so a world built without the door's art keeps the same
+/// rules and replays alike. The Walls and Room tools keep a wall off it, a lot
+/// edit keeps the tile beyond it open, and no interior door is derived on it.
 pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
     let width = lot_width(world);
-    world
-        .get_resource::<ActivePortals>()
-        .map_or(&[][..], |active| active.0)
-        .iter()
-        .filter_map(|portal| door_line(portal, width))
+    let Some(content) = world.get_resource::<Content>().map(|content| content.0) else {
+        return Vec::new();
+    };
+    content
+        .lot
+        .front_door
+        .and_then(|door| {
+            content
+                .portals
+                .iter()
+                .find(|portal| portal.position == door)
+        })
+        .and_then(|portal| door_line(portal, width))
+        .into_iter()
         .collect()
 }
 

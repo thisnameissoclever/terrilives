@@ -102,6 +102,12 @@ describe('a house standing in a yard', () => {
     ]);
   });
 
+  it('runs the back walls along a lot smaller than the house, and no further', () => {
+    // Framed as a lot that is all house: the runs stop at the lot's corner.
+    expect(buildEdgeWallGeometry(3, 2, new Uint32Array(), [], [16, 12]))
+      .toEqual(buildEdgeWallGeometry(3, 2, new Uint32Array()));
+  });
+
   it('draws everything when the whole lot is house', () => {
     expect(buildEdgeWallGeometry(5, 4, all)).toEqual(buildEdgeWallGeometry(5, 4, all, [], [5, 4]));
     expect(buildEdgeWallGeometry(5, 4, all).filter((p) => p.mask === 0)).toHaveLength(1);

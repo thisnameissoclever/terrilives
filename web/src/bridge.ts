@@ -292,11 +292,6 @@ export class SimBridge {
   }
 
   /**
-   * `[hue, strength, lightness]` per colourway, flattened, for the shader
-   * ([RC-shift]). Content, so read once and kept: the frame asks every frame
-   * and must not allocate ([D11]).
-   */
-  /**
    * The house's `[width, height]` from the lot's north-west corner; every
    * other tile is yard ([OS-yard] in `docs/specs/2026-09-22-the-outside.md`).
    */
@@ -311,6 +306,11 @@ export class SimBridge {
     return [hue, strength, lightness];
   }
 
+  /**
+   * `[hue, strength, lightness]` per colourway, flattened, for the shader
+   * ([RC-shift]). Content, so read once and kept: the frame asks every frame
+   * and must not allocate ([D11]).
+   */
   colourwayShifts(): Float32Array {
     this.shifts ??= this.handle.colourway_shifts();
     return this.shifts;

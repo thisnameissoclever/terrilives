@@ -6874,8 +6874,9 @@ step where the bug was first seen.
 
 **What happened.** PR 97's mutation sweep failed on two mutants that time out
 rather than fail: both let a count above the limit through `exceeds_limit`,
-the loader's bound on saved counts. With the bound off, the save test that feeds `issued_sim_ids =
-u32::MAX` took 15.6 seconds on a desktop and over the 60 second limit on a CI
+the loader's bound on saved counts. With the bound off, the save test that
+feeds `issued_sim_ids = u32::MAX` took 15.6 seconds on a desktop and over the
+60 second limit on a CI
 runner, because restoring the sim id allocator called `issue` once per issued
 identity. PRs 98 and 99 passed the same shard only because their runners were
 faster.
@@ -6888,9 +6889,10 @@ guards cost as well as correctness is one the sweep will break.
 replaying it. When a loader must loop over a saved number, loop over data the
 save actually contains, whose length the decoder has already paid for. The
 one exception is the entity slots in `restore_with_facings`: the ECS hands
-indices out in order, so the loader spawns one per index up to the last
-saved one, bounded by validation's check that every index is under
-`MAX_ENTITIES`, and a comment on the loop says so.
+indices out in order, so the loader spawns one per index up to the last saved
+or retired index, bounded by validation's checks that every entity index and
+every retired index is under `MAX_ENTITIES`, and a comment on the loop says
+so.
 
 **How to verify.** With `exceeds_limit` returning false,
 `invalid_snapshots_are_rejected_without_touching_the_running_sim` in

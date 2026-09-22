@@ -579,10 +579,6 @@ const COLOURWAY_STRENGTH_MAX: f32 = 2.0;
 /// The largest lightness shift a colourway may ask for, either way.
 const COLOURWAY_LIGHTNESS_LIMIT: f32 = 0.25;
 
-/// Validates the colourways declared in `content/objects.toml` - [RC-content]
-/// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
-/// the art as drawn; ids are unique and, like names, not empty; each shift
-/// is a number within the range the shader is built for.
 /// The name of the first of a colour shift's numbers outside its range
 /// ([RC-content]), or `None` when all three are in range. `contains` is false
 /// for NaN, so a missing number is refused too.
@@ -602,6 +598,10 @@ fn shift_out_of_range(hue: f32, strength: f32, lightness: f32) -> Option<&'stati
     .map(|(field, ..)| field)
 }
 
+/// Validates the colourways declared in `content/objects.toml` - [RC-content]
+/// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
+/// the art as drawn; ids are unique and, like names, not empty; each shift
+/// is a number within the range the shader is built for.
 fn compile_colourways(defs: &[ColourwayDef]) -> Result<Vec<CompiledColourway>, ContentError> {
     let mut seen = BTreeSet::new();
     for (index, def) in defs.iter().enumerate() {
@@ -3035,10 +3035,11 @@ fn compile_front_door_visual(
 
     let (expected, expected_name, default_entry) = if edge_count == 0 {
         // [OS-door]: on no edge of the lot, the door stands on the house's
-        // outside wall. It faces south-east, so its line is vertical like the
-        // only door art there is, the tile across that line is yard, and the
-        // line is a doorway. The house stands in the lot's north-west corner,
-        // so no other facing has yard across it.
+        // outside wall. It faces south-east, the tile across its line is
+        // yard, and the line is a doorway. Only south-east: the house stands
+        // in the lot's north-west corner, so a door facing north-west or
+        // north-east has no yard across it, and one facing south-west would
+        // stand on a horizontal line, which has no door art.
         let inside = x < house.0 && y < house.1;
         let across_is_yard = x + 1 >= house.0;
         let doorway = wall_edges.iter().any(|edge| {
@@ -7604,7 +7605,19 @@ mod tests {
         let portal = &pack.portals[0];
         assert_eq!((portal.position, portal.inward), ((3, 1), (2, 1)));
         assert_eq!(portal.facing, crate::pack::CompiledSocketFacing::PositiveX);
+        // A 6 by 5 lot whose house is 4 by 3, so a south yard lies below it,
+        // with a doorway on the first yard row's line east of (3, 3).
+        let mut south = String::from("width = 6\nheight = 5\nhouse = { width = 4, height = 3 }\n");
+        for y in 0..3 {
+            south += &wall_edge("vertical", 4, y, false);
+        }
+        for x in 0..4 {
+            south += &wall_edge("horizontal", x, 3, false);
+        }
+        south += &wall_edge("vertical", 4, 3, true);
+        let south: LotFile = toml::from_str(&south).unwrap();
         for (x, y, facing, lot, label) in [
+            (3, 3, "SE", south, "it stands in the yard below the house"),
             (
                 3,
                 1,

@@ -171,9 +171,12 @@ fn pre_facing_fingerprint(pack: &ContentPack) -> u64 {
     }
 
     // A portal's identity and return landing change career routing, including
-    // the future route of a worker saved while AtWork. Art, hinge and facing
-    // remain presentation-only, but these coordinates must invalidate a save
-    // unless an exact reviewed migration says otherwise. An empty vector
+    // the future route of a worker saved while AtWork. Art and hinge remain
+    // presentation-only, but these coordinates must invalidate a save unless
+    // an exact reviewed migration says otherwise. Facing is not hashed either,
+    // though the wall rules read it to find the front door's line ([OS-door]):
+    // the compiler allows exactly one facing for a door on a given tile of a
+    // given lot, so the door's hashed tile already settles it. An empty vector
     // deliberately writes no bytes so this additive extension preserves every
     // deployed pre-portal structural digest. Sort by identity because no saved
     // state refers to the vector's declaration order.

@@ -2064,6 +2064,60 @@ mod boundary_tests {
         }
     }
 
+    /// [OS-migrate], with real bytes: a Save V5 written by the build before the
+    /// yard, with a wall the player built, grows into the yard on Load. The
+    /// house is kept exactly as saved, the content's walls outside it follow
+    /// the saved ones, and the grown game resaves and replays alike. See
+    /// tests/fixtures/README.md.
+    #[test]
+    fn an_actual_save_from_before_the_yard_grows_into_it() {
+        let hex: String = include_str!("../tests/fixtures/pre-yard-600.hex")
+            .split_whitespace()
+            .collect();
+        let bytes: Vec<u8> = hex
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[5, 0]);
+        let old: terri_core::SaveSnapshotV5 =
+            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        assert_eq!(old.world.tick, 600);
+        assert_eq!((old.world.grid_width, old.world.grid_height), (16, 12));
+        let player_wall = terri_core::layout::WallEdge {
+            axis: terri_core::layout::EdgeAxis::Horizontal,
+            x: 9,
+            y: 5,
+            doorway: false,
+        };
+        assert!(matches!(
+            &old.layout,
+            terri_core::layout::SavedLayout::EdgeWallsV1 { edges }
+                if edges.len() == 34 + 1 && edges.contains(&player_wall)
+        ));
+
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save from before the yard must load"
+        );
+        let current = loaded.sim.save_snapshot_v5();
+        assert_eq!(house_part(current.world.clone()), old.world);
+        assert_eq!(current.layout, grown_layout(&old.layout));
+        assert_eq!(current.object_facings, old.object_facings);
+        assert_eq!(current.retired_indices, old.retired_indices);
+        assert_eq!(current.object_colourways, old.object_colourways);
+
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&loaded.save_bytes()));
+        assert_eq!(resumed.save_bytes(), loaded.save_bytes());
+        for _ in 0..300 {
+            loaded.tick();
+            resumed.tick();
+            assert_eq!(resumed.world_hash(), loaded.world_hash());
+        }
+    }
+
     /// [TL-old-saves], with real bytes. Both files were written by the last
     /// public build before the trait library (main at 097a849), by advancing
     /// a fresh `SimHandle::from_lot()` and calling `save_bytes()`. See

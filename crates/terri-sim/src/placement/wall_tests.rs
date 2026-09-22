@@ -904,3 +904,36 @@ fn the_front_doors_line_is_never_walled() {
     assert!(edit(Vertical, 3, Doorway).unwrap().changed);
     assert!(edit(Horizontal, 2, Wall).unwrap().changed);
 }
+
+/// [OS-door], review finding [Y2]: the front door's line comes from the
+/// content, not from the presentation-only portal rows, so a world built
+/// without the door's art refuses the same wall and keeps the same digest.
+#[test]
+fn the_front_doors_line_is_kept_without_the_doors_art() {
+    let saved = Sim::new_from_shipped_lot().save_snapshot_v5();
+    let mut headless = Sim::new();
+    headless.load_snapshot_v5(saved.clone()).unwrap();
+    assert!(headless
+        .world()
+        .get_resource::<crate::portals::ActivePortals>()
+        .is_none());
+    let mut shipped = Sim::new_from_shipped_lot();
+    shipped.load_snapshot_v5(saved).unwrap();
+    for sim in [&mut headless, &mut shipped] {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::SetWallEdge {
+                axis: Vertical,
+                x: 16,
+                y: 2,
+                state: Wall,
+            });
+        sim.flush_commands();
+        let result = sim.world().resource::<LotEditState>().last_wall_result;
+        assert_eq!(
+            result.and_then(|result| result.reason),
+            Some(PlacementRefusal::BlockedDoor)
+        );
+    }
+    assert_eq!(headless.world_hash(), shipped.world_hash());
+}

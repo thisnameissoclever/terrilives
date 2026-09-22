@@ -738,9 +738,11 @@ size from the lot's north-west corner, and every other tile is yard: walkable
 floor to the simulation, drawn by the shell as the floor under the lot's
 `yard_look` colour shift. Neither is saved. The house's east and south walls are
 ordinary wall edges, and the front door stands on the east one, its line a
-doorway that `portals::front_door_lines` names: the front door swings for a sim
-walking through it as an interior door does, no interior door is derived on it,
-and the Walls and Room tools never make it a wall. A save whose grid is exactly
+doorway that `portals::front_door_lines` names from the content, never from the
+presentation-only portal rows: the front door swings for a sim walking through
+it as an interior door does, no interior door is derived on it, the Walls and
+Room tools never make it a wall, and every lot edit keeps the yard tile beyond
+it open floor the door reaches. A save whose grid is exactly
 the house, with edge walls, grows into the lot as it is adopted
 (`save::yard::grow`, [OS-migrate]): the grid takes the lot's size with every
 saved tile where it was, and the content's walls outside the house follow the

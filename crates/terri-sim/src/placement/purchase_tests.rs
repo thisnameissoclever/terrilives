@@ -944,3 +944,21 @@ fn the_world_hash_names_a_staged_purchase_by_its_object_id() {
         );
     }
 }
+
+/// [OS-door], review finding [Y7]: the yard tile beyond the front door stays
+/// open floor, so furniture bought onto it is refused as blocking the door;
+/// the tile beside it takes furniture as any yard tile does.
+#[test]
+fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
+    let buy = |x: u32, y: u32| {
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.world_mut().insert_resource(Funds(1_000));
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(command(chair(x, y)));
+        sim.flush_commands();
+        last(&sim).unwrap().reason
+    };
+    assert_eq!(buy(16, 2), Some(BlockedDoor));
+    assert_eq!(buy(17, 2), None);
+}

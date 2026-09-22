@@ -732,7 +732,8 @@ The design is `docs/specs/2026-09-22-the-outside.md`, in slices. The first,
 and the house stands in a yard four tiles deep on its east and south sides,
 drawn as green floor until there is grass art ([T-yard-art]). Sims walk out
 through the front door, which swings for them, and furniture can be bought and
-walls built in the yard. Every saved house grows into the yard on Load. The
+walls built in the yard. A saved house whose walls are edges, which is every
+save since the Walls tool, grows into the yard on Load. The
 played check is [A-yard]. The street, daylight on the yard, the house seen from
 outside and outdoor objects remain.
 

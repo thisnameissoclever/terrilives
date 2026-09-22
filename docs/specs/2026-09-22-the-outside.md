@@ -22,8 +22,11 @@ be.
   placed there, and the Walls and Room tools can build on it. The house's own
   east and south walls become walls like any other, so a player can knock
   through them to extend a room into the yard.
-* **Every saved house gains the yard.** A save made before this loads with
-  its house exactly as it was, standing in the new yard.
+* **Saved houses gain the yard.** A save made before this loads with its
+  house exactly as it was, standing in the new yard, when its walls are edges:
+  every save since the Walls tool, and every older one the reviewed migration
+  moves to edge walls. One kept in its frozen older layout loads as it always
+  has, with no yard.
 
 ## [OS-grow] The lot grows east and south, so no coordinate moves
 
@@ -83,9 +86,10 @@ landing, (15, 3). Its line, (16, 2), is now a doorway into the yard.
 * **Content.** The compiler accepts a front door either on the lot's edge, as
   before, or on the house's outside wall: inside the house, facing south-east
   so that its line is vertical like the only door art there is, with the tile
-  across the line in the yard and the line a doorway in `wall_edge`. The house
-  stands in the lot's north-west corner, so no other facing has yard across
-  it.
+  across the line in the yard and the line a doorway in `wall_edge`. Only
+  south-east: the house stands in the lot's north-west corner, so a door facing
+  north-west or north-east has no yard across it, and one facing south-west
+  would stand on a horizontal line, which has no door art.
 * **Its swing.** The door is open for a sim walking through its line, by the
   interior doors' rule ([DR-state]), and for a commuter, by its own rule as
   before; whichever is more open wins.
@@ -94,10 +98,28 @@ landing, (15, 3). Its line, (16, 2), is now a doorway into the yard.
 * **It stays a door.** A wall edit or room that would make the front door's
   line a wall is refused as cutting off the front door, refusal 12, which the
   Walls and Room tools already word. Making the line open floor is allowed:
-  the door stands in the opening, and nobody's way is cut.
+  the door stands in the opening, and nobody's way is cut. Every lot edit also
+  keeps the yard tile beyond the line open floor the door reaches, so nothing
+  is bought onto it and no wall shuts it off from the door, with the same
+  refusal.
+* **Read from content.** The door's line comes from the content's front door,
+  matched to its portal as the loader matches it, and the grid's width, never
+  from the presentation-only portal rows, so a world built without the door's
+  art keeps the same rules and the same digest. Facing is not in the save
+  digest, but for a door on a given tile of a given lot the compiler allows
+  exactly one facing, so the door's hashed tile settles it.
 
 Commuters still leave and arrive at the door's tile, as now. Walking out
 through the yard to a street is [OS-slice-street].
+
+**Known until later slices.** A worker out in the yard when a shift starts
+walks back in through the door and vanishes in the doorway, since a commute
+still ends on the door's tile ([OS-slice-street]). The house's cut-away walls
+facing the yard show nothing, so a doorway the player makes in one changes
+nothing on screen though sims now walk through it, and lamp light stops at a
+line nobody can see; only the floor's colour marks the house's edge until
+there is low wall art ([T-yard-art]). A save crafted with the front door's line
+walled still loads, and the Walls tool can open the line again.
 
 ## [OS-migrate] An older save grows into the yard on Load
 
@@ -154,3 +176,23 @@ grew, opens framed whole.
 
 A second storey, lots of other sizes or shapes, other lots and the
 neighbourhood around them, and visitors arriving. Each builds on the street.
+
+## Review record
+
+A fresh-context review of [OS-slice-yard] loaded 60 real saves written by the
+build before the yard, one every 500 ticks with workers at work and
+commuting, a player's wall and queued wall edits, and found every one loads,
+grows and replays alike. It found an untested half of the check that a front
+door stands inside the house, which the mutation sweep would have failed, now
+pinned by a door on the first yard row below a house; and the front door's
+line read from the presentation-only portal rows, so a world without the
+door's art would take a wall the game refuses, now read from the content with
+a test that the two worlds agree. It also found the tile beyond the door
+unguarded, now kept open by every lot edit; three doc comments moved off
+their functions; a wrong reason for allowing only a south-east door; an
+overclaim that every saved house grows; a stale comment on the door's far
+side; and no real pre-yard Save V5 among the fixtures, now `pre-yard-600.hex`.
+The cut-away walls showing nothing, a worker vanishing in the doorway, and a
+crafted save with the door's line walled are recorded above as known until
+later slices. It also judged a test that reads the startup source as text to
+prove little; it stays, as the way this project checks `main.ts` wiring.

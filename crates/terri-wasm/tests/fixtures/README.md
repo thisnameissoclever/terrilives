@@ -63,3 +63,13 @@ The test requires each to load, to come back field for field except the
 digest, to keep exactly one trait per person through 320 further ticks, and to
 replay identically after a second save and load. They came from a fresh local
 simulation, not the owner's save data.
+
+`pre-yard-600.hex` contains actual Save V5 bytes written by the last build
+before the yard, `twcl/buy-in-colour` at `367dc48`, in a native test build of
+that tree. A fresh `SimHandle::from_lot()` was advanced 300 ticks, given a
+wall on the horizontal line (9, 5) through `set_wall_edge`, advanced 300 more
+ticks and saved with `save_bytes()`. It is 2,944 bytes with SHA-256
+`c0e940c9f48d4b5e4bc727e764c032c4734d938f9c58c91fe29eedafb0bcc387`, a 16 by 12
+grid and 35 saved wall edges. The test loads it into the 20 by 16 lot and
+checks the house is kept as saved and the house's outside walls follow the
+saved ones ([OS-migrate] in `docs/specs/2026-09-22-the-outside.md`).
