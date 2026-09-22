@@ -342,16 +342,16 @@ run ends at the same world hash.
 
 One finding from building it still constrains every future content
 change, though the number has moved. `ci.yml` bounds each mutant's WHOLE
-workspace test run, and the bound was a fixed 60 seconds until 2026-09-22,
-when the suite itself reached about 57 and the fixed cap started reporting
-ordinary survivors as hangs ([L-mutant-cap-must-scale]). It is now four
-times the unmutated run, so it rises with the suite. A shipped content
-change that materially slows the simulation is therefore no longer measured
-against a ceiling it can cross on its own; it is measured against the job's
-90 minute bound, since a slower suite makes every shard slower. The
-circadian curve's first draft pushed one save test from 10 s to 39 s, which
-under the old fixed cap would have turned a large share of mutants into
-spurious timeouts.
+workspace test run. The bound was a fixed 60 seconds until 2026-09-22, when
+the suite reached about 57 seconds on the runner and three added tests were
+enough to turn eight mutants into reported hangs
+([L-mutant-cap-must-scale]). It is now the larger of 120 seconds and four
+times the unmutated run. A shipped
+content change that materially slows the simulation is therefore measured
+against a cap that rises with it, and against the job's 120 minute bound.
+The circadian curve's first draft pushed one save test from 10 s to 39 s,
+which under the old fixed cap would have turned a large share of mutants
+into spurious timeouts.
 
 Three findings from building it constrain future renderer work. The lighting
 rig fits inside the existing single instanced draw call because pools change

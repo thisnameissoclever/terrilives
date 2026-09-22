@@ -54,14 +54,15 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   code therefore gets a bound whose overrun panics, however unreachable that
   bound is: `SimRng::draw_below_bound` and `roll_wander_path` are the two
   worked examples. CI now fails on a non-empty `timeout.txt`; the fix for one
-  is a bound, never a longer cap. One case is not a hang and must not be
-  answered with a bound: a mutant nothing kills runs the whole suite, so its
-  test phase costs a full suite. A cap just above the suite therefore reports
-  those survivors as hangs, and a cap BELOW it is worse and silent: the
-  unmutated run fails first, cargo-mutants tests no mutants at all, and every
-  file the gates read is empty. CI's cap is a multiple of the unmutated run
-  (`--timeout-multiplier`), which moves with the suite, and a separate step
-  fails a shard whose sweep tested nothing ([L-mutant-cap-must-scale]).
+  is a bound, never a longer cap. Two cases are not hangs and must not be
+  answered with a bound. A mutant nothing kills runs the whole workspace
+  suite to the end, so it costs a full suite and lands near the cap rather
+  than at it. And a cap below the UNMUTATED run is worse and silent: that run
+  fails first, no mutants are tested at all, and every file the gates read is
+  empty and green. CI's cap is therefore the larger of 120 seconds and four
+  times the unmutated run, which here are two different commands, and a
+  separate step fails a shard whose sweep tested nothing
+  ([L-mutant-cap-must-scale]).
 - **It does not emit statement-deletion mutants.** It rewrites expressions and
   return values, so a whole statement whose only effect is on state - `swap`,
   `clear`, `sort`, `push`, `insert` - is outside its grammar. A clean report

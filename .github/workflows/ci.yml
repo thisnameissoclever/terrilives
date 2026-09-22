@@ -155,13 +155,13 @@ jobs:
   # tested twice.
   mutants:
     runs-on: ubuntu-latest
-    # The cap below is a multiple of the suite, so a hang costs four suites
-    # rather than a fixed minute, and nothing bounds the UNMUTATED run at
-    # all: a loop introduced in a test would run until GitHub's six hour
-    # default. Shards have finished in 6 to 24 minutes and been reclaimed at
-    # 35, 36 and 72; 90 minutes is above every real run and far below the
-    # default, so a pathological one fails by name in an hour and a half.
-    timeout-minutes: 90
+    # Nothing bounds the UNMUTATED run, because the cap below is measured
+    # from it: a loop introduced in a test would run until GitHub's six hour
+    # default. Shards have finished in 3 minutes and in 95, and been
+    # reclaimed at 35, 36 and 72; 120 minutes is above every real run and
+    # far below the default, so a pathological one fails by name in two
+    # hours rather than burning a runner all afternoon.
+    timeout-minutes: 120
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
@@ -189,24 +189,42 @@ jobs:
       # far below the reclaim horizon, so a pathological build costs ten
       # minutes and a named Timeout instead of the whole job.
       #
-      # The test cap is a MULTIPLE of the unmutated run, not the fixed 60
-      # seconds it was until 2026-09-22. A mutant nothing kills runs the
-      # whole workspace suite to the end, so the cap has to sit above the
-      # suite's own runtime with room to spare; the suite had grown to about
-      # 57 seconds on this runner, and the next three tests added turned
-      # three known-equivalent baseline mutants into reported hangs on
-      # PR 116. A multiplier moves with the suite instead of being overtaken
-      # by it. Four is deliberately one below the tool's own default of five,
-      # which is what dropping the flag entirely would give: a mutant that
-      # genuinely loops then costs four suites rather than one, and nothing
-      # legitimate takes that long, since the slowest real mutant runs one
-      # suite. The multiplier has no ceiling of its own, so the job bound
-      # above is what stops a slow suite from making the cap meaningless.
+      # The test cap was a fixed 60 seconds until 2026-09-22, and two
+      # different runs were being timed by it. Each MUTANT is tested with
+      # `cargo test --workspace`, because of --test-workspace above, and that takes
+      # about 57 seconds on this runner; a mutant no test kills pays all of
+      # it, and one caught by a late test pays most of it. The unmutated
+      # BASELINE is not that command: cargo-mutants runs only the packages
+      # it will mutate, which is 1.2 seconds for terri-core, 0.4 for
+      # terri-data, and over 60 for a shard holding a terri-sim mutant.
+      #
+      # One number could not sit right for both. It was a few seconds above
+      # the workspace suite, so the three tests PR 116 added were enough to
+      # turn eight mutants into reported hangs, two of them the rect_distance
+      # clamps and one the from_seed mutant that docs/mutation-baseline.md
+      # proves equivalent. And it was below the baseline of any shard with a
+      # terri-sim mutant, which aborted the sweep before a single mutant ran:
+      # cargo-mutants still writes an empty missed.txt and timeout.txt, so
+      # four of PR 116's eight shards and six of PR 117's tested nothing and
+      # reported success.
+      #
+      # Hence a floor AND a multiplier. The floor does the work on most
+      # shards: 120 seconds is about twice the workspace suite, so a survivor
+      # finishes well inside it. The tool's own multiplier cannot do that job
+      # alone, because it is measured against the baseline, which is the
+      # smaller command: four times terri-core's 1.2 seconds resolves to the
+      # tool's 20 second minimum and every survivor would time out. The
+      # multiplier earns its place on terri-sim shards, where the baseline is
+      # over a minute and 120 seconds would be too tight. Verified on
+      # cargo-mutants 27.1.0: these flags print "Auto-set test timeout to
+      # 120s" for terri-core, where the multiplier alone prints 20s. The job
+      # bound above is the ceiling the multiplier has none of.
       - name: Mutation sweep (shard ${{ matrix.shard }} of 8)
         run: |
           cargo mutants --package terri-core --package terri-sim \
             --package terri-data --package terri-wasm \
-            --test-workspace true --timeout-multiplier 4 --build-timeout 600 \
+            --test-workspace true --timeout-multiplier 4 \
+            --minimum-test-timeout 120 --build-timeout 600 \
             --shard ${{ matrix.shard }}/8 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a
@@ -313,17 +331,16 @@ jobs:
             echo "Mutants that HANG rather than fail an assertion:"
             cat mutants.out/timeout.txt
             echo ""
-            echo "Each burns four times the unmutated suite instead of"
-            echo "printing an assertion, and the survivor gate above cannot"
-            echo "see it: a timeout lands in timeout.txt, not missed.txt."
-            echo "Find the unbounded loop the mutant spins in and give it a"
-            echo "bound that panics, the way SimRng::draw_below_bound and"
-            echo "roll_wander_path do. Raising the multiplier is not a fix."
+            echo "Each burns the cap instead of printing an assertion, and"
+            echo "the survivor gate above cannot see it: a timeout lands in"
+            echo "timeout.txt, not missed.txt. Find the unbounded loop the"
+            echo "mutant spins in and give it a bound that panics, the way"
+            echo "SimRng::draw_below_bound and roll_wander_path do."
             echo ""
-            echo "One case is NOT a loop and must not be answered with a"
-            echo "bound: a mutant nothing kills runs the whole suite, so it"
-            echo "costs a full suite. If these timings sit near one suite"
-            echo "rather than four, the cap is the thing that is wrong."
+            echo "Check the timings in outcomes.json before reaching for a"
+            echo "bound. A mutant that makes real work slower rather than"
+            echo "endless finishes near the cap rather than at it, and the"
+            echo "answer there is the cap, not a bound in the simulation."
             exit 1
           fi
 
