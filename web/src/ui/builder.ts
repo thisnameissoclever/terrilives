@@ -24,6 +24,8 @@ export class FurnitureBuilder {
   blocked = false;
   /** What selling the chosen object would pay back, or null when it would not sell. */
   saleValue: number | null = null;
+  /** Why the chosen object would not sell, or null when it would or nothing is chosen. */
+  saleRefusal: string | null = null;
   /** The object a sale on its way names, until the drain reports it ([SL-shell]). */
   private selling: number | null = null;
   private mask = 0;
@@ -256,11 +258,13 @@ export class FurnitureBuilder {
     this.status = preview.valid ? 'Ready to place.' : preview.reason ?? 'This placement is unavailable.';
     const sale = this.source.salePreview(this.selected);
     this.saleValue = sale.reason === null ? sale.payout : null;
+    this.saleRefusal = sale.reason;
     this.hooks.changed();
   }
 
   private clearSelection(): void {
     this.saleValue = null;
+    this.saleRefusal = null;
     this.nextSelection = null;
     this.original = null;
     this.selected = null;

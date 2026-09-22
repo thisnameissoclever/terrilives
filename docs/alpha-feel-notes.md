@@ -3275,7 +3275,7 @@ list lost the chair, and the button went back to a disabled "Sell".
 **Nothing kept, then.** I did not save on that first run, and a reload brought
 back "Saved game loaded" with 12,800 in Funds and the chair back at the table.
 Review then found that saving itself was broken: the browser's storage worker
-still wrote only V3 [K1].
+still wrote only V3.
 
 **After the fixes, saved and reloaded.** On the fixed build, with the saved
 game now at 12,920 in Funds, the stove's Sell button stayed a disabled "Sell":
@@ -3283,6 +3283,13 @@ it is the house's only hob, so it is the last object Cook dinner can use. The
 chair sold for 20, Funds read 12,940, Exit build then Save said "Game saved",
 and a reload said "Saved game loaded" with 12,940 in Funds and the chair still
 gone. The storage worker kept the V3 slot it replaced as a recovery backup.
+
+**Why Sell is off.** After the second review, choosing the stove, "The
+Combustible Optimist", showed a disabled "Sell" with "Cannot sell: Nothing else
+in the house can do its job." under it. Cancel hid the note, and choosing the
+bin, "Receptacle for Later", showed "Sell for 10" with no note. At 390 by 844
+the note fits on one line under Sell in the Build dock, with no sideways
+scroll. Nothing was sold or saved on this run.
 
 **Not proven here.** A refusal at the drain was not replayed in the page; the
 Furniture tool tests cover it. No physical phone was used.

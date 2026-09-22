@@ -352,8 +352,8 @@ it('sells with Delete and will not sell what a sim has been told to use', () => 
   handle.free();
 });
 
-// Review finding [K6] on the sell branch: a sale the drain refuses keeps the
-// choice and asks again what it would sell for, so Sell does not stay on.
+// [SL-shell]: a sale the drain refuses keeps the choice and asks again what
+// it would sell for, so Sell does not stay on and the reason stays shown.
 it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   const { handle, source, builder } = fixture();
   builder.enter();
@@ -369,11 +369,12 @@ it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
   expect(source.lastSaleResult()).toMatchObject({ object: 15, payout: 0 });
   expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])
     .toEqual([15, false, null, false, 'Wait until nobody is using or approaching this object.']);
+  expect(builder.saleRefusal).toBe('Wait until nobody is using or approaching this object.');
   handle.free();
 });
 
-// Review finding [K6]: a Load forgets a sale on its way, so a later result
-// for the same object from elsewhere is not taken for this tool's own.
+// [SL-shell]: a Load forgets a sale on its way, so a later result for the
+// same object from elsewhere is not taken for this tool's own.
 it('forgets a sale on its way when a game is loaded', () => {
   const { handle, source, builder } = fixture();
   const saved = source.saveBytes();
@@ -390,7 +391,8 @@ it('forgets a sale on its way when a game is loaded', () => {
   handle.free();
 });
 
-// Review finding [K7]: Backspace sells as Delete does.
+// [SL-shell]: Backspace sells as Delete does, since a Mac laptop's delete
+// key sends Backspace.
 it('sells with Backspace', () => {
   const { handle, source, builder } = fixture();
   builder.enter();

@@ -13,6 +13,7 @@ export class BuilderControls {
   private readonly confirm: HTMLButtonElement;
   private readonly cancel: HTMLButtonElement;
   private readonly sell: HTMLButtonElement;
+  private readonly saleNote: HTMLElement;
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
   private listed: FurnitureBuilder['objects'] | null = null;
@@ -33,6 +34,7 @@ export class BuilderControls {
     this.confirm = required('builder-confirm');
     this.cancel = required('builder-cancel');
     this.sell = required('builder-sell');
+    this.saleNote = required('builder-sale-note');
     this.keyboardHelp = required('builder-keyboard-help');
     this.touchHelp = required('builder-touch-help');
     this.toggle.addEventListener('click', () => builder.active ? builder.exit() : builder.enter());
@@ -84,6 +86,9 @@ export class BuilderControls {
     // [SL-shell]: the button names what the sale pays back.
     this.sell.disabled = !builder.canSell;
     this.sell.textContent = builder.saleValue === null ? 'Sell' : `Sell for ${formatFunds(builder.saleValue)}`;
+    // A chosen object that would not sell says why, as the rotation note does.
+    this.saleNote.hidden = builder.saleRefusal === null;
+    this.saleNote.textContent = builder.saleRefusal === null ? '' : `Cannot sell: ${builder.saleRefusal}`;
     this.status.textContent = builder.status;
     this.status.setAttribute('data-valid', String(builder.preview?.valid ?? true));
     const explanation = this.document.querySelector<HTMLElement>('#builder-rotation-note');

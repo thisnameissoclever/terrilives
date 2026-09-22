@@ -103,8 +103,8 @@ async function read(
 /**
  * Guard every V4 write and preserve original historical wire bytes: the first
  * V4 write over a V1, V2 or V3 slot keeps that slot's bytes in a recovery
- * backup, so a player on an older build can still read their game
- * ([SL-save] in docs/specs/2026-09-22-selling-furniture.md).
+ * backup. The game never loads a backup by itself; it is kept for deliberate
+ * recovery ([SL-save] in docs/specs/2026-09-22-selling-furniture.md).
  */
 async function preserveHistoricalBackup(
   root: FileSystemDirectoryHandle,

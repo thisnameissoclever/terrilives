@@ -42,9 +42,11 @@ pub(crate) fn restore_v3(
 }
 
 /// [SL-save]: the V3 envelope's checks, and the retired indices ascending,
-/// under the same bounds as saved entity indices, none of them an index a
-/// saved entity holds. The loader spawns a placeholder up to the highest, so
-/// an unbounded one would ask for memory the save has no business naming.
+/// under the bound saved entity indices have, none of them an index a saved
+/// entity holds. The loader spawns a placeholder up to the highest, so an
+/// unbounded one would ask for memory the save has no business naming. The
+/// list's length needs no bound of its own: an ascending list of indices
+/// under the bound has no more entries than the bound.
 pub(crate) fn restore_v4(
     snapshot: SaveSnapshotV4,
     content: &'static ContentPack,
@@ -52,10 +54,9 @@ pub(crate) fn restore_v4(
 ) -> Result<Sim, SaveError> {
     super::validate_snapshot(&snapshot.world, content)?;
     let retired = &snapshot.retired_indices;
-    if super::exceeds_limit(retired.len(), super::MAX_LIST_ENTRIES)
-        || retired
-            .iter()
-            .any(|&index| index as usize >= super::MAX_ENTITIES)
+    if retired
+        .iter()
+        .any(|&index| index as usize >= super::MAX_ENTITIES)
     {
         return Err(SaveError::InvalidValue);
     }

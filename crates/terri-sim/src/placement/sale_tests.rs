@@ -8,10 +8,15 @@ use terri_core::{Agent, CommandQueue, Intent, Position, SimCommand, SmartObject}
 use terri_data::ContentPack;
 
 /// A 7 by 7 open house with a fridge at (0, 0), a coat rack with no price at
-/// (3, 3), a second fridge at (6, 6) so the first can be sold ([K2]), the
-/// front door at (6, 3) and `funds` in the bank. Returns the first fridge and
-/// the coat rack.
+/// (3, 3), a second fridge at (6, 6) so the first can be sold without leaving
+/// Cook dinner without cold storage, the front door at (6, 3) and `funds` in
+/// the bank. Returns the first fridge and the coat rack.
 fn house(funds: i64) -> (Sim, Entity, Entity) {
+    house_with(funds, |_| {})
+}
+
+/// [`house`], with `edit` applied to its content pack last.
+fn house_with(funds: i64, edit: impl FnOnce(&mut ContentPack)) -> (Sim, Entity, Entity) {
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
@@ -23,6 +28,7 @@ fn house(funds: i64) -> (Sim, Entity, Entity) {
     pack.portals[0].inward = (5, 3);
     let rack = pack.find("coat_rack").unwrap().0 as usize;
     pack.objects[rack].price = None;
+    edit(&mut pack);
     let pack: &'static ContentPack = Box::leak(Box::new(pack));
     let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
     sim.world_mut().insert_resource(Content(pack));
@@ -341,9 +347,10 @@ fn a_v4_save_with_bad_retired_indices_is_refused() {
     sell(&mut sim, fridge);
     let good = sim.save_snapshot_v4();
     let held = good.world.entities[0].index;
-    // Review finding [K3] on the sell branch: an index at the entity cap, or
-    // one near the top of u32, must be refused before the loader spawns
-    // placeholders up to it; the cap itself is the first index refused.
+    // An index at the entity cap, or one near the top of u32, must be refused
+    // before the loader spawns placeholders up to it; the cap itself is the
+    // first index refused. So must a list longer than the cap, which only
+    // an index at or above the cap could make.
     for retired in [
         vec![9, 8],
         vec![8, 8],
@@ -448,9 +455,9 @@ fn placed(sim: &Sim, id: &str) -> Vec<Entity> {
     found
 }
 
-/// Review finding [K2] on the sell branch: the last object that can fill a
-/// role a chain needs is not sold, or a sim part way through that chain
-/// waits for a station that no longer exists. In the shipped house the stove
+/// [SL-rules] step 6: the last object that can fill a role a chain needs is
+/// not sold, or a sim part way through that chain waits for a station that
+/// no longer exists. In the shipped house the stove
 /// is the only hob; the counters and the kitchen sink are all prep surfaces,
 /// so the counters sell and then the sink is the last.
 #[test]
@@ -489,4 +496,31 @@ fn the_last_object_a_chain_needs_is_not_sold() {
     refused(&mut house, spare, PlacementRefusal::InUse);
     house.world_mut().entity_mut(spare).remove::<Reserved>();
     refused(&mut house, spare, PlacementRefusal::LastForAChain);
+}
+
+/// [SL-rules] step 6 guards only roles a chain needs. The only object with a
+/// role no chain uses still sells, or every object given a role for a future
+/// chain would be stuck in the house.
+#[test]
+fn the_only_object_with_a_role_no_chain_uses_sells() {
+    let (mut sim, _, rack) = house_with(0, |pack| {
+        pack.roles.push("coat_hook".to_owned());
+        let role = u32::try_from(pack.roles.len() - 1).unwrap();
+        assert!(pack
+            .chains
+            .iter()
+            .all(|chain| chain.steps.iter().all(|step| step.role != role)));
+        let rack = pack.find("coat_rack").unwrap().0 as usize;
+        pack.objects[rack].roles = vec![role];
+        pack.objects[rack].price = Some(35);
+    });
+    sell(&mut sim, rack);
+    assert_eq!(
+        last(&sim),
+        Some(SaleResult {
+            object: rack.index_u32(),
+            payout: Some(17),
+            reason: None
+        })
+    );
 }

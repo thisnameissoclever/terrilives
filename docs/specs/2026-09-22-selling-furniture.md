@@ -107,17 +107,20 @@ has. A retired index above every saved one is still reached, so it stays out
 of use after the Load.
 
 A V4 save whose retired list is out of order, repeats an index, names an
-index a saved entity holds, holds more than 100,000 entries, or names an index
-at 100,000 or above, the bound saved entity indices already have, is refused
-before the running world is replaced. Without the bound one oversized index
-would have the loader spawn placeholders up to it.
+index a saved entity holds, or names an index at 100,000 or above, the bound
+saved entity indices already have, is refused before the running world is
+replaced. Without the bound one oversized index would have the loader spawn
+placeholders up to it. The list's length needs no check of its own: an
+ascending list of indices under 100,000 has at most 100,000 entries.
+
 V1, V2 and V3 saves load exactly as before, with nothing retired: nothing
 written before this slice can hold a sold index. The writer emits V4 from this
 slice on, and a V3 body labelled V4 is refused for its missing list. The
 browser's storage worker writes V4 and, on the first V4 write over a V3 slot,
 keeps the V3 bytes in a recovery backup beside it, as it already does for V1
-and V2, so a player who goes back to an older build can still read their game.
-A tab still running the V3 build refuses to overwrite a V4 slot.
+and V2. The game never loads a backup by itself; it is kept for deliberate
+recovery, since an older build reads only the primary file. A tab still
+running the V3 build refuses to overwrite a V4 slot.
 
 The world hash gains the retired list, its length then each index, as an
 appended section, so two worlds that would hand the next spawn different
@@ -145,20 +148,30 @@ sale is on its way the status says "Selling…"; once it lands the choice clears
 and the status says "{name} sold.", or the refusal. Delete or Backspace sells
 from the keyboard, since a Mac laptop's delete key sends Backspace, and the
 keyboard help says so. A sale the drain refuses keeps the choice and asks again
-what it would sell for.
+what it would sell for. While the chosen object would not sell, a note under
+the button says why: "Cannot sell: " and the refusal, such as "Cannot sell:
+Nothing else in the house can do its job." for the only stove.
 
 ## Review record
 
 A fresh-context review of this slice found three must-fix problems, all fixed
-with tests: the browser's storage worker still wrote only V3, so every Save
-would have failed [K1]; selling the only stove stranded sims part way through
-Cook dinner [K2]; and the loader did not bound retired indices [K3]. It also
-found the first account of why a saved bound failed was wrong [K4], stale
-statements [K5], a refused sale leaving Sell enabled [K6], and Backspace
-missing [K7]. Two notes are recorded above rather than changed: the loader's
-queued-order rule [K8] and index use over many cycles [K9]. Whether a sold
-stove should instead make sims give up the meal is left for the owner as
-[T-selling-the-last-stove] in `docs/TIM-TODO.md`.
+with tests. The browser's storage worker still wrote only V3, so every Save
+would have failed. Selling the only stove stranded sims part way through Cook
+dinner, which step 6 of [SL-rules] now refuses. And the loader did not bound
+retired indices.
+
+It also found that the first account of why a saved bound failed was wrong,
+some statements were stale, a refused sale left Sell enabled, and Backspace
+did not sell. Two notes are recorded above rather than changed: the loader's
+rule on queued orders naming a sold object, and index use over many buy and
+sell cycles. Whether a sold stove should instead make sims give up the meal is
+left for the owner as [T-selling-the-last-stove] in `docs/TIM-TODO.md`.
+
+A second round found no test for an object whose role no chain uses, which now
+sells; Sell turning off with nothing to say why, which the note under it now
+does; a length check the index bound already implied, now dropped; stale
+backup and refusal lists in the docs; and review labels in test comments that
+meant nothing outside the review, now written in words.
 
 ## Slices
 

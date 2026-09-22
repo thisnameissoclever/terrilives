@@ -100,8 +100,8 @@ describe('save worker recovery backup', () => {
     expect(slot.events).not.toContain(`writable ${PRIMARY}`);
   });
 
-  // Review finding [K1] on the sell branch: a tab still running the V3
-  // build must not overwrite a V4 slot a newer tab wrote.
+  // [SL-save]: a tab still running the V3 build must not overwrite a V4
+  // slot a newer tab wrote.
   it('the actual V3 worker refuses a V4 slot installed by a newer tab', async () => {
     const slot = await workerSlot(v4);
     const oldWorker = await slot.connect('v3');

@@ -34,8 +34,9 @@ error line.
   resets every player's sound, lighting and help settings;
 - the save fingerprint seeds in `terri-data`: renaming them invalidates every
   existing save;
-- the save file `terri-save-1.bin` and its two backups,
-  `terri-save-1.v1-backup.bin` and `terri-save-1.v2-backup.bin`: the game opens
+- the save file `terri-save-1.bin` and its three backups,
+  `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin` and
+  `terri-save-1.v3-backup.bin`: the game opens
   saves only under these names, so renaming them leaves every existing save
   unfound. At startup the player would see "No save yet" and a new household,
   while the old save stayed on disk unseen;

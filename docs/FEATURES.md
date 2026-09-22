@@ -597,7 +597,9 @@ this milestone and is done; what follows is M1b onwards.
   Selling an object back is [BM-slice-sell] there, built on branch
   `twcl/sell-furniture`: a Sell button in the Furniture tool pays back half an
   object's price and removes it, refused while a sim uses it, is walking to
-  it or has been told to use it. Its design is
+  it or has been told to use it, when it has no price, or when it is the last
+  object that can do a job a chain needs, such as the house's only stove. Its
+  design is
   `docs/specs/2026-09-22-selling-furniture.md` and its played check is
   [A-selling-furniture].
 - **Create-a-sim:** body type, face, hair, clothing, trait selection
