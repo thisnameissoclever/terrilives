@@ -123,6 +123,7 @@ struct RenderRow {
     footprint_depth: u32,
     sprite: u32,
     foreground_sprite: u32,
+    colourway: u32,
     activity: u32,
     visual_action: u32,
     interaction_target: u32,
@@ -666,7 +667,7 @@ impl Sim {
         }
     }
 
-    /// The current envelope - [SL-save]: V3's, with the indices sales retired.
+    /// The previous envelope - [SL-save]: V3's, with the indices sales retired.
     pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
         let terri_core::SaveSnapshotV3 {
             world,
@@ -682,6 +683,47 @@ impl Sim {
                 .get_resource::<placement::sale::RetiredIndices>()
                 .map_or_else(Vec::new, |retired| retired.as_slice().to_vec()),
         }
+    }
+
+    /// The current envelope - [RC-save]: V4's, with each placed object's
+    /// colourway, ascending by entity index, for the objects not as drawn.
+    pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
+        let terri_core::SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+        } = self.save_snapshot_v4();
+        let content = self.world.resource::<Content>().0;
+        let mut object_colourways = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::Colourway)>() {
+            for (entity, colourway) in query.iter(&self.world) {
+                object_colourways.push((
+                    entity.index_u32(),
+                    content.colourways[colourway.0 as usize].id.clone(),
+                ));
+            }
+        }
+        object_colourways.sort_unstable_by_key(|(index, _)| *index);
+        terri_core::SaveSnapshotV5 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+            object_colourways,
+        }
+    }
+
+    /// Validates the complete candidate before replacing the running simulation.
+    pub fn load_snapshot_v5(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV5,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
+        self.adopt(restored);
+        Ok(())
     }
 
     /// Validates the complete candidate before replacing the running simulation.
@@ -1353,6 +1395,7 @@ impl Sim {
         self.render.footprint_depths.clear();
         self.render.sprites.clear();
         self.render.foreground_sprites.clear();
+        self.render.colourways.clear();
         self.render.ids.clear();
         self.render.activities.clear();
         self.render.visual_actions.clear();
@@ -1691,6 +1734,10 @@ impl Sim {
                 sprite,
                 foreground_sprite: foreground_sprite
                     .map_or(render_buffer::NO_FOREGROUND_SPRITE, |sprite| sprite.0),
+                colourway: self
+                    .world
+                    .get::<terri_core::Colourway>(entity)
+                    .map_or(0, |colourway| colourway.0),
                 activity,
                 visual_action,
                 interaction_target: socket_action_visual
@@ -1722,6 +1769,7 @@ impl Sim {
             self.render.footprint_depths.push(row.footprint_depth);
             self.render.sprites.push(row.sprite);
             self.render.foreground_sprites.push(row.foreground_sprite);
+            self.render.colourways.push(row.colourway);
             // The row's occupant, carried across so a click on a row can
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
@@ -2679,6 +2727,9 @@ impl Sim {
                         fields
                     }
                     SellObject { object } => vec![11, *object as u64],
+                    SetColourway { object, colourway } => {
+                        vec![12, *object as u64, *colourway as u64]
+                    }
                 };
                 for field in fields {
                     hasher.write_u64(field);
@@ -2696,6 +2747,25 @@ impl Sim {
         hasher.write_u64(retired.len() as u64);
         for &index in retired {
             hasher.write_u64(u64::from(index));
+        }
+
+        // [RC-save]: each placed object's colourway, written only when some
+        // object has one, so a world with every object as drawn hashes as it
+        // did before colourways. Appended last.
+        let mut colourways = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::Colourway)>() {
+            for (entity, colourway) in query.iter(&self.world) {
+                colourways.push((entity.index_u32(), colourway.0));
+            }
+        }
+        colourways.sort_unstable();
+        if !colourways.is_empty() {
+            hasher.write_bytes(b"object-colourway-v1");
+            hasher.write_u64(colourways.len() as u64);
+            for (entity, colourway) in colourways {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(u64::from(colourway));
+            }
         }
 
         hasher.finish()

@@ -699,6 +699,13 @@ pub struct SpriteVariant(pub u32);
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObjectFacing(pub crate::Facing);
 
+/// The colourway a placed object is drawn in, an index into the content
+/// pack's colourways - [RC-command] in `docs/specs/2026-09-22-colourways.md`.
+/// An absent component is the first, the art as drawn; the component is
+/// never stored holding the first. Saved and in the world hash.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Colourway(pub u32);
+
 /// A sim's stable identity - [H1] in
 /// `docs/specs/2026-07-30-household-and-relationships-design.md`.
 ///

@@ -43,6 +43,10 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::sale::commit(world, object);
             }
+            SimCommand::SetColourway { object, colourway } => {
+                flush_ordinary(world);
+                crate::placement::colourway::commit(world, object, colourway);
+            }
             SimCommand::BuildRoom {
                 x0,
                 y0,

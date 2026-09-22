@@ -34,6 +34,9 @@ pub enum PlacementRefusal {
     /// only hob for Cook dinner, so selling it would strand every sim part
     /// way through that chain - [SL-rules].
     LastForAChain = 16,
+    /// The content pack has no colourway with that index - [RC-command] in
+    /// `docs/specs/2026-09-22-colourways.md`.
+    UnknownColourway = 17,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -56,6 +59,8 @@ pub struct LotEditState {
     pub last_room_result: Option<rooms::RoomEditResult>,
     /// The most recent sale the drain made or refused - [SL-shell].
     pub last_sale_result: Option<sale::SaleResult>,
+    /// What the drain did with the most recent colourway change - [RC-command].
+    pub last_colourway_result: Option<colourway::ColourwayResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -481,6 +486,7 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
     world.resource_mut::<LotEditState>().last_result = Some(PlacementResult { object, reason });
 }
 
+pub mod colourway;
 pub mod purchase;
 pub mod rooms;
 pub mod sale;

@@ -240,6 +240,13 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
+        SimCommand::SetColourway { object, colourway } => SavedCommand::SetColourway {
+            object: *object,
+            colourway: pack
+                .colourways
+                .get(*colourway as usize)
+                .map(|colourway| colourway.id.clone()),
+        },
         SimCommand::BuildRoom {
             x0,
             y0,
@@ -786,6 +793,14 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
         SavedCommand::SellObject { object } => SimCommand::SellObject { object },
+        // An id this pack lacks restores as an index past every colourway,
+        // which the drain refuses, as a staged purchase of an unknown object.
+        SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
+            object,
+            colourway: colourway
+                .and_then(|id| pack.colourways.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+        },
         SavedCommand::PlaceObject {
             object,
             x,
@@ -1008,7 +1023,8 @@ fn validate_command(
         | SavedCommand::SetWallEdge { .. }
         | SavedCommand::BuyObject { .. }
         | SavedCommand::BuildRoom { .. }
-        | SavedCommand::SellObject { .. } => Ok(()),
+        | SavedCommand::SellObject { .. }
+        | SavedCommand::SetColourway { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

@@ -166,6 +166,12 @@ pub enum SimCommand {
     /// by itself in stream order like `PlaceObject`. Appended to preserve
     /// earlier wire codes.
     SellObject { object: u32 },
+    /// Draw the placed object carrying entity index `object` in content
+    /// colourway `colourway` - [RC-command] in
+    /// `docs/specs/2026-09-22-colourways.md`. A lot edit, applied by itself
+    /// in stream order like `SellObject`. Appended to preserve earlier wire
+    /// codes.
+    SetColourway { object: u32, colourway: u32 },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -328,6 +334,15 @@ mod tests {
                 // Read from this assertion's failure: variant 11, then the
                 // object 300 as a two-byte varint.
                 &[11, 172, 2],
+            ),
+            (
+                SimCommand::SetColourway {
+                    object: 300,
+                    colourway: 2,
+                },
+                // Variant 12, the object 300 as a two-byte varint, then the
+                // colourway 2.
+                &[12, 172, 2, 2],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),
