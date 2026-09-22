@@ -106,6 +106,20 @@ front door, the vertical direction too, matched to the existing wall art.
 Tell me whether to draft them with the generator for you to accept or reject,
 or whether you would rather supply them. Nothing is blocked meanwhile.
 
+### [T-subobject-art] Parts that need their own depth `[YOURS]`
+
+An object drawn as one sprite sits at one depth, so a sim can never stand
+between its front and its back. The bunk bed is the shipped exception: its
+upper mattress, posts, rail and ladder are a second authored piece the
+renderer draws over the body, and the contract for that is done and used.
+What is missing is the art for the next ones. The two worth doing first are
+the television, whose screen should sit in front of a sim watching it, and the
+fridge, whose door should. Each needs its body and its front piece drawn
+separately, in each direction the object supports. This is the whole of what
+is left in [B-facing]; the mechanism needs no further work, and each new split
+costs one instance. Tell me whether to draft them with the generator for you
+to accept or reject, or whether you would rather supply them.
+
 ### [T-floor-art] Floors that look like floors `[YOURS]`
 
 The Floors tool lays a covering on a tile, and there is one floor sprite, so
