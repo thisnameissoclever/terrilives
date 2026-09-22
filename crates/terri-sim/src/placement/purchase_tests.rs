@@ -561,6 +561,38 @@ fn the_world_hash_sees_every_field_of_a_staged_purchase() {
     );
 }
 
+/// Review finding [F1] on PR 96 - [BM-hash]. A radio and a desk chair cost the
+/// same, so two households that bought one or the other for the same tile end
+/// with the same Funds, the same blocked tile and the same entity index. The
+/// digest has to see which object it is.
+#[test]
+fn the_world_hash_sees_which_object_was_bought() {
+    let bought = |id: &str| {
+        let mut sim = house(1_000, vec![]);
+        let definition = index(id);
+        bought(
+            &mut sim,
+            Purchase {
+                definition,
+                x: 3,
+                y: 3,
+                facing: pack().objects[definition as usize].base_facing,
+            },
+        );
+        sim
+    };
+    assert_eq!(
+        price("radio"),
+        price("desk_chair"),
+        "the case needs equal prices"
+    );
+    let radio = bought("radio");
+    let chair = bought("desk_chair");
+    assert_eq!(funds(&radio), funds(&chair));
+    assert_ne!(radio.save_snapshot_v3(), chair.save_snapshot_v3());
+    assert_ne!(radio.world_hash(), chair.world_hash());
+}
+
 #[test]
 fn a_stream_with_purchases_drains_the_same_joined_or_split() {
     let stream = || {

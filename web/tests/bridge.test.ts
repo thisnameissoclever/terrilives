@@ -1188,7 +1188,11 @@ describe('SimBridge', () => {
     // random choices without changing the digest encoding. This value is
     // intentionally restated rather than imported: the release-wasm run is
     // the cross-target check against the native constant.
-    expect(bridge.worldHash()).toBe(0xc7bb_234c_419a_654cn);
+    // Buy mode taught the digest which object each placed entity is
+    // ([BM-hash]), an encoding change that moved this from
+    // 0xc7bb_234c_419a_654cn. Measured on the rebuilt wasm32 module first,
+    // then found equal to the native value.
+    expect(bridge.worldHash()).toBe(0xa592_dbd9_c174_b14an);
   });
 
   // ---- Player commands -------------------------------------------------

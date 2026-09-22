@@ -2509,6 +2509,28 @@ impl Sim {
             }
         }
 
+        // Which object each placed entity is - [BM-hash]. Buying makes that a
+        // player's choice, so a radio and a desk chair bought for the same
+        // tile at the same price are different worlds, and a digest blind to
+        // it would call them equal ([L-a-blind-digest-proves-false-equalities]).
+        // By id rather than pack index, as a staged purchase is, and sorted by
+        // entity index independently of archetype order.
+        let mut kinds = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::SmartObject)>() {
+            for (entity, object) in query.iter(&self.world) {
+                kinds.push((entity.index_u32(), id_digest(&content.object(object.0).id)));
+            }
+        }
+        kinds.sort_unstable();
+        if !kinds.is_empty() {
+            hasher.write_bytes(b"object-kinds-v1");
+            hasher.write_u64(kinds.len() as u64);
+            for (entity, id) in kinds {
+                hasher.write_u64(entity as u64);
+                hasher.write_u64(id);
+            }
+        }
+
         // The walls, now that a player can change them - [WT-hash]. Sorted by
         // line, so the digest sees what the house IS and not the order it was
         // built in; the doorway flag is in it because a doorway and a wall
@@ -2603,11 +2625,7 @@ impl Sim {
                         self.world
                             .get_resource::<Content>()
                             .and_then(|content| content.0.objects.get(*definition as usize))
-                            .map_or(u64::MAX, |object| {
-                                let mut id = terri_core::FnvHasher::default();
-                                id.write_bytes(object.id.as_bytes());
-                                id.finish()
-                            }),
+                            .map_or(u64::MAX, |object| id_digest(&object.id)),
                         *x as u64,
                         *y as u64,
                         facing.code() as u64,
@@ -2627,6 +2645,14 @@ impl Default for Sim {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// A content id as one digest word, for the world hash: the same id always
+/// gives the same word, whatever position it holds in the pack.
+fn id_digest(id: &str) -> u64 {
+    let mut hasher = terri_core::FnvHasher::default();
+    hasher.write_bytes(id.as_bytes());
+    hasher.finish()
 }
 
 fn advance_clock(mut clock: ResMut<SimClock>) {
@@ -4512,7 +4538,12 @@ mod determinism_tests {
         // The new native value below was read from this failing assertion;
         // the release-wasm twin in `web/tests/bridge.test.ts` must confirm it
         // independently after rebuilding the module.
-        const GOLDEN: u64 = 0xC7BB_234C_419A_654C;
+        //
+        // **The digest learned which object each placed entity is** ([BM-hash],
+        // buy mode), moving it from 0xC7BB_234C_419A_654C. An ENCODING change:
+        // the scenario's one fridge now writes an object-kinds section. The
+        // simulation computes exactly what it did.
+        const GOLDEN: u64 = 0xA592_DBD9_C174_B14A;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

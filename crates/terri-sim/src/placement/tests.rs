@@ -186,6 +186,59 @@ fn vertical(x: u32, y: u32) -> terri_core::layout::WallEdge {
     }
 }
 
+/// Review finding [F8] on PR 96. A sim walking to the fridge along a walk that
+/// ends out of its reach: the edge-wall loader refuses that save, the cell-wall
+/// loader does not check it. A purchase elsewhere is held to the checks of the
+/// loader that will read the save, so it goes ahead in the cell-wall house and
+/// is refused in the edge-wall one.
+#[test]
+fn a_lot_edit_is_held_only_to_the_grid_checks_its_own_loader_runs() {
+    use crate::placement::purchase::{validate_purchase, Purchase};
+    let walker = |sim: &mut Sim, fridge: u32| {
+        let fridge = object_definition(sim.world(), fridge).unwrap().0;
+        sim.world_mut().spawn((
+            terri_core::Agent,
+            Position { x: 5.0, y: 5.0 },
+            terri_core::Path {
+                steps: vec![(5, 4)],
+                cursor: 0,
+            },
+            Target {
+                object: fridge,
+                interaction: 0,
+            },
+        ));
+        sim.world_mut().insert_resource(terri_core::Funds(1_000));
+    };
+    let pack = terri_data::pack();
+    let chair = pack.find("chair").unwrap().0;
+    let purchase = Purchase {
+        definition: chair,
+        x: 5,
+        y: 1,
+        facing: pack.objects[chair as usize].base_facing,
+    };
+
+    let (mut cells, fridge) = fixture();
+    assert!(matches!(
+        cells.world().resource::<SavedLayout>(),
+        SavedLayout::LegacyCells { .. }
+    ));
+    walker(&mut cells, fridge);
+    let (mut reader, _) = fixture();
+    reader
+        .load_snapshot_v3(cells.save_snapshot_v3())
+        .expect("the cell-wall loader accepts the walk");
+    assert!(validate_purchase(cells.world(), purchase).is_ok());
+
+    let (mut edges, fridge) = edge_fixture(vec![]);
+    walker(&mut edges, fridge);
+    assert_eq!(
+        validate_purchase(edges.world(), purchase).unwrap_err(),
+        PlacementRefusal::BlockedRoute
+    );
+}
+
 #[test]
 fn placement_saved_architecture_overrides_current_content_and_preserves_edges() {
     let (mut sim, object) = edge_fixture(vec![vertical(3, 1)]);

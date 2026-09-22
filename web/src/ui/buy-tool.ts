@@ -95,12 +95,21 @@ export class BuyTool {
     this.query(at.x, at.y, item.baseFacing);
   }
 
+  /**
+   * Steps through the list the way the keys do, skipping what the household
+   * cannot afford, as the list greys it out. Does nothing when nothing is
+   * affordable.
+   */
   cycle(direction: -1 | 1): void {
-    if (this.items.length === 0) return;
-    const current = this.chosen === null ? -1 : this.items.indexOf(this.chosen);
-    const index = current < 0 ? (direction > 0 ? 0 : this.items.length - 1) :
-      (current + direction + this.items.length) % this.items.length;
-    this.choose(this.items[index].definition);
+    const count = this.items.length;
+    const current = this.chosen === null ? (direction > 0 ? -1 : count) : this.items.indexOf(this.chosen);
+    for (let step = 1; step <= count; step += 1) {
+      const item = this.items[(((current + direction * step) % count) + count) % count];
+      if (this.affordable(item)) {
+        this.choose(item.definition);
+        return;
+      }
+    }
   }
 
   /** A click or tap on a lot tile. */

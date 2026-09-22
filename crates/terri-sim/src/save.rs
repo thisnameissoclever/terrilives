@@ -878,8 +878,12 @@ pub(crate) enum LoadProblem {
 
 /// Whether this world, with `grid` in place of its own, passes the grid checks
 /// the V3 loader runs - [WT-rules]. A lot edit that passes every rule of its own
-/// and fails this would save a game that refuses to load, so the wall validator
-/// asks the loader rather than keeping a second copy of its rules.
+/// and fails this would save a game that refuses to load, so lot edits ask the
+/// loader rather than keeping a second copy of its rules.
+///
+/// Under the same conditions as the loader, too: `finish_restore` runs the
+/// edge-wall checks only for an edge-wall house, so a cell-wall house is not
+/// held to rules its own Load never applies (review finding [F8] on PR 96).
 pub(crate) fn candidate_grid_loads(
     world: &bevy_ecs::world::World,
     grid: &TileGrid,
@@ -887,6 +891,12 @@ pub(crate) fn candidate_grid_loads(
     let content = world.resource::<Content>().0;
     let snapshot = capture_world(world);
     validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
+    if !matches!(
+        world.get_resource::<terri_core::layout::SavedLayout>(),
+        Some(terri_core::layout::SavedLayout::EdgeWallsV1 { .. })
+    ) {
+        return Ok(());
+    }
     architecture::validate_edge_world(&snapshot, grid, content, world)
         .map_err(|_| LoadProblem::EdgeWorld)
 }

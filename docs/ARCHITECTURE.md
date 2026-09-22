@@ -683,7 +683,9 @@ purchases share `plan_rectangle`, which takes the object being moved or none,
 so a bought chair is held to every rule a moved one is, the loader's grid
 checks included. A purchase staged at save time is saved by object id rather
 than pack index, because the save digest does not cover object order, and the
-world hash reads it by the same id.
+world hash reads it by the same id. The world hash also reads which object
+every placed entity is, by the same id digest ([BM-hash]), because buying made
+that a player's choice.
 
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render

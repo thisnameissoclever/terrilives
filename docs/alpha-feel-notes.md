@@ -3076,8 +3076,8 @@ browser instead ([L59]).
 
 **The catalogue.** Build, then Buy, showed the list with all thirty objects by
 name, each with its price in brackets, and everything dearer than 120 greyed
-out: nine of the thirty were left to choose. After a 40 chair the list greyed
-down to what 80 buys.
+out: fourteen of the thirty were left to choose. After a 40 chair the list
+greyed down to the nine that 80 buys.
 
 **Placing.** Choosing the chair drew its ghost mid-lot and said "Ready to buy."
 A click beside the living-room armchair turned the ghost red with "Leave every

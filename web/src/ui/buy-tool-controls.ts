@@ -51,8 +51,13 @@ export class BuyToolControls {
       this.options.push(option);
       this.selector.append(option);
     }
+    // The placeholder drops the choice, so the list never shows nothing
+    // chosen while a ghost stays buyable. The redraw puts the list back in
+    // step when the tool could not act, such as with a purchase on its way.
     this.selector.addEventListener('change', () => {
-      if (this.selector.value !== '') tool.choose(Number(this.selector.value));
+      if (this.selector.value === '') tool.cancel();
+      else tool.choose(Number(this.selector.value));
+      this.render();
     });
     this.rotate.addEventListener('click', () => tool.rotate());
     this.confirm.addEventListener('click', () => tool.buy());

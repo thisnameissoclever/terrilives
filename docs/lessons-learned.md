@@ -6764,6 +6764,15 @@ keeps V1 on purpose, because its fixture is only valid there, and compares V1
 records. With the wall hash in place, turning either back into a V1 world-hash
 comparison makes it fail.
 
+**It happened again, the other way round (PR 96).** The world hash never read
+which object a placed entity is, because the lot content fixed that. Buying
+made it a player's choice, and the review bought a radio and a desk chair, same
+price, same tile, in two copies of one household: equal hashes, different
+saves. The rule that would have caught it: **when a feature makes some state a
+player's choice for the first time, check the digest reads that state.**
+`the_world_hash_sees_which_object_was_bought` fails if the object-kinds
+section is removed from `world_hash`.
+
 ## [L-an-edit-must-pass-the-loader] A lot edit's own rules accepted walls the loader refused
 
 **What happened.** The first review of the Walls tool found two walls the

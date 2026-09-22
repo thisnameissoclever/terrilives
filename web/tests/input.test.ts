@@ -98,7 +98,10 @@ it('hands the build editor the unrounded world point beside the rounded tile', (
   attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu,
     {} as Node, camera, { panBy: vi.fn(), zoomAt: vi.fn() },
     undefined, undefined, undefined, undefined, undefined, { active: () => true, click });
-  const [wx, wy] = [2.3, -0.7];
+  // Within 0.05 of a rounding boundary on both axes, so a small error in the
+  // tile arithmetic (an origin swapped or the rect offset dropped) lands on a
+  // different tile. The Buy tool reads that tile (PR 95 review, finding F3).
+  const [wx, wy] = [2.45, 0.55];
   // World to canvas buffer pixels, then buffer to client pixels: the canvas
   // buffer is twice the size it is drawn at, offset by the rect.
   const clientX = rect.left + screenX(wx, wy, camera.originX, camera.scale) * rect.width / canvas.width;
@@ -109,7 +112,7 @@ it('hands the build editor the unrounded world point beside the rounded tile', (
   const [, tile, point] = click.mock.calls[0];
   expect(point[0]).toBeCloseTo(wx, 9);
   expect(point[1]).toBeCloseTo(wy, 9);
-  expect(tile).toEqual([2, -1]);
+  expect(tile).toEqual([2, 1]);
 });
 
 describe('command outcome feedback', () => {

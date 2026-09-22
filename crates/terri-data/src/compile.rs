@@ -3967,6 +3967,28 @@ mod tests {
         compile_objects(full_needs(), objects).expect("ids are scoped to their object");
     }
 
+    /// [BM-price]. A price of zero is refused, and the message says how to
+    /// keep an object out of the catalogue instead; no price and a price of
+    /// one both compile, onto the object. Review finding [F3] on PR 96.
+    #[test]
+    fn a_zero_price_is_refused_and_no_price_or_one_compiles() {
+        let priced = |price| {
+            let mut objects = one_object(snack());
+            objects.object[0].price = price;
+            compile_objects(full_needs(), objects)
+        };
+        let err = priced(Some(0)).unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::ZeroPrice {
+                object: "fridge".into()
+            }
+        );
+        assert!(err.to_string().contains("leave price out"), "{err}");
+        assert_eq!(priced(Some(1)).unwrap().objects[0].price, Some(1));
+        assert_eq!(priced(None).unwrap().objects[0].price, None);
+    }
+
     #[test]
     fn rejects_zero_duration() {
         let mut act = snack();

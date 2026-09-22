@@ -45,8 +45,9 @@
 
 # `price` is what the Buy tool charges for one, in Funds - [BM-price] in
 # docs/specs/2026-09-21-buy-mode.md. It is not in the save compatibility
-# digest, so repricing changes nothing an old save means. A shift pays 130,
-# so the dearest pieces are two or three days' work. Leave it out to keep an
+# digest, so repricing changes nothing an old save means. A shift pays 120
+# (careers.toml), so the dearest piece, at 400, is a little over three days'
+# work. Leave it out to keep an
 # object out of the catalogue; zero is refused.
 
 [[object]]

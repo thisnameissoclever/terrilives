@@ -87,11 +87,23 @@ describe('nearestLine', () => {
   });
 
   it('picks nothing for a point off the lot', () => {
-    // The lot's tiles span -0.5 up to width - 0.5.
-    for (const [wx, wy] of [[-0.51, 2], [6.5, 2], [3, -0.51], [3, 4.5], [40, -40]]) {
+    // The lot's tiles span -0.5 to width - 0.5, both ends included.
+    for (const [wx, wy] of [[-0.51, 2], [6.51, 2], [3, -0.51], [3, 4.51], [40, -40]]) {
       expect(nearestLine(wx, wy, 7, 5)).toBeNull();
     }
+  });
+
+  // Copilot on PR 95: the far edges are on the lot exactly as the near ones
+  // are, and each corner names a real outer line rather than one past the lot.
+  it('treats all four edges of the lot alike, corners included', () => {
+    expect(nearestLine(-0.5, 2.0, 7, 5)).toEqual({ axis: 0, x: 0, y: 2 });
+    expect(nearestLine(6.5, 2.0, 7, 5)).toEqual({ axis: 0, x: 7, y: 2 });
+    expect(nearestLine(3.0, -0.5, 7, 5)).toEqual({ axis: 1, x: 3, y: 0 });
+    expect(nearestLine(3.0, 4.5, 7, 5)).toEqual({ axis: 1, x: 3, y: 5 });
     expect(nearestLine(-0.5, -0.5, 7, 5)).toEqual({ axis: 0, x: 0, y: 0 });
+    expect(nearestLine(6.5, 4.5, 7, 5)).toEqual({ axis: 0, x: 7, y: 4 });
+    expect(nearestLine(6.5, 4.4, 7, 5)).toEqual({ axis: 0, x: 7, y: 4 });
+    expect(nearestLine(6.4, 4.5, 7, 5)).toEqual({ axis: 1, x: 6, y: 5 });
   });
 
   it.each([
@@ -529,13 +541,16 @@ describe('WallToolControls', () => {
     const buy = { active: false, enter() { this.active = true; }, exit() { this.active = false; },
       handleKey: () => false };
     const view = new WallToolControls(doc, walls);
-    const toolSwitch = new BuildToolSwitch(doc, walls, buy, { leaveFurniture: leave });
-    return { walls, buy, source, view, toolSwitch, element: (id: string) => elements.get(id)! };
+    let focused = 0;
+    const toolSwitch = new BuildToolSwitch(doc, walls, buy,
+      { leaveFurniture: leave, focusView: () => { focused += 1; } });
+    return { walls, buy, source, view, toolSwitch, focused: () => focused,
+      element: (id: string) => elements.get(id)! };
   }
 
   it('switches tools only when the furniture tool could let go, and shows one panel', () => {
     let free = false;
-    const { walls, buy, toolSwitch, element } = controls(() => free);
+    const { walls, buy, toolSwitch, element, focused } = controls(() => free);
     const panels = ['furniture-tool', 'wall-tool', 'buy-tool'];
     const shown = () => panels.filter((id) => !element(id).hidden);
     const pressed = () => ['build-tool-furniture', 'build-tool-walls', 'build-tool-buy']
@@ -543,7 +558,7 @@ describe('WallToolControls', () => {
     expect([shown(), pressed()]).toEqual([['furniture-tool'], ['build-tool-furniture']]);
     element('build-tool-walls').click();
     element('build-tool-buy').click();
-    expect([walls.active, buy.active]).toEqual([false, false]);
+    expect([walls.active, buy.active, focused()]).toEqual([false, false, 0]);
     free = true;
     element('build-tool-walls').click();
     toolSwitch.render();
@@ -560,6 +575,9 @@ describe('WallToolControls', () => {
     toolSwitch.render();
     expect([walls.active, buy.active]).toEqual([false, false]);
     expect([shown(), pressed()]).toEqual([['furniture-tool'], ['build-tool-furniture']]);
+    // Copilot on PR 95: each switch that happened hands the game view the
+    // keys; the two refused ones did not.
+    expect(focused()).toBe(4);
   });
 
   it('disables the button for the current state and for a refused one, and presses apply', () => {

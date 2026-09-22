@@ -251,6 +251,30 @@ describe('BuyTool', () => {
     expect([buy.chosen, buy.preview]).toEqual([null, null]);
   });
 
+  // Review finding [F7] on PR 96: the keys skip what the list greys out.
+  it('steps through only what the household can afford, and chooses nothing when it can afford nothing', () => {
+    const { buy, source } = tool();
+    source.money = 180;
+    buy.enter();
+    const seen: (string | undefined)[] = [];
+    for (const key of [']', ']', ']', '[', '[']) {
+      buy.handleKey(key);
+      seen.push(buy.chosen?.name);
+    }
+    expect(seen).toEqual(['Chair', 'Desk', 'Chair', 'Desk', 'Chair']);
+    const broke = tool();
+    broke.source.money = 0;
+    broke.buy.enter();
+    broke.buy.handleKey(']');
+    broke.buy.handleKey('ArrowDown');
+    expect(broke.buy.chosen).toBeNull();
+    const fresh = tool();
+    fresh.source.money = 180;
+    fresh.buy.enter();
+    fresh.buy.handleKey('ArrowDown');
+    expect(fresh.buy.chosen).toBe(CHAIR);
+  });
+
   it('with nothing chosen, an arrow chooses the first item', () => {
     const { buy } = tool();
     buy.enter();
@@ -359,6 +383,20 @@ describe('BuyToolControls', () => {
     view.render();
     expect([buy.chosen, element('buy-status').textContent, element('buy-price').textContent])
       .toEqual([null, CHOOSE_ITEM, '']);
+  });
+
+  // Review finding [F6] on PR 96: the placeholder must not leave a buyable ghost.
+  it('drops the choice when the list is set back to its placeholder', () => {
+    const { buy, source, view, element } = controls();
+    buy.enter();
+    element('buy-object').value = String(CHAIR.definition);
+    element('buy-object').fire('change');
+    element('buy-object').value = '';
+    element('buy-object').fire('change');
+    expect([buy.chosen, buy.preview, element('buy-confirm').disabled, element('buy-price').textContent])
+      .toEqual([null, null, true, '']);
+    buy.buy();
+    expect(source.staged).toEqual([]);
   });
 
   it('shows the touch help on a phone and the keyboard help elsewhere', () => {

@@ -1099,6 +1099,7 @@ async function main(): Promise<void> {
       builder.cancel();
       return builder.selected === null && !builder.pending;
     },
+    focusView: () => canvas.focus(),
   });
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;

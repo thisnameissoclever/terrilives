@@ -16,6 +16,11 @@ export interface BuildToolHooks {
    * says whether it could: a move waiting on the drain cannot be dropped.
    */
   leaveFurniture(): boolean;
+  /**
+   * Gives the game view keyboard focus after a switch, as entering Build mode
+   * does, so the new tool's keys work without a click on the lot first.
+   */
+  focusView(): void;
 }
 
 /**
@@ -48,16 +53,19 @@ export class BuildToolSwitch {
     furnitureButton.addEventListener('click', () => {
       walls.exit();
       buy.exit();
+      hooks.focusView();
     });
     wallsButton.addEventListener('click', () => {
       if (!hooks.leaveFurniture()) return;
       buy.exit();
       walls.enter();
+      hooks.focusView();
     });
     buyButton.addEventListener('click', () => {
       if (!hooks.leaveFurniture()) return;
       walls.exit();
       buy.enter();
+      hooks.focusView();
     });
     this.render();
   }
