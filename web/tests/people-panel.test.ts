@@ -1,3 +1,4 @@
+import { tieBetween } from '../src/ui/people-panel.js';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -29,6 +30,7 @@ class MutableSource implements PeoplePanelSource {
     [2, new Float32Array([0, 0.45])],
   ]);
   selected: number | null = 3;
+  ties = new Uint32Array();
 
   get count(): number {
     return this.idsValue.length;
@@ -36,6 +38,10 @@ class MutableSource implements PeoplePanelSource {
 
   ids(): Uint32Array {
     return this.idsValue;
+  }
+
+  familyTies(): Uint32Array {
+    return this.ties;
   }
 
   simIds(): Uint32Array {
@@ -134,11 +140,13 @@ function person(
   simId: number,
   name: string,
   feeling: number,
+  tie: string | null = null,
 ): PersonRelationship {
   return {
     simId,
     entity: simId + 10,
     name,
+    tie,
     ...describeRelationship(feeling),
   };
 }
@@ -309,3 +317,32 @@ describe('createPeoplePanelSurface', () => {
     expect(list.nodes).toHaveLength(0);
   });
 });
+
+// [FM-show] in docs/specs/2026-09-22-family.md: a row that has a family tie
+// says what it is, from the selected person's side.
+describe('family ties in the relationship list', () => {
+  it('reads one stored fact from either end, and none for the unrelated', () => {
+    // Stored from the lower entity index: 10 is 12's parent.
+    const ties = [10, 12, 1];
+    expect(tieBetween(ties, 10, 12)).toBe('parent');
+    expect(tieBetween(ties, 12, 10)).toBe('child');
+    expect(tieBetween(ties, 10, 13)).toBeNull();
+    expect(tieBetween([], 10, 12)).toBeNull();
+    // Partner and sibling are their own mirror.
+    expect(tieBetween([10, 12, 0], 12, 10)).toBe('partner');
+    expect(tieBetween([10, 12, 3], 12, 10)).toBe('sibling');
+    // A relation this build does not have says nothing rather than guessing.
+    expect(tieBetween([10, 12, 9], 10, 12)).toBeNull();
+  });
+
+  it('puts the tie on the row, and leaves it null without one', () => {
+    const source = new MutableSource();
+    // Terri is entity 3, Doug entity 2: stored from the lower, Doug is
+    // Terri's parent, so Terri reads Doug as her parent and Nadia as none.
+    source.ties = Uint32Array.from([2, 3, 2]);
+    const view = peoplePanelView(source)!;
+    expect(view.people.map((row) => [row.name, row.tie]))
+      .toEqual([['Doug', 'parent'], ['Nadia', null]]);
+  });
+});
+
