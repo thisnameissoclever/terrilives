@@ -2630,6 +2630,28 @@ impl Sim {
                         *y as u64,
                         facing.code() as u64,
                     ],
+                    // A doorway writes a 1 and its line, none writes a 0, so
+                    // every command's fields end where they must: a room's
+                    // words can never run on into the next command's.
+                    BuildRoom {
+                        x0,
+                        y0,
+                        x1,
+                        y1,
+                        doorway,
+                    } => {
+                        let mut fields = vec![10, *x0 as u64, *y0 as u64, *x1 as u64, *y1 as u64];
+                        match doorway {
+                            Some(line) => fields.extend([
+                                1,
+                                line.axis.code() as u64,
+                                line.x as u64,
+                                line.y as u64,
+                            ]),
+                            None => fields.push(0),
+                        }
+                        fields
+                    }
                 };
                 for field in fields {
                     hasher.write_u64(field);

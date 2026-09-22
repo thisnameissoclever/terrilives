@@ -45,6 +45,8 @@ pub struct LotEditState {
     pub last_wall_result: Option<walls::WallEditResult>,
     /// The most recent purchase the drain committed or refused - [BM-buy].
     pub last_purchase_result: Option<purchase::PurchaseResult>,
+    /// The most recent room the drain built or refused - [RT-boundary].
+    pub last_room_result: Option<rooms::RoomEditResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -468,6 +470,7 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
 }
 
 pub mod purchase;
+pub mod rooms;
 pub mod walls;
 
 #[cfg(test)]

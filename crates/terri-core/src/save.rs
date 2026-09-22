@@ -273,4 +273,12 @@ pub enum SavedCommand {
         y: u32,
         facing: crate::Facing,
     },
+    /// [RT-command]. A room staged just before a save.
+    BuildRoom {
+        x0: u32,
+        y0: u32,
+        x1: u32,
+        y1: u32,
+        doorway: Option<crate::layout::WallLine>,
+    },
 }

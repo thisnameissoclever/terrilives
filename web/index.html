@@ -607,8 +607,8 @@
       #builder-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
       #builder-controls p { margin: 0; }
       /* The tool wrappers keep the panel's own spacing for what they hold. */
-      #furniture-tool, #wall-tool, #buy-tool { display: grid; gap: 8px; }
-      #furniture-tool[hidden], #wall-tool[hidden], #buy-tool[hidden] { display: none; }
+      #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
+      #furniture-tool[hidden], #wall-tool[hidden], #room-tool[hidden], #buy-tool[hidden] { display: none; }
       #builder-object, #buy-object {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
@@ -616,6 +616,9 @@
         font: inherit; font-size: 14px;
       }
       .builder-row { display: flex; align-items: center; gap: 8px; }
+      /* Four tools do not fit one row of the side panel, so two by two. */
+      #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #build-tools > * { min-width: 0; }
       .builder-row > * { flex: 1; min-width: 0; }
       #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
       #builder-controls .hud-button:disabled { opacity: 0.5; cursor: default; }
@@ -1087,9 +1090,10 @@
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
         <h2 id="builder-name">Build mode</h2>
         <p class="builder-note">Household paused</p>
-        <div class="builder-row" role="group" aria-label="Build tool">
+        <div id="build-tools" role="group" aria-label="Build tool">
           <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true">Furniture</button>
           <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
+          <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false">Room</button>
           <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false">Buy</button>
         </div>
         <div id="furniture-tool">
@@ -1117,6 +1121,15 @@
           </div>
           <p id="wall-keyboard-help" class="builder-note">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; Backspace removes; Escape clears the choice.</p>
           <p id="wall-touch-help" class="builder-note" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
+        </div>
+        <div id="room-tool" hidden>
+          <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
+          <div class="builder-row">
+            <button id="room-build" class="hud-button" type="button">Build room</button>
+            <button id="room-cancel" class="hud-button" type="button">Cancel</button>
+          </div>
+          <p id="room-keyboard-help" class="builder-note">Click one corner tile, then the opposite one; click a line of the outline for a doorway. With the game view focused: arrows move a corner; Enter fixes the first corner, then builds; D steps the doorway along the outline; Escape clears.</p>
+          <p id="room-touch-help" class="builder-note" hidden>Tap one corner tile, then the opposite one; tap a line of the outline for a doorway. Drag to pan; pinch to zoom.</p>
         </div>
         <div id="buy-tool" hidden>
           <label for="buy-object">Buy</label>
@@ -1150,6 +1163,7 @@
           <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
             <li>Build pauses the household. Move or rotate furniture, then Confirm or choose another item. Choosing another item commits a valid move and cancels an invalid one. Cancel leaves it unchanged; Exit build returns to play.</li>
           <li>In Build, Walls turns the line between two floor tiles into a wall, a doorway or nothing. Remove clears a wall; the status line says why when a change is not allowed.</li>
+          <li>In Build, Room builds a whole room at once: choose two opposite corner tiles, then a line of the outline for its doorway, and press Build room.</li>
           <li>In Build, Buy lists everything for sale with its price. Choose something, point at the floor, turn it with Rotate, and press Buy; the price comes out of Funds. Items the household cannot afford are greyed out.</li>
           <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
           <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>

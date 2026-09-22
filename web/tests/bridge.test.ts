@@ -1227,8 +1227,11 @@ describe('SimBridge', () => {
       // unknown-variant case has to track the enum's edge to keep
       // meaning itself.
       // And `[0x07, 0x00]` became a truncated PlaceObject, `[0x08, 0x00]` a
-      // truncated SetWallEdge.
-      ['variant index 9, one past the nine that exist', [0x09, 0x00]],
+      // truncated SetWallEdge, `[0x09, 0x00]` a truncated BuyObject and
+      // `[0x0a, 0x00]` a truncated BuildRoom.
+      ['variant index 11, one past the eleven that exist', [0x0b, 0x00]],
+      ['BuyObject missing its facing', [0x09, 0x01, 0x02, 0x03]],
+      ['BuildRoom missing its doorway option', [0x0a, 0x01, 0x02, 0x03, 0x04]],
       ['SetWallEdge with a state past the three that exist', [0x08, 0x00, 0x01, 0x02, 0x03]],
       ['variant index 0xFF', [0xff]],
       ['TalkTo missing its interaction field', [0x04, 0x03, 0x05]],

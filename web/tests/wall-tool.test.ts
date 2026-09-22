@@ -459,8 +459,8 @@ describe('the Walls tool in the page', () => {
   });
 
   it('keeps the build panel spacing inside every tool wrapper', () => {
-    expect(INDEX_HTML).toContain('#furniture-tool, #wall-tool, #buy-tool { display: grid; gap: 8px; }');
-    expect(INDEX_HTML).toContain('#furniture-tool[hidden], #wall-tool[hidden], #buy-tool[hidden] { display: none; }');
+    expect(INDEX_HTML).toContain('#furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }');
+    expect(INDEX_HTML).toContain('#furniture-tool[hidden], #wall-tool[hidden], #room-tool[hidden], #buy-tool[hidden] { display: none; }');
   });
 
   it('is wired into the frame, the click and Load', () => {
@@ -475,7 +475,7 @@ describe('the Walls tool in the page', () => {
     // The canvas listener handles every key; the document listener catches
     // Escape wherever focus is.
     expect(MAIN_TS.split('routeBuildKey(event.key, buildTools, builder)')).toHaveLength(3);
-    expect(MAIN_TS).toContain('const buildTools = [wallTool, buyTool] as const;');
+    expect(MAIN_TS).toContain('const buildTools = [wallTool, roomTool, buyTool] as const;');
     expect(MAIN_TS).toContain("wallTool.setBlocked(overlayPause.suspendedExcept('builder'))");
   });
 });
@@ -538,46 +538,57 @@ describe('WallToolControls', () => {
       },
     } as unknown as Document;
     const { walls, source } = tool();
-    const buy = { active: false, enter() { this.active = true; }, exit() { this.active = false; },
-      handleKey: () => false };
+    const fake = () => ({ active: false, enter() { this.active = true; },
+      exit() { this.active = false; }, handleKey: () => false });
+    const room = fake();
+    const buy = fake();
     const view = new WallToolControls(doc, walls);
     let focused = 0;
-    const toolSwitch = new BuildToolSwitch(doc, walls, buy,
-      { leaveFurniture: leave, focusView: () => { focused += 1; } });
-    return { walls, buy, source, view, toolSwitch, focused: () => focused,
+    const toolSwitch = new BuildToolSwitch(doc, [
+      { tool: walls, button: 'build-tool-walls', panel: 'wall-tool' },
+      { tool: room, button: 'build-tool-room', panel: 'room-tool' },
+      { tool: buy, button: 'build-tool-buy', panel: 'buy-tool' },
+    ], { leaveFurniture: leave, focusView: () => { focused += 1; } });
+    return { walls, room, buy, source, view, toolSwitch, focused: () => focused,
       element: (id: string) => elements.get(id)! };
   }
 
   it('switches tools only when the furniture tool could let go, and shows one panel', () => {
     let free = false;
-    const { walls, buy, toolSwitch, element, focused } = controls(() => free);
-    const panels = ['furniture-tool', 'wall-tool', 'buy-tool'];
+    const { walls, room, buy, toolSwitch, element, focused } = controls(() => free);
+    const panels = ['furniture-tool', 'wall-tool', 'room-tool', 'buy-tool'];
     const shown = () => panels.filter((id) => !element(id).hidden);
-    const pressed = () => ['build-tool-furniture', 'build-tool-walls', 'build-tool-buy']
+    const pressed = () => ['build-tool-furniture', 'build-tool-walls', 'build-tool-room', 'build-tool-buy']
       .filter((id) => element(id).attributes.get('aria-pressed') === 'true');
+    const active = () => [walls.active, room.active, buy.active];
     expect([shown(), pressed()]).toEqual([['furniture-tool'], ['build-tool-furniture']]);
     element('build-tool-walls').click();
+    element('build-tool-room').click();
     element('build-tool-buy').click();
-    expect([walls.active, buy.active, focused()]).toEqual([false, false, 0]);
+    expect([...active(), focused()]).toEqual([false, false, false, 0]);
     free = true;
     element('build-tool-walls').click();
     toolSwitch.render();
-    expect([walls.active, buy.active]).toEqual([true, false]);
+    expect(active()).toEqual([true, false, false]);
     expect([shown(), pressed()]).toEqual([['wall-tool'], ['build-tool-walls']]);
+    element('build-tool-room').click();
+    toolSwitch.render();
+    expect(active()).toEqual([false, true, false]);
+    expect([shown(), pressed()]).toEqual([['room-tool'], ['build-tool-room']]);
     element('build-tool-buy').click();
     toolSwitch.render();
-    expect([walls.active, buy.active]).toEqual([false, true]);
+    expect(active()).toEqual([false, false, true]);
     expect([shown(), pressed()]).toEqual([['buy-tool'], ['build-tool-buy']]);
     element('build-tool-walls').click();
     toolSwitch.render();
-    expect([walls.active, buy.active]).toEqual([true, false]);
+    expect(active()).toEqual([true, false, false]);
     element('build-tool-furniture').click();
     toolSwitch.render();
-    expect([walls.active, buy.active]).toEqual([false, false]);
+    expect(active()).toEqual([false, false, false]);
     expect([shown(), pressed()]).toEqual([['furniture-tool'], ['build-tool-furniture']]);
     // Copilot on PR 95: each switch that happened hands the game view the
-    // keys; the two refused ones did not.
-    expect(focused()).toBe(4);
+    // keys; the three refused ones did not.
+    expect(focused()).toBe(5);
   });
 
   it('disables the button for the current state and for a refused one, and presses apply', () => {

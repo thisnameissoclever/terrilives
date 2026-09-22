@@ -127,6 +127,15 @@ impl WallEdge {
     }
 }
 
+/// One boundary between two tiles, named as a [`WallEdge`] names it, with no
+/// state - the doorway a room is built with ([RT-command]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct WallLine {
+    pub axis: EdgeAxis,
+    pub x: u32,
+    pub y: u32,
+}
+
 /// Kept in the world and saved with it. Loading an older or custom world must
 /// not substitute the newest authored walls for its actual architecture.
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

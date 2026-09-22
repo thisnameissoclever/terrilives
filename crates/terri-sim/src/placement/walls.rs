@@ -63,6 +63,98 @@ fn rectangle_holds(rect: &Rectangle, (x, y): (i32, i32)) -> bool {
         && y < (rect.origin.1 + rect.footprint.depth) as i32
 }
 
+/// The rules every new wall is held to, run over all the new walls of one edit
+/// against the candidate grid - [WT-rules] checks 4 to 9. A single wall passes
+/// one pair of tiles and a room its whole outline ([RT-rules]); each check runs
+/// over every wall before the next check starts, so the reason a player reads
+/// is the first kind of thing wrong, in the order [WT-rules] lists. Only walls
+/// are passed: a doorway or an opening removes a barrier and is never asked.
+pub(super) fn check_new_walls(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+    walls: &[[(i32, i32); 2]],
+) -> Result<(), PlacementRefusal> {
+    use PlacementRefusal::*;
+    // The front door's one step in, whoever lives here now: a wall there
+    // would meet the first person to take a job. Matched to its portal the
+    // way the loader matches it.
+    let content = world.resource::<Content>().0;
+    let door = content
+        .lot
+        .front_door
+        .and_then(|door| content.portals.iter().find(|p| p.position == door))
+        .map(|portal| {
+            (
+                (portal.position.0 as i32, portal.position.1 as i32),
+                (portal.inward.0 as i32, portal.inward.1 as i32),
+            )
+        });
+    if walls.iter().any(|&[a, b]| {
+        door.is_some_and(|(door, landing)| (a, b) == (door, landing) || (a, b) == (landing, door))
+    }) {
+        return Err(BlockedLanding);
+    }
+    if rectangles.iter().any(|&rect| crosses_wall(rect, grid)) {
+        return Err(WallOverlap);
+    }
+    // Nothing registered as a sim yet means there are no sims to wall in.
+    // Every check below asks whether ANY sim matches, so the order the query
+    // returns them in cannot change an answer.
+    let standing: Vec<Standing> = world
+        .try_query_filtered::<(Entity, &Position), With<Agent>>()
+        .map(|mut agents| {
+            agents
+                .iter(world)
+                .map(|(entity, position)| Standing {
+                    tiles: tiles_under(position),
+                    target: world.get::<Target>(entity).map(|t| t.object),
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    if walls.iter().any(|&[a, b]| {
+        standing
+            .iter()
+            .any(|sim| sim.tiles.contains(&a) && sim.tiles.contains(&b))
+    }) {
+        return Err(SimOverlap);
+    }
+    // A wall must not come down between a sim and the thing it is using or
+    // the person it is talking to: it would carry on through the wall.
+    for Standing { tiles, target, .. } in &standing {
+        let Some(target) = *target else {
+            continue;
+        };
+        let across = |mine: (i32, i32), theirs: (i32, i32)| {
+            tiles.contains(&mine)
+                && if world.get::<SmartObject>(target).is_some() {
+                    rectangles
+                        .iter()
+                        .any(|rect| rect.entity == Some(target) && rectangle_holds(rect, theirs))
+                } else {
+                    world
+                        .get::<Position>(target)
+                        .is_some_and(|p| tiles_under(p).contains(&theirs))
+                }
+        };
+        if walls.iter().any(|&[a, b]| across(a, b) || across(b, a)) {
+            return Err(InUse);
+        }
+    }
+    prove_lot_usable(world, grid, rectangles)?;
+    // Last, the loader's own grid checks: a wall that passed everything above
+    // can still leave a save that will not load - a sim walking to an object
+    // that is now across the wall from where its walk ends. The review of the
+    // Walls tool found that in ordinary play. The loader's front-door check is
+    // subsumed today by the door rule at the top; it is asked anyway, so a door
+    // rule the loader gains later is honoured here without a second edit.
+    crate::save::candidate_grid_loads(world, grid).map_err(|problem| match problem {
+        crate::save::LoadProblem::PortalReturn => BlockedLanding,
+        crate::save::LoadProblem::EdgeWorld => BlockedRoute,
+    })
+}
+
 /// Produces a complete owned transaction; no mutation and no random draws.
 ///
 /// The checks run in the order [WT-rules] lists, so the reason a player reads
@@ -118,83 +210,7 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     // it cannot cut anything off. Running the proofs for it would refuse to
     // mend a house that was already in trouble.
     if edit.state == WallState::Wall {
-        // The front door's one step in, whoever lives here now: a wall there
-        // would meet the first person to take a job. Matched to its portal
-        // the way the loader matches it.
-        let content = world.resource::<Content>().0;
-        let door = content
-            .lot
-            .front_door
-            .and_then(|door| content.portals.iter().find(|p| p.position == door))
-            .map(|portal| {
-                (
-                    (portal.position.0 as i32, portal.position.1 as i32),
-                    (portal.inward.0 as i32, portal.inward.1 as i32),
-                )
-            });
-        if door
-            .is_some_and(|(door, landing)| (a, b) == (door, landing) || (a, b) == (landing, door))
-        {
-            return Err(BlockedLanding);
-        }
-        if rectangles.iter().any(|&rect| crosses_wall(rect, &grid)) {
-            return Err(WallOverlap);
-        }
-        // Nothing registered as a sim yet means there are no sims to wall in.
-        // Every check below asks whether ANY sim matches, so the order the
-        // query returns them in cannot change an answer.
-        let standing: Vec<Standing> = world
-            .try_query_filtered::<(Entity, &Position), With<Agent>>()
-            .map(|mut agents| {
-                agents
-                    .iter(world)
-                    .map(|(entity, position)| Standing {
-                        tiles: tiles_under(position),
-                        target: world.get::<Target>(entity).map(|t| t.object),
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-        if standing
-            .iter()
-            .any(|sim| sim.tiles.contains(&a) && sim.tiles.contains(&b))
-        {
-            return Err(SimOverlap);
-        }
-        // A wall must not come down between a sim and the thing it is using
-        // or the person it is talking to: it would carry on through the wall.
-        for Standing { tiles, target, .. } in &standing {
-            let Some(target) = *target else {
-                continue;
-            };
-            let across = |mine: (i32, i32), theirs: (i32, i32)| {
-                tiles.contains(&mine)
-                    && if world.get::<SmartObject>(target).is_some() {
-                        rectangles.iter().any(|rect| {
-                            rect.entity == Some(target) && rectangle_holds(rect, theirs)
-                        })
-                    } else {
-                        world
-                            .get::<Position>(target)
-                            .is_some_and(|p| tiles_under(p).contains(&theirs))
-                    }
-            };
-            if across(a, b) || across(b, a) {
-                return Err(InUse);
-            }
-        }
-        prove_lot_usable(world, &grid, &rectangles)?;
-        // Last, the loader's own grid checks: a wall that passed everything
-        // above can still leave a save that will not load - a sim walking to
-        // an object that is now across the wall from where its walk ends. The
-        // review of this slice found that in ordinary play. The loader's
-        // front-door check is subsumed today by the door rule at the top of
-        // this block; it is asked anyway, so a door rule the loader gains
-        // later is honoured here without a second edit.
-        crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
-            crate::save::LoadProblem::PortalReturn => BlockedLanding,
-            crate::save::LoadProblem::EdgeWorld => BlockedRoute,
-        })?;
+        check_new_walls(world, &rectangles, &grid, &[[a, b]])?;
     }
 
     Ok(WallPlan {

@@ -239,6 +239,19 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        } => SavedCommand::BuildRoom {
+            x0: *x0,
+            y0: *y0,
+            x1: *x1,
+            y1: *y1,
+            doorway: *doorway,
+        },
         SimCommand::BuyObject {
             definition,
             x,
@@ -359,11 +372,10 @@ fn restore_with_facings(
     sim.world.insert_resource(snapshot.rng);
     sim.world.insert_resource(Funds(snapshot.funds));
 
-    let mut allocator = SimIdAllocator::default();
-    for _ in 0..snapshot.issued_sim_ids {
-        allocator.issue();
-    }
-    sim.world.insert_resource(allocator);
+    // Resumed at the saved count rather than counted up to it: the loader's
+    // bound on the count must not be the only thing keeping a Load quick.
+    sim.world
+        .insert_resource(SimIdAllocator::resumed(snapshot.issued_sim_ids));
 
     let mut grid = TileGrid::new(snapshot.grid_width as usize, snapshot.grid_height as usize);
     for (index, blocked) in snapshot.blocked_tiles.into_iter().enumerate() {
@@ -379,6 +391,10 @@ fn restore_with_facings(
     sim.world
         .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
+    // One slot per index up to the last saved one: the ECS hands indices out
+    // in order, so the gaps must be spawned too. Sized by a saved number, so
+    // bounded only by validation's check that every index is under
+    // MAX_ENTITIES ([L-restore-without-counting-up]).
     let max_index = snapshot.entities.last().map(|entity| entity.index);
     let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
     let mut holes = Vec::new();
@@ -715,6 +731,19 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
     match command {
+        SavedCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        } => SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        },
         // An id this pack lacks can only come through a reviewed content
         // bridge that dropped an object. It restores as an index past every
         // object, which the drain refuses as it refuses any unknown object.
@@ -954,7 +983,8 @@ fn validate_command(
         // Impossible or stale edits must replay as refusals, not prevent Load.
         SavedCommand::PlaceObject { .. }
         | SavedCommand::SetWallEdge { .. }
-        | SavedCommand::BuyObject { .. } => Ok(()),
+        | SavedCommand::BuyObject { .. }
+        | SavedCommand::BuildRoom { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

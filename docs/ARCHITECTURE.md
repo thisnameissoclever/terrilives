@@ -687,6 +687,14 @@ world hash reads it by the same id. The world hash also reads which object
 every placed entity is, by the same id digest ([BM-hash]), because buying made
 that a player's choice.
 
+`BuildRoom` is the fourth lot edit, appended after `BuyObject` ([RT-command]
+in `docs/specs/2026-09-22-room-tool.md`). It walls the outline of a rectangle
+of tiles in one edit, with an optional doorway, and changes only the saved
+`EdgeWallsV1` list and the grid's edge barriers, as a wall does. The
+single-wall rules live in one function, `check_new_walls`, which a wall calls
+with one pair of tiles and a room with its whole outline; the usability proofs
+and the loader's checks run once, on the finished room.
+
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
 samples discontinuous, so a paused furniture move snaps into place without

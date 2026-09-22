@@ -150,6 +150,17 @@ pub enum SimCommand {
         y: u32,
         facing: crate::Facing,
     },
+    /// Wall the outline of the rectangle of tiles between two opposite
+    /// corners, in either order, with `doorway` as the one line left
+    /// passable ([RT-command]). A lot edit, applied by itself in stream order
+    /// and wholly or not at all. Appended to preserve earlier wire codes.
+    BuildRoom {
+        x0: u32,
+        y0: u32,
+        x1: u32,
+        y1: u32,
+        doorway: Option<crate::layout::WallLine>,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -279,6 +290,33 @@ mod tests {
                 // Read from this assertion's failure: variant 9, definition
                 // 300 as a two-byte varint, x 2, y 5, facing 2.
                 &[9, 172, 2, 2, 5, 2],
+            ),
+            (
+                SimCommand::BuildRoom {
+                    x0: 300,
+                    y0: 2,
+                    x1: 5,
+                    y1: 6,
+                    doorway: Some(crate::layout::WallLine {
+                        axis: crate::layout::EdgeAxis::Horizontal,
+                        x: 3,
+                        y: 7,
+                    }),
+                },
+                // Read from this assertion's failure: variant 10, x0 300 as a
+                // two-byte varint, y0 2, x1 5, y1 6, then Some, axis 1, x 3, y 7.
+                &[10, 172, 2, 2, 5, 6, 1, 1, 3, 7],
+            ),
+            (
+                SimCommand::BuildRoom {
+                    x0: 1,
+                    y0: 2,
+                    x1: 3,
+                    y1: 4,
+                    doorway: None,
+                },
+                // Read from this assertion's failure: no doorway is one 0.
+                &[10, 1, 2, 3, 4, 0],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),

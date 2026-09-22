@@ -3120,6 +3120,44 @@ showed no errors or warnings.
 
 **Not proven here.** No physical phone was used. The chair's use at a table
 was not watched.
+## [A-room-tool] A whole room in one edit
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree, which I confirmed by the Room button being in the Build panel, driven in
+the Playwright browser.
+
+**The tool.** Build showed four tool buttons. Room put the keyboard on the game
+view and said "Choose a corner tile of the room." A click on bedroom floor said
+"Choose the opposite corner." and ringed that tile; a second click ringed a two
+by two block in the valid tint and said "Ready to build. Choose a line of the
+outline for a doorway."
+
+**Built.** D chose a doorway ("Ready to build, with a doorway."), Enter built
+it: walls rose on the outline with a doorway frame in one side, the status said
+"Room built.", and the choice cleared. Save, then a page reload, brought back
+"Saved game loaded" with the room still standing.
+
+**Refused.** Corners either side of the bed and nightstand tinted the room red
+with "The room would leave furniture out of reach. Choose a doorway." Stepping
+D along the outline kept it refused on the lines that do not reach both pieces,
+until the sixth said "Ready to build, with a doorway." Escape cleared it.
+
+**Two things fixed here.** Four tool buttons in one row overflowed the side
+panel, clipping Furniture and cutting Buy off behind a sideways scroll; they
+are now two by two. After a room was built its choice stayed and Build room
+stayed enabled, which would stage the same room again; a built room now clears
+its choice. A third, wording: with a doorway already chosen, "Choose a doorway."
+read wrong, so that case now says "Try the doorway on another line."
+
+**Phone.** At 390 by 844 the dock shows the two by two buttons, the status,
+Build room, Cancel and the touch help, with no sideways scroll.
+
+**What play showed.** A click on the tall part of a sprite, such as the bed's
+headboard, lands on the floor tile behind it, which here is off the lot, so the
+click does nothing. Rooms want clicks on open floor. I did not watch a sim walk
+through the new doorway; the Rust tests prove the proofs let one reach inside.
+No physical phone was used.
+
 
 ## [A-rotated-lights] A turned lamp and television still light the room
 
