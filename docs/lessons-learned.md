@@ -6820,3 +6820,24 @@ that reads that state for how it hears about the change.
 `refreshObjects()` in `FurnitureBuilder.afterCommands`.
 `tells its controls when a lot change refreshes the object list with nothing
 selected` in `web/tests/builder.test.ts` fails.
+
+## [L-a-test-that-waits-must-be-bounded] A test's clock loop hung two mutants
+
+**What happened.** PR 95's household wall test advanced the game with
+`while tick < stop { sim.tick() }`. The mutation sweep replaced `Sim::tick`
+and `advance_clock` with nothing; the clock never moved, the loop never ended,
+and both mutants burned the 60-second timeout. The shard's hang check failed
+the whole pull request after an hour of CI.
+
+**Root cause.** A loop whose exit depends on the code under test is a loop the
+mutation sweep can break. The test assumed the one thing a mutant exists to
+remove.
+
+**Prevention rule.** A test that waits for the simulation to reach a state
+counts its steps and asserts afterwards: `for _ in from..stop { tick }` then
+`assert_eq!(clock, stop)`. Never `while` or `loop` on simulation state.
+
+**How to verify.** Make `Sim::tick` return at once.
+`every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fails in
+seconds with "one tick per `Sim::tick`" instead of timing out.
+
