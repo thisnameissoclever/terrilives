@@ -453,6 +453,31 @@ describe('who the newcomer is', () => {
     expect(second.source.ties).toEqual([]);
   });
 
+  it('shows the choice in the dialog, and greys the person list until a relation is chosen', () => {
+    const { housemate: form } = form2();
+    const elements = new Map<string, FakeFormElement>();
+    const view = new HousemateFormView(fakeFormDocument(elements) as never, form);
+    view.setHousehold([{ entity: 7, name: 'Bill' }, { entity: 9, name: 'Casey' }]);
+
+    const relation = elements.get('housemate-relation')!;
+    const relative = elements.get('housemate-relative')!;
+    expect(relation.children.map((child) => child.textContent))
+      .toEqual(['Nobody', 'partner', 'parent', 'child', 'sibling']);
+    expect(relative.children.map((child) => child.textContent))
+      .toEqual(['nobody here', 'Bill', 'Casey']);
+    expect(relative.disabled).toBe(true);
+
+    relation.value = '2';
+    relation.listeners.change?.();
+    expect(form.relation).toBe(2);
+    view.render();
+    expect(relative.disabled).toBe(false);
+
+    relative.value = '9';
+    relative.listeners.change?.();
+    expect(form.relative).toBe(9);
+  });
+
   it('refuses a relation it does not know, and forgets the choice on reset', () => {
     const { housemate: form } = form2();
     form.chooseRelation(9);
@@ -464,4 +489,55 @@ describe('who the newcomer is', () => {
     expect([form.relation, form.relative]).toEqual([NO_RELATION, null]);
   });
 });
+
+interface FakeFormElement {
+  value: string;
+  textContent: string;
+  hidden: boolean;
+  disabled: boolean;
+  children: FakeFormElement[];
+  ownerDocument: unknown;
+  listeners: Record<string, (() => void) | undefined>;
+  addEventListener(name: string, handler: () => void): void;
+  append(...children: FakeFormElement[]): void;
+  replaceChildren(): void;
+  setAttribute(): void;
+  removeAttribute(): void;
+  querySelector(): null;
+}
+
+function fakeFormElement(document: unknown): FakeFormElement {
+  const element: FakeFormElement = {
+    value: '',
+    textContent: '',
+    hidden: false,
+    disabled: false,
+    children: [],
+    ownerDocument: document,
+    listeners: {},
+    addEventListener(name, handler) { this.listeners[name] = handler; },
+    append(...children) { this.children.push(...children); },
+    replaceChildren() { this.children = []; },
+    setAttribute() {},
+    removeAttribute() {},
+    querySelector: () => null,
+  };
+  return element;
+}
+
+function fakeFormDocument(elements: Map<string, FakeFormElement>): unknown {
+  const document = {
+    querySelector(selector: string): FakeFormElement {
+      const id = selector.slice(1);
+      let element = elements.get(id);
+      if (!element) {
+        element = fakeFormElement(document);
+        elements.set(id, element);
+      }
+      return element;
+    },
+    createElement: () => fakeFormElement(document),
+  };
+  return document;
+}
 

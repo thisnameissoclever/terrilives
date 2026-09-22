@@ -9,7 +9,7 @@
 import type { SimBridge } from '../bridge.js';
 
 /** What the form reads from the simulation. */
-import { NO_RELATION, relationWord } from '../bridge.js';
+import { NO_RELATION, RELATION_WORDS, relationWord } from '../bridge.js';
 
 export type HousemateSource = Pick<SimBridge, 'personalityLabels' | 'personalityDescriptions' |
   'traitLabels' | 'traitDescriptions' | 'householdSize' | 'housemateLimits' | 'addHousemate' |
@@ -234,6 +234,14 @@ function optionRow(document: Document, input: HTMLInputElement, name: string, se
 }
 
 /** Wires the form to its dialog. */
+/** One option of a select, as plain as the rest of this surface. */
+function option(document: Document, value: string, label: string): HTMLOptionElement {
+  const element = document.createElement('option');
+  element.value = value;
+  element.textContent = label;
+  return element;
+}
+
 export class HousemateFormView {
   private readonly dialog: HTMLDialogElement;
   private readonly personalityPage: HTMLElement;
@@ -251,6 +259,23 @@ export class HousemateFormView {
   private shownPage: HousematePage | null = null;
   private wasPending = false;
 
+  /**
+   * Fills the "of whom" list with the household as it stands, which the page
+   * does when the dialog opens: the household changes between openings.
+   */
+  setHousehold(members: readonly { entity: number; name: string }[]): void {
+    const document = this.relativeSelect.ownerDocument;
+    this.relativeSelect.replaceChildren();
+    this.relativeSelect.append(option(document, '', 'nobody here'));
+    for (const member of members) {
+      this.relativeSelect.append(option(document, String(member.entity), member.name));
+    }
+    this.render();
+  }
+
+  private readonly relationSelect: HTMLSelectElement;
+  private readonly relativeSelect: HTMLSelectElement;
+
   constructor(document: Document, private readonly form: HousemateForm) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
@@ -258,6 +283,8 @@ export class HousemateFormView {
       return element;
     };
     this.dialog = required('housemate-dialog');
+    this.relationSelect = required<HTMLSelectElement>('housemate-relation');
+    this.relativeSelect = required<HTMLSelectElement>('housemate-relative');
     // Enter on a box or a radio could submit the form by the browser's
     // implicit-submission rule and close the dialog; nothing here submits.
     required('housemate-form').addEventListener('submit', (event) => event.preventDefault());
@@ -306,11 +333,31 @@ export class HousemateFormView {
     this.backButton.addEventListener('click', () => form.back());
     for (const cancel of cancelButtons) cancel.addEventListener('click', () => this.dialog.close('cancel'));
     this.confirm.addEventListener('click', () => form.moveIn());
+    // [FM-choose]: the relation list is the game's, in its own order, with
+    // "Nobody" first because that is the default and the common answer.
+    this.relationSelect.append(option(document, String(NO_RELATION), 'Nobody'));
+    for (const [index, word] of RELATION_WORDS.entries()) {
+      this.relationSelect.append(option(document, String(index), word));
+    }
+    this.relationSelect.addEventListener('change', () => {
+      form.chooseRelation(Number(this.relationSelect.value));
+    });
+    this.relativeSelect.addEventListener('change', () => {
+      const value = this.relativeSelect.value;
+      form.chooseRelative(value === '' ? null : Number(value));
+    });
     this.render();
   }
 
   render(): void {
     const form = this.form;
+    // [FM-choose]: the relation and who it is to, kept in step with the form.
+    if (this.relationSelect.value !== String(form.relation)) {
+      this.relationSelect.value = String(form.relation);
+    }
+    const relative = form.relative === null ? '' : String(form.relative);
+    if (this.relativeSelect.value !== relative) this.relativeSelect.value = relative;
+    this.relativeSelect.disabled = form.relation === NO_RELATION;
     const onTraits = form.page === 'traits';
     this.personalityPage.hidden = onTraits;
     this.traitsPage.hidden = !onTraits;

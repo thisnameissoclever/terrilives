@@ -34,6 +34,7 @@ import {
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
+import { householdMembers } from './ui/household-roster.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
@@ -865,6 +866,9 @@ async function main(): Promise<void> {
   newHousemateButton.addEventListener('click', () => {
     optionsMenu.close();
     housemateForm.reset();
+    // [FM-choose]: the household as it stands right now, since it changes
+    // between one opening of this dialog and the next.
+    housemateView?.setHousehold(householdMembers(sim));
     overlayPause.suspend('housemate');
     housemateDialog.showModal();
   });
