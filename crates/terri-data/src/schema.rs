@@ -207,7 +207,8 @@ pub struct TuningFile {
     /// "Likes", below 1 "Dislikes", and at or below `affinity_hates_to`
     /// "Hates". The compiler holds each description to its verb. The
     /// simulation never reads either line, so neither is copied into the
-    /// compiled pack. Last in this record on purpose, per the appending rule.
+    /// compiled pack. The pair is last in this record on purpose, per the
+    /// appending rule.
     pub affinity_loves_from: f32,
     pub affinity_hates_to: f32,
 }
