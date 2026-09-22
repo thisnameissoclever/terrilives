@@ -916,9 +916,9 @@ the lighting does not know, or if anything else glows. A new kind of light
 still has to be added by hand, to the lighting and to that test's list.
 Review suggested declaring each light in content instead of by picture name,
 which would remove that step. It is not needed yet, since colourways shift
-colours in the shader and add no pictures. Revisit it when outdoor lighting,
-the room score's lighting or bills for lights left on are built, since each
-needs lights the simulation can read.
+colours in the shader and add no pictures. Revisit it before work starts on
+outdoor lighting, the room score's lighting or bills for lights left on,
+since each needs lights the simulation can read.
 
 ### [A-art-pass] The furniture does not survive being looked at
 
