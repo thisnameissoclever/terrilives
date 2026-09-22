@@ -162,3 +162,6 @@ since the saving world still had the colourway; the comment now says a colour
 the game can no longer draw is never bought. It also found that neither
 purchase command's hash was pinned to name the object by its id rather than
 its index, a gap already on main for `BuyObject`; one test now covers both.
+
+A third round found no fault in the code, and two wording slips in the docs
+this pull request carries for earlier ones, both fixed.

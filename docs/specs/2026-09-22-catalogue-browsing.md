@@ -3,11 +3,11 @@
 Status: [CB-slice-serves] is built, on branch `twcl/catalogue-browsing`.
 
 This is [B-catalogue-browsing] in `docs/FEATURES.md`, found in the played check
-[A-buy-mode]; its own played check is [A-catalogue-browsing]. The Buy tool (`docs/specs/2026-09-21-buy-mode.md`) lists thirty
-objects by name and price, and the names say nothing about use: "Wall of
-Intent" could be anything, and a chair bought on its own does nothing until it
-stands at a table. The simulation already knows which needs each object
-serves.
+[A-buy-mode]; its own played check is [A-catalogue-browsing]. The Buy tool
+(`docs/specs/2026-09-21-buy-mode.md`) lists thirty objects by name and price,
+and the names say nothing about use: "Wall of Intent" could be anything, and a
+chair bought on its own does nothing until it stands at a table. The simulation
+already knows which needs each object serves.
 
 ## What the player gets
 
