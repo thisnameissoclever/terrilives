@@ -111,6 +111,10 @@ pub struct HousemateResult {
     /// The newcomer's entity index, when one moved in.
     pub sim: Option<u32>,
     pub reason: Option<HousemateRefusal>,
+    /// How many move-ins this world has handled, this one included. The
+    /// shell reads the count before it stages one and waits for a larger
+    /// one, so it never takes an earlier answer for its own.
+    pub handled: u32,
 }
 
 /// The most people a household may have, the ceiling content enforces for
@@ -226,14 +230,18 @@ pub(crate) fn commit(world: &mut World, name: &str, personality: u32, traits: &[
             HousemateResult {
                 sim: Some(entity.index_u32()),
                 reason: None,
+                handled: 0,
             }
         }
         Err(reason) => HousemateResult {
             sim: None,
             reason: Some(reason),
+            handled: 0,
         },
     };
-    world.resource_mut::<LotEditState>().last_housemate_result = Some(result);
+    let mut state = world.resource_mut::<LotEditState>();
+    let handled = state.last_housemate_result.map_or(0, |last| last.handled) + 1;
+    state.last_housemate_result = Some(HousemateResult { handled, ..result });
 }
 
 /// A personality's name as the form shows it: its content id in words, "the

@@ -783,6 +783,7 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           builder.resetAfterLoad();
+          housemateForm.resetAfterLoad();
           syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);

@@ -105,11 +105,8 @@ fn a_refused_move_in_writes_nothing() {
     ] {
         let result = move_in(&mut sim, &name, personality, &traits);
         assert_eq!(
-            result,
-            HousemateResult {
-                sim: None,
-                reason: Some(reason)
-            },
+            (result.sim, result.reason),
+            (None, Some(reason)),
             "{reason:?}"
         );
         assert_eq!(sim.world_hash(), before, "{reason:?} wrote something");
@@ -282,4 +279,99 @@ fn a_personality_is_labelled_by_its_id_in_words() {
     assert_eq!(personality_label("the_correspondent"), "The correspondent");
     assert_eq!(personality_label("x"), "X");
     assert_eq!(personality_label(""), "");
+}
+
+/// [CS-arrival]: with the street's exit and the front door's tile both under
+/// furniture there is no way in, and the refusal writes nothing.
+#[test]
+fn a_housemate_with_no_way_in_is_refused() {
+    let mut sim = Sim::new_from_shipped_lot();
+    {
+        let mut grid = sim.world_mut().resource_mut::<TileGrid>();
+        grid.set_blocked(19, 2, true);
+        grid.set_blocked(15, 2, true);
+    }
+    let before = sim.world_hash();
+    let result = move_in(&mut sim, "Ann", 0, &[]);
+    assert_eq!(result.reason, Some(HousemateRefusal::NoWayIn));
+    assert_eq!(result.sim, None);
+    assert_eq!(sim.world_hash(), before);
+    assert_eq!(household_size(sim.world()), 3);
+}
+
+/// [CS-arrival]: a lot with no front door has no street to arrive from, so
+/// the newcomer appears on its first open tile, in row order, and stands
+/// there; with no open tile at all there is no way in.
+#[test]
+fn a_lot_with_no_front_door_takes_the_first_open_tile() {
+    let mut lot = terri_data::pack().lot.clone();
+    lot.front_door = None;
+    let content: &'static terri_data::ContentPack = Box::leak(Box::new(terri_data::ContentPack {
+        lot,
+        ..terri_data::pack().clone()
+    }));
+    let mut sim = crate::test_content::sim_with(4, 3, content);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(0, 0, true);
+    let result = move_in(&mut sim, "Ann", 0, &[]);
+    let ann = entity(&sim, result.sim.expect("moved in"));
+    assert_eq!(
+        *sim.world().get::<Position>(ann).unwrap(),
+        Position { x: 1.0, y: 0.0 }
+    );
+    assert!(sim.world().get::<Path>(ann).is_none());
+
+    let mut walled = crate::test_content::sim_with(2, 1, content);
+    {
+        let mut grid = walled.world_mut().resource_mut::<TileGrid>();
+        grid.set_blocked(0, 0, true);
+        grid.set_blocked(1, 0, true);
+    }
+    assert_eq!(
+        move_in(&mut walled, "Bo", 0, &[]).reason,
+        Some(HousemateRefusal::NoWayIn)
+    );
+}
+
+/// Every answer is numbered, refusals included, so the shell can tell a
+/// fresh answer from the one before it.
+#[test]
+fn every_move_in_answer_is_numbered() {
+    let mut sim = Sim::new_from_shipped_lot();
+    assert_eq!(move_in(&mut sim, " ", 0, &[]).handled, 1);
+    assert_eq!(move_in(&mut sim, "Ann", 0, &[]).handled, 2);
+    assert_eq!(move_in(&mut sim, "", 0, &[]).handled, 3);
+}
+
+/// [CS-save]: a staged move-in whose name or trait list is past the size
+/// every saved name and list is held to is refused by the loader, and one
+/// just inside both limits loads.
+#[test]
+fn a_staged_move_in_is_held_to_the_saved_size_limits() {
+    let fresh = Sim::new_from_shipped_lot();
+    let personality = fresh.world().resource::<Content>().0.personalities[0]
+        .id
+        .clone();
+    let staged = |name: String, traits: usize| {
+        let mut saved = fresh.save_snapshot_v5();
+        saved
+            .world
+            .queued_commands
+            .push(terri_core::SavedCommand::AddHousemate {
+                name,
+                personality: Some(personality.clone()),
+                traits: vec![None; traits],
+            });
+        Sim::new_from_shipped_lot().load_snapshot_v5(saved)
+    };
+    assert_eq!(
+        staged("a".repeat(1_025), 0),
+        Err(crate::SaveError::InvalidValue)
+    );
+    assert_eq!(
+        staged("Ann".to_string(), 100_001),
+        Err(crate::SaveError::InvalidValue)
+    );
+    assert_eq!(staged("a".repeat(1_024), 100_000), Ok(()));
 }

@@ -599,14 +599,27 @@ impl SimHandle {
     /// `personality` and pack traits `traits`, moving in - [CS-command] in
     /// `docs/specs/2026-09-22-create-a-sim.md`. Queue acceptance only;
     /// `last_housemate_result` reports what the drain did. An index that is
-    /// not a whole number is refused here.
+    /// not a whole number is refused here, and so is a name or a trait
+    /// list past the tuned limits: the drain would refuse it anyway, and a
+    /// staged command that long could be saved and then refused by the
+    /// loader's size checks.
     pub fn add_housemate(&mut self, name: &str, personality: f64, traits: &[f64]) -> bool {
         let Some(personality) = placement_u32(personality) else {
             return false;
         };
-        let Some(traits) = traits.iter().map(|&index| placement_u32(index)).collect() else {
+        let Some(traits) = traits
+            .iter()
+            .map(|&index| placement_u32(index))
+            .collect::<Option<Vec<u32>>>()
+        else {
             return false;
         };
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+            || traits.len() > tuning.housemate_max_traits as usize
+        {
+            return false;
+        }
         let bytes = postcard::to_allocvec(&SimCommand::AddHousemate {
             name: name.to_string(),
             personality,
@@ -616,9 +629,10 @@ impl SimHandle {
         self.enqueue_command(&bytes)
     }
 
-    /// `[refusal, sim]` of the last move-in a drain handled - [CS-command]:
-    /// refusal zero when the housemate moved in, and `sim` the newcomer's
-    /// entity index, or `u32::MAX` when nobody did. Empty before the first.
+    /// `[refusal, sim, handled]` of the last move-in a drain handled -
+    /// [CS-command]: refusal zero when the housemate moved in, `sim` the
+    /// newcomer's entity index or `u32::MAX` when nobody did, and how many
+    /// move-ins this world has handled. Empty before the first.
     pub fn last_housemate_result(&self) -> Vec<u32> {
         self.sim
             .world()
@@ -628,6 +642,7 @@ impl SimHandle {
                 vec![
                     result.reason.map_or(0, |r| r as u32),
                     result.sim.unwrap_or(u32::MAX),
+                    result.handled,
                 ]
             })
     }
@@ -5332,12 +5347,22 @@ mod boundary_tests {
         assert!(!handle.add_housemate("Ann", 1.0, &[0.5]));
         assert!(handle.add_housemate("Ann", 99.0, &[]));
         handle.sim.flush_commands();
-        assert_eq!(handle.last_housemate_result(), vec![3, u32::MAX]);
+        assert_eq!(handle.last_housemate_result(), vec![3, u32::MAX, 1]);
+        // Past the tuned limits, refused before it is queued.
+        assert!(!handle.add_housemate(&"a".repeat(25), 1.0, &[]));
+        assert!(!handle.add_housemate("Ann", 1.0, &[0.0, 1.0, 2.0, 3.0, 4.0]));
+        assert!(handle.add_housemate(
+            &format!("  {}  ", "a".repeat(24)),
+            1.0,
+            &[0.0, 1.0, 2.0, 3.0]
+        ));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_housemate_result()[2], 2);
         assert!(handle.add_housemate("Ann Lee", 1.0, &[0.0, 5.0]));
         handle.sim.flush_commands();
         let result = handle.last_housemate_result();
-        assert_eq!(result[0], 0);
-        assert_eq!(handle.household_size(), vec![4, 6]);
+        assert_eq!((result[0], result[2]), (0, 3));
+        assert_eq!(handle.household_size(), vec![5, 6]);
         assert_eq!(handle.sim_name(result[1]), "Ann Lee");
     }
 

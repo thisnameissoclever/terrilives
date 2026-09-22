@@ -36,12 +36,21 @@ whole before anything is written:
   saved name;
 * the personality exists;
 * there are at most `housemate_max_traits` traits (`content/tuning.toml`),
-  each in the library and none twice.
+  each in the library and none twice;
+* there is a way in: open floor on the street's exit or the front door's
+  tile from which the tile inside the door can be reached ([CS-arrival]), or,
+  on a lot with no front door, any open tile.
 
 Only then is a sim id issued and the sim spawned, by the same function that
 spawns the household from content: every need full, the personality's
 numbers, no hobbies and no job, and each trait at its kind's starting state.
 A refusal writes nothing and is reported with a code, as a purchase's is.
+Each answer carries how many move-ins the world has handled, and the form
+takes only an answer numbered after the one it saw when it staged its own, so
+a form closed and reopened while a move-in is on its way cannot read an older
+answer as its own. The boundary refuses a name or a trait list past the tuned
+limits before queueing it, so a staged move-in is always small enough for the
+loader's size checks if a save lands before the drain.
 
 ## [CS-pages] Two pages: who they are, then their traits
 
