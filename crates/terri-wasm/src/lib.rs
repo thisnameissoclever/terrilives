@@ -205,33 +205,37 @@ fn floor_edit_arguments(
 }
 
 /// Decode frozen V1, including only the historical missing sleep-pressure list.
-/// Decodes a V5 payload, including one written before the floors list was
-/// appended to it - [FL-save] in `docs/specs/2026-09-22-floors.md`.
+/// Decodes a V5 payload, including one written before the lists appended to
+/// it existed - [FL-save] and [FM-save].
 ///
 /// The same trick `decode_save_payload` uses for the sleep-pressure list, and
 /// for the same reason: postcard writes a struct's fields back to back, so an
-/// older payload is a prefix of a newer one and one zero byte is the empty
-/// list it lacks. The padded decode is accepted only when that list comes
-/// back empty, so padding can never invent a floor nobody laid.
+/// older payload is a prefix of a newer one and one zero byte is each empty
+/// list it lacks. One pad per appended list, and a padded decode is accepted
+/// only when every list the padding could have filled comes back empty, so
+/// padding can never invent a floor nobody laid or a family nobody has.
+///
+/// Only a payload that ran OUT of bytes is padded. Any other failure means
+/// the bytes decoded into something else and stopped making sense, and
+/// padding such a payload rescues a corrupt save: a name whose length byte
+/// grew by one eats a terminator, and the pad puts one back. Review finding
+/// [F2] on PR 128 reproduced exactly that.
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
-    match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(payload) {
-        Ok((snapshot, [])) => Some(snapshot),
-        // Only a payload that ran OUT of bytes is padded. Any other failure
-        // means the bytes decoded into something else and stopped making
-        // sense, and padding such a payload rescues a corrupt save: a name
-        // whose length byte grew by one eats the floors terminator, and the
-        // pad puts one back, so the save loads with a mangled name. Review
-        // finding [F2] on PR 128 reproduced exactly that.
-        Err(postcard::Error::DeserializeUnexpectedEnd) => {
-            let mut padded = payload.to_vec();
-            padded.push(0);
-            match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
-                Ok((snapshot, [])) if snapshot.floors.tiles().is_empty() => Some(snapshot),
-                _ => None,
+    /// The lists appended to V5 since it shipped, so an older payload is
+    /// this many zero bytes short of a current one.
+    const APPENDED_LISTS: usize = 2;
+    let mut padded = payload.to_vec();
+    for pad in 0..=APPENDED_LISTS {
+        match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
+            Ok((snapshot, [])) => {
+                let invented = snapshot.floors.tiles().len() + snapshot.family.ties().len();
+                return (pad == 0 || invented == 0).then_some(snapshot);
             }
+            Err(postcard::Error::DeserializeUnexpectedEnd) => padded.push(0),
+            _ => return None,
         }
-        _ => None,
     }
+    None
 }
 
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {

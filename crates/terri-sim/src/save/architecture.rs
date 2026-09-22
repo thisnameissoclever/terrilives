@@ -60,6 +60,7 @@ pub(crate) fn restore_v5(
         retired_indices,
         object_colourways,
         floors,
+        family,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -120,6 +121,12 @@ pub(crate) fn restore_v5(
     let floors = terri_core::layout::SavedFloors::from_saved(known, width, height, coverings)
         .ok_or(SaveError::InvalidValue)?;
     candidate.world.insert_resource(floors);
+    // [FM-save]: the ties, refused whole when one names somebody this world
+    // does not have. A save written before ties existed carries none.
+    let known = |index: u32| crate::family::is_sim(&candidate.world, index);
+    let family = terri_core::layout::FamilyTies::from_saved(family.ties().to_vec(), &known)
+        .ok_or(SaveError::InvalidValue)?;
+    candidate.world.insert_resource(family);
     Ok(candidate)
 }
 

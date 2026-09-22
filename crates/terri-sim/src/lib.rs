@@ -2,6 +2,7 @@
 
 #[cfg(test)]
 mod facing_tests;
+pub mod family;
 pub mod household;
 mod mood;
 pub mod placement;
@@ -715,6 +716,11 @@ impl Sim {
             floors: self
                 .world
                 .get_resource::<terri_core::layout::SavedFloors>()
+                .cloned()
+                .unwrap_or_default(),
+            family: self
+                .world
+                .get_resource::<terri_core::layout::FamilyTies>()
                 .cloned()
                 .unwrap_or_default(),
         }
@@ -2677,6 +2683,23 @@ impl Sim {
             }
         }
 
+        // [FM-save]: who the household are to each other, written only when
+        // somebody is related to somebody, so a household of strangers
+        // digests exactly as it did before ties existed.
+        if let Some(family) = self
+            .world
+            .get_resource::<terri_core::layout::FamilyTies>()
+            .filter(|family| !family.ties().is_empty())
+        {
+            hasher.write_bytes(b"family-v1");
+            hasher.write_u64(family.ties().len() as u64);
+            for &(low, high, relation) in family.ties() {
+                hasher.write_u64(low as u64);
+                hasher.write_u64(high as u64);
+                hasher.write_bytes(&[relation]);
+            }
+        }
+
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
@@ -2736,6 +2759,13 @@ impl Sim {
                     SetFloor { x, y, covering } => {
                         vec![15, *x as u64, *y as u64, *covering as u64]
                     }
+                    // [FM-tie]: and so is a staged family tie.
+                    SetFamilyTie { who, to, relation } => vec![
+                        16,
+                        *who as u64,
+                        *to as u64,
+                        relation.map_or(u64::MAX, |relation| relation.code() as u64),
+                    ],
                     // By the id the save stores rather than the index, so a
                     // save and load cannot move the digest; `u64::MAX` for an
                     // index that names nothing, which loads as one that still

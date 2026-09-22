@@ -22,6 +22,10 @@ pub fn drain_commands(world: &mut World) {
                     crate::placement::walls::WallEdit { axis, x, y, state },
                 );
             }
+            SimCommand::SetFamilyTie { who, to, relation } => {
+                flush_ordinary(world);
+                crate::family::commit(world, who, to, relation);
+            }
             SimCommand::SetFloor { x, y, covering } => {
                 flush_ordinary(world);
                 crate::placement::floors::commit(
