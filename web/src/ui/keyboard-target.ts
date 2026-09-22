@@ -12,6 +12,7 @@ export interface KeyboardTargetSource {
   kinds(): Uint32Array;
   simName(entityIndex: number): string;
   objectName(entityIndex: number): string;
+  objectDetails?(entityIndex: number): import('./object-identity.js').ObjectDetails | undefined;
   /** A sim's name or an object's, for the flyout heading. */
   entityName(entityIndex: number): string;
   interactionLabels(entityIndex: number): readonly string[];
@@ -65,7 +66,7 @@ export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] 
       continue;
     }
     const label = source.objectName(entity);
-    if (label && source.interactionLabels(entity).length > 0) {
+    if (label && (source.interactionLabels(entity).length > 0 || source.objectDetails?.(entity))) {
       targets.push({ entity, kind: 'object', label });
     }
   }
@@ -129,6 +130,7 @@ export class KeyboardTargetController {
         this.source.entityName(target.entity),
         this.source.interactionLabels(target.entity),
         target.entity,
+        this.source.objectDetails?.(target.entity),
       ),
     };
   }

@@ -1130,6 +1130,20 @@ mod tests {
         let original = pack().clone();
         let base = content_fingerprint(&original);
 
+        let mut rewritten = original.clone();
+        for object in &mut rewritten.objects {
+            object.name = "Replacement model".into();
+            object.presentation = Some(pack::ObjectPresentation {
+                object_type: "Replacement type".into(),
+                description: "Replacement description".into(),
+            });
+        }
+        assert_eq!(
+            base,
+            content_fingerprint(&rewritten),
+            "object copy cannot invalidate saves"
+        );
+
         let mut retuned = original.clone();
         retuned.tuning.rng_seed ^= 1;
         retuned.tuning.action_threshold += 0.01;

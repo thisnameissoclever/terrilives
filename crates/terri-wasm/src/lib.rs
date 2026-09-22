@@ -497,7 +497,25 @@ impl SimHandle {
         let content = self.sim.world().resource::<Content>().0;
         content
             .catalogue()
-            .map(|(_, object, _)| object.name.clone())
+            .map(|(_, object, _)| object.display_name().to_string())
+            .collect()
+    }
+
+    /// Model name and description pairs, in the same order as `catalogue`.
+    pub fn catalogue_details(&self) -> Vec<String> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .catalogue()
+            .flat_map(|(_, object, _)| {
+                object
+                    .presentation
+                    .as_ref()
+                    .map_or([String::new(), String::new()], |text| {
+                        [object.name.clone(), text.description.clone()]
+                    })
+            })
             .collect()
     }
 
@@ -1527,6 +1545,19 @@ impl SimHandle {
         self.sim
             .object_name_of(entity_index)
             .map(str::to_string)
+            .unwrap_or_default()
+    }
+
+    /// Model name and description; empty for objects without authored detail.
+    pub fn object_details_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .object_definition_of(entity_index)
+            .and_then(|object| {
+                object
+                    .presentation
+                    .as_ref()
+                    .map(|text| vec![object.name.clone(), text.description.clone()])
+            })
             .unwrap_or_default()
     }
 
@@ -4797,6 +4828,49 @@ mod boundary_tests {
         assert_eq!(handle.object_name_of(u32::MAX), "");
     }
 
+    #[test]
+    fn object_identity_reaches_menu_and_catalogue_without_changing_saves() {
+        let handle = SimHandle::from_lot();
+        let before = handle.save_bytes();
+        let pack = handle.sim.world().resource::<Content>().0;
+        let rows = handle.catalogue();
+        let names = handle.catalogue_names();
+        let details = handle.catalogue_details();
+        assert_eq!(details.len(), names.len() * 2);
+        for (id, kind, model) in [
+            ("laundry", "Washing machine", "Perpetual Cycle"),
+            ("armchair", "Armchair", "Staying In"),
+            ("dining_table", "Dining table", "Visiting Hours"),
+        ] {
+            let def = pack.find(id).unwrap();
+            let row = rows
+                .chunks_exact(4)
+                .position(|row| row[0] == def.0)
+                .unwrap();
+            assert_eq!(names[row], kind);
+            assert_eq!(details[row * 2], model);
+            assert!(!details[row * 2 + 1].is_empty());
+            let mut query = handle
+                .sim
+                .world()
+                .try_query::<(terri_core::Entity, &terri_core::SmartObject)>()
+                .unwrap();
+            let entity = query
+                .iter(handle.sim.world())
+                .find(|(_, object)| object.0 == def)
+                .unwrap()
+                .0
+                .index_u32();
+            assert_eq!(handle.object_name_of(entity), kind);
+            assert_eq!(
+                handle.object_details_of(entity),
+                details[row * 2..row * 2 + 2]
+            );
+        }
+        assert!(handle.object_details_of(u32::MAX).is_empty());
+        assert_eq!(handle.save_bytes(), before);
+    }
+
     // ---- Player commands ----------------------------------------------
     //
     // Everything below is about `enqueue_command`, which is where the
@@ -5478,7 +5552,7 @@ mod boundary_tests {
                 "{}",
                 object.id
             );
-            assert_eq!(name, &object.name);
+            assert_eq!(name, object.display_name());
             assert_eq!(
                 *served,
                 pack.needs_served(pack.find(&object.id).unwrap()),

@@ -181,6 +181,20 @@ pub fn compile(
     let mut roles: Vec<String> = Vec::new();
 
     for object in &objects.object {
+        if let Some(text) = &object.presentation {
+            for (field, value) in [
+                ("name", &object.name),
+                ("object_type", &text.object_type),
+                ("description", &text.description),
+            ] {
+                if value.trim().is_empty() {
+                    return Err(ContentError::EmptyObjectText {
+                        object: object.id.clone(),
+                        field,
+                    });
+                }
+            }
+        }
         if !seen_objects.insert(object.id.clone()) {
             return Err(ContentError::DuplicateObjectId {
                 id: object.id.clone(),
@@ -421,6 +435,7 @@ pub fn compile(
         let definition = CompiledObject {
             id: object.id.clone(),
             name: object.name.clone(),
+            presentation: object.presentation.clone(),
             price: object.price,
             sprite: sprite as u32,
             interactions,
@@ -3576,7 +3591,8 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        // Object presentation appends None (0) after price, before the lot's `1, 5, 3, 2`.
+        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
         // The last `0` above is the empty wall_edges, after front_door.
         //
@@ -3693,6 +3709,7 @@ mod tests {
                     action_socket: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
+                    presentation: None,
                     sprite: format!("{id}_art"),
                     foreground_sprite: None,
                     base_facing: None,
@@ -3841,6 +3858,7 @@ mod tests {
                 action_socket: vec![],
                 id: "fridge".into(),
                 name: "Fridge".into(),
+                presentation: None,
                 sprite: "fridge_art".into(),
                 foreground_sprite: None,
                 base_facing: None,
@@ -3905,6 +3923,62 @@ mod tests {
         assert!(pack.objects[0].action_sockets.is_empty());
         assert_eq!(pack.find("fridge"), Some(ObjectDefId(0)));
         assert_eq!(pack.find("nope"), None);
+    }
+
+    #[test]
+    fn object_identity_round_trips_and_rejects_blank_copy() {
+        for field in ["name", "object_type", "description", "valid"] {
+            let mut objects = one_object(snack());
+            let object = &mut objects.object[0];
+            object.name = if field == "name" {
+                "  "
+            } else {
+                "Perpetual Cycle"
+            }
+            .into();
+            object.presentation = Some(crate::pack::ObjectPresentation {
+                object_type: if field == "object_type" {
+                    "\t"
+                } else {
+                    "Washing machine"
+                }
+                .into(),
+                description: if field == "description" {
+                    "\n"
+                } else {
+                    "Decorative appliance."
+                }
+                .into(),
+            });
+            let result = compile_objects(full_needs(), objects);
+            if field == "valid" {
+                let pack = result.expect("nonblank identity compiles");
+                let bytes = postcard::to_allocvec(&pack).unwrap();
+                let restored: ContentPack = postcard::from_bytes(&bytes).unwrap();
+                assert_eq!(restored, pack);
+                assert_eq!(restored.objects[0].display_name(), "Washing machine");
+                assert_eq!(restored.objects[0].name, "Perpetual Cycle");
+                assert_eq!(
+                    restored.objects[0]
+                        .presentation
+                        .as_ref()
+                        .unwrap()
+                        .description,
+                    "Decorative appliance."
+                );
+            } else {
+                assert_eq!(
+                    result.unwrap_err(),
+                    ContentError::EmptyObjectText {
+                        object: "fridge".into(),
+                        field
+                    }
+                );
+            }
+        }
+        let legacy = compile_objects(full_needs(), one_object(snack())).unwrap();
+        assert_eq!(legacy.objects[0].display_name(), "Fridge");
+        assert!(legacy.objects[0].presentation.is_none());
     }
 
     #[test]
@@ -4201,6 +4275,7 @@ mod tests {
             action_socket: vec![],
             id: "fridge".into(),
             name: "Another".into(),
+            presentation: None,
             sprite: "fridge_art".into(),
             foreground_sprite: None,
             base_facing: None,
@@ -4239,6 +4314,7 @@ mod tests {
             action_socket: vec![],
             id: "vending".into(),
             name: "Vending".into(),
+            presentation: None,
             sprite: "fridge_art".into(),
             foreground_sprite: None,
             base_facing: None,
@@ -5801,6 +5877,7 @@ mod tests {
                     action_socket: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
+                    presentation: None,
                     sprite: format!("{id}_art"),
                     foreground_sprite: None,
                     base_facing: None,
@@ -7274,6 +7351,7 @@ mod tests {
             action_socket: vec![],
             id: "couch".into(),
             name: "Couch".into(),
+            presentation: None,
             sprite: "couch_art".into(),
             foreground_sprite: None,
             base_facing: None,
@@ -9083,6 +9161,7 @@ mod tests {
         ObjectDef {
             id: "reading_chair".to_string(),
             name: "Reading chair".to_string(),
+            presentation: None,
             sprite: "fridge_art".to_string(),
             foreground_sprite: None,
             base_facing: None,
@@ -9920,6 +9999,7 @@ mod tests {
             action_socket: vec![],
             id: "sink".into(),
             name: "Sink".into(),
+            presentation: None,
             sprite: "sink_art".into(),
             foreground_sprite: None,
             base_facing: None,
@@ -10336,6 +10416,7 @@ mod tests {
             action_socket: vec![],
             id: "sink".into(),
             name: "Sink".into(),
+            presentation: None,
             sprite: "sink_art".into(),
             foreground_sprite: None,
             base_facing: None,

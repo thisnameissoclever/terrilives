@@ -28,6 +28,28 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('keeps type, model and description aligned across the catalogue, placed objects and load', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const saved = handle.save_bytes();
+    const catalogue = bridge.catalogue();
+    const ids = Array.from(bridge.ids().subarray(0, bridge.count));
+    for (const [type, model] of [['Washing machine', 'Perpetual Cycle'], ['Armchair', 'Staying In'], ['Dining table', 'Visiting Hours']]) {
+      const item = catalogue.find(item => item.name === type)!;
+      expect(item.details?.modelName).toBe(model);
+      expect(item.details?.description.length).toBeGreaterThan(10);
+      const entity = ids.find(id => bridge.objectName(id) === type)!;
+      expect(entity).toBeDefined();
+      expect(bridge.objectDetails(entity)).toEqual(item.details);
+    }
+    expect(bridge.objectDetails(-1)).toBeUndefined();
+    expect(bridge.objectDetails(0.5)).toBeUndefined();
+    expect(bridge.objectDetails(0xffffffff)).toBeUndefined();
+    expect(handle.save_bytes()).toEqual(saved);
+    expect(handle.load_bytes(saved)).toBe(true);
+    expect(bridge.catalogue()).toEqual(catalogue);
+    handle.free();
+  });
   it('keeps enabled and disabled presentation lighting out of the world hash', () => {
     const enabledHandle = SimHandle.from_lot();
     const disabledHandle = SimHandle.from_lot();

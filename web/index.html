@@ -1023,6 +1023,18 @@
         white-space: normal;
         overflow-wrap: anywhere;
       }
+      .object-identity { padding: 6px 10px; overflow-wrap: anywhere; }
+      .object-identity summary { cursor: pointer; list-style: none; }
+      .object-identity summary::-webkit-details-marker { display: none; }
+      .object-identity summary:focus-visible { outline: 2px solid var(--hud-text); outline-offset: 3px; }
+      .object-model { display: flex; align-items: center; gap: 10px; color: var(--hud-muted); font-size: 12px; }
+      .object-description-arrow { margin-left: auto; font-size: 18px; width: 20px; height: 20px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+      .object-identity[open] .object-description-arrow { transform: rotate(90deg); }
+      .object-type { display: block; font-size: 15px; line-height: 1.4; }
+      .object-description { margin: 8px 0 2px; font-size: 13px; line-height: 1.5; max-width: 28ch; }
+      #object-menu { max-height: calc(100dvh - 16px); overflow-y: auto; }
+      #buy-identity .object-identity { padding: 6px 0; }
+      #buy-identity .object-description { max-width: none; margin: 8px 0 2px; }
       /* Drawn above the one row that is not about the object under the
          pointer. Margin rather than padding so the rule spans the menu's
          full width against the rows' inset text. */
@@ -1322,6 +1334,7 @@
             <select id="buy-filter"><option value="">Everything</option></select>
             <label for="buy-object">Buy</label>
             <select id="buy-object"><option value="">Choose something to buy</option></select>
+            <div id="buy-identity" hidden></div>
             <label for="buy-colour">Colour</label>
             <select id="buy-colour"></select>
             <div class="builder-row">
