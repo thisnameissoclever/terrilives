@@ -267,7 +267,7 @@ export function clientToWorld(
  * Picking used to invert the projection to a tile and ask what stood on it.
  * That is the right model for "walk to here" and the wrong one for "click that
  * sim", because **sprites are bottom-anchored and much taller than a tile**.
- * A sim is 38 x 78 px standing on a 64 x 32 diamond, so most of its visible
+ * A sim is 38 x 88 px standing on a 64 x 32 diamond, so most of its visible
  * body is drawn 50-plus pixels above the tile it occupies.
  *
  * Measured against the shipped projection, sampling nine points down the sim's
@@ -304,12 +304,20 @@ export function clientToWorld(
  *
  * # What this does not do
  *
- * The hit box is the sprite's **rectangle**, not its opaque pixels, so a click
- * in the transparent corner above a bed's headboard still selects the bed. The
- * shader discards those fragments, so the player sees floor there. Reading the
- * atlas's alpha would fix it and needs the decoded image on this side; the
- * rectangle is a large improvement on a 32-pixel-tall diamond and the
- * imprecision is in the player's favour - it makes things easier to hit.
+ * The hit box is a **rectangle**, not the sprite's opaque pixels, so a click
+ * in the transparent corner beside a bed's headboard still selects the bed.
+ * The shader discards those fragments, so the player sees floor there. The
+ * imprecision is in the player's favour: it makes things easier to hit, and a
+ * rectangle is a large improvement on a 32-pixel-tall diamond.
+ *
+ * What the rectangle is comes from `SPRITE_CONTENT_BOUNDS`, which the atlas
+ * generator fills from the art's alpha, because tall empty space above a
+ * sprite is not imprecision in the player's favour: it puts a click on bare
+ * floor well above a chair onto the chair. A sprite the generator filled
+ * keeps the canvas sides and base and is cut only above the art. A sprite an
+ * importer recorded, the fridge among them, carries the art's own box and is
+ * inset on every side. A sprite absent from the table, including every Sim
+ * body frame, is picked on its whole canvas.
  *
  * **Walls and floor tiles are invisible to this.** They are static geometry
  * uploaded once, not render-buffer rows, so nothing here can return one. A

@@ -7138,3 +7138,13 @@ door.
 **Prevention rule.** Keep each deliverable and its publication state explicit. When the owner directs the work through merge, continue through commit, push, CI, and merge without introducing another approval request for the same scope.
 
 **How to verify.** Before closing, verify the PR is merged, the remote main contains the implementation, and the task checkout is clean and synchronized. Report any actual remaining blocker directly.
+
+## [L-bounds-belong-to-the-generator] Each importer remembered content bounds for its own sprites only
+
+**What happened:** the empty reading chair was picked from the transparent space above its art, and the placement buttons floated about 36 pixels above it. The furniture importer recorded content bounds for every occupied frame, the ones interaction picking was written for, and none for the four empty facings. Nothing failed, because picking and camera framing quietly fall back to the whole padded canvas. The first kitchen import had missed bounds the same way.
+
+**Root cause:** bounds were a table each importer had to fill for the sprites it knew about, and a missing entry meant "use the canvas" rather than an error. A survey of the shipped atlas found 833 of its 1,225 sprites with transparent space above their art and no bounds, 687 of them Sim frames.
+
+**Prevention rule:** the atlas generator now cuts the transparent band above the art off every sprite that still has no box, after all importers run, and keeps the boxes they did record. It cuts only that band: a sprite draws nothing on the south half of its own tile, and trimming to the art would take the front of the trashcan's tile out of its click target. Sim body frames are left whole, because their animation frames share one envelope and the click target must not move between frames, which the picking tests in `web/tests/input.test.ts` pin.
+
+**How to verify:** `test_every_sprite_whose_art_misses_the_canvas_top_has_bounds` in `assets/sprites/gen/test_content_bounds.py` scans the shipped atlas and fails on the pre-fix table, listing all 833 sprites. 146 sprites gained a box. "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts` fails when `pickSprite` ignores bounds.
