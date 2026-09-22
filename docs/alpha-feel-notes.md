@@ -3553,3 +3553,14 @@ With Menu open and before the rules, the "Tim" and "How Tim feels" toggles were 
 Review found that Windows High Contrast paints transparent borders in the system text colour, which made each triangle a solid bar; emulating forced colours in the same browser showed the bar. With the triangle opted out of forced colours and drawn in `CanvasText`, the page in dark forced colours showed a white triangle on the black panel beside each yellow caption, pointing right on the closed "Tim" and down on the open "How Tim feels".
 
 **Not proven here.** This branch's own server was not run, so the rules were checked by adding them to the served page rather than as shipped; `web/tests/mobile-hud.test.ts` pins them in `web/index.html`. Safari, where the browser's own marker is hidden by the `::-webkit-details-marker` rule, and a physical phone were not used.
+## [A-chair-click-target] The empty space above the reading chair is no longer the chair
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/chair-content-bounds` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save at Day 2, 00:41. The server belongs to another session's worktree; it lent me the port and I put its own server back afterwards.
+
+In Build with the Furniture tool, clicking the red armchair beside the aquarium selected "The Wingback Sabbatical", and the floating Confirm and Cancel sat just above its art, with their bottom edge at 448 pixels and the chair's drawn top at about 456. They used to float about 36 pixels higher, over empty space, which is what [A-placement-buttons] logged.
+
+Cancel put the chair back and cleared the choice. A click 10 pixels above the chair's art then selected nothing, and the panel still read "Choose furniture to move or rotate." A click 2 pixels inside the art selected the chair again. The household stayed paused throughout, nothing was confirmed, and nothing was saved.
+
+Review then found that the first version of this fix also cut the click target at the sides and the base for 142 sprites whose art already reached their canvas top, which took the front half of the trashcan's own tile out of its target. The generator now cuts only the band above the art, and the two clicks above were repeated on that build with the same results.
+
+**Not proven here.** The pre-fix behaviour was not replayed in the page; it is pinned by "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts`, which fails when picking ignores content bounds. The chair's other three facings and the other 142 sprites that gained a box, the exercise bike among them, were checked by `assets/sprites/gen/test_content_bounds.py`, not by clicking each one. No phone was used.
