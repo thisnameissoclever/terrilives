@@ -93,8 +93,10 @@ describe('reviewed kitchen sprites', () => {
       'SPRITE_HAND_FOREGROUND', 'RIGGED_SIM_CLIPS', 'RIGGED_SIM_VARIANTS'] as const;
     const data = keys.map((key) => [key, key.startsWith('RIGGED_') ? atlas[key] :
       Object.fromEntries(Object.entries(atlas[key]).filter(([index]) => Number(index) < 1089))]);
+    // Re-pinned when every padded non-Sim sprite gained content bounds; no
+    // other table changed. See test_content_bounds.py.
     expect(createHash('sha256').update(JSON.stringify(data)).digest('hex')).toBe(
-      '9e367e13fb7cabb6a4ca94f0d6f67c43f7be8373ce37f294286e33257c0bb62a',
+      'dfd65b0bfb92692632abc687471189df40641f5b97b970e8387779e9eaf00184',
     );
   });
 });

@@ -7098,3 +7098,13 @@ door.
 **Prevention rule:** move markup by its tree, not by a text pattern: find the matching close by counting tags, and check the moved block opens and closes exactly once. A test about where markup sits checks nesting, not just order.
 
 **How to verify:** `holds only the gear and its panel, closing before the sidebar opens` in `web/tests/options-menu.test.ts` walks the div tags from the wrapper to its matching close and fails if the sidebar, the Build dock, the right-click flyout or the debug overlay is inside it.
+
+## [L-bounds-belong-to-the-generator] Each importer remembered content bounds for its own sprites only
+
+**What happened:** the empty reading chair was picked from the transparent space above its art, and the placement buttons floated about 36 pixels above it. The furniture importer recorded content bounds for every occupied frame, the ones interaction picking was written for, and none for the four empty facings. Nothing failed, because picking and camera framing quietly fall back to the whole padded canvas. The first kitchen import had missed bounds the same way.
+
+**Root cause:** bounds were a table each importer had to fill for the sprites it knew about, and a missing entry meant "use the canvas" rather than an error. A survey of the shipped atlas found 833 of its 1,225 sprites with transparent space above their art and no bounds, 687 of them Sim frames.
+
+**Prevention rule:** the atlas generator now records the visible-art box of every padded sprite that has no box, after all importers run, and keeps the boxes they did record. Sim body frames are the one exception: their animation frames share one envelope, so the click target does not move between frames, and the picking tests in `web/tests/input.test.ts` pin that.
+
+**How to verify:** `test_every_sprite_whose_art_misses_the_canvas_top_has_bounds` in `assets/sprites/gen/test_content_bounds.py` scans the shipped atlas and fails on the pre-fix table, listing all 833 sprites. "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts` fails when `pickSprite` ignores bounds.
