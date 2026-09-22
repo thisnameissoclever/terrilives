@@ -286,10 +286,19 @@ fn a_personality_is_labelled_by_its_id_in_words() {
 #[test]
 fn a_housemate_with_no_way_in_is_refused() {
     let mut sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<Content>().0;
+    let width = sim.world().resource::<TileGrid>().width() as u32;
+    let exit = crate::portals::street_exit(content, width).expect("the shipped lot has a street");
+    let door = content
+        .portals
+        .iter()
+        .find(|portal| Some(portal.position) == content.lot.front_door)
+        .expect("the shipped front door")
+        .position;
     {
         let mut grid = sim.world_mut().resource_mut::<TileGrid>();
-        grid.set_blocked(19, 2, true);
-        grid.set_blocked(15, 2, true);
+        grid.set_blocked(exit.0 as usize, exit.1 as usize, true);
+        grid.set_blocked(door.0 as usize, door.1 as usize, true);
     }
     let before = sim.world_hash();
     let result = move_in(&mut sim, "Ann", 0, &[]);
