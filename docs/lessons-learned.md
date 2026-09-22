@@ -6841,3 +6841,26 @@ counts its steps and asserts afterwards: `for _ in from..stop { tick }` then
 `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fails in
 seconds with "one tick per `Sim::tick`" instead of timing out.
 
+## [L-sprite-keyed-tables-miss-new-directions] Rotation added sprites that a lighting table never learned
+
+**What happened.** The furniture builder let the player turn objects, and a
+turned object is drawn with its direction's own sprite. The shell's lighting
+knew the floor lamp and the television by one sprite each, the default
+direction, so a turned lamp or television lit nothing around it at night and
+lost its glow. Nothing failed: the lighting tests only placed unturned
+lights, and nobody turned a light and waited for night.
+
+**Root cause.** Rotation changed which sprite an object is drawn with, and
+the change was checked in the simulation and the renderer's draw path, not in
+the shell tables that key on sprite numbers to mean "this object".
+
+**Prevention rule.** When an object gains sprites (a direction, a frame, a
+variant), search the shell for every lookup keyed on a sprite number or name
+(`spriteIndex(` and tables indexed by `sprites[...]`) and decide for each
+whether it means the object or that exact picture. A table that means the
+object must list every sprite the object can be drawn with.
+
+**How to verify.** In `web/tests/lighting.test.ts`, "lights the room from a
+lamp or television turned to" runs for each turn. Dropping a turn from
+`inEveryDirection` in `web/src/render/lighting.ts` fails that turn's case.
+
