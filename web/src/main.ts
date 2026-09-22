@@ -801,6 +801,11 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.windows = sim.windowLines();
+          // [FL-draw]: the loaded house's own painted tiles. Without this the
+          // previous game's floors stayed on screen, and on a lot of another
+          // height they landed on unrelated tiles, because the renderer keys
+          // the list by height.
+          lot.floors = sim.floorTiles();
           lot.doors = sim.interiorDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.

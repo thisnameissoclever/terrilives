@@ -5,7 +5,7 @@
 // decision: this controller asks for a preview, stages the change the player
 // asked for, and reads back what the drain did with it.
 
-import type { SimBridge } from '../bridge.js';
+import { floorReason, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 
 /** No covering: the tile is drawn by where it is ([OS-yard]). */
@@ -125,10 +125,14 @@ export class FloorTool {
       if (this.pending === null) this.clear();
       return true;
     }
-    const digit = Number(key);
-    if (Number.isInteger(digit) && digit >= 0 && digit <= this.coverings().length) {
-      this.choose(digit);
-      return true;
+    // A digit only: `Number(' ')` is 0, which would make Space choose
+    // Remove and swallow the key from every other listener.
+    if (/^[0-9]$/.test(key)) {
+      const digit = Number(key);
+      if (digit <= this.coverings().length) {
+        this.choose(digit);
+        return true;
+      }
     }
     return false;
   }
@@ -201,9 +205,6 @@ export class FloorTool {
   }
 
   private refusal(reason: number): string {
-    // The two the simulation can give here: a tile off the lot, and a
-    // covering the content does not have. Neither is reachable by clicking
-    // the lot with a button the tool drew, so the wording is plain.
-    return reason === 5 ? 'That tile is not on the lot.' : 'That floor is not one of these.';
+    return floorReason(reason);
   }
 }

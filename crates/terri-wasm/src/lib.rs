@@ -216,7 +216,13 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(payload) {
         Ok((snapshot, [])) => Some(snapshot),
-        _ => {
+        // Only a payload that ran OUT of bytes is padded. Any other failure
+        // means the bytes decoded into something else and stopped making
+        // sense, and padding such a payload rescues a corrupt save: a name
+        // whose length byte grew by one eats the floors terminator, and the
+        // pad puts one back, so the save loads with a mangled name. Review
+        // finding [F2] on PR 128 reproduced exactly that.
+        Err(postcard::Error::DeserializeUnexpectedEnd) => {
             let mut padded = payload.to_vec();
             padded.push(0);
             match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
@@ -224,6 +230,7 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 _ => None,
             }
         }
+        _ => None,
     }
 }
 
@@ -5653,6 +5660,70 @@ mod boundary_tests {
             handle.floor_tiles(),
             vec![1, 0, 1],
             "a refusal writes nothing"
+        );
+    }
+
+    /// [FL-save], and review findings [F1] to [F3] on PR 128: a painted
+    /// house saves, loads and digests as one, a covering the content no
+    /// longer has drops rather than refusing the save, and a payload that
+    /// decoded wrong is never rescued by the compatibility pad.
+    #[test]
+    fn a_painted_house_saves_loads_and_digests() {
+        let mut handle = SimHandle::from_lot();
+        let bare = handle.sim.world_hash();
+        assert!(handle.set_floor(3.0, 2.0, 3.0));
+        assert!(handle.set_floor(1.0, 0.0, 1.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1, 3, 2, 3]);
+
+        // [F3]: painting changes the house, and so does painting elsewhere.
+        let painted = handle.sim.world_hash();
+        assert_ne!(painted, bare, "a painted floor changes the house");
+        let mut elsewhere = SimHandle::from_lot();
+        assert!(elsewhere.set_floor(3.0, 2.0, 3.0));
+        assert!(elsewhere.set_floor(1.0, 1.0, 1.0));
+        elsewhere.flush_commands();
+        assert_ne!(
+            elsewhere.sim.world_hash(),
+            painted,
+            "the same coverings on different tiles are different houses"
+        );
+
+        // The round trip, through the real save bytes.
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.floor_tiles(), vec![1, 0, 1, 3, 2, 3]);
+        assert_eq!(restored.sim.world_hash(), painted);
+        assert_eq!(restored.save_bytes(), bytes);
+
+        // [F2]: a payload whose own bytes decoded wrong is refused, pad or
+        // no pad. Flipping a length byte inside it is not a truncation.
+        let mut corrupt = bytes.clone();
+        let at = SAVE_HEADER_BYTES + 1;
+        corrupt[at] = corrupt[at].wrapping_add(1);
+        let before = restored.save_bytes();
+        assert!(!restored.load_bytes(&corrupt) || restored.save_bytes() == before);
+    }
+
+    /// [FL-save]: a covering the content no longer has takes that tile's
+    /// covering away rather than making the whole save unloadable.
+    #[test]
+    fn a_floor_naming_an_unknown_covering_drops_that_tile_only() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.set_floor(2.0, 2.0, 1.0));
+        handle.flush_commands();
+        let mut snapshot = handle.sim.save_snapshot_v5();
+        let tiles = vec![(2, 2, 1), (4, 4, 200)];
+        snapshot.floors = terri_core::layout::SavedFloors::from_saved(tiles, 20, 16, 200)
+            .expect("the fixture list is well formed");
+
+        let mut live = SimHandle::from_lot();
+        assert!(live.sim.load_snapshot_v5(snapshot).is_ok());
+        assert_eq!(
+            live.floor_tiles(),
+            vec![2, 2, 1],
+            "the known covering stays and the unknown one is dropped"
         );
     }
 

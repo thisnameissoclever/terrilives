@@ -147,6 +147,22 @@ export function wallReason(code: number): string | null {
 }
 
 /**
+ * Why a floor change was refused ([FL-tool]). The codes live here with the
+ * wall tool's rather than in the tool, so one place knows what a refusal
+ * number means. Both are reachable only through a hostile or stale request:
+ * the tool refuses a point off the lot before asking, and it offers no
+ * covering the content does not have.
+ */
+const FLOOR_REASONS: Readonly<Record<number, string>> = {
+  1: 'That floor is not one of these.',
+  5: 'That tile is not on the lot.',
+};
+
+export function floorReason(code: number): string {
+  return FLOOR_REASONS[code] ?? 'That change is not possible.';
+}
+
+/**
  * The refusal codes a room's doorway can mend: a sim's way, furniture, or a
  * portal's landing cut off by the outline. Not the front door itself: since
  * [RD-root] a room meets that refusal only while the door's tile is not open

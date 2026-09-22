@@ -131,6 +131,18 @@ describe('the Floors tool', () => {
     expect(floors.status).toBe('That tile is not on the lot.');
   });
 
+  // Review finding [F4] on PR 128: `Number(' ')` is 0, so Space chose
+  // Remove and was swallowed from every other listener.
+  it('reads digits only, so Space is not Remove', () => {
+    const { floors } = tool();
+    floors.choose(2);
+    expect(floors.handleKey(' ')).toBe(false);
+    expect(floors.chosen).toBe(2);
+    expect(floors.handleKey('Enter')).toBe(false);
+    expect(floors.handleKey('0')).toBe(true);
+    expect(floors.chosen).toBe(BARE);
+  });
+
   it('ignores a covering that is not one of the content, by button or key', () => {
     const { floors } = tool();
     floors.choose(4);
@@ -209,8 +221,15 @@ describe('the Floors tool in the page', () => {
     const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
     expect(MAIN_TS).toContain("{ tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' }");
     expect(MAIN_TS).toContain('floorTool.afterCommands();');
-    expect(MAIN_TS).toContain('lot.floors = sim.floorTiles();');
     expect(MAIN_TS).toContain('coveringLooks: sim.coveringLooks(),');
+    // Review finding [F1] on PR 128: a Load left the previous game's floors
+    // on screen, because only the lot-edit path re-read them. Both paths
+    // must, so this counts rather than merely finding one.
+    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(3);
+    const load = MAIN_TS.slice(MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();') - 1200,
+      MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();'));
+    expect(load).toContain('lot.floors = sim.floorTiles();');
+    expect(MAIN_TS).toContain('floorTool.resetAfterLoad(lotWidth, lotHeight);');
   });
 
   it('builds one button per covering plus Remove, from the content', () => {

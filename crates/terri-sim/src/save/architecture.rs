@@ -101,18 +101,24 @@ pub(crate) fn restore_v5(
                 .insert(Colourway(colourway as u32));
         }
     }
-    // [FL-save]: the painted tiles, refused whole when any entry is off the
-    // lot, names a covering the content does not have, or breaks the sorted
-    // order the writer keeps. A save written before floors existed carries
-    // none and loads exactly as it did.
+    // [FL-save]: the painted tiles. An entry off the lot, out of order or
+    // repeated is a corrupt save and refuses the whole load. An entry naming
+    // a covering the content no longer has is not corrupt, it is a content
+    // edit, so that tile loses its covering and the rest of the house loads,
+    // exactly as an unknown colourway leaves its object as drawn. Refusing
+    // the save instead would let one line removed from lot.toml make every
+    // save that used it unloadable.
     let grid = candidate.world.resource::<TileGrid>();
-    let floors = terri_core::layout::SavedFloors::from_saved(
-        floors.tiles().to_vec(),
-        grid.width() as u32,
-        grid.height() as u32,
-        content.coverings.len(),
-    )
-    .ok_or(SaveError::InvalidValue)?;
+    let coverings = content.coverings.len();
+    let (width, height) = (grid.width() as u32, grid.height() as u32);
+    let known: Vec<(u32, u32, u8)> = floors
+        .tiles()
+        .iter()
+        .copied()
+        .filter(|&(_, _, covering)| covering as usize <= coverings)
+        .collect();
+    let floors = terri_core::layout::SavedFloors::from_saved(known, width, height, coverings)
+        .ok_or(SaveError::InvalidValue)?;
     candidate.world.insert_resource(floors);
     Ok(candidate)
 }

@@ -580,7 +580,7 @@ A floor covering is what the player has laid on a tile ([FL-save] in
 `docs/specs/2026-09-22-floors.md`): a sparse, sorted list of painted tiles,
 appended last to the save envelope, so a house nobody has painted costs one
 byte and a save written before floors existed loads through the same one-byte
-pad the sleep-pressure list uses. It is drawing only. Each covering's colour
+pad the sleep-pressure list uses. It is drawing only, in the sense that nobody walks differently on carpet, but it is in the world hash like every other saved lot edit, so a save and load round trip cannot drop a painted tile unnoticed. Each covering's colour
 shift is appended to the shift table the yard and the street already write, so
 a painted tile writes one more row of it: no new instance, no new draw, and
 nothing reaches the simulation but the refusals that keep a covering on the
