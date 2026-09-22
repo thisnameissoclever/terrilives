@@ -65,7 +65,7 @@ colourway, its index and the colourway's id, ascending by index. Ids rather
 than indices keep a save meaning the same colours when colourways are added or
 reordered, and an id the content no longer has loads as drawn, so retiring or
 renaming a colourway id never stops a save loading. The loader refuses an
-entry that names no saved object, repeats or breaks the order, before the
+entry that names no saved object, or repeats or breaks the order, before the
 running world is replaced; an id naming the first colourway loads as drawn,
 like an unknown one. V1 to V4 load with every object as drawn. The world hash
 gains a colourway section written only when some object has one, so every
@@ -91,7 +91,10 @@ With a placed object chosen, the Furniture tool shows a Colour list of the
 colourways under its facing row, with the object's current one selected; with
 nothing chosen the list is disabled. Choosing one sends the edit at once and
 keeps the object chosen; while it is on its way the status says
-"Recolouring…", and then "{name} recoloured." or the refusal.
+"Recolouring…", and then "{name} recoloured." or the refusal. The list stays
+enabled meanwhile, so a keyboard can step through it: a choice made while a
+change is on its way is shown at once and sent when that change lands, and
+the object ends in the last colour chosen.
 
 ## Slices
 

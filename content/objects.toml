@@ -966,11 +966,12 @@ sprite = "offlineLaundry"
 # shader turns an object's hues by `hue` degrees, scales how strongly its
 # colours show by `strength`, and shifts its lightness by `lightness`, so
 # near-grey ink, metal and white keep their colour while coloured materials
-# change; only a lightness shift moves them, a little. A turn changes each object differently, so these placeholders are
-# named for what they do rather than for a colour. Every placed object can
-# take every colourway, and the first must leave the art as drawn. The owner
-# chooses the real colourways and their names: [T-recolour-palettes] in
-# docs/TIM-TODO.md. Saves record a colourway by its id.
+# change; only a lightness shift moves them, a little. A turn changes each
+# object differently, so these placeholders are named for what they do
+# rather than for a colour. Every placed object can take every colourway,
+# and the first must leave the art as drawn. The owner chooses the real
+# colourways and their names: [T-recolour-palettes] in docs/TIM-TODO.md.
+# Saves record a colourway by its id.
 
 [[colourway]]
 id = "as_drawn"
