@@ -909,7 +909,12 @@ lamp or television lit nothing around it at night and lost its own glow.
 Built on branch `twcl/rotated-lights`: lighting knows each light in all four
 directions its art is drawn in, so a turned lamp or television lights the room
 and glows as it did before it was turned. The played check is
-[A-rotated-lights].
+[A-rotated-lights]. A test built on the real simulation checks every
+catalogue item in every direction it can face, so a light content draws with
+a sprite the lighting does not know fails it. Review suggested declaring each
+light in content instead of by sprite name; that is not needed while
+colourways shift colours in the shader and add no sprites, and the test would
+catch the first light that did.
 
 ### [A-art-pass] The furniture does not survive being looked at
 

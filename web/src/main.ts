@@ -960,8 +960,9 @@ async function main(): Promise<void> {
    * is sharp on a phone instead of upscaled), the clamped origin, and
    * the static floor-and-walls block, which bakes screen positions and
    * local-light values and so must be rebuilt. Camera changes, a restored
-   * world, and a flat-light toggle all enter through the camera-dirty gate;
-   * restore additionally refreshes the light map inside that gate. Ordinary
+   * world, a lot edit, and a flat-light toggle all enter through the
+   * camera-dirty gate; restore and lot edits additionally refresh the light
+   * map inside that gate. Ordinary
    * frames do not upload this block ([V11] is what an ungated rebuild costs;
    * during a drag this runs once per FRAME, not per event).
    *

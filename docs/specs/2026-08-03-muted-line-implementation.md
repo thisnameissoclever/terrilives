@@ -185,10 +185,11 @@ along the key direction.
 `[0.35, 0.22, 0.10, 0.04]`; the television uses the weaker
 `[0.25, 0.12, 0.04]`. Each is known by its sprite in all four directions its
 art is drawn in, so a lamp or television the player turns keeps its light
-([B-rotated-lights] in `docs/FEATURES.md`). Values combine by maximum, so declaration order cannot
-change the room. Interior wall tiles stop the four-way flood, doorway gaps pass
-it, and wall panels sample the brightest reachable adjacent floor. The field
-includes the one-tile boundary ring needed by the north and west wall panels.
+([B-rotated-lights] in `docs/FEATURES.md`). Values combine by maximum, so
+declaration order cannot change the room. Interior wall tiles stop the
+four-way flood, doorway gaps pass it, and wall panels sample the brightest
+reachable adjacent floor. The field includes the one-tile boundary ring
+needed by the north and west wall panels.
 
 Every smart object casts a one-tile shadow immediately beyond its compiled
 footprint in the fixed `+x` key direction. Each light computes that attenuation
