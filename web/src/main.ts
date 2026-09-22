@@ -32,7 +32,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { SPRITES } from './render/atlas.js';
-import { spriteFramingHeight } from './render/sprite-anchors.js';
+import { spriteContentLift, spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
 import {
   BOUNDARY_SPRITE_NAMES,
@@ -50,6 +50,7 @@ import {
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
+import { PlacementActions, createPlacementActionsSurface } from './ui/placement-actions.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { GameHud } from './ui/game-hud.js';
@@ -1080,8 +1081,10 @@ async function main(): Promise<void> {
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
   // and the flag coalesces the burst into one rebuild on the next frame.
+  let placementActions: PlacementActions | undefined;
   window.addEventListener('resize', () => {
     cameraDirty = true;
+    placementActions?.invalidate();
   });
 
   // The right-click flyout. It renders simulation state and owns none of
@@ -1144,6 +1147,22 @@ async function main(): Promise<void> {
     },
   });
   const buildTools = [wallTool, roomTool, buyTool] as const;
+  // [PA-show]: Confirm and Cancel over the piece being placed. They sit
+  // above the phone's Build dock when it is showing, else anywhere in the
+  // window.
+  const placementRoot = document.querySelector<HTMLElement>('#placement-actions');
+  const placementConfirm = document.querySelector<HTMLButtonElement>('#placement-confirm');
+  const placementCancel = document.querySelector<HTMLButtonElement>('#placement-cancel');
+  const builderDock = document.querySelector<HTMLElement>('#builder-dock');
+  if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
+    throw new Error('missing the placement buttons');
+  }
+  const dockTop = (): number => {
+    const panel = builderDock.querySelector<HTMLElement>('#builder-controls');
+    return compactHudQuery.matches && panel !== null && !panel.hidden
+      ? builderDock.getBoundingClientRect().top
+      : document.documentElement.clientHeight;
+  };
   const builder = new FurnitureBuilder(sim, overlayPause, {
     changed: () => builderControls?.render(),
     enter() {
@@ -1166,6 +1185,15 @@ async function main(): Promise<void> {
       cameraDirty = true;
     },
   });
+  const placementButtons = new PlacementActions(
+    createPlacementActionsSurface(document, placementRoot, placementConfirm, placementCancel, stage,
+      dockTop, () => placementButtons.confirm(), () => placementButtons.cancel()),
+    builder,
+    buyTool,
+    spriteContentLift,
+  );
+  // The resize listener above was registered before the buttons existed.
+  placementActions = placementButtons;
   builderControls = new BuilderControls(document, builder);
   builderControls.setCompact(compactHudQuery.matches);
   wallControls = new WallToolControls(document, wallTool);
@@ -1393,6 +1421,9 @@ async function main(): Promise<void> {
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (cameraDirty) applyCamera();
+    // [PA-place]: after the camera settles, so the buttons follow this
+    // frame's pan and zoom.
+    placementButtons.frame(camera, stage.width, stage.height);
     // Editing marks the original furniture; play mode marks the selected Sim.
     const selected = builder.active ? builder.selected : sim.selectedIndex();
     const instances = buildInstances(

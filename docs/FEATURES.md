@@ -778,7 +778,7 @@ Asked for by the owner on 2026-09-22. During play the house's east and south wal
 
 ### [B-placement-buttons] Confirm and Cancel sit over the moved object
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair.
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Built on branch `twcl/placement-buttons`; the design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
