@@ -826,6 +826,43 @@ export class SimBridge {
     return this.handle.window_lines();
   }
 
+  /**
+   * The floor coverings the player may choose, in content order
+   * ([FL-content] in `docs/specs/2026-09-22-floors.md`). A covering's id is
+   * its place here counted from 1; 0 is no covering at all.
+   */
+  coveringNames(): string[] {
+    return this.handle.covering_names();
+  }
+
+  /** Each covering's colour shift, three numbers each ([FL-draw]). */
+  coveringLooks(): Float32Array {
+    return this.handle.covering_looks();
+  }
+
+  /** Three words per painted tile: x, y, covering ([FL-save]). */
+  floorTiles(): Uint32Array {
+    return this.handle.floor_tiles();
+  }
+
+  /** The refusal code laying this covering would get, zero when it would apply. */
+  floorEditPreview(x: number, y: number, covering: number): number {
+    return this.handle.floor_edit_preview(x, y, covering);
+  }
+
+  /** Stages laying a covering on a tile, or 0 to take one away ([FL-command]). */
+  setFloor(x: number, y: number, covering: number): boolean {
+    return this.handle.set_floor(x, y, covering);
+  }
+
+  /** The last floor change a drain handled, or null before the first. */
+  lastFloorEditResult(): { x: number; y: number; covering: number; reason: number } | null {
+    const row = this.handle.last_floor_edit_result();
+    return row.length === 4
+      ? { x: row[0], y: row[1], covering: row[2], reason: row[3] }
+      : null;
+  }
+
   /** Undefined is legacy architecture; an empty array is an open edge layout. */
   wallEdges(): Uint32Array | undefined {
     return this.handle.wall_layout_kind() === 1 ? this.handle.wall_edges() : undefined;

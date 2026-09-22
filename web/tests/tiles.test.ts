@@ -837,3 +837,55 @@ describe('the street', () => {
     expect(shifts(built)).toEqual([drawn, yard, street, yard, yard, street]);
   });
 });
+
+// [FL-draw] in docs/specs/2026-09-22-floors.md: a painted tile takes its
+// covering's colour shift; everything else is drawn by where it is.
+describe('floor coverings', () => {
+  const floorShifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const shifts: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      shifts.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return shifts;
+  };
+  const BOARDS = [18, 1.15, -0.12];
+  const TILES = [-25, 0.55, 0.1];
+  const lot = {
+    width: 3,
+    height: 2,
+    walls: new Uint32Array(),
+    edges: new Uint32Array(),
+    house: [2, 1] as [number, number],
+    yardLook: [65, 2, -0.22] as [number, number, number],
+    coveringLooks: Float32Array.from([...BOARDS, ...TILES]),
+  };
+
+  it('draws a painted tile under its covering, house or yard alike', () => {
+    // (0, 0) is house painted Boards; (2, 1) is yard painted Tiles.
+    const built = buildStaticInstances(
+      { ...lot, floors: Uint32Array.from([0, 0, 1, 2, 1, 2]) }, ORIGIN_X, ORIGIN_Y, GRID,
+    );
+    const yard = [65, 1, -0.22];
+    const drawn = [0, 0, 0];
+    // Written as the yard's is: the strength reaches the instance as its
+    // distance from 1, so 1.15 is 0.15 and 0.55 is -0.45.
+    const boards = [18, 0.15, -0.12];
+    const tiles = [-25, -0.45, 0.1];
+    // Row by row: (0, 0) painted, (1, 0) house, (2, 0) yard;
+    // (0, 1) and (1, 1) yard, (2, 1) painted.
+    expect(floorShifts(built)).toEqual([boards, drawn, yard, yard, yard, tiles]);
+  });
+
+  it('ignores a covering the content does not have, and an empty list', () => {
+    const drawnOrYard = floorShifts(buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID));
+    for (const floors of [Uint32Array.from([0, 0, 3]), Uint32Array.from([0, 0, 0]), new Uint32Array()]) {
+      expect(floorShifts(buildStaticInstances({ ...lot, floors }, ORIGIN_X, ORIGIN_Y, GRID)))
+        .toEqual(drawnOrYard);
+    }
+  });
+});
+

@@ -984,6 +984,9 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
+    // [FL-draw]: what the player has laid, and each covering's shift.
+    floors: sim.floorTiles(),
+    coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
@@ -1446,6 +1449,7 @@ async function main(): Promise<void> {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
       lot.windows = sim.windowLines();
+      lot.floors = sim.floorTiles();
       lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
       cameraDirty = true;

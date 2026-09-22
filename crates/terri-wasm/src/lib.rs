@@ -188,6 +188,22 @@ fn wall_edit_arguments(
     })
 }
 
+/// A floor edit's arguments, or `None` when the numbers are not a tile and a
+/// covering at all - [FL-command]. Hostile input is refused here rather than
+/// rounded into something the simulation would accept.
+fn floor_edit_arguments(
+    x: f64,
+    y: f64,
+    covering: f64,
+) -> Option<terri_sim::placement::floors::FloorEdit> {
+    let covering = u8::try_from(placement_u32(covering)?).ok()?;
+    Some(terri_sim::placement::floors::FloorEdit {
+        x: placement_u32(x)?,
+        y: placement_u32(y)?,
+        covering,
+    })
+}
+
 /// Decode frozen V1, including only the historical missing sleep-pressure list.
 /// Decodes a V5 payload, including one written before the floors list was
 /// appended to it - [FL-save] in `docs/specs/2026-09-22-floors.md`.
@@ -508,6 +524,93 @@ impl SimHandle {
                     result.edit.x,
                     result.edit.y,
                     u32::from(result.edit.state.code()),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
+            })
+    }
+
+    /// The floor coverings the player may choose, in content order -
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`. A covering's id is
+    /// its place here counted from 1; 0 is no covering at all.
+    pub fn covering_names(&self) -> Vec<String> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .coverings
+            .iter()
+            .map(|covering| covering.name.clone())
+            .collect()
+    }
+
+    /// Each covering's colour shift, three numbers each in content order -
+    /// [FL-draw]. The renderer appends them to the shift table the yard and
+    /// the street already use, so a painted tile writes a row of it.
+    pub fn covering_looks(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .coverings
+            .iter()
+            .flat_map(|covering| covering.look)
+            .collect()
+    }
+
+    /// Three words per painted tile: x, y, covering - [FL-save]. Sorted by
+    /// tile, and empty for a house nobody has painted.
+    pub fn floor_tiles(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .get_resource::<terri_core::layout::SavedFloors>()
+            .map_or_else(Vec::new, |floors| {
+                floors
+                    .tiles()
+                    .iter()
+                    .flat_map(|&(x, y, covering)| [x, y, u32::from(covering)])
+                    .collect()
+            })
+    }
+
+    /// The refusal code laying this covering would get, or zero when it
+    /// would be applied - [FL-command]. Never writes.
+    pub fn floor_edit_preview(&self, x: f64, y: f64, covering: f64) -> u32 {
+        use terri_sim::placement::{floors::validate_floor_edit, PlacementRefusal};
+        let Some(edit) = floor_edit_arguments(x, y, covering) else {
+            return PlacementRefusal::InvalidInput as u32;
+        };
+        validate_floor_edit(self.sim.world(), edit)
+            .err()
+            .map_or(0, |r| r as u32)
+    }
+
+    /// Stages laying `covering` on the tile at (x, y), 0 to take one away.
+    /// False when the numbers are not a tile and a covering at all.
+    pub fn set_floor(&mut self, x: f64, y: f64, covering: f64) -> bool {
+        let Some(edit) = floor_edit_arguments(x, y, covering) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetFloor {
+            x: edit.x,
+            y: edit.y,
+            covering: edit.covering,
+        })
+        .expect("a floor edit serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[x, y, covering, refusal]` of the last floor change a drain handled,
+    /// refusal zero when it was applied; empty before the first.
+    pub fn last_floor_edit_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_floor_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.edit.x,
+                    result.edit.y,
+                    u32::from(result.edit.covering),
                     result.reason.map_or(0, |r| r as u32),
                 ]
             })
@@ -5492,6 +5595,64 @@ mod boundary_tests {
             handle.entity_count(),
             before,
             "no sim stands where the grid is blocked"
+        );
+    }
+
+    /// [FL-command] in `docs/specs/2026-09-22-floors.md`: a covering crosses
+    /// as the tile list, a repeat writes nothing, 0 lifts it, and a tile off
+    /// the lot or a covering the content lacks is refused.
+    #[test]
+    fn a_floor_covering_crosses_the_boundary() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let coverings = handle.covering_names();
+        assert_eq!(coverings, ["Boards", "Tiles", "Carpet"]);
+        assert!(handle.floor_tiles().is_empty(), "nobody has painted yet");
+
+        assert!(handle.set_floor(3.0, 2.0, 2.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![3, 2, 2]);
+        assert_eq!(handle.last_floor_edit_result(), vec![3, 2, 2, 0]);
+
+        // Sorted by tile, whatever order they were painted in.
+        assert!(handle.set_floor(1.0, 0.0, 1.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1, 3, 2, 2]);
+
+        // Lifting it leaves the tile drawn by where it is.
+        assert!(handle.set_floor(3.0, 2.0, 0.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1]);
+
+        // A tile off the lot and a covering the content does not have.
+        assert_eq!(
+            handle.floor_edit_preview(999.0, 0.0, 1.0),
+            PlacementRefusal::OutOfBounds as u32
+        );
+        assert_eq!(
+            handle.floor_edit_preview(1.0, 0.0, 9.0),
+            PlacementRefusal::InvalidInput as u32
+        );
+        assert_eq!(handle.floor_edit_preview(1.0, 0.0, 3.0), 0);
+        assert!(
+            !handle.set_floor(1.0, 0.0, -1.0),
+            "a negative is not a covering"
+        );
+        assert!(
+            !handle.set_floor(0.5, 0.0, 1.0),
+            "half a tile is not a tile"
+        );
+
+        handle.set_floor(999.0, 0.0, 1.0);
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_floor_edit_result(),
+            vec![999, 0, 1, PlacementRefusal::OutOfBounds as u32]
+        );
+        assert_eq!(
+            handle.floor_tiles(),
+            vec![1, 0, 1],
+            "a refusal writes nothing"
         );
     }
 

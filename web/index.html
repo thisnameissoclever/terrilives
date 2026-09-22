@@ -1298,6 +1298,7 @@
           <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
           <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false">Room</button>
           <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false">Buy</button>
+          <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false">Floors</button>
         </div>
         <div id="furniture-tool" class="builder-tool">
         <div class="builder-choices">
@@ -1336,6 +1337,19 @@
               <button id="wall-window" class="hud-button" type="button">Window</button>
               <button id="wall-remove" class="hud-button" type="button">Remove</button>
             </div>
+          </div>
+        </div>
+        <!-- The Floors tool - [FL-tool] in docs/specs/2026-09-22-floors.md.
+             The covering buttons are built from the content at startup, so
+             this holds only what does not depend on it. -->
+        <div id="floor-tool" class="builder-tool" hidden>
+          <div class="builder-choices">
+            <p id="floor-keyboard-help" class="builder-note builder-help">Choose a floor, then click a tile to lay it. With the game view focused: 1 upward chooses a floor, 0 chooses Remove, Escape clears the choice.</p>
+            <p id="floor-touch-help" class="builder-note builder-help" hidden>Choose a floor, then tap a tile to lay it. Drag to pan; pinch to zoom.</p>
+            <div id="floor-coverings" class="builder-row" role="group" aria-label="Floor"></div>
+          </div>
+          <div class="builder-actions">
+            <p id="floor-status" role="status" aria-live="polite">Choose a tile.</p>
           </div>
         </div>
         <div id="room-tool" class="builder-tool" hidden>
