@@ -7108,3 +7108,13 @@ door.
 **Prevention rule:** the atlas generator now cuts the transparent band above the art off every sprite that still has no box, after all importers run, and keeps the boxes they did record. It cuts only that band: a sprite draws nothing on the south half of its own tile, and trimming to the art would take the front of the trashcan's tile out of its click target. Sim body frames are left whole, because their animation frames share one envelope and the click target must not move between frames, which the picking tests in `web/tests/input.test.ts` pin.
 
 **How to verify:** `test_every_sprite_whose_art_misses_the_canvas_top_has_bounds` in `assets/sprites/gen/test_content_bounds.py` scans the shipped atlas and fails on the pre-fix table, listing all 833 sprites. 146 sprites gained a box. "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts` fails when `pickSprite` ignores bounds.
+
+## [L-set-the-exception-aside-not-the-reach] A broad check was narrowed to admit one exception
+
+**What happened.** Moving the person and How they feel toggles' 44-pixel flex rules into the block every compact screen matches tripped the test that the short Build dock panel scrolls whole, which asserted that nothing in that block was `display: flex`. The first fix narrowed that assertion to rules whose selector held `#builder-dock`. Fresh-context review added `.builder-actions { display: flex; }` to the block, a dock descendant with no prefix, and every test stayed green; the original assertion would have caught it.
+
+**Root cause.** A proxy check that guards a whole region was rewritten to name the region's parts, so its reach shrank to whatever convention the parts happened to follow. The legitimate exception was one rule; the narrowing excluded everything that did not look like the dock.
+
+**Prevention rule.** When a broad check blocks a legitimate change, set the one legitimate case aside and keep the check's original reach: strip or mask the exception, then run the old assertion unchanged. Never rewrite the check in terms of what it should catch; it will catch only that.
+
+**How to verify.** After changing any test's matcher, add the thing the old matcher caught somewhere the new one does not name, run the test, and require it to fail; then restore the file and compare its hash. `web/tests/mobile-hud.test.ts`, "leaves the short panel to scroll whole", is the worked example.
