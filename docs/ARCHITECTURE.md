@@ -576,6 +576,18 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
+The shell recognises a light by any of its four directional sprites, a set it
+builds by appending each turn's suffix to the light's base sprite name. That
+is the rule the content compiler follows for a sprite drawn facing south-east,
+as the lamp and the television are, so a turned lamp or television keeps its
+pool and glow ([B-rotated-lights] in FEATURES.md) while each light is named
+once, by its base sprite. A new kind of light is still added by hand, to
+`lighting.ts` and to the expected lights in `buy-tool.test.ts`. That test, on
+the real simulation, checks that every catalogue item, and any foreground
+layer it has, glows in each facing it supports exactly as in its default
+facing, and that only the lamp and the television glow; `lighting.test.ts`
+checks each turned light's pool.
+
 Walking uses append-only visual action 5 and eight model-rendered limb frames per
 facing. Render sync projects a fallback facing from the next path
 step, while the shell prefers the actual previous-to-current segment during
