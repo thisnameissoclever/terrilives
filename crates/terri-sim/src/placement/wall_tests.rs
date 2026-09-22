@@ -675,9 +675,18 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
     let mut only_the_loader_refused = 0;
     let mut reloaded = Sim::new_from_shipped_lot();
     for stop in [180u64, 620] {
-        while sim.world().resource::<terri_core::SimClock>().tick < stop {
+        // Bounded, so a clock that stops advancing fails here instead of
+        // spinning: the mutation sweep caught the unbounded form hanging when
+        // `Sim::tick` did nothing.
+        let from = sim.world().resource::<terri_core::SimClock>().tick;
+        for _ in from..stop {
             sim.tick();
         }
+        assert_eq!(
+            sim.world().resource::<terri_core::SimClock>().tick,
+            stop,
+            "one tick per `Sim::tick`"
+        );
         let base = sim.save_snapshot_v3();
         let rectangles = super::super::current_layout(sim.world())
             .expect("the shipped house is consistent")
