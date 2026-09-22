@@ -272,8 +272,11 @@ describe('the phone Build dock', () => {
 
   // Below 481 pixels of height the panel can be 144 pixels tall, too short
   // for a fixed footer and a region above it, so the whole panel scrolls.
+  // The person and How they feel toggles share this block and are flex
+  // boxes by design, so their rules are set aside before the check.
   it('leaves the short panel to scroll whole', () => {
-    expect(mediaBlock(COMPACT)).not.toMatch(/#builder-dock[^{}]*\{[^}]*display:\s*flex/);
+    const withoutToggles = mediaBlock(COMPACT).replace(/\.needs-caption[^{}]*\{[^}]*\}/g, '');
+    expect(withoutToggles).not.toMatch(/display:\s*flex/);
   });
 
   // On a desktop the choices join the tool's own grid and the help lines
@@ -345,8 +348,8 @@ describe('the compact Needs and People toggles', () => {
   it('are styled once, where a sideways phone reads them too', () => {
     expect(mediaBlock(PHONE)).not.toContain('.needs-caption');
     expect(mediaBlock(SIDEWAYS)).not.toContain('.needs-caption');
-    expect(INDEX_HTML.match(/\.needs-caption::before\s*\{[^}]*content:/g)).toHaveLength(1);
-    expect(INDEX_HTML.match(/\.needs-caption::-webkit-details-marker/g)).toHaveLength(1);
+    expect(INDEX_HTML.match(/\.needs-caption::before\s*\{[^}]*content:/g) ?? []).toHaveLength(1);
+    expect(INDEX_HTML.match(/\.needs-caption::-webkit-details-marker/g) ?? []).toHaveLength(1);
   });
 
   it('are the summaries of both panels', () => {
