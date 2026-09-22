@@ -406,11 +406,10 @@ fn restore_with_facings(
     sim.world.insert_resource(snapshot.rng);
     sim.world.insert_resource(Funds(snapshot.funds));
 
-    let mut allocator = SimIdAllocator::default();
-    for _ in 0..snapshot.issued_sim_ids {
-        allocator.issue();
-    }
-    sim.world.insert_resource(allocator);
+    // Resumed at the saved count rather than counted up to it: the loader's
+    // bound on the count must not be the only thing keeping a Load quick.
+    sim.world
+        .insert_resource(SimIdAllocator::resumed(snapshot.issued_sim_ids));
 
     let mut grid = TileGrid::new(snapshot.grid_width as usize, snapshot.grid_height as usize);
     for (index, blocked) in snapshot.blocked_tiles.into_iter().enumerate() {
@@ -426,6 +425,11 @@ fn restore_with_facings(
     sim.world
         .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
+    // One slot per index up to the last saved or retired one: the ECS hands
+    // indices out in order, so the gaps must be spawned too. Sized by saved
+    // numbers, so bounded only by validation's check that every entity index
+    // and every retired index is under MAX_ENTITIES
+    // ([L-restore-without-counting-up]).
     let max_index = snapshot
         .entities
         .last()
