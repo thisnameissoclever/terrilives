@@ -6841,3 +6841,27 @@ counts its steps and asserts afterwards: `for _ in from..stop { tick }` then
 `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fails in
 seconds with "one tick per `Sim::tick`" instead of timing out.
 
+## [L-restore-without-counting-up] A Load counted up to a saved number
+
+**What happened.** PR 97's mutation sweep failed on two mutants that time out
+rather than fail: both switch off `exceeds_limit`, the loader's bound on saved
+counts. With the bound off, the save test that feeds `issued_sim_ids =
+u32::MAX` took 15.6 seconds on a desktop and over the 60 second limit on a CI
+runner, because restoring the sim id allocator called `issue` once per issued
+identity. PRs 98 and 99 passed the same shard only because their runners were
+faster.
+
+**Root cause.** The restore did work proportional to a number read from the
+save, and only the validation bound kept that number small. A check that
+guards cost as well as correctness is one the sweep will remove.
+
+**Prevention rule.** Restore a saved counter by setting it, never by
+replaying it. When a loader must loop over a saved number, loop over data the
+save actually contains, whose length the decoder has already paid for.
+
+**How to verify.** With `exceeds_limit` returning false,
+`invalid_snapshots_are_rejected_without_touching_the_running_sim` in
+`crates/terri-sim/src/save.rs` fails in well under a second, and
+`a_resumed_allocator_matches_one_that_issued_as_many` in
+`crates/terri-core/src/components.rs` covers `SimIdAllocator::resumed`.
+
