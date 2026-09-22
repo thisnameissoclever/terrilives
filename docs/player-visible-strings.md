@@ -1,12 +1,8 @@
 # Player-visible string inventory
 
-Status: the functional inventory is current through the armchair-sitting
-action slice. The dark-comedy voice
-column is intentionally unfilled until the owner authors or approves it, per
-[L58]. This file is the handoff for playable-alpha criterion 11, not permission
-to invent the game's voice unattended.
+Status: the inventory includes the first object-identity slice. The broader voice pass still requires the owner's review under [L58]. This file is the handoff for playable-alpha criterion 11; local implementation does not establish release approval for all game copy.
 
-The project writing direction is defined in [.agents/skills/natural-causes-writing-style/SKILL.md](../.agents/skills/natural-causes-writing-style/SKILL.md). It requires clear object types as primary identification, secondary model names, and descriptions with optional humor. The proposed menu and shop presentation is guidance for future implementation; this inventory still records current behavior. Existing strings are material to review, not examples of the desired voice. Sample copy in the skill is draft guidance and does not close the owner's voice-review gate.
+The project writing direction is defined in [.agents/skills/natural-causes-writing-style/SKILL.md](../.agents/skills/natural-causes-writing-style/SKILL.md). It requires clear object types as primary identification, secondary model names, and descriptions with optional humor. The first implementation covers the washing machine, armchair, and dining table in [object identity](specs/2026-09-22-object-identity.md). Existing strings are material to review, not examples of the desired voice. The broader voice-review gate remains open.
 
 ## Functional text that stays plain
 
@@ -65,7 +61,7 @@ authorize unrelated replacement copy.
 | Content family | Current authority | Voice-pass decision |
 | --- | --- | --- |
 | Game title | `docs/TIM-TODO.md` [T1]; shown in the `<title>` of `web/index.html` | Decided 2026-09-21: **Natural Causes**. The repository name `terrilives` is the internal codename, not the title. |
-| Object display names | `content/objects.toml` `name` | Review all names together for one register. |
+| Object identity | `content/objects.toml` `name`, optional `presentation.object_type` and `presentation.description` | Washing machine / Perpetual Cycle, Armchair / Staying In, and Dining table / Visiting Hours have separate type, model, and description text. Other objects retain their existing names. See the object-identity spec for the copy and local verification. |
 | Object action labels | `content/objects.toml` interaction `label` | Keep verbs understandable; humor cannot obscure the action. |
 | Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. Each personality's description follows the trait verbs of [TL-affinity]. |
 | Career labels | `content/careers.toml` | Prime voice surface, but must remain legible in the HUD. |

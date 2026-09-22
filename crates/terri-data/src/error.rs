@@ -9,6 +9,10 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    EmptyObjectText {
+        object: String,
+        field: &'static str,
+    },
     UnknownNeed {
         object: String,
         interaction: String,
@@ -1159,6 +1163,9 @@ impl fmt::Display for ContentError {
                     f,
                     "tuning.toml's [decay_per_tick] gives a rate for unknown need '{need}'"
                 )
+            }
+            ContentError::EmptyObjectText { object, field } => {
+                write!(f, "object '{object}' has empty {field} text")
             }
             ContentError::DuplicateObjectId { id } => {
                 write!(f, "duplicate object id '{id}'")

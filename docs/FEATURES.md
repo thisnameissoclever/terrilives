@@ -340,13 +340,18 @@ rather than weighting them, and it is a tuning question, not a code one.
 deliberately presentation-only; a 20-tick real-WASM enabled-versus-disabled
 run ends at the same world hash.
 
-One finding from building it constrains every future content change:
-`ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each
-mutant's WHOLE workspace test run. A shipped content change that materially
-slows the simulation therefore has to be measured against that ceiling
-rather than against the wall clock - the circadian curve's first draft
-pushed one save test from 10 s to 39 s, which would have turned a large
-share of mutants into spurious timeouts.
+One finding from building it still constrains every future content
+change, though the number has moved. `ci.yml` bounds each mutant's WHOLE
+workspace test run. The bound was a fixed 60 seconds until 2026-09-22, when
+the suite reached about 57 seconds on the runner and three added tests were
+enough to turn eight mutants into reported hangs
+([L-mutant-cap-must-scale]). It is now the larger of 120 seconds and four
+times the unmutated run. A shipped
+content change that materially slows the simulation is therefore measured
+against a cap that rises with it, and against the job's 120 minute bound.
+The circadian curve's first draft pushed one save test from 10 s to 39 s,
+which under the old fixed cap would have turned a large share of mutants
+into spurious timeouts.
 
 Three findings from building it constrain future renderer work. The lighting
 rig fits inside the existing single instanced draw call because pools change
@@ -758,9 +763,11 @@ at merge `5f7cc73`: a street along the lot's east edge, drawn grey until there
 is street art, where a worker walks out through the front door and across
 the yard to leave for work, and back the same way; its played check is
 [A-street]. For both, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The first part of the
-third slice, [OS-daylight], lets the sky light the yard by day while the rooms
-stay dimmer, lighter by an open doorway and darkest at the back of the house;
-its played check is [A-yard-daylight]. Windows ([B-windows]), the house seen
+third slice, [OS-daylight], shipped in PR 116 at merge `6908a94`: the sky lights
+the yard by day while the rooms stay dimmer, lighter by an open doorway and
+darkest at the back of the house, and people, furniture, interior doors and the
+placement preview take their tile's shade. Its played check is
+[A-yard-daylight]. Windows ([B-windows]), the house seen
 from outside and outdoor objects remain.
 
 ### [B-floors] The player chooses what each floor is
@@ -997,7 +1004,7 @@ Show list narrows the catalogue to one need. The needs show for the chosen item
 rather than beside every price, which would crowd the list, and the build adds
 the words Show, Everything and Good for. The design is
 `docs/specs/2026-09-22-catalogue-browsing.md` and the played check is
-[A-catalogue-browsing]. The descriptions remain open, waiting on [T22].
+[A-catalogue-browsing]. The first description slice covers the washing machine, armchair, and dining table, with types as primary labels and model names secondary; see `docs/specs/2026-09-22-object-identity.md`. The remaining descriptions and full voice review stay open under [T22].
 
 ### [B-phone-build-dock] The Build dock keeps its buttons in view on a phone
 

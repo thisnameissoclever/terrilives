@@ -752,6 +752,39 @@
           min-width: 64px;
           padding-inline: 8px;
         }
+        /* The person's name and "How <name> feels" toggles, on every
+           compact screen: a phone held sideways is wider than 600 pixels,
+           so the rules cannot live in the phone-only block below. A flex
+           box, so a caption that wraps, such as "How Ann feels", stays one
+           44-pixel target with its text centred. A flex summary loses the
+           browser's triangle, so the toggle draws its own: a border shape
+           with no text, pointing right when closed and down when open, as
+           the desktop one does. */
+        .needs-caption {
+          display: flex;
+          min-height: 44px;
+          box-sizing: border-box;
+          align-items: center;
+          margin: 0;
+        }
+        .needs-caption::before {
+          content: '';
+          flex: none;
+          margin-right: 6px;
+          border-block: 5px solid transparent;
+          border-left: 6px solid currentColor;
+        }
+        details[open] > .needs-caption::before { transform: rotate(90deg); }
+        .needs-caption::-webkit-details-marker { display: none; }
+        /* High Contrast paints every border in the system text colour, the
+           transparent ones too, which would turn the triangle into a bar. */
+        @media (forced-colors: active) {
+          .needs-caption::before { forced-color-adjust: none; border-left-color: CanvasText; }
+        }
+        .needs-caption:focus-visible {
+          outline: 2px solid var(--need-fill);
+          outline-offset: -2px;
+        }
       }
       @media (max-width: 600px) {
         #hud {
@@ -828,17 +861,6 @@
         #people-panel[open] {
           box-sizing: border-box;
           height: auto;
-        }
-        .needs-caption {
-          display: flex;
-          min-height: 44px;
-          box-sizing: border-box;
-          align-items: center;
-          margin: 0;
-        }
-        .needs-caption:focus-visible {
-          outline: 2px solid var(--need-fill);
-          outline-offset: -2px;
         }
         .need-row {
           grid-template-columns: 58px 1fr;
@@ -1023,6 +1045,18 @@
         white-space: normal;
         overflow-wrap: anywhere;
       }
+      .object-identity { padding: 6px 10px; overflow-wrap: anywhere; }
+      .object-identity summary { cursor: pointer; list-style: none; }
+      .object-identity summary::-webkit-details-marker { display: none; }
+      .object-identity summary:focus-visible { outline: 2px solid var(--hud-text); outline-offset: 3px; }
+      .object-model { display: flex; align-items: center; gap: 10px; color: var(--hud-muted); font-size: 12px; }
+      .object-description-arrow { margin-left: auto; font-size: 18px; width: 20px; height: 20px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+      .object-identity[open] .object-description-arrow { transform: rotate(90deg); }
+      .object-type { display: block; font-size: 15px; line-height: 1.4; }
+      .object-description { margin: 8px 0 2px; font-size: 13px; line-height: 1.5; max-width: 28ch; }
+      #object-menu { max-height: calc(100dvh - 16px); overflow-y: auto; }
+      #buy-identity .object-identity { padding: 6px 0; }
+      #buy-identity .object-description { max-width: none; margin: 8px 0 2px; }
       /* Drawn above the one row that is not about the object under the
          pointer. Margin rather than padding so the rule spans the menu's
          full width against the rows' inset text. */
@@ -1322,6 +1356,7 @@
             <select id="buy-filter"><option value="">Everything</option></select>
             <label for="buy-object">Buy</label>
             <select id="buy-object"><option value="">Choose something to buy</option></select>
+            <div id="buy-identity" hidden></div>
             <label for="buy-colour">Colour</label>
             <select id="buy-colour"></select>
             <div class="builder-row">
