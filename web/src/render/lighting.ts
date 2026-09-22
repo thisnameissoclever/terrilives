@@ -13,9 +13,19 @@ import { spriteIndex } from './atlas.js';
 /** Render-buffer entity kinds. Agents do not emit or cast extra tile shadows. */
 const KIND_OBJECT = 1;
 
+/**
+ * A light's sprite in every direction its art is drawn in: the base name,
+ * then its turns, named as content names them. The player can turn a lamp or
+ * a television, and each direction lights the room the same
+ * ([B-rotated-lights]). A missing sprite fails at load, loudly.
+ */
+function inEveryDirection(base: string): ReadonlySet<number> {
+  return new Set(['', 'SW', 'NW', 'NE'].map((turn) => spriteIndex(`${base}${turn}`)));
+}
+
 /** The frame activity code is intentionally absent: agents are ignored by kind. */
-const LAMP_SPRITE = spriteIndex('lampRoundFloor');
-const TELEVISION_SPRITE = spriteIndex('televisionVintage');
+const LAMP_SPRITES = inEveryDirection('lampRoundFloor');
+const TELEVISION_SPRITES = inEveryDirection('televisionVintage');
 
 /** Graph-distance strengths, including the emitting object's own tile. */
 const LAMP_PROFILE: readonly number[] = [0.35, 0.22, 0.1, 0.04];
@@ -123,8 +133,8 @@ function configureField(width: number, height: number): boolean {
 }
 
 function profileForSprite(sprite: number): readonly number[] | null {
-  if (sprite === LAMP_SPRITE) return LAMP_PROFILE;
-  if (sprite === TELEVISION_SPRITE) return TELEVISION_PROFILE;
+  if (LAMP_SPRITES.has(sprite)) return LAMP_PROFILE;
+  if (TELEVISION_SPRITES.has(sprite)) return TELEVISION_PROFILE;
   return null;
 }
 
