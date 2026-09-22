@@ -38,10 +38,16 @@ describe('agent skill mirrors', () => {
     expect(codexSkills).toEqual(claudeSkills);
   });
 
+  // A skill tied to a tool names it; a skill for any tool, like the writing
+  // style, names none, and its two copies are byte-identical.
+  it('names the tool in the one skill that is tied to it', () => {
+    expect(skill('.agents', 'cloud-run')).toContain('Codex on the web');
+    expect(skill('.claude', 'cloud-run')).toContain('Claude Code on the web');
+  });
+
   for (const name of codexSkills) {
     it(`keeps ${name} identical apart from the tool it names`, () => {
       const codex = skill('.agents', name);
-      expect(codex).toContain('Codex on the web');
       expect(codex.replaceAll('Codex on the web', 'Claude Code on the web')).toBe(
         skill('.claude', name),
       );
