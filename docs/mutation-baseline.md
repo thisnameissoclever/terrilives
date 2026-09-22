@@ -1637,3 +1637,20 @@ at three phases including the point's own tick.
 
 The empty arm stays, and is not equivalent: without it `points[0]`
 panics.
+
+## 2026-09-22: the test cap became a multiple of the suite
+
+Every sweep recorded above ran with `--timeout 60`, a fixed cap chosen when the
+workspace suite took about two seconds. It is now `--timeout-multiplier 4`, and
+the commands above are kept as the records of the sweeps that produced each
+baseline entry rather than as the current invocation.
+
+The reason is in [L-mutant-cap-must-scale] in `docs/lessons-learned.md`. A
+mutant nothing kills runs the suite to the end, so its test phase costs one
+whole suite; the suite had reached about 57 seconds on CI's runner, and the
+three tests PR 116 added took the two equivalent `rect_distance` mutants and
+the equivalent `from_seed` mutant past 60 seconds. They were reported as hangs,
+which they are not: all three are proved equivalent above, and an equivalent
+mutant finishes by definition.
+
+Nothing about which mutants survive changed, and no baseline entry moved.

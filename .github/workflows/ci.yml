@@ -169,17 +169,28 @@ jobs:
       # cargo-mutants exits 2 whenever any mutant survives, so its exit
       # code cannot be the signal for a no-new-survivors gate. The
       # comparison in the next step is.
-      # --build-timeout bounds the phase --timeout does not: --timeout caps
-      # a mutant's TEST run, and both of shard 2's reclaimed attempts died
-      # in phase=Build, where nothing bounded a compile at all. Ten minutes
-      # is far above any legitimate incremental rebuild here and far below
-      # the reclaim horizon, so a pathological build costs ten minutes and
-      # a named Timeout instead of the whole job.
+      # --build-timeout bounds the phase the test timeout does not: the test
+      # timeout caps a mutant's TEST run, and both of shard 2's reclaimed
+      # attempts died in phase=Build, where nothing bounded a compile at all.
+      # Ten minutes is far above any legitimate incremental rebuild here and
+      # far below the reclaim horizon, so a pathological build costs ten
+      # minutes and a named Timeout instead of the whole job.
+      #
+      # The test cap is a MULTIPLE of the unmutated run, not the fixed 60
+      # seconds it was until 2026-09-22. A mutant nothing kills runs the
+      # whole workspace suite to the end, so the cap has to sit above the
+      # suite's own runtime with room to spare; the suite had grown to about
+      # 57 seconds on this runner, and the next three tests added turned
+      # three known-equivalent baseline mutants into reported hangs on
+      # PR 116. A multiplier moves with the suite instead of being overtaken
+      # by it. Four is chosen so a mutant that genuinely loops still stands
+      # out: it costs four suites rather than one, and nothing legitimate
+      # takes that long, since the slowest real mutant runs one suite.
       - name: Mutation sweep (shard ${{ matrix.shard }} of 8)
         run: |
           cargo mutants --package terri-core --package terri-sim \
             --package terri-data --package terri-wasm \
-            --test-workspace true --timeout 60 --build-timeout 600 \
+            --test-workspace true --timeout-multiplier 4 --build-timeout 600 \
             --shard ${{ matrix.shard }}/8 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a

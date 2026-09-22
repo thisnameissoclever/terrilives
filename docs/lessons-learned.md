@@ -7108,3 +7108,13 @@ door.
 **Prevention rule:** the atlas generator now cuts the transparent band above the art off every sprite that still has no box, after all importers run, and keeps the boxes they did record. It cuts only that band: a sprite draws nothing on the south half of its own tile, and trimming to the art would take the front of the trashcan's tile out of its click target. Sim body frames are left whole, because their animation frames share one envelope and the click target must not move between frames, which the picking tests in `web/tests/input.test.ts` pin.
 
 **How to verify:** `test_every_sprite_whose_art_misses_the_canvas_top_has_bounds` in `assets/sprites/gen/test_content_bounds.py` scans the shipped atlas and fails on the pre-fix table, listing all 833 sprites. 146 sprites gained a box. "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts` fails when `pickSprite` ignores bounds.
+
+## [L-mutant-cap-must-scale] A fixed mutation timeout was overtaken by the suite it times
+
+**What happened:** PR 116 added three Rust tests and three mutants that had passed for months were reported as hangs, in `rect_distance`, `SimRng::from_seed` and the needs slice. Two of them are recorded in `docs/mutation-baseline.md` as equivalent, with the arithmetic proof; nothing about them loops.
+
+**Root cause:** a mutant that no test kills runs the whole workspace suite to the end, so its test phase costs one full suite. CI capped a mutant's test run at a fixed 60 seconds, chosen when the suite took about two seconds. The suite had grown to about 57 seconds on the runner, so the cap sat a few seconds above the cost of every survivor, and the next tests added pushed three of them past it. The hang gate then reported them as hangs, which is the opposite of true: they finish, and finishing is the whole point of an equivalent mutant.
+
+**Prevention rule:** the cap is a multiple of the unmutated run (`--timeout-multiplier 4`), never a constant. A multiplier moves with the suite. A constant silently converges on it, and the failure it produces accuses the wrong code: the three named functions were each read for an unbounded loop that was never there.
+
+**How to verify:** the sweep's own report. Download a shard's `mutants-out` artifact and read `outcomes.json`: a survivor's test phase should be close to the baseline scenario's, and `timeout.txt` should be empty. Before the fix the three showed 57.1, 57.1 and 59.5 seconds against the 60-second cap on PR 117, and 60.0 on PR 116.
