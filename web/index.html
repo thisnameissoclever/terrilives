@@ -616,6 +616,7 @@
         font: inherit; font-size: 14px;
       }
       .builder-row { display: flex; align-items: center; gap: 8px; }
+      .builder-actions { display: grid; gap: 8px; }
       /* Four tools do not fit one row of the side panel, so two by two. */
       #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
       #build-tools > * { min-width: 0; }
@@ -638,13 +639,25 @@
           bottom: max(8px, env(safe-area-inset-bottom));
           left: max(8px, env(safe-area-inset-left));
           right: max(8px, env(safe-area-inset-right));
-          max-height: 45dvh; overflow-y: auto;
           z-index: 2;
         }
         #builder-dock #builder-controls {
+          /* The whole panel, border and padding included, stays at 45%. */
+          box-sizing: border-box; max-height: 45dvh; overflow-y: auto;
           padding: 10px; border: 1px solid var(--hud-edge);
           border-radius: 6px; background: var(--hud-bg);
         }
+        /* [B-phone-build-dock]: the four tools share one row, saving a row
+           of the capped panel. */
+        #builder-dock #build-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        /* At 320 wide each is 61 pixels; "Furniture" fits once the side
+           padding is trimmed. */
+        #builder-dock #build-tools .hud-button { padding-inline: 2px; }
+        /* Sell joins Confirm and Cancel, so the Furniture tool's pinned
+           group leaves its facing and Rotate row in view. */
+        #builder-dock #furniture-tool .builder-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        #builder-dock #furniture-tool .builder-actions > .builder-row { display: contents; }
+        #builder-dock #furniture-tool .builder-actions > p { grid-column: 1 / -1; }
         #hud[data-mobile-open='false'] > :not(#household-summary) {
           display: none;
         }
@@ -798,6 +811,15 @@
         #game-actions {
           grid-area: actions;
           grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      /* [B-phone-build-dock]: the panel scrolls, so each tool's status and
+         confirming buttons stay pinned at its foot. */
+      @media (max-width: 600px) and (min-height: 481px) {
+        #builder-dock .builder-actions {
+          position: sticky; bottom: 0;
+          padding: 8px 0;
+          border-top: 1px solid var(--hud-edge); background: var(--hud-bg);
         }
       }
       @media (max-height: 480px) and (min-width: 361px) {
@@ -1104,31 +1126,37 @@
           <button id="builder-rotate" class="hud-button" type="button">Rotate</button>
         </div>
         <p id="builder-rotation-note" class="builder-note" hidden></p>
-        <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
-        <div class="builder-row">
-          <button id="builder-confirm" class="hud-button" type="button">Confirm</button>
-          <button id="builder-cancel" class="hud-button" type="button">Cancel</button>
+        <div class="builder-actions">
+          <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
+          <div class="builder-row">
+            <button id="builder-confirm" class="hud-button" type="button">Confirm</button>
+            <button id="builder-cancel" class="hud-button" type="button">Cancel</button>
+          </div>
+          <button id="builder-sell" class="hud-button" type="button" disabled>Sell</button>
+          <p id="builder-sale-note" class="builder-note" hidden></p>
         </div>
-        <button id="builder-sell" class="hud-button" type="button" disabled>Sell</button>
-        <p id="builder-sale-note" class="builder-note" hidden></p>
         <p id="builder-keyboard-help" class="builder-note">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Delete or Backspace sells; Escape cancels.</p>
         <p id="builder-touch-help" class="builder-note" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
         </div>
         <div id="wall-tool" hidden>
-          <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
-          <div class="builder-row">
-            <button id="wall-build" class="hud-button" type="button">Wall</button>
-            <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
-            <button id="wall-remove" class="hud-button" type="button">Remove</button>
+          <div class="builder-actions">
+            <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
+            <div class="builder-row">
+              <button id="wall-build" class="hud-button" type="button">Wall</button>
+              <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
+              <button id="wall-remove" class="hud-button" type="button">Remove</button>
+            </div>
           </div>
           <p id="wall-keyboard-help" class="builder-note">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; Backspace removes; Escape clears the choice.</p>
           <p id="wall-touch-help" class="builder-note" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
         </div>
         <div id="room-tool" hidden>
-          <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
-          <div class="builder-row">
-            <button id="room-build" class="hud-button" type="button">Build room</button>
-            <button id="room-cancel" class="hud-button" type="button">Cancel</button>
+          <div class="builder-actions">
+            <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
+            <div class="builder-row">
+              <button id="room-build" class="hud-button" type="button">Build room</button>
+              <button id="room-cancel" class="hud-button" type="button">Cancel</button>
+            </div>
           </div>
           <p id="room-keyboard-help" class="builder-note">Click one corner tile, then the opposite one; click a line of the outline for a doorway. With the game view focused: arrows move a corner; Enter fixes the first corner, then builds; D steps the doorway along the outline; Escape clears.</p>
           <p id="room-touch-help" class="builder-note" hidden>Tap one corner tile, then the opposite one; tap a line of the outline for a doorway. Drag to pan; pinch to zoom.</p>
@@ -1144,10 +1172,12 @@
           </div>
           <p id="buy-price"></p>
           <p id="buy-serves"></p>
-          <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
-          <div class="builder-row">
-            <button id="buy-confirm" class="hud-button" type="button">Buy</button>
-            <button id="buy-cancel" class="hud-button" type="button">Cancel</button>
+          <div class="builder-actions">
+            <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
+            <div class="builder-row">
+              <button id="buy-confirm" class="hud-button" type="button">Buy</button>
+              <button id="buy-cancel" class="hud-button" type="button">Cancel</button>
+            </div>
           </div>
           <p id="buy-keyboard-help" class="builder-note">Choose something, then click where it goes. With the game view focused: [ and ] choose; arrows move; R rotates; Enter buys; Escape cancels.</p>
           <p id="buy-touch-help" class="builder-note" hidden>Choose something, then tap a tile. Drag to pan; pinch to zoom.</p>

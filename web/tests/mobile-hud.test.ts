@@ -185,3 +185,71 @@ describe('MobileHud', () => {
     expect(people.open).toBe(false);
   });
 });
+
+// [B-phone-build-dock] in docs/FEATURES.md: on a phone the Build dock scrolls,
+// so each tool keeps its status and confirming buttons in one group pinned to
+// the foot of the panel, and the four tool buttons share one row.
+describe('the phone Build dock', () => {
+  /** The markup of the actions group holding `#id`, or '' when none does. */
+  function actionsGroupOf(id: string): string {
+    const at = INDEX_HTML.indexOf(`id="${id}"`);
+    const open = INDEX_HTML.lastIndexOf('<div class="builder-actions">', at);
+    if (at < 0 || open < 0) return '';
+    const tags = /<\/?div\b/g;
+    tags.lastIndex = open;
+    let depth = 0;
+    for (let tag = tags.exec(INDEX_HTML); tag; tag = tags.exec(INDEX_HTML)) {
+      depth += tag[0] === '<div' ? 1 : -1;
+      if (depth === 0) return at < tag.index ? INDEX_HTML.slice(open, tag.index) : '';
+    }
+    return '';
+  }
+
+  it.each([
+    ['builder-status', ['builder-confirm', 'builder-cancel', 'builder-sell', 'builder-sale-note']],
+    ['wall-status', ['wall-build', 'wall-doorway', 'wall-remove']],
+    ['room-status', ['room-build', 'room-cancel']],
+    ['buy-status', ['buy-confirm', 'buy-cancel']],
+  ])('groups %s with the buttons that act on it', (status, buttons) => {
+    const group = actionsGroupOf(status);
+    expect(group).toContain(`id="${status}"`);
+    for (const button of buttons) expect(group).toContain(`id="${button}"`);
+  });
+
+  /** The rules of the first `@media` block whose condition matches `condition`. */
+  function mediaBlock(condition: RegExp): string {
+    const start = INDEX_HTML.search(condition);
+    if (start < 0) return '';
+    let depth = 0;
+    for (let at = INDEX_HTML.indexOf('{', start); at < INDEX_HTML.length; at += 1) {
+      if (INDEX_HTML[at] === '{') depth += 1;
+      if (INDEX_HTML[at] === '}') depth -= 1;
+      if (depth === 0) return INDEX_HTML.slice(start, at);
+    }
+    return '';
+  }
+
+  it('scrolls the panel and puts the four tools in one row on a compact screen', () => {
+    const compact = mediaBlock(/@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/);
+    expect(compact).toMatch(/#builder-dock #builder-controls\s*\{[^}]*max-height:\s*45dvh;\s*overflow-y:\s*auto/);
+    expect(compact).toMatch(/#builder-dock #builder-controls\s*\{[^}]*box-sizing:\s*border-box;/);
+    expect(compact).toMatch(/#builder-dock #build-tools\s*\{\s*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+    // At 320 wide each tool button is 61 pixels, and "Furniture" needs
+    // the side padding trimmed to fit.
+    expect(compact).toMatch(/#builder-dock #build-tools \.hud-button\s*\{\s*padding-inline:\s*2px;/);
+    // Sell joins Confirm and Cancel in one row, so the Furniture tool's
+    // pinned group does not hide its facing and Rotate row.
+    expect(compact).toMatch(/#builder-dock #furniture-tool \.builder-actions\s*\{\s*grid-template-columns:\s*repeat\(3,/);
+    expect(compact).toMatch(/#builder-dock #furniture-tool \.builder-actions > \.builder-row\s*\{\s*display:\s*contents;/);
+    expect(compact).toMatch(/#builder-dock #furniture-tool \.builder-actions > p\s*\{\s*grid-column:\s*1 \/ -1;/);
+  });
+
+  // Below 481 pixels of height the panel is about 144 pixels tall, and a
+  // pinned group that size would hide the list it acts on.
+  it('pins the group to the foot of the panel only where the panel is tall enough', () => {
+    const tall = mediaBlock(/@media\s*\(max-width:\s*600px\)\s*and\s*\(min-height:\s*481px\)/);
+    expect(tall).toMatch(/#builder-dock \.builder-actions\s*\{[^}]*position:\s*sticky;[^}]*bottom:\s*0/);
+    const compact = mediaBlock(/@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/);
+    expect(compact).not.toContain('sticky');
+  });
+});

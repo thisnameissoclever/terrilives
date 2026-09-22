@@ -3293,3 +3293,38 @@ scroll. Nothing was sold or saved on this run.
 
 **Not proven here.** A refusal at the drain was not replayed in the page; the
 Furniture tool tests cover it. No physical phone was used.
+
+## [A-phone-build-dock] The Build dock's buttons stay in view on a phone
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/phone-build-dock`, driven in the Playwright browser on the household
+loaded from its save, measuring each control against the panel's visible edge.
+
+**390 by 844.** The panel is 380 pixels tall, the same 45% of the screen as
+before. The four tool buttons sit in one row, each 78 pixels wide. In Buy,
+before and after choosing "Chair, Standard Issue (40)", the status and the Buy
+and Cancel buttons were in view without scrolling, pinned at the panel's foot
+with a line above them; the facing row showed a few pixels above the line.
+Scrolling to the end brought the facing row, the price and "Good for: no need
+on its own" into view above the group. Pressing the pinned Buy bought the
+chair: "Chair, Standard Issue bought." and Funds went from 14,020 to 13,980.
+Walls and Room fit in the panel whole, with no scrolling. In the Furniture
+tool with the stove chosen, everything was in view at once: the list, the
+facing and Rotate row, "Ready to place.", Confirm, Cancel and a disabled Sell
+in one row, and the "Cannot sell" note.
+
+**320 by 568.** The panel is 256 pixels tall. The tool buttons are 61 pixels
+wide and "Furniture" fits once their side padding is trimmed; before the trim
+it ran 3 pixels over. With the stove chosen the pinned group takes about half
+the panel, so the furniture list and Rotate sit behind it until the panel is
+scrolled; the buttons stay in view.
+
+**568 by 320, held sideways.** The panel is 144 pixels tall and nothing is
+pinned: the group stays in place and the panel scrolls to Confirm, as before,
+now two rows shorter.
+
+**1280 by 800.** The side panel is unchanged: two by two tool buttons, and Sell
+full width under Confirm and Cancel.
+
+**Not proven here.** No physical phone was used, and nothing was saved.
+
