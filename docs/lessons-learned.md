@@ -6857,7 +6857,16 @@ restore is whole, not at whatever point the loader happens to sync. When a
 view starts reading a piece of saved state, check where the loader installs
 that state relative to its render sync.
 
-**How to verify.** Remove the `sync_portals` call at the end of
-`finish_restore` in `crates/terri-sim/src/save/architecture.rs`.
-`a_loaded_house_shows_its_doors_before_the_first_tick` fails.
+**How to verify.** Remove the `sync_portals` call at the end of `Sim::adopt`
+in `crates/terri-sim/src/lib.rs`, which all three loaders go through.
+`a_loaded_house_shows_its_doors_before_the_first_tick` (the V2 and V3 loaders)
+and `a_migrated_v1_house_shows_its_doors_before_the_first_tick` (the V1 loader)
+fail.
+
+**Second instance, found by review.** The first fix put the rebuild at the end
+of the V2 and V3 restore, and the V1 loader, which moves the cell-wall house to
+edge walls in a later step, still drew its doors late. The rebuild now sits in
+the one place every loader passes through after the restore is whole: a fix
+for an ordering bug belongs after the last step of every path, not after the
+step where the bug was first seen.
 

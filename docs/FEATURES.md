@@ -840,7 +840,7 @@ and the played check is [A-wall-tool]. A Room tool builds a whole rectangular
 room in one edit, with a doorway where the player asks for one; its design is
 `docs/specs/2026-09-22-room-tool.md` and its played check is [A-room-tool].
 Every vertical doorway now holds a hinged door that swings open as a sim walks
-through, drawn with the front door's art; its design is
+through it, drawn with the front door's art; its design is
 `docs/specs/2026-09-22-interior-doors.md` and its played check is
 [A-interior-doors]. Doors on horizontal doorways wait on their art
 ([T-interior-door-art]). Floors, windows and a larger lot remain open.

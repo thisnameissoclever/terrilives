@@ -10,9 +10,16 @@ export interface PortalSource {
   portalFrames(): Uint32Array;
   portalDepthOffsets(): Float32Array;
   portalLeaves(reducedMotion: boolean): Uint32Array;
+  /** The tile across each row's line, `[x, y]` pairs. */
+  portalFarSides(): Float32Array;
 }
 
-/** Appends frame and leaf to the existing GPU draw without allocating per frame. */
+/**
+ * Appends frame and leaf to the existing GPU draw without allocating per frame.
+ * A portal is lit like the wall it stands in, from the brighter of its own tile
+ * and the tile across its line, so a door between a lit room and a dark one
+ * matches the wall around it.
+ */
 export function writePortals(
   out: InstanceArray, slot: number, source: PortalSource,
   originX: number, originY: number, gridSize: number, scale: number,
@@ -22,10 +29,14 @@ export function writePortals(
   const frames = source.portalFrames();
   const depthOffsets = source.portalDepthOffsets();
   const leaves = source.portalLeaves(reducedMotion);
+  const farSides = source.portalFarSides();
   for (let i = 0; i < source.portalCount; i++) {
     const x = positions[i * 2];
     const y = positions[i * 2 + 1];
-    const light = lighting === null ? 0 : sampleLight(lighting, Math.floor(x), Math.floor(y));
+    const light = lighting === null ? 0 : Math.max(
+      sampleLight(lighting, Math.floor(x), Math.floor(y)),
+      sampleLight(lighting, Math.floor(farSides[i * 2]), Math.floor(farSides[i * 2 + 1])),
+    );
     for (let layer = 0; layer < 2; layer++) {
       const sprite = layer === 0 ? frames[i] : leaves[i];
       writeInstance(out, slot++,

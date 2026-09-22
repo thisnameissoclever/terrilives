@@ -31,19 +31,38 @@ home.
 
 ### [DR-derived] A door is derived from a doorway, not saved
 
-Which lines hold doors follows from the saved walls: every vertical doorway.
-So a door adds nothing to the save or the save digest, and no save changes
+Which lines hold doors follows from the saved walls: every vertical doorway,
+on a lot whose front door has art that fits a vertical line, as the shipped
+lot's does. A lot with no front door, or a cell-wall house, has none. So a door
+adds nothing to the save or the save digest, and no save changes
 meaning. A door's state is presentation, rebuilt every frame from positions
 and walks that are already saved, exactly as the front door's is.
 
 ### [DR-state] When a door opens
 
-A door is open while a sim stands within half a tile of its line, opening while
-a sim's next step crosses the line within a tile and a half, closing for the
-frames after the last sim leaves, and closed otherwise. The rule reads each
-sim's position and the remaining steps of its walk, and is the same one the
-front door uses for a commuter, generalised from "walking to the door tile" to
-"walking across the door's line".
+A doorway spans the gap between the centres of the two tiles either side of
+its line, and a sim walks in one-tile steps between tile centres. So a door
+reads a sim's steps rather than its distance:
+
+* **Open** while the sim's body is inside that gap, which only the step across
+  the line passes through, or where a sim whose walk stopped midway stands.
+* **Opening** while the step the sim is walking, or the one after it, crosses
+  the line.
+* **Closing** while the step the sim last finished crossed it.
+* **Closed** otherwise: standing beside the door, walking along its wall,
+  crossing the same line on another row, or walking up to the door and turning
+  away.
+
+When several sims ask different things of one door, open wins over opening,
+opening over closing, and closing over closed, as for the front door.
+
+A walk does not keep the tile it set out from, so when a walk's first step is
+the one through the door, the door shuts without the closing swing once the
+sim reaches the far tile. The swing is presentation; saving the start tile
+only to show it is not worth a save change.
+
+The rule has no thresholds to tune: half a tile is where the tile centres
+are.
 
 ### [DR-render] Where it is drawn
 
@@ -51,13 +70,42 @@ A door is one more row in the portal buffer the front door already uses,
 after the front door's row: the renderer, the boundary's portal columns and
 the reduced-motion leaf need no change. It stands on the +X edge of the tile
 left of its line, where the front door's art stands on its own tile, with the
-front door's depth offset and lighting. The shell leaves out the doorway's
-empty panel on a line that holds a door (`interior_door_lines` at the
-boundary), so the two never double up.
+front door's depth offset. The shell leaves out the doorway's empty panel on a
+line that holds a door (`interior_door_lines` at the boundary), so the two
+never double up.
 
-The loader synced the render buffer before it put the saved walls in, so a
-loaded house would have drawn its doorways doorless until the next tick; the
-loader now rebuilds the portal rows once the walls are in.
+A portal is lit like the wall it stands in, from the brighter of its own tile
+and the tile across its line, which each row carries in the portal buffer. For
+a door that is the room on each side. For the front door the far tile is off
+the lot, where the light field is always dark, so the front door is lit as
+before.
+
+Each loader synced the render buffer before it put the saved walls in, so a
+loaded house would have drawn its doorways doorless until the next tick. The
+three `Sim::load_snapshot` functions now rebuild the portal rows after the
+restored world replaces the running one.
+
+## Review record
+
+The fresh-context review of [DR-slice-derived] raised eight findings, all
+fixed in the same branch:
+
+* [F1] and [F2]: the first rule judged a door by the distance from its line,
+  so it swung for a sim standing beside it, walking along its wall, or walking
+  up to it and turning away, and read a crossing from right to left
+  differently from one left to right. [DR-state] now reads the walk's steps.
+* [F3]: only the V2 and V3 loaders rebuilt the door rows; the V1 loader, which
+  moves the cell-wall house to edge walls, did not.
+* [F4]: the first rule's four distances were hard-coded. The step rule has
+  none left, so there is no tuning knob to add.
+* [F5]: a door took its light only from the room on its left. [DR-render]
+  now lights it from the brighter side.
+* [F6]: the glossary, this spec and a bridge doc comment said things that
+  were no longer true.
+* [F7]: the shipped-lot tests counted doors by asking the code under test.
+  They now assert three doors and four portal rows.
+* [F8]: the first rule built a list for each sim on every frame. The step
+  rule reads the walk where it is stored.
 
 ## Slices
 

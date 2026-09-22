@@ -42,6 +42,10 @@ distance-boundary behavior received regression tests instead.
 1. `sync_portals`, priority `>` to `>=`: the projection returns only the four
    declared states, and each has a distinct priority. Equal priority means
    the same state, so assigning it again cannot change the result.
+   **Removed from the baseline on 2026-09-21** with the interior doors, which
+   added a second copy of the loop. Both loops now take the strongest state
+   with `max_by_key`, which has no comparison to mutate, so the mutant is no
+   longer generated.
 2. `sync_portals`, depth `*` to `/`: a cardinal outward normal has one zero
    coordinate and one coordinate equal to `1` or `-1`. Their sum is exactly
    `1` or `-1`; multiplying or dividing `0.5` by either produces the same

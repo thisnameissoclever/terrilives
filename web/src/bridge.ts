@@ -614,6 +614,11 @@ export class SimBridge {
     return new Uint32Array(this.memory.buffer, this.handle.portal_states_ptr(), this.portalCount);
   }
 
+  /** The tile across each portal row's line, `[x, y]` pairs. */
+  portalFarSides(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.portal_far_sides_ptr(), this.portalCount * 2);
+  }
+
   /**
    * The raw entity index standing in each row.
    *
@@ -649,12 +654,16 @@ export class SimBridge {
     return this.handle.wall_tiles();
   }
 
-  /** Undefined is legacy architecture; an empty array is an open edge layout. */
-  /** Vertical doorway lines that hold a door, `[x, y]` pairs ([DR-derived]). */
+  /**
+   * Vertical doorway lines that hold a door, `[x, y]` pairs, sorted
+   * ([DR-derived]). Empty for a cell-wall house, or a lot with no front door
+   * whose art fits a vertical line.
+   */
   interiorDoorLines(): Uint32Array {
     return this.handle.interior_door_lines();
   }
 
+  /** Undefined is legacy architecture; an empty array is an open edge layout. */
   wallEdges(): Uint32Array | undefined {
     return this.handle.wall_layout_kind() === 1 ? this.handle.wall_edges() : undefined;
   }

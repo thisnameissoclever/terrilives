@@ -191,9 +191,9 @@ table. Authored in `content/chains.toml`.
 | **placement** | One object standing at one position. Several placements can share an object definition (two chairs, one `chair`). |
 | **footprint** | How many tiles an object occupies. A 2x1 bed blocks two tiles, and nothing may overlap it. |
 | **facing** | Which of the kit's four pre-rendered directions a placement is drawn with. Presentation only - the simulation neither knows nor cares which way a counter faces. |
-| **doorway** | A passable segment of a wall, recorded as its own line so it draws as a frame. There is no interior door object; the front door is the one animated door. |
+| **doorway** | A passable segment of a wall, recorded as its own line so it draws as a frame. A doorway on a vertical line holds a **door**. |
 | **line** | In the Walls tool, the boundary between two neighbouring floor tiles. Each line is open, a wall, or a doorway. The outside edge of the lot is not a line the tool can change. |
-| **door** | A hinged door standing in a doorway, which swings open as a sim walks through and closes behind them. Every doorway on a vertical line has one, drawn with the front door's art; doorways on horizontal lines stay open frames until their art exists. A door blocks nobody and is not saved: it follows from the walls. |
+| **door** | A hinged door standing in a doorway, which swings open as a sim walks through and closes behind them. Every doorway on a vertical line has one when the lot's front door has art for a vertical line, as the shipped lot's does, and it is drawn with that art; doorways on horizontal lines stay open frames until their art exists. A door blocks nobody and is not saved: it follows from the walls. |
 | **Room tool** | Build mode's fourth tool. The player chooses two opposite corner tiles and, if they like, a line of the outline as the doorway, and Build room walls the whole outline in one edit. The whole room is refused or built together. |
 | **outline** | In the Room tool, the lines on the edge of the chosen rectangle of tiles that are inside the lot. Lines on the lot's own edge are the outside wall and are left alone. |
 | **price** | What an object costs in the Buy tool, in Funds (`price` in `content/objects.toml`). An object with no price is not for sale. A save stores Funds, never prices. |

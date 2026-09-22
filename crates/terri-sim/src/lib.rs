@@ -626,16 +626,8 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
-        restored
-            .world
-            .resource_mut::<placement::LotEditState>()
-            .revision = self
-            .world
-            .resource::<placement::LotEditState>()
-            .revision
-            .saturating_add(1);
-        *self = restored;
+        let restored = save::architecture::restore(snapshot, content, active_portals)?;
+        self.adopt(restored);
         Ok(())
     }
 
@@ -675,7 +667,18 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        let restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        self.adopt(restored);
+        Ok(())
+    }
+
+    /// Replaces the running simulation with a restored one that passed every
+    /// check. The lot's revision moves on so the shell rereads the lot. The
+    /// portal rows are rebuilt last: the restore synced them before it put the
+    /// saved walls in, and the interior doors are drawn from those walls
+    /// ([DR-derived]), so without this a loaded house would show its doorways
+    /// doorless until the next tick.
+    fn adopt(&mut self, mut restored: Sim) {
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -685,7 +688,7 @@ impl Sim {
             .revision
             .saturating_add(1);
         *self = restored;
-        Ok(())
+        portals::sync_portals(&mut self.world, &mut self.portals);
     }
 
     /// Loads a historical V1 payload, including reviewed layout migrations.
@@ -693,16 +696,8 @@ impl Sim {
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let mut restored = save::restore(snapshot, content, active_portals)?;
-        restored
-            .world
-            .resource_mut::<placement::LotEditState>()
-            .revision = self
-            .world
-            .resource::<placement::LotEditState>()
-            .revision
-            .saturating_add(1);
-        *self = restored;
+        let restored = save::restore(snapshot, content, active_portals)?;
+        self.adopt(restored);
         Ok(())
     }
 

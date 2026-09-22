@@ -72,6 +72,24 @@ fn wall_migration_releases_only_frozen_wall_cells_and_preserves_every_other_fiel
     assert_eq!(twice.save_snapshot_v2(), saved);
 }
 
+/// Review finding [F3] on the doors branch: a V1 save of the cell-wall house
+/// moves to edge walls as it loads, after the restore synced the render
+/// buffer, so the house drew its doorways doorless until the next tick.
+#[test]
+fn a_migrated_v1_house_shows_its_doors_before_the_first_tick() {
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot(source_sim().save_snapshot()).unwrap();
+    assert!(matches!(
+        loaded.save_snapshot_v2().layout,
+        SavedLayout::EdgeWallsV1 { .. }
+    ));
+    assert_eq!(
+        loaded.portal_buffer().states.len(),
+        4,
+        "the front door and a door in each of the three vertical doorways"
+    );
+}
+
 #[test]
 fn wall_migration_preserves_entity_holes_reservations_and_queued_commands() {
     let mut before = source_sim().save_snapshot();
