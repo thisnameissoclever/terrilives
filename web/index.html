@@ -829,12 +829,31 @@
           box-sizing: border-box;
           height: auto;
         }
+        /* A flex box, so a caption that wraps, such as "How Ann feels",
+           stays one 44-pixel target with its text centred. A flex summary
+           loses the browser's triangle, so the toggle draws its own: a
+           border shape with no text, pointing right when closed and down
+           when open, as the desktop one does. */
         .needs-caption {
           display: flex;
           min-height: 44px;
           box-sizing: border-box;
           align-items: center;
           margin: 0;
+        }
+        .needs-caption::before {
+          content: '';
+          flex: none;
+          margin-right: 6px;
+          border-block: 5px solid transparent;
+          border-left: 6px solid currentColor;
+        }
+        details[open] > .needs-caption::before { transform: rotate(90deg); }
+        .needs-caption::-webkit-details-marker { display: none; }
+        /* High Contrast paints every border in the system text colour, the
+           transparent ones too, which would turn the triangle into a bar. */
+        @media (forced-colors: active) {
+          .needs-caption::before { forced-color-adjust: none; border-left-color: CanvasText; }
         }
         .needs-caption:focus-visible {
           outline: 2px solid var(--need-fill);
