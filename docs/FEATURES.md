@@ -774,7 +774,7 @@ Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save
 
 ### [B-walls-in-build] The Walls tool shows every wall
 
-Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit.
+Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Built on branch `twcl/walls-in-build`; the design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
 
 ### [B-placement-buttons] Confirm and Cancel sit over the moved object
 

@@ -72,6 +72,11 @@ export interface Lot {
   readonly street?: number | null;
   /** `[hue, strength, lightness]` a street tile's floor art is drawn under ([OS-street]). */
   readonly streetLook?: readonly [number, number, number] | null;
+  /**
+   * Draws the walls the view cuts away during play, while the Walls or Room
+   * tool is in use ([WB-draw]). The yard's floor look still follows `house`.
+   */
+  readonly showCutAwayWalls?: boolean;
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -150,7 +155,8 @@ export function buildStaticInstances(
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
   const edgePanels = lot.edges == null ? null
-    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges, lot.doors ?? undefined, house);
+    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges, lot.doors ?? undefined, house,
+      lot.showCutAwayWalls === true);
   // The yard's and the street's looks as a shift table, so a yard tile
   // writes row 1 and a street tile row 2 exactly as a colourway does
   // ([RC-shift]).

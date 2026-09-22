@@ -36,6 +36,9 @@ function spriteForArms(mask: number): string {
  * The far exterior runs participate in the same graph, without duplicate panels.
  * `hinged` lists vertical doorway lines as `[x, y]` pairs that hold a hinged
  * door ([DR-render]): the door draws its own frame there, so no panel is added.
+ * `showCutAway` draws the cut-away walls too, as the Walls and Room tools do
+ * so the player sees every line they can edit ([WB-draw] in
+ * `docs/specs/2026-09-22-walls-in-build.md`).
  */
 export function buildEdgeWallGeometry(
   width: number,
@@ -43,6 +46,7 @@ export function buildEdgeWallGeometry(
   edges: Uint32Array,
   hinged: ArrayLike<number> = [],
   house: readonly [number, number] = [width, height],
+  showCutAway = false,
 ): EdgeWallPanel[] {
   const inHouse = (x: number, y: number): boolean => x < house[0] && y < house[1];
   // Edges never lie on the lot's own edge, so `x - 1` and `y - 1` are tiles.
@@ -82,7 +86,7 @@ export function buildEdgeWallGeometry(
   for (let y = 0; y < Math.min(height, house[1]); y++) addSegment(0, 0, y, false);
   for (let x = 0; x < Math.min(width, house[0]); x++) addSegment(1, x, 0, false);
   for (let i = 0; i + 3 < edges.length; i += 4) {
-    if (cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
+    if (!showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
     addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1);
   }
   const panels: EdgeWallPanel[] = [...vertices.values()]

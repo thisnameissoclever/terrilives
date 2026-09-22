@@ -976,7 +976,7 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
-    street: sim.streetColumn(), streetLook: sim.streetLook() };
+    street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -1381,6 +1381,14 @@ async function main(): Promise<void> {
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();
+    }
+    // [WB-draw]: the walls the view cuts away are drawn while a wall tool
+    // is in use, so the player sees every line they can edit. The static
+    // block is rebuilt only when that changes, not on every click.
+    const showCutAwayWalls = wallTool.active || roomTool.active;
+    if (showCutAwayWalls !== lot.showCutAwayWalls) {
+      lot.showCutAwayWalls = showCutAwayWalls;
+      cameraDirty = true;
     }
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.

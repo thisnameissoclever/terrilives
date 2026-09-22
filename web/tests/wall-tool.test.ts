@@ -469,6 +469,9 @@ describe('the Walls tool in the page', () => {
       'wallTool.resetAfterLoad(lotWidth, lotHeight)', 'wallTool.exit()']) {
       expect(MAIN_TS).toContain(wiring);
     }
+    // [WB-draw]: the cut-away walls follow the Walls and Room tools.
+    expect(MAIN_TS).toContain('const showCutAwayWalls = wallTool.active || roomTool.active;');
+    expect(MAIN_TS).toMatch(/lot\.showCutAwayWalls = showCutAwayWalls;\s*cameraDirty = true;/);
   });
 
   it('routes Build mode keys the same way in both key listeners, and blocks with Build', () => {

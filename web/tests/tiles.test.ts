@@ -731,6 +731,16 @@ describe('the yard', () => {
       ORIGIN_X, ORIGIN_Y, GRID))).toEqual(drawn);
   });
 
+  it('draws the cut-away walls while a wall tool asks, and keeps the yard green', () => {
+    const edges = Uint32Array.from([0, 2, 0, 1]);
+    const shown = buildStaticInstances({ ...lot, edges, house: [2, 1], showCutAwayWalls: true },
+      ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(shown.instances, shown.count), 1.5, 0).map((r) => SPRITES[r.sprite].name))
+      .toEqual(['doorwayJoinedNS']);
+    const hidden = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(floorShifts(shown)).toEqual(floorShifts(hidden));
+  });
+
   it("passes the house to the walls, so its front walls are cut away", () => {
     const edges = Uint32Array.from([0, 2, 0, 1]);
     const house = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
