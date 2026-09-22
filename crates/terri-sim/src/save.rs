@@ -38,6 +38,7 @@ mod v3_tests;
 mod wall_migration;
 #[cfg(test)]
 mod wall_migration_tests;
+pub(crate) mod yard;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
@@ -2657,6 +2658,8 @@ mod tests {
             lot: terri_data::CompiledLot {
                 width: 16,
                 height: 16,
+                house: (16, 16),
+                yard_look: [0.0, 1.0, 0.0],
                 walls: Vec::new(),
                 wall_edges: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {
@@ -3760,7 +3763,15 @@ mod tests {
             current.content_fingerprint,
             terri_data::content_fingerprint(terri_data::pack())
         );
-        assert_eq!(current.blocked_tiles, expected_blocked);
+        // The house then grows into the yard, each tile kept where it was
+        // saved ([OS-migrate]).
+        let lot = &terri_data::pack().lot;
+        let grown_width = lot.width as usize;
+        let mut grown = vec![false; grown_width * lot.height as usize];
+        for (index, &blocked) in expected_blocked.iter().enumerate() {
+            grown[(index / width) * grown_width + index % width] = blocked;
+        }
+        assert_eq!(current.blocked_tiles, grown);
         assert_eq!(current.entities, expected_entities);
         let name = current
             .entities

@@ -732,6 +732,21 @@ with a state worked out every frame from sims' positions and walks, which are
 already saved. Nothing is added to the save, the save digest or the world
 hash.
 
+The lot has a house and a yard ([OS-grow] in
+`docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
+size from the lot's north-west corner, and every other tile is yard: walkable
+floor to the simulation, drawn by the shell as the floor under the lot's
+`yard_look` colour shift. Neither is saved. The house's east and south walls are
+ordinary wall edges, and the front door stands on the east one, its line a
+doorway that `portals::front_door_lines` names: the front door swings for a sim
+walking through it as an interior door does, no interior door is derived on it,
+and the Walls and Room tools never make it a wall. A save whose grid is exactly
+the house, with edge walls, grows into the lot as it is adopted
+(`save::yard::grow`, [OS-migrate]): the grid takes the lot's size with every
+saved tile where it was, and the content's walls outside the house follow the
+saved ones. No coordinate moves, and the save digest does not cover the lot's
+size or walls, so every existing save still loads.
+
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
 samples discontinuous, so a paused furniture move snaps into place without

@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { buildEdgeWallGeometry } from '../src/render/edge-walls.js';
 
 it('owns each half-panel at its endpoint and joins both rooms at their shared T', () => {
@@ -71,4 +71,39 @@ it('is independent of authored edge ordering and samples integer cells on both s
   const corner = forward.find((p) => p.x === 1.5 && p.y === 0.5)!;
   expect(corner.spriteName).toBe('wallJoin3');
   expect(corner.lightSamples).toEqual([[1, 0], [2, 0], [2, 1]]);
+});
+
+// [OS-walls] in docs/specs/2026-09-22-the-outside.md: a 5 by 4 lot whose house
+// is 3 by 2, so the yard is the two east columns and the south two rows.
+describe('a house standing in a yard', () => {
+  const inside = [0, 1, 0, 0];
+  const outside = [
+    0, 3, 0, 0, 0, 3, 1, 1,
+    1, 0, 2, 0, 1, 1, 2, 0, 1, 2, 2, 0,
+  ];
+  const inYard = [0, 4, 2, 0, 1, 3, 3, 0];
+  const all = Uint32Array.from([...inside, ...outside, ...inYard]);
+
+  it("leaves out the house's walls and doorway that face the view, and only those", () => {
+    const panels = buildEdgeWallGeometry(5, 4, all, [], [3, 2]);
+    expect(panels)
+      .toEqual(buildEdgeWallGeometry(5, 4, Uint32Array.from([...inside, ...inYard]), [], [3, 2]));
+    // The wall inside the house ends at (1, 1), and the two in the yard meet
+    // at (4, 3): both are still drawn.
+    expect(panels.find((p) => p.x === 0.5 && p.y === 0.5)?.spriteName).toBe('wallHalf1');
+    expect(panels.find((p) => p.x === 3.5 && p.y === 2.5)?.spriteName).toBe('wallJoin9');
+  });
+
+  it("runs the back walls along the house's north and west sides, not the yard's", () => {
+    const panels = buildEdgeWallGeometry(5, 4, new Uint32Array(), [], [3, 2]);
+    expect(panels.map((p) => [p.x, p.y])).toEqual([
+      [-0.5, -0.5], [0.5, -0.5], [1.5, -0.5], [2.5, -0.5],
+      [-0.5, 0.5], [-0.5, 1.5],
+    ]);
+  });
+
+  it('draws everything when the whole lot is house', () => {
+    expect(buildEdgeWallGeometry(5, 4, all)).toEqual(buildEdgeWallGeometry(5, 4, all, [], [5, 4]));
+    expect(buildEdgeWallGeometry(5, 4, all).filter((p) => p.mask === 0)).toHaveLength(1);
+  });
 });

@@ -178,6 +178,14 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     if !line.in_bounds(live.width() as u32, live.height() as u32) {
         return Err(OutOfBounds);
     }
+    // [OS-door]: a wall on the front door's line would shut the door. Opening
+    // the line cuts nobody's way, so only a wall is refused.
+    if edit.state == WallState::Wall
+        && edit.axis == EdgeAxis::Vertical
+        && crate::portals::front_door_lines(world).contains(&(edit.x, edit.y))
+    {
+        return Err(BlockedDoor);
+    }
 
     let existing = edges
         .iter()

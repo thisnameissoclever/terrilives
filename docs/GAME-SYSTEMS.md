@@ -250,7 +250,7 @@ A larger household also needs a larger house, so that six people are not queuein
 2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. A whole room outline in one edit is built too, with its doorway ([RT-slice-room]). Still open: hinged doors that need art.
 3. Floor and wall coverings per room or per tile.
 4. Windows, which also affect the lighting already in the game.
-5. A larger lot. The lot is 16 by 12 tiles and cannot change. This needs a lot-resize operation or a set of lot sizes to choose from.
+5. A larger lot. The lot is 20 by 16 tiles on branch `twcl/the-yard`: the 16 by 12 house stands in a yard on its east and south sides, where the player can buy furniture and build ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`). Lots of other sizes remain open.
 6. Multiple floors, with stairs. Pathfinding, rendering, and the camera all assume one floor today, so this is the most expensive item on the list.
 7. Roofs and exterior walls, which belong with [S-outside].
 8. Undo and redo in build mode.
@@ -418,7 +418,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-outside] A playable outside
 
-**Status: Not started, 0%.** The house is an interior with nothing around it. The front door is where a worker disappears. `[B-outside]` in [FEATURES.md](FEATURES.md) plans a yard, a street, exterior walls, roofs, and outdoor lighting. Dog walking, visitors arriving, gardening, and neighbours all need it.
+**Status: Started, about 20%.** On branch `twcl/the-yard` the house stands in a yard that sims walk out into through the front door ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`). A worker still disappears at the front door. `[B-outside]` in [FEATURES.md](FEATURES.md) plans the street, exterior walls, roofs, and outdoor lighting next. Dog walking, visitors arriving, gardening, and neighbours all need it.
 
 ### [S-emergencies] Fires, emergencies, and disasters
 

@@ -32,8 +32,10 @@ fn destination() -> &'static ContentPack {
     Box::leak(Box::new(pack))
 }
 
+/// The cell-wall house, on the lot as it stood before the yard ([OS-grow]).
 fn source_sim() -> Sim {
     let mut pack = terri_data::pack().clone();
+    (pack.lot.width, pack.lot.height) = pack.lot.house;
     pack.lot.wall_edges.clear();
     pack.lot.walls = bathtub::source_layout::WALLS
         .iter()
@@ -188,8 +190,9 @@ fn wall_migration_requires_the_reviewed_destination_geometry_and_footprints() {
     let mut pack = destination().clone();
     pack.lot.wall_edges.pop();
     cases.push(pack);
+    // The house, not the lot around it, is what was reviewed ([OS-grow]).
     let mut pack = destination().clone();
-    pack.lot.width += 1;
+    pack.lot.house.0 += 1;
     cases.push(pack);
     let mut pack = destination().clone();
     pack.objects[0].footprint.width += 1;

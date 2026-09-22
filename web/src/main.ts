@@ -29,7 +29,7 @@ import {
   instanceCount,
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
-import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
@@ -920,7 +920,7 @@ async function main(): Promise<void> {
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
-    doors: sim.interiorDoorLines() };
+    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -994,11 +994,13 @@ async function main(): Promise<void> {
       camera.originY += dy;
     }
     if (!cameraInitialised) {
+      // [OS-camera]: the view opens framed on the house; pan reaches the yard.
+      const [openWidth, openHeight] = openingExtent(lotWidth, lotHeight, lot.house);
       const origin = cameraOrigin(
         stage.width,
         stage.height,
-        lotWidth,
-        lotHeight,
+        openWidth,
+        openHeight,
         tallestSprite,
         tallestBoundarySprite,
         camera.scale,

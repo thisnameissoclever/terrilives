@@ -41,7 +41,8 @@ export function placementInstanceCount(preview: PlacementPreview | null): number
 /**
  * Appends a tinted candidate without changing the original object's rows.
  * The candidate stands in for the object while it is chosen, so it is drawn
- * in the object's colourway ([RC-render]); a purchase in the colourway chosen for it.
+ * in the object's colourway ([RC-render]). A purchase's candidate is drawn in
+ * the colourway chosen in the Buy tool's Colour list.
  */
 export function writePlacementPreview(out: Float32Array, slot: number,
   preview: PlacementPreview | null, originX: number, originY: number,

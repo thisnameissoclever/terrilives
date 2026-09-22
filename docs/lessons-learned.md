@@ -6924,3 +6924,28 @@ its tiles or elsewhere" in `web/tests/footprint-depth.test.ts` drives the
 whole frame; "draws the candidate in the colourway of the chosen object" in
 `web/tests/placement-preview.test.ts` covers the writer. Removing the ghost's
 colourway write fails both.
+
+## [L-build-where-the-tests-read] Web tests passed against a WebAssembly build nobody had made
+
+**What happened:** while building the yard, `wasm-pack` was run with
+`--out-dir ../../web/src/wasm-pkg`, a folder nothing reads. CI, the Pages build
+and the web tests all load `web/src/wasm`, so every `vitest` run in that stretch
+tested the WebAssembly left there by an earlier build. The yard's web tests
+passed while seven of them were wrong against the real 20 by 16 lot; a build
+into `web/src/wasm` showed them failing at once.
+
+**Root cause:** the out-dir was typed from memory rather than copied from
+`.github/workflows/ci.yml`, and a stale build is silent: `vitest` has no idea
+the Rust moved. This is [L8] again, reached by building somewhere else rather
+than by not building.
+
+**Prevention rule:** build with exactly the command CI runs,
+`wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
+from the repository root, before every web test run that follows a Rust
+change.
+
+**How to verify:** after the build, the timestamp of
+`web/src/wasm/terri_wasm_bg.wasm` is newer than the last Rust edit, and a web
+test that reads a boundary value you just changed, such as
+`houseSize()` in `web/tests/bridge.test.ts`, fails before the change and
+passes after.

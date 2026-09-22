@@ -727,6 +727,29 @@ walls and roofs, outdoor lighting and ambience, walkable approaches, outdoor
 objects, and transitions between home, neighborhood, and future lots. This is
 the spatial foundation for visitors, pets, disasters, and neighborhood play.
 
+The design is `docs/specs/2026-09-22-the-outside.md`, in slices. The first,
+[OS-slice-yard], is built on branch `twcl/the-yard`: the lot grows to 20 by 16
+and the house stands in a yard four tiles deep on its east and south sides,
+drawn as green floor until there is grass art ([T-yard-art]). Sims walk out
+through the front door, which swings for them, and furniture can be bought and
+walls built in the yard. Every saved house grows into the yard on Load. The
+played check is [A-yard]. The street, daylight on the yard, the house seen from
+outside and outdoor objects remain.
+
+### [B-floors] The player chooses what each floor is
+
+Found while building the yard. Every tile is one floor, and the yard is that
+floor recoloured. A real game lets the player cover a room's or a tile's floor,
+and grass is one covering among several. It needs a floor saved per tile, which
+older saves read by the yard rule in [OS-yard], and floor art beyond the one
+tile there is ([T-yard-art]).
+
+### [B-windows] Windows let light in and let sims look out
+
+Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
+line that stops sims but not light, drawn as a wall with glass. It joins the
+daylight on the yard ([OS-slice-daylight]) and needs window art.
+
 ### [A-front-door-animation] The front door opens when Sims come and go
 
 Commutes route through the front-door tile. The animated doorway is implemented
@@ -859,7 +882,9 @@ Every vertical doorway now holds a hinged door that swings open as a sim walks
 through it, drawn with the front door's art; its design is
 `docs/specs/2026-09-22-interior-doors.md` and its played checks are
 [A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
-([T-interior-door-art]). Floors, windows and a larger lot remain open.
+([T-interior-door-art]). Floors and windows are their own entries,
+[B-floors] and [B-windows]. The larger lot is the yard, the first slice of
+[B-outside].
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand

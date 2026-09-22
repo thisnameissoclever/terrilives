@@ -20,7 +20,7 @@ use crate::schema::{
     VoiceFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
-use terri_core::layout::WallEdge;
+use terri_core::layout::{EdgeAxis, WallEdge};
 use terri_core::{Footprint, NeedId, TileGrid, NEED_COUNT, NEED_MAX, NEED_MIN};
 
 /// The atlas sprite every sim is drawn with.
@@ -583,6 +583,25 @@ const COLOURWAY_LIGHTNESS_LIMIT: f32 = 0.25;
 /// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
 /// the art as drawn; ids are unique and, like names, not empty; each shift
 /// is a number within the range the shader is built for.
+/// The name of the first of a colour shift's numbers outside its range
+/// ([RC-content]), or `None` when all three are in range. `contains` is false
+/// for NaN, so a missing number is refused too.
+fn shift_out_of_range(hue: f32, strength: f32, lightness: f32) -> Option<&'static str> {
+    [
+        ("hue", hue, -COLOURWAY_HUE_LIMIT, COLOURWAY_HUE_LIMIT),
+        ("strength", strength, 0.0, COLOURWAY_STRENGTH_MAX),
+        (
+            "lightness",
+            lightness,
+            -COLOURWAY_LIGHTNESS_LIMIT,
+            COLOURWAY_LIGHTNESS_LIMIT,
+        ),
+    ]
+    .into_iter()
+    .find(|&(_, value, low, high)| !(low..=high).contains(&value))
+    .map(|(field, ..)| field)
+}
+
 fn compile_colourways(defs: &[ColourwayDef]) -> Result<Vec<CompiledColourway>, ContentError> {
     let mut seen = BTreeSet::new();
     for (index, def) in defs.iter().enumerate() {
@@ -597,23 +616,11 @@ fn compile_colourways(defs: &[ColourwayDef]) -> Result<Vec<CompiledColourway>, C
                 colourway: colourway(),
             });
         }
-        for (field, value, low, high) in [
-            ("hue", def.hue, -COLOURWAY_HUE_LIMIT, COLOURWAY_HUE_LIMIT),
-            ("strength", def.strength, 0.0, COLOURWAY_STRENGTH_MAX),
-            (
-                "lightness",
-                def.lightness,
-                -COLOURWAY_LIGHTNESS_LIMIT,
-                COLOURWAY_LIGHTNESS_LIMIT,
-            ),
-        ] {
-            // `contains` is false for NaN, so a missing number is refused too.
-            if !(low..=high).contains(&value) {
-                return Err(ContentError::ColourwayOutOfRange {
-                    colourway: colourway(),
-                    field: field.to_string(),
-                });
-            }
+        if let Some(field) = shift_out_of_range(def.hue, def.strength, def.lightness) {
+            return Err(ContentError::ColourwayOutOfRange {
+                colourway: colourway(),
+                field: field.to_string(),
+            });
         }
         if index == 0 && (def.hue != 0.0 || def.strength != 1.0 || def.lightness != 0.0) {
             return Err(ContentError::FirstColourwayNotAsDrawn {
@@ -2515,6 +2522,37 @@ fn compile_lot(
         });
     }
 
+    // [OS-grow]: the house stands in the lot's north-west corner.
+    let house = match &lot.house {
+        None => (lot.width, lot.height),
+        Some(house) => {
+            if house.width == 0
+                || house.height == 0
+                || house.width > lot.width
+                || house.height > lot.height
+            {
+                return Err(ContentError::HouseOutsideLot {
+                    width: house.width,
+                    height: house.height,
+                    lot_width: lot.width,
+                    lot_height: lot.height,
+                });
+            }
+            (house.width, house.height)
+        }
+    };
+    let yard_look = match &lot.yard {
+        None => [0.0, 1.0, 0.0],
+        Some(yard) => {
+            if let Some(field) = shift_out_of_range(yard.hue, yard.strength, yard.lightness) {
+                return Err(ContentError::YardLookOutOfRange {
+                    field: field.to_string(),
+                });
+            }
+            [yard.hue, yard.strength, yard.lightness]
+        }
+    };
+
     if !lot.wall.is_empty() && !lot.wall_edge.is_empty() {
         return Err(ContentError::MixedWallArchitecture);
     }
@@ -2548,6 +2586,21 @@ fn compile_lot(
             });
         }
         wall_edges.push(edge);
+    }
+    // [OS-grow]: the house is closed by content rather than by the lot's
+    // edge. Every line between a house tile and a yard tile holds a wall or a
+    // doorway: the east side where the house is narrower than the lot, the
+    // south side where it is shorter.
+    let east = (house.0 < lot.width)
+        .then(|| (0..house.1).map(|y| (EdgeAxis::Vertical, house.0, y)))
+        .into_iter()
+        .flatten();
+    let south = (house.1 < lot.height)
+        .then(|| (0..house.0).map(|x| (EdgeAxis::Horizontal, x, house.1)))
+        .into_iter()
+        .flatten();
+    if let Some((axis, x, y)) = east.chain(south).find(|line| !edge_keys.contains(line)) {
+        return Err(ContentError::HouseNotClosed { axis, x, y });
     }
 
     let mut walls = Vec::with_capacity(lot.wall.len());
@@ -2879,6 +2932,8 @@ fn compile_lot(
                     y,
                     lot.width,
                     lot.height,
+                    house,
+                    &wall_edges,
                     visual,
                     &grid,
                     sprite_index,
@@ -2930,16 +2985,21 @@ fn compile_lot(
             placements,
             front_door,
             wall_edges,
+            house,
+            yard_look,
         },
         portals,
     ))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compile_front_door_visual(
     x: u32,
     y: u32,
     width: u32,
     height: u32,
+    house: (u32, u32),
+    wall_edges: &[WallEdge],
     visual: &crate::schema::FrontDoorVisualDef,
     grid: &TileGrid,
     sprite_index: &dyn Fn(&str) -> Option<usize>,
@@ -2964,7 +3024,7 @@ fn compile_front_door_visual(
         .into_iter()
         .filter(|on_edge| *on_edge)
         .count();
-    if edge_count != 1 {
+    if edge_count > 1 {
         return Err(ContentError::FrontDoorNotOnUniqueEdge {
             x,
             y,
@@ -2973,7 +3033,22 @@ fn compile_front_door_visual(
         });
     }
 
-    let (expected, expected_name, default_entry) = if on_positive_x {
+    let (expected, expected_name, default_entry) = if edge_count == 0 {
+        // [OS-door]: on no edge of the lot, the door stands on the house's
+        // outside wall. It faces south-east, so its line is vertical like the
+        // only door art there is, the tile across that line is yard, and the
+        // line is a doorway. The house stands in the lot's north-west corner,
+        // so no other facing has yard across it.
+        let inside = x < house.0 && y < house.1;
+        let across_is_yard = x + 1 >= house.0;
+        let doorway = wall_edges.iter().any(|edge| {
+            edge.axis == EdgeAxis::Vertical && edge.x == x + 1 && edge.y == y && edge.doorway
+        });
+        if facing != CompiledSocketFacing::PositiveX || !inside || !across_is_yard || !doorway {
+            return Err(ContentError::FrontDoorNotOutside { x, y });
+        }
+        (CompiledSocketFacing::PositiveX, "SE", (x - 1, y))
+    } else if on_positive_x {
         (CompiledSocketFacing::PositiveX, "SE", (x - 1, y))
     } else if on_negative_x {
         (CompiledSocketFacing::NegativeX, "NW", (x + 1, y))
@@ -3403,9 +3478,15 @@ mod tests {
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
         1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
-        // Empty wall_edges follows front_door at the end of the lot record.
-        0,
-        0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
+        // The last `0` above is the empty wall_edges, after front_door.
+        //
+        // **The outside appends the house and the yard look to the lot
+        // ([OS-grow], [OS-yard]).** `5, 3` is the house, the whole 5 by 3
+        // lot since the fixture names none, and the twelve bytes after it
+        // are the as-drawn look, hue 0, strength 1 and lightness 0, as
+        // little-endian floats. Read from the failing golden assertion.
+        5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
+        0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
@@ -3439,6 +3520,8 @@ mod tests {
     fn bare_lot() -> LotFile {
         LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
             width: 1,
             height: 1,
             wall: Vec::new(),
@@ -3467,6 +3550,8 @@ mod tests {
     fn distinct_lot() -> LotFile {
         LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
             width: 5,
             height: 3,
             wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
@@ -5174,6 +5259,8 @@ mod tests {
     fn placements_resolve_to_the_declared_object_index() {
         let lot = LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
             front_door: None,
             width: 4,
             height: 4,
@@ -6026,31 +6113,50 @@ mod tests {
 
     #[test]
     fn rejects_visual_front_doors_without_one_unambiguous_outward_edge() {
-        for (x, y, label) in [(2, 2, "interior"), (0, 0, "corner")] {
-            let mut lot = lot_of(5, 5, &[], &[]);
-            lot.front_door = Some(crate::schema::FrontDoorDef {
-                x,
-                y,
-                visual: Some(portal_visual("SE")),
-            });
-            assert_eq!(
-                compile_bare(
-                    full_needs(),
-                    one_object(snack()),
-                    lot,
-                    test_atlas(),
-                    full_tuning(),
-                )
-                .unwrap_err(),
-                ContentError::FrontDoorNotOnUniqueEdge {
-                    x: x as u32,
-                    y: y as u32,
-                    width: 5,
-                    height: 5,
-                },
-                "{label}"
-            );
-        }
+        // A door on no edge must stand on the house's outside wall
+        // ([OS-door]); a lot that is all house has none.
+        let mut lot = lot_of(5, 5, &[], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 2,
+            y: 2,
+            visual: Some(portal_visual("SE")),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorNotOutside { x: 2, y: 2 },
+            "interior"
+        );
+        // A corner is on two edges, so which way it opens is ambiguous.
+        let mut lot = lot_of(5, 5, &[], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 0,
+            y: 0,
+            visual: Some(portal_visual("SE")),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorNotOnUniqueEdge {
+                x: 0,
+                y: 0,
+                width: 5,
+                height: 5,
+            },
+            "corner"
+        );
     }
 
     #[test]
@@ -7320,6 +7426,8 @@ mod tests {
     ) -> LotFile {
         LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
             front_door: None,
             width,
             height,
@@ -7350,6 +7458,200 @@ mod tests {
         format!("\n[[wall_edge]]\naxis = '{axis}'\nx = {x}\ny = {y}\ndoorway = {doorway}\n")
     }
 
+    /// A 6 by 4 lot whose house is 4 by 4, so the yard is the two east
+    /// columns. The house's east wall is the vertical line x = 4: a doorway at
+    /// `door_row`, a wall on every other row but `open_row`, then `extra`.
+    fn house_lot(door_row: Option<i32>, open_row: Option<i32>, extra: &str) -> LotFile {
+        let mut authored =
+            String::from("width = 6\nheight = 4\nhouse = { width = 4, height = 4 }\n");
+        for y in (0..4).filter(|&y| Some(y) != open_row) {
+            authored += &wall_edge("vertical", 4, y, Some(y) == door_row);
+        }
+        toml::from_str(&(authored + extra)).unwrap()
+    }
+
+    /// [OS-grow] in `docs/specs/2026-09-22-the-outside.md`: a house smaller
+    /// than its lot is closed by content. Every line between a house tile and
+    /// a yard tile holds a wall or a doorway, on the east side and the south.
+    #[test]
+    fn a_house_smaller_than_its_lot_is_closed_by_its_walls() {
+        let pack = compile_geometry(one_object(snack()), house_lot(Some(1), None, "")).unwrap();
+        assert_eq!(pack.lot.house, (4, 4));
+        for open in 0..4 {
+            assert_eq!(
+                compile_geometry(one_object(snack()), house_lot(None, Some(open), "")).unwrap_err(),
+                ContentError::HouseNotClosed {
+                    axis: EdgeAxis::Vertical,
+                    x: 4,
+                    y: open as u32
+                }
+            );
+        }
+        let short = |edges: &[(i32, bool)]| -> LotFile {
+            let mut authored =
+                String::from("width = 3\nheight = 3\nhouse = { width = 3, height = 2 }\n");
+            for &(x, doorway) in edges {
+                authored += &wall_edge("horizontal", x, 2, doorway);
+            }
+            toml::from_str(&authored).unwrap()
+        };
+        compile_geometry(
+            one_object(snack()),
+            short(&[(0, false), (1, true), (2, false)]),
+        )
+        .expect("the south side closed, one line a doorway");
+        assert_eq!(
+            compile_geometry(one_object(snack()), short(&[(0, false), (1, true)])).unwrap_err(),
+            ContentError::HouseNotClosed {
+                axis: EdgeAxis::Horizontal,
+                x: 2,
+                y: 2
+            }
+        );
+    }
+
+    /// [OS-grow]: the house is at least one tile each way and fits the lot;
+    /// a house the size of the lot needs no walls of its own.
+    #[test]
+    fn a_house_must_fit_its_lot() {
+        for (width, height) in [(0, 4), (4, 0), (7, 4), (6, 5)] {
+            let lot: LotFile = toml::from_str(&format!(
+                "width = 6\nheight = 4\nhouse = {{ width = {width}, height = {height} }}\n"
+            ))
+            .unwrap();
+            assert_eq!(
+                compile_geometry(one_object(snack()), lot).unwrap_err(),
+                ContentError::HouseOutsideLot {
+                    width,
+                    height,
+                    lot_width: 6,
+                    lot_height: 4
+                }
+            );
+        }
+        let whole: LotFile =
+            toml::from_str("width = 6\nheight = 4\nhouse = { width = 6, height = 4 }\n").unwrap();
+        assert_eq!(
+            compile_geometry(one_object(snack()), whole)
+                .unwrap()
+                .lot
+                .house,
+            (6, 4)
+        );
+    }
+
+    /// [OS-grow], [OS-yard]: a lot that names no house is all house, and one
+    /// that names no yard look draws a yard tile as the floor is drawn.
+    #[test]
+    fn a_lot_naming_no_house_is_all_house_and_its_yard_is_drawn_as_the_floor() {
+        let pack = compile_geometry(one_object(snack()), wall_edge_lot("")).unwrap();
+        assert_eq!(
+            (pack.lot.house, pack.lot.yard_look),
+            ((5, 4), [0.0, 1.0, 0.0])
+        );
+    }
+
+    /// [OS-yard]: the yard's look has a colourway's three ranges, each limit
+    /// allowed, and a number past one names the number.
+    #[test]
+    fn the_yard_look_has_a_colourways_ranges() {
+        let yard = |hue: &str, strength: &str, lightness: &str| {
+            let lot: LotFile = toml::from_str(&format!(
+                "width = 5\nheight = 4\nyard = {{ hue = {hue}, strength = {strength}, lightness = {lightness} }}\n"
+            ))
+            .unwrap();
+            compile_geometry(one_object(snack()), lot)
+        };
+        assert_eq!(
+            yard("70.0", "1.5", "-0.05").unwrap().lot.yard_look,
+            [70.0, 1.5, -0.05]
+        );
+        yard("180.0", "2.0", "0.25").expect("the upper limits");
+        yard("-180.0", "0.0", "-0.25").expect("the lower limits");
+        for (hue, strength, lightness, field) in [
+            ("180.5", "1.0", "0.0", "hue"),
+            ("-180.5", "1.0", "0.0", "hue"),
+            ("nan", "1.0", "0.0", "hue"),
+            ("0.0", "2.1", "0.0", "strength"),
+            ("0.0", "-0.1", "0.0", "strength"),
+            ("0.0", "1.0", "0.3", "lightness"),
+            ("0.0", "1.0", "-0.3", "lightness"),
+        ] {
+            assert_eq!(
+                yard(hue, strength, lightness).unwrap_err(),
+                ContentError::YardLookOutOfRange {
+                    field: field.into()
+                },
+                "{hue} {strength} {lightness}"
+            );
+        }
+    }
+
+    /// [OS-door]: a front door on no edge of the lot stands on the house's
+    /// outside wall: inside the house, facing south-east, across a doorway
+    /// onto a yard tile. Each case breaks exactly one of those.
+    #[test]
+    fn a_front_door_may_stand_on_the_houses_outside_wall() {
+        let door = |x: i32, y: i32, facing: &str, mut lot: LotFile| {
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x,
+                y,
+                visual: Some(portal_visual(facing)),
+            });
+            compile_geometry(one_object(snack()), lot)
+        };
+        let pack = door(3, 1, "SE", house_lot(Some(1), None, "")).expect("a door onto the yard");
+        let portal = &pack.portals[0];
+        assert_eq!((portal.position, portal.inward), ((3, 1), (2, 1)));
+        assert_eq!(portal.facing, crate::pack::CompiledSocketFacing::PositiveX);
+        for (x, y, facing, lot, label) in [
+            (
+                3,
+                1,
+                "SE",
+                house_lot(Some(2), None, ""),
+                "its line is a wall",
+            ),
+            (
+                3,
+                1,
+                "SE",
+                house_lot(Some(2), None, &wall_edge("horizontal", 4, 1, true)),
+                "the only doorway there runs along the yard",
+            ),
+            (
+                3,
+                1,
+                "SW",
+                house_lot(Some(1), None, ""),
+                "it faces along the wall",
+            ),
+            (
+                2,
+                1,
+                "SE",
+                house_lot(Some(1), None, &wall_edge("vertical", 3, 1, true)),
+                "the tile across is the house",
+            ),
+            (
+                4,
+                1,
+                "SE",
+                house_lot(Some(1), None, &wall_edge("vertical", 5, 1, true)),
+                "it stands in the yard",
+            ),
+        ] {
+            assert_eq!(
+                door(x, y, facing, lot).unwrap_err(),
+                ContentError::FrontDoorNotOutside {
+                    x: x as u32,
+                    y: y as u32
+                },
+                "{label}"
+            );
+        }
+    }
+
     #[test]
     fn wall_edge_compilation_preserves_axis_coordinates_doorways_and_order() {
         use terri_core::layout::EdgeAxis::{Horizontal, Vertical};
@@ -7376,12 +7678,17 @@ mod tests {
         let bytes = postcard::to_allocvec(&pack.lot).unwrap();
         let decoded: CompiledLot = postcard::from_bytes(&bytes).unwrap();
         assert_eq!(decoded, pack.lot);
-        assert_eq!(&bytes[bytes.len() - 9..], &[2, 1, 3, 2, 1, 0, 1, 3, 0]);
+        // The house, then the yard look as three little-endian floats, are
+        // appended after the wall edges ([OS-grow], [OS-yard]).
+        const HOUSE_AND_LOOK: [u8; 14] = [5, 4, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0];
+        let (edges, appended) = bytes.split_at(bytes.len() - HOUSE_AND_LOOK.len());
+        assert_eq!(appended, HOUSE_AND_LOOK);
+        assert_eq!(&edges[edges.len() - 9..], &[2, 1, 3, 2, 1, 0, 1, 3, 0]);
         let legacy = compile_geometry(one_object(snack()), wall_edge_lot("")).unwrap();
         assert!(legacy.lot.wall_edges.is_empty());
         assert_eq!(
             postcard::to_allocvec(&legacy.lot).unwrap(),
-            vec![5, 4, 0, 0, 0, 0]
+            [&[5, 4, 0, 0, 0, 0][..], &HOUSE_AND_LOOK].concat()
         );
     }
 
@@ -7946,8 +8253,14 @@ mod tests {
         let lot = &pack.lot;
 
         assert!(lot.walls.is_empty(), "the shipped house uses edge walls");
-        assert_eq!(lot.wall_edges.len(), 34);
-        assert_eq!(lot.wall_edges.iter().filter(|edge| edge.doorway).count(), 5);
+        // The 34 interior walls and five doorways, then the house's east and
+        // south walls with the front door's doorway ([OS-walls]).
+        assert_eq!(lot.wall_edges.len(), 34 + 28);
+        assert_eq!(
+            lot.wall_edges.iter().filter(|edge| edge.doorway).count(),
+            5 + 1
+        );
+        assert_eq!((lot.width, lot.height, lot.house), (20, 16, (16, 12)));
         for edge in &lot.wall_edges {
             assert!(edge.in_bounds(lot.width, lot.height), "{edge:?}");
         }

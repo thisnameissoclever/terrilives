@@ -3411,3 +3411,36 @@ read Colour 2, as did the armchair recoloured earlier.
 **Not proven here.** A purchase refused for its colourway cannot be reached
 from the list, which offers only the colourways there are; the tests cover
 it. No physical phone was used.
+
+## [A-yard] The saved household's house, standing in its yard
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/the-yard` with its WebAssembly rebuilt, driven in the Playwright browser
+at 1280 by 800 in flat light, on the household loaded from its save at Day 174
+with 20,600 in Funds. The save was made before the yard.
+
+The page opened on the house exactly as before: same scale, same framing, the
+front sides cut away. A green yard showed past the house's east and south
+edges. Zoomed out, the whole lot showed the house in the north-west corner
+with the yard wrapping its east and south sides and no wall along the yard's
+own edges.
+
+In Build, the Buy tool offered the Chill-o-Matic 3000 at 300; a click on the
+tile outside the front door stood its ghost there with "Ready to buy.", and Buy
+said "Chill-o-Matic 3000 bought." with Funds at 20,300. After Exit build, over
+the next few game hours a sim was out in the yard beside the fridge, walked
+about there, and came back in through the front door, which stood open as they
+passed and was shut again once they were inside. Save said "Game saved"; a
+reload said "Saved game loaded" with the fridge still outside the door and the
+yard still there.
+
+In the Walls tool, a click near the door first chose the line north of the
+door tile, and Wall built a short wall there, which Remove took away again.
+Stepping onto the front door's line with the arrow keys showed "This line is a
+doorway. A wall there would cut off the front door.", with the Wall button
+disabled; pressing W changed nothing. At 390 by 844 the page opened centred on
+the house with the yard below it.
+
+**Not proven here.** A sim was not seen using the fridge in the yard in the
+time watched. The yard is floor recoloured green, not grass ([T-yard-art]). No
+physical phone was used.

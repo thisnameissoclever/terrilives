@@ -126,6 +126,19 @@ me the colourways you want, by name and by eye, and whether some objects
 should offer fewer. Renaming a colourway keeps saves as they are; an object
 saved in a colourway whose id is retired or renamed loads as drawn.
 
+### [T-yard-art] Grass, and the house seen from its yard `[YOURS]`
+
+The house now stands in a yard ([OS-slice-yard] in
+`docs/specs/2026-09-22-the-outside.md`). With no grass art, a yard tile is the
+floor tile turned green by the same colour shift a colourway uses, so it still
+shows the floor's diamond pattern. The house's east and south walls are cut
+away, as its front sides always were, so from the yard the house has no
+outside face. What is needed: a grass tile, and whatever you want the house to
+show where its front walls are cut away (a low wall, or a skirting line). Later
+slices will want a path, a fence along the yard's edge and a street. Tell me
+whether to draft them with the generator for you to accept or reject, or
+whether you would rather supply them. Nothing is blocked meanwhile.
+
 ### [T-trait-copy] The twelve new traits need your words `[YOURS]`
 
 The trait library grew from three traits to fifteen (PR 87), and every trait

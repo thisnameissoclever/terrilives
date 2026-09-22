@@ -522,7 +522,7 @@ describe('BuyToolControls', () => {
     expect(colour.disabled).toBe(true);
   });
 
-  it('offers no Colour list when there is only the art as drawn', () => {
+  it('disables the Colour list when the art as drawn is the only colourway', () => {
     const elements = new Map<string, FakeElement>();
     const doc = {
       querySelector: (selector: string) => {

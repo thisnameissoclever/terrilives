@@ -474,6 +474,31 @@ pub struct LotFile {
     /// Interior boundaries, mutually exclusive with legacy wall tiles.
     #[serde(default)]
     pub wall_edge: Vec<WallEdgeDef>,
+    /// [OS-grow] in `docs/specs/2026-09-22-the-outside.md`: the house's size,
+    /// standing in the lot's north-west corner; every other tile is yard.
+    /// Omitted, the house is the whole lot.
+    #[serde(default)]
+    pub house: Option<HouseDef>,
+    /// [OS-yard]: the colour shift a yard tile's floor art is drawn under.
+    /// Omitted, a yard tile is drawn as the floor is.
+    #[serde(default)]
+    pub yard: Option<YardDef>,
+}
+
+/// The house's size in tiles, from the lot's north-west corner - [OS-grow].
+#[derive(Debug, Deserialize)]
+pub struct HouseDef {
+    pub width: u32,
+    pub height: u32,
+}
+
+/// How a yard tile is drawn - [OS-yard]: a colour shift with a colourway's
+/// three numbers and their ranges ([RC-shift]).
+#[derive(Debug, Deserialize)]
+pub struct YardDef {
+    pub hue: f32,
+    pub strength: f32,
+    pub lightness: f32,
 }
 
 /// One interior boundary. Signed coordinates keep invalid negatives available

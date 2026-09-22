@@ -5,6 +5,7 @@
  * remainder, per the same division `time-controls.ts` draws.
  */
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 import {
   DRAG_THRESHOLD_PX,
@@ -14,6 +15,7 @@ import {
   clampOrigin,
   clampZoom,
   lotExtent,
+  openingExtent,
   pinchZoom,
   pointerDistance,
   wheelZoom,
@@ -294,5 +296,21 @@ describe('lotExtent against cameraOrigin', () => {
         expect(origin.y + extent.top).toBeCloseTo(topmost, 6);
       }
     }
+  });
+});
+
+// [OS-camera] in docs/specs/2026-09-22-the-outside.md.
+describe('openingExtent', () => {
+  it('is what the game opens its view on, with the house the bridge reports', () => {
+    const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+    expect(main).toContain('house: sim.houseSize(), yardLook: sim.yardLook()');
+    expect(main).toContain('openingExtent(lotWidth, lotHeight, lot.house)');
+  });
+
+  it('frames the house, or the whole lot when the lot is no bigger', () => {
+    expect(openingExtent(20, 16, [16, 12])).toEqual([16, 12]);
+    expect(openingExtent(16, 12, [16, 12])).toEqual([16, 12]);
+    expect(openingExtent(7, 20, [16, 12])).toEqual([7, 12]);
+    expect(openingExtent(20, 5, [16, 12])).toEqual([16, 5]);
   });
 });

@@ -2120,8 +2120,14 @@ mod tests {
 
         assert!(lot.width > 0 && lot.height > 0);
         assert!(lot.walls.is_empty(), "the shipped house uses edge walls");
-        assert_eq!(lot.wall_edges.len(), 34);
-        assert_eq!(lot.wall_edges.iter().filter(|edge| edge.doorway).count(), 5);
+        // The 34 interior walls and five doorways, then the house's east and
+        // south walls with the front door's doorway ([OS-walls]).
+        assert_eq!(lot.wall_edges.len(), 34 + 28);
+        assert_eq!(
+            lot.wall_edges.iter().filter(|edge| edge.doorway).count(),
+            5 + 1
+        );
+        assert_eq!((lot.width, lot.height, lot.house), (20, 16, (16, 12)));
         assert!(
             !lot.placements.is_empty(),
             "an empty lot would satisfy every assertion below vacuously"

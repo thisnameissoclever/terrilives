@@ -877,3 +877,30 @@ fn a_stream_with_wall_edits_drains_the_same_joined_or_split() {
         SavedLayout::EdgeWallsV1 { edges } if edges.len() == 2
     ));
 }
+
+/// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: a wall on the front
+/// door's line would shut the door, so it is refused; the line may still be
+/// opened. The house's other outside walls, and a yard line that merely
+/// shares the door line's numbers, change as any wall does.
+#[test]
+fn the_front_doors_line_is_never_walled() {
+    let sim = Sim::new_from_shipped_lot();
+    let edit = |axis, y, state| {
+        validate_wall_edit(
+            sim.world(),
+            WallEdit {
+                axis,
+                x: 16,
+                y,
+                state,
+            },
+        )
+    };
+    assert_eq!(
+        edit(Vertical, 2, Wall).err(),
+        Some(PlacementRefusal::BlockedDoor)
+    );
+    assert!(edit(Vertical, 2, Open).unwrap().changed);
+    assert!(edit(Vertical, 3, Doorway).unwrap().changed);
+    assert!(edit(Horizontal, 2, Wall).unwrap().changed);
+}
