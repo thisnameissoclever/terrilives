@@ -18,6 +18,7 @@ itself on having personality.
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Compact HUD | Menu; Close; Open game menu; Close game menu | `web/index.html`, `web/src/ui/mobile-hud.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
+| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the seven refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
@@ -62,7 +63,7 @@ authorize unrelated replacement copy.
 | Game title | `docs/TIM-TODO.md` [T1]; shown in the `<title>` of `web/index.html` | Decided 2026-09-21: **Natural Causes**. The repository name `terrilives` is the internal codename, not the title. |
 | Object display names | `content/objects.toml` `name` | Review all names together for one register. |
 | Object action labels | `content/objects.toml` interaction `label` | Keep verbs understandable; humor cannot obscure the action. |
-| Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. |
+| Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. Each personality's description follows the trait verbs of [TL-affinity]. |
 | Career labels | `content/careers.toml` | Prime voice surface, but must remain legible in the HUD. |
 | Trait labels and descriptions | `content/traits.toml` | Review with the mechanics visible so fiction does not misstate behavior. A disposition's sentence opens with Likes, Loves, Dislikes or Hates, and the compiler holds that verb to the trait's number ([TL-affinity]). |
 | Chain labels, steps, and carried items | `content/chains.toml` | One coherent miniature story per chain. |

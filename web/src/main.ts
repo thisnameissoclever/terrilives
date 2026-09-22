@@ -30,6 +30,7 @@ import {
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
@@ -782,6 +783,8 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           builder.resetAfterLoad();
+          housemateForm.resetAfterLoad();
+          syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
           roomTool.resetAfterLoad(lotWidth, lotHeight);
@@ -804,6 +807,34 @@ async function main(): Promise<void> {
         );
         overlayPause.resume('load-game');
       });
+  });
+  // [CS-command]: the New housemate form. The dialog pauses the game as
+  // Load does; Move in stages one command, and the form closes once the
+  // drain has moved the newcomer in and selected them.
+  const newHousemateButton = document.querySelector<HTMLButtonElement>('#new-housemate');
+  const housemateDialog = document.querySelector<HTMLDialogElement>('#housemate-dialog');
+  if (!newHousemateButton || !housemateDialog) throw new Error('missing the New housemate form');
+  let housemateView: HousemateFormView | undefined;
+  const housemateForm = new HousemateForm(sim, {
+    changed: () => housemateView?.render(),
+    movedIn: () => {
+      housemateDialog.close('confirm');
+      householdRoster.update(performance.now(), true);
+    },
+  });
+  housemateView = new HousemateFormView(document, housemateForm);
+  const syncNewHousemateButton = (): void => {
+    newHousemateButton.disabled = !housemateForm.roomForOne();
+  };
+  syncNewHousemateButton();
+  newHousemateButton.addEventListener('click', () => {
+    housemateForm.reset();
+    overlayPause.suspend('housemate');
+    housemateDialog.showModal();
+  });
+  housemateDialog.addEventListener('close', () => {
+    overlayPause.resume('housemate');
+    syncNewHousemateButton();
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
@@ -1316,6 +1347,7 @@ async function main(): Promise<void> {
     wallTool.afterCommands();
     roomTool.afterCommands();
     buyTool.afterCommands();
+    housemateForm.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();

@@ -595,6 +595,96 @@ impl SimHandle {
             })
     }
 
+    /// Stages a new housemate named `name`, with pack personality
+    /// `personality` and pack traits `traits`, moving in - [CS-command] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. Queue acceptance only;
+    /// `last_housemate_result` reports what the drain did. An index that is
+    /// not a whole number is refused here, and so is a name or a trait
+    /// list past the tuned limits: the drain would refuse it anyway, and a
+    /// staged command that long could be saved and then refused by the
+    /// loader's size checks.
+    pub fn add_housemate(&mut self, name: &str, personality: f64, traits: &[f64]) -> bool {
+        let Some(personality) = placement_u32(personality) else {
+            return false;
+        };
+        let Some(traits) = traits
+            .iter()
+            .map(|&index| placement_u32(index))
+            .collect::<Option<Vec<u32>>>()
+        else {
+            return false;
+        };
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+            || traits.len() > tuning.housemate_max_traits as usize
+        {
+            return false;
+        }
+        let bytes = postcard::to_allocvec(&SimCommand::AddHousemate {
+            name: name.to_string(),
+            personality,
+            traits,
+        })
+        .expect("a move-in serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[refusal, sim, handled]` of the last move-in a drain handled -
+    /// [CS-command]: refusal zero when the housemate moved in, `sim` the
+    /// newcomer's entity index or `u32::MAX` when nobody did, and how many
+    /// move-ins this world has handled. Empty before the first.
+    pub fn last_housemate_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_housemate_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.reason.map_or(0, |r| r as u32),
+                    result.sim.unwrap_or(u32::MAX),
+                    result.handled,
+                ]
+            })
+    }
+
+    /// The name of each pack personality, in pack order, as the New
+    /// housemate form lists them - [CS-command].
+    pub fn personality_labels(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .personalities
+            .iter()
+            .map(|personality| terri_sim::household::personality_label(&personality.id))
+            .collect()
+    }
+
+    /// What each pack personality is like, aligned with
+    /// `personality_labels` - [CS-personality].
+    pub fn personality_descriptions(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .personalities
+            .iter()
+            .map(|personality| personality.description.clone())
+            .collect()
+    }
+
+    /// How many people the household has, and the most it may have -
+    /// [CS-command]: `[size, most]`.
+    pub fn household_size(&self) -> Vec<u32> {
+        vec![
+            terri_sim::household::household_size(self.sim.world()) as u32,
+            terri_sim::household::MAX_HOUSEHOLD_SIZE as u32,
+        ]
+    }
+
+    /// The most characters a new housemate's name may have, and the most
+    /// traits - [CS-command]: `[name_chars, traits]`, from the tuning file.
+    pub fn housemate_limits(&self) -> Vec<u32> {
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        vec![tuning.housemate_name_max_chars, tuning.housemate_max_traits]
+    }
+
     /// `[refusal, payout]` for selling the object carrying entity index
     /// `object` - [SL-shell] in `docs/specs/2026-09-22-selling-furniture.md`:
     /// the refusal code, zero when it would sell, and what the sale would pay
@@ -1178,7 +1268,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the twelve `SimCommand`
+    /// - **an unknown variant index** - a byte past the fifteen `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -5236,6 +5326,46 @@ mod boundary_tests {
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
     }
 
+    /// [CS-command]: a move-in is staged through the boundary with its name
+    /// carried whole, and the newcomer is a household member the shell can
+    /// find by the returned index; an index that is not a whole number is
+    /// refused there, and one past the table by the drain. The form's lists
+    /// and limits come from content.
+    #[test]
+    fn a_move_in_is_staged_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert_eq!(handle.household_size(), vec![3, 6]);
+        assert_eq!(handle.housemate_limits(), vec![24, 4]);
+        assert_eq!(
+            handle.personality_labels(),
+            vec!["The correspondent", "The settled", "The flitting"]
+        );
+        let descriptions = handle.personality_descriptions();
+        assert_eq!(descriptions.len(), 3);
+        assert!(descriptions[1].starts_with("Keeps ordinary hours"));
+        assert!(!handle.add_housemate("Ann", 1.5, &[]));
+        assert!(!handle.add_housemate("Ann", 1.0, &[0.5]));
+        assert!(handle.add_housemate("Ann", 99.0, &[]));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_housemate_result(), vec![3, u32::MAX, 1]);
+        // Past the tuned limits, refused before it is queued.
+        assert!(!handle.add_housemate(&"a".repeat(25), 1.0, &[]));
+        assert!(!handle.add_housemate("Ann", 1.0, &[0.0, 1.0, 2.0, 3.0, 4.0]));
+        assert!(handle.add_housemate(
+            &format!("  {}  ", "a".repeat(24)),
+            1.0,
+            &[0.0, 1.0, 2.0, 3.0]
+        ));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_housemate_result()[2], 2);
+        assert!(handle.add_housemate("Ann Lee", 1.0, &[0.0, 5.0]));
+        handle.sim.flush_commands();
+        let result = handle.last_housemate_result();
+        assert_eq!((result[0], result[2]), (0, 3));
+        assert_eq!(handle.household_size(), vec![5, 6]);
+        assert_eq!(handle.sim_name(result[1]), "Ann Lee");
+    }
+
     /// [RC-slice-buy]: a purchase in a colourway is staged through the
     /// boundary and bought drawn in it; one that is not a whole number is
     /// refused there, and one past the table by the drain.
@@ -5597,12 +5727,17 @@ mod boundary_tests {
             // truncated `BuyObject`.
             // And `[0x0A, 0x00]` a truncated `BuildRoom`, `[0x0B]` a
             // `SellObject` with no object, `[0x0C, 0x00]` a `SetColourway`
-            // with no colourway, and `[0x0D, 0x00]` a truncated
-            // `BuyObjectInColourway`.
+            // with no colourway, `[0x0D, 0x00]` a truncated
+            // `BuyObjectInColourway`, and `[0x0E, 0x00]` an `AddHousemate`
+            // with an empty name and nothing after it.
             (
-                "variant index 14, one past the fourteen SimCommand declares; \
+                "variant index 15, one past the fifteen SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0E, 0x00],
+                vec![0x0F, 0x00],
+            ),
+            (
+                "AddHousemate missing its traits",
+                vec![0x0E, 0x03, b'A', b'n', b'n', 0x01],
             ),
             (
                 "BuyObjectInColourway missing its colourway",

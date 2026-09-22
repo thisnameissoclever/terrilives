@@ -496,6 +496,10 @@ purchase, test representative Town and SIMPLE House Interiors FBX assets
 together in the real renderer for style, scale, conversion quality, and the
 interaction and footprint work the raw assets do not provide.
 
+### [T-sim-looks] Newcomers all wear the same shirt `[YOURS]`
+
+A new housemate ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`) looks like everyone else: a person's shirt is picked from their sim id, and only three shirts exist, so every newcomer after the shipped three wears the green one. A real character creator needs faces, hair, bodies and clothes to choose from ([CS-slice-looks]). Tell me whether to draft looks with the generator for you to accept or reject, or whether you would rather supply them. Nothing is blocked meanwhile.
+
 ### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
 
 Selling furniture refuses to sell the last object that can fill a role a

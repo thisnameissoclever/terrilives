@@ -75,6 +75,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | Term | Means |
 | --- | --- |
 | **HUD** | The always-visible controls and status panels over the game: household time and funds, household roster, the selected person's needs and activity, speed, save controls, and Help. |
+| **housemate, new** | A person the player adds to the household during play from the New housemate form: named, given a personality and up to four traits, arriving from the street ([CS-slice-housemate]). Made by the same spawn as the shipped household, so they save and behave like anyone else. |
 | **household roster** | The Household row of named buttons used to select a person. Its order follows stable household identity, and it reconciles those identities after Load rather than trusting replaceable entity indices. |
 | **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
 | **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |

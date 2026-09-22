@@ -613,9 +613,14 @@ pub struct Tuning {
     /// What a sale pays back, as a fraction of the object's price, in
     /// `[0, 1]` and finite - [SL-pay] in
     /// `docs/specs/2026-09-22-selling-furniture.md`. A sale pays
-    /// `floor(price * resale_fraction)`. Last in this struct, per the
-    /// appending rule; `wander_radius_tiles` was last until it arrived.
+    /// `floor(price * resale_fraction)`.
     pub resale_fraction: f32,
+    /// The most characters a new housemate's name may have, from 1 to 256 -
+    /// [CS-command] in `docs/specs/2026-09-22-create-a-sim.md`.
+    pub housemate_name_max_chars: u32,
+    /// The most traits a new housemate may wear, at least 1 - [CS-command].
+    /// Last in this struct, per the appending rule.
+    pub housemate_max_traits: u32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -665,6 +670,10 @@ pub struct CompiledPersonality {
     /// [ML-chrono]. 0 is "sleeps when everyone else does", which is the
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
+    /// What this personality is like, for the New housemate form -
+    /// [CS-personality]. Last, because it was appended; personalities are
+    /// in no save and not in the save digest.
+    pub description: String,
 }
 
 /// One trait, compiled - [E3]. The kind-specific numbers live in an
@@ -1173,6 +1182,8 @@ mod tests {
             day_ticks: 23,
             wander_radius_tiles: 29,
             resale_fraction: 0.40625,
+            housemate_name_max_chars: 23,
+            housemate_max_traits: 5,
         }
     }
 
@@ -1276,6 +1287,7 @@ mod tests {
                 satisfaction: [0.5, 1.75, 2.0, 0.625, 1.375, 0.8125, 1.0625],
                 dispositions: vec![(ObjectDefId(1), 0, 1.875), (ObjectDefId(2), 1, 0.25)],
                 chronotype_offset_ticks: 0,
+                description: "Sits down and stays down.".to_string(),
             }],
             household: vec![CompiledHouseholdMember {
                 name: "Terri".to_string(),
@@ -1770,11 +1782,12 @@ mod tests {
 
     /// A new tuning knob belongs at the end of the serialized `Tuning`
     /// record, even when it is conceptually related to fields near the
-    /// beginning. `resale_fraction` ([SL-pay]) is the final four bytes, and
-    /// `wander_radius_tiles`, the one-byte knob appended before it, sits just
-    /// ahead of them; every established field stays put.
+    /// beginning. The two housemate limits ([CS-command]) are the final two
+    /// one-byte varints; `resale_fraction` ([SL-pay]) is the four bytes
+    /// before them, and `wander_radius_tiles` the byte before that; every
+    /// established field stays put.
     #[test]
-    fn resale_fraction_occupies_the_appended_tuning_slot() {
+    fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
         let changed = |after: Tuning| -> Vec<usize> {
             let after = postcard::to_allocvec(&after).expect("tuning must serialise");
@@ -1786,7 +1799,22 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        let end = before.len();
+        assert_eq!(
+            changed(Tuning {
+                housemate_max_traits: 6,
+                ..a_tuning()
+            }),
+            vec![before.len() - 1]
+        );
+        assert_eq!(
+            changed(Tuning {
+                housemate_name_max_chars: 24,
+                ..a_tuning()
+            }),
+            vec![before.len() - 2]
+        );
+        assert_eq!(before[before.len() - 2..], [23, 5]);
+        let end = before.len() - 2;
         // 0.40625 and 0.46875 differ only in their top two bytes.
         assert_eq!(
             changed(Tuning {
@@ -1795,7 +1823,7 @@ mod tests {
             }),
             vec![end - 2]
         );
-        assert_eq!(before[end - 4..], 0.40625f32.to_le_bytes());
+        assert_eq!(before[end - 4..end], 0.40625f32.to_le_bytes());
         assert_eq!(
             changed(Tuning {
                 wander_radius_tiles: 31,

@@ -207,10 +207,16 @@ pub struct TuningFile {
     /// "Likes", below 1 "Dislikes", and at or below `affinity_hates_to`
     /// "Hates". The compiler holds each description to its verb. The
     /// simulation never reads either line, so neither is copied into the
-    /// compiled pack. The pair is last in this record on purpose, per the
-    /// appending rule.
+    /// compiled pack.
     pub affinity_loves_from: f32,
     pub affinity_hates_to: f32,
+    /// The most characters a new housemate's name may have - [CS-command] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. From 1 to 256, so a name
+    /// always fits the loader's limit on saved text.
+    pub housemate_name_max_chars: u32,
+    /// The most traits a new housemate may wear - [CS-command]. At least 1.
+    /// Last in this record on purpose, per the appending rule.
+    pub housemate_max_traits: u32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -629,6 +635,13 @@ pub struct ArchetypeDef {
     /// those are different numbers read by different systems.
     #[serde(default)]
     pub satisfaction: BTreeMap<String, f32>,
+    /// What this personality is like, in a sentence or two the New
+    /// housemate form prints beside its name - [CS-personality] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. Defaulted so an archetype
+    /// parses from its id alone; the compile step refuses it blank, as it
+    /// refuses a blank trait description.
+    #[serde(default)]
+    pub description: String,
     /// Per-interaction weights - "loves reading", "fears the couch". A
     /// weight of 0 is legal and IS the fear: the interaction scores as
     /// nothing, so the sim never chooses it on its own.
@@ -978,7 +991,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 29] = [
+    const TUNING_LINES: [(&str, &str); 31] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -1007,6 +1020,8 @@ mod tests {
         ("resale_fraction", "0.40625"),
         ("affinity_loves_from", "1.46875"),
         ("affinity_hates_to", "0.28125"),
+        ("housemate_name_max_chars", "23"),
+        ("housemate_max_traits", "5"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1081,6 +1096,8 @@ mod tests {
         assert_eq!(parsed.resale_fraction, 0.40625);
         assert_eq!(parsed.affinity_loves_from, 1.46875);
         assert_eq!(parsed.affinity_hates_to, 0.28125);
+        assert_eq!(parsed.housemate_name_max_chars, 23);
+        assert_eq!(parsed.housemate_max_traits, 5);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

@@ -146,6 +146,12 @@ resale_fraction = 0.5
 affinity_loves_from = 1.5
 affinity_hates_to = 0.5
 
+# A new housemate ([CS-command] in docs/specs/2026-09-22-create-a-sim.md):
+# the most characters a name may have, and the most traits the newcomer may
+# wear. Four traits matches the most anyone in the shipped household wears.
+housemate_name_max_chars = 24
+housemate_max_traits = 4
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

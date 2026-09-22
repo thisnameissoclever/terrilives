@@ -1837,6 +1837,11 @@ fn compile_personalities(
                 id: archetype.id.clone(),
             });
         }
+        if archetype.description.trim().is_empty() {
+            return Err(ContentError::EmptyPersonalityDescription {
+                id: archetype.id.clone(),
+            });
+        }
 
         let mut drain = [1.0f32; NEED_COUNT];
         for (need_name, value) in &archetype.drain {
@@ -1941,6 +1946,7 @@ fn compile_personalities(
             // wraps, and "three hours later than everyone" and "twenty-one
             // hours earlier" are the same sim.
             chronotype_offset_ticks: archetype.chronotype_offset_ticks,
+            description: archetype.description.clone(),
         });
     }
 
@@ -2231,6 +2237,16 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.wander_attempts == 0 {
         return Err(ContentError::ZeroWanderAttempts);
     }
+    // [CS-command]: a name of at most 256 characters is at most 1,024
+    // bytes, the loader's limit on saved text.
+    if !(1..=256).contains(&tuning.housemate_name_max_chars) {
+        return Err(ContentError::HousemateNameLimitOutOfRange {
+            value: tuning.housemate_name_max_chars,
+        });
+    }
+    if tuning.housemate_max_traits == 0 {
+        return Err(ContentError::HousemateTraitLimitIsZero);
+    }
     if tuning.wander_radius_tiles == 0 {
         return Err(ContentError::ZeroWanderRadius);
     }
@@ -2511,6 +2527,8 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             asleep_decay_scale: tuning.asleep_decay_scale,
             wander_radius_tiles: tuning.wander_radius_tiles,
             resale_fraction: tuning.resale_fraction,
+            housemate_name_max_chars: tuning.housemate_name_max_chars,
+            housemate_max_traits: tuning.housemate_max_traits,
         },
         circadian,
         tuning.sleep_tag,
@@ -3575,7 +3593,10 @@ mod tests {
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 0,
+        // **The housemate limits append two tuning bytes ([CS-command]):**
+        // `23, 5`, after `resale_fraction`'s `0, 0, 208, 62`. Read from the
+        // failing golden assertion.
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
         // The empty colourway vector, appended after the portals ([RC-content]).
@@ -3750,6 +3771,8 @@ mod tests {
             resale_fraction: 0.40625,
             affinity_loves_from: 1.46875,
             affinity_hates_to: 0.28125,
+            housemate_name_max_chars: 23,
+            housemate_max_traits: 5,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -4886,6 +4909,31 @@ mod tests {
         ));
     }
 
+    /// [CS-command]: a newcomer's name may be 1 to 256 characters long, both
+    /// ends allowed, so it is never empty and always fits the loader's limit
+    /// on saved text; and a newcomer may wear at least one trait.
+    #[test]
+    fn validates_the_housemate_limits() {
+        for value in [0, 257] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.housemate_name_max_chars = value)).unwrap_err(),
+                ContentError::HousemateNameLimitOutOfRange { value },
+                "{value}"
+            );
+        }
+        for value in [1, 256] {
+            let pack = compile_tuned(tuning_where(|t| t.housemate_name_max_chars = value))
+                .expect("both ends of the range are legal");
+            assert_eq!(pack.tuning.housemate_name_max_chars, value);
+        }
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.housemate_max_traits = 0)).unwrap_err(),
+            ContentError::HousemateTraitLimitIsZero
+        );
+        let pack = compile_tuned(tuning_where(|t| t.housemate_max_traits = 1)).unwrap();
+        assert_eq!(pack.tuning.housemate_max_traits, 1);
+    }
+
     /// A radius of zero cannot produce a non-empty wander path, while a radius
     /// above `i32::MAX` makes `2 * radius + 1` too large for a WebAssembly
     /// `usize` and the RNG's `u32` range. One and `i32::MAX` pin both inclusive
@@ -5775,6 +5823,7 @@ mod tests {
     fn archetype(id: &str) -> ArchetypeDef {
         ArchetypeDef {
             chronotype_offset_ticks: 0,
+            description: format!("The {id} sort."),
             id: id.to_string(),
             drain: [("fun".to_string(), 1.5)].into_iter().collect(),
             satisfaction: [("hunger".to_string(), 0.75)].into_iter().collect(),
@@ -7269,6 +7318,20 @@ mod tests {
             pack.personalities[0].dispositions,
             vec![(ObjectDefId(0), 0, 0.25), (ObjectDefId(1), 0, 1.75)]
         );
+    }
+
+    #[test]
+    fn rejects_a_blank_personality_description_and_keeps_a_real_one() {
+        let mut blank = archetype("quiet");
+        blank.description = " \t".to_string();
+        assert_eq!(
+            compile_people(vec![blank], vec![]).unwrap_err(),
+            ContentError::EmptyPersonalityDescription {
+                id: "quiet".to_string()
+            }
+        );
+        let pack = compile_people(vec![archetype("quiet")], vec![]).expect("described");
+        assert_eq!(pack.personalities[0].description, "The quiet sort.");
     }
 
     #[test]

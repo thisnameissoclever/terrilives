@@ -3490,3 +3490,15 @@ Selecting each person from the Household buttons and opening their panel, the Tr
 The owner approved these words, drafted in the plan of 2026-09-22, before they were built; this is the approval `docs/player-visible-strings.md` asks to be recorded.
 
 **Not proven here.** The fuller household a new game gets (Tim's Bookworm, "Likes reading.", and the other dispositions) was checked by the bridge test on the real WebAssembly rather than in the page, because starting a new game would clear the saved household. No phone was used.
+
+## [A-housemate] Ann moves in from the street
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/housemate-pages` (commit ccffbc7) with its WebAssembly rebuilt, in the desktop app's browser pane at 800 by 450 and at 375 by 812, in auto light, on the household loaded from its save at Day 1.
+
+New housemate under Household opened the form on its first page: "3 of 6 live here.", "Give them a name.", a Name box, and the three personalities as radio buttons, each with its name in bold and its description beneath, with Next off. After typing Ann, choosing The settled and pressing Enter in the name box, the second page showed "Traits, up to 4" with each trait's name and sentence, and Back and Move in; focus had moved to the first box. With Bookworm and Keen cyclist ticked, Move in closed the form. Ann appeared in the roster, selected, standing on the grey street at the lot's east edge, and walked across the yard to the front door. Her panel read "Good" mood with every need full, and her Traits read "Bookworm", "Likes reading." and "Keen cyclist", "Loves the exercise bike."
+
+At 375 by 812 the form fit the screen on both pages with its buttons in view. Moving Ann in again there, then Save from the Menu ("Game saved") and a reload ("Saved game loaded"), kept her in the roster. A reload before saving had brought back the last save without her, as a reload without Save does for any change.
+
+The fridge bought into the yard during [A-yard] was not in this browser's save, so there was nothing to sell back.
+
+**Not proven here.** The six-person ceiling, the refusals and a staged move-in in a save were checked by tests, not in the page. No phone was used.

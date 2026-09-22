@@ -662,6 +662,17 @@ on the first V5 write; V1 to V4 still load, with every object as drawn. A
 colourway is set by `SetColourway` (wire code 12) or bought with the object by
 `BuyObjectInColourway` (code 13), each a lot edit.
 
+`AddHousemate` (wire code 14) drains with the lot edits too, though it edits
+the household rather than the lot ([CS-command] in
+`docs/specs/2026-09-22-create-a-sim.md`). It is checked whole, and only then
+issues a sim id and spawns the newcomer through `household::spawn_member`, the
+same function that spawns the shipped household from content, so a newcomer
+is made exactly as the others were. Its result is `last_housemate_result` on
+`LotEditState`. A staged move-in saves as `SavedCommand::AddHousemate`, its
+personality and traits by content id, and the world hash reads it by those
+ids and never by the name. The newcomer needs no save change: every field it
+has is one every household member already saves.
+
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a
 dynamic object shares an authored placement's id and position. Historical V1
