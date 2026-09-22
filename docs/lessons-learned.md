@@ -7073,3 +7073,13 @@ never for leaving an old break as it was.
 in `crates/terri-sim/src/systems/street_tests.rs` fails if the edit check drops
 its "reaches now" condition, or if the commute stops falling back to the
 door.
+
+## [L-move-markup-by-its-tree] A moved block of markup left its closing tag behind
+
+**What happened:** a review fix moved the Options flyout's markup to the top of the page. The script cut from the block's opening comment to the first `</div>` with four spaces of indent after the panel. That text also matched inside the panel's own six-space closing tag, so the cut ended one tag early. The wrapper's closing tag stayed where the block used to be, and the whole sidebar ended up inside the flyout's wrapper, fixed to the window's right edge. Every test passed, and the branch was pushed. The next played check showed the sidebar at x = 1240 on a 1280-pixel window.
+
+**Root cause:** the script found the end of an element by matching text, and indentation is not structure. The tests checked that ids came in the right order in the file, which a misplaced closing tag does not change.
+
+**Prevention rule:** move markup by its tree, not by a text pattern: find the matching close by counting tags, and check the moved block opens and closes exactly once. A test about where markup sits checks nesting, not just order.
+
+**How to verify:** `holds only the gear and its panel, closing before the sidebar opens` in `web/tests/options-menu.test.ts` walks the div tags from the wrapper to its matching close and fails if the sidebar, the Build dock, the right-click flyout or the debug overlay is inside it.

@@ -57,7 +57,7 @@ footer and a useful region above it, so it scrolls as one piece as before.
 
 * The heading and the "Household paused" note leave the view but stay in the
   page, so the panel keeps its accessible name. The chosen object's name is
-  still in its list, the HUD's Exit build shows Build is on, and the HUD clock
+  still in its list, the dock itself shows Build is on (Exit build is in the Options flyout), and the HUD clock
   stops, which shows the pause. On a desktop both stay in view.
 * The four tool buttons share one row, with their side padding trimmed so
   "Furniture" fits at 320 wide. Below 301 pixels wide they return to two by

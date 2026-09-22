@@ -345,8 +345,10 @@ describe('the Traits block in the page', () => {
     expect(MAIN_TS).toContain(`'#${id}'`);
   });
 
-  it('starts hidden, is named for assistive technology, and sits below the need bars', () => {
-    expect(INDEX_HTML).toContain('<section id="traits-block" aria-label="Traits" hidden>');
+  it('starts hidden and collapsed, is named for assistive technology, and sits below the need bars', () => {
+    // [OF3]: a details element with no `open`, so every load starts closed.
+    expect(INDEX_HTML).toContain('<details id="traits-block" aria-label="Traits" hidden>');
+    expect(INDEX_HTML).toContain('<summary id="traits-caption" class="summary-label">Traits</summary>');
     const needs = INDEX_HTML.indexOf('id="needs-content"');
     const traits = INDEX_HTML.indexOf('id="traits-block"');
     const people = INDEX_HTML.indexOf('id="people-panel"');
