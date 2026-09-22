@@ -1220,6 +1220,11 @@ export class SimBridge {
     return this.handle.trait_descriptions();
   }
 
+  /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */
+  frontDoorLines(): Uint32Array {
+    return Uint32Array.from(this.handle.front_door_lines());
+  }
+
   /** Each personality's name, in pack order ([CS-command] in `docs/specs/2026-09-22-create-a-sim.md`). */
   personalityLabels(): string[] {
     return this.handle.personality_labels();

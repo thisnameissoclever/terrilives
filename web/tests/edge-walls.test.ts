@@ -108,6 +108,22 @@ describe('a house standing in a yard', () => {
       .toEqual(buildEdgeWallGeometry(3, 2, new Uint32Array()));
   });
 
+  // [WB-draw]: while the Walls or Room tool is in use the cut-away lines are
+  // drawn as well, exactly as a lot that is all house draws them, and the
+  // back walls still run along the house only.
+  it('draws the cut-away walls and doorway when asked, and nothing more', () => {
+    const shown = buildEdgeWallGeometry(5, 4, all, [], [3, 2], true);
+    const withoutBack = (panels: ReturnType<typeof buildEdgeWallGeometry>) =>
+      panels.filter((p) => p.x >= 0 && p.y >= 0);
+    expect(withoutBack(shown)).toEqual(withoutBack(buildEdgeWallGeometry(5, 4, all)));
+    expect(shown.filter((p) => p.mask === 0)).toHaveLength(1);
+    // The cut-away wall at x = 3 meets the north back wall at the house's
+    // corner: an arm down and an arm west.
+    expect(shown.find((p) => p.x === 2.5 && p.y === -0.5)?.mask).toBe(12);
+    expect(buildEdgeWallGeometry(5, 4, new Uint32Array(), [], [3, 2], true))
+      .toEqual(buildEdgeWallGeometry(5, 4, new Uint32Array(), [], [3, 2]));
+  });
+
   it('draws everything when the whole lot is house', () => {
     expect(buildEdgeWallGeometry(5, 4, all)).toEqual(buildEdgeWallGeometry(5, 4, all, [], [5, 4]));
     expect(buildEdgeWallGeometry(5, 4, all).filter((p) => p.mask === 0)).toHaveLength(1);

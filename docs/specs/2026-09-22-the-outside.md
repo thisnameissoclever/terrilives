@@ -73,7 +73,7 @@ house does not seem to carry on past its corner.
 
 **They are cut away.** The view looks at the house from the south-east, so a
 full wall on the east or south side would hide a strip of every room along it.
-Those sides are not drawn today, and they stay undrawn: the renderer leaves out
+Those sides are not drawn during play, and they stay undrawn then; the Walls and Room tools draw them ([WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`). The renderer leaves out
 any wall or doorway on a line with a house tile on its north or west side and
 a yard tile on its south or east side. They still stop sims, routes and lamp
 light, as every wall does. Walls a player builds in the yard are drawn as any

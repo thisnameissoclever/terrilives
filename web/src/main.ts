@@ -37,6 +37,7 @@ import { buildLightField } from './render/lighting.js';
 import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
+  setCutAwayWalls,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -796,6 +797,7 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.doors = sim.interiorDoorLines();
+          lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
           lot.street = sim.streetColumn();
           // A restored world may reuse entity indices for different live
@@ -979,7 +981,8 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
-    street: sim.streetColumn(), streetLook: sim.streetLook() };
+    street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
+    frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -1385,6 +1388,10 @@ async function main(): Promise<void> {
       cameraDirty = true;
       keyboardTargets.clear();
     }
+    // [WB-draw]: the walls the view cuts away are drawn while a wall tool
+    // is in use, so the player sees every line they can edit. The static
+    // block is rebuilt only when that changes, not on every click.
+    if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (cameraDirty) applyCamera();
