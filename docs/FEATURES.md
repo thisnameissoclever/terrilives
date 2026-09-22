@@ -931,17 +931,17 @@ Good for line moved them further down. The fix is a
 layout for the dock that keeps each tool's confirming buttons in view, such as
 a pinned action row, checked on a phone for every Build tool.
 
-Built on branch `twcl/phone-build-dock`. Each Build tool's status line and the
-buttons that act on it form one group. On a compact screen at least 481
-pixels tall, the panel scrolls inside its border and that group stays pinned
-at its foot, so Confirm, Buy, Build room and the wall buttons are always in
-view. On every compact screen the four tool buttons share one row, and in the
-Furniture tool Sell joins Confirm and Cancel, which saves two rows of the
-capped panel. The panel's cap now counts its border and padding, so it stays
-at 45% of the screen. Below 481 pixels of height, a phone held sideways, the
-panel is about 144 pixels tall and a pinned group would hide the list it acts
-on, so nothing is pinned there and the panel scrolls as before. Desktop is
-unchanged. The played check is [A-phone-build-dock].
+Built on branch `twcl/phone-build-dock`. Each Build tool holds its choices,
+then a footer of its status line and the buttons that act on it. On a compact
+screen at least 481 pixels tall only the choices scroll, so Confirm, Buy,
+Build room and the wall buttons are always in view and nothing sits behind
+them. On every compact screen the heading and paused note leave the view,
+the four tool buttons share one row, each list's label sits beside it, and
+Sell joins Confirm and Cancel. Below 481 pixels of height the panel can be
+144 pixels tall, too short for a footer and a region above it, so it scrolls
+whole as before. Desktop reads as it did. The design is
+`docs/specs/2026-09-22-phone-build-dock.md` and the played check is
+[A-phone-build-dock].
 
 ### [B-facing] Objects know which way they face, and overlap follows
 

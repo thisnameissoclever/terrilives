@@ -3298,33 +3298,42 @@ Furniture tool tests cover it. No physical phone was used.
 
 Played on 2026-09-22 on the port 5174 dev server serving branch
 `twcl/phone-build-dock`, driven in the Playwright browser on the household
-loaded from its save, measuring each control against the panel's visible edge.
+loaded from its save. For each control I measured whether its whole box was in
+view and whether a tap at its centre reached it. Widths come from a desktop
+browser emulating a phone, whose scrollbars take a few pixels a phone does not.
 
-**390 by 844.** The panel is 380 pixels tall, the same 45% of the screen as
-before. The four tool buttons sit in one row, each 78 pixels wide. In Buy,
-before and after choosing "Chair, Standard Issue (40)", the status and the Buy
-and Cancel buttons were in view without scrolling, pinned at the panel's foot
-with a line above them; the facing row showed a few pixels above the line.
-Scrolling to the end brought the facing row, the price and "Good for: no need
-on its own" into view above the group. Pressing the pinned Buy bought the
-chair: "Chair, Standard Issue bought." and Funds went from 14,020 to 13,980.
-Walls and Room fit in the panel whole, with no scrolling. In the Furniture
-tool with the stove chosen, everything was in view at once: the list, the
-facing and Rotate row, "Ready to place.", Confirm, Cancel and a disabled Sell
-in one row, and the "Cannot sell" note.
+**390 by 844, Buy.** The panel is 380 pixels, 45% of the screen, as before.
+With "Chair, Standard Issue (40)" chosen, everything was whole and reached by a
+tap: the four tool buttons in one row, "Show" beside its list, "Buy" beside
+the catalogue, Rotate, the price, "Good for: no need on its own", the status,
+Buy and Cancel. The help line was cut at the edge of the scrolling choices,
+above a line over the status.
 
-**320 by 568.** The panel is 256 pixels tall. The tool buttons are 61 pixels
-wide and "Furniture" fits once their side padding is trimmed; before the trim
-it ran 3 pixels over. With the stove chosen the pinned group takes about half
-the panel, so the furniture list and Rotate sit behind it until the panel is
-scrolled; the buttons stay in view.
+**375 by 667.** Furniture with the stove chosen: the list, Rotate, the status,
+Confirm, Cancel and a disabled Sell in one row, and the "Cannot sell" note, all
+whole. Walls and Room: the help, the status and every button whole. Buy: both
+lists, the status, Buy and Cancel whole, and Rotate cut by the edge of the
+choices but reached by a tap. With the catalogue list focused, Tab moved focus
+to Rotate and the choices scrolled it whole into view.
 
-**568 by 320, held sideways.** The panel is 144 pixels tall and nothing is
-pinned: the group stays in place and the panel scrolls to Confirm, as before,
-now two rows shorter.
+**320 by 568, Furniture with the stove chosen.** The footer holds the status,
+the row of three buttons and the two-line sale note. The choices region above
+it shows the list whole, with Rotate a scroll away. "Furniture" fits its tool
+button exactly.
 
-**1280 by 800.** The side panel is unchanged: two by two tool buttons, and Sell
-full width under Confirm and Cancel.
+**280 by 653.** The tool buttons are two by two, 117 pixels each, and every
+label fits.
+
+**568 by 320, held sideways.** The panel is 144 pixels and scrolls whole, as
+before; the choices are not a region of their own.
+
+**1280 by 800.** The side panel reads as it did: heading, paused note, tools
+two by two, the list, the facing and Rotate row, the status, Confirm and
+Cancel, Sell, the note, then the keyboard help.
+
+**First version, replaced.** The first build pinned the footer over a panel
+that scrolled whole. Review measured it hiding Buy's Rotate at 390 by 844 and
+the whole Buy list at 375 by 667, and I saw the list and Rotate behind the
+footer at 320 by 568. The footer now sits outside the scrolling region.
 
 **Not proven here.** No physical phone was used, and nothing was saved.
-

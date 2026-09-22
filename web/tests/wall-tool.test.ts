@@ -454,7 +454,7 @@ describe('the Walls tool in the page', () => {
     const panel = INDEX_HTML.slice(INDEX_HTML.indexOf('id="builder-controls"'),
       INDEX_HTML.indexOf('</section>', INDEX_HTML.indexOf('id="builder-controls"')));
     for (const id of IDS) expect(panel).toContain(`id="${id}"`);
-    expect(panel).toContain('<div id="wall-tool" hidden>');
+    expect(panel).toContain('<div id="wall-tool" class="builder-tool" hidden>');
     expect(panel).toContain('aria-pressed="true">Furniture</button>');
   });
 
