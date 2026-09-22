@@ -568,7 +568,9 @@ async function main(): Promise<void> {
     { contains: (node) => node instanceof Node && optionsRoot.contains(node) },
     optionsToggle,
     optionsMenu,
-    (target) => target instanceof Element && target.closest('dialog') !== null,
+    // Any open dialog owns Escape, even when focus has fallen to the page.
+    (target) => document.querySelector('dialog[open]') !== null
+      || (target instanceof Element && target.closest('dialog') !== null),
   );
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
@@ -850,6 +852,7 @@ async function main(): Promise<void> {
   };
   syncNewHousemateButton();
   newHousemateButton.addEventListener('click', () => {
+    optionsMenu.close();
     housemateForm.reset();
     overlayPause.suspend('housemate');
     housemateDialog.showModal();

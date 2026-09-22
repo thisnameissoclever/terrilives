@@ -490,9 +490,11 @@
       .mobile-hud-toggle {
         display: none;
       }
+      /* No gap: an empty line would still add one. Each line's own height
+         spaces them. */
       #hud-status {
         display: grid;
-        gap: 2px;
+        gap: 0;
         margin-top: 6px;
       }
       #save-status,
@@ -1073,8 +1075,8 @@
     ></canvas>
     <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
          Outside #hud for #object-menu's reason: it is fixed to the window's
-         top right, not part of the sidebar's column. First in the page, so
-         it is the first stop for a keyboard, in and out of Build. The panel holds the
+         top right, not part of the sidebar's column. Before the sidebar, so
+         it is the first stop after the game view, in and out of Build. The panel holds the
          controls a player reaches for now and then; the sidebar keeps what
          they read all the time. -->
     <div id="options">

@@ -174,7 +174,6 @@ export class HousemateForm {
    */
   resetAfterLoad(): void {
     this.pending = false;
-    this.stagedAfter = 0;
     this.reset();
   }
 
@@ -305,8 +304,9 @@ export class HousemateFormView {
       (onTraits ? this.traitBoxes[0] ?? this.confirm : this.nameInput).focus();
     } else if (this.wasPending && !form.pending && onTraits) {
       // Move in had focus and went off while it waited; a refusal leaves the
-      // player on the page with focus back where they pressed.
-      this.confirm.focus();
+      // player on the page with focus back where they pressed, or on Back
+      // when the refusal leaves Move in off, as a full household does.
+      (this.confirm.disabled ? this.backButton : this.confirm).focus();
     }
     this.shownPage = form.page;
     this.wasPending = form.pending;
