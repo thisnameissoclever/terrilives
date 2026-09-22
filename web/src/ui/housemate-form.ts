@@ -9,9 +9,11 @@
 import type { SimBridge } from '../bridge.js';
 
 /** What the form reads from the simulation. */
+import { NO_RELATION, RELATION_WORDS, relationWord } from '../bridge.js';
+
 export type HousemateSource = Pick<SimBridge, 'personalityLabels' | 'personalityDescriptions' |
   'traitLabels' | 'traitDescriptions' | 'householdSize' | 'housemateLimits' | 'addHousemate' |
-  'lastHousemateResult' | 'select'>;
+  'lastHousemateResult' | 'select' | 'setFamilyTie'>;
 
 export const CHOOSE_NAME = 'Give them a name.';
 export const HOUSEHOLD_FULL = 'The household is full.';
@@ -79,6 +81,8 @@ export class HousemateForm {
     this.name = '';
     this.personality = 0;
     this.chosenTraits = [];
+    this.relation = NO_RELATION;
+    this.relative = null;
     this.pending = false;
     this.status = this.nameStatus();
     this.hooks.changed();
@@ -140,6 +144,34 @@ export class HousemateForm {
     return this.page === 'traits' && this.canGoNext();
   }
 
+  /**
+   * Who this newcomer is to somebody already here, and to whom ([FM-choose]
+   * in `docs/specs/2026-09-22-family.md`). `NO_RELATION` means nobody, which
+   * is the default and the only answer when the household is empty.
+   */
+  relation = NO_RELATION;
+  relative: number | null = null;
+
+  /** Picks the relation a newcomer arrives with. */
+  chooseRelation(relation: number): void {
+    if (this.pending) return;
+    if (relation !== NO_RELATION && relationWord(relation) === null) return;
+    this.relation = relation;
+    this.hooks.changed();
+  }
+
+  /**
+   * Picks which household member the relation is to, by entity index. A
+   * number that is not one is refused, as the personality and trait choices
+   * are, rather than trusted because the view only offers real ones.
+   */
+  chooseRelative(entity: number | null): void {
+    if (this.pending) return;
+    if (entity !== null && (!Number.isSafeInteger(entity) || entity < 0)) return;
+    this.relative = entity;
+    this.hooks.changed();
+  }
+
   /** Stages the move-in; the drain's answer arrives through `afterCommands`. */
   moveIn(): void {
     if (!this.canMoveIn()) return;
@@ -164,7 +196,19 @@ export class HousemateForm {
       this.hooks.changed();
       return;
     }
-    if (result.sim !== null) this.source.select(result.sim);
+    if (result.sim !== null) {
+      this.source.select(result.sim);
+      // [FM-choose]: the tie is its own command, sent once the newcomer
+      // exists, because until the drain answers there is nobody to tie.
+      if (this.relation !== NO_RELATION && this.relative !== null
+        && !this.source.setFamilyTie(result.sim, this.relative, this.relation)) {
+        // The queue was full, so the tie never left. Say so: the form is the
+        // only way to make one, and a silent drop would leave a player
+        // believing they had recorded a family they had not.
+        this.status = 'They moved in, but the family tie could not be sent.';
+        this.hooks.changed();
+      }
+    }
     this.hooks.movedIn();
   }
 
@@ -200,6 +244,14 @@ function optionRow(document: Document, input: HTMLInputElement, name: string, se
 }
 
 /** Wires the form to its dialog. */
+/** One option of a select, as plain as the rest of this surface. */
+function option(document: Document, value: string, label: string): HTMLOptionElement {
+  const element = document.createElement('option');
+  element.value = value;
+  element.textContent = label;
+  return element;
+}
+
 export class HousemateFormView {
   private readonly dialog: HTMLDialogElement;
   private readonly personalityPage: HTMLElement;
@@ -217,6 +269,23 @@ export class HousemateFormView {
   private shownPage: HousematePage | null = null;
   private wasPending = false;
 
+  /**
+   * Fills the "of whom" list with the household as it stands, which the page
+   * does when the dialog opens: the household changes between openings.
+   */
+  setHousehold(members: readonly { entity: number; name: string }[]): void {
+    const document = this.relativeSelect.ownerDocument;
+    this.relativeSelect.replaceChildren();
+    this.relativeSelect.append(option(document, '', 'nobody here'));
+    for (const member of members) {
+      this.relativeSelect.append(option(document, String(member.entity), member.name));
+    }
+    this.render();
+  }
+
+  private readonly relationSelect: HTMLSelectElement;
+  private readonly relativeSelect: HTMLSelectElement;
+
   constructor(document: Document, private readonly form: HousemateForm) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
@@ -224,6 +293,8 @@ export class HousemateFormView {
       return element;
     };
     this.dialog = required('housemate-dialog');
+    this.relationSelect = required<HTMLSelectElement>('housemate-relation');
+    this.relativeSelect = required<HTMLSelectElement>('housemate-relative');
     // Enter on a box or a radio could submit the form by the browser's
     // implicit-submission rule and close the dialog; nothing here submits.
     required('housemate-form').addEventListener('submit', (event) => event.preventDefault());
@@ -272,11 +343,31 @@ export class HousemateFormView {
     this.backButton.addEventListener('click', () => form.back());
     for (const cancel of cancelButtons) cancel.addEventListener('click', () => this.dialog.close('cancel'));
     this.confirm.addEventListener('click', () => form.moveIn());
+    // [FM-choose]: the relation list is the game's, in its own order, with
+    // "Nobody" first because that is the default and the common answer.
+    this.relationSelect.append(option(document, String(NO_RELATION), 'Nobody'));
+    for (const [index, word] of RELATION_WORDS.entries()) {
+      this.relationSelect.append(option(document, String(index), word));
+    }
+    this.relationSelect.addEventListener('change', () => {
+      form.chooseRelation(Number(this.relationSelect.value));
+    });
+    this.relativeSelect.addEventListener('change', () => {
+      const value = this.relativeSelect.value;
+      form.chooseRelative(value === '' ? null : Number(value));
+    });
     this.render();
   }
 
   render(): void {
     const form = this.form;
+    // [FM-choose]: the relation and who it is to, kept in step with the form.
+    if (this.relationSelect.value !== String(form.relation)) {
+      this.relationSelect.value = String(form.relation);
+    }
+    const relative = form.relative === null ? '' : String(form.relative);
+    if (this.relativeSelect.value !== relative) this.relativeSelect.value = relative;
+    this.relativeSelect.disabled = form.relation === NO_RELATION;
     const onTraits = form.page === 'traits';
     this.personalityPage.hidden = onTraits;
     this.traitsPage.hidden = !onTraits;

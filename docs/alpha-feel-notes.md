@@ -3603,3 +3603,15 @@ Options, then Build, then Floors. The dock showed Boards, Tiles, Carpet and Remo
 The patch is easy to miss at the zoom the game opens at: four tiles of a slightly different beige, in a house of beige. Zoomed one step in it reads clearly as a different floor.
 
 **Not proven here.** Saving and reloading a painted house was not done by hand in the browser. Review of the pull request found that the round trip was NOT covered, and that a Load left the previous game's floors on screen; both are fixed and now tested. Nobody walked on the new carpet, because a covering changes nothing but how a tile is drawn. A phone width was not tested. The three coverings are the one floor sprite under a colour shift, so none of them reads as boards or as carpet in the way art would: that is [T-floor-art].
+
+## [A-family] Moving Dana in as Bill's sister
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/family` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save. The clock ran through the `?stress=0` frame harness, because a hidden pane never composites ([L14]).
+
+New housemate, then a name, then Next. The second page asked it plainly under the traits: "They are the [Nobody] of [nobody here]", with the person list greyed out. The relation list offered Nobody, partner, parent, child and sibling; the person list offered Tim, Bill, Casey and Ann, which is the household as it stood at that moment. Choosing sibling enabled the person list, choosing Bill filled it, and Move in closed the dialog with Dana in the household and the tie recorded between Bill and her.
+
+**What the play check caught.** The relationship list did not say it. The tie was stored and the view model carried it, and the panel's own renderer never wrote it, so every row still read just a name and a feeling. That is fixed, and the panel test now covers the row's text rather than only the view behind it. After the fix, with Ann selected and a tie to Bill, the list reads "Bill, their parent" beside his feeling, and the rows with no tie read as they did.
+
+Review afterwards found the row was stating parent and child backwards, which this session's play could not have caught: the tie set here was a sibling, and a sibling reads the same from both sides. That is fixed, and the test that covered it had asserted the wrong answer.
+
+**Not proven here.** The fix was confirmed by setting a tie through the harness on a reloaded page rather than by moving a second person in, because the reload had already cleared the first one. Saving and reloading a household with a tie is covered by tests rather than by hand here. Nothing in the game yet behaves differently for family: a brother is a word on a row, not a reason to do anything.

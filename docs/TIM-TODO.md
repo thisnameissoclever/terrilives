@@ -106,6 +106,19 @@ front door, the vertical direction too, matched to the existing wall art.
 Tell me whether to draft them with the generator for you to accept or reject,
 or whether you would rather supply them. Nothing is blocked meanwhile.
 
+### [T-family-simid] Family ties must key on the person, not the slot `[MINE]`
+
+A family tie names the two people by entity index. Every other per-pair state
+keys on the SimId, because an index is reused once its entity is gone and a
+tie that silently transferred to whoever took that slot would be the same
+class of bug as [L47]. It is safe in this build: nobody can move out or die,
+sold indices are retired rather than handed out again, and a load rebuilds
+every index exactly. It stops being safe the moment somebody can leave, and
+relatives outside the household need a tie to outlive the house anyway. So
+this changes before either of those slices, and changing it then means
+migrating any save that carries ties. Mine to do, not yours; it is here so it
+is visible rather than only in a code comment.
+
 ### [T-subobject-art] Parts that need their own depth `[YOURS]`
 
 An object drawn as one sprite sits at one depth, so a sim can never stand

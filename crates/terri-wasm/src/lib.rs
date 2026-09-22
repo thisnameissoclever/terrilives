@@ -205,33 +205,47 @@ fn floor_edit_arguments(
 }
 
 /// Decode frozen V1, including only the historical missing sleep-pressure list.
-/// Decodes a V5 payload, including one written before the floors list was
-/// appended to it - [FL-save] in `docs/specs/2026-09-22-floors.md`.
+/// Decodes a V5 payload, including one written before the lists appended to
+/// it existed - [FL-save] and [FM-save].
 ///
 /// The same trick `decode_save_payload` uses for the sleep-pressure list, and
 /// for the same reason: postcard writes a struct's fields back to back, so an
-/// older payload is a prefix of a newer one and one zero byte is the empty
-/// list it lacks. The padded decode is accepted only when that list comes
-/// back empty, so padding can never invent a floor nobody laid.
+/// older payload is a prefix of a newer one and one zero byte is each empty
+/// list it lacks. One pad per appended list, and a padded decode is accepted
+/// only when every list the padding could have filled comes back empty, so
+/// padding can never invent a floor nobody laid or a family nobody has.
+///
+/// Only a payload that ran OUT of bytes is padded. Any other failure means
+/// the bytes decoded into something else and stopped making sense, and
+/// padding such a payload rescues a corrupt save: a name whose length byte
+/// grew by one eats a terminator, and the pad puts one back. Review finding
+/// [F2] on PR 128 reproduced exactly that.
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
-    match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(payload) {
-        Ok((snapshot, [])) => Some(snapshot),
-        // Only a payload that ran OUT of bytes is padded. Any other failure
-        // means the bytes decoded into something else and stopped making
-        // sense, and padding such a payload rescues a corrupt save: a name
-        // whose length byte grew by one eats the floors terminator, and the
-        // pad puts one back, so the save loads with a mangled name. Review
-        // finding [F2] on PR 128 reproduced exactly that.
-        Err(postcard::Error::DeserializeUnexpectedEnd) => {
-            let mut padded = payload.to_vec();
-            padded.push(0);
-            match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
-                Ok((snapshot, [])) if snapshot.floors.tiles().is_empty() => Some(snapshot),
-                _ => None,
+    /// The lists appended to V5 since it shipped, so an older payload is
+    /// this many zero bytes short of a current one.
+    const APPENDED_LISTS: usize = 2;
+    let mut padded = payload.to_vec();
+    for pad in 0..=APPENDED_LISTS {
+        match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
+            Ok((snapshot, [])) => {
+                // Only the lists the padding could have filled must come
+                // back empty, and that is the LAST `pad` of them. One pad
+                // fills the family list alone, so a save written before
+                // ties existed keeps the floors its player painted. Asking
+                // every appended list to be empty at every pad level is how
+                // review finding [F1] on PR 131 refused those saves.
+                let invented = match pad {
+                    0 => 0,
+                    1 => snapshot.family.ties().len(),
+                    _ => snapshot.family.ties().len() + snapshot.floors.tiles().len(),
+                };
+                return (invented == 0).then_some(snapshot);
             }
+            Err(postcard::Error::DeserializeUnexpectedEnd) => padded.push(0),
+            _ => return None,
         }
-        _ => None,
     }
+    None
 }
 
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
@@ -548,6 +562,66 @@ impl SimHandle {
             .iter()
             .map(|covering| covering.name.clone())
             .collect()
+    }
+
+    /// Three words per family tie: the lower entity index, the higher, and
+    /// the relation the lower one is to the higher - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Sorted, and empty for a household
+    /// of strangers.
+    pub fn family_ties(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .get_resource::<terri_core::layout::FamilyTies>()
+            .map_or_else(Vec::new, |family| {
+                family
+                    .ties()
+                    .iter()
+                    .flat_map(|&(low, high, relation)| [low, high, u32::from(relation)])
+                    .collect()
+            })
+    }
+
+    /// Stages recording that the sim at entity index `who` is `relation` to
+    /// the sim at index `to`, with 4 for no relation at all - [FM-tie].
+    /// False when the numbers are not two indices and a relation.
+    pub fn set_family_tie(&mut self, who: f64, to: f64, relation: f64) -> bool {
+        let code = placement_u32(relation).and_then(|code| u8::try_from(code).ok());
+        let (Some(who), Some(to), Some(code)) = (placement_u32(who), placement_u32(to), code)
+        else {
+            return false;
+        };
+        // 4 is "no relation": one past the relations there are, so the wire
+        // grows by appending a relation rather than by moving this.
+        let relation = match code {
+            4 => None,
+            code => match terri_core::layout::Relation::from_code(code) {
+                Some(relation) => Some(relation),
+                None => return false,
+            },
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetFamilyTie { who, to, relation })
+            .expect("a family tie serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[who, to, relation, refusal]` of the last tie a drain handled, the
+    /// relation 4 for none and the refusal zero when it was applied; empty
+    /// before the first.
+    pub fn last_family_tie_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_family_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.who,
+                    result.to,
+                    result
+                        .relation
+                        .map_or(4, |relation| u32::from(relation.code())),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
+            })
     }
 
     /// Each covering's colour shift, three numbers each in content order -
@@ -5603,6 +5677,67 @@ mod boundary_tests {
             before,
             "no sim stands where the grid is blocked"
         );
+    }
+
+    /// [FM-tie] in `docs/specs/2026-09-22-family.md`: a tie crosses as one
+    /// fact, reads the same from either end, and is refused for somebody who
+    /// is not a sim of this world.
+    #[test]
+    fn a_family_tie_crosses_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.family_ties().is_empty());
+        // The render rows name every entity, and a sim is one with an
+        // identity; two of them is all this needs.
+        handle.tick();
+        let count = handle.entity_count();
+        let kinds = unsafe { std::slice::from_raw_parts(handle.kinds_ptr(), count) };
+        let ids = unsafe { std::slice::from_raw_parts(handle.ids_ptr(), count) };
+        let mut sims: Vec<u32> = (0..count)
+            .filter(|&row| kinds[row] == 0)
+            .map(|row| ids[row])
+            .collect();
+        sims.sort_unstable();
+        sims.dedup();
+        assert!(sims.len() >= 2, "the shipped household has people in it");
+        let (first, second) = (sims[0], sims[1]);
+
+        // The first is the second's parent: one stored fact, from the lower.
+        assert!(handle.set_family_tie(f64::from(first), f64::from(second), 1.0));
+        handle.flush_commands();
+        assert_eq!(
+            handle.family_ties(),
+            vec![
+                first.min(second),
+                first.max(second),
+                if first < second { 1 } else { 2 }
+            ]
+        );
+        assert_eq!(handle.last_family_tie_result(), vec![first, second, 1, 0]);
+
+        // The tie survives a save and a load.
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.family_ties(), handle.family_ties());
+        assert_eq!(restored.sim.world_hash(), handle.sim.world_hash());
+
+        // 4 is no relation, which takes it away.
+        assert!(handle.set_family_tie(f64::from(second), f64::from(first), 4.0));
+        handle.flush_commands();
+        assert!(handle.family_ties().is_empty());
+
+        // Hostile or impossible arguments.
+        assert!(!handle.set_family_tie(f64::from(first), f64::from(second), 5.0));
+        assert!(!handle.set_family_tie(-1.0, f64::from(second), 0.0));
+        assert!(!handle.set_family_tie(f64::from(first), 0.5, 0.0));
+        handle.set_family_tie(f64::from(first), f64::from(first), 0.0);
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_family_tie_result()[3],
+            terri_sim::placement::PlacementRefusal::InvalidInput as u32,
+            "nobody is their own sibling"
+        );
+        assert!(handle.family_ties().is_empty());
     }
 
     /// [FL-command] in `docs/specs/2026-09-22-floors.md`: a covering crosses

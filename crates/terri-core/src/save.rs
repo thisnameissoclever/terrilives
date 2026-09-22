@@ -36,6 +36,12 @@ pub struct SaveSnapshotV5 {
     /// tail. A house nobody has painted costs one byte.
     #[serde(default)]
     pub floors: crate::layout::SavedFloors,
+    /// Who the household are to each other - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Appended last, after the floors,
+    /// for the same reason: an older payload is a prefix of a newer one, so
+    /// a save written before ties existed loads with nobody related.
+    #[serde(default)]
+    pub family: crate::layout::FamilyTies,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
@@ -356,5 +362,12 @@ pub enum SavedCommand {
         x: u32,
         y: u32,
         covering: u8,
+    },
+    /// [FM-tie]. A family tie set or taken away just before a save, by the
+    /// entity indices the sims had, as `PlaceObject` names its object.
+    SetFamilyTie {
+        who: u32,
+        to: u32,
+        relation: Option<crate::layout::Relation>,
     },
 }

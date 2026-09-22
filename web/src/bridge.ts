@@ -158,6 +158,18 @@ const FLOOR_REASONS: Readonly<Record<number, string>> = {
   5: 'That tile is not on the lot.',
 };
 
+/**
+ * What one person can be to another ([FM-tie]). The codes are the wire's,
+ * and NO_RELATION is one past them so the list grows by appending.
+ */
+export const RELATION_WORDS = ['partner', 'parent', 'child', 'sibling'] as const;
+export const NO_RELATION = 4;
+
+/** The plain word for a relation code, or null when there is no tie. */
+export function relationWord(code: number): string | null {
+  return RELATION_WORDS[code] ?? null;
+}
+
 export function floorReason(code: number): string {
   return FLOOR_REASONS[code] ?? 'That change is not possible.';
 }
@@ -849,6 +861,20 @@ export class SimBridge {
    */
   coveringNames(): string[] {
     return this.handle.covering_names();
+  }
+
+  /**
+   * Three words per family tie: the lower entity index, the higher, and the
+   * relation the lower one is to the higher ([FM-save] in
+   * `docs/specs/2026-09-22-family.md`).
+   */
+  familyTies(): Uint32Array {
+    return this.handle.family_ties();
+  }
+
+  /** Records a tie, or takes one away with `NO_RELATION` ([FM-tie]). */
+  setFamilyTie(who: number, to: number, relation: number): boolean {
+    return this.handle.set_family_tie(who, to, relation);
   }
 
   /** Each covering's colour shift, three numbers each ([FL-draw]). */

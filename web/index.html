@@ -1459,6 +1459,15 @@
             <legend id="housemate-traits-legend">Traits</legend>
             <div id="housemate-traits"></div>
           </fieldset>
+          <!-- Who the newcomer is to somebody already here - [FM-choose] in
+               docs/specs/2026-09-22-family.md. Both lists are built from the
+               game at the moment the form opens. -->
+          <div class="builder-choices" id="housemate-family">
+            <label for="housemate-relation">They are the</label>
+            <select id="housemate-relation"></select>
+            <label for="housemate-relative">of</label>
+            <select id="housemate-relative"></select>
+          </div>
           <menu>
             <button id="housemate-back" class="hud-button" type="button">Back</button>
             <button id="housemate-confirm" class="hud-button" type="button">Move in</button>
