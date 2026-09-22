@@ -590,8 +590,9 @@ this milestone and is done; what follows is M1b onwards.
   and stands the chosen object on the floor under the rules a move obeys,
   taking the price from Funds. The design is
   `docs/specs/2026-09-21-buy-mode.md` and the played check is [A-buy-mode].
-  Still open: selling an object back, which is [BM-slice-sell] in that design,
-  and palette recolours, which need art.
+  Still open: palette recolours, [BM-slice-recolour] in that design, whose
+  mechanism is code-owned and whose palettes wait on [T-recolour-palettes].
+  Selling an object back is [BM-slice-sell] there too.
 - **Create-a-sim:** body type, face, hair, clothing, trait selection
 - ~~**Household** of up to ~6 sims~~ - done. Content preserves declaration
   order, enforces a six-member ceiling, and the normal HUD provides one
