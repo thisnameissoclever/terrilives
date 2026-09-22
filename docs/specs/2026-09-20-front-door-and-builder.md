@@ -73,7 +73,9 @@ An invalid preview is cancelled when another item is selected. Unchanged items
 switch immediately without a command; selecting the same item keeps its preview.
 If validation rejects an automatic commit during the command drain, the new item
 is selected and the previous move's cancellation reason is shown. Explicit Cancel
-and Exit build keep their existing behavior.
+and Exit build keep their existing behavior. Confirm and Cancel also float over
+the lifted piece in the game view, with the panel's enablement ([PA-show] in
+`docs/specs/2026-09-22-placement-buttons.md`).
 
 Placement must preserve object identity and interactions, reject collisions and
 blocked routes, and survive Save and Load. Rebuild candidate occupancy from

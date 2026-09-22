@@ -17,6 +17,7 @@ itself on having personality.
 | --- | --- | --- |
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Compact HUD | Menu; Close; Open game menu; Close game menu | `web/index.html`, `web/src/ui/mobile-hud.ts` |
+| Placement buttons | Confirm; Buy; Cancel, over the piece being placed | `web/index.html`, `web/src/ui/placement-actions.ts` |
 | Options flyout | Options, the gear's accessible name; it holds Light, Build, Sound, Effects and the game actions | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the seven refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |

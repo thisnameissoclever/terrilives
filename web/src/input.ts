@@ -772,6 +772,28 @@ export function clientToCanvas(
 }
 
 /**
+ * The inverse of `clientToCanvas`: a drawing-buffer point as client pixels,
+ * for HTML placed over the game view ([PA-place] in
+ * `docs/specs/2026-09-22-placement-buttons.md`). The buffer is the canvas's
+ * CSS size times the device pixel ratio, so a buffer point is divided back
+ * down; on a phone at a ratio of 3 a raw buffer point would land three
+ * times too far from the corner. Null for a canvas with no size, as there.
+ */
+export function canvasToClient(
+  bufferX: number,
+  bufferY: number,
+  rect: ViewRect,
+  canvasWidth: number,
+  canvasHeight: number,
+): CanvasPoint | null {
+  if (rect.width <= 0 || rect.height <= 0 || canvasWidth <= 0 || canvasHeight <= 0) return null;
+  return {
+    x: rect.left + (bufferX * rect.width) / canvasWidth,
+    y: rect.top + (bufferY * rect.height) / canvasHeight,
+  };
+}
+
+/**
  * A right click, as much of `MouseEvent` as the handler needs: where it
  * landed on the page, and the ability to suppress the browser's own menu.
  */
