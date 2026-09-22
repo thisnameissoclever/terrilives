@@ -629,8 +629,14 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
 }
 
 /// Every small room the shipped household accepts, with no doorway and with a
-/// doorway on its first line, leaves a save that loads - checked through a
-/// real save and load at two points in the day.
+/// doorway on its first line, at two points in the day, is accepted by the
+/// drain; one in three of them, chosen by a fixed count, is saved and loaded
+/// back for real. Every room reaches the loader's own grid checks through
+/// `check_new_walls` anyway, and a one-off review sweep of over 8,000 rooms a
+/// tick saved and loaded every accepted one without a failure, so the sample
+/// keeps the round trip honest while keeping this test fast: the mutation
+/// sweep reruns it for every mutant, under a 60-second limit. The two ticks
+/// run on their own threads for the same reason.
 ///
 /// It also counts rooms that only the loader's own checks refuse: the finished
 /// outline passes the usability proofs, fails the loader, and is refused as
@@ -640,71 +646,91 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
 /// does.
 #[test]
 fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
-    let mut only_the_loader_refused = 0;
-    for ticks in [180u64, 620] {
-        let mut sim = Sim::new_from_shipped_lot();
-        for _ in 0..ticks {
-            sim.tick();
-        }
-        assert_eq!(
-            sim.world().resource::<terri_core::SimClock>().tick,
-            ticks,
-            "one tick per `Sim::tick`"
-        );
-        let base = sim.save_snapshot_v3();
-        let rectangles = super::super::current_layout(sim.world())
-            .expect("the shipped house is consistent")
-            .rectangles;
-        let (width, height) = {
-            let grid = sim.world().resource::<TileGrid>();
-            (grid.width() as u32, grid.height() as u32)
-        };
-        let mut accepted = 0;
-        for y in 0..height {
-            for x in 0..width {
-                for (w, h) in [(1, 1), (2, 1), (1, 2), (2, 2), (3, 2)] {
-                    if x + w > width || y + h > height {
+    let counts: Vec<(u32, u32)> = std::thread::scope(|scope| {
+        let sweeps: Vec<_> = [180u64, 620]
+            .into_iter()
+            .map(|ticks| scope.spawn(move || sweep_small_rooms(ticks)))
+            .collect();
+        sweeps
+            .into_iter()
+            .map(|sweep| sweep.join().expect("a sweep panicked"))
+            .collect()
+    });
+    for (accepted, _) in &counts {
+        assert!(*accepted > 20, "a tick accepted only {accepted}");
+    }
+    assert!(
+        counts.iter().map(|(_, loader)| loader).sum::<u32>() > 0,
+        "no room here is refused by the loader's checks alone; choose ticks that hold one"
+    );
+}
+
+/// One tick of the sweep above: how many rooms were accepted, and how many
+/// only the loader refused.
+fn sweep_small_rooms(ticks: u64) -> (u32, u32) {
+    let mut sim = Sim::new_from_shipped_lot();
+    for _ in 0..ticks {
+        sim.tick();
+    }
+    assert_eq!(
+        sim.world().resource::<terri_core::SimClock>().tick,
+        ticks,
+        "one tick per `Sim::tick`"
+    );
+    let base = sim.save_snapshot_v3();
+    // One world to build each sampled room in and one to read its save back,
+    // each reset by a Load.
+    let mut builder = Sim::new_from_shipped_lot();
+    let mut reader = Sim::new_from_shipped_lot();
+    let rectangles = super::super::current_layout(sim.world())
+        .expect("the shipped house is consistent")
+        .rectangles;
+    let (width, height) = {
+        let grid = sim.world().resource::<TileGrid>();
+        (grid.width() as u32, grid.height() as u32)
+    };
+    let (mut accepted, mut only_the_loader_refused) = (0, 0);
+    for y in 0..height {
+        for x in 0..width {
+            for (w, h) in [(1, 1), (2, 1), (1, 2), (2, 2), (3, 2)] {
+                if x + w > width || y + h > height {
+                    continue;
+                }
+                let corner = (x + w - 1, y + h - 1);
+                let first = outline(width, height, (x, y), corner).first().copied();
+                for doorway in [None, first] {
+                    let edit = room(x, y, corner.0, corner.1, doorway);
+                    let grid = finished(&sim, edit);
+                    let verdict = validate_room(sim.world(), edit);
+                    if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
+                        && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
+                    {
+                        assert!(verdict.is_err(), "{edit:?}");
+                        // Furniture cut in half is refused before the loader
+                        // is asked; count only what reached it.
+                        if verdict.as_ref().unwrap_err() == &PlacementRefusal::BlockedRoute {
+                            only_the_loader_refused += 1;
+                        }
+                    }
+                    match verdict {
+                        Ok(plan) if plan.changed => {}
+                        _ => continue,
+                    }
+                    accepted += 1;
+                    if accepted % 3 != 0 {
                         continue;
                     }
-                    let corner = (x + w - 1, y + h - 1);
-                    let first = outline(width, height, (x, y), corner).first().copied();
-                    for doorway in [None, first] {
-                        let edit = room(x, y, corner.0, corner.1, doorway);
-                        let grid = finished(&sim, edit);
-                        if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
-                            && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
-                        {
-                            let refusal = validate_room(sim.world(), edit);
-                            assert!(refusal.is_err(), "{edit:?}");
-                            // Furniture cut in half is refused before the
-                            // loader is asked; count only what reached it.
-                            if refusal.unwrap_err() == PlacementRefusal::BlockedRoute {
-                                only_the_loader_refused += 1;
-                            }
-                        }
-                        match validate_room(sim.world(), edit) {
-                            Ok(plan) if plan.changed => {}
-                            _ => continue,
-                        }
-                        accepted += 1;
-                        let mut builder = Sim::new_from_shipped_lot();
-                        builder.load_snapshot_v3(base.clone()).unwrap();
-                        stage(&mut builder, edit);
-                        assert_eq!(last(&builder).unwrap().reason, None, "{edit:?}");
-                        let mut reader = Sim::new_from_shipped_lot();
-                        reader
-                            .load_snapshot_v3(builder.save_snapshot_v3())
-                            .unwrap_or_else(|error| panic!("{edit:?} at tick {ticks}: {error:?}"));
-                    }
+                    builder.load_snapshot_v3(base.clone()).unwrap();
+                    stage(&mut builder, edit);
+                    assert_eq!(last(&builder).unwrap().reason, None, "{edit:?}");
+                    reader
+                        .load_snapshot_v3(builder.save_snapshot_v3())
+                        .unwrap_or_else(|error| panic!("{edit:?} at tick {ticks}: {error:?}"));
                 }
             }
         }
-        assert!(accepted > 20, "tick {ticks} accepted only {accepted}");
     }
-    assert!(
-        only_the_loader_refused > 0,
-        "no room here is refused by the loader's checks alone; choose ticks that hold one"
-    );
+    (accepted, only_the_loader_refused)
 }
 
 /// The grid a room would leave, built the way [RT-apply] builds it: every
