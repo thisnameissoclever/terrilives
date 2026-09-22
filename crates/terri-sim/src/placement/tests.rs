@@ -456,8 +456,10 @@ fn placement_requires_usable_approaches_in_one_edge_connected_component() {
     );
     sim.world_mut().spawn((Agent, Position { x: 4.0, y: 4.0 }));
     refusal(&mut sim, object, (1, 0), f, PlacementRefusal::SimOverlap);
+    // A sim the wall at x = 3 cuts off from the front door is found before
+    // the furniture on its side ([RD-reasons]).
     let (mut sim, object) = edge_fixture((0..7).map(|y| vertical(3, y)).collect());
-    sim.world_mut().spawn((Agent, Position { x: 4.0, y: 4.0 }));
+    sim.world_mut().spawn((Agent, Position { x: 2.0, y: 4.0 }));
     refusal(&mut sim, object, (1, 0), f, PlacementRefusal::BlockedRoute);
 }
 

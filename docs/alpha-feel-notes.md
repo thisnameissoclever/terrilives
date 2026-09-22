@@ -3204,6 +3204,27 @@ ajar, open, ajar and shut in the same order as the kitchen door.
 beside it, was not seen by eye: no lamp stood next to an interior door in
 this house. The renderer tests prove it. No physical phone was used.
 
+## [A-reach-from-the-door] A sealed empty room in the kitchen corner
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree with its WebAssembly rebuilt, driven in the Playwright browser on the
+household loaded from its save.
+
+**Built where it used to be refused.** In Build mode, Room said "Choose a
+corner tile of the room." One click on the kitchen floor at the end of the
+counter, tile (7, 0), said "Choose the opposite corner."; a second on the same
+tile said "Ready to build. Choose a line of the outline for a doorway." with
+Build room enabled. Build room said "Room built." and two walls went up,
+closing that corner off as a one-tile closet against the wall to the living
+room. Before this change the same room was refused as blocking someone's way,
+because the check started from that very tile.
+
+**Nothing kept.** I did not save. A reload brought back "Saved game loaded"
+with the corner open again.
+
+**Not proven here.** A cut that leaves furniture out of reach was not replayed;
+the refusal wording is unchanged from [A-room-tool], and the Rust tests prove
+which refusal each cut gives. No physical phone was used.
 ## [A-rotated-lights] A turned lamp and television still light the room
 
 Played on 2026-09-22 on the port 5174 dev server serving branch
