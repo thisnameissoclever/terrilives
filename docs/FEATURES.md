@@ -848,9 +848,10 @@ relationship list then says it beside the feeling, from the row's side:
 "Bill, their parent" means Bill is the parent. A
 tie is one stored fact between two people, read from either end so a parent
 one way is a child the other, saved sparsely and appended, and in the world
-hash. Nothing behaves differently for family yet. The design is
+hash. Nothing behaves differently for family yet. Done in PR 131 at merge `2f87db7`. The design is
 `docs/specs/2026-09-22-family.md`, which names the three later slices, and the
-played check is [A-family].
+played check is [A-family]. The item stays open: the tree, relatives outside
+the household, and the autonomy and bereavement hooks are still to build.
 
 ### [A-audio-voices] The game has sound and Sim voices
 
