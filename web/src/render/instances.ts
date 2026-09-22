@@ -39,7 +39,8 @@ export type InstanceArray = Float32Array<ArrayBuffer>;
  *   8..11  projection mode, depth per tile, footprint span, anchor X offset
  *                                        - `@location(2)`
  *   12..15 colourway hue turn in degrees, strength minus one, lightness
- *          shift, unused                   - `@location(3)`, [RC-render]
+ *          shift, sky shade                - `@location(3)`, [RC-render]
+ *          and [OS-daylight]
  *
  * The colourway fields are all zero for the art as drawn, so a slot nobody
  * recolours draws exactly as before; `writeInstance` resets them.
@@ -72,6 +73,12 @@ export const OFFSET_PROJECTION_ANCHOR_X = 11;
 export const OFFSET_COLOURWAY_HUE = 12;
 export const OFFSET_COLOURWAY_STRENGTH = 13;
 export const OFFSET_COLOURWAY_LIGHTNESS = 14;
+/**
+ * How far this instance is from open sky, 0 under it and 1 where the sky
+ * cannot reach - [OS-daylight]. By day the shader takes up to the tuned
+ * interior shade of the day's light off a fully shaded instance.
+ */
+export const OFFSET_SHADE = 15;
 /** Byte offset of the colourway attribute within one instance. */
 export const COLOURWAY_ATTRIBUTE_OFFSET =
   OFFSET_COLOURWAY_HUE * Float32Array.BYTES_PER_ELEMENT;
@@ -188,7 +195,7 @@ export function writeInstance(
   out[base + OFFSET_COLOURWAY_HUE] = 0;
   out[base + OFFSET_COLOURWAY_STRENGTH] = 0;
   out[base + OFFSET_COLOURWAY_LIGHTNESS] = 0;
-  out[base + OFFSET_COLOURWAY_HUE + 3] = 0;
+  out[base + OFFSET_SHADE] = 0;
 }
 
 /**
@@ -225,4 +232,12 @@ export function growCapacity(current: number, needed: number): number {
   let next = Math.max(current, 1);
   while (next < needed) next *= 2;
   return next;
+}
+
+/**
+ * Sets how shaded from the sky an instance is ([OS-daylight]), after
+ * `writeInstance` has reset it to fully exposed.
+ */
+export function writeShade(out: Float32Array, index: number, shade: number): void {
+  out[index * FLOATS_PER_INSTANCE + OFFSET_SHADE] = shade;
 }

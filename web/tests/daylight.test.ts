@@ -3,6 +3,7 @@ import {
   AMBIENT_FLOOR,
   AMBIENT_NEUTRAL,
   ambientFor,
+  sunStrength,
 } from '../src/render/daylight.js';
 
 // The day/night curve is the one piece of [ML-ambient] with arithmetic in
@@ -119,5 +120,25 @@ describe('the daylight curve', () => {
         expect(ambient.every((c) => Number.isFinite(c))).toBe(true);
       }
     }
+  });
+});
+
+// [OS-daylight] in docs/specs/2026-09-22-the-outside.md.
+describe('the sun strength', () => {
+  it('is none at night, full by day, and in between at dawn and dusk', () => {
+    expect(sunStrength(ambientFor(at(0), DAY))).toBe(0);
+    expect(sunStrength(ambientFor(at(3), DAY))).toBe(0);
+    expect(sunStrength(ambientFor(at(12), DAY))).toBeGreaterThan(0.95);
+    const dawn = sunStrength(ambientFor(at(7), DAY));
+    const dusk = sunStrength(ambientFor(at(21), DAY));
+    for (const between of [dawn, dusk]) {
+      expect(between).toBeGreaterThan(0);
+      expect(between).toBeLessThan(1);
+    }
+    expect(sunStrength(AMBIENT_NEUTRAL)).toBe(1);
+  });
+
+  it('is none for a colour that is not a number', () => {
+    expect(sunStrength([1, Number.NaN, 1, 1])).toBe(0);
   });
 });

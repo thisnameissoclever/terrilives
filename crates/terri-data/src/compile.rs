@@ -2247,6 +2247,26 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.housemate_max_traits == 0 {
         return Err(ContentError::HousemateTraitLimitIsZero);
     }
+    // [OS-daylight]: presentation numbers, checked here like every other
+    // knob so a bad file fails the build rather than the picture.
+    check_finite(
+        tuning.interior_daylight_shade,
+        "interior_daylight_shade in tuning.toml",
+    )?;
+    check_finite(
+        tuning.daylight_reach_per_tile,
+        "daylight_reach_per_tile in tuning.toml",
+    )?;
+    if !(0.0..1.0).contains(&tuning.interior_daylight_shade) {
+        return Err(ContentError::DaylightShadeOutOfRange {
+            value: tuning.interior_daylight_shade,
+        });
+    }
+    if !(tuning.daylight_reach_per_tile > 0.0 && tuning.daylight_reach_per_tile <= 1.0) {
+        return Err(ContentError::DaylightReachOutOfRange {
+            value: tuning.daylight_reach_per_tile,
+        });
+    }
     if tuning.wander_radius_tiles == 0 {
         return Err(ContentError::ZeroWanderRadius);
     }
@@ -2529,6 +2549,8 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             resale_fraction: tuning.resale_fraction,
             housemate_name_max_chars: tuning.housemate_name_max_chars,
             housemate_max_traits: tuning.housemate_max_traits,
+            interior_daylight_shade: tuning.interior_daylight_shade,
+            daylight_reach_per_tile: tuning.daylight_reach_per_tile,
         },
         circadian,
         tuning.sleep_tag,
@@ -3595,8 +3617,10 @@ mod tests {
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
         // **The housemate limits append two tuning bytes ([CS-command]):**
         // `23, 5`, after `resale_fraction`'s `0, 0, 208, 62`. Read from the
-        // failing golden assertion.
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0,
+        // failing golden assertion. **The daylight knobs append eight more
+        // ([OS-daylight]):** 0.15625 and 0.21875, `0, 0, 32, 62, 0, 0, 96, 62`.
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5,
+        0, 0, 32, 62, 0, 0, 96, 62, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
         // The empty colourway vector, appended after the portals ([RC-content]).
@@ -3773,6 +3797,8 @@ mod tests {
             affinity_hates_to: 0.28125,
             housemate_name_max_chars: 23,
             housemate_max_traits: 5,
+            interior_daylight_shade: 0.15625,
+            daylight_reach_per_tile: 0.21875,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -4932,6 +4958,41 @@ mod tests {
         );
         let pack = compile_tuned(tuning_where(|t| t.housemate_max_traits = 1)).unwrap();
         assert_eq!(pack.tuning.housemate_max_traits, 1);
+    }
+
+    /// [OS-daylight]: each daylight knob's range, pinned from both sides of
+    /// each edge, and neither may be a non-number.
+    #[test]
+    fn validates_the_daylight_knobs() {
+        for shade in [1.0, -0.03125] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.interior_daylight_shade = shade)).unwrap_err(),
+                ContentError::DaylightShadeOutOfRange { value: shade }
+            );
+        }
+        for shade in [0.0, 0.96875] {
+            let pack = compile_tuned(tuning_where(|t| t.interior_daylight_shade = shade)).unwrap();
+            assert_eq!(pack.tuning.interior_daylight_shade, shade);
+        }
+        for reach in [0.0, 1.03125] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.daylight_reach_per_tile = reach)).unwrap_err(),
+                ContentError::DaylightReachOutOfRange { value: reach }
+            );
+        }
+        for reach in [0.03125, 1.0] {
+            let pack = compile_tuned(tuning_where(|t| t.daylight_reach_per_tile = reach)).unwrap();
+            assert_eq!(pack.tuning.daylight_reach_per_tile, reach);
+        }
+        for bad in [
+            tuning_where(|t| t.interior_daylight_shade = f32::NAN),
+            tuning_where(|t| t.daylight_reach_per_tile = f32::NAN),
+        ] {
+            assert!(matches!(
+                compile_tuned(bad).unwrap_err(),
+                ContentError::NonFiniteValue { .. }
+            ));
+        }
     }
 
     /// A radius of zero cannot produce a non-empty wander path, while a radius

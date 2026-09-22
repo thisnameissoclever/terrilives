@@ -200,9 +200,14 @@ describe('sprites.wgsl contract', () => {
       'the fragment must multiply by the per-instance tint',
     ).toBe(true);
     expect(
-      /mix\(u\.ambient\.rgb,\s*vec3f\(1\.0\),\s*in\.tint\.w\)/.test(shader),
+      /mix\(daylight,\s*vec3f\(1\.0\),\s*in\.tint\.w\)/.test(shader),
       'emissive must lift this instance out of the ambient, toward white',
     ).toBe(true);
+    // [OS-daylight]: the day's light is cut by the sky's shade before a
+    // lamp's lift, so a lamp still lights a shaded room.
+    expect(shader).toMatch(/let daylight = u\.ambient\.rgb \* \(1\.0 - u\.sky\.x \* in\.colourway\.w\);/);
+    expect(shader.indexOf('let daylight')).toBeLessThan(shader.indexOf('let lit'));
+    expect(shader).toMatch(/ambient: vec4<f32>,\s*(\/\/[^\n]*\s*)*sky: vec4<f32>,\s*\};/);
     // The tint has to be applied AFTER the discard, or the alpha test
     // threshold moves with it and sprite edges erode as night falls.
     const discard = shader.indexOf('discard;');
@@ -268,5 +273,26 @@ describe('sprites.wgsl contract', () => {
     expect(shader).toContain('vec2f(0.5) / vec2f(textureDimensions(atlasTexture))');
     expect(shader).toContain('clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel)');
     expect(shader).toContain('textureSample(atlasTexture, atlasSampler, uv)');
+  });
+});
+
+// [OS-daylight] in docs/specs/2026-09-22-the-outside.md.
+describe('the sky shade slot', () => {
+  it('is the spare float of the colourway attribute, reset to open sky by writeInstance', async () => {
+    const { OFFSET_SHADE, writeShade, writeInstance, FLOATS_PER_INSTANCE } = await import('../src/render/instances.js');
+    expect(OFFSET_SHADE).toBe(15);
+    const out = new Float32Array(FLOATS_PER_INSTANCE * 2).fill(9);
+    writeInstance(out, 1, 0, 0, 0, 0);
+    expect(out[FLOATS_PER_INSTANCE + OFFSET_SHADE]).toBe(0);
+    writeShade(out, 1, 0.75);
+    expect(out[FLOATS_PER_INSTANCE + OFFSET_SHADE]).toBe(0.75);
+    expect(out[OFFSET_SHADE]).toBe(9);
+  });
+
+  it('reaches the shader through a 64-byte uniform, zero until a caller passes a shade', () => {
+    const sprites = readFileSync(new URL('../src/render/sprites.ts', import.meta.url), 'utf8');
+    expect(sprites).toContain('size: 64,');
+    expect(sprites).toContain('this.uniformData[12] = skyShade;');
+    expect(sprites).toMatch(/skyShade = 0,/);
   });
 });

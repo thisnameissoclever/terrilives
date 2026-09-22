@@ -242,6 +242,13 @@ export class SpriteRenderer {
     1,
     1,
     1,
+    // [OS-daylight]: the sky's interior shade now, float 12 (byte offset
+    // 48), and padding. Zero until a caller passes one, which draws every
+    // instance fully exposed, as before.
+    0,
+    0,
+    0,
+    0,
   ]);
 
   /**
@@ -333,11 +340,11 @@ export class SpriteRenderer {
     });
 
     this.uniformBuffer = gpu.device.createBuffer({
-      // 48: viewport, anchor, the camera scale padded to the 16-byte
-      // uniform stride, then the ambient tint. Must match `uniformData`
-      // above and `struct Uniforms` in sprites.wgsl. Too SMALL and WebGPU
-      // rejects the bind group; too large is merely wasted.
-      size: 48,
+      // 64: viewport, anchor, the camera scale padded to the 16-byte
+      // uniform stride, the ambient tint, then the sky's shade. Must match
+      // `uniformData` above and `struct Uniforms` in sprites.wgsl. Too SMALL
+      // and WebGPU rejects the bind group; too large is merely wasted.
+      size: 64,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -446,12 +453,15 @@ export class SpriteRenderer {
    *   `ambientFor` in daylight.ts. Defaults to neutral, so a caller that
    *   does not care about the clock gets the pre-cycle appearance rather
    *   than an unlit world.
+   * @param skyShade How much of the day's light a fully shaded instance
+   *   loses this frame ([OS-daylight]); 0 draws every instance fully lit.
    */
   draw(
     instances: InstanceArray,
     count: number,
     scale = 1,
     ambient: Ambient = AMBIENT_NEUTRAL,
+    skyShade = 0,
   ): void {
     const total = this.staticCount + count;
     if (total === 0) return;
@@ -465,6 +475,7 @@ export class SpriteRenderer {
     this.uniformData[9] = ambient[1];
     this.uniformData[10] = ambient[2];
     this.uniformData[11] = ambient[3];
+    this.uniformData[12] = skyShade;
     this.gpu.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformData);
     if (count > 0) {
       // dataOffset and size are in elements for a TypedArray source, so

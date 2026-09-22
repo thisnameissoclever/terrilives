@@ -207,6 +207,31 @@ has no street, and its commute ends on the door's tile as it always has.
   yard to everything else, so furniture and walls may stand on it, off the
   exit.
 
+## [OS-daylight] The sky lights the yard, and reaches indoors through doorways
+
+This is [OS-slice-daylight]'s first part. Today one colour for the time of day
+lights every tile alike, so a windowless back room is as bright at noon as the
+yard. Now each floor tile has a **sky exposure** from 0 to 1: every tile outside
+the house is under open sky (1), and inside, the sky reaches in through open
+lines and doorways, losing `daylight_reach_per_tile` (`content/tuning.toml`) for
+each tile it travels; walls stop it. A wall panel takes the exposure of the
+most open tile beside it, and a person or an object the exposure of the tile it
+stands on.
+
+By day an instance keeps its full share of daylight only as far as it is
+exposed: the shader takes up to `interior_daylight_shade` of the day's colour
+off a fully shaded one, scaled by how strong the sun is, which comes from the
+time-of-day curve (none at night, full from mid-morning to mid-afternoon). A
+lamp's own light lifts what it lights exactly as before, so by day a lamp now
+matters in a closed room. At night nothing changes, so the night's floor for
+legibility ([ML-a11y]) still holds, and flat light turns the whole effect off.
+
+It is presentation only: nothing enters the simulation, a save or the world
+hash, and a lot with no edge walls (a save older than the Walls tool) is drawn
+fully exposed. The per-tile exposure rides in the one unused float of each
+instance, so the instance layout does not grow and the frame stays one draw.
+Windows ([B-windows]) will let the sky in through their lines in a later part.
+
 ## Slices
 
 * **[OS-slice-yard]** Everything above, in one pull request: the yard, the
@@ -217,6 +242,8 @@ has no street, and its commute ends on the door's tile as it always has.
   along the street waits on a way to draw it.
 * **[OS-slice-daylight]** Sunlight on the yard by day and darkness by night,
   separate from the house's lamps, and windows ([B-windows]) letting it in.
+  Its first part, [OS-daylight], shades the house's interior by its distance
+  from the sky; windows letting the sky in come with [B-windows].
 * **[OS-slice-exterior]** The house seen from outside: exterior wall art and
   roofs. Waits on art.
 * **[OS-slice-outdoor-objects]** Things that belong outdoors: a bench, a

@@ -757,8 +757,11 @@ played check is [A-yard]. The second, [OS-slice-street], shipped in PR 107
 at merge `5f7cc73`: a street along the lot's east edge, drawn grey until there
 is street art, where a worker walks out through the front door and across
 the yard to leave for work, and back the same way; its played check is
-[A-street]. For both, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Daylight on the yard, the house
-seen from outside and outdoor objects remain.
+[A-street]. For both, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The first part of the
+third slice, [OS-daylight], lets the sky light the yard by day while the rooms
+stay dimmer, lighter by an open doorway and darkest at the back of the house;
+its played check is [A-yard-daylight]. Windows ([B-windows]), the house seen
+from outside and outdoor objects remain.
 
 ### [B-floors] The player chooses what each floor is
 

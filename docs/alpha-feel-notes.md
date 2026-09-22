@@ -3543,3 +3543,11 @@ At 375 by 812, choosing a kitchen counter from the list showed the pair just abo
 The first attempt put the pair about 60 pixels above every piece: the anchor left out the half tile the shader drops each sprite's base below its point, which picking in `input.ts` already allowed for. That is fixed and pinned by the anchor test. The reading chair ("The Wingback Sabbatical") still shows the pair about 36 pixels above its art, because its base sprites have transparent padding above the art and no content bounds in the atlas; that is logged as its own task.
 
 **Not proven here.** A pinch zoom and a physical phone were not used.
+
+## [A-yard-daylight] The sky lights the yard and reaches in through the doorways
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/yard-daylight` with its WebAssembly rebuilt, in the desktop app's browser pane at 919 by 890, on the household loaded from its save, with Light on auto.
+
+At 13:54 on day 2 the yard read in full daylight, a brighter green than it had been the evening before. Inside, the floors were dimmer than the yard: lightest in the living room by the front doorway, and darkest in the kitchen at the back, which is furthest from any open doorway. The lamp's pool still showed around the floor lamp. At 20:27 on day 1 the whole lot was evenly dim, the yard included, with the lamp's pool as before, since the sky's shade scales with the sun and there is none at night.
+
+**Not proven here.** Flat light was not toggled during this check; the tests show a shade of 0 is sent in flat light. A physical phone was not used, and the effect is deliberately mild, so a player may not notice it until windows exist ([B-windows]).

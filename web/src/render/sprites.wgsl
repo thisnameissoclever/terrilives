@@ -26,6 +26,7 @@
 //   y = its colour strength minus one
 //   z = a lightness shift
 //   All zero for the art as drawn, which returns every colour unchanged.
+//   w = how shaded from the sky the instance is ([OS-daylight]), 0 outdoors.
 //
 // Not alpha for a mechanical reason as well as a naming one: the
 // fragment shader alpha-TESTS at 0.5 and writes depth, so anything
@@ -63,6 +64,11 @@ struct Uniforms {
   // over an offscreen texture - costs a second render pass and would
   // make every number in docs/gpu-verification.md need re-measuring.
   ambient: vec4<f32>,
+  // [OS-daylight] in docs/specs/2026-09-22-the-outside.md: in x, how much of
+  // the day's light a fully shaded instance loses now, the tuned interior
+  // shade times the sun's strength. Zero at night and in flat light, so the
+  // night's legibility floor is untouched. yzw are padding.
+  sky: vec4<f32>,
 };
 
 struct Sprite {
@@ -281,7 +287,13 @@ fn fs(in: VertexOut) -> FragmentOut {
   // per-instance data the vertex stage already carries: no second pass,
   // no second pipeline, and [D10]'s one draw and one submit per frame
   // are untouched.
-  let lit = mix(u.ambient.rgb, vec3f(1.0), in.tint.w);
+  //
+  // [OS-daylight]: the day's light reaches an instance only as far as the
+  // sky does. Its shade rides in the colourway attribute's spare w, and a
+  // lamp's lift toward white is applied after, so a lamp still lights a
+  // shaded room.
+  let daylight = u.ambient.rgb * (1.0 - u.sky.x * in.colourway.w);
+  let lit = mix(daylight, vec3f(1.0), in.tint.w);
   var out: FragmentOut;
   out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
   out.depth = in.clip.z;
