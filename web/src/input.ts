@@ -267,7 +267,7 @@ export function clientToWorld(
  * Picking used to invert the projection to a tile and ask what stood on it.
  * That is the right model for "walk to here" and the wrong one for "click that
  * sim", because **sprites are bottom-anchored and much taller than a tile**.
- * A sim is 38 x 78 px standing on a 64 x 32 diamond, so most of its visible
+ * A sim is 38 x 88 px standing on a 64 x 32 diamond, so most of its visible
  * body is drawn 50-plus pixels above the tile it occupies.
  *
  * Measured against the shipped projection, sampling nine points down the sim's
