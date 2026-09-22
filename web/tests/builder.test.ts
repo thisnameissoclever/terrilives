@@ -325,3 +325,29 @@ it('replaces the original table presentation when a valid rotated rectangle over
   expect(source.saveBytes()).toEqual(before);
   handle.free();
 });
+
+// [SL-shell]: Delete sells from the keyboard, and an object a sim has been
+// told to use cannot be sold, its preview saying why and Sell staying off.
+it('sells with Delete and will not sell what a sim has been told to use', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  const ids = Array.from(source.ids());
+  const kinds = Array.from(source.kinds());
+  const agent = ids.find((_, row) => kinds[row] === 0)!;
+  expect(source.useObject(agent, 22, 0)).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  builder.select(22);
+  expect(source.salePreview(22)).toEqual({
+    reason: 'Wait until nobody is using or approaching this object.', payout: 0 });
+  expect([builder.saleValue, builder.canSell, builder.sell()]).toEqual([null, false, false]);
+  builder.select(15);
+  expect(builder.canSell).toBe(true);
+  const payout = builder.saleValue!;
+  const funds = source.funds();
+  expect(builder.handleKey('Delete')).toBe(true);
+  expect(builder.pending).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(source.funds()).toBe(funds + payout);
+  expect(builder.selected).toBeNull();
+  handle.free();
+});

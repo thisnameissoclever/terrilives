@@ -2396,6 +2396,7 @@ mod tests {
         assert_eq!(t.need_bar_refresh_ms, 100);
         assert_eq!(t.contested_score_multiplier, 0.75);
         assert_eq!(t.wander_radius_tiles, 3);
+        assert_eq!(t.resale_fraction, 0.5);
     }
 
     /// Every object the design declares is actually placed. An object in

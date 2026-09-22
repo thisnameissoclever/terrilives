@@ -625,6 +625,14 @@ Authored and rotated sockets use the same bounds predicate, after resolving
 their coordinates against the appropriate footprint. The authored check stays
 before interaction compilation so invalid content keeps its existing diagnostics.
 
+Save V4 ([SL-save] in `docs/specs/2026-09-22-selling-furniture.md`) is V3 with
+`retired_indices` appended: the entity indices sales have retired. A sale
+despawns without freeing its index (`despawn_no_free`), so no later spawn can
+take it, and records it in `RetiredIndices`. The loader keeps those indices out
+of use and frees every other gap in the saved numbering as before, because the
+ECS frees indices of its own that later spawns reuse. The retired list is
+hashed. The writer emits V4; V1, V2 and V3 still load, with nothing retired.
+
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a
 dynamic object shares an authored placement's id and position. Historical V1

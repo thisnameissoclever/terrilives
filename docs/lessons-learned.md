@@ -6870,3 +6870,27 @@ the one place every loader passes through after the restore is whole: a fix
 for an ordering bug belongs after the last step of every path, not after the
 step where the bug was first seen.
 
+## [L-the-ecs-frees-indices-too] A design assumed the game was the only thing that despawned
+
+**What happened.** The selling design had a sale retire its entity index and
+save where fresh indices start, with the loader retiring every gap in the saved
+numbering. The first test failed: after a sale the next spawn took an index
+well below the fresh bound. Retiring every gap after a Load would have made
+the loaded world spawn at different indices than the world that was saved.
+
+**Root cause.** The design read "nothing in the game despawns" as "nothing
+frees an index". The ECS allocates and frees entities of its own: running a
+system once, as each command drain does, spawns and frees one, and the next
+spawn reuses that index. The loader's habit of freeing gaps is what reproduces
+those free indices after a Load.
+
+**Prevention rule.** Before designing around the entity allocator, check what
+else allocates and frees: the library's own systems and observers as well as
+the game's code. Save only what differs from what the loader already
+reproduces: here, the indices the game retired, not a bound.
+
+**How to verify.** `a_sold_index_is_never_handed_out_again` spawns after a sale
+and `after_two_sales_a_save_and_a_load_the_next_purchase_matches_continuous_play`
+compares a loaded world's next purchase with continuous play, both in
+`crates/terri-sim/src/placement/sale_tests.rs`. Replacing `despawn_no_free` in
+the sale with `despawn` fails both.

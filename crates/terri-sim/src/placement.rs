@@ -27,6 +27,9 @@ pub enum PlacementRefusal {
     BlockedLanding = 13,
     /// The household's Funds are less than the price - [BM-buy].
     CannotAfford = 14,
+    /// The object has no price, so nothing says what a sale is worth -
+    /// [SL-rules] in `docs/specs/2026-09-22-selling-furniture.md`.
+    NotForSale = 15,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -47,6 +50,8 @@ pub struct LotEditState {
     pub last_purchase_result: Option<purchase::PurchaseResult>,
     /// The most recent room the drain built or refused - [RT-boundary].
     pub last_room_result: Option<rooms::RoomEditResult>,
+    /// The most recent sale the drain made or refused - [SL-shell].
+    pub last_sale_result: Option<sale::SaleResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -474,6 +479,7 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
 
 pub mod purchase;
 pub mod rooms;
+pub mod sale;
 pub mod walls;
 
 #[cfg(test)]

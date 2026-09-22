@@ -592,7 +592,12 @@ this milestone and is done; what follows is M1b onwards.
   `docs/specs/2026-09-21-buy-mode.md` and the played check is [A-buy-mode].
   Still open: palette recolours, [BM-slice-recolour] in that design, whose
   mechanism is code-owned and whose palettes wait on [T-recolour-palettes].
-  Selling an object back is [BM-slice-sell] there too.
+  Selling an object back is [BM-slice-sell] there, built on branch
+  `twcl/sell-furniture`: a Sell button in the Furniture tool pays back half an
+  object's price and removes it, refused while a sim uses it, is walking to
+  it or has been told to use it. Its design is
+  `docs/specs/2026-09-22-selling-furniture.md` and its played check is
+  [A-selling-furniture].
 - **Create-a-sim:** body type, face, hair, clothing, trait selection
 - ~~**Household** of up to ~6 sims~~ - done. Content preserves declaration
   order, enforces a six-member ceiling, and the normal HUD provides one

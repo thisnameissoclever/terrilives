@@ -103,6 +103,12 @@ pub struct Sim {
     /// interpolation history only; it is intentionally absent from Save V1
     /// and the deterministic world digest.
     socket_projected_entities: std::collections::HashSet<Entity>,
+    /// The entity in each render row at the last sync, in row order -
+    /// [SL-render] in `docs/specs/2026-09-22-selling-furniture.md`. A sale and
+    /// a purchase in one drain keep the row count while shifting rows, so the
+    /// interpolation history is reseeded whenever this list changes, not only
+    /// when its length does. Render history only, like the set above.
+    render_rows: Vec<Entity>,
 }
 
 #[derive(Debug)]
@@ -660,6 +666,36 @@ impl Sim {
         }
     }
 
+    /// The current envelope - [SL-save]: V3's, with the indices sales retired.
+    pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
+        let terri_core::SaveSnapshotV3 {
+            world,
+            layout,
+            object_facings,
+        } = self.save_snapshot_v3();
+        terri_core::SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices: self
+                .world
+                .get_resource::<placement::sale::RetiredIndices>()
+                .map_or_else(Vec::new, |retired| retired.as_slice().to_vec()),
+        }
+    }
+
+    /// Validates the complete candidate before replacing the running simulation.
+    pub fn load_snapshot_v4(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV4,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        self.adopt(restored);
+        Ok(())
+    }
+
     /// Validates the complete candidate before replacing the running simulation.
     pub fn load_snapshot_v3(
         &mut self,
@@ -968,6 +1004,7 @@ impl Sim {
             render: render_buffer::RenderBuffer::default(),
             portals: portals::PortalBuffer::default(),
             socket_projected_entities: std::collections::HashSet::new(),
+            render_rows: Vec::new(),
         }
     }
 
@@ -1706,23 +1743,16 @@ impl Sim {
         // from the current frame to avoid interpolating from garbage or
         // from another entity's coordinates.
         //
-        // Read the guard as what it is: a length check, not a membership
-        // check. **An unchanged count does not imply an unchanged entity
-        // set.** It catches pure additions and pure removals, because
-        // those move the length. It does NOT catch one addition and one
-        // removal between the same two syncs: `bevy_ecs` reuses freed
-        // entity indices, so the new entity can land on the departed
-        // one's index, keep its sorted slot, and change only the occupant.
-        // Task 12 would then interpolate that slot from the dead entity's
-        // last position to the new entity's first one and draw something
-        // streaking across the lot in a single frame.
-        //
-        // Unreachable in M0 - nothing despawns - which is why this is a
-        // comment and not a fix. The fix, for whoever first adds a
-        // despawn: keep the previous frame's sorted index list alongside
-        // `prev_positions` and reseed whenever the new list differs from
-        // it, rather than whenever the lengths differ.
-        if self.render.prev_positions.len() != self.render.positions.len() {
+        // An unchanged count does not imply an unchanged entity set: one
+        // addition and one removal between the same two syncs, a purchase
+        // and a sale in one drain, keep the length while shifting rows, and
+        // a row would interpolate from another entity's last position. So
+        // the guard compares the rows' entities, which catches every change
+        // the length check caught and that one too ([SL-render]).
+        let entities: Vec<Entity> = rows.iter().map(|row| row.entity).collect();
+        if self.render_rows != entities
+            || self.render.prev_positions.len() != self.render.positions.len()
+        {
             self.render.prev_positions = self.render.positions.clone();
         } else {
             for (slot, row) in rows.iter().enumerate() {
@@ -1735,6 +1765,7 @@ impl Sim {
                 }
             }
         }
+        self.render_rows = entities;
         previous_socket_projection.clear();
         previous_socket_projection.extend(
             rows.iter()
@@ -2647,11 +2678,24 @@ impl Sim {
                         }
                         fields
                     }
+                    SellObject { object } => vec![11, *object as u64],
                 };
                 for field in fields {
                     hasher.write_u64(field);
                 }
             }
+        }
+
+        // [SL-save]: the indices sales have retired. Two worlds with the same
+        // entities but different retired indices hand the next spawn
+        // different indices, so this tells them apart. Appended last.
+        let retired = self
+            .world
+            .get_resource::<placement::sale::RetiredIndices>()
+            .map_or(&[][..], |retired| retired.as_slice());
+        hasher.write_u64(retired.len() as u64);
+        for &index in retired {
+            hasher.write_u64(u64::from(index));
         }
 
         hasher.finish()
@@ -4560,7 +4604,13 @@ mod determinism_tests {
         // buy mode), moving it from 0xC7BB_234C_419A_654C. An ENCODING change:
         // the scenario's one fridge now writes an object-kinds section. The
         // simulation computes exactly what it did.
-        const GOLDEN: u64 = 0xA592_DBD9_C174_B14A;
+        //
+        // **The digest learned which indices sales retired** ([SL-save],
+        // selling), moving it from 0xA592_DBD9_C174_B14A. An ENCODING change:
+        // every world now ends with the count of retired indices, zero here,
+        // and the simulation computes exactly what it did. Read from this
+        // failing assertion.
+        const GOLDEN: u64 = 0xDE84_3576_1360_3E8A;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

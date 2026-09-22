@@ -3258,3 +3258,26 @@ about half the item names, so the lists stay stacked at every width.
 
 **Not proven here.** Nothing was bought in this check; buying is unchanged
 from [A-buy-mode]. No physical phone was used.
+
+## [A-selling-furniture] Selling a chair back
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree with its WebAssembly rebuilt, driven in the Playwright browser on the
+household loaded from its save, with 12,800 in Funds.
+
+**Sell.** In Build mode the Furniture tool showed a Sell button, disabled and
+reading "Sell" with nothing chosen. Choosing "Chair, Standard Issue" from the
+list ringed the chair beside the dining table and the button read "Sell for
+20", half its price of 40. Pressing it took the chair away from beside the
+table, the status said "Chair, Standard Issue sold.", Funds read 12,820, the
+list lost the chair, and the button went back to a disabled "Sell".
+
+**Nothing kept.** I did not save: this build writes the new V4 envelope, which
+older builds cannot read. A reload brought back "Saved game loaded" with
+12,800 in Funds and the chair back at the table.
+
+**Not proven here.** A refusal was not replayed in the page; the boundary and
+Furniture tool tests cover selling something a sim has been told to use, and
+the simulation tests cover every refusal. Saving and loading after a sale are
+covered by the simulation tests, not replayed here. No physical phone was
+used.

@@ -1,7 +1,7 @@
 # Buy mode: selling furniture
 
-Status: working design for [BM-slice-sell] in
-`docs/specs/2026-09-21-buy-mode.md`. Nothing here is built yet.
+Status: [SL-slice-sell] is built, on branch `twcl/sell-furniture`. It is
+[BM-slice-sell] in `docs/specs/2026-09-21-buy-mode.md`.
 
 The Buy tool (PR 96) spends Funds on furniture. Nothing gives any back, and a
 player who buys the wrong thing has to keep it. [BM-sell] in the buy-mode
@@ -67,29 +67,38 @@ could take a different index than in continuous play, and the world hash would
 part ways ([BM-sell], second hazard).
 
 The sale therefore despawns with `World::despawn_no_free`, which removes the
-entity and its components without returning the index to the allocator. A sold
-index is never handed out again. New entities always take fresh indices, in
-order, the same way in continuous play and after a Load, and there is no free
-list whose order has to be saved.
+entity and its components without returning the index to the allocator, and
+records the index in `RetiredIndices`. A sold index is never handed out again,
+and a sale leaves the allocator's free list exactly as it was.
 
-### [SL-save] Save V4: where fresh indices start
+The first design saved only where fresh indices start and had the loader retire
+every gap. Building it showed why that is wrong: the ECS allocates and frees
+entities of its own, for a system run once in each command drain, and later
+spawns reuse those indices. Those gaps must be freed after a Load, as the loader
+has always freed them, and only the sold ones kept out of use. So the save
+records which indices are retired, not a bound.
 
-After a sale the highest index ever used may be one no live entity holds, so
-the saved entities no longer say where fresh indices start. Save V4 is the V3
-envelope with one field appended: `index_bound`, the allocator's count of
-indices ever handed out (`Entities::len`). The loader of a V4 save spawns
-placeholders up to `index_bound`, restores the saved entities into their
-slots, and retires every other placeholder with `despawn_no_free`, so the
-loaded world hands out the same fresh index next.
+### [SL-save] Save V4: the retired indices
 
-V1, V2 and V3 saves load exactly as they do today: they have no field, their
-holes are freed in ascending order as before, and nothing written before this
-slice can hold a sold index. The writer emits V4 from this slice on. A V4 save
-names a bound at least as large as every saved index; one that does not is
-refused as corrupt.
+Save V4 is the V3 envelope with one field appended: `retired_indices`, every
+index a sale has retired, ascending. The loader of a V4 save spawns
+placeholders up to the highest saved or retired index, restores the saved
+entities into their slots, retires the retired placeholders with
+`despawn_no_free`, and frees every other gap in ascending order as it always
+has. A retired index above every saved one is still reached, so it stays out
+of use after the Load.
 
-The world hash gains `index_bound` as an appended section, so two worlds that
-would hand the next purchase different indices never hash alike.
+A V4 save whose retired list is out of order, repeats an index, or names an
+index a saved entity holds is refused before the running world is replaced.
+V1, V2 and V3 saves load exactly as before, with nothing retired: nothing
+written before this slice can hold a sold index. The writer emits V4 from this
+slice on, and a V3 body labelled V4 is refused for its missing list.
+
+The world hash gains the retired list, its length then each index, as an
+appended section, so two worlds that would hand the next spawn different
+indices never hash alike. It moves the golden world hash from
+0xA592_DBD9_C174_B14A to 0xDE84_3576_1360_3E8A, an encoding change: the
+simulation computes exactly what it did.
 
 ### [SL-render] The render buffer reseeds on a changed entity set
 
@@ -102,12 +111,14 @@ first despawn.
 
 ### [SL-shell] The Sell button
 
-The Furniture tool's controls gain Sell, enabled while a placed object with a
-price is chosen and nothing is on its way. Its label names the payout. The
-boundary gains `sale_value(object)` for the label and `sell_object(object)` to
-stage the sale; the result comes back through the existing last-result
-pattern. After a sale the choice clears and the status says "{name} sold."
-The Delete key sells from the keyboard.
+The Furniture tool's controls gain Sell, enabled while a chosen object would
+sell and nothing is on its way. Its label names the payout, "Sell for 150".
+The boundary gains `sale_preview(object)`, the refusal code and the payout,
+for the label; `sell_object(object)` to stage the sale; and
+`last_sale_result()`, the object, the refusal code and what it paid. While the
+sale is on its way the status says "Selling…"; once it lands the choice clears
+and the status says "{name} sold.", or the refusal. The Delete key sells from
+the keyboard, and the keyboard help says so.
 
 ## Slices
 

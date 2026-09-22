@@ -34,7 +34,7 @@ pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};
 pub use rng::SimRng;
 pub use save::{
-    SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SavedChainState, SavedCommand,
+    SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SavedChainState, SavedCommand,
     SavedConversationVoice, SavedEating, SavedEntity, SavedHabituation, SavedIntent, SavedPath,
     SavedPersonality, SavedPosition, SavedSocialising, SavedTarget, SavedTraitState, SAVE_MAGIC,
     SAVE_SCHEMA_VERSION,

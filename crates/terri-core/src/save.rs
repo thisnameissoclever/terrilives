@@ -12,9 +12,23 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 3;
+pub const SAVE_SCHEMA_VERSION: u16 = 4;
 
-/// Current envelope: frozen world and architecture, followed by required directions.
+/// Current envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
+/// the V3 envelope with the entity indices sales have retired appended. A
+/// retired index belongs to no entity and is never handed out again, so the
+/// loader must not free it the way it frees the other gaps in the numbering.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV4 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    pub object_facings: Vec<(u32, u8)>,
+    /// Every entity index a sale has retired, ascending, none of them an index
+    /// a saved entity holds.
+    pub retired_indices: Vec<u32>,
+}
+
+/// Previous envelope: frozen world and architecture, followed by required directions.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV3 {
     pub world: SaveSnapshotV1,
@@ -280,5 +294,10 @@ pub enum SavedCommand {
         x1: u32,
         y1: u32,
         doorway: Option<crate::layout::WallLine>,
+    },
+    /// [SL-command]. A sale staged just before a save, by entity index as
+    /// `PlaceObject` names its object.
+    SellObject {
+        object: u32,
     },
 }

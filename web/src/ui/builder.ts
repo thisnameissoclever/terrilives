@@ -4,13 +4,13 @@ import type { OverlayPauseController } from './overlay-pause.js';
 type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
   'objectName' | 'objectFacing' | 'objectFacingMask' | 'footprintWidths' |
   'footprintDepths' | 'placementPreview' | 'placeObject' | 'lotRevision' |
-  'lastPlacementResult'>;
+  'lastPlacementResult' | 'salePreview' | 'sellObject' | 'lastSaleResult'>;
 
 export interface BuilderObject { readonly id: number; readonly name: string }
 export interface BuilderHooks { changed(): void; enter(): void; exit(): void }
 export const FACING_NAMES = ['South-east', 'South-west', 'North-west', 'North-east'] as const;
 const EDIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-  '[', ']', 'r', 'R', 'Enter', 'Escape']);
+  '[', ']', 'r', 'R', 'Enter', 'Escape', 'Delete']);
 
 /** Paused edit state. Rust owns every placement decision and world write. */
 export class FurnitureBuilder {
@@ -22,6 +22,10 @@ export class FurnitureBuilder {
   status = 'Choose furniture to move or rotate.';
   pending = false;
   blocked = false;
+  /** What selling the chosen object would pay back, or null when it would not sell. */
+  saleValue: number | null = null;
+  /** The object a sale on its way names, until the drain reports it ([SL-shell]). */
+  private selling: number | null = null;
   private mask = 0;
   private revision: number;
   private original: { x: number; y: number; facing: number } | null = null;
@@ -35,6 +39,10 @@ export class FurnitureBuilder {
   get canRotate(): boolean { return (this.mask & (this.mask - 1)) !== 0; }
   get canConfirm(): boolean {
     return this.active && !this.blocked && !this.pending && this.preview?.valid === true;
+  }
+  get canSell(): boolean {
+    return this.active && !this.blocked && !this.pending && this.selected !== null
+      && this.saleValue !== null;
   }
 
   enter(): void {
@@ -138,6 +146,16 @@ export class FurnitureBuilder {
     this.hooks.changed();
   }
 
+  /** Sells the chosen object; the drain applies it and `afterCommands` reports it. */
+  sell(): boolean {
+    if (!this.canSell || this.selected === null) return false;
+    this.pending = this.source.sellObject(this.selected);
+    if (this.pending) this.selling = this.selected;
+    this.status = this.pending ? 'Selling…' : 'The sale could not be sent.';
+    this.hooks.changed();
+    return this.pending;
+  }
+
   handleKey(key: string): boolean {
     if (!this.active || !EDIT_KEYS.has(key)) return false;
     if (this.pending || this.blocked) return true;
@@ -150,6 +168,7 @@ export class FurnitureBuilder {
       case ']': this.cycle(1); break;
       case 'r': case 'R': this.rotate(); break;
       case 'Enter': this.confirm(); break;
+      case 'Delete': this.sell(); break;
       case 'Escape': if (this.selected === null) this.exit(); else this.cancel(); break;
       default: return false;
     }
@@ -161,6 +180,18 @@ export class FurnitureBuilder {
     const revision = this.source.lotRevision();
     const changed = revision !== this.revision;
     this.revision = revision;
+    // A sale first: once it lands there is no chosen object to requery.
+    if (this.selling !== null) {
+      const result = this.source.lastSaleResult();
+      if (result?.object === this.selling) {
+        this.selling = null;
+        this.pending = false;
+        const name = this.name;
+        if (result.reason === null) this.clearSelection();
+        this.status = result.reason ?? `${name || 'Furniture'} sold.`;
+        this.hooks.changed();
+      }
+    }
     if (changed && this.active) {
       this.refreshObjects();
       // The list changed even when nothing is selected, as after a purchase,
@@ -195,6 +226,7 @@ export class FurnitureBuilder {
 
   resetAfterLoad(): void {
     this.pending = false;
+    this.selling = null;
     this.clearSelection();
     this.revision = this.source.lotRevision();
     if (this.active) this.refreshObjects();
@@ -218,10 +250,13 @@ export class FurnitureBuilder {
     this.preview = { ...geometry, ...preview, width: geometry.width, depth: geometry.depth,
       sprite: geometry.sprite, foreground: geometry.foreground };
     this.status = preview.valid ? 'Ready to place.' : preview.reason ?? 'This placement is unavailable.';
+    const sale = this.source.salePreview(this.selected);
+    this.saleValue = sale.reason === null ? sale.payout : null;
     this.hooks.changed();
   }
 
   private clearSelection(): void {
+    this.saleValue = null;
     this.nextSelection = null;
     this.original = null;
     this.selected = null;

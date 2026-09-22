@@ -38,7 +38,7 @@ class ElementPort {
 function fixture() {
   const nodes = new Map<string, ElementPort>();
   for (const id of ['builder-controls', 'build-toggle', 'builder-object', 'builder-name',
-    'builder-facing', 'builder-status', 'builder-rotate', 'builder-confirm', 'builder-cancel',
+    'builder-facing', 'builder-status', 'builder-rotate', 'builder-confirm', 'builder-cancel', 'builder-sell',
     'builder-rotation-note', 'builder-desktop', 'builder-dock', 'builder-keyboard-help',
     'builder-touch-help']) nodes.set(`#${id}`, new ElementPort());
   const doc = {
@@ -135,5 +135,34 @@ it('keeps dropdown selection synchronized through automatic commit and invalid c
   expect(builder.pending).toBe(false);
   source.flushCommands(); builder.afterCommands();
   expect(source.lotRevision()).toBe(1);
+  handle.free();
+});
+
+// [SL-shell] in docs/specs/2026-09-22-selling-furniture.md: the Sell button
+// names what the sale pays, sells through the drain, and clears the choice.
+it('sells the chosen furniture for part of its price and clears the choice', () => {
+  const { handle, source, builder, node } = fixture();
+  node('build-toggle').fire('click');
+  expect([node('builder-sell').disabled, node('builder-sell').textContent]).toEqual([true, 'Sell']);
+  const selector = node('builder-object');
+  selector.value = '15'; selector.fire('change');
+  const { reason, payout } = source.salePreview(15);
+  expect(reason).toBeNull();
+  expect(payout).toBeGreaterThan(0);
+  expect([node('builder-sell').disabled, node('builder-sell').textContent])
+    .toEqual([false, `Sell for ${payout.toLocaleString('en-US')}`]);
+  const name = source.objectName(15);
+  const funds = source.funds();
+  node('builder-sell').fire('click');
+  expect([builder.pending, node('builder-sell').disabled, node('builder-status').textContent])
+    .toEqual([true, true, 'Selling…']);
+  node('builder-sell').fire('click');
+  source.flushCommands(); builder.afterCommands();
+  expect(source.lastSaleResult()).toEqual({ object: 15, reason: null, payout });
+  expect(source.funds()).toBe(funds + payout);
+  expect([builder.selected, builder.pending, node('builder-status').textContent])
+    .toEqual([null, false, `${name} sold.`]);
+  expect(builder.objects.some((object) => object.id === 15)).toBe(false);
+  expect(selector.children.some((child) => child.value === '15')).toBe(false);
   handle.free();
 });

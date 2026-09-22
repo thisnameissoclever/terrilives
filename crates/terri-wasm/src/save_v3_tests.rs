@@ -1,5 +1,7 @@
 use super::*;
-use terri_core::{layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, SavedCommand};
+use terri_core::{
+    layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SavedCommand,
+};
 
 pub(super) fn v2_bytes(snapshot: &SaveSnapshotV2) -> Vec<u8> {
     let mut bytes = SAVE_MAGIC.to_vec();
@@ -15,10 +17,20 @@ fn v3_bytes(snapshot: &SaveSnapshotV3) -> Vec<u8> {
     bytes
 }
 
+fn v4_bytes(snapshot: &SaveSnapshotV4) -> Vec<u8> {
+    let mut bytes = SAVE_MAGIC.to_vec();
+    bytes.extend_from_slice(&4u16.to_le_bytes());
+    bytes.extend(postcard::to_allocvec(snapshot).unwrap());
+    bytes
+}
+
+/// V3 saves are still read, strictly: every truncation, trailing data, a V2
+/// body and a V3 body labelled V4 are refused. The writer is V4 now, so the
+/// V3 bytes here are built directly.
 #[test]
 fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
     let source = SimHandle::new(4, 4);
-    let valid = source.save_bytes();
+    let valid = v3_bytes(&source.sim.save_snapshot_v3());
     assert_eq!(&valid[8..10], &[3, 0]);
     assert_eq!(&valid[valid.len() - 3..], &[1, 0, 0]);
     let mut restored = SimHandle::from_lot();
@@ -26,18 +38,21 @@ fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
         restored.load_bytes(&valid),
         "an empty required facing list is valid"
     );
-    assert_eq!(restored.save_bytes(), valid);
+    assert_eq!(v3_bytes(&restored.sim.save_snapshot_v3()), valid);
     let mut mislabeled = v2_bytes(&source.sim.save_snapshot_v2());
     mislabeled[8] = 3;
     let mut trailing = valid.clone();
     trailing.push(0);
+    // A V3 body labelled V4 lacks the retired list V4 requires.
+    let mut early = valid.clone();
+    early[8] = 4;
     let mut future = valid.clone();
-    future[8] = 4;
-    let mut cases = vec![mislabeled, trailing, future];
+    future[8] = 5;
+    let mut cases = vec![mislabeled, trailing, early, future];
     cases.extend((SAVE_HEADER_BYTES..valid.len()).map(|cut| valid[..cut].to_vec()));
     let mut with_facing = SimHandle::new(4, 4);
     assert!(with_facing.spawn_object(1.0, 1.0, "reading_chair"));
-    let faced = with_facing.save_bytes();
+    let faced = v3_bytes(&with_facing.sim.save_snapshot_v3());
     cases.push(faced[..faced.len() - 1].to_vec());
     cases.push(faced[..faced.len() - 2].to_vec());
     for bytes in cases {
@@ -137,5 +152,38 @@ fn v3_bad_facing_rows_and_layout_are_refused_before_live_replacement() {
         let before = live.save_bytes();
         assert!(!live.load_bytes(&v3_bytes(&snapshot)));
         assert_eq!(live.save_bytes(), before);
+    }
+}
+
+/// [SL-save]: the public writer's V4 envelope ends with the retired list, and
+/// is read as strictly as V3: every truncation and trailing data refused, the
+/// running world untouched.
+#[test]
+fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
+    let mut source = SimHandle::new(4, 4);
+    assert!(source.spawn_object(1.0, 1.0, "reading_chair"));
+    let valid = source.save_bytes();
+    assert_eq!(&valid[8..10], &[4, 0]);
+    assert_eq!(valid, v4_bytes(&source.sim.save_snapshot_v4()));
+    assert_eq!(
+        valid.last(),
+        Some(&0),
+        "no retired indices is one empty list"
+    );
+    let mut restored = SimHandle::from_lot();
+    assert!(restored.load_bytes(&valid));
+    assert_eq!(restored.save_bytes(), valid);
+    let mut trailing = valid.clone();
+    trailing.push(0);
+    let mut cases = vec![trailing];
+    cases.extend((SAVE_HEADER_BYTES..valid.len()).map(|cut| valid[..cut].to_vec()));
+    for bytes in cases {
+        let before = restored.save_bytes();
+        assert!(
+            !restored.load_bytes(&bytes),
+            "accepted malformed V4 with {} bytes",
+            bytes.len()
+        );
+        assert_eq!(restored.save_bytes(), before);
     }
 }

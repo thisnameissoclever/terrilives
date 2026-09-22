@@ -116,7 +116,8 @@ impl Placement {
             | SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
             | SimCommand::BuyObject { .. }
-            | SimCommand::BuildRoom { .. } => Self::Back,
+            | SimCommand::BuildRoom { .. }
+            | SimCommand::SellObject { .. } => Self::Back,
         }
     }
 }
@@ -362,7 +363,8 @@ pub(crate) fn drain_ordinary_commands(
             SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
             | SimCommand::BuyObject { .. }
-            | SimCommand::BuildRoom { .. } => {
+            | SimCommand::BuildRoom { .. }
+            | SimCommand::SellObject { .. } => {
                 unreachable!("lot edit splits ordinary stretches")
             }
             // A stale index leaves the selection ALONE rather than
