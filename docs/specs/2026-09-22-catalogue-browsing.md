@@ -34,9 +34,9 @@ A zero delta or a cost serves nothing. A chain's needs are listed on every
 object that fills a role the chain needs, on purpose: a household that has one
 can use it to get what the chain gives. So the kitchen sink reads Hunger,
 Hygiene and Comfort, though washing up there costs comfort, because it is a
-prep surface for Cook dinner, whose comfort comes through it too. The boundary gives one mask per
-catalogue item, in catalogue order, with bit `i` for need index `i`
-(`catalogue_needs`), beside the rows `catalogue` already gives.
+prep surface for Cook dinner, whose comfort comes through it too. The boundary
+gives one mask per catalogue item, in catalogue order, with bit `i` for need
+index `i` (`catalogue_needs`), beside the rows `catalogue` already gives.
 
 ### [CB-none] Items that serve no need
 
