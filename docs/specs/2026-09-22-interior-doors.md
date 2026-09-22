@@ -56,10 +56,14 @@ reads a sim's steps rather than its distance:
 When several sims ask different things of one door, open wins over opening,
 opening over closing, and closing over closed, as for the front door.
 
-A walk does not keep the tile it set out from, so when a walk's first step is
-the one through the door, the door shuts without the closing swing once the
-sim reaches the far tile. The swing is presentation; saving the start tile
-only to show it is not worth a save change.
+The swing is cut short in two cases. A walk does not keep the tile it set
+out from, so when a walk's first step is the one through the door, the door
+can snap open or shut without its ajar frame. And a walk that ends on the tile
+just past the door is removed on the next tick, so the door swings shut in
+one tick instead of over a whole step. In a 20,000-tick run of the shipped
+household the reviewer counted about 280 full swings, 8 snaps and 9 short
+closes. The swing is presentation; saving the start tile only to show it is
+not worth a save change.
 
 The rule has no thresholds to tune: half a tile is where the tile centres
 are.
@@ -106,6 +110,14 @@ fixed in the same branch:
   They now assert three doors and four portal rows.
 * [F8]: the first rule built a list for each sim on every frame. The step
   rule reads the walk where it is stored.
+
+A second round on the fixes found two more, both fixed:
+
+* [F9]: with the strongest state taken by `max_by_key`, no test put a closing
+  sim ahead of a closed one, so deleting closing's rank survived. A two-sim
+  test now does.
+* [F10]: the limitation above named one of the two ways a swing is cut
+  short.
 
 ## Slices
 

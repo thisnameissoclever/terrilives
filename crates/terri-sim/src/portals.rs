@@ -183,9 +183,12 @@ pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
 /// - closed otherwise: standing beside the door, walking along its wall, or
 ///   walking up to it and turning away.
 ///
-/// The position and the walk are saved, so the door is too. A walk does not
-/// keep the tile it set out from, so when its first step is the one through
-/// the door, the door shuts without the closing swing.
+/// The position and the walk are saved, so the door is too. The swing is cut
+/// short in two cases, both presentation only. A walk does not keep the tile
+/// it set out from, so when its first step is the one through the door the
+/// door can snap open or shut without its ajar frame. And a walk that ends on
+/// the tile just past the door is removed on the next tick, so the door swings
+/// shut in one tick rather than over the whole next step.
 fn project_through(position: &Position, path: Option<&Path>, (x, y): (u32, u32)) -> u32 {
     let (line_x, row) = (x as f32 - 0.5, y as f32);
     if (position.y - row).abs() < 0.5 && (position.x - line_x).abs() < 0.5 {
@@ -552,7 +555,11 @@ mod tests {
         let open = (2.5, 4.0, vec![], 0);
         // The stronger request wins whether it comes second or first.
         assert_eq!(doors_with(&[closing.clone(), opening]).states[2], OPENING);
-        assert_eq!(doors_with(&[open, closing]).states[2], OPEN);
+        assert_eq!(doors_with(&[open, closing.clone()]).states[2], OPEN);
+        // Review finding [F9] on the doors branch: closing outranks closed,
+        // even when a sim far off, walking the same kind of walk, comes after.
+        let bystander = (0.0, 0.0, vec![(1, 0)], 0);
+        assert_eq!(doors_with(&[closing, bystander]).states[2], CLOSING);
     }
 
     /// Found by the portal bridge test, and then by review for the V2 loader:
