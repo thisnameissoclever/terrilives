@@ -784,11 +784,11 @@ Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save
 
 ### [B-walls-in-build] The Walls tool shows every wall
 
-Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
+Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
 
 ### [B-placement-buttons] Confirm and Cancel sit over the moved object
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
