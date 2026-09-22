@@ -3225,3 +3225,20 @@ with the corner open again.
 **Not proven here.** A cut that leaves furniture out of reach was not replayed;
 the refusal wording is unchanged from [A-room-tool], and the Rust tests prove
 which refusal each cut gives. No physical phone was used.
+## [A-rotated-lights] A turned lamp and television still light the room
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/rotated-lights`, driven in the Playwright browser at 1280 by 800 on the
+shipped house. The browser's saved game is version 4, newer than this branch,
+so the game said so, kept the save untouched and paused saving; I played the
+shipped house and nothing was saved.
+
+At 01:48 on day 1, night, I opened Build, chose the floor lamp, "Illumination,
+Ambient", pressed Rotate to face it south-west and confirmed. After Exit
+build, its shade glowed and a pool of light lay on the floor around it, as
+the unturned lamp's does. I then turned the television, "Cathode Companion",
+to face south-west the same way: at 04:01 it was drawn with its screen
+turned, and it glowed with its own smaller pool.
+
+**Not proven here.** The other two turns, north-west and north-east, were
+covered by the lighting tests rather than played.
