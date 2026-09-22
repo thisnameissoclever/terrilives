@@ -1,4 +1,4 @@
-"""Every sprite with transparent padding must ship its visible-art box.
+"""Every sprite whose art starts below its canvas top must ship a box.
 
 Picking and camera framing read SPRITE_CONTENT_BOUNDS and fall back to the
 whole padded canvas when a sprite has none. The empty reading chair once
@@ -71,11 +71,20 @@ class ShippedAtlasTests(unittest.TestCase):
 
 
 class FillPaddedBoundsTests(unittest.TestCase):
-    def test_padded_sprite_gets_its_logical_art_box(self):
+    def test_the_band_above_the_art_is_cut_in_logical_units(self):
         sprites = [sprite("padded", (8, 10), (2, 4, 6, 10))]
         bounds = {}
         fill_padded_bounds(sprites, {0: 2}, bounds)
-        self.assertEqual(bounds, {0: [1.0, 2.0, 3.0, 5.0]})
+        self.assertEqual(bounds, {0: [0.0, 2.0, 4.0, 5.0]})
+
+    def test_the_sides_and_the_base_stay_on_the_canvas(self):
+        # A sprite draws nothing on the south half of its own tile, and that
+        # half is inside its canvas. Trimming there would remove it from the
+        # object's click target.
+        sprites = [sprite("trashcan", (16, 52), (1, 6, 15, 31))]
+        bounds = {}
+        fill_padded_bounds(sprites, {}, bounds)
+        self.assertEqual(bounds, {0: [0, 6, 16, 52]})
 
     def test_tightly_cropped_and_empty_sprites_get_none(self):
         sprites = [sprite("tight", (6, 6), (0, 0, 6, 6)), sprite("blank", (6, 6))]
@@ -83,17 +92,17 @@ class FillPaddedBoundsTests(unittest.TestCase):
         fill_padded_bounds(sprites, {}, bounds)
         self.assertEqual(bounds, {})
 
-    def test_side_padding_alone_still_counts(self):
+    def test_side_padding_alone_is_left_alone(self):
         sprites = [sprite("narrow", (10, 6), (3, 0, 7, 6))]
         bounds = {}
         fill_padded_bounds(sprites, {}, bounds)
-        self.assertEqual(bounds, {0: [3, 0, 7, 6]})
+        self.assertEqual(bounds, {})
 
     def test_sim_bodies_are_left_whole(self):
         sprites = [sprite("sim", (8, 10), (2, 4, 6, 10)), sprite("chair", (8, 10), (2, 4, 6, 10))]
         bounds = {}
         fill_padded_bounds(sprites, {}, bounds, whole_canvas={0})
-        self.assertEqual(bounds, {1: [2, 4, 6, 10]})
+        self.assertEqual(bounds, {1: [0, 4, 8, 10]})
 
     def test_recorded_bounds_are_kept(self):
         # Occupied bodies deliberately exclude the furniture silhouette.

@@ -829,24 +829,30 @@ def sim_body_indices(sprites, legacy_count, variants):
 
 
 def fill_padded_bounds(sprites, densities, bounds, whole_canvas=frozenset()):
-    """Record the visible-art box of every padded sprite that has none yet.
+    """Cut the transparent band above the art off every box-less sprite.
 
     Picking and camera framing fall back to the whole canvas without a box,
-    so transparent padding would act as part of the object. The importers
-    record boxes only for the sprites they were written for; this covers
-    every other one. Recorded boxes are kept: an occupied body's box
-    deliberately excludes the furniture drawn with it. Sprites in
-    `whole_canvas` keep the canvas on purpose: a Sim's animation frames
-    share one envelope, so its click target does not move between frames.
+    so empty space above a sprite acts as part of the object and lifts the
+    camera and the placement buttons off its art. The importers record boxes
+    only for the sprites they were written for; this covers every other one.
+
+    Only the band above the art is cut. The sides and the base stay on the
+    canvas, because a sprite stands on the south half of its tile and draws
+    nothing there: trimming to the art would take the front of the trashcan's
+    own tile out of its click target. Recorded boxes are kept, an occupied
+    body's box deliberately excludes the furniture drawn with it, and sprites
+    in `whole_canvas` keep the whole canvas, because a Sim's animation frames
+    share one envelope and its click target must not move between frames.
     """
     for index, (_, image, w, h) in enumerate(sprites):
         if index in bounds or index in whole_canvas:
             continue
         art = image.getchannel("A").getbbox()
-        if art is None or art == (0, 0, w, h):
+        if art is None or art[1] == 0:
             continue
         density = densities.get(index, 1)
-        bounds[index] = [value / density if density != 1 else value for value in art]
+        bounds[index] = [value / density if density != 1 else value
+                         for value in (0, art[1], w, h)]
 
 
 def compose(sprites, placed, width, height):
@@ -948,9 +954,14 @@ export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>>
 /** Actual opaque top and gripping point in logical image coordinates. */
 export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {tops_json};
 /**
- * Visible content bounds for every sprite with transparent padding; a sprite
- * absent here is tightly cropped. Occupied Sim records exclude the furniture
- * silhouette.
+ * The box picking and camera framing use inside a sprite's canvas.
+ *
+ * Every sprite whose art starts below its canvas top has one, cut to that art
+ * top and keeping the canvas sides and base. Imported records are tighter,
+ * being the art's own box; an occupied Sim's excludes the furniture
+ * silhouette. Two kinds of sprite are absent: one whose art reaches its canvas
+ * top, and a Sim body frame, which keeps its whole canvas so that a Sim's
+ * click target does not move between animation frames.
  */
 export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {bounds_json};
 /** Indices of premultiplied visibility contributions composed in one fragment. */

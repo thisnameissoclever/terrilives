@@ -304,12 +304,17 @@ export function clientToWorld(
  *
  * # What this does not do
  *
- * The hit box is the sprite's **rectangle**, not its opaque pixels, so a click
- * in the transparent corner above a bed's headboard still selects the bed. The
- * shader discards those fragments, so the player sees floor there. Reading the
- * atlas's alpha would fix it and needs the decoded image on this side; the
- * rectangle is a large improvement on a 32-pixel-tall diamond and the
- * imprecision is in the player's favour - it makes things easier to hit.
+ * The hit box is a **rectangle**, not the sprite's opaque pixels, so a click
+ * in the transparent corner beside a bed's headboard still selects the bed.
+ * The shader discards those fragments, so the player sees floor there. The
+ * imprecision is in the player's favour: it makes things easier to hit, and a
+ * rectangle is a large improvement on a 32-pixel-tall diamond.
+ *
+ * The one part the generator does read from the atlas's alpha is each
+ * sprite's art top, in `SPRITE_CONTENT_BOUNDS`, because tall empty space above
+ * a sprite is not imprecision in the player's favour: it puts a click on bare
+ * floor well above a chair onto the chair. The sides and the base of the box
+ * stay on the canvas.
  *
  * **Walls and floor tiles are invisible to this.** They are static geometry
  * uploaded once, not render-buffer rows, so nothing here can return one. A
