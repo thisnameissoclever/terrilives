@@ -11,6 +11,11 @@ use terri_data::ContentPack;
 /// front door on the east side at (6, 3) with its landing at (5, 3), and
 /// `funds` in the bank.
 fn house(funds: i64, edges: Vec<WallEdge>) -> Sim {
+    house_with(funds, edges, |_| {})
+}
+
+/// `house`, with its pack changed by `edit` before the house is built.
+fn house_with(funds: i64, edges: Vec<WallEdge>, edit: impl FnOnce(&mut ContentPack)) -> Sim {
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
@@ -24,6 +29,7 @@ fn house(funds: i64, edges: Vec<WallEdge>) -> Sim {
     // object has something to refuse.
     let unpriced = pack.find("coat_rack").unwrap().0 as usize;
     pack.objects[unpriced].price = None;
+    edit(&mut pack);
     let pack: &'static ContentPack = Box::leak(Box::new(pack));
     let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
     sim.world_mut().insert_resource(Content(pack));
@@ -880,8 +886,8 @@ fn a_staged_purchase_in_a_colourway_of_nothing_saves_loads_and_is_refused() {
 
 /// [RC-slice-buy]: ids the pack no longer has load rather than refusing the
 /// save. A retired object is refused as unknown; a retired colourway refuses
-/// the purchase too, as a staged colour change naming it is, so the world
-/// that loads behaves as the one that saved.
+/// the purchase too, as a staged colour change naming it is, so a colour the
+/// game can no longer draw is never bought.
 #[test]
 fn a_staged_purchase_in_a_colourway_naming_what_the_game_dropped_loads_and_is_refused() {
     for (definition, colourway, reason) in [
@@ -908,5 +914,33 @@ fn a_staged_purchase_in_a_colourway_naming_what_the_game_dropped_loads_and_is_re
         if definition.is_some() {
             assert_eq!(result.purchase.definition, u32::MAX);
         }
+    }
+}
+
+/// [RC-slice-buy]: both purchase commands hash a staged object by its id, not
+/// its index, so a save loaded by a build whose content lists the objects in
+/// another order hashes as it did before the Load.
+#[test]
+fn the_world_hash_names_a_staged_purchase_by_its_object_id() {
+    let hash = |renamed: bool, staged: Option<SimCommand>| {
+        let mut sim = house_with(1_000, vec![], |pack| {
+            if renamed {
+                let chair = pack.find("chair").unwrap().0 as usize;
+                pack.objects[chair].id = "a_renamed_chair".to_string();
+            }
+        });
+        if let Some(command) = staged {
+            sim.world_mut().resource_mut::<CommandQueue>().push(command);
+        }
+        sim.world_hash()
+    };
+    // Renaming an object nobody placed changes nothing else the digest sees.
+    assert_eq!(hash(false, None), hash(true, None));
+    for staged in [command(chair(3, 3)), in_colourway(chair(3, 3), 2)] {
+        assert_ne!(
+            hash(false, Some(staged.clone())),
+            hash(true, Some(staged)),
+            "the same index under another id"
+        );
     }
 }

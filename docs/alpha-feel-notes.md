@@ -3241,7 +3241,7 @@ eating surface; the fridge feeds a sim by itself too.
 
 **Good for.** Choosing the stove showed "Price: 260" and under it "Good for:
 Hunger, Comfort". The chair, under Everything, said "Good for: no need on its
-own." Since review that line ends without the full stop.
+own", then ending in a full stop, which review removed.
 
 **Keys and hiding.** With the game view focused and Hunger chosen, ] stepped
 through the six hunger items in list order and wrapped round to the first.

@@ -155,3 +155,10 @@ disabled states untested, now covered; the wire's unknown-variant row still
 naming code 13, now 14; and comments that still said a purchase's ghost is
 drawn as drawn. It asked whether a staged purchase whose colourway id was
 retired should load as drawn; it is refused, as the slice above says.
+
+A second round found no fault in the code. It found a test comment claiming
+the refusal keeps the loaded world behaving as the saved one, which it cannot,
+since the saving world still had the colourway; the comment now says a colour
+the game can no longer draw is never bought. It also found that neither
+purchase command's hash was pinned to name the object by its id rather than
+its index, a gap already on main for `BuyObject`; one test now covers both.
