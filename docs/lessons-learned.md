@@ -7003,3 +7003,29 @@ change.
 test that reads a boundary value you just changed, such as
 `houseSize()` in `web/tests/bridge.test.ts`, fails before the change and
 passes after.
+
+## [L-a-rule-read-the-picture] A wall rule read the presentation-only portal rows
+
+**What happened:** the yard's rule that the front door's line never becomes a
+wall first found that line through `ActivePortals`, the portal rows the
+renderer draws from. A world built without them, such as `Sim::new()` loading
+the same save, accepted the wall the game refused, and the two worlds' digests
+parted. Review caught it before merge.
+
+**Root cause:** the helper was written for the door's swing, which is
+presentation and rightly reads `ActivePortals`, and was then reused by a
+simulation rule. [L-portal-runtime-boundaries] already says career routing
+reads the content's portals, not the presentation rows; a new rule did not
+check which side of that line it stood on.
+
+**Prevention rule:** a rule that decides what the simulation does reads only
+simulation state and the content, the way `check_new_walls` finds the front
+door: `content.lot.front_door` matched to its portal in `content.portals`.
+When a helper serves both the picture and a rule, it takes its source from
+the rule's side.
+
+**How to verify:** `the_front_doors_line_is_kept_without_the_doors_art` in
+`crates/terri-sim/src/placement/wall_tests.rs` loads one save into
+`Sim::new()` and into the shipped lot, asks both for the same wall, and
+compares the refusals and the digests; it fails if `front_door_lines` reads
+`ActivePortals` again.

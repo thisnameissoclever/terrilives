@@ -945,18 +945,31 @@ fn the_world_hash_names_a_staged_purchase_by_its_object_id() {
     }
 }
 
-/// [OS-door], review finding [Y7]: the yard tile beyond the front door stays
-/// open floor, so furniture bought onto it is refused as blocking the door;
-/// the tile beside it takes furniture as any yard tile does.
+/// [OS-door], review findings [Y7] and [Y13]: the yard tile beyond the front
+/// door stays open floor, so furniture bought onto it is refused as blocking
+/// the door; the tile beside it takes furniture as any yard tile does. A
+/// second doorway into the yard first, so the furniture's own approaches are
+/// reachable and only this rule refuses it.
 #[test]
 fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
     let buy = |x: u32, y: u32| {
         let mut sim = Sim::new_from_shipped_lot();
         sim.world_mut().insert_resource(Funds(1_000));
-        sim.world_mut()
-            .resource_mut::<CommandQueue>()
-            .push(command(chair(x, y)));
+        let mut queue = sim.world_mut().resource_mut::<CommandQueue>();
+        queue.push(SimCommand::SetWallEdge {
+            axis: terri_core::layout::EdgeAxis::Vertical,
+            x: 16,
+            y: 5,
+            state: terri_core::layout::WallState::Doorway,
+        });
+        queue.push(command(chair(x, y)));
         sim.flush_commands();
+        let wall = sim.world().resource::<LotEditState>().last_wall_result;
+        assert_eq!(
+            wall.map(|wall| wall.reason),
+            Some(None),
+            "the second doorway"
+        );
         last(&sim).unwrap().reason
     };
     assert_eq!(buy(16, 2), Some(BlockedDoor));

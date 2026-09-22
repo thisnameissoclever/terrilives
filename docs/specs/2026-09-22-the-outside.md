@@ -100,14 +100,16 @@ landing, (15, 3). Its line, (16, 2), is now a doorway into the yard.
   Walls and Room tools already word. Making the line open floor is allowed:
   the door stands in the opening, and nobody's way is cut. Every lot edit also
   keeps the yard tile beyond the line open floor the door reaches, so nothing
-  is bought onto it and no wall shuts it off from the door, with the same
-  refusal.
+  is bought onto it and no wall comes between it and the door, with the same
+  refusal. That keeps the tile, not the yard behind it.
 * **Read from content.** The door's line comes from the content's front door,
   matched to its portal as the loader matches it, and the grid's width, never
   from the presentation-only portal rows, so a world built without the door's
   art keeps the same rules and the same digest. Facing is not in the save
-  digest, but for a door on a given tile of a given lot the compiler allows
-  exactly one facing, so the door's hashed tile settles it.
+  digest. It follows from the door's tile together with the lot's size and
+  house, for which the compiler allows exactly one facing; neither is hashed,
+  and a content change to them is a change of the lot itself, the kind
+  [OS-migrate] meets with a reviewed migration.
 
 Commuters still leave and arrive at the door's tile, as now. Walking out
 through the yard to a street is [OS-slice-street].
@@ -118,8 +120,11 @@ still ends on the door's tile ([OS-slice-street]). The house's cut-away walls
 facing the yard show nothing, so a doorway the player makes in one changes
 nothing on screen though sims now walk through it, and lamp light stops at a
 line nobody can see; only the floor's colour marks the house's edge until
-there is low wall art ([T-yard-art]). A save crafted with the front door's line
-walled still loads, and the Walls tool can open the line again.
+there is low wall art ([T-yard-art]). Walls or a room around the tile beyond
+the door can shut the rest of an empty yard off from the door, since nothing
+yet needs to reach it; the street will, and [OS-slice-street] keeps it
+reachable. A save crafted with the front door's line walled still loads, and
+the Walls tool can open the line again.
 
 ## [OS-migrate] An older save grows into the yard on Load
 
@@ -188,7 +193,8 @@ pinned by a door on the first yard row below a house; and the front door's
 line read from the presentation-only portal rows, so a world without the
 door's art would take a wall the game refuses, now read from the content with
 a test that the two worlds agree. It also found the tile beyond the door
-unguarded, now kept open by every lot edit; three doc comments moved off
+unguarded once a player opens a second way into the yard, now kept open by
+every lot edit; three doc comments moved off
 their functions; a wrong reason for allowing only a south-east door; an
 overclaim that every saved house grows; a stale comment on the door's far
 side; and no real pre-yard Save V5 among the fixtures, now `pre-yard-600.hex`.
@@ -196,3 +202,11 @@ The cut-away walls showing nothing, a worker vanishing in the doorway, and a
 crafted save with the door's line walled are recorded above as known until
 later slices. It also judged a test that reads the startup source as text to
 prove little; it stays, as the way this project checks `main.ts` wiring.
+
+A second round found no fault in the code. It found that the new test for
+the tile beyond the door passed without the rule, since that purchase was
+already refused for its own approaches; the test now opens a second doorway
+into the yard first. It also found that a walled-off yard behind the tile is
+possible, now recorded above, a reason for not hashing the door's facing that
+leaned on the lot's size, now reworded, and no lesson for reading a rule from
+presentation-only state, now [L-a-rule-read-the-picture].
