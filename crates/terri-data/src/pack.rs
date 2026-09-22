@@ -903,6 +903,16 @@ impl ContentPack {
         &self.objects[id.0 as usize]
     }
 
+    /// Every object for sale, in pack order, with its price: the catalogue
+    /// the Buy tool lists ([BM-shell]). One filter for every boundary export
+    /// that lists it, so their rows cannot drift apart.
+    pub fn catalogue(&self) -> impl Iterator<Item = (ObjectDefId, &CompiledObject, u32)> + '_ {
+        self.objects
+            .iter()
+            .enumerate()
+            .filter_map(|(index, object)| Some((ObjectDefId(index as u32), object, object.price?)))
+    }
+
     pub fn find(&self, id: &str) -> Option<ObjectDefId> {
         self.objects
             .iter()
@@ -913,10 +923,11 @@ impl ContentPack {
     /// The needs an object is good for, bit `i` for need index `i` - [CB-serves]
     /// in `docs/specs/2026-09-22-catalogue-browsing.md`: every need one of its
     /// own interactions advertises with a positive delta, and every need a
-    /// chain advertises so when one of the chain's steps takes a role the
-    /// object has. The stove feeds nobody by itself; it serves hunger through
-    /// Cook dinner.
-    pub fn needs_served(&self, definition: &CompiledObject) -> u32 {
+    /// chain advertises so, when the object offers the chain or one of the
+    /// chain's steps takes a role the object has. The stove feeds nobody by
+    /// itself; it serves hunger through Cook dinner.
+    pub fn needs_served(&self, object: ObjectDefId) -> u32 {
+        let definition = self.object(object);
         // A list names each need at most once, so its bits are joined with
         // `bitor` rather than `|`: any join of distinct bits gives the same
         // mask, and an operator here would be a mutant no input can kill.
@@ -934,10 +945,11 @@ impl ContentPack {
             .chains
             .iter()
             .filter(|chain| {
-                chain
-                    .steps
-                    .iter()
-                    .any(|step| definition.roles.contains(&step.role))
+                chain.advertised_by == object
+                    || chain
+                        .steps
+                        .iter()
+                        .any(|step| definition.roles.contains(&step.role))
             })
             .fold(0, |mask, chain| mask | served(&chain.advertises));
         own | chains
@@ -959,7 +971,7 @@ mod tests {
     #[test]
     fn an_object_serves_its_own_needs_and_those_of_every_chain_it_stands_in() {
         let pack = crate::pack();
-        let serves = |id: &str| pack.needs_served(pack.object(pack.find(id).unwrap()));
+        let serves = |id: &str| pack.needs_served(pack.find(id).unwrap());
         assert_eq!(serves("bed"), needs(&["energy"]));
         assert_eq!(serves("television"), needs(&["fun", "social"]));
         // Cook dinner advertises hunger and comfort, and takes a fridge, a
@@ -987,17 +999,31 @@ mod tests {
         let interaction = &mut pack.objects[bed.0 as usize].interactions[0];
         interaction.advertises.push((hygiene, 0.0));
         interaction.advertises.push((fun, -4.0));
-        assert_eq!(pack.needs_served(pack.object(bed)), needs(&["energy"]));
+        assert_eq!(pack.needs_served(bed), needs(&["energy"]));
         // Two interactions on one object, and two chains, serving the same
         // needs.
         let second = pack.objects[bed.0 as usize].interactions[0].clone();
         pack.objects[bed.0 as usize].interactions.push(second);
-        assert_eq!(pack.needs_served(pack.object(bed)), needs(&["energy"]));
+        assert_eq!(pack.needs_served(bed), needs(&["energy"]));
         pack.chains.push(pack.chains[0].clone());
         let stove = pack.find("stove").unwrap();
+        assert_eq!(pack.needs_served(stove), needs(&["hunger", "comfort"]));
+    }
+
+    /// Review finding [H4] on the catalogue branch: an object that offers a
+    /// chain serves its needs even when it takes none of the chain's steps,
+    /// as the simulation counts the chain as something its advertiser offers.
+    #[test]
+    fn an_object_serves_the_needs_of_a_chain_it_offers() {
+        let mut pack = crate::pack().clone();
+        let bed = pack.find("bed").unwrap();
+        assert!(pack.object(bed).roles.is_empty(), "the bed takes no step");
+        let mut offered = pack.chains[0].clone();
+        offered.advertised_by = bed;
+        pack.chains.push(offered);
         assert_eq!(
-            pack.needs_served(pack.object(stove)),
-            needs(&["hunger", "comfort"])
+            pack.needs_served(bed),
+            needs(&["hunger", "energy", "comfort"])
         );
     }
 

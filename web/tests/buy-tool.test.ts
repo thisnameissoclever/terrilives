@@ -104,6 +104,51 @@ describe('BuyTool', () => {
     expect([buy.filter, buy.chosen?.name]).toEqual([null, 'Desk']);
   });
 
+  // Review finding [H1] on the catalogue branch.
+  it('keeps the filter and the choice while another pause holds', () => {
+    const { buy } = tool();
+    buy.enter();
+    buy.choose(DESK.definition);
+    buy.setBlocked(true);
+    buy.setFilter(ENERGY);
+    expect([buy.filter, buy.chosen?.name]).toEqual([null, 'Desk']);
+  });
+
+  // Review finding [H10]: a filter that keeps the choice still redraws.
+  it('redraws when the filter changes and the choice stays', () => {
+    const { buy, changes } = tool();
+    buy.enter();
+    buy.choose(BED.definition);
+    const before = changes();
+    buy.setFilter(COMFORT);
+    expect([buy.chosen?.name, changes()]).toEqual(['Bed', before + 1]);
+  });
+
+  // Review finding [H8]: leaving keeps the filter, a Load drops it.
+  it('keeps the filter across leaving the tool and drops it on Load', () => {
+    const { buy } = tool();
+    buy.enter();
+    buy.setFilter(FUN);
+    buy.exit();
+    buy.enter();
+    expect(buy.filter).toBe(FUN);
+    buy.resetAfterLoad(8, 6);
+    expect(buy.filter).toBeNull();
+  });
+
+  // Review finding [H19]: the redraw a Load triggers already sees the whole
+  // catalogue, so the panel never draws the old filter after a Load.
+  it('clears the filter before the redraw a Load triggers', () => {
+    const source = new FakeShop();
+    const seen: (number | null)[] = [];
+    const buy: BuyTool = new BuyTool(source, 8, 6, { changed: () => { seen.push(buy.filter); } });
+    buy.enter();
+    buy.setFilter(FUN);
+    seen.length = 0;
+    buy.resetAfterLoad(8, 6);
+    expect(seen).toEqual([null]);
+  });
+
   it('starts with nothing chosen and asks for a choice', () => {
     const { buy } = tool();
     buy.enter();
@@ -412,13 +457,25 @@ describe('BuyToolControls', () => {
     expect(element('buy-serves').textContent).toBe('Good for: Energy, Comfort');
     buy.choose(CHAIR.definition);
     view.render();
-    expect(element('buy-serves').textContent).toBe('Good for: no need on its own.');
+    expect(element('buy-serves').textContent).toBe('Good for: no need on its own');
+  });
+
+  // Review findings [H1] and [H10] on the catalogue branch.
+  it('disables the Show list while another pause holds, and shows a filter set elsewhere', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    buy.setFilter(FUN);
+    view.render();
+    expect([element('buy-filter').value, element('buy-filter').disabled]).toEqual(['5', false]);
+    buy.setBlocked(true);
+    view.render();
+    expect(element('buy-filter').disabled).toBe(true);
   });
 
   it('words what an item is good for from the need names', () => {
     expect(servesLabel((1 << 0) | (1 << 6), NEEDS)).toBe('Good for: Hunger, Comfort');
     expect(servesLabel(1 << 4, NEEDS)).toBe('Good for: Social');
-    expect(servesLabel(0, NEEDS)).toBe('Good for: no need on its own.');
+    expect(servesLabel(0, NEEDS)).toBe('Good for: no need on its own');
   });
 
   it('lists every item with its price and greys out what the household cannot afford', () => {
@@ -454,8 +511,8 @@ describe('BuyToolControls', () => {
     buy.afterCommands();
     element('buy-cancel').fire('click');
     view.render();
-    expect([buy.chosen, element('buy-status').textContent, element('buy-price').textContent])
-      .toEqual([null, CHOOSE_ITEM, '']);
+    expect([buy.chosen, element('buy-status').textContent, element('buy-price').textContent,
+      element('buy-serves').textContent]).toEqual([null, CHOOSE_ITEM, '', '']);
   });
 
   // Review finding [F6] on PR 96: the placeholder must not leave a buyable ghost.
@@ -466,8 +523,8 @@ describe('BuyToolControls', () => {
     element('buy-object').fire('change');
     element('buy-object').value = '';
     element('buy-object').fire('change');
-    expect([buy.chosen, buy.preview, element('buy-confirm').disabled, element('buy-price').textContent])
-      .toEqual([null, null, true, '']);
+    expect([buy.chosen, buy.preview, element('buy-confirm').disabled, element('buy-price').textContent,
+      element('buy-serves').textContent]).toEqual([null, null, true, '', '']);
     buy.buy();
     expect(source.staged).toEqual([]);
   });
@@ -496,6 +553,17 @@ describe('the Buy tool on real wasm', () => {
       expect(item.facings & (1 << item.baseFacing)).not.toBe(0);
       expect(item.needs).toBeLessThan(1 << bridge.needNames().length);
     }
+    // Review finding [H2]: each item carries the needs of its own row, as
+    // the raw boundary lists them.
+    const handle = SimHandle.from_lot();
+    const words = handle.catalogue();
+    const raw = handle.catalogue_needs();
+    const rows = new Map<number, number>();
+    for (let row = 0; row < raw.length; row += 1) rows.set(words[row * 4], raw[row]);
+    const paired = new SimBridge(handle, wasmMemory).catalogue();
+    expect(paired.map((item) => item.needs)).toEqual(paired.map((item) => rows.get(item.definition)));
+    expect(new Set(raw).size).toBeGreaterThan(3);
+    handle.free();
     // [CB-serves]: some things serve a need and some serve none; hunger is
     // need 0, and the fridge, the stove and the table all serve it.
     expect(catalogue.filter((item) => (item.needs & 1) !== 0).length).toBeGreaterThanOrEqual(3);

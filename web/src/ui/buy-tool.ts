@@ -220,11 +220,16 @@ export class BuyTool {
     }
   }
 
-  /** After Load: nothing chosen, nothing pending, and the loaded lot's size. */
+  /**
+   * After Load: nothing chosen, nothing pending, the whole catalogue shown and
+   * the loaded lot's size. Leaving the tool and coming back keeps the filter;
+   * a Load starts the panel afresh ([CB-filter]).
+   */
   resetAfterLoad(width: number, height: number): void {
     this.width = width;
     this.height = height;
     this.revision = this.source.lotRevision();
+    this.filter = null;
     this.clear();
   }
 

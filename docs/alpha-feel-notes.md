@@ -3235,12 +3235,13 @@ household loaded from its save, which had 10,760 in Funds.
 **The Show list.** Build, then Buy, showed a Show list above the catalogue
 holding Everything and all seven needs, Hunger to Comfort. Everything listed
 all thirty items. Hunger narrowed the list to six: the fridge, the kitchen
-sink, the counter, the stove, the dining table and the desk, the last four
-because Cook dinner needs a prep surface, a hob and an eating surface.
+sink, the counter, the stove, the dining table and the desk. Five of them are
+there only because Cook dinner takes them, as a prep surface, a hob or an
+eating surface; the fridge feeds a sim by itself too.
 
 **Good for.** Choosing the stove showed "Price: 260" and under it "Good for:
 Hunger, Comfort". The chair, under Everything, said "Good for: no need on its
-own."
+own." Since review that line ends without the full stop.
 
 **Keys and hiding.** With the game view focused and Hunger chosen, ] stepped
 through the six hunger items in list order and wrapped round to the first.
@@ -3248,6 +3249,12 @@ With the chair chosen, switching Show to Energy dropped the choice: the list
 went back to "Choose something to buy", the Good for line emptied and the
 status said "Choose something to buy."
 
+**On a phone,** checked after review at 390 by 844 in the Playwright browser:
+with a chair chosen, Buy and Cancel sit below the fold of the capped Build
+dock, which scrolls to them. They were already below it before this slice, and
+its Show list and Good for line move them further down ([B-phone-build-dock]).
+Putting the Show list beside the catalogue saved only a few pixels and cut off
+about half the item names, so the lists stay stacked at every width.
+
 **Not proven here.** Nothing was bought in this check; buying is unchanged
-from [A-buy-mode]. The phone layout was not looked at. No physical phone was
-used.
+from [A-buy-mode]. No physical phone was used.

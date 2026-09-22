@@ -21,7 +21,7 @@ function needWord(name: string): string {
 /** What an item is good for, from its needs mask and the need names in index order. */
 export function servesLabel(needs: number, names: readonly string[]): string {
   const served = names.filter((_, index) => (needs & (1 << index)) !== 0).map(needWord);
-  return served.length === 0 ? 'Good for: no need on its own.' : `Good for: ${served.join(', ')}`;
+  return served.length === 0 ? 'Good for: no need on its own' : `Good for: ${served.join(', ')}`;
 }
 
 export class BuyToolControls {
