@@ -2764,12 +2764,12 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
 /**
  * The box picking and camera framing use inside a sprite's canvas.
  *
- * Every sprite whose art starts below its canvas top has one, cut to that art
- * top and keeping the canvas sides and base. Imported records are tighter,
- * being the art's own box; an occupied Sim's excludes the furniture
- * silhouette. Two kinds of sprite are absent: one whose art reaches its canvas
- * top, and a Sim body frame, which keeps its whole canvas so that a Sim's
- * click target does not move between animation frames.
+ * A sprite whose art reaches its canvas top is absent, and so is a Sim body
+ * frame, which keeps its whole canvas so that a Sim's click target does not
+ * move between animation frames. Every other sprite has a box: the generated
+ * ones are cut to the art top and keep the canvas sides and base, and the
+ * imported ones are the art's own box, an occupied Sim's excluding the
+ * furniture silhouette.
  */
 export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {
   "2": [

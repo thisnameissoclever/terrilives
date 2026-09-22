@@ -61,6 +61,28 @@ class ShippedAtlasTests(unittest.TestCase):
         self.assertIn("offlineChair", padded)
         self.assertEqual(missing, [])
 
+    def test_every_shipped_box_starts_at_its_sprite_s_art_top(self):
+        # Holds for both kinds of record: a generated box is cut to the art
+        # top, and an imported one is the art's own box. Nothing else pins the
+        # values of the 29 generated boxes appended after the kitchen digest.
+        records = tomllib.loads((ROOT / "assets/sprites/atlas.toml").read_text())["sprite"]
+        bounds = {int(index): box for index, box in shipped_table("SPRITE_CONTENT_BOUNDS").items()}
+        self.assertGreater(len(bounds), 300)
+        wrong = []
+        with Image.open(ROOT / "web/public/atlas.png") as atlas:
+            for index, box in bounds.items():
+                row = records[index]
+                density = row.get("pixel_density", 1)
+                crop = atlas.crop((row["x"], row["y"], row["x"] + row["w"], row["y"] + row["h"]))
+                art = crop.getchannel("A").getbbox()
+                if art is None or box[1] != art[1] / density:
+                    wrong.append(row["name"])
+                if not 0 <= box[0] < box[2] <= row["w"] / density:
+                    wrong.append(row["name"] + " sides")
+                if not 0 <= box[1] < box[3] <= row["h"] / density:
+                    wrong.append(row["name"] + " height")
+        self.assertEqual(wrong, [])
+
     def test_sim_bodies_keep_their_whole_canvas_as_the_click_target(self):
         records = tomllib.loads((ROOT / "assets/sprites/atlas.toml").read_text())["sprite"]
         bounds = {int(index) for index in shipped_table("SPRITE_CONTENT_BOUNDS")}

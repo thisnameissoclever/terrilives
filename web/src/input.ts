@@ -310,11 +310,14 @@ export function clientToWorld(
  * imprecision is in the player's favour: it makes things easier to hit, and a
  * rectangle is a large improvement on a 32-pixel-tall diamond.
  *
- * The one part the generator does read from the atlas's alpha is each
- * sprite's art top, in `SPRITE_CONTENT_BOUNDS`, because tall empty space above
- * a sprite is not imprecision in the player's favour: it puts a click on bare
- * floor well above a chair onto the chair. The sides and the base of the box
- * stay on the canvas.
+ * What the rectangle is comes from `SPRITE_CONTENT_BOUNDS`, which the atlas
+ * generator fills from the art's alpha, because tall empty space above a
+ * sprite is not imprecision in the player's favour: it puts a click on bare
+ * floor well above a chair onto the chair. A sprite the generator filled
+ * keeps the canvas sides and base and is cut only above the art. A sprite an
+ * importer recorded, the fridge among them, carries the art's own box and is
+ * inset on every side. A sprite absent from the table, including every Sim
+ * body frame, is picked on its whole canvas.
  *
  * **Walls and floor tiles are invisible to this.** They are static geometry
  * uploaded once, not render-buffer rows, so nothing here can return one. A
