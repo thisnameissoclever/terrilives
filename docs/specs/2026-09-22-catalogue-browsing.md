@@ -92,6 +92,11 @@ Recorded above as decisions rather than changed: listing a chain's needs on
 every object it takes [H7], and the drop while arrowing through the closed
 Show list [H9].
 
+Copilot's review of PR 100 suggested an unsigned shift in the test that bounds
+each item's need mask, on the view that a mask with its top bit set would read
+as negative. It was not changed: the mask arrives in a `Uint32Array`, so it is
+always read unsigned, and a stray top bit makes it larger and fails the check.
+
 ## Slices
 
 * **[CB-slice-serves]** Everything above.
