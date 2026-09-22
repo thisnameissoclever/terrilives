@@ -429,6 +429,12 @@ describe('the Buy tool on real wasm', () => {
       for (let facing = 0; facing < 4; facing++) {
         if ((item.facings & (1 << facing)) === 0) continue;
         expect(glows(facing), `${item.name} facing ${facing}`).toBe(drawn);
+        // A foreground layer, such as a screen split from its cabinet, glows
+        // with the picture it belongs to.
+        const { foreground } = bridge.purchasePreview(item.definition, 0, 0, facing);
+        if (foreground !== null) {
+          expect(emissiveForSprite(foreground), `${item.name} facing ${facing} foreground`).toBe(drawn);
+        }
       }
     }
     expect(lights.sort()).toEqual(['Cathode Companion', 'Illumination, Ambient']);

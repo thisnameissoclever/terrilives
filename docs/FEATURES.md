@@ -910,11 +910,13 @@ Built on branch `twcl/rotated-lights`: lighting knows each light in all four
 directions its art is drawn in, so a turned lamp or television lights the room
 and glows as it did before it was turned. The played check is
 [A-rotated-lights]. A test built on the real simulation checks every
-catalogue item in every direction it can face, so a light content draws with
-a sprite the lighting does not know fails it. Review suggested declaring each
-light in content instead of by sprite name; that is not needed while
-colourways shift colours in the shader and add no sprites, and the test would
-catch the first light that did.
+catalogue item in every direction it can face, and each picture's foreground
+layer: it fails if the floor lamp or the television is drawn with a picture
+the lighting does not know, or if anything else glows. A new kind of light
+still has to be added by hand, to the lighting and to that test's list.
+Review suggested declaring each light in content instead of by picture name,
+which would remove that step. It is not needed now: colourways shift colours
+in the shader and add no pictures, and no new kind of light is planned.
 
 ### [A-art-pass] The furniture does not survive being looked at
 

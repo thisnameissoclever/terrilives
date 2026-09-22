@@ -6,8 +6,8 @@
  * turned or bought light. So this runs only through `main.ts`'s
  * camera-dirty gate: at startup, after Load, after a lot edit, when the
  * window or camera changes, and when flat lighting changes the static
- * tint. Its output is
- * uploaded to the front of the instance buffer and left there between changes.
+ * tint. Its output is uploaded to the front of the instance buffer and left
+ * there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and

@@ -962,9 +962,9 @@ async function main(): Promise<void> {
    * local-light values and so must be rebuilt. Camera changes, a restored
    * world, a lot edit, and a flat-light toggle all enter through the
    * camera-dirty gate; restore and lot edits additionally refresh the light
-   * map inside that gate. Ordinary
-   * frames do not upload this block ([V11] is what an ungated rebuild costs;
-   * during a drag this runs once per FRAME, not per event).
+   * map inside that gate. Ordinary frames do not upload this block ([V11]
+   * is what an ungated rebuild costs; during a drag this runs once per
+   * FRAME, not per event).
    *
    * The origin is FREE STATE since pan landed ([V8]): it starts at
    * `cameraOrigin`'s centred answer and belongs to the gestures from

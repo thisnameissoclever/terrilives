@@ -6860,7 +6860,9 @@ variant), search the shell for every lookup keyed on a sprite number or name
 whether it means the object or that exact picture. A table that means the
 object must list every sprite the object can be drawn with.
 
-**How to verify.** In `web/tests/lighting.test.ts`, "lights the room from a
-lamp or television turned to" runs for each turn. Dropping a turn from
-`inEveryDirection` in `web/src/render/lighting.ts` fails that turn's case.
+**How to verify.** "lights every direction of a light and nothing else" in
+`web/tests/buy-tool.test.ts` asks the real simulation which picture it draws
+for every catalogue item in every direction, and checks the lighting against
+those. Dropping a turn from `inEveryDirection` in `web/src/render/lighting.ts`
+fails it, as does the per-turn case in `web/tests/lighting.test.ts`.
 
