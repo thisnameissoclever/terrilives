@@ -129,3 +129,34 @@ describe('a house standing in a yard', () => {
     expect(buildEdgeWallGeometry(5, 4, all).filter((p) => p.mask === 0)).toHaveLength(1);
   });
 });
+
+// [WN-art] in docs/specs/2026-09-22-windows.md: a window takes a full panel
+// at its own midpoint, in wall art, marked so the caller can tint it.
+describe('windows', () => {
+  const glazed = (
+    ...args: Parameters<typeof buildEdgeWallGeometry>
+  ) => buildEdgeWallGeometry(...args).filter((panel) => panel.window === true);
+
+  it('draws a panel at the line it glazes, on either axis', () => {
+    expect(glazed(3, 3, new Uint32Array(), [], [3, 3], false, [0, 1, 2])).toEqual([
+      { x: 0.5, y: 2, mask: 0, spriteName: 'wallNS', lightSamples: [[0, 2], [1, 2]], window: true },
+    ]);
+    expect(glazed(3, 3, new Uint32Array(), [], [3, 3], false, [1, 2, 1])).toEqual([
+      { x: 2, y: 0.5, mask: 0, spriteName: 'wallEW', lightSamples: [[2, 0], [2, 1]], window: true },
+    ]);
+  });
+
+  it('hides a window on a cut-away line unless a wall tool asks, as a wall is hidden', () => {
+    // A 3 by 3 lot whose house is the west 2 by 3: the line at x = 2 has a
+    // house tile to its west and yard to its east, so it faces the view.
+    expect(glazed(3, 3, new Uint32Array(), [], [2, 3], false, [0, 2, 1])).toEqual([]);
+    expect(glazed(3, 3, new Uint32Array(), [], [2, 3], true, [0, 2, 1])).toHaveLength(1);
+  });
+
+  it('leaves the wall junctions alone, so a window is not a corner', () => {
+    const edges = Uint32Array.from([0, 1, 0, 0]);
+    const solid = (windows: number[]) => buildEdgeWallGeometry(3, 3, edges, [], [3, 3], false, windows)
+      .filter((panel) => panel.window !== true);
+    expect(solid([0, 1, 1])).toEqual(solid([]));
+  });
+});

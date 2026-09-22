@@ -5,6 +5,12 @@ export interface EdgeWallPanel {
   readonly mask: number;
   readonly spriteName: string;
   readonly lightSamples: readonly (readonly [number, number])[];
+  /**
+   * A window rather than a wall or a doorway ([WN-art] in
+   * `docs/specs/2026-09-22-windows.md`). It is drawn in wall art until
+   * there is window art, so the caller tints it to tell them apart.
+   */
+  readonly window?: boolean;
 }
 
 interface Vertex {
@@ -36,6 +42,10 @@ function spriteForArms(mask: number): string {
  * The far exterior runs participate in the same graph, without duplicate panels.
  * `hinged` lists vertical doorway lines as `[x, y]` pairs that hold a hinged
  * door ([DR-render]): the door draws its own frame there, so no panel is added.
+ * `windows` lists the lines that are windows as `[axis, x, y]` triples
+ * ([WN-state]). Each takes a full panel at its own midpoint, as a doorway
+ * does, so it reads as its own thing in the wall line and no neighbouring
+ * junction has to know about it.
  * `showCutAway` draws the cut-away walls too, as the Walls and Room tools do
  * so the player sees every line they can edit ([WB-draw] in
  * `docs/specs/2026-09-22-walls-in-build.md`).
@@ -47,6 +57,7 @@ export function buildEdgeWallGeometry(
   hinged: ArrayLike<number> = [],
   house: readonly [number, number] = [width, height],
   showCutAway = false,
+  windows: ArrayLike<number> = [],
 ): EdgeWallPanel[] {
   const inHouse = (x: number, y: number): boolean => x < house[0] && y < house[1];
   // Edges never lie on the lot's own edge, so `x - 1` and `y - 1` are tiles.
@@ -88,6 +99,19 @@ export function buildEdgeWallGeometry(
   for (let i = 0; i + 3 < edges.length; i += 4) {
     if (!showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
     addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1);
+  }
+  for (let i = 0; i + 2 < windows.length; i += 3) {
+    const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];
+    if (!showCutAway && cutAway(axis, x, y)) continue;
+    const vertical = axis === 0;
+    doors.push({
+      x: vertical ? x - 0.5 : x,
+      y: vertical ? y : y - 0.5,
+      mask: 0,
+      spriteName: vertical ? 'wallNS' : 'wallEW',
+      lightSamples: vertical ? [[x - 1, y], [x, y]] : [[x, y - 1], [x, y]],
+      window: true,
+    });
   }
   const panels: EdgeWallPanel[] = [...vertices.values()]
     .sort((a, b) => a.y - b.y || a.x - b.x)

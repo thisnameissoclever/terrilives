@@ -312,26 +312,43 @@ impl SimHandle {
         let walls = match self.sim.world().resource::<SavedLayout>() {
             SavedLayout::LegacyAuthoredV1 => LEGACY_WALL_TILES.as_slice(),
             SavedLayout::LegacyCells { walls } => walls.as_slice(),
-            SavedLayout::EdgeWallsV1 { .. } => &[],
+            SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. } => &[],
         };
         walls.iter().flat_map(|&(x, y)| [x, y]).collect()
     }
 
+    /// Three words per window: axis (0 vertical, 1 horizontal), x, y
+    /// ([WN-state] in `docs/specs/2026-09-22-windows.md`). Separate from
+    /// `wall_edges` rather than a fourth state in its fourth word, so a
+    /// reader that has never heard of windows cannot mistake one for a
+    /// doorway and walk a sim through it.
+    pub fn window_lines(&self) -> Vec<u32> {
+        use terri_core::layout::{EdgeAxis, SavedLayout};
+        self.sim
+            .world()
+            .resource::<SavedLayout>()
+            .windows()
+            .iter()
+            .flat_map(|line| [u32::from(line.axis == EdgeAxis::Horizontal), line.x, line.y])
+            .collect()
+    }
+
     /// 0 uses legacy wall cells; 1 uses explicit edges, including an empty set.
     pub fn wall_layout_kind(&self) -> u32 {
-        u32::from(matches!(
+        u32::from(
             self.sim
                 .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ))
+                .resource::<terri_core::layout::SavedLayout>()
+                .has_edges(),
+        )
     }
 
     /// Four words per segment: axis (0 vertical, 1 horizontal), x, y, doorway.
     pub fn wall_edges(&self) -> Vec<u32> {
         use terri_core::layout::{EdgeAxis, SavedLayout};
         match self.sim.world().resource::<SavedLayout>() {
-            SavedLayout::EdgeWallsV1 { edges } => edges
+            layout if layout.has_edges() => layout
+                .edges()
                 .iter()
                 .flat_map(|edge| {
                     [
@@ -427,8 +444,9 @@ impl SimHandle {
 
     /// The refusal code this wall edit would get, or zero when it would be
     /// applied - [WT-boundary]. Never writes. Axis 0 is vertical and 1
-    /// horizontal, as `wall_edges` numbers them; state 0 is open, 1 a wall and
-    /// 2 a doorway. Anything else is `InvalidInput`.
+    /// horizontal, as `wall_edges` numbers them; state 0 is open, 1 a wall,
+    /// 2 a doorway and 3 a window ([WN-state]). Anything else is
+    /// `InvalidInput`.
     pub fn wall_edit_preview(&self, axis: f64, x: f64, y: f64, state: f64) -> u32 {
         use terri_sim::placement::{walls::validate_wall_edit, PlacementRefusal};
         let Some(edit) = wall_edit_arguments(axis, x, y, state) else {
@@ -958,16 +976,19 @@ impl SimHandle {
         let x = sanitize_coord(x);
         let y = sanitize_coord(y);
         let hunger = sanitize_hunger(hunger);
-        if matches!(
-            self.sim
-                .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ) && !self
+        // Every edge layout, not one named version: a glazed house is still
+        // an edge house, and naming the version let review finding [F4] on
+        // PR 126 spawn a sim on a blocked tile once a window existed.
+        if self
             .sim
             .world()
-            .resource::<TileGrid>()
-            .is_walkable(x.round() as i32, y.round() as i32)
+            .resource::<terri_core::layout::SavedLayout>()
+            .has_edges()
+            && !self
+                .sim
+                .world()
+                .resource::<TileGrid>()
+                .is_walkable(x.round() as i32, y.round() as i32)
         {
             return;
         }
@@ -1018,12 +1039,12 @@ impl SimHandle {
         let Some(def) = self.sim.world().resource::<Content>().0.find(content_id) else {
             return false;
         };
-        if matches!(
-            self.sim
-                .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ) {
+        if self
+            .sim
+            .world()
+            .resource::<terri_core::layout::SavedLayout>()
+            .has_edges()
+        {
             let footprint = self
                 .sim
                 .world()
@@ -1896,13 +1917,15 @@ mod boundary_tests {
     /// `layout` followed by the content's walls outside the house, as a
     /// house that grew into the yard on Load has them ([OS-migrate]).
     fn grown_layout(layout: &terri_core::layout::SavedLayout) -> terri_core::layout::SavedLayout {
-        let terri_core::layout::SavedLayout::EdgeWallsV1 { edges } = layout else {
-            panic!("only an edge-wall house grows: {layout:?}");
-        };
+        assert!(
+            layout.has_edges(),
+            "only an edge-wall house grows: {layout:?}"
+        );
         let (_, _, outside) = shipped_lot();
-        terri_core::layout::SavedLayout::EdgeWallsV1 {
-            edges: edges.iter().copied().chain(outside).collect(),
-        }
+        terri_core::layout::SavedLayout::from_parts(
+            layout.edges().iter().copied().chain(outside).collect(),
+            layout.windows().to_vec(),
+        )
     }
 
     /// Hunger levels as the ECS actually stored them.
@@ -5422,6 +5445,73 @@ mod boundary_tests {
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
     }
 
+    /// Review finding [F4] on PR 126: the spawn entry points check the grid
+    /// for every edge house, a glazed one included. A sim spawned onto a
+    /// blocked tile would be a world the loader then refuses.
+    #[test]
+    fn a_glazed_house_still_refuses_a_spawn_onto_a_blocked_tile() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        let before = handle.entity_count();
+
+        let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+        let (width, height) = (grid.width() as i32, grid.height() as i32);
+        let blocked = (0..width)
+            .flat_map(|x| (0..height).map(move |y| (x, y)))
+            .find(|&(x, y)| !grid.is_walkable(x, y))
+            .expect("the shipped house has a blocked tile");
+
+        handle.spawn_agent(blocked.0 as f32, blocked.1 as f32, 50.0);
+        assert_eq!(
+            handle.entity_count(),
+            before,
+            "no sim stands where the grid is blocked"
+        );
+    }
+
+    /// [WN-state]: a window crosses as its own list, keeps no wall record,
+    /// and stops a sim exactly where the wall it replaced did.
+    #[test]
+    fn a_window_crosses_the_boundary_and_stops_a_sim() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.window_lines().is_empty());
+        let walls_before = handle.wall_edges().len();
+        // An interior wall of the shipped house with a clear tile on each
+        // side, away from the front door: the vertical line at x 8, row 4.
+        let blocked = |handle: &SimHandle| {
+            !handle
+                .sim
+                .world()
+                .resource::<terri_core::TileGrid>()
+                .can_step((7, 4), (8, 4))
+        };
+        assert!(blocked(&handle), "the line starts as a wall");
+
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        assert_eq!(
+            handle.wall_edges().len(),
+            walls_before - 4,
+            "the wall record moved to the window list rather than being kept in both"
+        );
+        assert!(blocked(&handle), "a window stops a person like a wall");
+
+        // Opening the line takes the window away and lets a sim through.
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 0.0));
+        handle.flush_commands();
+        assert!(handle.window_lines().is_empty());
+        assert!(!blocked(&handle));
+
+        // And glazing an open line blocks it again.
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        assert!(blocked(&handle));
+    }
+
     /// [OS-daylight]: the daylight knobs cross as the tuning file sets them.
     #[test]
     fn the_daylight_tuning_crosses_the_boundary() {
@@ -5780,7 +5870,8 @@ mod boundary_tests {
             (2.0, 3.0, 2.0, 1.0),
             (-1.0, 3.0, 2.0, 1.0),
             (0.5, 3.0, 2.0, 1.0),
-            (0.0, 3.0, 2.0, 3.0),
+            // 3 is Window since [WN-state]; 4 is the first unused code.
+            (0.0, 3.0, 2.0, 4.0),
             (0.0, 3.0, 2.0, f64::NAN),
             (0.0, f64::INFINITY, 2.0, 1.0),
             (0.0, 3.5, 2.0, 1.0),
@@ -5874,8 +5965,8 @@ mod boundary_tests {
                 vec![0x08, 0x00, 0x01, 0x02],
             ),
             (
-                "SetWallEdge with a state past the three that exist",
-                vec![0x08, 0x00, 0x01, 0x02, 0x03],
+                "SetWallEdge with a state past the four that exist",
+                vec![0x08, 0x00, 0x01, 0x02, 0x04],
             ),
             (
                 "SetWallEdge with an axis past the two that exist",

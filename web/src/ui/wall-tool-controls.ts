@@ -1,7 +1,7 @@
 // The Walls tool's buttons - [WT-shell]. Which tool is showing is the build
 // tool switch's job, in build-tools.ts.
 
-import { DOORWAY, OPEN, WALL, type WallStateCode, type WallTool } from './wall-tool.js';
+import { DOORWAY, OPEN, WALL, WINDOW, type WallStateCode, type WallTool } from './wall-tool.js';
 
 export class WallToolControls {
   private readonly status: HTMLElement;
@@ -21,6 +21,7 @@ export class WallToolControls {
     this.buttons = [
       [required<HTMLButtonElement>('wall-build'), WALL],
       [required<HTMLButtonElement>('wall-doorway'), DOORWAY],
+      [required<HTMLButtonElement>('wall-window'), WINDOW],
       [required<HTMLButtonElement>('wall-remove'), OPEN],
     ];
     for (const [button, state] of this.buttons) {

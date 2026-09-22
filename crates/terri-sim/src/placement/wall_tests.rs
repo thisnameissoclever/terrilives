@@ -3,7 +3,7 @@
 
 use super::*;
 use crate::{Content, Sim};
-use terri_core::layout::{EdgeAxis::*, WallState::*};
+use terri_core::layout::{EdgeAxis::*, WallLine, WallState::*};
 use terri_core::{CommandQueue, Footprint, SimCommand};
 
 /// A 7 by 7 house with the given edges, a fridge in the corner at (0, 0), and
@@ -69,10 +69,9 @@ fn stage(sim: &mut Sim, edit: WallEdit) {
 }
 
 fn edges(sim: &Sim) -> Vec<WallEdge> {
-    match sim.world().resource::<SavedLayout>() {
-        SavedLayout::EdgeWallsV1 { edges } => edges.clone(),
-        other => panic!("expected edge walls, found {other:?}"),
-    }
+    let layout = sim.world().resource::<SavedLayout>();
+    assert!(layout.has_edges(), "expected edge walls, found {layout:?}");
+    layout.edges().to_vec()
 }
 
 fn revision(sim: &Sim) -> u64 {
@@ -543,6 +542,132 @@ fn a_wall_edit_sees_the_orders_issued_before_it_and_not_those_after() {
     }
 }
 
+/// [WN-state] in `docs/specs/2026-09-22-windows.md`, and review finding [F1]
+/// on PR 126: the loader's own grid check still runs once a house has a
+/// window. This is the body of
+/// `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`
+/// with one line glazed first, so every rule the wall validator owns passes
+/// and only the loader's check refuses the wall.
+#[test]
+fn a_glazed_house_still_runs_the_loaders_own_check() {
+    let (mut sim, fridge) = house(vec![]);
+    applied(&mut sim, edit(Vertical, 3, 0, Window));
+    sim.world_mut().spawn((
+        Agent,
+        Position { x: 3.0, y: 0.0 },
+        terri_core::Path {
+            steps: vec![(2, 0), (1, 0)],
+            cursor: 0,
+        },
+        Target {
+            object: fridge,
+            interaction: 0,
+        },
+    ));
+    refused(
+        &mut sim,
+        edit(Vertical, 1, 0, Wall),
+        PlacementRefusal::BlockedRoute,
+    );
+}
+
+/// Review finding [F1] on PR 126: the loader's own grid check is asked for a
+/// glazed house too. Asked directly, because every rule the wall validator
+/// owns runs before it and one of them refuses this candidate first.
+#[test]
+fn the_loaders_grid_check_answers_for_a_glazed_house() {
+    let (mut sim, fridge) = house(vec![]);
+    // Glazed well away from the walk below, so the window is the only thing
+    // about this house that differs from the unglazed case.
+    applied(&mut sim, edit(Vertical, 3, 5, Window));
+    assert_eq!(sim.world().resource::<SavedLayout>().windows().len(), 1);
+    sim.world_mut().spawn((
+        Agent,
+        Position { x: 3.0, y: 0.0 },
+        terri_core::Path {
+            steps: vec![(2, 0), (1, 0)],
+            cursor: 0,
+        },
+        Target {
+            object: fridge,
+            interaction: 0,
+        },
+    ));
+    // The candidate the validator would hand the loader: a wall between
+    // where that walk ends and the fridge it is walking to.
+    let mut candidate = sim.world().resource::<TileGrid>().clone();
+    candidate.set_edge_blocked((0, 0), (1, 0), true);
+    assert!(matches!(
+        crate::save::candidate_grid_loads(sim.world(), &candidate),
+        Err(crate::save::LoadProblem::EdgeWorld)
+    ));
+    // And the same house without that wall still loads.
+    let live = sim.world().resource::<TileGrid>().clone();
+    assert!(crate::save::candidate_grid_loads(sim.world(), &live).is_ok());
+}
+
+/// [WN-state], and review findings [F2], [F3] and [F6] on PR 126: a glazed
+/// house saves, loads and digests like any other, and a loaded window still
+/// stops a sim on either axis.
+#[test]
+fn a_glazed_house_saves_loads_and_hashes() {
+    let (mut sim, _) = house(vec![line(Vertical, 5, 1, false)]);
+    let before = sim.world_hash();
+    applied(&mut sim, edit(Vertical, 3, 2, Window));
+    let glazed = sim.world_hash();
+    assert_ne!(glazed, before, "a window changes the house");
+    applied(&mut sim, edit(Horizontal, 2, 4, Wall));
+    assert_ne!(
+        sim.world_hash(),
+        glazed,
+        "a wall built in a glazed house must move the digest"
+    );
+    let walled = sim.world_hash();
+    applied(&mut sim, edit(Vertical, 3, 2, Open));
+    applied(&mut sim, edit(Vertical, 3, 3, Window));
+    assert_ne!(
+        sim.world_hash(),
+        walled,
+        "the same house glazed on a different line is a different house"
+    );
+
+    // A horizontal window blocks the step across its line, as a wall does.
+    applied(&mut sim, edit(Horizontal, 1, 2, Window));
+    let grid = sim.world().resource::<TileGrid>();
+    assert!(!grid.can_step((1, 1), (1, 2)));
+    assert!(!grid.can_step((1, 2), (1, 1)));
+
+    let saved = sim.save_snapshot_v3();
+    let (mut restored, _) = house(vec![]);
+    restored
+        .load_snapshot_v3(saved.clone())
+        .expect("a glazed house loads");
+    assert_eq!(restored.save_snapshot_v3(), saved);
+    assert_eq!(restored.world_hash(), sim.world_hash());
+    let layout = restored.world().resource::<SavedLayout>();
+    assert_eq!(
+        layout.windows(),
+        [
+            WallLine {
+                axis: Vertical,
+                x: 3,
+                y: 3
+            },
+            WallLine {
+                axis: Horizontal,
+                x: 1,
+                y: 2
+            }
+        ]
+    );
+    let grid = restored.world().resource::<TileGrid>();
+    assert!(
+        !grid.can_step((2, 3), (3, 3)),
+        "a loaded window still blocks"
+    );
+    assert!(!grid.can_step((1, 1), (1, 2)));
+}
+
 #[test]
 fn a_built_house_and_a_staged_wall_edit_survive_save_and_load() {
     let (mut sim, _) = house(vec![line(Vertical, 5, 1, false)]);
@@ -872,10 +997,8 @@ fn a_stream_with_wall_edits_drains_the_same_joined_or_split() {
     let (split, split_hash) = world(true);
     assert_eq!(joined, split);
     assert_eq!(joined_hash, split_hash);
-    assert!(matches!(
-        &joined.layout,
-        SavedLayout::EdgeWallsV1 { edges } if edges.len() == 2
-    ));
+    assert_eq!(joined.layout.edges().len(), 2);
+    assert!(joined.layout.has_edges());
 }
 
 /// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: a wall on the front

@@ -37,6 +37,7 @@ pub struct RoomEditResult {
 pub struct RoomPlan {
     pub changed: bool,
     edges: Vec<WallEdge>,
+    windows: Vec<terri_core::layout::WallLine>,
     grid: TileGrid,
 }
 
@@ -89,9 +90,16 @@ fn record(line: WallLine, doorway: bool) -> WallEdge {
 /// The checks run in the order [RT-rules] lists.
 pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, PlacementRefusal> {
     use PlacementRefusal::*;
-    let Some(SavedLayout::EdgeWallsV1 { edges }) = world.get_resource::<SavedLayout>() else {
+    let Some(layout) = world
+        .get_resource::<SavedLayout>()
+        .filter(|l| l.has_edges())
+    else {
         return Err(UnsupportedLayout);
     };
+    let edges = layout.edges().to_vec();
+    // A window is already a barrier, so a room's outline leaves one alone;
+    // only the doorway the room is built with replaces it ([WN-rules]).
+    let mut windows = layout.windows().to_vec();
     let CurrentLayout { rectangles, .. } = current_layout(world)?;
     let live = world.resource::<TileGrid>();
     let (width, height) = (live.width() as u32, live.height() as u32);
@@ -120,6 +128,20 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     for line in lines {
         let doorway = edit.doorway == Some(line);
         let [a, b] = record(line, doorway).cells();
+        // [OS-door] first: a line the front door stands on can never be a
+        // window today, but the guard must not depend on that staying true.
+        if !doorway && line.axis == EdgeAxis::Vertical && front.contains(&(line.x, line.y)) {
+            return Err(BlockedDoor);
+        }
+        if windows.contains(&line) {
+            if doorway {
+                windows.retain(|held| *held != line);
+                next.push(record(line, true));
+                grid.set_edge_blocked(a, b, false);
+                changed = true;
+            }
+            continue;
+        }
         match next
             .iter()
             .position(|e| e.axis == line.axis && e.x == line.x && e.y == line.y)
@@ -151,7 +173,8 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     if !changed {
         return Ok(RoomPlan {
             changed: false,
-            edges: edges.clone(),
+            edges,
+            windows,
             grid: live.clone(),
         });
     }
@@ -163,6 +186,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     Ok(RoomPlan {
         changed: true,
         edges: next,
+        windows,
         grid,
     })
 }
@@ -174,7 +198,7 @@ pub(crate) fn commit(world: &mut World, edit: RoomEdit) {
     if let Ok(plan) = result {
         if plan.changed {
             world.insert_resource(plan.grid);
-            world.insert_resource(SavedLayout::EdgeWallsV1 { edges: plan.edges });
+            world.insert_resource(SavedLayout::from_parts(plan.edges, plan.windows));
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);
         }

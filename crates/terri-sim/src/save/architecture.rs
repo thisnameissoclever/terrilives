@@ -171,7 +171,7 @@ fn finish_restore(
         candidate.world.resource::<TileGrid>(),
         content,
     )?;
-    if matches!(layout, SavedLayout::EdgeWallsV1 { .. }) {
+    if layout.has_edges() {
         validate_edge_world(
             &candidate.save_snapshot(),
             candidate.world.resource::<TileGrid>(),
@@ -331,9 +331,9 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                 }
             }
         }
-        SavedLayout::EdgeWallsV1 { edges } => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
             let mut seen = BTreeSet::new();
-            for &edge in edges {
+            for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
@@ -343,6 +343,23 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                     let [from, to] = edge.cells();
                     grid.set_edge_blocked(from, to, true);
                 }
+            }
+            // [WN-rules]: a saved window blocks movement like a wall, and a
+            // line that is already spoken for is a corrupt save.
+            for &window in layout.windows() {
+                let edge = terri_core::layout::WallEdge {
+                    axis: window.axis,
+                    x: window.x,
+                    y: window.y,
+                    doorway: false,
+                };
+                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                    || !seen.insert((window.axis, window.x, window.y))
+                {
+                    return Err(SaveError::InvalidGrid);
+                }
+                let [from, to] = edge.cells();
+                grid.set_edge_blocked(from, to, true);
             }
         }
     }
@@ -621,6 +638,49 @@ mod tests {
             edges: vec![edge(2, true)],
         };
         live.load_snapshot_v2(doorway).unwrap();
+    }
+
+    /// Review finding [F2] on PR 126: a save carrying a window is still held
+    /// to every edge-world rule. The same impossible route as the test above,
+    /// with the blocking line saved as a window rather than a wall.
+    #[test]
+    fn edge_world_rejects_a_saved_route_through_a_window() {
+        let mut live = Sim::new_with_lot(5, 4);
+        live.world.spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 1.0, y: 1.0 },
+            terri_core::Path {
+                steps: vec![(2, 1)],
+                cursor: 0,
+            },
+        ));
+        let before = live.save_snapshot_v2();
+        let glazed = terri_core::layout::WallLine {
+            axis: EdgeAxis::Vertical,
+            x: 2,
+            y: 1,
+        };
+        let mut impossible = before.clone();
+        impossible.layout = SavedLayout::from_parts(Vec::new(), vec![glazed]);
+        assert_eq!(
+            live.load_snapshot_v2(impossible),
+            Err(SaveError::InvalidGrid)
+        );
+        assert_eq!(live.save_snapshot_v2(), before);
+
+        // The same window on a line the walk does not cross loads, and it
+        // still blocks its own line once loaded.
+        let mut fine = before;
+        fine.layout = SavedLayout::from_parts(
+            Vec::new(),
+            vec![terri_core::layout::WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 2,
+                y: 3,
+            }],
+        );
+        live.load_snapshot_v2(fine).unwrap();
+        assert!(!live.world.resource::<TileGrid>().can_step((1, 3), (2, 3)));
     }
 
     #[test]

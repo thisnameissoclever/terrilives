@@ -216,7 +216,7 @@ describe('the phone Build dock', () => {
 
   it.each([
     ['builder-status', ['builder-confirm', 'builder-cancel', 'builder-sell', 'builder-sale-note']],
-    ['wall-status', ['wall-build', 'wall-doorway', 'wall-remove']],
+    ['wall-status', ['wall-build', 'wall-doorway', 'wall-window', 'wall-remove']],
     ['room-status', ['room-build', 'room-cancel']],
     ['buy-status', ['buy-confirm', 'buy-cancel']],
   ])('puts %s in one footer with the buttons that act on it', (status, buttons) => {

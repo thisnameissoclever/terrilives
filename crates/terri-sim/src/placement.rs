@@ -194,9 +194,9 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 grid.set_blocked(x as usize, y as usize, true);
             }
         }
-        SavedLayout::EdgeWallsV1 { edges } => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
             let mut seen = std::collections::BTreeSet::new();
-            for &edge in edges {
+            for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
@@ -204,6 +204,24 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 }
                 let [a, b] = edge.cells();
                 grid.set_edge_blocked(a, b, !edge.doorway);
+            }
+            // [WN-rules]: a window stops a person exactly as a wall does. A
+            // line that is somehow both keeps the wall's barrier, which the
+            // repeated insert refuses anyway.
+            for &window in layout.windows() {
+                let edge = terri_core::layout::WallEdge {
+                    axis: window.axis,
+                    x: window.x,
+                    y: window.y,
+                    doorway: false,
+                };
+                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                    || !seen.insert((window.axis, window.x, window.y))
+                {
+                    return Err(UnsupportedLayout);
+                }
+                let [a, b] = edge.cells();
+                grid.set_edge_blocked(a, b, true);
             }
         }
     }

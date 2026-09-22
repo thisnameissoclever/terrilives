@@ -3583,3 +3583,13 @@ Before the change, the "Tim" and "How Tim feels" toggles were each 18.2 pixels t
 At 375 by 812 the same page gave both toggles at 44 pixels with the triangle, as [A-phone-toggle-triangles] recorded, and at 1280 by 720 they stayed 18.2 pixels tall with the browser's own marker, so the desktop is unchanged.
 
 **Not proven here.** This branch's own server was not run; the page came from the file while its scripts came from another tree. Safari, Windows High Contrast and a physical phone were not used. `web/tests/mobile-hud.test.ts` pins the rules to the block every compact screen matches and pins their absence from the phone-only and short-wide blocks, so no screen draws two triangles.
+
+## [A-windows] Fitting a window and watching the row behind it brighten
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/windows` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save, at 13:00 on day 3 with Light on auto. The page was driven through the `?stress=0` frame harness for the clock, because a hidden pane never composites ([L14]); every choice below was a real click.
+
+Options, then Build, then Walls. The dock read Wall, Doorway, Window, Remove, and the help line under it listed N for a window beside W and D. Clicking near the house's east wall on row 4 chose that line and the status said "A wall stands on this line." Window was offered rather than greyed out, and pressing it gave "Window fitted." The wall panel there turned pale blue while the Walls tool was showing every wall, which is how a player tells which lines are glazed until there is window art.
+
+Leaving Build, the east wall is cut away again, so the window is not drawn: it sits on a line the view looks through. What is visible is the light. The row behind the window now reads one step of daylight brighter than the rows above and below it, all the way in: 0.8, 0.6, 0.4 and 0.2 across the four tiles nearest the wall, against 0.6, 0.4, 0.2 and 0 on its neighbours.
+
+**Not proven here.** The brightening is real but slight, because a fully shaded tile only loses a quarter of the day's light and each tile in recovers a fifth of that: at most about five percent per step. It reads as "this room is a little less gloomy" rather than as sunlight falling through glass. A window on a wall the view cuts away cannot be seen at all outside Build, which is right for a wall and arguable for a window. A phone width and a saved-and-reloaded window were not tested here; the save is covered by tests.

@@ -798,6 +798,7 @@ async function main(): Promise<void> {
           lot.height = lotHeight;
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
+          lot.windows = sim.windowLines();
           lot.doors = sim.interiorDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
@@ -982,13 +983,14 @@ async function main(): Promise<void> {
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
+    windows: sim.windowLines(),
     doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
-  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
+  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
   // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
@@ -1050,7 +1052,7 @@ async function main(): Promise<void> {
   let cameraInitialised = false;
   function applyCamera(): void {
     if (lightingDirty) {
-      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
+      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
       sky = buildSky();
       lightingDirty = false;
     }
@@ -1443,6 +1445,7 @@ async function main(): Promise<void> {
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
+      lot.windows = sim.windowLines();
       lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
       cameraDirty = true;

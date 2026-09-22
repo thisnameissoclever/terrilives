@@ -77,7 +77,7 @@ fn stage(sim: &mut Sim, edit: RoomEdit) {
 
 fn edges(sim: &Sim) -> Vec<WallEdge> {
     match sim.world().resource::<SavedLayout>() {
-        SavedLayout::EdgeWallsV1 { edges } => edges.clone(),
+        layout if layout.has_edges() => layout.edges().to_vec(),
         other => panic!("expected edge walls, found {other:?}"),
     }
 }
@@ -119,6 +119,59 @@ fn built(sim: &mut Sim, edit: RoomEdit) {
     );
     stage(sim, edit);
     assert_eq!(last(sim), Some(RoomEditResult { edit, reason: None }));
+}
+
+/// [WN-rules] in `docs/specs/2026-09-22-windows.md`, and review finding [F6]
+/// on PR 126: a room outline that crosses a window leaves it alone, because
+/// a window is already a barrier, and takes it away only where the room's own
+/// doorway lands on it.
+#[test]
+fn a_room_outline_leaves_a_window_alone_unless_its_doorway_lands_there() {
+    let glaze = |sim: &mut Sim, axis, x, y| {
+        let request = WallEdit {
+            axis,
+            x,
+            y,
+            state: terri_core::layout::WallState::Window,
+        };
+        assert!(validate_wall_edit(sim.world(), request).is_ok());
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(terri_core::SimCommand::SetWallEdge {
+                axis: request.axis,
+                x: request.x,
+                y: request.y,
+                state: request.state,
+            });
+        sim.flush_commands();
+    };
+
+    // A window on the room's outline, with the doorway somewhere else.
+    let (mut sim, _) = house(vec![]);
+    glaze(&mut sim, Horizontal, 2, 2);
+    built(&mut sim, room(2, 2, 3, 3, Some(line(Horizontal, 3, 2))));
+    let layout = sim.world().resource::<SavedLayout>();
+    assert_eq!(
+        layout.windows(),
+        [line(Horizontal, 2, 2)],
+        "the window stays"
+    );
+    assert!(
+        !layout
+            .edges()
+            .iter()
+            .any(|edge| edge.axis == Horizontal && edge.x == 2 && edge.y == 2),
+        "and keeps no wall record"
+    );
+    assert!(!sim.world().resource::<TileGrid>().can_step((2, 1), (2, 2)));
+
+    // The room's doorway on the glazed line takes the window away.
+    let (mut sim, _) = house(vec![]);
+    glaze(&mut sim, Horizontal, 2, 2);
+    built(&mut sim, room(2, 2, 3, 3, Some(line(Horizontal, 2, 2))));
+    let layout = sim.world().resource::<SavedLayout>();
+    assert!(layout.windows().is_empty(), "the doorway replaced it");
+    assert!(sim.world().resource::<TileGrid>().can_step((2, 1), (2, 2)));
 }
 
 #[test]

@@ -1035,10 +1035,13 @@ pub(crate) fn candidate_grid_loads(
     let content = world.resource::<Content>().0;
     let snapshot = capture_world(world);
     validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
-    if !matches!(
-        world.get_resource::<terri_core::layout::SavedLayout>(),
-        Some(terri_core::layout::SavedLayout::EdgeWallsV1 { .. })
-    ) {
+    // Every edge layout, not one named version: a house with a window is
+    // still an edge house, and naming the version here is what let review
+    // finding [F1] on PR 126 skip this whole check for a glazed house.
+    if !world
+        .get_resource::<terri_core::layout::SavedLayout>()
+        .is_some_and(|layout| layout.has_edges())
+    {
         return Ok(());
     }
     architecture::validate_edge_world(&snapshot, grid, content, world)

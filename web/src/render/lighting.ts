@@ -207,19 +207,42 @@ function markWalls(walls: Uint32Array, width: number, height: number): void {
 }
 
 /** Cardinal masks are symmetric so propagation sees the same wall from either room. */
-function markEdges(edges: Uint32Array, width: number, height: number): void {
+function markEdges(
+  edges: Uint32Array,
+  width: number,
+  height: number,
+  windows: Uint32Array | null = null,
+): void {
   for (let i = 0; i + 3 < edges.length; i += 4) {
     const axis = edges[i];
     const x = edges[i + 1];
     const y = edges[i + 2];
     if (edges[i + 3] !== 0) continue;
-    if (axis === 0 && x > 0 && x < width && y < height) {
-      boundaries[y * width + x - 1] |= 2;
-      boundaries[y * width + x] |= 8;
-    } else if (axis === 1 && x < width && y > 0 && y < height) {
-      boundaries[(y - 1) * width + x] |= 4;
-      boundaries[y * width + x] |= 1;
-    }
+    markBoundary(axis, x, y, width, height);
+  }
+  // [WN-rules]: a lamp's pool stops at glass as it stops at a wall. The
+  // pool exists to say where the lamps reach indoors, and a pool crossing
+  // a window would light the yard from the living room.
+  if (windows === null) return;
+  for (let i = 0; i + 2 < windows.length; i += 3) {
+    markBoundary(windows[i], windows[i + 1], windows[i + 2], width, height);
+  }
+}
+
+/** One line the light does not cross, marked from both of its rooms. */
+function markBoundary(
+  axis: number,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): void {
+  if (axis === 0 && x > 0 && x < width && y < height) {
+    boundaries[y * width + x - 1] |= 2;
+    boundaries[y * width + x] |= 8;
+  } else if (axis === 1 && x < width && y > 0 && y < height) {
+    boundaries[(y - 1) * width + x] |= 4;
+    boundaries[y * width + x] |= 1;
   }
 }
 
@@ -436,12 +459,14 @@ export function buildLightField(
   walls: Uint32Array,
   enabled: boolean,
   edges: Uint32Array | null = null,
+  /** The lines that are windows, three words each ([WN-rules]). */
+  windows: Uint32Array | null = null,
 ): TileLighting {
   if (!configureField(width, height)) return field;
   if (!enabled) return field;
 
   if (edges === null) markWalls(walls, width, height);
-  else markEdges(edges, width, height);
+  else markEdges(edges, width, height, windows);
   const count = source.count;
   if (!Number.isSafeInteger(count) || count <= 0) return field;
 

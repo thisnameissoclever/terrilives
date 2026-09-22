@@ -2,7 +2,7 @@
 // docs/specs/2026-09-21-wall-tool.md.
 //
 // The player chooses one line between two floor tiles and makes it a wall, a
-// doorway or nothing. Rust owns every decision: this controller asks for a
+// doorway, a window or nothing. Rust owns every decision: this controller asks for a
 // preview of each state, stages the one the player picks, and reads back what
 // the drain did with it.
 
@@ -12,7 +12,9 @@ import type { TileHighlight } from '../render/placement-preview.js';
 export const OPEN = 0;
 export const WALL = 1;
 export const DOORWAY = 2;
-export type WallStateCode = typeof OPEN | typeof WALL | typeof DOORWAY;
+/** [WN-state] in `docs/specs/2026-09-22-windows.md`. */
+export const WINDOW = 3;
+export type WallStateCode = typeof OPEN | typeof WALL | typeof DOORWAY | typeof WINDOW;
 
 /** Axis 0 is a vertical line between (x-1, y) and (x, y); 1 is horizontal. */
 export interface WallLine {
@@ -21,7 +23,7 @@ export interface WallLine {
   readonly y: number;
 }
 
-type WallSource = Pick<SimBridge, 'wallEdges' | 'wallEditPreview' | 'setWallEdge' |
+type WallSource = Pick<SimBridge, 'wallEdges' | 'windowLines' | 'wallEditPreview' | 'setWallEdge' |
   'lastWallEditResult' | 'lotRevision'>;
 
 export const CHOOSE_LINE = 'Choose a line between two floor tiles.';
@@ -29,11 +31,13 @@ const CURRENT: Readonly<Record<WallStateCode, string>> = {
   [OPEN]: 'No wall on this line.',
   [WALL]: 'A wall stands on this line.',
   [DOORWAY]: 'This line is a doorway.',
+  [WINDOW]: 'A window stands on this line.',
 };
 const DONE: Readonly<Record<WallStateCode, string>> = {
   [OPEN]: 'Wall removed.',
   [WALL]: 'Wall built.',
   [DOORWAY]: 'Doorway made.',
+  [WINDOW]: 'Window fitted.',
 };
 const NOT_SENT = 'That change could not be sent.';
 
@@ -66,11 +70,24 @@ export function tilesBeside(line: WallLine): [[number, number], [number, number]
     : [[line.x, line.y - 1], [line.x, line.y]];
 }
 
-/** What `wall_edges` says the line is: four words per record. */
-export function stateOf(edges: ArrayLike<number>, line: WallLine): WallStateCode {
+/**
+ * What the line is: `wall_edges` holds four words per wall or doorway record,
+ * and `window_lines` three per window ([WN-state]). A line in both is a
+ * corrupt save and reads as the wall, which is what the simulation says too.
+ */
+export function stateOf(
+  edges: ArrayLike<number>,
+  line: WallLine,
+  windows: ArrayLike<number> = [],
+): WallStateCode {
   for (let at = 0; at + 3 < edges.length; at += 4) {
     if (edges[at] === line.axis && edges[at + 1] === line.x && edges[at + 2] === line.y) {
       return edges[at + 3] === 1 ? DOORWAY : WALL;
+    }
+  }
+  for (let at = 0; at + 2 < windows.length; at += 3) {
+    if (windows[at] === line.axis && windows[at + 1] === line.x && windows[at + 2] === line.y) {
+      return WINDOW;
     }
   }
   return OPEN;
@@ -84,7 +101,8 @@ export class WallTool {
   pending: WallStateCode | null = null;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
-  private previews: readonly [WallEditPreview, WallEditPreview, WallEditPreview] | null = null;
+  private previews:
+    readonly [WallEditPreview, WallEditPreview, WallEditPreview, WallEditPreview] | null = null;
   private revision: number;
   /** Rebuilt when the line or what it may become changes, never per frame. */
   private shownHighlight: TileHighlight | null = null;
@@ -174,6 +192,7 @@ export class WallTool {
       case 'h': case 'H': this.turn(1); return true;
       case 'w': case 'W': this.apply(WALL); return true;
       case 'd': case 'D': this.apply(DOORWAY); return true;
+      case 'n': case 'N': this.apply(WINDOW); return true;
       case 'Backspace': case 'Delete': this.apply(OPEN); return true;
       default: return false;
     }
@@ -248,12 +267,13 @@ export class WallTool {
     const line = this.line;
     if (line === null) return;
     // A legacy house has no edge list; every preview then refuses it.
-    this.current = stateOf(this.source.wallEdges() ?? [], line);
+    this.current = stateOf(this.source.wallEdges() ?? [], line, this.source.windowLines());
     const preview = (state: WallStateCode) => this.source.wallEditPreview(line.axis, line.x, line.y, state);
-    this.previews = [preview(OPEN), preview(WALL), preview(DOORWAY)];
+    this.previews = [preview(OPEN), preview(WALL), preview(DOORWAY), preview(WINDOW)];
     this.shownHighlight = {
       tiles: tilesBeside(line).filter(([x, y]) => x >= 0 && y >= 0 && x < this.width && y < this.height),
-      valid: this.current === WALL || this.previews[WALL].valid,
+      // A barrier already standing here is proof enough that one may.
+      valid: this.current === WALL || this.current === WINDOW || this.previews[WALL].valid,
     };
   }
 
