@@ -1,12 +1,13 @@
 /**
  * The lot's floor and walls, as GPU instances.
  *
- * These are the only things on screen that are not entities. They are
- * also the only things that cannot move: a lot's dimensions and its wall
- * tiles are fixed for the session, so this runs only through `main.ts`'s
- * camera-dirty gate: at startup, after Load, when the window or camera
- * changes, and when flat lighting changes the static tint. Its output is
- * uploaded to the front of the instance buffer and left there between changes.
+ * These are the only things on screen that are not entities. They change
+ * only when the lot does: a Load, or a lot edit such as a wall or a moved,
+ * turned or bought light. So this runs only through `main.ts`'s
+ * camera-dirty gate: at startup, after Load, after a lot edit, when the
+ * window or camera changes, and when flat lighting changes the static
+ * tint. Its output is uploaded to the front of the instance buffer and left
+ * there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
