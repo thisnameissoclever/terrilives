@@ -780,7 +780,7 @@ describe('SimBridge', () => {
     for (let tick = 0; tick < 173; tick++) original.tick();
     const before = original.worldHash();
     const bytes = original.saveBytes();
-    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 4, 0]);
+    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 5, 0]);
     const expectedEdges = original.wallEdges()!.slice();
     expect(expectedEdges).toHaveLength(136);
 
@@ -802,14 +802,15 @@ describe('SimBridge', () => {
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 4, 0]);
-    // V4 ends with SavedLayout, the required empty facing list and the empty
-    // retired-index list ([SL-save]). Change only that tag to EdgeWallsV1
-    // (2). This fixture has no entities or walls; it tests the distinction
-    // between undefined and an empty list.
-    expect(Array.from(legacyCells.slice(-4))).toEqual([1, 0, 0, 0]);
+    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 5, 0]);
+    // V5 ends with SavedLayout, the required empty facing list, the empty
+    // retired-index list ([SL-save]) and the empty colourway list
+    // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
+    // no entities or walls; it tests the distinction between undefined and
+    // an empty list.
+    expect(Array.from(legacyCells.slice(-5))).toEqual([1, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
-    edgeBytes[edgeBytes.length - 4] = 2;
+    edgeBytes[edgeBytes.length - 5] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength(136);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -822,15 +823,15 @@ describe('SimBridge', () => {
     expect(restored.saveBytes()).toEqual(legacyCells);
   });
 
-  it('rejects V4 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
+  it('rejects V5 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
-    expect(Array.from(valid.slice(8, 10))).toEqual([4, 0]);
-    expect(Array.from(valid.slice(-4))).toEqual([1, 0, 0, 0]);
+    expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
+    expect(Array.from(valid.slice(-5))).toEqual([1, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
-    future[8] = 5;
+    future[8] = 6;
     const invalid = [valid.slice(0, -1), valid.slice(0, -2), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
@@ -1229,9 +1230,11 @@ describe('SimBridge', () => {
       // meaning itself.
       // And `[0x07, 0x00]` became a truncated PlaceObject, `[0x08, 0x00]` a
       // truncated SetWallEdge, `[0x09, 0x00]` a truncated BuyObject and
-      // `[0x0a, 0x00]` a truncated BuildRoom.
-      ['variant index 12, one past the twelve that exist', [0x0c, 0x00]],
+      // `[0x0a, 0x00]` a truncated BuildRoom, and `[0x0c, 0x00]` a
+      // SetColourway with no colourway.
+      ['variant index 13, one past the thirteen that exist', [0x0d, 0x00]],
       ['SellObject missing its object', [0x0b]],
+      ['SetColourway missing its colourway', [0x0c, 0x01]],
       ['BuyObject missing its facing', [0x09, 0x01, 0x02, 0x03]],
       ['BuildRoom missing its doorway option', [0x0a, 0x01, 0x02, 0x03, 0x04]],
       ['SetWallEdge with a state past the three that exist', [0x08, 0x00, 0x01, 0x02, 0x03]],
