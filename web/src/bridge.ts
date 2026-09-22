@@ -96,10 +96,12 @@ export function wallReason(code: number): string | null {
 }
 
 /**
- * The refusal codes a room's doorway can mend: a sim's way, furniture, the
- * front door and its landing cut off by the outline.
+ * The refusal codes a room's doorway can mend: a sim's way, furniture, or a
+ * portal's landing cut off by the outline. Not the front door itself: since
+ * [RD-root] a room meets that refusal only while the door's tile is not open
+ * floor, with something on it or off the lot, which no doorway changes.
  */
-export const DOORWAY_MENDS: ReadonlySet<number> = new Set([10, 11, 12, 13]);
+export const DOORWAY_MENDS: ReadonlySet<number> = new Set([10, 11, 13]);
 
 /** A room's refusal, worded for the Room tool - [RT-shell]. Same codes. */
 const ROOM_REASONS: Readonly<Record<number, string>> = {

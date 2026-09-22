@@ -870,18 +870,24 @@ The implementation sequence and release gates are recorded in
 
 Found in review of the Room tool. Every lot edit proves the house stays usable
 by flooding the floor from one tile and checking that every sim, every object
-and the front door are in that region. The flood starts from the first
-walkable tile in reading order, so an empty room sealed around that tile makes
+and the front door are in that region. The flood started from the first
+walkable tile in reading order, so an empty room sealed around that tile made
 the rest of the house look cut off: in the shipped lot a one-tile room with no
-doorway at (7, 0) is refused as blocking someone's way, while the same room at
-(9, 0) is built. It only ever refuses too much, never too little, but the Room
-tool makes a sealed room one click.
+doorway at (7, 0) was refused as blocking someone's way, while the same room at
+(9, 0) was built. It only ever refused too much, never too little, but the Room
+tool made a sealed room one click.
 
-The fix is to start the flood from the front door's landing, which every
-usable house must reach anyway. That changes which reason some refusals give,
-for moves and walls as well as rooms, where a house cut in two would read
-"leave furniture out of reach" rather than "cut off the front door", so it is
-its own slice, with the wording chosen on purpose.
+The fix was to start the flood from the front door's tile, which every usable
+house must reach anyway. That changed which reason some refusals give, for
+moves and walls as well as rooms, where a house cut in two reads "leave
+furniture out of reach" rather than "cut off the front door", so it was its
+own slice, with the wording chosen on purpose.
+
+Built on branch `twcl/reach-from-the-door`: the flood starts at the front
+door's tile, an empty sealed room is built wherever it stands, and a house cut
+off from its door is refused for the sim or furniture the cut leaves out of
+reach. The design is `docs/specs/2026-09-22-reach-from-the-door.md` and the
+played check is [A-reach-from-the-door].
 
 ### [B-catalogue-browsing] The catalogue says what each thing is for
 

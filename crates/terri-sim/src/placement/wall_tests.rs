@@ -374,19 +374,20 @@ fn a_sim_beside_a_line_using_something_elsewhere_does_not_stop_a_wall() {
 
 #[test]
 fn a_wall_is_held_to_every_proof_a_furniture_move_is() {
-    // One gap left in a partition at x = 3; closing it cuts the door off.
+    // One gap left in a partition at x = 3; closing it cuts the fridge off
+    // from the front door ([RD-reasons]).
     let mut walls = partition(3);
     walls.retain(|edge| edge.y != 3);
     let (mut sim, _) = house(walls.clone());
     refused(
         &mut sim,
         edit(Vertical, 3, 3, Wall),
-        PlacementRefusal::BlockedDoor,
+        PlacementRefusal::InaccessibleInteraction,
     );
 
-    // With a sim on the far side, the sim is what the proofs find first.
+    // With a sim on the fridge's side, the sim is what the proofs find first.
     let (mut sim, _) = house(walls.clone());
-    sim.world_mut().spawn((Agent, Position { x: 5.0, y: 5.0 }));
+    sim.world_mut().spawn((Agent, Position { x: 1.0, y: 5.0 }));
     refused(
         &mut sim,
         edit(Vertical, 3, 3, Wall),
@@ -402,6 +403,67 @@ fn a_wall_is_held_to_every_proof_a_furniture_move_is() {
     );
 }
 
+/// Swaps the house's content for a copy changed by `change`.
+fn with_content(sim: &mut Sim, change: impl FnOnce(&mut terri_data::ContentPack)) {
+    let mut pack = sim.world().resource::<Content>().0.clone();
+    change(&mut pack);
+    let pack: &'static terri_data::ContentPack = Box::leak(Box::new(pack));
+    sim.world_mut().insert_resource(Content(pack));
+}
+
+/// [RD-root]: a lot whose content names no front door is judged from its
+/// first open tile in reading order, (1, 0) here, as every lot was before.
+/// Only test content has no front door; a blank custom lot keeps the shipped
+/// one.
+#[test]
+fn a_house_with_no_front_door_is_judged_from_its_first_open_tile() {
+    let mut walls = partition(3);
+    walls.retain(|edge| edge.y != 3);
+    let (mut sim, _) = house(walls.clone());
+    with_content(&mut sim, |pack| {
+        pack.lot.front_door = None;
+        pack.portals.clear();
+    });
+    // Closing the gap leaves the fridge's side, where the flood starts, whole.
+    applied(&mut sim, edit(Vertical, 3, 3, Wall));
+
+    // A sim on the other side is cut off from it.
+    let (mut sim, _) = house(walls);
+    with_content(&mut sim, |pack| {
+        pack.lot.front_door = None;
+        pack.portals.clear();
+    });
+    sim.world_mut().spawn((Agent, Position { x: 5.0, y: 5.0 }));
+    refused(
+        &mut sim,
+        edit(Vertical, 3, 3, Wall),
+        PlacementRefusal::BlockedRoute,
+    );
+}
+
+/// The wall rules guard only the line between the front door and its own
+/// landing, so the proofs keep every other portal's landing reachable from
+/// the front door.
+#[test]
+fn a_wall_that_cuts_off_another_portals_landing_is_refused() {
+    // Two walls of three around the empty corner tiles (0, 6) and (1, 6).
+    let (mut sim, _) = house(vec![
+        line(Horizontal, 0, 6, false),
+        line(Horizontal, 1, 6, false),
+    ]);
+    with_content(&mut sim, |pack| {
+        let mut back = pack.portals[0].clone();
+        back.position = (0, 6);
+        back.inward = (1, 6);
+        pack.portals.push(back);
+    });
+    refused(
+        &mut sim,
+        edit(Vertical, 2, 6, Wall),
+        PlacementRefusal::BlockedLanding,
+    );
+}
+
 /// Opening a line or making it a doorway only removes a barrier, so it is
 /// never held to the proofs: a house already in trouble can be mended.
 #[test]
@@ -412,11 +474,12 @@ fn an_opening_or_a_doorway_is_accepted_even_in_a_house_that_is_already_cut_in_tw
     // The door strip beyond x = 5 stays cut off whatever happens at x = 3.
     applied(&mut sim, edit(Vertical, 3, 3, Open));
     applied(&mut sim, edit(Vertical, 3, 4, Doorway));
-    // Closing a line in that same house is held to the proofs, and fails.
+    // Closing a line in that same house is held to the proofs, and fails:
+    // the fridge is out of reach from the front door ([RD-reasons]).
     refused(
         &mut sim,
         edit(Vertical, 3, 3, Wall),
-        PlacementRefusal::BlockedDoor,
+        PlacementRefusal::InaccessibleInteraction,
     );
 }
 

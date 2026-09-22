@@ -774,6 +774,29 @@ fn the_doorway_line_is_never_held_to_the_rules_for_a_wall() {
     built(&mut sim, room(2, 1, 3, 2, Some(line(Vertical, 4, 2))));
 }
 
+/// [RD-root] in `docs/specs/2026-09-22-reach-from-the-door.md`: the house is
+/// judged from its front door. The proofs used to flood the floor from the
+/// first walkable tile, which in the shipped house is (7, 0), so an empty room
+/// sealed around that tile made the rest of the house look cut off, while the
+/// same room at (9, 0) was built.
+#[test]
+fn an_empty_sealed_room_is_built_wherever_it_stands() {
+    let sim = Sim::new_from_shipped_lot();
+    let grid = sim.world().resource::<TileGrid>();
+    let first = (0..grid.height() as i32)
+        .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
+        .find(|&(x, y)| grid.is_walkable(x, y));
+    assert_eq!(
+        first,
+        Some((7, 0)),
+        "the room below stands on the first walkable tile"
+    );
+    for x in [7, 9] {
+        let mut sim = Sim::new_from_shipped_lot();
+        built(&mut sim, room(x, 0, x, 0, None));
+    }
+}
+
 /// Opening a doorway in a room that already stands only removes a barrier,
 /// so it is accepted even in a house that is already cut in two, as a single
 /// doorway is.
@@ -787,11 +810,12 @@ fn a_room_that_only_opens_a_doorway_is_accepted_even_in_a_house_already_cut_in_t
         wall(Vertical, 3, 1, false),
     ]);
     let (mut sim, _) = house(walls);
-    // The door strip beyond x = 5 is cut off, so any new wall is refused.
+    // The rest of the house, fridge included, is cut off from the door strip
+    // beyond x = 5, so any new wall is refused ([RD-reasons]).
     refused(
         &mut sim,
         room(2, 3, 2, 3, None),
-        PlacementRefusal::BlockedDoor,
+        PlacementRefusal::InaccessibleInteraction,
     );
     // The one-tile room at (2, 1) already stands; its doorway only opens it.
     built(&mut sim, room(2, 1, 2, 1, Some(line(Vertical, 3, 1))));

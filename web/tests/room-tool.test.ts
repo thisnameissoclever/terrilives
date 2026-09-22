@@ -129,11 +129,16 @@ describe('RoomTool', () => {
     room.cycleDoorway();
     expect(room.status).toBe("Someone is standing on the room's outline.");
     // Review finding [F7]: every refusal a doorway can mend gets the hint.
-    for (const code of [10, 12, 13]) {
+    for (const code of [10, 13]) {
       source.code = code;
       room.cycleDoorway();
       expect(room.status).toMatch(/ (Choose a doorway|Try the doorway on another line)\.$/);
     }
+    // [RD-reasons]: a front door tile that is not open floor is not mended by
+    // any doorway, so it gets no hint.
+    source.code = 12;
+    room.cycleDoorway();
+    expect(room.status).toBe('The room would cut off the front door.');
   });
 
   it('stages exactly the room on screen, once, and reports what the drain did', () => {

@@ -670,7 +670,11 @@ between two tiles open, a wall or a doorway, and changes only the saved
 `EdgeWallsV1` list and the grid's edge barrier, so the save record does not
 change; the command enums gain an appended variant. `validate_wall_edit` and
 `validate_placement` share `current_layout` and `prove_lot_usable`, so a wall is
-held to every proof a furniture move is, and a wall must then pass the V3
+held to every proof a furniture move is. Those proofs flood the floor from the
+front door's tile, or from the first walkable tile on a lot with no front door
+([RD-root] in `docs/specs/2026-09-22-reach-from-the-door.md`), so on a lot
+with a front door, floor that nobody and nothing needs may be sealed off. A
+wall must then pass the V3
 loader's own grid checks on the candidate (`save::candidate_grid_loads`), so an
 accepted wall can never leave a save that refuses to load. A legacy layout is
 refused rather than given a guessed edge list. The world hash includes the

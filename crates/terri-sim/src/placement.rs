@@ -124,12 +124,16 @@ fn approaches(rect: Rectangle, grid: &TileGrid) -> Vec<(i32, i32)> {
         .collect()
 }
 
-/// Every visit inserts a previously unseen tile, bounded by the bitmap size.
-fn reachable(grid: &TileGrid) -> HashSet<(i32, i32)> {
+/// Every tile a sim can walk to from `door`, the lot's front door, or on a lot
+/// with none from the first walkable tile in reading order - [RD-root]. Every
+/// visit inserts a previously unseen tile, bounded by the bitmap size.
+fn reachable(grid: &TileGrid, door: Option<(i32, i32)>) -> HashSet<(i32, i32)> {
     let mut seen = HashSet::new();
-    let root = (0..grid.height() as i32)
-        .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
-        .find(|&(x, y)| grid.is_walkable(x, y));
+    let root = door.or_else(|| {
+        (0..grid.height() as i32)
+            .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
+            .find(|&(x, y)| grid.is_walkable(x, y))
+    });
     let Some(root) = root else {
         return seen;
     };
@@ -263,10 +267,11 @@ fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
 }
 
 /// What every lot edit must leave usable, proven on the candidate grid: the
-/// front door and its landing are clear, every sim stands on open floor in
-/// one connected region and can finish the walk it is on, and every object
-/// keeps a clear approach in that same region. Shared by furniture moves and
-/// wall edits so the two cannot drift - [WT-rules].
+/// front door and its landing are clear, every sim stands on open floor it can
+/// walk to from the front door and can finish the walk it is on, and every
+/// object keeps a clear approach there too. On a lot with a front door, floor
+/// nobody and nothing needs may be cut off. Shared by furniture moves and wall
+/// edits so the two cannot drift - [WT-rules] and [RD-root].
 fn prove_lot_usable(
     world: &World,
     grid: &TileGrid,
@@ -289,7 +294,8 @@ fn prove_lot_usable(
     {
         return Err(BlockedLanding);
     }
-    let reached = reachable(grid);
+    let door = content.lot.front_door.map(|(x, y)| (x as i32, y as i32));
+    let reached = reachable(grid, door);
     for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
         let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
         for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {
@@ -330,13 +336,10 @@ fn prove_lot_usable(
             return Err(InaccessibleInteraction);
         }
     }
-    if content
-        .lot
-        .front_door
-        .is_some_and(|(x, y)| !reached.contains(&(x as i32, y as i32)))
-    {
-        return Err(BlockedDoor);
-    }
+    // The flood starts at the front door, so a landing is outside the region
+    // only when another portal's landing is cut off, or when a loaded save
+    // already holds a wall between the front door and its own landing: the
+    // wall rules refuse building that wall, and furniture adds no walls.
     if content
         .portals
         .iter()
