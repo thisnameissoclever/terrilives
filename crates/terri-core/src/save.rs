@@ -26,6 +26,16 @@ pub struct SaveSnapshotV5 {
     pub object_facings: Vec<(u32, u8)>,
     pub retired_indices: Vec<u32>,
     pub object_colourways: Vec<(u32, String)>,
+    /// What the player has laid on each floor tile - [FL-save] in
+    /// `docs/specs/2026-09-22-floors.md`.
+    ///
+    /// **Appended last, and sparse, both on purpose**, for the reason
+    /// `sleep_pressure` is: postcard writes a struct's fields back to back,
+    /// so a payload written before this field existed is a prefix of one
+    /// written after it, and the loader reads the prefix and defaults the
+    /// tail. A house nobody has painted costs one byte.
+    #[serde(default)]
+    pub floors: crate::layout::SavedFloors,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
@@ -337,5 +347,14 @@ pub enum SavedCommand {
         name: String,
         personality: Option<String>,
         traits: Vec<Option<String>>,
+    },
+    /// [FL-command]. A floor laid or lifted just before a save. The covering
+    /// is its id rather than a name, because the ids are the content's own
+    /// order and a covering the pack no longer has restores as one the drain
+    /// refuses, which is what a missing id already does elsewhere.
+    SetFloor {
+        x: u32,
+        y: u32,
+        covering: u8,
     },
 }

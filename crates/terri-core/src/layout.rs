@@ -155,6 +155,81 @@ pub struct WallLine {
     pub y: u32,
 }
 
+/// What the player has laid on the floor, one entry per painted tile and
+/// nothing for the rest - [FL-save] in `docs/specs/2026-09-22-floors.md`.
+///
+/// Sparse and sorted by tile, so a house nobody has painted costs one byte
+/// and two houses painted in different orders save identically. A tile with
+/// no entry is drawn by where it is ([OS-yard]), which is how every save
+/// written before floors existed keeps looking exactly as it did.
+#[derive(Resource, Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedFloors {
+    tiles: Vec<(u32, u32, u8)>,
+}
+
+impl SavedFloors {
+    /// The painted tiles, sorted, each `(x, y, covering)` with a covering of
+    /// 1 upward: an entry is never a 0, which is the absence of one.
+    pub fn tiles(&self) -> &[(u32, u32, u8)] {
+        &self.tiles
+    }
+
+    /// The covering on this tile, or 0 for a tile the player has not painted.
+    pub fn covering(&self, x: u32, y: u32) -> u8 {
+        self.tiles
+            .binary_search_by_key(&(x, y), |&(tx, ty, _)| (tx, ty))
+            .map_or(0, |at| self.tiles[at].2)
+    }
+
+    /// Lays `covering` on a tile, or takes its covering away with 0.
+    /// Returns whether anything changed, so a repeat of what is already
+    /// there writes nothing and moves no revision.
+    pub fn set(&mut self, x: u32, y: u32, covering: u8) -> bool {
+        match (
+            self.tiles
+                .binary_search_by_key(&(x, y), |&(tx, ty, _)| (tx, ty)),
+            covering,
+        ) {
+            (Ok(at), 0) => {
+                self.tiles.remove(at);
+                true
+            }
+            (Ok(at), _) if self.tiles[at].2 == covering => false,
+            (Ok(at), _) => {
+                self.tiles[at].2 = covering;
+                true
+            }
+            (Err(_), 0) => false,
+            (Err(at), _) => {
+                self.tiles.insert(at, (x, y, covering));
+                true
+            }
+        }
+    }
+
+    /// The saved list, refused whole when any entry is off the lot, names a
+    /// covering the content does not have, repeats a tile, is out of order,
+    /// or is a 0 where no entry belongs at all ([FL-save]).
+    pub fn from_saved(
+        tiles: Vec<(u32, u32, u8)>,
+        width: u32,
+        height: u32,
+        coverings: usize,
+    ) -> Option<Self> {
+        let mut previous: Option<(u32, u32)> = None;
+        for &(x, y, covering) in &tiles {
+            if x >= width || y >= height || covering == 0 || covering as usize > coverings {
+                return None;
+            }
+            if previous.is_some_and(|last| last >= (x, y)) {
+                return None;
+            }
+            previous = Some((x, y));
+        }
+        Some(Self { tiles })
+    }
+}
+
 /// Kept in the world and saved with it. Loading an older or custom world must
 /// not substitute the newest authored walls for its actual architecture.
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -297,6 +372,50 @@ mod tests {
         assert_eq!(WallState::of(None), WallState::Open);
         assert_eq!(WallState::of(Some(&wall)), WallState::Wall);
         assert_eq!(WallState::of(Some(&doorway)), WallState::Doorway);
+    }
+
+    /// [FL-save]: the painted tiles stay sorted whatever order they were
+    /// painted in, a repeat writes nothing, and 0 takes a covering away.
+    #[test]
+    fn the_painted_tiles_stay_sorted_and_sparse() {
+        let mut floors = SavedFloors::default();
+        assert!(floors.set(3, 1, 2));
+        assert!(floors.set(1, 4, 1));
+        assert!(floors.set(1, 0, 3));
+        assert_eq!(floors.tiles(), [(1, 0, 3), (1, 4, 1), (3, 1, 2)]);
+        assert_eq!(floors.covering(1, 4), 1);
+        assert_eq!(floors.covering(2, 2), 0, "an unpainted tile has none");
+
+        assert!(
+            !floors.set(1, 4, 1),
+            "laying what is already there changes nothing"
+        );
+        assert!(floors.set(1, 4, 2));
+        assert_eq!(floors.covering(1, 4), 2);
+        assert!(floors.set(1, 4, 0), "0 takes the covering away");
+        assert_eq!(floors.tiles(), [(1, 0, 3), (3, 1, 2)]);
+        assert!(!floors.set(9, 9, 0), "so does nothing, on a bare tile");
+    }
+
+    /// [FL-save]: a saved list is refused whole rather than repaired.
+    #[test]
+    fn a_saved_floor_list_is_refused_when_it_cannot_be_true() {
+        let ok = SavedFloors::from_saved(vec![(0, 0, 1), (1, 0, 3)], 4, 4, 3)
+            .expect("in bounds, in order, known coverings");
+        assert_eq!(ok.covering(1, 0), 3);
+        for bad in [
+            vec![(4, 0, 1)],
+            vec![(0, 4, 1)],
+            vec![(0, 0, 0)],
+            vec![(0, 0, 4)],
+            vec![(1, 0, 1), (0, 0, 1)],
+            vec![(0, 0, 1), (0, 0, 2)],
+        ] {
+            assert!(
+                SavedFloors::from_saved(bad.clone(), 4, 4, 3).is_none(),
+                "{bad:?} must be refused"
+            );
+        }
     }
 
     /// [WN-state]: the layout answers for both lists, and an old layout

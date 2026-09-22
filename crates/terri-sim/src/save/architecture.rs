@@ -59,6 +59,7 @@ pub(crate) fn restore_v5(
         object_facings,
         retired_indices,
         object_colourways,
+        floors,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -100,6 +101,19 @@ pub(crate) fn restore_v5(
                 .insert(Colourway(colourway as u32));
         }
     }
+    // [FL-save]: the painted tiles, refused whole when any entry is off the
+    // lot, names a covering the content does not have, or breaks the sorted
+    // order the writer keeps. A save written before floors existed carries
+    // none and loads exactly as it did.
+    let grid = candidate.world.resource::<TileGrid>();
+    let floors = terri_core::layout::SavedFloors::from_saved(
+        floors.tiles().to_vec(),
+        grid.width() as u32,
+        grid.height() as u32,
+        content.coverings.len(),
+    )
+    .ok_or(SaveError::InvalidValue)?;
+    candidate.world.insert_resource(floors);
     Ok(candidate)
 }
 

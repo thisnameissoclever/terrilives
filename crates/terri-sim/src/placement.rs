@@ -63,6 +63,8 @@ pub struct LotEditState {
     pub last_colourway_result: Option<colourway::ColourwayResult>,
     /// What the drain did with the most recent move-in - [CS-command].
     pub last_housemate_result: Option<crate::household::HousemateResult>,
+    /// What the drain did with the most recent floor change - [FL-command].
+    pub last_floor_result: Option<floors::FloorEditResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -529,6 +531,7 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
 }
 
 pub mod colourway;
+pub mod floors;
 pub mod purchase;
 pub mod rooms;
 pub mod sale;

@@ -220,7 +220,12 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     let mut trailing = valid.clone();
     trailing.push(0);
     let mut cases = vec![trailing];
-    cases.extend((SAVE_HEADER_BYTES..valid.len()).map(|cut| valid[..cut].to_vec()));
+    // One truncation is not malformed and must load: cutting the final byte
+    // takes off the empty floors list, which makes the payload byte for byte
+    // a save written before floors existed ([FL-save]). That is the price of
+    // growing a postcard struct by appending, and it is the price the
+    // sleep-pressure list already pays.
+    cases.extend((SAVE_HEADER_BYTES..valid.len() - 1).map(|cut| valid[..cut].to_vec()));
     for bytes in cases {
         let before = restored.save_bytes();
         assert!(
@@ -230,4 +235,14 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
         );
         assert_eq!(restored.save_bytes(), before);
     }
+    let without_floors = valid[..valid.len() - 1].to_vec();
+    assert!(
+        restored.load_bytes(&without_floors),
+        "a save written before floors existed must still load"
+    );
+    assert_eq!(
+        restored.save_bytes(),
+        valid,
+        "and it saves again with its own empty floors list"
+    );
 }

@@ -189,6 +189,28 @@ fn wall_edit_arguments(
 }
 
 /// Decode frozen V1, including only the historical missing sleep-pressure list.
+/// Decodes a V5 payload, including one written before the floors list was
+/// appended to it - [FL-save] in `docs/specs/2026-09-22-floors.md`.
+///
+/// The same trick `decode_save_payload` uses for the sleep-pressure list, and
+/// for the same reason: postcard writes a struct's fields back to back, so an
+/// older payload is a prefix of a newer one and one zero byte is the empty
+/// list it lacks. The padded decode is accepted only when that list comes
+/// back empty, so padding can never invent a floor nobody laid.
+fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
+    match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(payload) {
+        Ok((snapshot, [])) => Some(snapshot),
+        _ => {
+            let mut padded = payload.to_vec();
+            padded.push(0);
+            match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
+                Ok((snapshot, [])) if snapshot.floors.tiles().is_empty() => Some(snapshot),
+                _ => None,
+            }
+        }
+    }
+}
+
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
     match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
         Ok((snapshot, rest)) => rest.is_empty().then_some(snapshot),
@@ -1422,9 +1444,9 @@ impl SimHandle {
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
         if version == 5 {
-            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(payload) {
-                Ok((snapshot, [])) => self.sim.load_snapshot_v5(snapshot).is_ok(),
-                _ => false,
+            return match decode_v5(payload) {
+                Some(snapshot) => self.sim.load_snapshot_v5(snapshot).is_ok(),
+                None => false,
             };
         }
         if version == 4 {
@@ -2381,8 +2403,10 @@ mod boundary_tests {
             .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
             .collect();
         assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[5, 0]);
-        let old: terri_core::SaveSnapshotV5 =
-            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        // Written before the floors list was appended ([FL-save]), so it
+        // decodes through the loader's own pad rather than bare postcard.
+        let old = decode_v5(&bytes[SAVE_HEADER_BYTES..]).expect("a real save still decodes");
+        assert!(old.floors.tiles().is_empty(), "nobody had painted a floor");
         assert_eq!(old.world.tick, 600);
         assert_eq!((old.world.grid_width, old.world.grid_height), (16, 12));
         let player_wall = terri_core::layout::WallEdge {

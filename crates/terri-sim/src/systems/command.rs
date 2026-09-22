@@ -120,7 +120,8 @@ impl Placement {
             | SimCommand::SellObject { .. }
             | SimCommand::SetColourway { .. }
             | SimCommand::BuyObjectInColourway { .. }
-            | SimCommand::AddHousemate { .. } => Self::Back,
+            | SimCommand::AddHousemate { .. }
+            | SimCommand::SetFloor { .. } => Self::Back,
         }
     }
 }
@@ -370,7 +371,8 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::SellObject { .. }
             | SimCommand::SetColourway { .. }
             | SimCommand::BuyObjectInColourway { .. }
-            | SimCommand::AddHousemate { .. } => {
+            | SimCommand::AddHousemate { .. }
+            | SimCommand::SetFloor { .. } => {
                 unreachable!("lot edit splits ordinary stretches")
             }
             // A stale index leaves the selection ALONE rather than
