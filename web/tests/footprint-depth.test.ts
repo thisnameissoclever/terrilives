@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildInstances, instanceCount, type RenderSource } from '../src/frame.js';
 import { FLOATS_PER_INSTANCE, OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
-  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X } from '../src/render/instances.js';
+  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X, OFFSET_COLOURWAY_HUE } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import { spriteDrawOffsetX } from '../src/render/sprite-anchors.js';
 
@@ -58,5 +58,40 @@ describe('footprint projection at the frame boundary', () => {
     expect(Array.from(out.subarray(8, 12))).toEqual(Array.from(out.subarray(FLOATS_PER_INSTANCE + 8, FLOATS_PER_INSTANCE + 12)));
     const square = buildInstances(fixture(2, 2), 1, 0, 0, 16);
     expect(Array.from(square.subarray(8, 12))).toEqual([0, 0, 0, 0]);
+  });
+});
+
+// [RC-render] in docs/specs/2026-09-22-colourways.md: an object's colourway
+// reaches its own picture, its foreground layer, and the picture of a sim
+// using it, where the shader turns the furniture layer only; a sim using
+// nothing carries no shift.
+describe('colourways at the frame boundary', () => {
+  const shifts = new Float32Array([0, 1, 0, 120, 1.4, -0.04]);
+  const recoloured = [120, expect.closeTo(0.4), expect.closeTo(-0.04), 0];
+  const none = [0, 0, 0, 0];
+  const shiftAt = (out: Float32Array, slot: number) => Array.from(out.subarray(
+    slot * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE, (slot + 1) * FLOATS_PER_INSTANCE));
+
+  it('draws an object, its foreground and a sim using it in the colourway of the object', () => {
+    const alone = fixture();
+    alone.colourways = () => new Uint32Array([1]);
+    alone.colourwayShifts = () => shifts;
+    alone.foregroundSprites = () => new Uint32Array([spriteIndex('offlineBunk')]);
+    const out = buildInstances(alone, 1, 0, 0, 16);
+    expect(shiftAt(out, 0)).toEqual(recoloured);
+    expect(shiftAt(out, 1)).toEqual(recoloured);
+
+    const occupied = fixture(2, 1, true);
+    occupied.colourways = () => new Uint32Array([1, 0]);
+    occupied.colourwayShifts = () => shifts;
+    expect(shiftAt(buildInstances(occupied, 1, 0, 0, 16), 1)).toEqual(recoloured);
+
+    const idle = fixture(2, 1, true);
+    idle.interactionTargets = () => new Uint32Array([0xffffffff, 0xffffffff]);
+    idle.colourways = () => new Uint32Array([1, 0]);
+    idle.colourwayShifts = () => shifts;
+    const still = buildInstances(idle, 1, 0, 0, 16);
+    expect(shiftAt(still, 0)).toEqual(recoloured);
+    expect(shiftAt(still, 1)).toEqual(none);
   });
 });

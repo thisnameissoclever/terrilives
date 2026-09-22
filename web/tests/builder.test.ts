@@ -403,3 +403,32 @@ it('sells with Backspace', () => {
   expect(builder.selected).toBeNull();
   handle.free();
 });
+
+// [RC-ui]: a colourway change keeps the choice and reads back what the object
+// is drawn in; the same colourway, one past the list, a blocked tool or no
+// choice sends nothing; and a Load forgets a change on its way.
+it('recolours the chosen object and keeps it chosen', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  expect(builder.recolour(1)).toBe(false);
+  builder.select(15);
+  expect(builder.colourway).toBe(0);
+  for (const refused of [0, builder.colourways.length, -1, 1.5]) {
+    expect(builder.recolour(refused)).toBe(false);
+  }
+  const saved = source.saveBytes();
+  expect(builder.recolour(3)).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.selected, builder.pending, builder.colourway]).toEqual([15, false, 3]);
+  expect(builder.status).toBe(`${source.objectName(15)} recoloured.`);
+  builder.setBlocked(true);
+  expect(builder.recolour(1)).toBe(false);
+  builder.setBlocked(false);
+  expect(builder.recolour(1)).toBe(true);
+  expect(source.loadBytes(saved)).toBe(true);
+  builder.resetAfterLoad();
+  expect([builder.selected, builder.pending, builder.colourway]).toEqual([null, false, null]);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.status).not.toContain('recoloured');
+  handle.free();
+});

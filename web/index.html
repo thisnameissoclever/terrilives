@@ -611,7 +611,7 @@
       #builder-controls p { margin: 0; }
       /* The tool wrappers keep the panel's own spacing for what they hold. */
       #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
-      #builder-object, #buy-object, #buy-filter {
+      #builder-object, #builder-colour, #buy-object, #buy-filter {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
         border: 1px solid var(--hud-edge); border-radius: 4px;
@@ -1163,6 +1163,8 @@
             <button id="builder-rotate" class="hud-button" type="button">Rotate</button>
           </div>
           <p id="builder-rotation-note" class="builder-note" hidden></p>
+          <label for="builder-colour">Colour</label>
+          <select id="builder-colour" disabled></select>
           <p id="builder-keyboard-help" class="builder-note builder-help">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Delete or Backspace sells; Escape cancels.</p>
           <p id="builder-touch-help" class="builder-note builder-help" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
         </div>

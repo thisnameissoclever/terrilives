@@ -14,6 +14,7 @@ export class BuilderControls {
   private readonly cancel: HTMLButtonElement;
   private readonly sell: HTMLButtonElement;
   private readonly saleNote: HTMLElement;
+  private readonly colour: HTMLSelectElement;
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
   private listed: FurnitureBuilder['objects'] | null = null;
@@ -35,6 +36,16 @@ export class BuilderControls {
     this.cancel = required('builder-cancel');
     this.sell = required('builder-sell');
     this.saleNote = required('builder-sale-note');
+    this.colour = required('builder-colour');
+    // [RC-ui]: the colourways are content, so the list is built once.
+    for (const [index, name] of builder.colourways.entries()) {
+      const option = document.createElement('option');
+      option.value = String(index); option.textContent = name;
+      this.colour.append(option);
+    }
+    this.colour.addEventListener('change', () => {
+      if (this.colour.value !== '') builder.recolour(Number(this.colour.value));
+    });
     this.keyboardHelp = required('builder-keyboard-help');
     this.touchHelp = required('builder-touch-help');
     this.toggle.addEventListener('click', () => builder.active ? builder.exit() : builder.enter());
@@ -86,6 +97,9 @@ export class BuilderControls {
     // [SL-shell]: the button names what the sale pays back.
     this.sell.disabled = !builder.canSell;
     this.sell.textContent = builder.saleValue === null ? 'Sell' : `Sell for ${formatFunds(builder.saleValue)}`;
+    this.colour.value = builder.colourway === null ? '0' : String(builder.colourway);
+    this.colour.disabled = builder.colourway === null || builder.pending || builder.blocked
+      || builder.colourways.length < 2;
     // A chosen object that would not sell says why, as the rotation note does.
     this.saleNote.hidden = builder.saleRefusal === null;
     this.saleNote.textContent = builder.saleRefusal === null ? '' : `Cannot sell: ${builder.saleRefusal}`;

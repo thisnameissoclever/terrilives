@@ -1,6 +1,7 @@
 # Buy mode: colourways for furniture
 
-Status: design. [RC-slice-furniture] is next, on branch `twcl/colourways`.
+Status: [RC-slice-furniture] is built, on branch `twcl/colourways`.
+[RC-slice-buy] is next.
 
 This is [BM-slice-recolour] of `docs/specs/2026-09-21-buy-mode.md`, the last
 part of the M1 Buy mode bullet ("catalog, placement, rotation, palette
@@ -74,14 +75,18 @@ pixels before lighting. Two pictures of an object are not its own row and
 carry its shift too: the foreground layer (the bunk's upper parts), and the
 furniture layer drawn inside a sim's picture while the sim uses the object
 (the exercise bike, the reading chair, the bunk), where only the furniture
-layer turns, never the sim or the outline over it. The placement ghost keeps
-its valid and invalid tints.
+layer turns, never the sim or the outline over it. The placement ghost
+stands in for a chosen object, so it is drawn in the object's colourway under
+its valid and invalid tints; a purchase's ghost is drawn as drawn until
+[RC-slice-buy].
 
 ## [RC-ui] A Colour list in the Furniture tool
 
 With a placed object chosen, the Furniture tool shows a Colour list of the
-colourways, with the object's current one selected. Choosing one sends the
-edit at once; the status says "{name} recoloured." or the refusal.
+colourways under its facing row, with the object's current one selected; with
+nothing chosen the list is disabled. Choosing one sends the edit at once and
+keeps the object chosen; while it is on its way the status says
+"Recolouring…", and then "{name} recoloured." or the refusal.
 
 ## Slices
 

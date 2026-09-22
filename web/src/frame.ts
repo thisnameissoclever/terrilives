@@ -1250,7 +1250,8 @@ export function buildInstances(
     );
   }
 
-  slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting);
+  slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
+    colourwayShifts, replacedRow !== null && colourways !== null ? colourways[replacedRow] : 0);
   writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   return scratch;
 }

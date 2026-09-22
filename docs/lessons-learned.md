@@ -6895,3 +6895,24 @@ after a sale, and
 compares a loaded world's next purchase with continuous play, both in
 `crates/terri-sim/src/placement/sale_tests.rs`. Replacing `despawn_no_free` in
 the sale with `despawn` fails both.
+
+## [L-list-every-picture-of-an-object] The colourway design missed the placement ghost
+
+**What happened.** The colourways design listed the pictures an object's
+colourway must reach: its own row, its foreground layer and the furniture
+layer inside a sim using it. It said the placement ghost keeps its tints and
+nothing more. In play, recolouring the chosen sofa changed nothing on screen,
+because while an object is chosen the Furniture tool hides it and draws the
+ghost in its place.
+
+**Root cause.** The list was built from the render buffer's rows, and the
+ghost is not a row: the shell draws it from the builder's preview.
+
+**Prevention rule.** When a change must reach every picture of an object,
+list the pictures from the frame's writers (`writeInstance` callers in
+`web/src/frame.ts` and `web/src/render/`), not from the simulation's rows,
+and play the change with the object chosen as well as not.
+
+**How to verify.** "draws the candidate in the colourway of the chosen object"
+in `web/tests/placement-preview.test.ts` fails if the ghost's colourway write
+is removed.

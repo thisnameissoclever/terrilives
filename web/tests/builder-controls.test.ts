@@ -39,7 +39,7 @@ function fixture() {
   const nodes = new Map<string, ElementPort>();
   for (const id of ['builder-controls', 'build-toggle', 'builder-object', 'builder-name',
     'builder-facing', 'builder-status', 'builder-rotate', 'builder-confirm', 'builder-cancel', 'builder-sell',
-    'builder-sale-note', 'builder-rotation-note', 'builder-desktop', 'builder-dock', 'builder-keyboard-help',
+    'builder-sale-note', 'builder-colour', 'builder-rotation-note', 'builder-desktop', 'builder-dock', 'builder-keyboard-help',
     'builder-touch-help']) nodes.set(`#${id}`, new ElementPort());
   const doc = {
     body: new ElementPort(),
@@ -185,5 +185,32 @@ it('says why Sell is off for the last furniture a chain needs', () => {
   expect(node('builder-sale-note').hidden).toBe(true);
   selector.value = '15'; selector.fire('change');
   expect([node('builder-sell').disabled, node('builder-sale-note').hidden]).toEqual([false, true]);
+  handle.free();
+});
+
+// [RC-ui] in docs/specs/2026-09-22-colourways.md: the Colour list names every
+// colourway, shows the chosen object's, and recolours it through the drain.
+it('recolours the chosen furniture from the Colour list', () => {
+  const { handle, source, builder, node } = fixture();
+  const colour = node('builder-colour');
+  expect(colour.children.map((option) => option.textContent)).toEqual(source.colourwayNames());
+  expect(colour.children[0].textContent).toBe('As drawn');
+  expect(colour.disabled).toBe(true);
+  node('build-toggle').fire('click');
+  const selector = node('builder-object');
+  selector.value = '15'; selector.fire('change');
+  expect([colour.disabled, colour.value]).toEqual([false, '0']);
+  colour.value = '2'; colour.fire('change');
+  expect([builder.pending, colour.disabled, node('builder-status').textContent])
+    .toEqual([true, true, 'Recolouring…']);
+  source.flushCommands(); builder.afterCommands();
+  expect(source.lastColourwayResult()).toEqual({ object: 15, reason: null, colourway: 2 });
+  expect([builder.pending, builder.selected, colour.value, node('builder-status').textContent])
+    .toEqual([false, 15, '2', `${source.objectName(15)} recoloured.`]);
+  expect(source.objectColourway(15)).toBe(2);
+  node('builder-cancel').fire('click');
+  expect([colour.disabled, colour.value]).toEqual([true, '0']);
+  selector.value = '15'; selector.fire('change');
+  expect(colour.value).toBe('2');
   handle.free();
 });

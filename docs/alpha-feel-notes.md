@@ -3349,3 +3349,33 @@ the whole Buy list at 375 by 667, and I saw the list and Rotate behind the
 footer at 320 by 568. The footer now sits outside the scrolling region.
 
 **Not proven here.** No physical phone was used, and nothing was saved.
+
+## [A-colourways] Recolouring the sofa and the armchair
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/colourways` with its WebAssembly rebuilt, driven in the Playwright
+browser at 1280 by 800 on the household loaded from its version 4 save.
+
+**The list.** In Build the Furniture tool showed a Colour list under the
+facing row, disabled with nothing chosen, offering As drawn, Colour 2, Colour
+3, Muted and Rich. Choosing "The Sectional Compromise" enabled it at As drawn.
+
+**The ghost.** Choosing Colour 2 said "The Sectional Compromise recoloured."
+and kept the sofa chosen, but the sofa looked unchanged: while chosen it is
+drawn as the placement ghost, which did not carry the colourway. After Cancel
+the sofa showed its new colour. The ghost now carries it, and with Colour 3
+the chosen sofa was drawn in it under the ghost's tint.
+
+**In flat light.** With Light set to flat, the red armchair, "The Chair That
+Is His", in Colour 2 turned green, and the sofa in Rich showed its own teal
+stronger; in Colour 3 it had been a greyed mauve. Outlines, the wooden legs
+and the grey of the floor stayed as drawn.
+
+**Saved and reloaded.** Exit build, then Save said "Game saved". A reload
+said "Saved game loaded", and the Colour list showed Colour 2 for the armchair
+and Rich for the sofa.
+
+**Not proven here.** A sim using a recoloured exercise bike, reading chair or
+bunk was not staged in the page; the frame test covers which picture takes
+the shift, and the shader's text test that only the furniture layer turns.
+No physical phone was used.
