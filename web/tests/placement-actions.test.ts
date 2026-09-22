@@ -4,7 +4,7 @@ import type { PlacementPreview } from '../src/bridge.js';
 import { canvasToClient, clientToCanvas } from '../src/input.js';
 import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from '../src/render/iso.js';
 import {
-  BUY, CONFIRM, PlacementActions, ghostAnchorTop, ghostAnchorX, placementActionsPosition,
+  BUY, CONFIRM, PlacementActions, focusLeavesPair, ghostAnchorTop, ghostAnchorX, placementActionsPosition,
   type BuyActionsSource, type FurnitureActionsSource, type PlacementActionsSurface,
 } from '../src/ui/placement-actions.js';
 
@@ -49,6 +49,20 @@ describe('where the buttons go', () => {
     const two = { scale: 2, originX: 100, originY: 50 };
     expect(ghostAnchorX(ghost, two)).toBe(-1 * TILE_HALF_WIDTH + 100);
     expect(ghostAnchorTop(ghost, two, 30)).toBe(13 * TILE_HALF_HEIGHT + 50 - 60);
+    // The art's side offset moves the centre, scaled like everything else.
+    expect(ghostAnchorX(ghost, two, 5)).toBe(-1 * TILE_HALF_WIDTH + 100 + 10);
+  });
+
+  it('stays right of the desktop sidebar and below the gear, but inside the window', () => {
+    const keepOut = { left: 240, gearLeft: 740, gearBottom: 60 };
+    // Under the sidebar: pushed right of it.
+    expect(placementActionsPosition(200, 300, 150, 44, 800, 600, keepOut)).toEqual({ x: 248, y: 248 });
+    // Up under the gear: pushed below it.
+    expect(placementActionsPosition(760, 40, 150, 44, 800, 600, keepOut)).toEqual({ x: 642, y: 68 });
+    // Up at the top but clear of the gear: left where it is.
+    expect(placementActionsPosition(400, 40, 150, 44, 800, 600, keepOut)).toEqual({ x: 325, y: 8 });
+    // Below the gear with no room left: kept inside the window.
+    expect(placementActionsPosition(760, 40, 150, 44, 800, 100, keepOut)).toEqual({ x: 642, y: 48 });
   });
 
   it('centres the box above the anchor with a gap, inside the window and above the dock', () => {
@@ -101,7 +115,8 @@ function actions() {
   };
   const furniture = new FakeFurniture();
   const buy = new FakeBuy();
-  const placement = new PlacementActions(surface, furniture, buy, (sprite) => sprite * 10);
+  const placement = new PlacementActions(surface, furniture, buy,
+    (ghost) => ({ height: ghost.sprite * 10 + (ghost.foreground ?? 0), offsetX: 0 }));
   const camera = { scale: 1, originX: 0, originY: 0 };
   return { calls, furniture, buy, placement, camera };
 }
@@ -154,6 +169,68 @@ describe('PlacementActions', () => {
     expect(calls).toHaveLength(1);
   });
 
+  it.each([
+    ['its width', (p: PlacementPreview) => ({ ...p, width: 2 })],
+    ['its depth', (p: PlacementPreview) => ({ ...p, depth: 2 })],
+    ['its sprite, as a turn changes it', (p: PlacementPreview) => ({ ...p, sprite: 8 })],
+    ['its foreground layer', (p: PlacementPreview) => ({ ...p, foreground: 9 })],
+    ['its y', (p: PlacementPreview) => ({ ...p, y: 6 })],
+  ])('places again when the ghost changes %s', (_label, change) => {
+    const { calls, furniture, placement, camera } = actions();
+    furniture.preview = preview();
+    placement.frame(camera, 800, 600);
+    calls.length = 0;
+    furniture.preview = change(furniture.preview);
+    placement.frame(camera, 800, 600);
+    expect(calls.filter((call) => call.startsWith('place'))).toHaveLength(1);
+  });
+
+  it("places again when the view moves up or down, or the buffer's width changes", () => {
+    const { calls, furniture, placement, camera } = actions();
+    furniture.preview = preview();
+    placement.frame(camera, 800, 600);
+    calls.length = 0;
+    placement.frame({ ...camera, originY: 7 }, 800, 600);
+    placement.frame({ ...camera, originY: 7 }, 900, 600);
+    expect(calls.filter((call) => call.startsWith('place'))).toHaveLength(2);
+  });
+
+  it('turns Cancel off as the Build panel does, for either tool', () => {
+    const { calls, furniture, buy, placement, camera } = actions();
+    furniture.preview = preview();
+    furniture.selected = 3;
+    furniture.blocked = true;
+    placement.frame(camera, 800, 600);
+    expect(calls[0]).toBe(`state true ${CONFIRM} false false`);
+    buy.active = true;
+    buy.shown = preview();
+    buy.chosen = { id: 'chair' };
+    for (const [change, expected] of [
+      [() => {}, 'true'],
+      [() => { buy.pending = true; }, 'false'],
+      [() => { buy.pending = false; buy.blocked = true; }, 'false'],
+      [() => { buy.blocked = false; buy.chosen = null; }, 'false'],
+    ] as const) {
+      calls.length = 0;
+      change();
+      placement.frame(camera, 800, 600);
+      const state = calls.find((call) => call.startsWith('state')) ?? '';
+      if (state !== '') expect(state.endsWith(` ${expected}`), state).toBe(true);
+    }
+  });
+
+  it('relabels when the tool changes, with the ghost where it was', () => {
+    const { calls, furniture, buy, placement, camera } = actions();
+    const same = preview();
+    furniture.preview = same;
+    placement.frame(camera, 800, 600);
+    calls.length = 0;
+    buy.active = true;
+    buy.shown = same;
+    placement.frame(camera, 800, 600);
+    expect(calls).toEqual([`state true ${BUY} false false`]);
+  });
+
   it('hides when the piece is put down, and places again when the next one is lifted', () => {
     const { calls, furniture, placement, camera } = actions();
     furniture.preview = preview();
@@ -183,6 +260,15 @@ describe('PlacementActions', () => {
     placement.confirm();
     placement.cancel();
     expect([furniture.confirmed, furniture.cancelled]).toEqual([1, 1]);
+  });
+
+  it('moves focus off a button before it hides or turns off, and only then', () => {
+    expect(focusLeavesPair(null, false, false, false)).toBe(false);
+    expect(focusLeavesPair('confirm', false, true, true)).toBe(true);
+    expect(focusLeavesPair('confirm', true, false, true)).toBe(true);
+    expect(focusLeavesPair('confirm', true, true, false)).toBe(false);
+    expect(focusLeavesPair('cancel', true, true, false)).toBe(true);
+    expect(focusLeavesPair('cancel', true, false, true)).toBe(false);
   });
 
   it('does not confirm a piece the Build panel could not confirm', () => {
@@ -222,10 +308,16 @@ describe('the placement buttons in the page', () => {
     const frame = MAIN_TS.indexOf('placementButtons.frame(camera, stage.width, stage.height);');
     expect(frame).toBeGreaterThan(camera);
     expect(MAIN_TS).toContain('placementActions?.invalidate();');
+    // Each tool's change can change the phone dock's height.
+    expect(MAIN_TS.split('placementActions?.invalidate();')).toHaveLength(4);
+    expect(MAIN_TS).toContain('dockTop, placementKeepOut,');
     expect(MAIN_TS).toContain('new PlacementActions(');
     // Furniture's art top comes from its content bounds, not the people-only table.
-    const built = MAIN_TS.slice(MAIN_TS.indexOf('new PlacementActions('));
-    expect(built.slice(0, built.indexOf(');'))).toContain('spriteFramingHeight,');
-    expect(built.slice(0, built.indexOf(');'))).not.toContain('spriteContentLift');
+    const start = MAIN_TS.indexOf('new PlacementActions(');
+    const built = MAIN_TS.slice(start, MAIN_TS.indexOf('\n  );', start));
+    expect(built).toContain('spriteFramingHeight(ghost.sprite)');
+    expect(built).toContain('spriteFramingHeight(ghost.foreground)');
+    expect(built).toContain('offsetX: spriteDrawOffsetX(ghost.sprite)');
+    expect(built).not.toContain('spriteContentLift');
   });
 });

@@ -34,11 +34,31 @@ function centre(ghost: GhostFootprint): [number, number] {
   return [ghost.x + (ghost.width - 1) / 2, ghost.y + (ghost.depth - 1) / 2];
 }
 
-/** The drawing-buffer x of the ghost body's centre. */
-export function ghostAnchorX(ghost: GhostFootprint, camera: ActionsCamera): number {
+/**
+ * The drawing-buffer x of the ghost's art: its centre tile, moved by the
+ * sprite's side offset as the placement preview draws it.
+ */
+export function ghostAnchorX(ghost: GhostFootprint, camera: ActionsCamera, artOffsetX = 0): number {
   const [x, y] = centre(ghost);
-  return screenX(x, y, camera.originX, camera.scale);
+  return screenX(x, y, camera.originX, camera.scale) + artOffsetX * camera.scale;
 }
+
+/** How far the ghost's art rises above its anchor, and how far its centre sits to one side. */
+export interface GhostArt {
+  readonly height: number;
+  readonly offsetX: number;
+}
+
+/** Page areas the pair keeps clear of, in client pixels ([PA-place]). */
+export interface KeepOut {
+  /** The left edge the pair stays right of: the desktop sidebar's right edge, or 0. */
+  readonly left: number;
+  /** The Options gear's box, which the pair stays below when it would overlap it. */
+  readonly gearLeft: number;
+  readonly gearBottom: number;
+}
+
+export const NO_KEEP_OUT: KeepOut = { left: 0, gearLeft: Number.POSITIVE_INFINITY, gearBottom: 0 };
 
 /**
  * The drawing-buffer y of the top of the ghost's visible art. The shader
@@ -56,7 +76,9 @@ export function ghostAnchorTop(ghost: GhostFootprint, camera: ActionsCamera, art
 /**
  * Where the buttons' box goes, in client pixels: centred over the anchor and
  * `gap` pixels above it, kept inside the window's width and above
- * `viewportBottom`, the top of the phone's Build dock when it shows.
+ * `viewportBottom`, the top of the phone's Build dock when it shows. It stays
+ * right of the desktop sidebar, so it never takes the Build panel's clicks,
+ * and below the Options gear where it would slide under it.
  */
 export function placementActionsPosition(
   anchorClientX: number,
@@ -65,9 +87,10 @@ export function placementActionsPosition(
   buttonsHeight: number,
   viewportWidth: number,
   viewportBottom: number,
+  keepOut: KeepOut = NO_KEEP_OUT,
   gap = 8,
 ): MenuPosition {
-  return clampMenuPosition(
+  const clamped = clampMenuPosition(
     anchorClientX - buttonsWidth / 2,
     anchorClientY - buttonsHeight - gap,
     buttonsWidth,
@@ -75,6 +98,27 @@ export function placementActionsPosition(
     viewportWidth,
     viewportBottom,
   );
+  const x = Math.max(clamped.x, keepOut.left + gap);
+  const underGear = x + buttonsWidth > keepOut.gearLeft - gap && clamped.y < keepOut.gearBottom + gap;
+  const y = underGear ? Math.min(keepOut.gearBottom + gap, viewportBottom - buttonsHeight - gap) : clamped.y;
+  return { x, y };
+}
+
+/**
+ * [PA-show]: whether focus must leave the pair before this state is written.
+ * A focused button that is about to hide or turn off loses focus to the page
+ * body in the browser, where the game view's keys no longer reach it, so it
+ * goes to the game view first.
+ */
+export function focusLeavesPair(
+  focused: 'confirm' | 'cancel' | null,
+  visible: boolean,
+  confirmEnabled: boolean,
+  cancelEnabled: boolean,
+): boolean {
+  if (focused === null) return false;
+  if (!visible) return true;
+  return focused === 'confirm' ? !confirmEnabled : !cancelEnabled;
 }
 
 /** What the buttons read from the Furniture tool. */
@@ -113,7 +157,8 @@ export const BUY = 'Buy';
 /**
  * Shows, labels and places the two buttons once a frame. Every input is
  * kept as a plain number, and the surface is called only when one changes,
- * so a steady frame allocates nothing and touches no layout ([D11]).
+ * so a steady frame allocates nothing and touches no layout ([D11]). During
+ * a pan or zoom every frame is a change, and each measures the page once.
  */
 export class PlacementActions {
   private visible = false;
@@ -126,6 +171,7 @@ export class PlacementActions {
   private width = 0;
   private depth = 0;
   private sprite = -1;
+  private foreground = -1;
   private scale = Number.NaN;
   private originX = Number.NaN;
   private originY = Number.NaN;
@@ -136,10 +182,14 @@ export class PlacementActions {
     private readonly surface: PlacementActionsSurface,
     private readonly furniture: FurnitureActionsSource,
     private readonly buyTool: BuyActionsSource,
-    private readonly spriteLift: (sprite: number) => number,
+    private readonly artOf: (ghost: PlacementPreview) => GhostArt,
   ) {}
 
-  /** The next frame places the buttons again: the window changed size. */
+  /**
+   * The next frame places the buttons again: the window changed size, or a
+   * tool changed what the phone's Build dock shows, which can change its
+   * height without the ghost or the camera moving.
+   */
   invalidate(): void {
     this.dirty = true;
   }
@@ -175,7 +225,8 @@ export class PlacementActions {
     }
     if (ghost === null) return;
     if (appeared || this.dirty || ghost.x !== this.x || ghost.y !== this.y || ghost.width !== this.width
-      || ghost.depth !== this.depth || ghost.sprite !== this.sprite || camera.scale !== this.scale
+      || ghost.depth !== this.depth || ghost.sprite !== this.sprite
+      || (ghost.foreground ?? -1) !== this.foreground || camera.scale !== this.scale
       || camera.originX !== this.originX || camera.originY !== this.originY
       || canvasWidth !== this.canvasWidth || canvasHeight !== this.canvasHeight) {
       this.dirty = false;
@@ -184,12 +235,14 @@ export class PlacementActions {
       this.width = ghost.width;
       this.depth = ghost.depth;
       this.sprite = ghost.sprite;
+      this.foreground = ghost.foreground ?? -1;
       this.scale = camera.scale;
       this.originX = camera.originX;
       this.originY = camera.originY;
       this.canvasWidth = canvasWidth;
       this.canvasHeight = canvasHeight;
-      this.surface.place(ghostAnchorX(ghost, camera), ghostAnchorTop(ghost, camera, this.spriteLift(ghost.sprite)),
+      const art = this.artOf(ghost);
+      this.surface.place(ghostAnchorX(ghost, camera, art.offsetX), ghostAnchorTop(ghost, camera, art.height),
         canvasWidth, canvasHeight);
     }
   }
@@ -208,6 +261,7 @@ export function createPlacementActionsSurface(
   cancelButton: HTMLButtonElement,
   canvas: HTMLCanvasElement,
   viewportBottom: () => number,
+  keepOut: () => KeepOut,
   onConfirm: () => void,
   onCancel: () => void,
 ): PlacementActionsSurface {
@@ -215,7 +269,9 @@ export function createPlacementActionsSurface(
   cancelButton.addEventListener('click', onCancel);
   return {
     setState(visible, confirmLabel, confirmEnabled, cancelEnabled) {
-      if (!visible && root.contains(doc.activeElement)) canvas.focus();
+      const active = doc.activeElement;
+      const focused = active === confirmButton ? 'confirm' : active === cancelButton ? 'cancel' : null;
+      if (focusLeavesPair(focused, visible, confirmEnabled, cancelEnabled)) canvas.focus();
       root.hidden = !visible;
       confirmButton.textContent = confirmLabel;
       confirmButton.disabled = !confirmEnabled;
@@ -226,7 +282,7 @@ export function createPlacementActionsSurface(
         canvasWidth, canvasHeight);
       if (client === null) return;
       const at = placementActionsPosition(client.x, client.y, root.offsetWidth, root.offsetHeight,
-        doc.documentElement.clientWidth, viewportBottom());
+        doc.documentElement.clientWidth, viewportBottom(), keepOut());
       root.style.left = `${at.x}px`;
       root.style.top = `${at.y}px`;
     },

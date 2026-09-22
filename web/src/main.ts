@@ -32,7 +32,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { SPRITES } from './render/atlas.js';
-import { spriteFramingHeight } from './render/sprite-anchors.js';
+import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
 import {
   BOUNDARY_SPRITE_NAMES,
@@ -51,7 +51,7 @@ import {
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
-import { PlacementActions, createPlacementActionsSurface } from './ui/placement-actions.js';
+import { PlacementActions, createPlacementActionsSurface, type KeepOut } from './ui/placement-actions.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { GameHud } from './ui/game-hud.js';
@@ -1139,6 +1139,7 @@ async function main(): Promise<void> {
     changed: () => {
       buyControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
   });
   // [RT-shell]. A whole room in one edit, beside the one-line Walls tool.
@@ -1160,6 +1161,19 @@ async function main(): Promise<void> {
   if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
     throw new Error('missing the placement buttons');
   }
+  const optionsGear = document.querySelector<HTMLElement>('#options-toggle');
+  if (!optionsGear) throw new Error('missing the Options gear');
+  // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
+  // and of the gear. On a phone the sidebar folds to its strip and the dock
+  // bounds the bottom instead.
+  const placementKeepOut = (): KeepOut => {
+    const gear = optionsGear.getBoundingClientRect();
+    return {
+      left: compactHudQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
+      gearLeft: gear.left,
+      gearBottom: gear.bottom,
+    };
+  };
   const dockTop = (): number => {
     const panel = builderDock.querySelector<HTMLElement>('#builder-controls');
     return compactHudQuery.matches && panel !== null && !panel.hidden
@@ -1167,7 +1181,10 @@ async function main(): Promise<void> {
       : document.documentElement.clientHeight;
   };
   const builder = new FurnitureBuilder(sim, overlayPause, {
-    changed: () => builderControls?.render(),
+    changed: () => {
+      builderControls?.render();
+      placementActions?.invalidate();
+    },
     enter() {
       optionsMenu.close();
       canvas.focus();
@@ -1190,12 +1207,16 @@ async function main(): Promise<void> {
   });
   const placementButtons = new PlacementActions(
     createPlacementActionsSurface(document, placementRoot, placementConfirm, placementCancel, stage,
-      dockTop, () => placementButtons.confirm(), () => placementButtons.cancel()),
+      dockTop, placementKeepOut, () => placementButtons.confirm(), () => placementButtons.cancel()),
     builder,
     buyTool,
-    // The visible art's top: content bounds cover furniture, where the
-    // content-top table the activity bubble reads covers only people.
-    spriteFramingHeight,
+    // The visible art: its height from the content bounds, which cover
+    // furniture, and the taller of the body and its foreground layer.
+    (ghost) => ({
+      height: Math.max(spriteFramingHeight(ghost.sprite),
+        ghost.foreground === null ? 0 : spriteFramingHeight(ghost.foreground)),
+      offsetX: spriteDrawOffsetX(ghost.sprite),
+    }),
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
