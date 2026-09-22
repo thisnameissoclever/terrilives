@@ -141,18 +141,20 @@ describe('attachOptionsMenu', () => {
 
 describe('the Options flyout in the page', () => {
   it('holds only the gear and its panel, closing before the sidebar opens', () => {
-    // Walk the div tags from the wrapper's opening to its matching close.
-    const start = INDEX_HTML.indexOf('<div id="options">');
+    // Walk the div tags from the wrapper's opening to its matching close,
+    // with comments blanked out so a tag named in one cannot end the walk.
+    const page = INDEX_HTML.replace(/<!--[\s\S]*?-->/g, (comment) => ' '.repeat(comment.length));
+    const start = page.indexOf('<div id="options">');
     const tags = /<div\b[^>]*>|<\/div>/g;
     tags.lastIndex = start;
     let depth = 0;
     let end = -1;
-    for (let tag = tags.exec(INDEX_HTML); tag; tag = tags.exec(INDEX_HTML)) {
+    for (let tag = tags.exec(page); tag; tag = tags.exec(page)) {
       depth += tag[0] === '</div>' ? -1 : 1;
       if (depth === 0) { end = tags.lastIndex; break; }
     }
     expect(end).toBeGreaterThan(start);
-    const wrapper = INDEX_HTML.slice(start, end);
+    const wrapper = page.slice(start, end);
     expect(wrapper).toContain('id="options-toggle"');
     expect(wrapper).toContain('id="options-panel"');
     for (const outside of ['hud', 'household-summary', 'builder-dock', 'object-menu', 'debug-panel']) {
@@ -238,6 +240,7 @@ describe('the Options flyout wired into main.ts', () => {
   it('attaches its listeners through attachOptionsMenu, with dialogs excluded', () => {
     expect(MAIN_TS).toContain('new OptionsMenu(optionsToggle, optionsPanel)');
     expect(MAIN_TS).toContain("target.closest('dialog') !== null");
+    expect(MAIN_TS).toContain("document.querySelector('dialog[open]') !== null");
     expect(MAIN_TS.indexOf('attachOptionsMenu(')).toBeGreaterThan(-1);
     expect(MAIN_TS.indexOf('attachOptionsMenu(')).toBeLessThan(MAIN_TS.indexOf('attachPointerInput('));
   });
@@ -246,6 +249,7 @@ describe('the Options flyout wired into main.ts', () => {
     "loadButton.addEventListener('click', () => {",
     "newGameButton.addEventListener('click', () => {",
     "helpButton.addEventListener('click', () => {",
+    "newHousemateButton.addEventListener('click', () => {",
   ])('closes the panel before the dialog opens: %s', (opening) => {
     expect(handler(opening)).toMatch(/^[^\n]*\n\s*optionsMenu\.close\(\);/);
   });

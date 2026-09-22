@@ -5337,21 +5337,20 @@ mod boundary_tests {
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
     }
 
+    /// [WB-draw]: the shipped front door's line, the one the Walls tool
+    /// must not draw a second frame on: the house's east wall, on the door's
+    /// row (`content/lot.toml`'s front door is the tile at x 15, y 2).
+    #[test]
+    fn the_front_door_line_crosses_the_boundary() {
+        let handle = SimHandle::from_lot();
+        assert_eq!(handle.front_door_lines(), vec![handle.house_size()[0], 2]);
+    }
+
     /// [CS-command]: a move-in is staged through the boundary with its name
     /// carried whole, and the newcomer is a household member the shell can
     /// find by the returned index; an index that is not a whole number is
     /// refused there, and one past the table by the drain. The form's lists
     /// and limits come from content.
-    /// [WB-draw]: the shipped front door's line, the one the Walls tool
-    /// must not draw a second frame on.
-    #[test]
-    fn the_front_door_line_crosses_the_boundary() {
-        let handle = SimHandle::from_lot();
-        let door = handle.front_door_lines();
-        assert_eq!(door.len(), 2);
-        assert_eq!(door[0], handle.house_size()[0]);
-    }
-
     #[test]
     fn a_move_in_is_staged_through_the_boundary() {
         let mut handle = SimHandle::from_lot();
