@@ -833,17 +833,19 @@
          nothing sits behind them. Below 481 pixels of height the panel can
          be 144 pixels tall, too short for both, and scrolls whole. */
       @media (max-width: 600px) and (min-height: 481px) {
-        #builder-dock #builder-controls {
-          display: flex; flex-direction: column; overflow: hidden;
+        #builder-dock #builder-controls:not([hidden]) {
+          display: flex; flex-direction: column; overflow-y: auto;
         }
         #builder-dock #builder-controls > * { flex: none; }
         #builder-dock #builder-controls > .builder-tool:not([hidden]) {
           flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
         }
-        /* The padding keeps focus outlines inside the scrolling region; the
+        /* The choices keep one whole list row and its outline; where the
+           footer and that floor do not fit, the panel scrolls whole. The
+           padding keeps focus outlines inside the scrolling region; the
            margin keeps the edges where they were. */
         #builder-dock .builder-choices {
-          flex: 1 1 auto; min-height: 0; overflow-y: auto;
+          flex: 1 1 auto; min-height: 52px; overflow-y: auto;
           margin: -4px; padding: 4px;
         }
         #builder-dock .builder-actions {

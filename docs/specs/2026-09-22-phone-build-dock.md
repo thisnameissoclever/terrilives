@@ -28,6 +28,16 @@ and whose footer never shrinks. The footer is always in view and nothing sits
 behind it, so a tap on a visible control always reaches it, and keyboard focus
 moving into the choices scrolls them the ordinary way.
 
+The choices never shrink below 52 pixels, one whole list row and room for its
+focus outline. Where the footer and that floor together do not fit, as at 320
+by 481 with the stove's sale note, or with a status long enough to wrap to
+three lines, the panel itself scrolls as a last resort, so the end of the
+footer is always reachable.
+
+The column only applies while the panel is shown. A rule with two ids
+outranks the one that hides the panel outside Build, so each such rule is
+written for a panel or tool that is not hidden, and a test checks every one.
+
 An earlier version of this slice pinned the footer over a panel that scrolled
 whole. Review found that it hid whatever scrolled behind the footer: Buy's
 Rotate at 390 by 844, the whole Buy list at 375 by 667, and keyboard focus
@@ -43,7 +53,8 @@ footer and a useful region above it, so it scrolls as one piece as before.
 
 * The heading and the "Household paused" note leave the view but stay in the
   page, so the panel keeps its accessible name. The chosen object's name is
-  still in its list, and the HUD's Exit build shows Build is on.
+  still in its list, the HUD's Exit build shows Build is on, and the HUD clock
+  stops, which shows the pause. On a desktop both stay in view.
 * The four tool buttons share one row, with their side padding trimmed so
   "Furniture" fits at 320 wide. Below 301 pixels wide they return to two by
   two, since one row of four would be under 60 pixels a button.
@@ -70,6 +81,15 @@ footer; and had inaccurate notes. The design above replaces the pin, which
 answers the first, second and sixth. The tools return to two by two below 301
 pixels wide, the tests now forbid any sticky rule and check each part of the
 new layout, and the notes were rewritten from new measurements.
+
+A second round found that the panel's column rule outranked the rule hiding
+the panel, so on an upright phone the Build panel showed outside Build over
+the game view and the menu. It is now written for a shown panel only, with a
+test over every rule that could outrank the hidden one. It also found that at
+320 by 481 a tall footer could squeeze the list to a few pixels and clip the
+sale note beyond reach; the choices now keep a floor and the panel scrolls
+whole as a last resort. It noted that phones no longer show "Household
+paused"; that is kept as a decision, for the reasons under [PD-rows].
 
 ## Slices
 

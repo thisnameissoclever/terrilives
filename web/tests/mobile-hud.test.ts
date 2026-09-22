@@ -266,9 +266,12 @@ describe('the phone Build dock', () => {
 
   it('scrolls only the choices where the panel is tall enough', () => {
     const tall = mediaBlock(TALL);
-    expect(tall).toMatch(/#builder-dock #builder-controls\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*overflow:\s*hidden;/);
+    // The panel scrolls whole only when the footer and the choices' floor
+    // do not fit, as on a 320 by 481 screen with a long status.
+    expect(tall).toMatch(/#builder-dock #builder-controls:not\(\[hidden\]\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*overflow-y:\s*auto;/);
     expect(tall).toMatch(/#builder-dock #builder-controls > \.builder-tool:not\(\[hidden\]\)\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/);
-    expect(tall).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/);
+    // The choices never shrink below one whole list row and its outline.
+    expect(tall).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*52px;[^}]*overflow-y:\s*auto;/);
     expect(tall).toMatch(/#builder-dock \.builder-actions\s*\{[^}]*flex:\s*none;/);
     // Nothing is pinned over content anywhere, so focus is never hidden.
     expect(INDEX_HTML).not.toContain('sticky');
@@ -289,6 +292,21 @@ describe('the phone Build dock', () => {
       'wall-keyboard-help', 'wall-touch-help', 'room-keyboard-help', 'room-touch-help']) {
       expect(INDEX_HTML).toMatch(new RegExp(`id="${id}" class="builder-note builder-help"`));
     }
+  });
+
+  // A rule with two ids outranks `#builder-controls[hidden]`, so any rule
+  // that gives the panel or a tool a display must leave hidden ones alone,
+  // or the panel shows outside Build.
+  it('never shows the panel or a tool the game has hidden', () => {
+    const target = /#builder-controls(?![\w-])|#(?:furniture|wall|room|buy)-tool(?![\w-])|\.builder-tool(?![\w-])/;
+    const rules = [...INDEX_HTML.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    // Only a selector with two or more ids outranks the hidden rule.
+    const outranking = rules
+      .filter(([, , body]) => /display:\s*(?!none)/.test(body))
+      .flatMap(([, selector]) => selector.split(',').map((part) => part.trim()))
+      .filter((part) => target.test(part.split(/\s+/).at(-1) ?? '') && (part.match(/#/g) ?? []).length >= 2);
+    expect(outranking.length).toBeGreaterThan(0);
+    for (const part of outranking) expect(part).toContain(':not([hidden])');
   });
 
   it('puts the tools back two by two below 301 pixels wide', () => {

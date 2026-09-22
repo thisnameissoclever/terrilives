@@ -3331,6 +3331,14 @@ before; the choices are not a region of their own.
 two by two, the list, the facing and Rotate row, the status, Confirm and
 Cancel, Sell, the note, then the keyboard help.
 
+**Leaving Build, 390 by 844.** Before Build the panel was hidden. Build showed
+it, 283 pixels tall; Exit build hid it again and the toggle read "Build".
+
+**320 by 481, Furniture with the stove chosen.** The choices region kept 60
+pixels with the list whole, and the status and the row of three buttons were
+in view. The sale note was almost all below the panel's edge; scrolling the
+whole panel 32 pixels brought all of it into view.
+
 **First version, replaced.** The first build pinned the footer over a panel
 that scrolled whole. Review measured it hiding Buy's Rotate at 390 by 844 and
 the whole Buy list at 375 by 667, and I saw the list and Rotate behind the
