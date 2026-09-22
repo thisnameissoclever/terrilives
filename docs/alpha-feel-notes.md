@@ -3112,5 +3112,11 @@ each object is for and to narrow the list, which is [B-catalogue-browsing].
 After a purchase the ghost stays on the bought object's tile, red, under a
 status that says it was bought; clear enough, but a second glance.
 
+**After the review fixes.** Re-checked on the same server: pressing Buy put
+keyboard focus on the game view; with 80 in Funds, `]` skipped the 220
+aquarium and chose the first thing 80 buys; setting the list back to "Choose
+something to buy" said so, cleared the price and disabled Buy. The console
+showed no errors or warnings.
+
 **Not proven here.** No physical phone was used. The chair's use at a table
 was not watched.

@@ -401,11 +401,12 @@ fn plan_rectangle(
     rectangles.push(candidate);
     prove_lot_usable(world, &grid, &rectangles)?;
     // Last, the loader's own grid checks - [L-an-edit-must-pass-the-loader].
-    // For furniture they are implied today by the proofs above: a sim's tile
-    // and walk must be open floor there too, and blocking a tile never
-    // changes a contact, which the loader reads through walls alone. They are
-    // asked anyway, so a rule the loader gains later is honoured here without
-    // a second edit. The rectangle itself is not in this world yet; the
+    // For what a furniture edit adds they are implied today by the proofs
+    // above: a sim's tile and walk must be open floor there too, and blocking
+    // a tile never changes a contact, which the loader reads through walls
+    // alone. They are asked anyway, so a rule the loader gains later is
+    // honoured here without a second edit, and so no edit is accepted in a
+    // world that already fails the loader. The rectangle itself is not in this world yet; the
     // loader's rule for it, no wall through it, is `WallOverlap` above.
     crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
         crate::save::LoadProblem::PortalReturn => BlockedLanding,
