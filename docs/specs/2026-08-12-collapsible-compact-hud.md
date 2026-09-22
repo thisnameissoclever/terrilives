@@ -46,7 +46,8 @@ pixels high.
 ## [CH4] Required evidence
 
 1. At 418 by 910 and 320 by 568, the initial HUD must be a 60-pixel status
-   strip. Roster and actions must compute to `display: none`, the document must
+   strip; since [OF3] the strip also carries the save status line and
+   measures about 83 pixels. Roster and actions must compute to `display: none`, the document must
    have no horizontal or vertical overflow, and the game must remain visible
    below the strip.
 2. Menu must expose the existing controls. Pause and 1x must change the checked
@@ -59,7 +60,8 @@ pixels high.
 5. At 240 by 568 and 240 by 320, the closed surface must remain a 60-pixel top
    strip with no document overflow.
 6. At 1280 by 720, the Menu button must be absent from layout while the desktop
-   roster, details, speed, and actions remain visible.
+   roster, details, speed, and actions remain visible; since [OF3] the actions
+   are in the Options flyout instead.
 7. Deleting the `data-mobile-open` reflection must fail the focused controller
    test. Restoring it must reproduce the original file hash and return the test
    to green.

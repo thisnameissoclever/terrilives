@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { OptionsMenu } from '../src/ui/options-menu.js';
+import { OptionsMenu, attachOptionsMenu } from '../src/ui/options-menu.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -70,11 +70,80 @@ describe('OptionsMenu', () => {
   });
 });
 
+/** A document, a flyout wrapper and a gear that record what the listeners do. */
+function page() {
+  const inside = new Set<unknown>(['gear', 'light']);
+  const docListeners = new Map<string, { listener: (event: never) => void; capture: boolean }>();
+  const doc = {
+    activeElement: 'canvas' as unknown,
+    addEventListener(type: string, listener: (event: never) => void, capture = false) {
+      docListeners.set(type, { listener, capture });
+    },
+  };
+  let gearClick = () => {};
+  let focused = 0;
+  const gear = {
+    addEventListener: (_type: 'click', listener: () => void) => { gearClick = listener; },
+    focus: () => { focused += 1; },
+  };
+  const { options, panel } = menu();
+  attachOptionsMenu(doc, { contains: (node) => inside.has(node) }, gear, options,
+    (target) => target === 'in-a-dialog');
+  const key = (keyName: string, target: unknown = 'canvas', already = false) => {
+    const event = {
+      key: keyName, target, defaultPrevented: already, stopped: false,
+      preventDefault() { this.defaultPrevented = true; },
+      stopPropagation() { this.stopped = true; },
+    };
+    docListeners.get('keydown')!.listener(event as unknown as never);
+    return event;
+  };
+  const press = (target: unknown) => docListeners.get('pointerdown')!.listener({ target } as never);
+  return { doc, options, panel, docListeners, key, press, click: () => gearClick(), focused: () => focused };
+}
+
+describe('attachOptionsMenu', () => {
+  it('toggles from the gear and closes on a press outside, not inside', () => {
+    const { panel, click, press } = page();
+    click();
+    expect(panel.hidden).toBe(false);
+    press('light');
+    expect(panel.hidden).toBe(false);
+    press('floor');
+    expect(panel.hidden).toBe(true);
+  });
+
+  it('catches Escape on the way down and stops it, so nothing else acts on it', () => {
+    const { docListeners, options, key, focused, doc } = page();
+    expect(docListeners.get('keydown')!.capture).toBe(true);
+    options.open();
+    const event = key('Escape');
+    expect([options.isOpen(), event.defaultPrevented, event.stopped, focused()]).toEqual([false, true, true, 0]);
+    // A closed panel leaves Escape to the rest of the page.
+    const next = key('Escape');
+    expect([next.defaultPrevented, next.stopped]).toEqual([false, false]);
+    // Focus inside the panel goes back to the gear.
+    options.open();
+    doc.activeElement = 'light';
+    key('Escape');
+    expect(focused()).toBe(1);
+  });
+
+  it('leaves a dialog key, an already-handled key and any other key alone', () => {
+    const { options, key } = page();
+    options.open();
+    expect(key('Escape', 'in-a-dialog').stopped).toBe(false);
+    expect(key('Escape', 'canvas', true).stopped).toBe(false);
+    expect(key('Enter').defaultPrevented).toBe(false);
+    expect(options.isOpen()).toBe(true);
+  });
+});
+
 describe('the Options flyout in the page', () => {
-  it('sits outside the sidebar, before the right-click flyout', () => {
-    const hudEnd = INDEX_HTML.indexOf('<div id="builder-dock">');
+  it('comes first in the page, outside the sidebar, before the right-click flyout', () => {
     const options = INDEX_HTML.indexOf('<div id="options">');
-    expect(options).toBeGreaterThan(hudEnd);
+    expect(options).toBeGreaterThan(-1);
+    expect(INDEX_HTML.indexOf('<div id="hud" ')).toBeGreaterThan(options);
     expect(INDEX_HTML.indexOf('id="object-menu"')).toBeGreaterThan(options);
   });
 
@@ -83,7 +152,7 @@ describe('the Options flyout in the page', () => {
     'holds #%s in the panel',
     (id) => {
       expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
-      expect(between('options-panel', 'object-menu')).toContain(`id="${id}"`);
+      expect(between('options-panel', 'hud')).toContain(`id="${id}"`);
     },
   );
 
@@ -125,16 +194,54 @@ describe('the Options flyout in the page', () => {
     }
   });
 
-  it('is wired: Escape goes to the panel before Build, and Build closes it', () => {
+  it('keeps the phone sidebar and the debug overlay clear of the gear, and fits 320 pixels', () => {
+    expect(INDEX_HTML).toContain('right: calc(max(8px, env(safe-area-inset-right)) + 52px);');
+    expect(INDEX_HTML).toContain('top: calc(max(8px, env(safe-area-inset-top)) + 52px);');
+    expect(INDEX_HTML).toContain('minmax(0, 2fr) minmax(0, 1fr) minmax(64px, auto);');
+    expect(INDEX_HTML).not.toContain('minmax(125px, 2fr)');
+  });
+
+  it('keeps an empty status line in the page, at no height', () => {
+    expect(INDEX_HTML).toMatch(/#keyboard-target:empty \{\s*min-height: 0;\s*\}/);
+    expect(INDEX_HTML).not.toMatch(/#(command-feedback|keyboard-target):empty[^{]*\{\s*display: none/);
+  });
+});
+
+describe('the Options flyout wired into main.ts', () => {
+  /** The source of the handler that starts with `opening`, up to its close. */
+  const handler = (opening: string) => {
+    const at = MAIN_TS.indexOf(opening);
+    expect(at, opening).toBeGreaterThan(-1);
+    return MAIN_TS.slice(at, MAIN_TS.indexOf('\n  });', at));
+  };
+
+  it('attaches its listeners through attachOptionsMenu, with dialogs excluded', () => {
     expect(MAIN_TS).toContain('new OptionsMenu(optionsToggle, optionsPanel)');
-    const options = MAIN_TS.indexOf('optionsMenu.handleKey(event.key)');
-    const build = MAIN_TS.indexOf('routeBuildKey(event.key, buildTools, builder)');
-    const objectMenu = MAIN_TS.indexOf('attachPointerInput(');
-    expect(options).toBeGreaterThan(-1);
-    expect(options).toBeLessThan(objectMenu);
-    expect(options).toBeLessThan(build);
-    expect(MAIN_TS).toContain('optionsMenu.pointerDown(');
-    const enter = MAIN_TS.indexOf('    enter() {\n      optionsMenu.close();');
-    expect(enter).toBeGreaterThan(-1);
+    expect(MAIN_TS).toContain("target.closest('dialog') !== null");
+    expect(MAIN_TS.indexOf('attachOptionsMenu(')).toBeGreaterThan(-1);
+    expect(MAIN_TS.indexOf('attachOptionsMenu(')).toBeLessThan(MAIN_TS.indexOf('attachPointerInput('));
+  });
+
+  it.each([
+    "loadButton.addEventListener('click', () => {",
+    "newGameButton.addEventListener('click', () => {",
+    "helpButton.addEventListener('click', () => {",
+  ])('closes the panel before the dialog opens: %s', (opening) => {
+    expect(handler(opening)).toMatch(/^[^\n]*\n\s*optionsMenu\.close\(\);/);
+  });
+
+  it('closes the panel when Build starts and when it ends, then focuses the gear', () => {
+    expect(MAIN_TS).toContain('    enter() {\n      optionsMenu.close();');
+    expect(MAIN_TS).toMatch(/mobileHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*optionsToggle\.focus\(\);/);
+  });
+
+  it('returns focus to the gear, which leads the fallbacks, after Load, New game and Help', () => {
+    expect(MAIN_TS.split(/restorePersistenceFocus\(\s*document,\s*\w+,\s*optionsToggle,/)).toHaveLength(3);
+    expect(MAIN_TS).toMatch(/const persistenceFocusFallbacks = \[\s*optionsToggle,/);
+    expect(handler("helpButton.addEventListener('click', () => {")).toContain('helpReturnTarget = optionsToggle;');
+  });
+
+  it('folds the Traits panel with Needs and People on a phone', () => {
+    expect(MAIN_TS).toMatch(/new MobileHud\(hudRoot, mobileHudButton, \[\s*needsRoot,\s*peopleRoot,\s*traitsBlock,\s*\]\)/);
   });
 });

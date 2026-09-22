@@ -73,3 +73,58 @@ export class OptionsMenu {
     this.toggleButton.setAttribute('aria-expanded', String(this.open_));
   }
 }
+
+/** The page parts the flyout's listeners need; a narrow view of the DOM. */
+export interface OptionsDocument {
+  readonly activeElement: unknown;
+  addEventListener(type: 'pointerdown', listener: (event: { target: unknown }) => void): void;
+  addEventListener(
+    type: 'keydown',
+    listener: (event: OptionsKeyEvent) => void,
+    capture: boolean,
+  ): void;
+}
+
+export interface OptionsKeyEvent {
+  readonly key: string;
+  readonly target: unknown;
+  readonly defaultPrevented: boolean;
+  preventDefault(): void;
+  stopPropagation(): void;
+}
+
+export interface OptionsElements {
+  /** The flyout's wrapper: the gear and the panel. */
+  contains(node: unknown): boolean;
+}
+
+export interface OptionsGear {
+  addEventListener(type: 'click', listener: () => void): void;
+  focus(): void;
+}
+
+/**
+ * Wires the flyout to the page - [OF2]. The gear toggles it; a press
+ * outside it closes it. Escape is caught on the way down (the capture
+ * phase), before the game view's own key handler and Build's, so one Escape
+ * closes an open panel and does nothing else. Escape inside a dialog is the
+ * dialog's. `insideDialog` answers whether a key's target is in a dialog.
+ */
+export function attachOptionsMenu(
+  doc: OptionsDocument,
+  root: OptionsElements,
+  gear: OptionsGear,
+  menu: OptionsMenu,
+  insideDialog: (target: unknown) => boolean,
+): void {
+  gear.addEventListener('click', () => menu.toggle());
+  doc.addEventListener('pointerdown', (event) => menu.pointerDown(root.contains(event.target)));
+  doc.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented || insideDialog(event.target)) return;
+    const focusWasInside = root.contains(doc.activeElement);
+    if (!menu.handleKey(event.key)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (focusWasInside) gear.focus();
+  }, true);
+}

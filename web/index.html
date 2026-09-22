@@ -504,10 +504,11 @@
         font-size: 12px;
       }
       /* An empty line takes no room, so the compact strip grows by one
-         line, the save status, rather than three. */
+         line, the save status, rather than three. It stays rendered: a live
+         region taken out of the page may not be announced when it fills. */
       #command-feedback:empty,
       #keyboard-target:empty {
-        display: none;
+        min-height: 0;
       }
       #save-status[data-kind='error'],
       #command-feedback[data-kind='error'] {
@@ -786,7 +787,7 @@
             'time funds menu'
             'status status status';
           grid-template-columns:
-            minmax(125px, 2fr) minmax(50px, 1fr) minmax(64px, auto);
+            minmax(0, 2fr) minmax(0, 1fr) minmax(64px, auto);
         }
         #household-summary > .summary-row {
           display: grid;
@@ -1070,6 +1071,71 @@
       tabindex="0"
       aria-label="Isometric household. Use Help for controls and accessible status."
     ></canvas>
+    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
+         Outside #hud for #object-menu's reason: it is fixed to the window's
+         top right, not part of the sidebar's column. First in the page, so
+         it is the first stop for a keyboard, in and out of Build. The panel holds the
+         controls a player reaches for now and then; the sidebar keeps what
+         they read all the time. -->
+    <div id="options">
+      <button
+        id="options-toggle"
+        class="hud-button options-toggle"
+        type="button"
+        aria-label="Options"
+        aria-controls="options-panel"
+        aria-expanded="false"
+      ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
+      <div id="options-panel" role="group" aria-label="Options" hidden>
+        <button
+          id="lighting-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Light: auto</button>
+        <button id="build-toggle" class="hud-button" type="button"
+          aria-pressed="false" aria-controls="builder-controls">Build</button>
+        <section id="audio-controls" aria-label="Audio controls">
+        <button
+          id="audio-mute"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Sound: on</button>
+        <label class="audio-effects-label" for="effects-volume">
+          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
+        </label>
+        <input
+          id="effects-volume"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value="70"
+          aria-label="Effects volume"
+          aria-valuetext="70%"
+        />
+        </section>
+        <section id="game-actions" aria-label="Game actions">
+        <button id="save-game" class="hud-button" type="button">Save</button>
+        <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
+        <button
+          id="queue-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Queue</button>
+        <button id="new-game" class="hud-button" type="button">New game</button>
+        <button
+          id="show-help"
+          class="hud-button"
+          type="button"
+          aria-controls="help-panel"
+          aria-expanded="false"
+        >Help</button>
+        </section>
+      </div>
     <div id="hud" data-mobile-open="false">
       <!-- Both are filled from the simulation at load: the bars from the
            need names it reports, the buttons from the speeds [D-8] names.
@@ -1347,70 +1413,6 @@
         <pre id="debug-report"></pre>
       </details>
     </section>
-    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
-         Outside #hud for #object-menu's reason: it is fixed to the window's
-         top right, not part of the sidebar's column. The panel holds the
-         controls a player reaches for now and then; the sidebar keeps what
-         they read all the time. -->
-    <div id="options">
-      <button
-        id="options-toggle"
-        class="hud-button options-toggle"
-        type="button"
-        aria-label="Options"
-        aria-controls="options-panel"
-        aria-expanded="false"
-      ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
-      <div id="options-panel" role="group" aria-label="Options" hidden>
-        <button
-          id="lighting-mode"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Light: auto</button>
-        <button id="build-toggle" class="hud-button" type="button"
-          aria-pressed="false" aria-controls="builder-controls">Build</button>
-        <section id="audio-controls" aria-label="Audio controls">
-        <button
-          id="audio-mute"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Sound: on</button>
-        <label class="audio-effects-label" for="effects-volume">
-          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
-        </label>
-        <input
-          id="effects-volume"
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          value="70"
-          aria-label="Effects volume"
-          aria-valuetext="70%"
-        />
-        </section>
-        <section id="game-actions" aria-label="Game actions">
-        <button id="save-game" class="hud-button" type="button">Save</button>
-        <button id="load-game" class="hud-button" type="button">Load</button>
-        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
-        <button
-          id="queue-mode"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Queue</button>
-        <button id="new-game" class="hud-button" type="button">New game</button>
-        <button
-          id="show-help"
-          class="hud-button"
-          type="button"
-          aria-controls="help-panel"
-          aria-expanded="false"
-        >Help</button>
-        </section>
-      </div>
     </div>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the

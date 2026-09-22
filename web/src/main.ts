@@ -53,7 +53,7 @@ import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { GameHud } from './ui/game-hud.js';
-import { OptionsMenu } from './ui/options-menu.js';
+import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
@@ -554,23 +554,21 @@ async function main(): Promise<void> {
   ]);
   mobileHud.setCompact(compactHudQuery.matches);
   mobileHudButton.addEventListener('click', () => mobileHud.toggle());
-  // [OF2] in docs/specs/2026-09-22-options-flyout.md. Registered before the
-  // right-click flyout's and Build's document listeners, so an open panel
-  // takes Escape first and Build does not also act on it.
+  // [OF2] in docs/specs/2026-09-22-options-flyout.md. Its Escape is caught
+  // in the capture phase, so an open panel takes it before the game view
+  // and Build do.
   const optionsRoot = document.querySelector<HTMLElement>('#options');
   const optionsToggle = document.querySelector<HTMLButtonElement>('#options-toggle');
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
-  optionsToggle.addEventListener('click', () => optionsMenu.toggle());
-  document.addEventListener('pointerdown', (event) => {
-    optionsMenu.pointerDown(event.target instanceof Node && optionsRoot.contains(event.target));
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.defaultPrevented || !optionsMenu.handleKey(event.key)) return;
-    event.preventDefault();
-    if (optionsRoot.contains(document.activeElement)) optionsToggle.focus();
-  });
+  attachOptionsMenu(
+    document as unknown as OptionsDocument,
+    { contains: (node) => node instanceof Node && optionsRoot.contains(node) },
+    optionsToggle,
+    optionsMenu,
+    (target) => target instanceof Element && target.closest('dialog') !== null,
+  );
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
