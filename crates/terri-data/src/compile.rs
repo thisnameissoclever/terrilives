@@ -457,10 +457,7 @@ pub fn compile(
         &foreground_sprite_names,
         &sprite_index,
     )?;
-    // Read before `compile_tuning` consumes the file: the traits' verb
-    // lines are the compiler's alone and never reach the pack.
-    let affinity = affinity_bands(&tuning)?;
-    let (tuning, circadian, sleep_tag) = compile_tuning(tuning)?;
+    let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -2174,9 +2171,15 @@ fn compile_household(
 /// since every control point has to fall inside `day_ticks`, but is stored
 /// beside it on the pack rather than within it: `Tuning` is `Copy` and a
 /// circadian rhythm owns a `String` and a `Vec`.
-type CompiledTuning = (Tuning, Option<Circadian>, String);
+/// The compiled knobs, the circadian table, the sleep tag, and the traits'
+/// verb lines ([TL-affinity]), which the compiler reads and the pack never
+/// holds.
+type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    // Read here, with every other tuning check, so no caller can compile
+    // the knobs and forget the verb lines.
+    let affinity = affinity_bands(&tuning)?;
     // Finiteness first, for the same reason placement coordinates are
     // checked before their bounds: every comparison against NaN is
     // false, so `NaN <= 0.0` would let a NaN temperature through the
@@ -2511,6 +2514,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         },
         circadian,
         tuning.sleep_tag,
+        affinity,
     ))
 }
 
@@ -7047,6 +7051,12 @@ mod tests {
         }
         compile_banded(1.5, 0.0).expect("hate at zero compiles");
         compile_banded(1.5, 0.96875).expect("hate just below 1 compiles");
+        // Each message names only its own line's rule.
+        let message =
+            |loves: f32, hates: f32| compile_banded(loves, hates).unwrap_err().to_string();
+        assert!(message(1.0, 0.5).contains("affinity_loves_from is 1; it must be above 1,"));
+        assert!(message(1.5, 1.0).contains("affinity_hates_to is 1; it must be in [0, 1),"));
+        assert!(!message(1.5, 1.0).contains("above 1"));
         assert!(matches!(
             compile_banded(f32::NAN, 0.5).unwrap_err(),
             ContentError::NonFiniteValue { .. }
