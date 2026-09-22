@@ -37,6 +37,23 @@ it('leaves explicit door apertures out of both endpoint masks', () => {
   ]);
 });
 
+// [DR-render]: a door draws its own frame, so its doorway's empty panel goes.
+it('leaves out the empty panel of a doorway that holds a door, and only that one', () => {
+  const edges = Uint32Array.from([
+    0, 2, 0, 0, 0, 2, 1, 1, 0, 2, 2, 0,
+    1, 2, 2, 1,
+  ]);
+  const panels = buildEdgeWallGeometry(4, 4, edges, [2, 1]);
+  expect(panels.filter((p) => p.mask === 0).map((p) => [p.x, p.y, p.spriteName]))
+    .toEqual([[2, 1.5, 'doorwayJoinedEW']]);
+  // The solid halves either side are untouched.
+  expect(panels.find((p) => p.x === 1.5 && p.y === 0.5)?.spriteName).toBe('wallHalf1');
+  expect(panels.find((p) => p.x === 1.5 && p.y === 1.5)?.spriteName).toBe('wallHalf4');
+  // A door listed on a line with no doorway, or on a horizontal doorway's
+  // coordinates, changes nothing.
+  expect(buildEdgeWallGeometry(4, 4, edges, [2, 0, 2, 2])).toEqual(buildEdgeWallGeometry(4, 4, edges));
+});
+
 it('retains the exterior on the half-tile planes even for an empty edge layout', () => {
   const panels = buildEdgeWallGeometry(3, 2, new Uint32Array());
   expect(panels.map((p) => [p.x, p.y, p.spriteName])).toEqual([

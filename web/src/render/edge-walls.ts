@@ -26,12 +26,17 @@ function spriteForArms(mask: number): string {
  * Each solid half belongs to exactly one vertex. Doors own a full panel at
  * their midpoint and contribute no solid arms that could cover the aperture.
  * The far exterior runs participate in the same graph, without duplicate panels.
+ * `hinged` lists vertical doorway lines as `[x, y]` pairs that hold a hinged
+ * door ([DR-render]): the door draws its own frame there, so no panel is added.
  */
 export function buildEdgeWallGeometry(
   width: number,
   height: number,
   edges: Uint32Array,
+  hinged: ArrayLike<number> = [],
 ): EdgeWallPanel[] {
+  const hingedAt = new Set<string>();
+  for (let i = 0; i + 1 < hinged.length; i += 2) hingedAt.add(`${hinged[i]},${hinged[i + 1]}`);
   const vertices = new Map<string, Vertex>();
   const doors: EdgeWallPanel[] = [];
   const addArm = (x: number, y: number, arm: number, cells: [number, number][]): void => {
@@ -48,6 +53,7 @@ export function buildEdgeWallGeometry(
     const vertical = axis === 0;
     const cells: [number, number][] = vertical ? [[x - 1, y], [x, y]] : [[x, y - 1], [x, y]];
     if (door) {
+      if (vertical && hingedAt.has(`${x},${y}`)) return;
       doors.push({
         x: vertical ? x - 0.5 : x,
         y: vertical ? y : y - 0.5,

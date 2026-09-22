@@ -695,6 +695,14 @@ single-wall rules live in one function, `check_new_walls`, which a wall calls
 with one pair of tiles and a room with its whole outline; the usability proofs
 and the loader's checks run once, on the finished room.
 
+Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
+are presentation only. `portals::interior_door_lines` derives one from every
+vertical doorway of an edge-wall house when the lot's front door has art for a
+vertical line, and `sync_portals` appends each as a row after the front door's,
+with a state worked out every frame from sims' positions and walks, which are
+already saved. Nothing is added to the save, the save digest or the world
+hash.
+
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
 samples discontinuous, so a paused furniture move snaps into place without

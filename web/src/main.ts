@@ -772,6 +772,7 @@ async function main(): Promise<void> {
           lot.height = lotHeight;
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
+          lot.doors = sim.interiorDoorLines();
           // A restored world may reuse entity indices for different live
           // entities. Discard every transient action that names the old world.
           lightingDirty = true;
@@ -918,7 +919,8 @@ async function main(): Promise<void> {
   const tallestBoundarySprite = Math.max(
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
-  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges() };
+  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
+    doors: sim.interiorDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
@@ -1312,6 +1314,7 @@ async function main(): Promise<void> {
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
+      lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();

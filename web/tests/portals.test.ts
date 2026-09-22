@@ -19,6 +19,7 @@ describe('portal rendering', () => {
     portalFrames: () => new Uint32Array([frame]),
     portalDepthOffsets: () => new Float32Array([0.5]),
     portalLeaves: reduced => new Uint32Array([reduced ? open : closed]),
+    portalFarSides: () => new Float32Array([4, 2]),
   };
 
   it('places the body between frame and leaf and uses the reduced-motion column', () => {
@@ -77,5 +78,21 @@ describe('portal rendering', () => {
     writePortals(out, 0, portal, 0, 0, 20, 1, false, null);
     expect(out[OFFSET_EMISSIVE]).toBe(0);
     expect(out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(0);
+  });
+
+  // Review finding [F5] on the doors branch: a door read only the room on
+  // its own tile, so between a lit room and a dark one it was darker than
+  // the wall around it, which takes the brighter side.
+  it('lights a portal from the brighter side of its line', () => {
+    const lit = (own: number, far: number) => {
+      const values = new Float32Array(36);
+      values[(2 + 1) * 6 + (3 + 1)] = own;
+      values[(2 + 1) * 6 + (4 + 1)] = far;
+      const out = new Float32Array(2 * FLOATS_PER_INSTANCE);
+      writePortals(out, 0, portal, 0, 0, 20, 1, false, { width: 4, height: 4, stride: 6, values });
+      return [out[OFFSET_EMISSIVE], out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]];
+    };
+    expect(lit(0.25, 0.5)).toEqual([0.5, 0.5]);
+    expect(lit(0.5, 0.25)).toEqual([0.5, 0.5]);
   });
 });
