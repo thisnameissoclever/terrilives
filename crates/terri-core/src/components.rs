@@ -1164,9 +1164,9 @@ mod identity_tests {
     }
 
     /// A Load restores the allocator from its saved count. Resuming at a
-    /// count is the same allocator as issuing that many, and costs the same
-    /// at any count, so a saved count near `u32::MAX` restores at once
-    /// rather than counting up to it.
+    /// count is the same allocator as issuing that many, up to `u32::MAX`.
+    /// That it takes constant time is guarded by the mutation sweep's
+    /// timeout, not by this test.
     #[test]
     fn a_resumed_allocator_matches_one_that_issued_as_many() {
         let mut issued = SimIdAllocator::default();

@@ -391,6 +391,10 @@ fn restore_with_facings(
     sim.world
         .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
+    // One slot per index up to the last saved one: the ECS hands indices out
+    // in order, so the gaps must be spawned too. Sized by a saved number, so
+    // bounded only by validation's check that every index is under
+    // MAX_ENTITIES ([L-restore-without-counting-up]).
     let max_index = snapshot.entities.last().map(|entity| entity.index);
     let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
     let mut holes = Vec::new();
