@@ -198,7 +198,7 @@ export class RoomTool {
         // stage the same room again. A refused one stays, to be changed.
         if (result.reason === null) this.clear();
         else this.refresh();
-        this.status = result.reason ?? BUILT;
+        this.status = result.reason === null ? BUILT : this.refusal(result.reason, result.code);
         this.hooks.changed();
         return;
       }
@@ -276,15 +276,21 @@ export class RoomTool {
     this.hooks.changed();
   }
 
+  /**
+   * A refusal for the status line, whether the preview or the drain gave it.
+   * Something cut off by the outline is what a doorway can mend, so say how.
+   */
+  private refusal(reason: string, code: number): string {
+    if (!DOORWAY_MENDS.has(code)) return reason;
+    return `${reason} ${this.doorway === null ? 'Choose a doorway.' : 'Try the doorway on another line.'}`;
+  }
+
   private describe(): string {
     if (this.first === null) return CHOOSE_CORNER;
     if (this.second === null) return CHOOSE_OPPOSITE;
     const preview = this.preview;
     if (preview && !preview.valid) {
-      const reason = preview.reason ?? 'That room is not possible.';
-      // Something cut off by the outline is what a doorway can mend, so say how.
-      if (!DOORWAY_MENDS.has(preview.code)) return reason;
-      return `${reason} ${this.doorway === null ? 'Choose a doorway.' : 'Try the doorway on another line.'}`;
+      return this.refusal(preview.reason ?? 'That room is not possible.', preview.code);
     }
     if (preview && !preview.changes) return ALREADY_BUILT;
     return this.doorway === null ? READY : READY_WITH_DOORWAY;

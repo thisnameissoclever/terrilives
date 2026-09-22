@@ -136,6 +136,8 @@ export interface RoomResult {
   readonly corners: readonly [number, number, number, number];
   readonly doorway: EdgeLine | null;
   readonly reason: string | null;
+  /** The stable refusal code, zero when the room was built. */
+  readonly code: number;
 }
 
 function placementReason(code: number): string | null {
@@ -301,6 +303,7 @@ export class SimBridge {
     return {
       corners: [values[0], values[1], values[2], values[3]],
       reason: roomReason(values[4]),
+      code: values[4],
       doorway: values.length === 8 ? { axis: values[5] === 1 ? 1 : 0, x: values[6], y: values[7] } : null,
     };
   }

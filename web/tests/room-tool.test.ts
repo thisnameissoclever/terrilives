@@ -149,10 +149,10 @@ describe('RoomTool', () => {
     clickTile(room, 5, 3);
     expect(source.staged).toHaveLength(1);
     // Another room's result leaves this one waiting.
-    source.result = { corners: [3, 2, 2, 1], doorway: null, reason: null };
+    source.result = { corners: [3, 2, 2, 1], doorway: null, reason: null, code: 0 };
     room.afterCommands();
     expect(room.pending).toBe(true);
-    source.result = { corners: [3, 2, 2, 1], doorway: { axis: 0, x: 4, y: 2 }, reason: null };
+    source.result = { corners: [3, 2, 2, 1], doorway: { axis: 0, x: 4, y: 2 }, reason: null, code: 0 };
     source.revision += 1;
     room.afterCommands();
     // Built and done with: the choice clears so the same room cannot be sent again.
@@ -178,10 +178,10 @@ describe('RoomTool', () => {
     clickTile(room, 2, 1);
     clickTile(room, 3, 2);
     room.build();
-    source.result = { corners: [2, 1, 3, 3], doorway: null, reason: null };
+    source.result = { corners: [2, 1, 3, 3], doorway: null, reason: null, code: 0 };
     room.afterCommands();
     expect(room.pending).toBe(true);
-    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null, code: 0 };
     room.afterCommands();
     expect(room.pending).toBe(false);
   });
@@ -192,11 +192,17 @@ describe('RoomTool', () => {
     clickTile(room, 2, 1);
     clickTile(room, 3, 2);
     room.build();
-    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: roomReason(9) };
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: roomReason(9), code: 9 };
     room.afterCommands();
     expect(room.status).toBe("Someone is standing on the room's outline.");
     // A refused room stays chosen, to be changed.
     expect(room.first).toEqual([2, 1]);
+    // Copilot on PR 97: a refusal a doorway can mend keeps its hint when the
+    // drain gives it, as the preview's does.
+    room.build();
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: roomReason(11), code: 11 };
+    room.afterCommands();
+    expect(room.status).toBe('The room would leave furniture out of reach. Choose a doorway.');
     source.accept = false;
     room.build();
     expect([room.pending, room.status]).toEqual([false, 'The room could not be sent.']);
@@ -210,7 +216,7 @@ describe('RoomTool', () => {
     room.build();
     room.exit();
     expect([room.active, room.pending, room.highlight()]).toEqual([false, true, null]);
-    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null, code: 0 };
     room.afterCommands();
     expect([room.pending, room.first, room.status]).toEqual([false, null, CHOOSE_CORNER]);
   });
@@ -256,7 +262,7 @@ describe('RoomTool', () => {
     // Escape waits for a room on its way rather than losing its result.
     expect(room.handleKey('Escape')).toBe(true);
     expect(room.first).toEqual([2, 1]);
-    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null, code: 0 };
     room.afterCommands();
     expect(room.first).toBeNull();
     // With nothing chosen, Escape goes to Build mode.
@@ -349,7 +355,7 @@ describe('RoomToolControls', () => {
     expect(source.staged).toHaveLength(1);
     view.render();
     expect([element('room-build').disabled, element('room-cancel').disabled]).toEqual([true, true]);
-    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null, code: 0 };
     room.afterCommands();
     view.render();
     expect([room.first, element('room-cancel').disabled, element('room-status').textContent])
@@ -398,6 +404,13 @@ describe('the Room tool on real wasm', () => {
     room.afterCommands();
     expect(room.status).toBe('Room built.');
     expect(bridge.lotRevision()).toBe(revision + 1);
+    expect(bridge.lastRoomResult()).toEqual({ corners: [x, y, x, y], doorway: { axis: 0, x: x + 1, y },
+      reason: null, code: 0 });
+    // A refusal crosses with its code, which the doorway hint reads.
+    expect(bridge.buildRoom([14, 10, 16, 11], null)).toBe(true);
+    bridge.flushCommands();
+    expect(bridge.lastRoomResult()).toEqual({ corners: [14, 10, 16, 11], doorway: null,
+      reason: roomReason(5), code: 5 });
     for (const code of [1, 4, 5, 6, 8, 9, 10, 11, 12, 13]) {
       expect(roomReason(code)).toMatch(/^[A-Z].*\.$/);
     }
