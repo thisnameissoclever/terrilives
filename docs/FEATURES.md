@@ -841,6 +841,16 @@ and bereavement hooks, age-valid relationship creation, and family-specific
 autonomy and social consequences. Save identity and future genetics depend on
 this being authored data rather than inferred from who shares a house.
 
+The first slice ships the tie itself. A newcomer arrives as somebody: the New
+housemate form asks who they are to the household, choosing from partner,
+parent, child and sibling and naming the member it is to, and the
+relationship list then says it beside the feeling ("Bill, their parent"). A
+tie is one stored fact between two people, read from either end so a parent
+one way is a child the other, saved sparsely and appended, and in the world
+hash. Nothing behaves differently for family yet. The design is
+`docs/specs/2026-09-22-family.md`, which names the three later slices, and the
+played check is [A-family].
+
 ### [A-audio-voices] The game has sound and Sim voices
 
 The first audio foundation is implemented in the TypeScript shell with native

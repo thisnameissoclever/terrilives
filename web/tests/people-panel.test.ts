@@ -295,6 +295,16 @@ describe('createPeoplePanelSurface', () => {
     );
     expect(doug.find('relationship-marker').style.left).toBe('35%');
 
+    // [FM-show]: a row with a tie says it beside the name, and the play
+    // check on PR 131 is where the missing half of this was caught: the
+    // view carried the tie and the panel never wrote it.
+    surface.render({
+      selectedName: 'Terri',
+      people: [person(1, 'Doug', -0.3, 'parent'), person(2, 'Nadia', 0.15)],
+    });
+    expect(list.nodes[0].find('relationship-name').textContent).toBe('Doug, their parent');
+    expect(list.nodes[1].find('relationship-name').textContent).toBe('Nadia');
+
     surface.render({
       selectedName: 'Terri',
       people: [person(1, 'Douglas', 0.4)],

@@ -228,7 +228,11 @@ export function createPeoplePanelSurface(
         }
 
         row.root.dataset.tone = person.tone;
-        row.name.textContent = person.name;
+        // [FM-show]: the tie beside the name, so the row reads as who they
+        // are as well as how they are getting on.
+        row.name.textContent = person.tie === null
+          ? person.name
+          : `${person.name}, their ${person.tie}`;
         row.state.textContent = person.label;
         row.meter.setAttribute(
           'aria-label',
