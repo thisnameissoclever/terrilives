@@ -240,7 +240,10 @@ pub(crate) fn commit(world: &mut World, name: &str, personality: u32, traits: &[
         },
     };
     let mut state = world.resource_mut::<LotEditState>();
-    let handled = state.last_housemate_result.map_or(0, |last| last.handled) + 1;
+    let handled = state
+        .last_housemate_result
+        .map_or(0, |last| last.handled)
+        .saturating_add(1);
     state.last_housemate_result = Some(HousemateResult { handled, ..result });
 }
 

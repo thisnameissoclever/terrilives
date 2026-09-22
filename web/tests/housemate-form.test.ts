@@ -298,6 +298,8 @@ describe('HousemateFormView', () => {
     expect(boxes[0].focused).toBe(1);
     boxes[1].fire('change');
     boxes[5].fire('change');
+    // Ticking a box leaves focus on it; only a page change or a refusal moves it.
+    expect(element('housemate-confirm').focused).toBe(0);
     expect([housemate.name, housemate.personality, housemate.chosenTraits]).toEqual(['Ann', 2, [1, 5]]);
     expect(boxes.map((box) => box.disabled)).toEqual([true, false, true, true, true, false]);
     element('housemate-back').fire('click');
@@ -341,6 +343,21 @@ describe('HousemateFormView', () => {
     // The form reads the answer after a drain; a render follows its change.
     housemate.afterCommands();
     expect([confirm.focused, element('housemate-status').textContent]).toEqual([1, 'The household is full.']);
+  });
+
+  it('puts focus on Back when a refusal leaves Move in off', () => {
+    const { housemate, source, element } = view();
+    const name = element('housemate-name');
+    name.value = 'Ann';
+    name.fire('input');
+    element('housemate-next').fire('click');
+    element('housemate-confirm').fire('click');
+    // The household filled while the move-in waited.
+    source.size = 6;
+    source.result = { reason: 'The household is full.', sim: null, handled: 1 };
+    housemate.afterCommands();
+    expect([element('housemate-confirm').disabled, element('housemate-confirm').focused,
+      element('housemate-back').focused]).toEqual([true, 0, 1]);
   });
 
   it('is wired into the page, with no button that submits the form', () => {
