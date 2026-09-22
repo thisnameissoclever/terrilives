@@ -140,6 +140,26 @@ describe('attachOptionsMenu', () => {
 });
 
 describe('the Options flyout in the page', () => {
+  it('holds only the gear and its panel, closing before the sidebar opens', () => {
+    // Walk the div tags from the wrapper's opening to its matching close.
+    const start = INDEX_HTML.indexOf('<div id="options">');
+    const tags = /<div\b[^>]*>|<\/div>/g;
+    tags.lastIndex = start;
+    let depth = 0;
+    let end = -1;
+    for (let tag = tags.exec(INDEX_HTML); tag; tag = tags.exec(INDEX_HTML)) {
+      depth += tag[0] === '</div>' ? -1 : 1;
+      if (depth === 0) { end = tags.lastIndex; break; }
+    }
+    expect(end).toBeGreaterThan(start);
+    const wrapper = INDEX_HTML.slice(start, end);
+    expect(wrapper).toContain('id="options-toggle"');
+    expect(wrapper).toContain('id="options-panel"');
+    for (const outside of ['hud', 'household-summary', 'builder-dock', 'object-menu', 'debug-panel']) {
+      expect(wrapper, outside).not.toContain(`id="${outside}"`);
+    }
+  });
+
   it('comes first in the page, outside the sidebar, before the right-click flyout', () => {
     const options = INDEX_HTML.indexOf('<div id="options">');
     expect(options).toBeGreaterThan(-1);
