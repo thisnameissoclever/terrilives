@@ -181,6 +181,9 @@ describe('sprites.wgsl contract', () => {
     expect(shader).toMatch(/fn recolour\(rgb: vec3<f32>, shift: vec4<f32>\) -> vec3<f32>/);
     expect(shader).toMatch(/if \(all\(shift\.xyz == vec3f\(0\.0\)\)\) \{\s*return rgb;/);
     expect(shader).toMatch(/recolour\(layer\.rgb \/ layer\.a, in\.colourway\)/);
+    // Only a covered texel with a shift to apply is converted: a transparent
+    // one would divide 0 by 0, and an all-zero shift has nothing to do.
+    expect(shader).toMatch(/if \(layer\.a > 0\.0 && any\(in\.colourway\.xyz != vec3f\(0\.0\)\)\)/);
     expect(shader).toMatch(/colour = vec4f\(recolour\(colour\.rgb, in\.colourway\), colour\.a\)/);
     // Before the tint, so lighting and the time of day apply to the new colour.
     expect(shader.indexOf('recolour(colour.rgb')).toBeLessThan(shader.indexOf('colour.rgb * in.tint.rgb'));

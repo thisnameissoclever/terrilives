@@ -37,6 +37,10 @@ export class FurnitureBuilder {
   private recolouring: number | null = null;
   /** A colourway chosen while a change was on its way, sent when it lands. */
   private nextColourway: number | null = null;
+  /** The colourway the change on its way asks for. */
+  private recolouringTo: number | null = null;
+  /** Whether a move is on its way; only then is a placement result this tool's. */
+  private placing = false;
   private mask = 0;
   private revision: number;
   private original: { x: number; y: number; facing: number } | null = null;
@@ -51,6 +55,10 @@ export class FurnitureBuilder {
   get canRotate(): boolean { return (this.mask & (this.mask - 1)) !== 0; }
   get canConfirm(): boolean {
     return this.active && !this.blocked && !this.pending && this.preview?.valid === true;
+  }
+  /** What the Colour list shows: the latest choice, even before it lands. */
+  get shownColourway(): number | null {
+    return this.nextColourway ?? this.recolouringTo ?? this.colourway;
   }
   get canSell(): boolean {
     return this.active && !this.blocked && !this.pending && this.selected !== null
@@ -147,6 +155,7 @@ export class FurnitureBuilder {
     if (!this.canConfirm || this.selected === null || this.preview === null) return false;
     const { x, y, facing } = this.preview;
     this.pending = this.source.placeObject(this.selected, x, y, facing);
+    this.placing = this.pending;
     this.status = this.pending ? 'Placing furniture…' : 'The placement could not be queued.';
     this.hooks.changed();
     return this.pending;
@@ -184,7 +193,10 @@ export class FurnitureBuilder {
     }
     if (this.pending || colourway === this.colourway) return false;
     this.pending = this.source.setColourway(this.selected, colourway);
-    if (this.pending) this.recolouring = this.selected;
+    if (this.pending) {
+      this.recolouring = this.selected;
+      this.recolouringTo = colourway;
+    }
     this.status = this.pending ? 'Recolouring…' : 'The colour change could not be sent.';
     this.hooks.changed();
     return this.pending;
@@ -247,6 +259,7 @@ export class FurnitureBuilder {
       const result = this.source.lastColourwayResult();
       if (result?.object === this.recolouring) {
         this.recolouring = null;
+        this.recolouringTo = null;
         this.pending = false;
         this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
         this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
@@ -256,9 +269,12 @@ export class FurnitureBuilder {
         this.hooks.changed();
       }
     }
-    if (this.pending) {
+    // Only a move of this tool's own names a placement result: an earlier
+    // move's result for the same object must not end a colour change.
+    if (this.placing) {
       const result = this.source.lastPlacementResult();
       if (result?.object === this.selected) {
+        this.placing = false;
         this.pending = false;
         const next = this.nextSelection;
         this.nextSelection = null;
@@ -282,7 +298,9 @@ export class FurnitureBuilder {
     this.pending = false;
     this.selling = null;
     this.recolouring = null;
+    this.recolouringTo = null;
     this.nextColourway = null;
+    this.placing = false;
     this.clearSelection();
     this.revision = this.source.lotRevision();
     if (this.active) this.refreshObjects();

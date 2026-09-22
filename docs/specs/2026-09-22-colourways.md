@@ -65,12 +65,12 @@ colourway, its index and the colourway's id, ascending by index. Ids rather
 than indices keep a save meaning the same colours when colourways are added or
 reordered, and an id the content no longer has loads as drawn, so retiring or
 renaming a colourway id never stops a save loading. The loader refuses an
-entry that names no saved object, repeats or breaks the order, or names the
-first colourway, which the writer never records, before the running world is
-replaced. V1 to V4 load with every object as drawn. The world hash gains a
-colourway section written only when some object has one, so every existing
-golden hash stands. The browser's storage worker writes V5 and keeps the V4
-bytes in a recovery backup on the first V5 write over a V4 slot.
+entry that names no saved object, repeats or breaks the order, before the
+running world is replaced; an id naming the first colourway loads as drawn,
+like an unknown one. V1 to V4 load with every object as drawn. The world hash
+gains a colourway section written only when some object has one, so every
+existing golden hash stands. The browser's storage worker writes V5 and keeps
+the V4 bytes in a recovery backup on the first V5 write over a V4 slot.
 
 ## [RC-render] The shift reaches every picture of the object
 
@@ -119,3 +119,12 @@ untested version-0 guard in the storage worker, now a lookup that refuses any
 version it has no backup name for; stale docs on the instance size and on
 ink and white under a lightness shift; and a divide in the in-use layer when
 there is nothing to shift. Each is fixed with a test.
+
+A second round found that a colour change queued behind another could be
+taken for a finished move, since an earlier move's result for the same object
+was still there; moves now have their own marker, as sales and colour changes
+do. It also found the Colour list jumping back to the old colour while a
+change was on its way, now showing the latest choice; the staged-command hash
+guard and both in-use shader conditions untested, now pinned; and a saved id
+naming the first colourway still refused, now loading as drawn like an
+unknown one.

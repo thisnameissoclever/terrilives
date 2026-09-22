@@ -450,3 +450,28 @@ it('sends a colourway chosen while one is on its way once that lands', () => {
   expect(source.objectColourway(15)).toBe(3);
   handle.free();
 });
+
+// [RC-ui]: an earlier move's result for the chosen object is not taken for a
+// colour change sent after it, so a change queued behind another keeps the
+// tool waiting until it lands, and the object keeps the choice made last.
+it('does not take an earlier move for a colour change on its way', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  builder.select(15);
+  builder.moveTo(7, 0);
+  expect(builder.confirm()).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.status).toBe('Furniture placed.');
+  expect(builder.recolour(1)).toBe(true);
+  expect(builder.recolour(2)).toBe(true);
+  expect(builder.shownColourway).toBe(2);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending, builder.status])
+    .toEqual([1, true, 'Recolouring…']);
+  builder.select(22);
+  expect(builder.selected).toBe(15);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending]).toEqual([2, false]);
+  expect([source.objectColourway(15), source.objectColourway(22)]).toEqual([2, 0]);
+  handle.free();
+});

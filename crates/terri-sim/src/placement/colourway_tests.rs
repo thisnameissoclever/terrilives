@@ -177,10 +177,10 @@ fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
     assert_eq!(recoloured, 0);
 }
 
-/// [RC-save]: a V5 save whose colourways break the order, repeat an index,
-/// name something that is not a placed object, or record the first
-/// colourway, which the writer never does, is refused, and the running world
-/// is untouched. An id the content no longer has loads as drawn.
+/// [RC-save]: a V5 save whose colourways break the order, repeat an index or
+/// name something that is not a placed object is refused, and the running
+/// world is untouched. An id the content no longer has, or one naming the
+/// first colourway, loads as drawn.
 #[test]
 fn a_v5_save_with_bad_colourways_is_refused() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -198,7 +198,6 @@ fn a_v5_save_with_bad_colourways_is_refused() {
         vec![entry(person, "muted")],
         vec![entry(99_999, "muted")],
         vec![entry(u32::MAX, "muted")],
-        vec![entry(low, "as_drawn")],
     ] {
         let mut bad = good.clone();
         bad.object_colourways = colourways.clone();
@@ -207,15 +206,17 @@ fn a_v5_save_with_bad_colourways_is_refused() {
         assert!(target.load_snapshot_v5(bad).is_err(), "{colourways:?}");
         assert_eq!(target.world_hash(), before);
     }
-    let mut retired = good.clone();
-    retired.object_colourways = vec![entry(low, "tartan")];
-    let mut target = Sim::new_from_shipped_lot();
-    target.load_snapshot_v5(retired).unwrap();
-    let world = target.world();
-    let recoloured = world
-        .try_query::<&Colourway>()
-        .map_or(0, |mut query| query.iter(world).count());
-    assert_eq!(recoloured, 0, "a retired colourway loads as drawn");
+    for as_drawn in ["tartan", "as_drawn"] {
+        let mut retired = good.clone();
+        retired.object_colourways = vec![entry(low, as_drawn)];
+        let mut target = Sim::new_from_shipped_lot();
+        target.load_snapshot_v5(retired).unwrap();
+        let world = target.world();
+        let recoloured = world
+            .try_query::<&Colourway>()
+            .map_or(0, |mut query| query.iter(world).count());
+        assert_eq!(recoloured, 0, "{as_drawn} loads as drawn");
+    }
     let mut target = Sim::new_from_shipped_lot();
     target.load_snapshot_v5(good).unwrap();
     assert_eq!(target.world_hash(), sim.world_hash());
@@ -281,6 +282,26 @@ fn a_staged_unknown_colourway_hashes_alike_across_a_load() {
     let mut playing = Sim::new_from_shipped_lot();
     let sofa = placed(&playing, "sofa")[0];
     stage(&mut playing, sofa.index_u32(), 99);
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
+    assert_eq!(loaded.world_hash(), playing.world_hash());
+}
+
+/// [RC-save]: a staged change's colourway is in the hash, so staging two
+/// different colourways makes different worlds, and an index one past the
+/// table, the first that names nothing, hashes alike across a Load.
+#[test]
+fn a_staged_colourway_is_hashed_by_what_it_names() {
+    let mut first = Sim::new_from_shipped_lot();
+    let mut second = Sim::new_from_shipped_lot();
+    let sofa = placed(&first, "sofa")[0].index_u32();
+    stage(&mut first, sofa, 1);
+    stage(&mut second, sofa, 2);
+    assert_ne!(first.world_hash(), second.world_hash());
+
+    let mut playing = Sim::new_from_shipped_lot();
+    let past = terri_data::pack().colourways.len() as u32;
+    stage(&mut playing, sofa, past);
     let mut loaded = Sim::new_from_shipped_lot();
     loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());

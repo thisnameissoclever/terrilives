@@ -44,9 +44,9 @@ pub(crate) fn restore_v3(
 
 /// [RC-save] in `docs/specs/2026-09-22-colourways.md`: the V4 envelope's
 /// checks, then each saved colourway ascending by entity index, naming a
-/// placed object in the candidate and never the first colourway, which the
-/// writer never records. An id the content no longer has loads as drawn, so
-/// retiring or renaming a colourway id keeps every save loading. The
+/// placed object in the candidate. An id the content no longer has, or one
+/// that now names the first colourway, loads as drawn, so retiring or
+/// renaming a colourway id keeps every save loading. The
 /// candidate is discarded on any failure, so the running world is untouched.
 pub(crate) fn restore_v5(
     snapshot: SaveSnapshotV5,
@@ -77,10 +77,13 @@ pub(crate) fn restore_v5(
         active_portals,
     )?;
     for (index, id) in object_colourways {
-        let colourway = content.colourways.iter().position(|known| known.id == id);
-        if colourway == Some(0) {
-            return Err(SaveError::InvalidValue);
-        }
+        // The first colourway is the art as drawn, which is how an unknown
+        // id loads too, so both simply leave the object as drawn.
+        let colourway = content
+            .colourways
+            .iter()
+            .position(|known| known.id == id)
+            .filter(|&colourway| colourway > 0);
         let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
             .map(|index| candidate.world.entities().resolve_from_index(index))
             .filter(|&entity| {

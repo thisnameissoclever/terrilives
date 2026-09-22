@@ -97,7 +97,7 @@ export class BuilderControls {
     // [SL-shell]: the button names what the sale pays back.
     this.sell.disabled = !builder.canSell;
     this.sell.textContent = builder.saleValue === null ? 'Sell' : `Sell for ${formatFunds(builder.saleValue)}`;
-    this.colour.value = builder.colourway === null ? '0' : String(builder.colourway);
+    this.colour.value = String(builder.shownColourway ?? 0);
     // Not disabled while a change is on its way: disabling the focused list
     // would drop keyboard focus out of the panel. The builder queues it.
     this.colour.disabled = builder.colourway === null || builder.blocked
