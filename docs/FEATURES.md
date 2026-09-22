@@ -781,8 +781,15 @@ tile there is ([T-yard-art]).
 ### [B-windows] Windows let light in and let sims look out
 
 Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
-line that stops sims but not light, drawn as a wall with glass. It joins the
-daylight on the yard ([OS-slice-daylight]) and needs window art.
+line that stops sims but not light. Fitted with Window in the Walls tool: it
+stops people exactly as a wall does, lets the sky in as a doorway does so the
+room behind it brightens by day ([OS-daylight]), and stops a lamp's pool as a
+wall does. The saved layout carries the window lines in an appended variant
+that appears only once a house has one, so a house without windows saves as it
+always did. There is no window art, so a window draws as the wall panel it
+stands in, washed pale blue ([T-window-art]). The design is
+`docs/specs/2026-09-22-windows.md` and the played check is [A-windows]. Sims
+looking out of a window is not part of this and has no interaction yet.
 
 ### [B-trait-words] A trait says whether they like, love, dislike or hate it
 
