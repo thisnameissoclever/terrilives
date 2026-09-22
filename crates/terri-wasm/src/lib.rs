@@ -2085,6 +2085,120 @@ mod boundary_tests {
         }
     }
 
+    /// A checked-in fixture's bytes.
+    fn fixture_bytes(hex: &str) -> Vec<u8> {
+        let hex: String = hex.split_whitespace().collect();
+        hex.as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect()
+    }
+
+    /// The household's worker as the world holds it: where it stands, whether
+    /// it is at work and whether it is commuting, with the household's Funds.
+    fn worker_state(handle: &mut SimHandle) -> ((f32, f32), bool, bool, i64) {
+        let world = handle.sim.world_mut();
+        world.register_component::<terri_core::AtWork>();
+        world.register_component::<terri_core::Commuting>();
+        let mut query = world
+            .try_query::<(
+                &terri_core::Career,
+                &Position,
+                Option<&terri_core::AtWork>,
+                Option<&terri_core::Commuting>,
+            )>()
+            .expect("the worker's components are registered");
+        let (_, position, at_work, commuting) = query
+            .iter(world)
+            .next()
+            .expect("the household has a worker");
+        (
+            (position.x, position.y),
+            at_work.is_some(),
+            commuting.is_some(),
+            world.resource::<terri_core::Funds>().0,
+        )
+    }
+
+    /// Ticks until the worker's state passes `done`, and returns it.
+    fn tick_until(
+        handle: &mut SimHandle,
+        done: impl Fn(&((f32, f32), bool, bool, i64)) -> bool,
+    ) -> ((f32, f32), bool, bool, i64) {
+        for _ in 0..3_000 {
+            handle.tick();
+            let state = worker_state(handle);
+            if done(&state) {
+                return state;
+            }
+        }
+        panic!("the worker never got there");
+    }
+
+    /// [OS-street], review finding [S4], with real bytes: every saved stage of
+    /// a shift finishes on the street build as it started, paid exactly once,
+    /// and the next shift goes out to the street. `pre-builder-600` is at work
+    /// on the door and `pre-builder-908` is walking home, both from the front
+    /// door release; `main-commuting-366` is walking out to the door, from main
+    /// before the yard. See tests/fixtures/README.md.
+    #[test]
+    fn real_saved_shifts_finish_as_they_started_and_the_next_goes_to_the_street() {
+        let (door, landing, exit) = ((15.0, 2.0), (15.0, 3.0), (19.0, 2.0));
+        let main: terri_core::SaveSnapshotV3 = postcard::from_bytes(
+            &fixture_bytes(include_str!("../tests/fixtures/main-commuting-366.hex"))
+                [SAVE_HEADER_BYTES..],
+        )
+        .unwrap();
+        let walking_to = main
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.commuting)
+            .and_then(|entity| entity.path.as_ref())
+            .and_then(|path| path.steps.last().copied());
+        assert_eq!(walking_to, Some((15, 2)), "saved walking out to the door");
+
+        for (name, hex, clocks_in_at_the_door) in [
+            (
+                "at work",
+                include_str!("../tests/fixtures/pre-builder-600.hex"),
+                false,
+            ),
+            (
+                "walking home",
+                include_str!("../tests/fixtures/pre-builder-908.hex"),
+                false,
+            ),
+            (
+                "walking out",
+                include_str!("../tests/fixtures/main-commuting-366.hex"),
+                true,
+            ),
+        ] {
+            let mut handle = SimHandle::from_lot();
+            assert!(handle.load_bytes(&fixture_bytes(hex)), "{name}");
+            let pay = i64::from(handle.sim.world().resource::<Content>().0.careers[0].pay);
+            let (_, at_work, _, funds) = worker_state(&mut handle);
+            let owed = if at_work || clocks_in_at_the_door {
+                pay
+            } else {
+                0
+            };
+            if clocks_in_at_the_door {
+                let (at, ..) = tick_until(&mut handle, |state| state.1);
+                assert_eq!(at, door, "{name}: clocks in at the door");
+            }
+            let (at, _, _, paid) = tick_until(&mut handle, |state| !state.1 && !state.2);
+            assert_eq!(
+                (at, paid),
+                (landing, funds + owed),
+                "{name}: home, paid once"
+            );
+            let (at, ..) = tick_until(&mut handle, |state| state.1);
+            assert_eq!(at, exit, "{name}: the next shift goes to the street");
+        }
+    }
+
     /// [OS-migrate], with real bytes: a Save V5 written by the build before the
     /// yard, with a wall the player built, grows into the yard on Load. The
     /// house is kept exactly as saved, the content's walls outside it follow

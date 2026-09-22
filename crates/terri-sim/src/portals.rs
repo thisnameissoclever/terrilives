@@ -194,6 +194,13 @@ pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<
         .and_then(|portal| door_line(portal, width))
 }
 
+/// Whether `position` stands on `tile`, within the tolerance a walk's end is
+/// measured by: a commute clocks in, and a saved worker at work is judged, by
+/// this one test ([OS-street]).
+pub fn on_tile(position: (f32, f32), tile: (u32, u32)) -> bool {
+    (position.0 - tile.0 as f32).abs() <= 0.01 && (position.1 - tile.1 as f32).abs() <= 0.01
+}
+
 /// [OS-street] in `docs/specs/2026-09-22-the-outside.md`: where a commute
 /// ends on a lot `width` tiles wide. The street is the lot's last column,
 /// across the yard the front door faces, and its exit is the tile there in
@@ -311,10 +318,11 @@ fn project_person(
                     CLOSED
                 };
             }
-            // [OS-street]: a commuter walking home from the street is
-            // closing the door only once it is through it; out in the yard it
-            // opens the door by the crossing rule, as anyone does.
-            if endpoint == Some((inward.0 as i32, inward.1 as i32)) && distance <= 1.5 {
+            // The one step in from the door's tile closes the door. A walk
+            // home from the street is longer, and swings the door by the
+            // crossing rule as anyone's does, or leaves it shut when it comes
+            // in by another doorway ([OS-street]).
+            if endpoint == Some((inward.0 as i32, inward.1 as i32)) && path.steps.len() == 1 {
                 return if distance <= 0.5 { OPEN } else { CLOSING };
             }
         }
@@ -701,11 +709,11 @@ mod tests {
         assert_eq!(street_exit(shipped, 16), None);
     }
 
-    /// [OS-street]: a commuter walking home from the street counts as closing
-    /// the door only within a tile and a half of it; farther out in the yard
-    /// it leaves the door shut until it walks through.
+    /// [OS-street] and review finding [S2]: the one step in from the door's
+    /// tile closes the door. A longer walk home leaves it shut unless it
+    /// crosses the door's line, as when it comes in by another doorway.
     #[test]
-    fn a_commuter_walking_home_closes_the_door_only_near_it() {
+    fn a_commuter_walking_home_closes_the_door_only_on_the_step_from_it() {
         let door = |x: f32, y: f32, steps: Vec<(i32, i32)>| {
             let mut world = world_with_active_portals(terri_data::pack());
             world.insert_resource(TileGrid::new(20, 16));
@@ -723,7 +731,8 @@ mod tests {
             door(18.0, 2.0, vec![(17, 2), (16, 2), (15, 2), (15, 3)]),
             CLOSED
         );
-        assert_eq!(door(15.0, 3.5, vec![(15, 3)]), CLOSING);
+        assert_eq!(door(16.0, 3.0, vec![(16, 3), (15, 3)]), CLOSED);
+        assert_eq!(door(15.0, 2.9, vec![(15, 3)]), CLOSING);
         assert_eq!(door(15.0, 2.0, vec![(15, 3)]), OPEN);
     }
 

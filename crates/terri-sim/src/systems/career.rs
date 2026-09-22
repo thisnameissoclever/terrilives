@@ -8,9 +8,10 @@
 //! `follow_path` establishes.
 //!
 //! What a shift does, end to end: at `tick % day_ticks == shift_start`
-//! the worker drops whatever it holds, walks to the lot's front door
-//! and vanishes into `AtWork` for `shift_ticks`; the return restores
-//! it at the door, pays the shift, then crosses one tile into the lot
+//! the worker drops whatever it holds, walks out to the street's exit, or
+//! to the front door on a lot with no yard beyond it ([OS-street]), and
+//! vanishes into `AtWork` for `shift_ticks`; the return restores it where
+//! it vanished, pays the shift, then walks it home to the door's landing
 //! when the door has authored portal routing. Legacy lots still reappear
 //! on the door tile.
 //! Needs keep decaying at work - a shift is tiring, and hungry - and
@@ -26,7 +27,9 @@ use terri_core::{
 
 use crate::Content;
 
-/// Sends every worker whose shift starts THIS tick to the front door.
+/// Sends every worker whose shift starts THIS tick out to the street's
+/// exit, or to the front door where there is no street or the exit cannot be
+/// reached ([OS-street]).
 ///
 /// Runs before `serve_intents` and `select_action`, so on the shift
 /// tick neither can hand the worker something new: the commute is
@@ -141,11 +144,15 @@ pub fn start_shift(
         } else {
             (pos.x as i32, pos.y as i32)
         };
-        let end = crate::portals::street_exit(content.0, grid.width() as u32).unwrap_or(door);
-        let to = (end.0 as i32, end.1 as i32);
-        match grid
-            .find_path(from, to)
-            .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+        let route = |to: (u32, u32)| {
+            grid.find_path(from, (to.0 as i32, to.1 as i32))
+                .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+        };
+        // Furniture a house was saved with can stand on the exit; the
+        // worker then leaves by the door, as it did before the street.
+        match crate::portals::street_exit(content.0, grid.width() as u32)
+            .and_then(route)
+            .or_else(|| route(door))
         {
             Some(steps) => {
                 commands
@@ -153,8 +160,9 @@ pub fn start_shift(
                     .insert((Commuting, Path { steps, cursor: 0 }));
             }
             // Unreachable on shipped content - the door is validated
-            // connected and a sim never stands on a blocked tile - but
-            // a test world can express it. The shift is simply missed:
+            // connected, a sim never stands on a blocked tile, and the
+            // street's exit falls back to the door - but a test world can
+            // express it. The shift is simply missed:
             // the clock only matches once per day, which is the honest
             // consequence of being walled in at eight in the morning.
             None => continue,
@@ -165,14 +173,15 @@ pub fn start_shift(
 /// Clocks departures in, counts shifts down, pays returns, and finishes arrivals.
 ///
 /// Runs after `follow_path`: a commuter whose `Path` is gone has
-/// arrived at the door, because movement removes an exhausted
+/// arrived where it was going, because movement removes an exhausted
 /// target-less path; that is the wander shape, reused on purpose so
 /// there is exactly one mover. The same-tick handoff works because
 /// command effects apply between systems: `follow_path` removes the
 /// Path, this system sees `Commuting` without `Path` and swaps it for
-/// [`AtWork`]. The same marker also owns a content portal's one-tile return
-/// path. Once that path ends away from the door, the marker is removed rather
-/// than clocking the worker straight back in.
+/// [`AtWork`] when the walk ended on the street's exit or the door's tile.
+/// The same marker also owns the walk home to the landing. Once that walk
+/// ends away from both, the marker is removed rather than clocking the
+/// worker straight back in.
 ///
 /// The countdown starts on the tick AFTER arrival because the insert is
 /// deferred. The office absence therefore occupies `shift_ticks + 1` ticks.
@@ -222,10 +231,7 @@ pub fn commute_and_work(
 
         if commuting && !has_path {
             if let Some(portal) = front_portal {
-                let on = |tile: (u32, u32)| {
-                    (position.x - tile.0 as f32).abs() <= 0.01
-                        && (position.y - tile.1 as f32).abs() <= 0.01
-                };
+                let on = |tile| crate::portals::on_tile((position.x, position.y), tile);
                 if !on(portal.position) && !exit.is_some_and(on) {
                     // The same marker covers both directions. An outbound
                     // commuter exhausts its path on the street's exit, or on
@@ -240,8 +246,9 @@ pub fn commute_and_work(
             }
             // Arrived. The rabbit hole swallows the sim: render skips
             // it, selection and the people loops exclude it, and its
-            // Position stays frozen at the door so its hash row (and
-            // its render slot) survive the absence.
+            // Position stays frozen where it vanished, on the street's
+            // exit or the door, so its hash row (and its render slot)
+            // survive the absence.
             commands
                 .entity(worker)
                 .remove::<Commuting>()

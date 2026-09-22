@@ -598,10 +598,6 @@ fn shift_out_of_range(hue: f32, strength: f32, lightness: f32) -> Option<&'stati
     .map(|(field, ..)| field)
 }
 
-/// Validates the colourways declared in `content/objects.toml` - [RC-content]
-/// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
-/// the art as drawn; ids are unique and, like names, not empty; each shift
-/// is a number within the range the shader is built for.
 /// A lot tile's look - [OS-yard], [OS-street]: the art as drawn when
 /// omitted, else a colour shift checked against a colourway's ranges.
 fn compile_look(
@@ -620,6 +616,10 @@ fn compile_look(
     Ok([def.hue, def.strength, def.lightness])
 }
 
+/// Validates the colourways declared in `content/objects.toml` - [RC-content]
+/// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
+/// the art as drawn; ids are unique and, like names, not empty; each shift
+/// is a number within the range the shader is built for.
 fn compile_colourways(defs: &[ColourwayDef]) -> Result<Vec<CompiledColourway>, ContentError> {
     let mut seen = BTreeSet::new();
     for (index, def) in defs.iter().enumerate() {
