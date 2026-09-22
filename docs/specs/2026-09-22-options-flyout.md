@@ -6,7 +6,7 @@ This is [B-options-flyout] in `docs/FEATURES.md`, asked for by the owner on 2026
 
 ## [OF1] Where the gear sits
 
-The gear is a 44 by 44 button, named "Options" for assistive technology, fixed to the window's top-right corner inside the safe-area insets, on every screen size and in and out of Build. Its panel opens beneath it, at most 240 pixels wide and never taller than the window, and scrolls on its own. Both live outside `#hud`, as `#object-menu` does, because they are fixed to the window rather than part of the sidebar's column. They come first in the page, so the gear is the first stop for a keyboard, and Exit build is two presses away from anywhere.
+The gear is a 44 by 44 button, named "Options" for assistive technology, fixed to the window's top-right corner inside the safe-area insets, on every screen size and in and out of Build. Its panel opens beneath it, at most 240 pixels wide and never taller than the window, and scrolls on its own. Both live outside `#hud`, as `#object-menu` does, because they are fixed to the window rather than part of the sidebar's column. They come before the sidebar, so the gear is the first stop after the game view for a keyboard. Any open dialog owns Escape, even when focus has fallen to the page, and New housemate closes the panel as Load, New game and Help do.
 
 The gear stacks above the phone Build dock (z-index 2) and below the debug overlay (9) and the right-click flyout (10), at 8. The debug overlay moves 52 pixels down, out of the corner. On a phone in portrait the sidebar's right edge moves 52 pixels in, so the gear never covers the Menu button, and the strip's Time and Funds columns may shrink to nothing, so at 320 pixels wide the strip still fits Menu whole.
 
