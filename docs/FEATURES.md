@@ -780,8 +780,8 @@ costs one byte and every save written before floors existed still loads and
 still looks the same, read by the yard rule in [OS-yard]. The coverings are
 authored in `content/lot.toml` and are the one floor sprite under a colour
 shift, as the yard and the street are, until there is floor art
-([T-floor-art]). The design is `docs/specs/2026-09-22-floors.md` and the
-played check is [A-floors]. Painting a whole room in one gesture, and a floor
+([T-floor-art]). Done in PR 128 at merge `6d4a661`. The design is
+`docs/specs/2026-09-22-floors.md` and the played check is [A-floors]. Painting a whole room in one gesture, and a floor
 that changes what happens on it, are not part of this.
 
 ### [B-windows] Windows let light in and let sims look out
