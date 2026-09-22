@@ -64,7 +64,7 @@ authorize unrelated replacement copy.
 | Object action labels | `content/objects.toml` interaction `label` | Keep verbs understandable; humor cannot obscure the action. |
 | Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. |
 | Career labels | `content/careers.toml` | Prime voice surface, but must remain legible in the HUD. |
-| Trait labels and descriptions | `content/traits.toml` | Review with the mechanics visible so fiction does not misstate behavior. |
+| Trait labels and descriptions | `content/traits.toml` | Review with the mechanics visible so fiction does not misstate behavior. A disposition's sentence opens with Likes, Loves, Dislikes or Hates, and the compiler holds that verb to the trait's number ([TL-affinity]). |
 | Chain labels, steps, and carried items | `content/chains.toml` | One coherent miniature story per chain. |
 | Social action labels | compiled content social vocabulary | Keep intent obvious at the moment of choice. |
 

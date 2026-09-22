@@ -52,6 +52,12 @@ rejects an empty description the way it rejects an empty label.
 The copy is functional and waits for the owner's voice pass like every other
 label. It is listed in `docs/player-visible-strings.md`.
 
+### [TL-affinity] A disposition says how strongly they feel
+
+Added 2026-09-22 at the owner's request. A disposition's sentence opens with one of four verbs, chosen by its score multiplier: "Loves" at or above `affinity_loves_from`, "Likes" above 1, "Dislikes" below 1, and "Hates" at or below `affinity_hates_to`. Both lines are in `content/tuning.toml` (1.5 and 0.5), and the compiler holds `affinity_loves_from` above 1 and `affinity_hates_to` in `[0, 1)` so no multiplier earns two verbs.
+
+The compile step refuses a disposition whose description does not open with its verb followed by a space, and refuses a multiplier of exactly 1, which changes no choice. The lines are read only by the compiler, so they are not in the compiled pack and the pack's bytes do not move. Capabilities and conditions carry no verb rule; their sentences say what practice or management does.
+
 ### [TL-household] Who wears what
 
 Traits stay authored in `content/household.toml`, as [E3] decided. A roll from

@@ -2350,11 +2350,11 @@ mod boundary_tests {
         assert_eq!(kinds.len(), labels.len());
         assert_eq!(descriptions.len(), labels.len());
         assert_eq!(labels[0], "Television devotee");
-        assert_eq!(descriptions[0], "More drawn to watching television.");
+        assert_eq!(descriptions[0], "Loves watching television.");
         assert_eq!(labels[14], "Cooped up");
         assert_eq!(
             descriptions[14],
-            "Gets less satisfaction from everything; exercise eases it."
+            "Gets less out of everything; exercise eases it."
         );
 
         let worn: Vec<usize> = handle

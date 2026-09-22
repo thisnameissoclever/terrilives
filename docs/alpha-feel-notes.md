@@ -3480,3 +3480,13 @@ Day 205, 18:48.
 
 **Not proven here.** The furniture and wall refusals that keep the street's
 exit open were checked by tests, not in the page. No physical phone was used.
+
+## [A-trait-words] The Traits panel says loves, likes and hates
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/affinity-words` with its WebAssembly rebuilt, in the desktop app's browser pane at 800 by 450, in auto light, on the household loaded from its save at Day 1, 00:36. This save is from before the trait library grew, so each person wears the one trait they were saved with.
+
+Selecting each person from the Household buttons and opening their panel, the Traits rows read "Television devotee" with "Loves watching television." for Bill, "Low spirits", "Severity 60%" with "Gets less out of everything; attending to correspondence eases it." for Tim, and "Can't cook", "Skill 25%" with "Ruins meals at first, and gets better with every attempt." for Casey. No row said "drawn to". The Light button read "Light: auto".
+
+The owner approved these words, drafted in the plan of 2026-09-22, before they were built; this is the approval `docs/player-visible-strings.md` asks to be recorded.
+
+**Not proven here.** The fuller household a new game gets (Tim's Bookworm, "Likes reading.", and the other dispositions) was checked by the bridge test on the real WebAssembly rather than in the page, because starting a new game would clear the saved household. No phone was used.

@@ -132,6 +132,18 @@ wander_radius_tiles = 3
 # to undo a mistake without making buying and selling pay.
 resale_fraction = 0.5
 
+# Which verb a disposition trait's sentence opens with ([TL-affinity] in
+# docs/specs/2026-09-21-trait-library-and-traits-panel.md). A score
+# multiplier at or above affinity_loves_from reads "Loves", above 1
+# "Likes", below 1 "Dislikes", and at or below affinity_hates_to "Hates".
+# The content compiler refuses a sentence with the wrong verb, so the
+# Traits panel never says more or less than the choice tables do. Exactly
+# 1 is refused: it changes no choice. 1.5 is where the library's pulls
+# start to read as more than a preference; 0.5 is half as likely, a
+# refusal in all but name.
+affinity_loves_from = 1.5
+affinity_hates_to = 0.5
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

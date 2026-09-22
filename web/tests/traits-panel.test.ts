@@ -17,9 +17,9 @@ const LIBRARY: TraitLibrary = {
   labels: ['Television devotee', "Can't cook", 'Low spirits'],
   kinds: ['disposition', 'capability', 'condition'],
   descriptions: [
-    'More drawn to watching television.',
-    'Often ruins a meal, and gets better with every attempt.',
-    'Gets less satisfaction from everything; attending to correspondence eases it.',
+    'Loves watching television.',
+    'Ruins meals at first, and gets better with every attempt.',
+    'Gets less out of everything; attending to correspondence eases it.',
   ],
 };
 
@@ -141,20 +141,20 @@ describe('traitsPanelState', () => {
       {
         key: 0,
         label: 'Television devotee',
-        description: 'More drawn to watching television.',
+        description: 'Loves watching television.',
         state: '',
       },
       {
         key: 1,
         label: "Can't cook",
-        description: 'Often ruins a meal, and gets better with every attempt.',
+        description: 'Ruins meals at first, and gets better with every attempt.',
         state: 'Skill 25%',
       },
       {
         key: 2,
         label: 'Low spirits',
         description:
-          'Gets less satisfaction from everything; attending to correspondence eases it.',
+          'Gets less out of everything; attending to correspondence eases it.',
         state: 'Severity 60%',
       },
     ]);

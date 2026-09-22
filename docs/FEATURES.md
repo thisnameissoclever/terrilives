@@ -755,6 +755,22 @@ Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
 line that stops sims but not light, drawn as a wall with glass. It joins the
 daylight on the yard ([OS-slice-daylight]) and needs window art.
 
+### [B-trait-words] A trait says whether they like, love, dislike or hate it
+
+Asked for by the owner on 2026-09-22 after playing. A disposition trait's sentence used to say "More drawn to" or "Less drawn to", which reads like a statistic. Each now opens with "Likes", "Loves", "Dislikes" or "Hates", chosen by how strongly its number pulls or pushes, and the content compiler refuses a sentence whose verb disagrees with the number ([TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`). The two lines between the verbs are in `content/tuning.toml`. The capability and condition sentences were reworded in the same plain style. Built on branch `twcl/affinity-words`; the played check is [A-trait-words].
+
+### [B-options-flyout] Game controls live behind one Options button
+
+Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, and People. The same notes asked for the Traits panel to be collapsible and closed by default, which ships with it.
+
+### [B-walls-in-build] The Walls tool shows every wall
+
+Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit.
+
+### [B-placement-buttons] Confirm and Cancel sit over the moved object
+
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair.
+
 ### [A-front-door-animation] The front door opens when Sims come and go
 
 Commutes route through the front-door tile. The animated doorway is implemented
