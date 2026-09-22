@@ -193,6 +193,13 @@ pub enum SimCommand {
         personality: u32,
         traits: Vec<u32>,
     },
+    /// Lay floor covering `covering` on the tile at (x, y), or take the
+    /// tile's covering away with 0 - [FL-command] in
+    /// `docs/specs/2026-09-22-floors.md`. A covering is 1 upward for the
+    /// content's coverings in order; 0 leaves the tile drawn by where it is
+    /// ([OS-yard]). A lot edit, applied by itself in stream order like
+    /// `SetWallEdge`. Appended to preserve earlier wire codes.
+    SetFloor { x: u32, y: u32, covering: u8 },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands

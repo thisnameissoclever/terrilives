@@ -147,6 +147,22 @@ export function wallReason(code: number): string | null {
 }
 
 /**
+ * Why a floor change was refused ([FL-tool]). The codes live here with the
+ * wall tool's rather than in the tool, so one place knows what a refusal
+ * number means. Both are reachable only through a hostile or stale request:
+ * the tool refuses a point off the lot before asking, and it offers no
+ * covering the content does not have.
+ */
+const FLOOR_REASONS: Readonly<Record<number, string>> = {
+  1: 'That floor is not one of these.',
+  5: 'That tile is not on the lot.',
+};
+
+export function floorReason(code: number): string {
+  return FLOOR_REASONS[code] ?? 'That change is not possible.';
+}
+
+/**
  * The refusal codes a room's doorway can mend: a sim's way, furniture, or a
  * portal's landing cut off by the outline. Not the front door itself: since
  * [RD-root] a room meets that refusal only while the door's tile is not open
@@ -824,6 +840,43 @@ export class SimBridge {
    */
   windowLines(): Uint32Array {
     return this.handle.window_lines();
+  }
+
+  /**
+   * The floor coverings the player may choose, in content order
+   * ([FL-content] in `docs/specs/2026-09-22-floors.md`). A covering's id is
+   * its place here counted from 1; 0 is no covering at all.
+   */
+  coveringNames(): string[] {
+    return this.handle.covering_names();
+  }
+
+  /** Each covering's colour shift, three numbers each ([FL-draw]). */
+  coveringLooks(): Float32Array {
+    return this.handle.covering_looks();
+  }
+
+  /** Three words per painted tile: x, y, covering ([FL-save]). */
+  floorTiles(): Uint32Array {
+    return this.handle.floor_tiles();
+  }
+
+  /** The refusal code laying this covering would get, zero when it would apply. */
+  floorEditPreview(x: number, y: number, covering: number): number {
+    return this.handle.floor_edit_preview(x, y, covering);
+  }
+
+  /** Stages laying a covering on a tile, or 0 to take one away ([FL-command]). */
+  setFloor(x: number, y: number, covering: number): boolean {
+    return this.handle.set_floor(x, y, covering);
+  }
+
+  /** The last floor change a drain handled, or null before the first. */
+  lastFloorEditResult(): { x: number; y: number; covering: number; reason: number } | null {
+    const row = this.handle.last_floor_edit_result();
+    return row.length === 4
+      ? { x: row[0], y: row[1], covering: row[2], reason: row[3] }
+      : null;
   }
 
   /** Undefined is legacy architecture; an empty array is an open edge layout. */

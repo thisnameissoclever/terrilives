@@ -15,6 +15,8 @@ import { BuilderControls } from './ui/builder-controls.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
+import { FloorTool } from './ui/floor-tool.js';
+import { FloorToolControls } from './ui/floor-tool-controls.js';
 import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
@@ -799,6 +801,11 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.windows = sim.windowLines();
+          // [FL-draw]: the loaded house's own painted tiles. Without this the
+          // previous game's floors stayed on screen, and on a lot of another
+          // height they landed on unrelated tiles, because the renderer keys
+          // the list by height.
+          lot.floors = sim.floorTiles();
           lot.doors = sim.interiorDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
@@ -815,6 +822,7 @@ async function main(): Promise<void> {
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
           roomTool.resetAfterLoad(lotWidth, lotHeight);
+          floorTool.resetAfterLoad(lotWidth, lotHeight);
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
@@ -984,6 +992,9 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
+    // [FL-draw]: what the player has laid, and each covering's shift.
+    floors: sim.floorTiles(),
+    coveringLooks: sim.coveringLooks(),
     doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
@@ -1164,7 +1175,16 @@ async function main(): Promise<void> {
       toolSwitch?.render();
     },
   });
-  const buildTools = [wallTool, roomTool, buyTool] as const;
+  // [FL-tool]. A covering laid on one tile, beside the tools that move
+  // walls and furniture.
+  let floorControls: FloorToolControls | undefined;
+  const floorTool = new FloorTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      floorControls?.render();
+      toolSwitch?.render();
+    },
+  });
+  const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
   // [PA-show]: Confirm and Cancel over the piece being placed. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
@@ -1242,10 +1262,13 @@ async function main(): Promise<void> {
   buyControls.setCompact(compactHudQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactHudQuery.matches);
+  floorControls = new FloorToolControls(document, floorTool);
+  floorControls.setCompact(compactHudQuery.matches);
   toolSwitch = new BuildToolSwitch(document, [
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
     { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
     { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
+    { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
   ], {
     leaveFurniture() {
       builder.cancel();
@@ -1391,6 +1414,10 @@ async function main(): Promise<void> {
           if (tile) buyTool.moveTo(tile[0], tile[1]);
           return;
         }
+        if (floorTool.active) {
+          if (world) floorTool.choosePoint(world[0], world[1]);
+          return;
+        }
         if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
         else if (tile) builder.moveTo(tile[0], tile[1]);
       },
@@ -1438,14 +1465,17 @@ async function main(): Promise<void> {
     wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
     buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
     roomTool.afterCommands();
+    floorTool.afterCommands();
     buyTool.afterCommands();
     housemateForm.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
       lot.windows = sim.windowLines();
+      lot.floors = sim.floorTiles();
       lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
       cameraDirty = true;
@@ -1476,7 +1506,7 @@ async function main(): Promise<void> {
       lightingMode.isFlat() ? null : lighting,
       undefined,
       buyTool.ghost() ?? builder.preview,
-      wallTool.highlight() ?? roomTool.highlight(),
+      wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
       // A purchase in the Buy tool's colourway; a moved object in its own.
       buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
       sky,

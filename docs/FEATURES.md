@@ -773,10 +773,16 @@ from outside and outdoor objects remain.
 ### [B-floors] The player chooses what each floor is
 
 Found while building the yard. Every tile is one floor, and the yard is that
-floor recoloured. A real game lets the player cover a room's or a tile's floor,
-and grass is one covering among several. It needs a floor saved per tile, which
-older saves read by the yard rule in [OS-yard], and floor art beyond the one
-tile there is ([T-yard-art]).
+floor recoloured. Build now has a Floors tool: choose Boards, Tiles or Carpet
+and click a tile to lay it, or Remove to put the tile back to how the house
+came. The choice is saved per tile, sparsely, so a house nobody has painted
+costs one byte and every save written before floors existed still loads and
+still looks the same, read by the yard rule in [OS-yard]. The coverings are
+authored in `content/lot.toml` and are the one floor sprite under a colour
+shift, as the yard and the street are, until there is floor art
+([T-floor-art]). The design is `docs/specs/2026-09-22-floors.md` and the
+played check is [A-floors]. Painting a whole room in one gesture, and a floor
+that changes what happens on it, are not part of this.
 
 ### [B-windows] Windows let light in and let sims look out
 

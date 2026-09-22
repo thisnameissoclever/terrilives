@@ -333,6 +333,7 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // ask to exercise. Portal tests install their own compiled row.
         portals: Vec::new(),
         colourways: Vec::new(),
+        coverings: Vec::new(),
     }))
 }
 

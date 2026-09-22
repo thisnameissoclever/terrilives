@@ -70,6 +70,16 @@ export interface Lot {
    */
   readonly windows?: Uint32Array | null;
   /**
+   * What the player has laid on each painted tile, three words each: x, y,
+   * covering ([FL-save]). A tile with no entry is drawn by where it is.
+   */
+  readonly floors?: Uint32Array | null;
+  /**
+   * Each covering's colour shift, three numbers each, in content order
+   * ([FL-content]). A covering's id is its place here counted from 1.
+   */
+  readonly coveringLooks?: Float32Array | null;
+  /**
    * The house's `[width, height]` from the lot's north-west corner; every
    * other tile is yard ([OS-yard]). Absent, the whole lot is house.
    */
@@ -187,12 +197,25 @@ export function buildStaticInstances(
   // The yard's and the street's looks as a shift table, so a yard tile
   // writes row 1 and a street tile row 2 exactly as a colourway does
   // ([RC-shift]).
+  // Rows 0 to 2 are where a tile is: the house, the yard, the street. The
+  // coverings the player may lay follow, so a painted tile writes row 3
+  // upward and nothing else changes ([FL-draw]).
   const lookShifts = Float32Array.from([
     0, 1, 0, ...(lot.yardLook ?? [0, 1, 0]), ...(lot.streetLook ?? [0, 1, 0]),
+    ...(lot.coveringLooks ?? []),
   ]);
+  // The covering on each painted tile, keyed by tile ([FL-save]).
+  const painted = new Map<number, number>();
+  for (let i = 0; i + 2 < (lot.floors?.length ?? 0); i += 3) {
+    const covering = lot.floors![i + 2];
+    if (covering > 0 && covering * 3 < lookShifts.length - 6) {
+      painted.set(lot.floors![i] * lot.height + lot.floors![i + 1], covering + 2);
+    }
+  }
   const street = lot.street ?? null;
-  const lookOf = (x: number, y: number): number => (x === street ? 2
-    : x >= house[0] || y >= house[1] ? 1 : 0);
+  const lookOf = (x: number, y: number): number => painted.get(x * lot.height + y)
+    ?? (x === street ? 2
+      : x >= house[0] || y >= house[1] ? 1 : 0);
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),

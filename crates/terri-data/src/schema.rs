@@ -512,6 +512,22 @@ pub struct LotFile {
     /// Omitted, a street tile is drawn as the floor is.
     #[serde(default)]
     pub street: Option<LookDef>,
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`: the coverings the
+    /// Floors tool offers, in order. A covering's id is its place in this
+    /// list counted from 1, so the list grows by appending.
+    #[serde(default)]
+    pub covering: Vec<CoveringDef>,
+}
+
+/// One floor covering the player can choose - [FL-content]: a plain name for
+/// the tool and the colour shift its tiles are drawn under, with a
+/// colourway's three numbers and ranges ([RC-shift]).
+#[derive(Debug, Deserialize)]
+pub struct CoveringDef {
+    pub name: String,
+    pub hue: f32,
+    pub strength: f32,
+    pub lightness: f32,
 }
 
 /// The house's size in tiles, from the lot's north-west corner - [OS-grow].

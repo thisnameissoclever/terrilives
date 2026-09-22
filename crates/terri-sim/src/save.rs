@@ -315,6 +315,11 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             y: *y,
             state: *state,
         },
+        SimCommand::SetFloor { x, y, covering } => SavedCommand::SetFloor {
+            x: *x,
+            y: *y,
+            covering: *covering,
+        },
         SimCommand::PlaceObject {
             object,
             x,
@@ -831,6 +836,7 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
+        SavedCommand::SetFloor { x, y, covering } => SimCommand::SetFloor { x, y, covering },
         SavedCommand::SellObject { object } => SimCommand::SellObject { object },
         // Unknown ids restore as indices past every object and colourway,
         // which the drain refuses, as the two commands it joins do.
@@ -1117,7 +1123,8 @@ fn validate_command(
         | SavedCommand::BuildRoom { .. }
         | SavedCommand::SellObject { .. }
         | SavedCommand::SetColourway { .. }
-        | SavedCommand::BuyObjectInColourway { .. } => Ok(()),
+        | SavedCommand::BuyObjectInColourway { .. }
+        | SavedCommand::SetFloor { .. } => Ok(()),
         // [CS-save]: held to the limits every saved name and list is held
         // to; the drain checks the rest.
         SavedCommand::AddHousemate { name, traits, .. } => {

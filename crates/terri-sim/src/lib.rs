@@ -712,6 +712,11 @@ impl Sim {
             object_facings,
             retired_indices,
             object_colourways,
+            floors: self
+                .world
+                .get_resource::<terri_core::layout::SavedFloors>()
+                .cloned()
+                .unwrap_or_default(),
         }
     }
 
@@ -2652,6 +2657,26 @@ impl Sim {
             }
         }
 
+        // [FL-save]: what the player has laid on each floor, written only
+        // when something is laid, so a house nobody has painted digests
+        // exactly as it did before floors existed. A covering changes only
+        // how a tile is drawn, but it is saved state the player chose, and
+        // leaving it out would let a save-and-load round trip drop every
+        // painted tile with the digest still matching.
+        if let Some(floors) = self
+            .world
+            .get_resource::<terri_core::layout::SavedFloors>()
+            .filter(|floors| !floors.tiles().is_empty())
+        {
+            hasher.write_bytes(b"floors-v1");
+            hasher.write_u64(floors.tiles().len() as u64);
+            for &(x, y, covering) in floors.tiles() {
+                hasher.write_u64(x as u64);
+                hasher.write_u64(y as u64);
+                hasher.write_bytes(&[covering]);
+            }
+        }
+
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
@@ -2706,6 +2731,11 @@ impl Sim {
                         *y as u64,
                         state.code() as u64,
                     ],
+                    // [FL-command]: a staged floor change is part of the
+                    // world the digest describes, as a staged wall edit is.
+                    SetFloor { x, y, covering } => {
+                        vec![15, *x as u64, *y as u64, *covering as u64]
+                    }
                     // By the id the save stores rather than the index, so a
                     // save and load cannot move the digest; `u64::MAX` for an
                     // index that names nothing, which loads as one that still

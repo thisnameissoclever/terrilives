@@ -3593,3 +3593,13 @@ Options, then Build, then Walls. The dock read Wall, Doorway, Window, Remove, an
 Leaving Build, the east wall is cut away again, so the window is not drawn: it sits on a line the view looks through. What is visible is the light. The row behind the window now reads one step of daylight brighter than the rows above and below it, all the way in: 0.8, 0.6, 0.4 and 0.2 across the four tiles nearest the wall, against 0.6, 0.4, 0.2 and 0 on its neighbours.
 
 **Not proven here.** The brightening is real but slight, because a fully shaded tile only loses a quarter of the day's light and each tile in recovers a fifth of that: at most about five percent per step. It reads as "this room is a little less gloomy" rather than as sunlight falling through glass. A window on a wall the view cuts away cannot be seen at all outside Build, which is right for a wall and arguable for a window. A phone width and a saved-and-reloaded window were not tested here; the save is covered by tests.
+
+## [A-floors] Laying a carpet, and seeing the room change under it
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/floors` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save, at 13:00 on day 3. The clock ran through the `?stress=0` frame harness, because a hidden pane never composites ([L14]); every choice below was a real click.
+
+Options, then Build, then Floors. The dock showed Boards, Tiles, Carpet and Remove, built from the content, and the status read "Choose a tile." Choosing Carpet and clicking a bathroom tile laid it: the status changed to "This floor is Carpet." and the tile went deeper and warmer than the beige around it. Three more clicks carpeted the rest of that corner, one tile per click, each waiting for the last to land as the other Build tools make a player wait. Choosing Boards and clicking one of those four tiles changed that tile alone, immediately, with no pan or zoom needed.
+
+The patch is easy to miss at the zoom the game opens at: four tiles of a slightly different beige, in a house of beige. Zoomed one step in it reads clearly as a different floor.
+
+**Not proven here.** Saving and reloading a painted house was not done by hand in the browser. Review of the pull request found that the round trip was NOT covered, and that a Load left the previous game's floors on screen; both are fixed and now tested. Nobody walked on the new carpet, because a covering changes nothing but how a tile is drawn. A phone width was not tested. The three coverings are the one floor sprite under a colour shift, so none of them reads as boards or as carpet in the way art would: that is [T-floor-art].

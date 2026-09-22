@@ -410,6 +410,14 @@ pub struct CompiledLot {
     pub street_look: [f32; 3],
 }
 
+/// One authored floor covering - [FL-content].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledCovering {
+    pub name: String,
+    /// Hue, strength and lightness, as a colourway's shift ([RC-shift]).
+    pub look: [f32; 3],
+}
+
 /// Structural routing and presentation data for one validated lot-boundary portal.
 ///
 /// A portal remains ordinary walkable floor. It is not a smart object and has
@@ -868,6 +876,12 @@ pub struct ContentPack {
     /// test packs; when present, the first is the art as drawn. Appended at
     /// the pack tail.
     pub colourways: Vec<CompiledColourway>,
+    /// The floor coverings the player may choose, in content order -
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`. A covering's id is
+    /// its place here counted from 1, and 0 is "no choice", the tile drawn
+    /// by where it is ([OS-yard]). Appended at the pack tail, so every
+    /// established block keeps its byte offset.
+    pub coverings: Vec<CompiledCovering>,
 }
 
 /// One colourway, validated. Its index is what a command and the render
@@ -1487,6 +1501,7 @@ mod tests {
             ],
             portals: vec![],
             colourways: vec![],
+            coverings: Vec::new(),
         }
     }
 
