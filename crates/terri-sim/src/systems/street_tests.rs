@@ -168,3 +168,44 @@ fn furniture_saved_on_the_exit_sends_the_worker_by_the_door() {
     });
     assert_eq!(at(&sim, tim), (15.0, 2.0), "at work by the door");
 }
+
+/// Review finding [S10]: a worker saved at work a hair short of the exit
+/// counts as on it, and its way home is judged from the exit tile, as the
+/// walk home starts there. Shut the exit off from (18, 2) and the rest, and
+/// the save is refused, though (18, 2) itself has a path home.
+#[test]
+fn a_worker_saved_just_short_of_the_exit_is_judged_from_the_exit() {
+    use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge};
+    let mut sim = Sim::new_from_shipped_lot();
+    let tim = worker(&mut sim);
+    walk(&mut sim, tim, |sim| {
+        sim.world().get::<AtWork>(tim).is_some()
+    });
+    let mut saved = sim.save_snapshot_v5();
+    let index = tim.index_u32();
+    saved
+        .world
+        .entities
+        .iter_mut()
+        .find(|entity| entity.index == index)
+        .and_then(|entity| entity.position.as_mut())
+        .expect("the worker is saved with a position")
+        .x = 18.995;
+    let SavedLayout::EdgeWallsV1 { edges } = &mut saved.layout else {
+        panic!("the shipped house has edge walls");
+    };
+    edges.push(WallEdge {
+        axis: EdgeAxis::Vertical,
+        x: 19,
+        y: 2,
+        doorway: false,
+    });
+    let width = saved.world.grid_width as usize;
+    for (x, y) in [(19, 1), (19, 3)] {
+        saved.world.blocked_tiles[y * width + x] = true;
+    }
+    assert_eq!(
+        Sim::new_from_shipped_lot().load_snapshot_v5(saved),
+        Err(crate::SaveError::InvalidGrid)
+    );
+}

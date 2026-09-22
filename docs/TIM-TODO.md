@@ -138,7 +138,10 @@ show where its front walls are cut away (a low wall, or a skirting line). The
 street along the lot's edge ([OS-street]) is the floor tile turned grey, and a
 worker vanishes on it; street art, and a way to show someone walking off along
 it, are wanted too. Later slices will want a path and a fence along the yard's
-edge. Tell me
+edge. One thing to know first: the exercise bike's art assumes nothing is
+drawn on the house's south wall beside it (`bike_wall_panels` in
+`assets/models/sims/sim-01/export_exercise.py`), so low wall art there means
+re-exporting the bike. Tell me
 whether to draft them with the generator for you to accept or reject, or
 whether you would rather supply them. Nothing is blocked meanwhile.
 

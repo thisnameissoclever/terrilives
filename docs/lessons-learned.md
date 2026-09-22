@@ -7050,3 +7050,26 @@ such as the lot's size, reaches the asset tests as surely as the Rust ones.
 **How to verify:** before a push, the `Sprite atlas is reproducible` step's
 seven `unittest discover` commands and `build.py --check` pass locally
 alongside the rest.
+
+## [L-a-new-rule-meets-old-saves] The street's rule would have stranded a house the yard build saved
+
+**What happened:** the street slice made every lot edit keep the street's
+exit open, and sent every commute there. The yard build, which ships first,
+lets furniture stand on that tile. Review loaded such a save: the worker
+missed every shift, and almost every edit anywhere was refused as blocking
+someone's route, with nobody in sight.
+
+**Root cause:** the new rule was written for houses built under it. A save
+made before the rule existed could already break it, and the rule treated
+that as a state it could never be in: the commute had no second way out,
+and the edit check refused anything that did not also mend the break.
+
+**Prevention rule:** a rule about saved state meets worlds saved before it
+existed. It needs a way to carry on when the old world breaks it, such as the
+commute leaving by the door, and an edit is refused only for breaking it now,
+never for leaving an old break as it was.
+
+**How to verify:** `furniture_saved_on_the_exit_sends_the_worker_by_the_door`
+in `crates/terri-sim/src/systems/street_tests.rs` fails if the edit check drops
+its "reaches now" condition, or if the commute stops falling back to the
+door.

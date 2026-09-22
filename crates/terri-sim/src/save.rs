@@ -1037,9 +1037,9 @@ fn validate_portal_returns(
         return Err(SaveError::InvalidGrid);
     }
     // [OS-street]: a worker at work on the street's exit walks home a long
-    // way, so it needs a path; anywhere else, the door tile included, its
-    // walk home is the one step in, which must cross no wall on the straight
-    // line to the landing.
+    // way, so it needs a path, found from the exit tile as the walk home
+    // finds it. Anywhere else, the door tile included, the straight line to
+    // the landing must cross no wall, as it always had to.
     let exit = crate::portals::street_exit(content, grid.width() as u32);
     for worker in snapshot
         .entities
@@ -1048,14 +1048,14 @@ fn validate_portal_returns(
     {
         let position = worker.position.ok_or(SaveError::InvalidGrid)?;
         let home =
-            if exit.is_some_and(|exit| crate::portals::on_tile((position.x, position.y), exit)) {
-                grid.find_path((position.x as i32, position.y as i32), landing)
-                    .is_some()
-            } else {
-                grid.segment_can_cross(
+            match exit.filter(|&exit| crate::portals::on_tile((position.x, position.y), exit)) {
+                Some(exit) => grid
+                    .find_path((exit.0 as i32, exit.1 as i32), landing)
+                    .is_some(),
+                None => grid.segment_can_cross(
                     (position.x, position.y),
                     (landing.0 as f32, landing.1 as f32),
-                )
+                ),
             };
         if !home {
             return Err(SaveError::InvalidGrid);

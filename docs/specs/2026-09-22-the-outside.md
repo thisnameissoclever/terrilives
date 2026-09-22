@@ -114,19 +114,18 @@ landing, (15, 3). Its line, (16, 2), is now a doorway into the yard.
 
 Commuters walk out through the yard to the street: [OS-street].
 
-**Known until later slices.** The house's cut-away walls
-facing the yard show nothing, so a doorway the player makes in one changes
-nothing on screen though sims now walk through it, and lamp light stops at a
-line nobody can see; only the floor's colour marks the house's edge until
-there is low wall art ([T-yard-art]). Walls or a room can still shut parts of
-an empty yard off from the door where nothing needs to reach them, but never
-the street's exit ([OS-street]). The exit looks like the rest of the street,
-so furniture refused there reads as blocking someone's route with nobody in
-sight; marking the exit waits on street art. A save crafted with the front
-door's line
-walled still loads, and the Walls tool can open the line again. A worker
-reaching the street vanishes on its tile, at the lot's edge, until there is a
-way to draw it walking off along the street.
+**Known until later slices.** The house's cut-away walls facing the yard show
+nothing, so a doorway the player makes in one changes nothing on screen though
+sims now walk through it, and lamp light stops at a line nobody can see; only
+the floor's colour marks the house's edge until there is low wall art
+([T-yard-art]). Walls or a room can still shut parts of an empty yard off from
+the door where nothing needs to reach them, but never the street's exit
+([OS-street]). The exit looks like the rest of the street, so furniture
+refused there reads as blocking someone's route with nobody in sight; marking
+the exit waits on street art. A save crafted with the front door's line walled
+still loads, and the Walls tool can open the line again. A worker reaching the
+street vanishes on its tile, at the lot's edge, until there is a way to draw
+it walking off along the street.
 
 ## [OS-migrate] An older save grows into the yard on Load
 
@@ -269,3 +268,10 @@ rule, now isolated with a doorway that clears the straight line; the fixture
 tests comparing two loaded games rather than the shift's end, now played to
 it with a real mid-commute save from main; one test for standing on a tile
 shared by the commute and the save check; and stale comments and docs.
+
+A second round found the round's fixes sound across 30 saves played for
+3,000 ticks each, and that a hand-edited save with a worker a hair short of
+the exit had its way home judged from the wrong tile, now judged from the exit
+itself, as the walk home starts there; no lesson for the first round's
+stranded yard-build save, now [L-a-new-rule-meets-old-saves]; and a paragraph
+left badly wrapped.
