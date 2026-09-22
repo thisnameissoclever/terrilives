@@ -249,7 +249,7 @@ Two requirements, neither optional:
   the existing reduced-motion handling rather than buried in a menu.
 
 **As built,** `Light: auto` and `Light: flat` live in the household status
-panel. The explicit preference is versioned in browser storage. Reduced motion
+panel; since [OF3] they live in the Options flyout. The explicit preference is versioned in browser storage. Reduced motion
 temporarily forces and disables the flat control without overwriting that saved
 choice. Flat mode uses exact neutral ambient and removes local pools; it does
 not pretend that a moving noon curve and a fixed accessibility mode are the

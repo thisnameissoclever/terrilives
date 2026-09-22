@@ -387,7 +387,9 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 
 The compact HUD reuses the existing controls and adds one visibility
 controller. At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, only
-Time, Funds, and Menu remain visible until the player expands the HUD. Phone
+Time, Funds, Menu and the status line remain visible until the player
+expands the HUD; Light, Build, sound and the game actions are in the Options
+flyout on every screen size ([OF3]). Phone
 portrait and ultra-narrow screens use a contiguous top sheet; wider short
 screens use a scrollable edge sheet; desktop keeps the existing sidebar. The
 current contract is [CH1]-[CH4].
@@ -768,7 +770,7 @@ Asked for by the owner on 2026-09-22 after playing. A disposition trait's senten
 
 ### [B-options-flyout] Game controls live behind one Options button
 
-Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, and People. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry.
+Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, People and the speed controls. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry. Built on branch `twcl/options-flyout`; the design is `docs/specs/2026-09-22-options-flyout.md` and the played check is [A-options-flyout].
 
 ### [B-walls-in-build] The Walls tool shows every wall
 

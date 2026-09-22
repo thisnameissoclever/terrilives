@@ -17,6 +17,7 @@ itself on having personality.
 | --- | --- | --- |
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Compact HUD | Menu; Close; Open game menu; Close game menu | `web/index.html`, `web/src/ui/mobile-hud.ts` |
+| Options flyout | Options, the gear's accessible name; it holds Light, Build, Sound, Effects and the game actions | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the seven refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
@@ -37,12 +38,12 @@ itself on having personality.
 | Selling | Sell; Sell for {amount}; Selling…; {name} sold.; The sale could not be sent.; Cannot sell: {refusal}, under Sell while the chosen furniture would not sell; Delete or Backspace sells, in the Furniture tool's keyboard help line | `web/index.html`, `web/src/ui/builder.ts`, `web/src/ui/builder-controls.ts` |
 | Sale refusals | That furniture is no longer available.; This lot layout does not support furniture editing.; Wait until nobody is using or approaching this object.; That furniture is not for sale.; Nothing else in the house can do its job. | `web/src/bridge.ts` |
 | Colourways | Colour, the Furniture tool's and the Buy tool's list label; Recolouring…; {name} recoloured.; The colour change could not be sent.; That colour is not available.; the colourway names As drawn, Colour 2, Colour 3, Muted and Rich, placeholders | `web/index.html`, `web/src/ui/builder.ts`, `web/src/bridge.ts`, `content/objects.toml` |
-| Game actions | Save; Load; Clear orders; Queue; New game; Help | `web/index.html` |
+| Game actions | Save; Load; Clear orders; Queue; New game; Help, in the Options flyout | `web/index.html` |
 | Save state | Starting; No save yet; Saving; Game saved; Autosaved; Loading; Saved game loaded; No saved game found; Starting new game | `web/index.html`, `web/src/ui/persistence-controller.ts` |
 | Save failures | Saved game is invalid. Starting a new game.; Saving is unavailable. Starting a new game.; Save failed. The game is still running.; Load failed. Current game kept.; Could not remove the saved game. | `web/src/ui/persistence-controller.ts` |
 | Order and selection feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added; That person's order queue is full; That person's order queue was full, so the order last in line was dropped; That person could not be selected; Selection could not be changed | dedicated `#command-feedback` live region in `web/index.html`; `web/src/main.ts`; `web/src/ui/command-feedback.ts`; `web/src/ui/keyboard-target.ts` |
 | Confirmation | Start a new game?; This replaces the saved household and cannot be undone.; Load the saved game?; Progress since the last save will be replaced.; Keep playing; Start over; Load game | `web/index.html` |
-| Help | How to play; Game time is paused while this guide is open.; Got it; the thirteen ordered control instructions | `web/index.html` |
+| Help | How to play; Game time is paused while this guide is open.; Got it; the fourteen ordered control instructions | `web/index.html` |
 | Keyboard targeting | Target: {object}. Enter opens actions.; Target: {person}. Space selects this person; Enter selects or opens social actions.; Selected {name}; Use an arrow key to choose a target first; Select a person before choosing an object | `web/src/ui/keyboard-target.ts`, `web/src/main.ts` |
 | Startup failure | This address cannot render the game; This browser cannot render the game; The game failed to start; recovery hints | `web/src/ui/startup-failure.ts` |
 

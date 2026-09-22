@@ -12,6 +12,10 @@ button remain visible. The roster, Needs, People, speed controls, persistence
 actions, Queue, New game, and Help do not occupy layout or accept focus until
 the player opens Menu.
 
+Since [OF3] in `docs/specs/2026-09-22-options-flyout.md`, the persistence
+actions, Queue, New game, Help, Light and sound live in the Options flyout
+instead, and the strip also carries the save status line.
+
 The threshold includes phone portrait, phone landscape, and short embedded
 windows. Desktop retains the established sidebar without a Menu button.
 
