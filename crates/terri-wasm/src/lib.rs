@@ -312,26 +312,43 @@ impl SimHandle {
         let walls = match self.sim.world().resource::<SavedLayout>() {
             SavedLayout::LegacyAuthoredV1 => LEGACY_WALL_TILES.as_slice(),
             SavedLayout::LegacyCells { walls } => walls.as_slice(),
-            SavedLayout::EdgeWallsV1 { .. } => &[],
+            SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. } => &[],
         };
         walls.iter().flat_map(|&(x, y)| [x, y]).collect()
     }
 
+    /// Three words per window: axis (0 vertical, 1 horizontal), x, y
+    /// ([WN-state] in `docs/specs/2026-09-22-windows.md`). Separate from
+    /// `wall_edges` rather than a fourth state in its fourth word, so a
+    /// reader that has never heard of windows cannot mistake one for a
+    /// doorway and walk a sim through it.
+    pub fn window_lines(&self) -> Vec<u32> {
+        use terri_core::layout::{EdgeAxis, SavedLayout};
+        self.sim
+            .world()
+            .resource::<SavedLayout>()
+            .windows()
+            .iter()
+            .flat_map(|line| [u32::from(line.axis == EdgeAxis::Horizontal), line.x, line.y])
+            .collect()
+    }
+
     /// 0 uses legacy wall cells; 1 uses explicit edges, including an empty set.
     pub fn wall_layout_kind(&self) -> u32 {
-        u32::from(matches!(
+        u32::from(
             self.sim
                 .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ))
+                .resource::<terri_core::layout::SavedLayout>()
+                .has_edges(),
+        )
     }
 
     /// Four words per segment: axis (0 vertical, 1 horizontal), x, y, doorway.
     pub fn wall_edges(&self) -> Vec<u32> {
         use terri_core::layout::{EdgeAxis, SavedLayout};
         match self.sim.world().resource::<SavedLayout>() {
-            SavedLayout::EdgeWallsV1 { edges } => edges
+            layout if layout.has_edges() => layout
+                .edges()
                 .iter()
                 .flat_map(|edge| {
                     [
@@ -5422,6 +5439,47 @@ mod boundary_tests {
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
     }
 
+    /// [WN-state]: a window crosses as its own list, keeps no wall record,
+    /// and stops a sim exactly where the wall it replaced did.
+    #[test]
+    fn a_window_crosses_the_boundary_and_stops_a_sim() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.window_lines().is_empty());
+        let walls_before = handle.wall_edges().len();
+        // An interior wall of the shipped house with a clear tile on each
+        // side, away from the front door: the vertical line at x 8, row 4.
+        let blocked = |handle: &SimHandle| {
+            !handle
+                .sim
+                .world()
+                .resource::<terri_core::TileGrid>()
+                .can_step((7, 4), (8, 4))
+        };
+        assert!(blocked(&handle), "the line starts as a wall");
+
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        assert_eq!(
+            handle.wall_edges().len(),
+            walls_before - 4,
+            "the wall record moved to the window list rather than being kept in both"
+        );
+        assert!(blocked(&handle), "a window stops a person like a wall");
+
+        // Opening the line takes the window away and lets a sim through.
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 0.0));
+        handle.flush_commands();
+        assert!(handle.window_lines().is_empty());
+        assert!(!blocked(&handle));
+
+        // And glazing an open line blocks it again.
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        assert!(blocked(&handle));
+    }
+
     /// [OS-daylight]: the daylight knobs cross as the tuning file sets them.
     #[test]
     fn the_daylight_tuning_crosses_the_boundary() {
@@ -5780,7 +5838,8 @@ mod boundary_tests {
             (2.0, 3.0, 2.0, 1.0),
             (-1.0, 3.0, 2.0, 1.0),
             (0.5, 3.0, 2.0, 1.0),
-            (0.0, 3.0, 2.0, 3.0),
+            // 3 is Window since [WN-state]; 4 is the first unused code.
+            (0.0, 3.0, 2.0, 4.0),
             (0.0, 3.0, 2.0, f64::NAN),
             (0.0, f64::INFINITY, 2.0, 1.0),
             (0.0, 3.5, 2.0, 1.0),
@@ -5874,8 +5933,8 @@ mod boundary_tests {
                 vec![0x08, 0x00, 0x01, 0x02],
             ),
             (
-                "SetWallEdge with a state past the three that exist",
-                vec![0x08, 0x00, 0x01, 0x02, 0x03],
+                "SetWallEdge with a state past the four that exist",
+                vec![0x08, 0x00, 0x01, 0x02, 0x04],
             ),
             (
                 "SetWallEdge with an axis past the two that exist",

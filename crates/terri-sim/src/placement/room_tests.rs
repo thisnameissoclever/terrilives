@@ -77,7 +77,7 @@ fn stage(sim: &mut Sim, edit: RoomEdit) {
 
 fn edges(sim: &Sim) -> Vec<WallEdge> {
     match sim.world().resource::<SavedLayout>() {
-        SavedLayout::EdgeWallsV1 { edges } => edges.clone(),
+        layout if layout.has_edges() => layout.edges().to_vec(),
         other => panic!("expected edge walls, found {other:?}"),
     }
 }

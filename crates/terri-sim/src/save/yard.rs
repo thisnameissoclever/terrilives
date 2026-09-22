@@ -26,7 +26,11 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
     if (grid.width(), grid.height()) != (house_width as usize, house_height as usize) {
         return;
     }
-    let Some(SavedLayout::EdgeWallsV1 { edges }) = sim.world.get_resource::<SavedLayout>() else {
+    let Some(layout) = sim
+        .world
+        .get_resource::<SavedLayout>()
+        .filter(|l| l.has_edges())
+    else {
         return;
     };
     let mut grown = TileGrid::new(lot.width as usize, lot.height as usize);
@@ -35,7 +39,9 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
             grown.set_blocked(x, y, !grid.is_walkable(x as i32, y as i32));
         }
     }
-    let edges: Vec<WallEdge> = edges
+    let windows = layout.windows().to_vec();
+    let edges: Vec<WallEdge> = layout
+        .edges()
         .iter()
         .chain(
             lot.wall_edges
@@ -48,9 +54,20 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
         let [from, to] = edge.cells();
         grown.set_edge_blocked(from, to, !edge.doorway);
     }
+    // [WN-rules]: a grown house keeps its windows, and each still blocks.
+    for window in &windows {
+        let [from, to] = WallEdge {
+            axis: window.axis,
+            x: window.x,
+            y: window.y,
+            doorway: false,
+        }
+        .cells();
+        grown.set_edge_blocked(from, to, true);
+    }
     sim.world.insert_resource(grown);
     sim.world
-        .insert_resource(SavedLayout::EdgeWallsV1 { edges });
+        .insert_resource(SavedLayout::from_parts(edges, windows));
 }
 
 #[cfg(test)]

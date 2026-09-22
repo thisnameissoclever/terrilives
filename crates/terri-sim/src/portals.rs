@@ -228,14 +228,18 @@ pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
     let has_art = world
         .get_resource::<ActivePortals>()
         .is_some_and(|active| door_art(active.0).is_some());
-    let Some(SavedLayout::EdgeWallsV1 { edges }) = world.get_resource::<SavedLayout>() else {
+    let Some(layout) = world
+        .get_resource::<SavedLayout>()
+        .filter(|l| l.has_edges())
+    else {
         return Vec::new();
     };
     if !has_art {
         return Vec::new();
     }
     let front = front_door_lines(world);
-    let mut lines: Vec<(u32, u32)> = edges
+    let mut lines: Vec<(u32, u32)> = layout
+        .edges()
         .iter()
         .filter(|edge| edge.doorway && edge.axis == EdgeAxis::Vertical)
         .map(|edge| (edge.x, edge.y))

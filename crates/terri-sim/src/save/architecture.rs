@@ -331,9 +331,9 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                 }
             }
         }
-        SavedLayout::EdgeWallsV1 { edges } => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
             let mut seen = BTreeSet::new();
-            for &edge in edges {
+            for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
@@ -343,6 +343,23 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                     let [from, to] = edge.cells();
                     grid.set_edge_blocked(from, to, true);
                 }
+            }
+            // [WN-rules]: a saved window blocks movement like a wall, and a
+            // line that is already spoken for is a corrupt save.
+            for &window in layout.windows() {
+                let edge = terri_core::layout::WallEdge {
+                    axis: window.axis,
+                    x: window.x,
+                    y: window.y,
+                    doorway: false,
+                };
+                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                    || !seen.insert((window.axis, window.x, window.y))
+                {
+                    return Err(SaveError::InvalidGrid);
+                }
+                let [from, to] = edge.cells();
+                grid.set_edge_blocked(from, to, true);
             }
         }
     }

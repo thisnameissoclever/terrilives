@@ -39,6 +39,7 @@ pub struct WallEditResult {
 pub struct WallPlan {
     pub changed: bool,
     edges: Vec<WallEdge>,
+    windows: Vec<terri_core::layout::WallLine>,
     grid: TileGrid,
 }
 
@@ -161,11 +162,15 @@ pub(super) fn check_new_walls(
 /// is the first thing wrong, not whichever check happened to run first.
 pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, PlacementRefusal> {
     use PlacementRefusal::*;
-    let Some(SavedLayout::EdgeWallsV1 { edges }) = world.get_resource::<SavedLayout>() else {
+    let Some(layout) = world
+        .get_resource::<SavedLayout>()
+        .filter(|l| l.has_edges())
+    else {
         // A legacy household keeps its frozen walls. Guessing an edge list
         // for it would rewrite a house the player never touched.
         return Err(UnsupportedLayout);
     };
+    let edges = layout.edges();
     let CurrentLayout { rectangles, .. } = current_layout(world)?;
     let live = world.resource::<TileGrid>();
     let line = WallEdge {
@@ -178,9 +183,10 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     if !line.in_bounds(live.width() as u32, live.height() as u32) {
         return Err(OutOfBounds);
     }
-    // [OS-door]: a wall on the front door's line would shut the door. Opening
-    // the line cuts nobody's way, so only a wall is refused.
-    if edit.state == WallState::Wall
+    // [OS-door]: a barrier on the front door's line would shut the door.
+    // Opening the line or glazing nothing cuts nobody's way, so only a
+    // barrier is refused, and a window is one ([WN-rules]).
+    if edit.state.blocks_movement()
         && edit.axis == EdgeAxis::Vertical
         && crate::portals::front_door_lines(world).contains(&(edit.x, edit.y))
     {
@@ -190,10 +196,16 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     let existing = edges
         .iter()
         .position(|e| e.axis == edit.axis && e.x == edit.x && e.y == edit.y);
-    if WallState::of(existing.map(|index| &edges[index])) == edit.state {
+    let requested_line = terri_core::layout::WallLine {
+        axis: edit.axis,
+        x: edit.x,
+        y: edit.y,
+    };
+    if layout.state_of(requested_line) == edit.state {
         return Ok(WallPlan {
             changed: false,
-            edges: edges.clone(),
+            edges: edges.to_vec(),
+            windows: layout.windows().to_vec(),
             grid: live.clone(),
         });
     }
@@ -201,29 +213,38 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     // The record is updated where it is, appended when new and removed when
     // opened. Never re-sorted, so the same edits in the same order give the
     // same save bytes - [WT-apply].
-    let mut next = edges.clone();
+    let mut next = edges.to_vec();
     match (existing, edit.state) {
-        (Some(index), WallState::Open) => {
+        // A window keeps no wall record: the line moves from one list to the
+        // other, never sitting in both ([WN-state]).
+        (Some(index), WallState::Open | WallState::Window) => {
             next.remove(index);
         }
         (Some(index), state) => next[index].doorway = state == WallState::Doorway,
-        (None, WallState::Open) => unreachable!("an absent record is already open"),
+        (None, WallState::Open | WallState::Window) => {}
         (None, _) => next.push(line),
+    }
+    let mut windows = layout.windows().to_vec();
+    windows.retain(|held| *held != requested_line);
+    if edit.state == WallState::Window {
+        windows.push(requested_line);
     }
     let [a, b] = line.cells();
     let mut grid = live.clone();
-    grid.set_edge_blocked(a, b, edit.state == WallState::Wall);
+    grid.set_edge_blocked(a, b, edit.state.blocks_movement());
 
     // Opening a line or making it a doorway only ever removes a barrier, so
     // it cannot cut anything off. Running the proofs for it would refuse to
-    // mend a house that was already in trouble.
-    if edit.state == WallState::Wall {
+    // mend a house that was already in trouble. A window is a barrier and is
+    // held to every proof a wall is ([WN-rules]).
+    if edit.state.blocks_movement() {
         check_new_walls(world, &rectangles, &grid, &[[a, b]])?;
     }
 
     Ok(WallPlan {
         changed: true,
         edges: next,
+        windows,
         grid,
     })
 }
@@ -235,7 +256,7 @@ pub(crate) fn commit(world: &mut World, edit: WallEdit) {
     if let Ok(plan) = result {
         if plan.changed {
             world.insert_resource(plan.grid);
-            world.insert_resource(SavedLayout::EdgeWallsV1 { edges: plan.edges });
+            world.insert_resource(SavedLayout::from_parts(plan.edges, plan.windows));
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);
         }

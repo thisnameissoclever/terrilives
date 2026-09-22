@@ -205,10 +205,17 @@ impl SavedLayout {
         matches!(self, Self::EdgeWallsV1 { .. } | Self::EdgeWallsV2 { .. })
     }
 
-    /// The layout holding these records. Always the newest variant, so a
-    /// save written now can carry windows even if this house has none.
+    /// The layout holding these records, and the OLDER variant whenever
+    /// there are no windows. A house with no window is then byte-identical
+    /// to one saved before windows existed, so its save does not grow and
+    /// its world hash does not move; the newer variant appears the moment a
+    /// window does ([WN-state]).
     pub fn from_parts(edges: Vec<WallEdge>, windows: Vec<WallLine>) -> Self {
-        Self::EdgeWallsV2 { edges, windows }
+        if windows.is_empty() {
+            Self::EdgeWallsV1 { edges }
+        } else {
+            Self::EdgeWallsV2 { edges, windows }
+        }
     }
 
     /// What this boundary is, reading both lists ([WN-state]). A line in
@@ -311,6 +318,13 @@ mod tests {
         };
         let window = line(EdgeAxis::Vertical, 5, 6);
         let layout = SavedLayout::from_parts(vec![wall, doorway], vec![window]);
+        assert!(matches!(layout, SavedLayout::EdgeWallsV2 { .. }));
+        // No window, no new variant: the save does not grow and the world
+        // hash of an existing house cannot move.
+        assert_eq!(
+            SavedLayout::from_parts(vec![wall], Vec::new()),
+            SavedLayout::EdgeWallsV1 { edges: vec![wall] }
+        );
         assert_eq!(layout.state_of(window), WallState::Window);
         assert_eq!(
             layout.state_of(line(EdgeAxis::Vertical, 2, 1)),

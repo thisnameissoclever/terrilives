@@ -2,10 +2,9 @@ use super::*;
 use terri_core::layout::{EdgeAxis, WallState};
 
 fn edges(sim: &Sim) -> Vec<WallEdge> {
-    match sim.world().resource::<SavedLayout>() {
-        SavedLayout::EdgeWallsV1 { edges } => edges.clone(),
-        other => panic!("not an edge-wall house: {other:?}"),
-    }
+    let layout = sim.world().resource::<SavedLayout>();
+    assert!(layout.has_edges(), "not an edge-wall house: {layout:?}");
+    layout.edges().to_vec()
 }
 
 fn size(sim: &Sim) -> (usize, usize) {

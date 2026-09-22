@@ -69,10 +69,9 @@ fn stage(sim: &mut Sim, edit: WallEdit) {
 }
 
 fn edges(sim: &Sim) -> Vec<WallEdge> {
-    match sim.world().resource::<SavedLayout>() {
-        SavedLayout::EdgeWallsV1 { edges } => edges.clone(),
-        other => panic!("expected edge walls, found {other:?}"),
-    }
+    let layout = sim.world().resource::<SavedLayout>();
+    assert!(layout.has_edges(), "expected edge walls, found {layout:?}");
+    layout.edges().to_vec()
 }
 
 fn revision(sim: &Sim) -> u64 {
@@ -872,10 +871,8 @@ fn a_stream_with_wall_edits_drains_the_same_joined_or_split() {
     let (split, split_hash) = world(true);
     assert_eq!(joined, split);
     assert_eq!(joined_hash, split_hash);
-    assert!(matches!(
-        &joined.layout,
-        SavedLayout::EdgeWallsV1 { edges } if edges.len() == 2
-    ));
+    assert_eq!(joined.layout.edges().len(), 2);
+    assert!(joined.layout.has_edges());
 }
 
 /// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: a wall on the front
