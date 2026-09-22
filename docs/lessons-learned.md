@@ -7098,6 +7098,46 @@ door.
 **Prevention rule:** move markup by its tree, not by a text pattern: find the matching close by counting tags, and check the moved block opens and closes exactly once. A test about where markup sits checks nesting, not just order.
 
 **How to verify:** `holds only the gear and its panel, closing before the sidebar opens` in `web/tests/options-menu.test.ts` walks the div tags from the wrapper to its matching close and fails if the sidebar, the Build dock, the right-click flyout or the debug overlay is inside it.
+## [L-check-preview-worktree-before-copy-review] A familiar port can serve another checkout
+
+**What happened.** The object-copy browser check initially opened port 5174 and found the old labels. That listener belonged to another worktree, while the new content and browser-code tests had passed in this checkout.
+
+**Root cause.** A known project port was treated as proof of which checkout it served.
+
+**Prevention rule.** Check the listener's process command and source path before assessing a local change. Leave another task's server alone. Use an available project-approved preview port for the build under review, with an isolated browser context to preserve household saves.
+
+**How to verify.** Confirm the server process points to the intended checkout, then check the loaded build and a distinguishing visible change. For this slice, port 4173 serves this checkout's production build and the object menu shows Washing machine above the description.
+## [L-generic-skills-still-need-tool-mirrors] Check skill packaging before a documentation merge
+
+**What happened.** The writing-style skill was merged as documentation with CI skipped at the owner's request. The subsequent full browser suite found its missing `.claude` mirror and a mirror test that required cloud-runtime wording in every skill.
+
+**Root cause.** The new skill was validated on its own, without finding the repository's skill-packaging test. That test also generalized a requirement belonging only to the original cloud-run skill.
+
+**Prevention rule.** For a project skill, inspect both discovery directories and run the focused mirror test even when CI is intentionally skipped. Keep tool-neutral skills identical; test runtime-specific wording only on the skill that needs it.
+
+**How to verify.** `npm --prefix web test -- --maxWorkers=1 tests/agent-skill-mirrors.test.ts` must pass. Removing either discovery copy must fail the inventory check; changing either copy's instructions must fail the mirror check.
+
+
+## [L-disclosure-hover-owns-action-surface] Keep actions stationary after hovering a description
+
+**What happened.** The object description opened on hover, but collapsed as the pointer moved toward the action below it. That moved action rows underneath the pointer.
+
+**Root cause.** Hover dismissal belonged to the disclosure alone, although the player was still using the surrounding menu. Reserving viewport placement did not preserve action positions inside the menu.
+
+**Prevention rule.** Keep hover previews open while the pointer traverses their containing action surface. Remove boundary listeners when replacing the disclosure. Check movement from descriptive text to an action, not just whether the text opens.
+
+**How to verify.** The object-identity regression test retains expansion after leaving the disclosure and closes it after leaving the boundary. A real browser traversal must leave the first action's rectangle unchanged and still activate that action.
+
+
+## [L-finish-authorized-delivery] Complete the requested delivery before closing the task
+
+**What happened.** The writing guidance was merged, but the related object implementation was left uncommitted. The owner had to ask twice to finish delivery.
+
+**Root cause.** The documentation-only CI skip was treated as a reason to stop the implementation at local validation, rather than apply normal checks and finish the remaining delivery.
+
+**Prevention rule.** Keep each deliverable and its publication state explicit. When the owner directs the work through merge, continue through commit, push, CI, and merge without introducing another approval request for the same scope.
+
+**How to verify.** Before closing, verify the PR is merged, the remote main contains the implementation, and the task checkout is clean and synchronized. Report any actual remaining blocker directly.
 
 ## [L-bounds-belong-to-the-generator] Each importer remembered content bounds for its own sprites only
 
@@ -7118,3 +7158,33 @@ door.
 **Prevention rule:** the cap is `max(120 seconds, 4 x the unmutated run)`, and both halves are load-bearing. The floor carries the ordinary shard, because the multiplier is measured against the smaller command and four times 1.2 seconds resolves to the tool's 20 second minimum. The multiplier carries the `terri-sim` shards, whose baseline alone is over a minute. A step now fails any shard whose sweep tested zero mutants, because an empty output file is not evidence. And `Timeout` in this tool means "hit the cap", not "looped": read the timings before hunting for a loop.
 
 **How to verify:** locally, `cargo mutants --package terri-core -f crates/terri-core/src/clock.rs --test-workspace true --timeout-multiplier 4 --minimum-test-timeout 120 --build-timeout 600 -j1` prints "Auto-set test timeout to 120s" and catches all 11 mutants; without the floor it prints 20s. On CI, download a shard's `mutants-out-shard-N` artifact: `total_mutants` must be above zero, `timeout.txt` must be empty, and a survivor's test phase should sit near the workspace suite rather than exactly on the cap. The evidence here: PR 116 shard 0 tested 423 mutants with 52 at exactly 60.0 seconds; PR 117 shards 2 to 7 recorded `total_mutants` 0 with a 60.0 second baseline.
+## [L-set-the-exception-aside-not-the-reach] A broad check was narrowed to admit one exception
+
+**What happened.** Moving the person and How they feel toggles' 44-pixel flex rules into the block every compact screen matches tripped the test that the short Build dock panel scrolls whole, which asserted that nothing in that block was `display: flex`. The first fix narrowed that assertion to rules whose selector held `#builder-dock`. Fresh-context review added `.builder-actions { display: flex; }` to the block, a dock descendant with no prefix, and every test stayed green; the original assertion would have caught it.
+
+**Root cause.** A proxy check that guards a whole region was rewritten to name the region's parts, so its reach shrank to whatever convention the parts happened to follow. The legitimate exception was one rule; the narrowing excluded everything that did not look like the dock.
+
+**Prevention rule.** When a broad check blocks a legitimate change, set the one legitimate case aside and keep the check's original reach: strip or mask the exception, then run the old assertion unchanged. Never rewrite the check in terms of what it should catch; it will catch only that.
+
+**How to verify.** After changing any test's matcher, add the thing the old matcher caught somewhere the new one does not name, run the test, and require it to fail; then restore the file and compare its hash. `web/tests/mobile-hud.test.ts`, "leaves the short panel to scroll whole", is the worked example.
+
+## [L-close-audible-browser-tests] Close game instances when browser verification ends
+
+**What happened.** Two isolated object-copy test tabs were left open after verification. The owner heard game audio continuing while the task waited for CI.
+
+**Root cause.** Isolated storage was treated as sufficient cleanup. Reloading a game also resumed its runtime, and the test pages were never closed.
+
+**Prevention rule.** Close each task-owned game page in a finally block when its browser check ends. Shut down task-owned preview servers once no further local checks need them. Never leave an audible game running during CI waits, and never close another task's pages or servers.
+
+**How to verify.** Enumerate browser pages and confirm the task-specific test URLs are absent. Verify the owned preview port has no listener. For this incident, both object-copy test tabs were closed and the verified Vite preview process on port 4173 was stopped.
+
+
+## [L-local-validation-does-not-require-duplicate-ci-wait] Do not block authorized delivery on duplicate remote checks
+
+**What happened.** The object identity implementation passed local Rust and web tests, typechecking, builds, browser checks, and targeted mutation checks. Delivery then stalled waiting for a remote mutation shard, despite the owner's direction to finish.
+
+**Root cause.** Remote CI completion was made an additional approval gate. Local evidence, additional remote mutation coverage, and the owner's merge authority were not kept distinct.
+
+**Prevention rule.** Follow AGENTS.md: do not wait for duplicate remote checks after equivalent local validation passes. When the owner explicitly authorizes merging with a remaining remote check pending, merge and report its pending state accurately. Do not require another confirmation or extend the wait.
+
+**How to verify.** Record the local validation and exact PR head, merge when authorized, verify the merged PR and clean synchronized checkout, and report any still-pending remote checks without claiming they passed.

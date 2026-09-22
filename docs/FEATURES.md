@@ -999,7 +999,7 @@ Show list narrows the catalogue to one need. The needs show for the chosen item
 rather than beside every price, which would crowd the list, and the build adds
 the words Show, Everything and Good for. The design is
 `docs/specs/2026-09-22-catalogue-browsing.md` and the played check is
-[A-catalogue-browsing]. The descriptions remain open, waiting on [T22].
+[A-catalogue-browsing]. The first description slice covers the washing machine, armchair, and dining table, with types as primary labels and model names secondary; see `docs/specs/2026-09-22-object-identity.md`. The remaining descriptions and full voice review stay open under [T22].
 
 ### [B-phone-build-dock] The Build dock keeps its buttons in view on a phone
 

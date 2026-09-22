@@ -499,7 +499,8 @@ roles = ["prep_surface"]
 
 [[object]]
 id = "dining_table"
-name = "The Table Nobody Sits At"
+name = "Visiting Hours"
+presentation = { object_type = "Dining table", description = "A table for meals and whatever everyone promises to put away." }
 price = 120
 sprite = "table"
 footprint = { width = 2, depth = 1 }
@@ -602,7 +603,8 @@ footprint = { width = 2, depth = 1 }
 
 [[object]]
 id = "armchair"
-name = "The Chair That Is His"
+name = "Staying In"
+presentation = { object_type = "Armchair", description = "A chair for sitting. Leaving it remains a personal decision." }
 price = 140
 sprite = "loungeChair"
 foreground_sprite = "loungeChairForeground"
@@ -945,7 +947,8 @@ footprint = { width = 1, depth = 2 }
 
 [[object]]
 id = "laundry"
-name = "Cycle, Perpetual"
+name = "Perpetual Cycle"
+presentation = { object_type = "Washing machine", description = "Decorative washing machine; clothes washing is not available. A rare appliance that cannot eat your socks." }
 price = 300
 sprite = "offlineLaundry"
 

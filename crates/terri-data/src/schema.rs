@@ -283,6 +283,9 @@ pub const FACINGS: [&str; 4] = ["NE", "NW", "SE", "SW"];
 pub struct ObjectDef {
     pub id: String,
     pub name: String,
+    /// Type and flavor text, with `name` identifying the model when present.
+    #[serde(default)]
+    pub presentation: Option<crate::pack::ObjectPresentation>,
     /// Which sprite in the atlas draws this object.
     ///
     /// Required rather than defaulted, and it is content rather than a

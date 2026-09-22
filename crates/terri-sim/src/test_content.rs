@@ -140,6 +140,7 @@ pub fn object_sized(
     CompiledObject {
         id: id.to_string(),
         name: id.to_string(),
+        presentation: None,
         sprite: terri_data::pack().sim_sprite,
         interactions,
         footprint,

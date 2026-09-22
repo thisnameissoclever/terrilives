@@ -101,5 +101,4 @@ always read unsigned, and a stray top bit makes it larger and fails the check.
 ## Slices
 
 * **[CB-slice-serves]** Everything above.
-* **[CB-slice-descriptions]** A line of description per object, which is voice
-  and waits on [T22].
+* **[CB-slice-descriptions]** The first three objects have separate types, model names, and descriptions in [object identity](2026-09-22-object-identity.md). The remaining catalogue and the full voice review stay with [T22].

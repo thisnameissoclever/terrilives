@@ -29,6 +29,12 @@ const DESK: CatalogueItem = { definition: 24, name: 'Desk', price: 180, facings:
 const BED: CatalogueItem = { definition: 1, name: 'Bed', price: 250, facings: 0b0101, baseFacing: 0,
   needs: (1 << ENERGY) | (1 << COMFORT) };
 
+it('sorts models within their primary type without changing definition ids', () => {
+  const first = { ...CHAIR, name: 'Armchair', details: { modelName: 'Staying In', description: 'Seat.' } };
+  const second = { ...CHAIR, definition: 99, name: 'Armchair', details: { modelName: 'Early Retirement', description: 'Seat.' } };
+  expect(listed([BED, first, second]).map(item => item.definition)).toEqual([99, CHAIR.definition, BED.definition]);
+});
+
 /** A scripted source: refusals by tile, a staging log, a result. */
 class FakeShop {
   items: CatalogueItem[] = [CHAIR, DESK, BED];
@@ -457,6 +463,9 @@ describe('buying in a colourway', () => {
 
 describe('BuyToolControls', () => {
   class FakeElement {
+    ownerDocument!: Document;
+    className = '';
+    open = false;
     hidden = false;
     disabled = false;
     textContent = '';
@@ -468,25 +477,57 @@ describe('BuyToolControls', () => {
     addEventListener(type: string, listener: () => void) {
       this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
     }
+    removeEventListener(type: string, listener: () => void) {
+      this.listeners.set(type, (this.listeners.get(type) ?? []).filter(entry => entry !== listener));
+    }
     fire(type: string) { for (const listener of this.listeners.get(type) ?? []) listener(); }
-    append(child: FakeElement) { this.children.push(child); }
+    append(...children: FakeElement[]) { this.children.push(...children); }
     replaceChildren(...children: FakeElement[]) { this.children.splice(0, this.children.length, ...children); }
   }
 
-  function controls() {
+  function controls(items?: CatalogueItem[]) {
     const elements = new Map<string, FakeElement>();
     const doc = {
       querySelector: (selector: string) => {
         const id = selector.slice(1);
-        if (!elements.has(id)) elements.set(id, new FakeElement());
+        if (!elements.has(id)) elements.set(id, Object.assign(new FakeElement(), { ownerDocument: doc }));
         return elements.get(id);
       },
-      createElement: () => new FakeElement(),
+      createElement: () => Object.assign(new FakeElement(), { ownerDocument: doc }),
     } as unknown as Document;
     const { buy, source } = tool();
+    if (items) {
+      source.items = items;
+      // The controller reads the catalogue once at construction.
+      const describedBuy = new BuyTool(source, 10, 10, { changed() {} });
+      const view = new BuyToolControls(doc, describedBuy, NEEDS);
+      return { buy: describedBuy, source, view, element: (id: string) => elements.get(id)! };
+    }
     const view = new BuyToolControls(doc, buy, NEEDS);
     return { buy, source, view, element: (id: string) => elements.get(id)! };
   }
+
+  it('shows the chosen identity, retains expansion on redraw, and clears it when selection changes', () => {
+    const chair = { ...CHAIR, name: 'Armchair', details: { modelName: 'Staying In', description: 'A chair for sitting.' } };
+    const { buy, view, element } = controls([chair, BED]);
+    expect(element('buy-object').children.map(option => option.textContent)).toContain('Armchair: Staying In (40)');
+    buy.enter();
+    buy.choose(CHAIR.definition);
+    view.render();
+    const identity = element('buy-identity');
+    expect(identity.hidden).toBe(false);
+    const disclosure = identity.children[0];
+    expect(disclosure.children[0].children.map(child => child.textContent)).toEqual(['Staying In', 'Armchair']);
+    expect(disclosure.children[1].textContent).toBe('A chair for sitting.');
+    disclosure.open = true;
+    view.render();
+    expect(identity.children[0]).toBe(disclosure);
+    expect(identity.children[0].open).toBe(true);
+    buy.choose(BED.definition);
+    view.render();
+    expect(identity.hidden).toBe(true);
+    expect(identity.children).toHaveLength(0);
+  });
 
   it('offers only the needs something serves, in need order, and narrows the list to one', () => {
     const { buy, view, element } = controls();
