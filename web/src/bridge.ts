@@ -55,6 +55,8 @@ export interface CatalogueItem {
   /** Bit `n` set for each facing code `n` the object has art for. */
   readonly facings: number;
   readonly baseFacing: number;
+  /** Bit `n` set for each need index `n` the object is good for ([CB-serves]). */
+  readonly needs: number;
 }
 
 /** What the drain did with the last purchase; `object` is null when nothing was bought. */
@@ -231,9 +233,10 @@ export class SimBridge {
   /** Every object for sale, in content order - [BM-shell]. */
   catalogue(): CatalogueItem[] {
     const words = this.handle.catalogue();
+    const needs = this.handle.catalogue_needs();
     return this.handle.catalogue_names().map((name, row) => ({
       definition: words[row * 4], name, price: words[row * 4 + 1],
-      facings: words[row * 4 + 2], baseFacing: words[row * 4 + 3],
+      facings: words[row * 4 + 2], baseFacing: words[row * 4 + 3], needs: needs[row],
     }));
   }
 

@@ -439,18 +439,15 @@ impl SimHandle {
     pub fn catalogue(&self) -> Vec<u32> {
         let content = self.sim.world().resource::<Content>().0;
         content
-            .objects
-            .iter()
-            .enumerate()
-            .filter_map(|(index, object)| {
-                Some([
-                    index as u32,
-                    object.price?,
+            .catalogue()
+            .flat_map(|(id, object, price)| {
+                [
+                    id.0,
+                    price,
                     facing_mask(|f| object.supports(f)),
                     u32::from(object.base_facing.code()),
-                ])
+                ]
             })
-            .flatten()
             .collect()
     }
 
@@ -458,10 +455,18 @@ impl SimHandle {
     pub fn catalogue_names(&self) -> Vec<String> {
         let content = self.sim.world().resource::<Content>().0;
         content
-            .objects
-            .iter()
-            .filter(|object| object.price.is_some())
-            .map(|object| object.name.clone())
+            .catalogue()
+            .map(|(_, object, _)| object.name.clone())
+            .collect()
+    }
+
+    /// What each object `catalogue` lists is good for, in the same order: bit
+    /// `i` is set for need index `i`, the order of `need_names` - [CB-serves].
+    pub fn catalogue_needs(&self) -> Vec<u32> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .catalogue()
+            .map(|(id, _, _)| content.needs_served(id))
             .collect()
     }
 
@@ -4683,6 +4688,7 @@ mod boundary_tests {
         handle.sim.world_mut().insert_resource(Content(pack));
         let catalogue = handle.catalogue();
         let names = handle.catalogue_names();
+        let needs = handle.catalogue_needs();
         let priced: Vec<_> = pack
             .objects
             .iter()
@@ -4690,8 +4696,14 @@ mod boundary_tests {
             .filter(|(index, _)| *index != dropped)
             .collect();
         assert_eq!(names.len(), priced.len());
+        assert_eq!(needs.len(), priced.len());
         assert_eq!(catalogue.len(), 4 * priced.len());
-        for ((row, name), (index, object)) in catalogue.chunks_exact(4).zip(&names).zip(priced) {
+        for (((row, name), served), (index, object)) in catalogue
+            .chunks_exact(4)
+            .zip(&names)
+            .zip(&needs)
+            .zip(priced)
+        {
             let mask: u32 = terri_core::Facing::ALL
                 .into_iter()
                 .filter(|&f| object.supports(f))
@@ -4709,7 +4721,17 @@ mod boundary_tests {
                 object.id
             );
             assert_eq!(name, &object.name);
+            assert_eq!(
+                *served,
+                pack.needs_served(pack.find(&object.id).unwrap()),
+                "{}",
+                object.id
+            );
         }
+        // The catalogue holds items that serve needs and items that serve
+        // none, so a column shifted by a row shows above.
+        assert!(needs.contains(&0));
+        assert!(needs.iter().any(|&mask| mask != 0));
     }
 
     /// [BM-shell]: a purchase crosses the boundary as a preview that never

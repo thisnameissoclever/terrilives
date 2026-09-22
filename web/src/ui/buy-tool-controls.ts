@@ -1,5 +1,5 @@
 // The Buy tool's controls - [BM-shell]: the catalogue list, the price, Rotate,
-// Buy and Cancel.
+// Buy and Cancel, with the Show filter and the Good for line ([CB-filter]).
 
 import { formatFunds } from './game-hud.js';
 import { FACING_NAMES } from './builder.js';
@@ -13,9 +13,23 @@ export function itemLabel(name: string, price: number): string {
   return `${name} (${formatFunds(price)})`;
 }
 
+/** A need name as a sentence shows it: "hunger" reads "Hunger". */
+function needWord(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/** What an item is good for, from its needs mask and the need names in index order. */
+export function servesLabel(needs: number, names: readonly string[]): string {
+  const served = names.filter((_, index) => (needs & (1 << index)) !== 0).map(needWord);
+  return served.length === 0 ? 'Good for: no need on its own' : `Good for: ${served.join(', ')}`;
+}
+
 export class BuyToolControls {
   private readonly selector: HTMLSelectElement;
+  private readonly filter: HTMLSelectElement;
+  private readonly placeholder: HTMLOptionElement;
   private readonly options: HTMLOptionElement[] = [];
+  private readonly serves: HTMLElement;
   private readonly facing: HTMLElement;
   private readonly price: HTMLElement;
   private readonly status: HTMLElement;
@@ -25,32 +39,50 @@ export class BuyToolControls {
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
 
-  constructor(document: Document, private readonly tool: BuyTool) {
+  constructor(document: Document, private readonly tool: BuyTool,
+    private readonly needNames: readonly string[]) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing buy controls: ${id}`);
       return element;
     };
     this.selector = required('buy-object');
+    this.filter = required('buy-filter');
     this.facing = required('buy-facing');
     this.price = required('buy-price');
+    this.serves = required('buy-serves');
     this.status = required('buy-status');
     this.rotate = required('buy-rotate');
     this.confirm = required('buy-confirm');
     this.cancel = required('buy-cancel');
     this.keyboardHelp = required('buy-keyboard-help');
     this.touchHelp = required('buy-touch-help');
-    const choose = document.createElement('option');
-    choose.value = '';
-    choose.textContent = 'Choose something to buy';
-    this.selector.replaceChildren(choose);
+    this.placeholder = document.createElement('option');
+    this.placeholder.value = '';
+    this.placeholder.textContent = 'Choose something to buy';
     for (const item of tool.items) {
       const option = document.createElement('option');
       option.value = String(item.definition);
       option.textContent = itemLabel(item.name, item.price);
       this.options.push(option);
-      this.selector.append(option);
     }
+    // Only the needs something in the catalogue serves, in need order.
+    const everything = document.createElement('option');
+    everything.value = '';
+    everything.textContent = 'Everything';
+    this.filter.replaceChildren(everything);
+    const served = tool.items.reduce((mask, item) => mask | item.needs, 0);
+    needNames.forEach((name, index) => {
+      if ((served & (1 << index)) === 0) return;
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = needWord(name);
+      this.filter.append(option);
+    });
+    this.filter.addEventListener('change', () => {
+      tool.setFilter(this.filter.value === '' ? null : Number(this.filter.value));
+      this.render();
+    });
     // The placeholder drops the choice, so the list never shows nothing
     // chosen while a ghost stays buyable. The redraw puts the list back in
     // step when the tool could not act, such as with a purchase on its way.
@@ -73,9 +105,15 @@ export class BuyToolControls {
 
   render(): void {
     const tool = this.tool;
+    // Rebuilt rather than hidden: some phone browsers still list a hidden option.
+    this.selector.replaceChildren(this.placeholder,
+      ...this.options.filter((_, index) => tool.shows(tool.items[index])));
     tool.items.forEach((item, index) => { this.options[index].disabled = !tool.affordable(item); });
     this.selector.value = tool.chosen === null ? '' : String(tool.chosen.definition);
     this.selector.disabled = tool.pending || tool.blocked;
+    this.filter.value = tool.filter === null ? '' : String(tool.filter);
+    this.filter.disabled = tool.pending || tool.blocked;
+    this.serves.textContent = tool.chosen ? servesLabel(tool.chosen.needs, this.needNames) : '';
     this.facing.textContent = tool.preview ? `Facing: ${FACING_NAMES[tool.preview.facing]}` : '';
     this.price.textContent = tool.chosen ? `Price: ${formatFunds(tool.chosen.price)}` : '';
     this.rotate.disabled = !tool.canRotate || tool.pending || tool.blocked;

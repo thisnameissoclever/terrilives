@@ -30,6 +30,8 @@ export class BuyTool {
   active = false;
   readonly items: readonly CatalogueItem[];
   chosen: CatalogueItem | null = null;
+  /** The need the list is narrowed to, by need index, or null for everything ([CB-filter]). */
+  filter: number | null = null;
   preview: PlacementPreview | null = null;
   status = CHOOSE_ITEM;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
@@ -57,6 +59,23 @@ export class BuyTool {
 
   affordable(item: CatalogueItem): boolean {
     return item.price <= this.source.funds();
+  }
+
+  /** Whether the list shows `item` under the filter. */
+  shows(item: CatalogueItem): boolean {
+    return this.filter === null || (item.needs & (1 << this.filter)) !== 0;
+  }
+
+  /**
+   * Narrows the list to what serves one need, or `null` for everything. A
+   * choice the filter hides is dropped, as the list's placeholder drops it;
+   * nothing changes while a purchase is on its way.
+   */
+  setFilter(need: number | null): void {
+    if (this.pending || this.blocked) return;
+    this.filter = need;
+    if (this.chosen !== null && !this.shows(this.chosen)) this.clear();
+    else this.hooks.changed();
   }
 
   enter(): void {
@@ -96,16 +115,16 @@ export class BuyTool {
   }
 
   /**
-   * Steps through the list the way the keys do, skipping what the household
-   * cannot afford, as the list greys it out. Does nothing when nothing is
-   * affordable.
+   * Steps through the list the way the keys do, skipping what the filter
+   * hides and what the household cannot afford, as the list greys it out.
+   * Does nothing when nothing is left.
    */
   cycle(direction: -1 | 1): void {
     const count = this.items.length;
     const current = this.chosen === null ? (direction > 0 ? -1 : count) : this.items.indexOf(this.chosen);
     for (let step = 1; step <= count; step += 1) {
       const item = this.items[(((current + direction * step) % count) + count) % count];
-      if (this.affordable(item)) {
+      if (this.shows(item) && this.affordable(item)) {
         this.choose(item.definition);
         return;
       }
@@ -201,11 +220,16 @@ export class BuyTool {
     }
   }
 
-  /** After Load: nothing chosen, nothing pending, and the loaded lot's size. */
+  /**
+   * After Load: nothing chosen, nothing pending, the whole catalogue shown and
+   * the loaded lot's size. Leaving the tool and coming back keeps the filter;
+   * a Load starts the panel afresh ([CB-filter]).
+   */
   resetAfterLoad(width: number, height: number): void {
     this.width = width;
     this.height = height;
     this.revision = this.source.lotRevision();
+    this.filter = null;
     this.clear();
   }
 

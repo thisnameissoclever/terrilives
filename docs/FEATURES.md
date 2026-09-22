@@ -902,6 +902,26 @@ needs each object's interactions serve, and the need names exist. The list can
 show them beside each price and filter by them. A one-line description per
 object is copy, and belongs with [T22].
 
+Built on branch `twcl/catalogue-browsing`: the chosen item says what it is
+good for under its price, counting what it serves through Cook dinner, and a
+Show list narrows the catalogue to one need. The needs show for the chosen item
+rather than beside every price, which would crowd the list, and the build adds
+the words Show, Everything and Good for. The design is
+`docs/specs/2026-09-22-catalogue-browsing.md` and the played check is
+[A-catalogue-browsing]. The descriptions remain open, waiting on [T22].
+
+### [B-phone-build-dock] The Build dock keeps its buttons in view on a phone
+
+Found in review of catalogue browsing. On a phone the Build panel is a dock
+capped at 45% of the screen height, which scrolls. With an item chosen in the
+Buy tool, its rows (the Show and catalogue lists, the facing and Rotate row,
+the price, what it is good for and the status) push Buy and Cancel below the
+dock's fold at 390 by 844, so every purchase takes a scroll inside the panel.
+They were already below the fold before catalogue browsing, whose Show list and
+Good for line moved them further down. The fix is a
+layout for the dock that keeps each tool's confirming buttons in view, such as
+a pinned action row, checked on a phone for every Build tool.
+
 ### [B-facing] Objects know which way they face, and overlap follows
 
 Most objects are still drawn as one sprite at one depth, and depth comes from

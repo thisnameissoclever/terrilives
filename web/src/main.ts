@@ -1108,7 +1108,7 @@ async function main(): Promise<void> {
   builderControls.setCompact(compactHudQuery.matches);
   wallControls = new WallToolControls(document, wallTool);
   wallControls.setCompact(compactHudQuery.matches);
-  buyControls = new BuyToolControls(document, buyTool);
+  buyControls = new BuyToolControls(document, buyTool, sim.needNames());
   buyControls.setCompact(compactHudQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactHudQuery.matches);
