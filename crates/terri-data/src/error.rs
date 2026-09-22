@@ -774,6 +774,26 @@ pub enum ContentError {
     EmptyTraitDescription {
         id: String,
     },
+    /// An `affinity_loves_from` at or below 1, or an `affinity_hates_to`
+    /// outside `[0, 1)` - [TL-affinity]. Either would give one multiplier
+    /// two verbs, or call a pull a push.
+    AffinityBandOutOfRange {
+        field: &'static str,
+        value: f32,
+    },
+    /// A disposition whose multiplier is exactly 1 - [TL-affinity]. It
+    /// changes no choice, so its description has nothing true to say.
+    DispositionChangesNothing {
+        id: String,
+    },
+    /// A disposition whose description does not open with the verb its
+    /// multiplier earns - [TL-affinity]. The Traits panel would tell the
+    /// player something the simulation does not do.
+    TraitVerbDisagrees {
+        id: String,
+        verb: &'static str,
+        multiplier: f32,
+    },
     /// A trait keyed on a tag no interaction carries: a fear of nothing,
     /// a skill at nothing, a condition managed by nothing - [D9]'s
     /// dangling reference, in the trait file's own words.
@@ -1786,6 +1806,30 @@ impl fmt::Display for ContentError {
                 f,
                 "trait '{id}' has a blank description; the Traits panel \
                  prints one sentence saying what each trait does"
+            ),
+            ContentError::AffinityBandOutOfRange { field, value } => write!(
+                f,
+                "{field} is {value}; it must be {}, so each disposition earns \
+                 one verb",
+                if *field == "affinity_loves_from" {
+                    "above 1"
+                } else {
+                    "in [0, 1)"
+                }
+            ),
+            ContentError::DispositionChangesNothing { id } => write!(
+                f,
+                "trait '{id}' has score_multiplier 1, which changes no choice; \
+                 a disposition must pull toward its activity or push away"
+            ),
+            ContentError::TraitVerbDisagrees {
+                id,
+                verb,
+                multiplier,
+            } => write!(
+                f,
+                "trait '{id}' has score_multiplier {multiplier}, so its \
+                 description must open with \"{verb} \""
             ),
             ContentError::TraitAboutNothing { id, tag } => write!(
                 f,

@@ -200,8 +200,17 @@ pub struct TuningFile {
     pub wander_radius_tiles: u32,
     /// What a sale pays back, as a fraction of the object's price, in
     /// `[0, 1]` - [SL-pay] in `docs/specs/2026-09-22-selling-furniture.md`.
-    /// Last in this record on purpose, per the appending rule.
     pub resale_fraction: f32,
+    /// The two lines that choose a disposition trait's verb - [TL-affinity]
+    /// in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`. A
+    /// multiplier at or above `affinity_loves_from` reads "Loves", above 1
+    /// "Likes", below 1 "Dislikes", and at or below `affinity_hates_to`
+    /// "Hates". The compiler holds each description to its verb. The
+    /// simulation never reads either line, so neither is copied into the
+    /// compiled pack. The pair is last in this record on purpose, per the
+    /// appending rule.
+    pub affinity_loves_from: f32,
+    pub affinity_hates_to: f32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -969,7 +978,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 27] = [
+    const TUNING_LINES: [(&str, &str); 29] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -996,6 +1005,8 @@ mod tests {
         ("asleep_decay_scale", "0.6"),
         ("wander_radius_tiles", "29"),
         ("resale_fraction", "0.40625"),
+        ("affinity_loves_from", "1.46875"),
+        ("affinity_hates_to", "0.28125"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1068,6 +1079,8 @@ mod tests {
         assert_eq!(parsed.day_ticks, 17);
         assert_eq!(parsed.wander_radius_tiles, 29);
         assert_eq!(parsed.resale_fraction, 0.40625);
+        assert_eq!(parsed.affinity_loves_from, 1.46875);
+        assert_eq!(parsed.affinity_hates_to, 0.28125);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

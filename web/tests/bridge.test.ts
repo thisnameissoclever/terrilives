@@ -107,7 +107,7 @@ describe('SimBridge', () => {
     expect(library.kinds).toHaveLength(15);
     expect(library.descriptions).toHaveLength(15);
     expect(library.labels[3]).toBe('Bookworm');
-    expect(library.descriptions[3]).toBe('More drawn to reading.');
+    expect(library.descriptions[3]).toBe('Likes reading.');
 
     const ids = Array.from(bridge.ids());
     const tim = ids.find((id) => bridge.simName(id) === 'Tim');
@@ -122,15 +122,14 @@ describe('SimBridge', () => {
         {
           key: 2,
           label: 'Low spirits',
-          description:
-            'Gets less satisfaction from everything; attending to correspondence eases it.',
+          description: 'Gets less out of everything; attending to correspondence eases it.',
           state: 'Severity 60%',
         },
-        { key: 3, label: 'Bookworm', description: 'More drawn to reading.', state: '' },
+        { key: 3, label: 'Bookworm', description: 'Likes reading.', state: '' },
         {
           key: 11,
           label: 'Out of shape',
-          description: 'Often gets less from a workout, and gets fitter with every attempt.',
+          description: 'Gets less from a workout at first, and gets fitter with every attempt.',
           state: 'Skill 42%',
         },
       ],

@@ -457,7 +457,7 @@ pub fn compile(
         &foreground_sprite_names,
         &sprite_index,
     )?;
-    let (tuning, circadian, sleep_tag) = compile_tuning(tuning)?;
+    let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -528,7 +528,7 @@ pub fn compile(
     // interaction is retired. After the lot (the coverage rule needs
     // the placements) and after tuning (steps obey the clipped rule).
     let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
-    let traits = compile_traits(traits, &compiled, &social, &chains)?;
+    let traits = compile_traits(traits, &compiled, &social, &chains, affinity)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
@@ -1091,11 +1091,62 @@ fn compile_careers(
 /// default nobody chose), and another kind's numbers are REJECTED (a
 /// `score_multiplier` on a condition is a statement the simulation
 /// silently ignores - the [D9] shape, caught at build time).
+/// The lines that choose a disposition trait's verb - [TL-affinity] in
+/// `docs/specs/2026-09-21-trait-library-and-traits-panel.md`.
+#[derive(Debug, Clone, Copy)]
+struct AffinityBands {
+    loves_from: f32,
+    hates_to: f32,
+}
+
+/// Reads and checks the verb lines from `tuning.toml`. Love must sit above
+/// 1 and hate below it, so no multiplier earns two verbs.
+fn affinity_bands(tuning: &TuningFile) -> Result<AffinityBands, ContentError> {
+    check_finite(
+        tuning.affinity_loves_from,
+        "affinity_loves_from in tuning.toml",
+    )?;
+    check_finite(tuning.affinity_hates_to, "affinity_hates_to in tuning.toml")?;
+    if tuning.affinity_loves_from <= 1.0 {
+        return Err(ContentError::AffinityBandOutOfRange {
+            field: "affinity_loves_from",
+            value: tuning.affinity_loves_from,
+        });
+    }
+    if !(0.0..1.0).contains(&tuning.affinity_hates_to) {
+        return Err(ContentError::AffinityBandOutOfRange {
+            field: "affinity_hates_to",
+            value: tuning.affinity_hates_to,
+        });
+    }
+    Ok(AffinityBands {
+        loves_from: tuning.affinity_loves_from,
+        hates_to: tuning.affinity_hates_to,
+    })
+}
+
+/// The verb a disposition's description opens with, from its multiplier -
+/// [TL-affinity]. `None` for exactly 1, which changes nothing.
+fn affinity_verb(multiplier: f32, bands: AffinityBands) -> Option<&'static str> {
+    if multiplier >= bands.loves_from {
+        Some("Loves")
+    } else if multiplier > 1.0 {
+        Some("Likes")
+    } else if multiplier <= bands.hates_to {
+        Some("Hates")
+    } else if multiplier < 1.0 {
+        Some("Dislikes")
+    } else {
+        None
+    }
+}
+
 fn compile_traits(
     traits: TraitsFile,
     objects: &[CompiledObject],
     social: &[CompiledInteraction],
     chains: &[crate::pack::CompiledChain],
+    affinity: AffinityBands,
 ) -> Result<Vec<crate::pack::CompiledTrait>, ContentError> {
     use crate::pack::{CompiledTrait, CompiledTraitKind};
 
@@ -1185,6 +1236,19 @@ fn compile_traits(
                 forbid(def.accrual_scale, "accrual_scale")?;
                 forbid(def.manage_per_completion, "manage_per_completion")?;
                 forbid(def.start_severity, "start_severity")?;
+                // [TL-affinity]: the sentence the Traits panel prints opens
+                // with the verb the number earns, so the words cannot say
+                // more or less than the choice tables do.
+                let Some(verb) = affinity_verb(multiplier, affinity) else {
+                    return Err(ContentError::DispositionChangesNothing { id: def.id.clone() });
+                };
+                if !def.description.starts_with(&format!("{verb} ")) {
+                    return Err(ContentError::TraitVerbDisagrees {
+                        id: def.id.clone(),
+                        verb,
+                        multiplier,
+                    });
+                }
                 CompiledTraitKind::Disposition {
                     score_multiplier: multiplier,
                 }
@@ -2107,9 +2171,15 @@ fn compile_household(
 /// since every control point has to fall inside `day_ticks`, but is stored
 /// beside it on the pack rather than within it: `Tuning` is `Copy` and a
 /// circadian rhythm owns a `String` and a `Vec`.
-type CompiledTuning = (Tuning, Option<Circadian>, String);
+/// The compiled knobs, the circadian table, the sleep tag, and the traits'
+/// verb lines ([TL-affinity]), which the compiler reads and the pack never
+/// holds.
+type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    // Read here, with every other tuning check, so no caller can compile
+    // the knobs and forget the verb lines.
+    let affinity = affinity_bands(&tuning)?;
     // Finiteness first, for the same reason placement coordinates are
     // checked before their bounds: every comparison against NaN is
     // false, so `NaN <= 0.0` would let a NaN temperature through the
@@ -2444,6 +2514,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         },
         circadian,
         tuning.sleep_tag,
+        affinity,
     ))
 }
 
@@ -3677,6 +3748,8 @@ mod tests {
             day_ticks: 19,
             wander_radius_tiles: 29,
             resale_fraction: 0.40625,
+            affinity_loves_from: 1.46875,
+            affinity_hates_to: 0.28125,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -6842,7 +6915,8 @@ mod tests {
         TraitDef {
             id: id.to_string(),
             label: format!("The {id} one"),
-            description: format!("What the {id} one does."),
+            // "Likes", the verb 1.25 earns between the fixture's lines.
+            description: format!("Likes the {id} snack."),
             kind: "disposition".to_string(),
             tag: "snacking".to_string(),
             score_multiplier: Some(1.25),
@@ -6877,6 +6951,7 @@ mod tests {
         }
         let mut fear = a_trait("terrified");
         fear.score_multiplier = Some(0.0);
+        fear.description = "Hates snacks.".to_string();
         let pack = compile_people_with_traits(vec![], vec![], vec![fear])
             .expect("zero IS the fear and must compile");
         assert_eq!(
@@ -6885,6 +6960,111 @@ mod tests {
                 score_multiplier: 0.0
             }
         );
+    }
+
+    /// [TL-affinity]: each band's own edge earns its verb, one step inside
+    /// the next band earns the next, and a description opening with any
+    /// other verb is refused by name. The fixture's lines are 1.46875 and
+    /// 0.28125, so every multiplier here sits on or beside a line.
+    #[test]
+    fn a_disposition_opens_with_the_verb_its_multiplier_earns() {
+        const VERBS: [&str; 4] = ["Loves", "Likes", "Dislikes", "Hates"];
+        for (multiplier, earned) in [
+            (1.5, "Loves"),
+            (1.46875, "Loves"),
+            (1.4375, "Likes"),
+            (1.03125, "Likes"),
+            (0.96875, "Dislikes"),
+            (0.3125, "Dislikes"),
+            (0.28125, "Hates"),
+            (0.0, "Hates"),
+        ] {
+            for verb in VERBS {
+                let mut worn = a_trait("keen");
+                worn.score_multiplier = Some(multiplier);
+                worn.description = format!("{verb} snacks.");
+                let compiled = compile_people_with_traits(vec![], vec![], vec![worn]);
+                if verb == earned {
+                    compiled.unwrap_or_else(|e| panic!("{multiplier} {verb}: {e}"));
+                } else {
+                    assert_eq!(
+                        compiled.unwrap_err(),
+                        ContentError::TraitVerbDisagrees {
+                            id: "keen".to_string(),
+                            verb: earned,
+                            multiplier,
+                        },
+                        "{multiplier} {verb}"
+                    );
+                }
+            }
+        }
+        // The verb is a word of its own, not a prefix of one.
+        let mut run_on = a_trait("keen");
+        run_on.description = "Likesnacks.".to_string();
+        assert!(matches!(
+            compile_people_with_traits(vec![], vec![], vec![run_on]).unwrap_err(),
+            ContentError::TraitVerbDisagrees { verb: "Likes", .. }
+        ));
+    }
+
+    /// [TL-affinity]: a disposition of exactly 1 changes no choice, and is
+    /// refused rather than given a verb that would say it does.
+    #[test]
+    fn a_disposition_that_changes_nothing_is_refused() {
+        let mut idle = a_trait("idle");
+        idle.score_multiplier = Some(1.0);
+        assert_eq!(
+            compile_people_with_traits(vec![], vec![], vec![idle]).unwrap_err(),
+            ContentError::DispositionChangesNothing {
+                id: "idle".to_string()
+            }
+        );
+    }
+
+    /// [TL-affinity]: love above 1 and hate in `[0, 1)`, each pinned from
+    /// both sides of its edge, and neither may be a non-number.
+    #[test]
+    fn validates_the_affinity_lines() {
+        let compile_banded = |loves: f32, hates: f32| {
+            compile_tuned(tuning_where(|t| {
+                t.affinity_loves_from = loves;
+                t.affinity_hates_to = hates;
+            }))
+        };
+        assert_eq!(
+            compile_banded(1.0, 0.5).unwrap_err(),
+            ContentError::AffinityBandOutOfRange {
+                field: "affinity_loves_from",
+                value: 1.0
+            }
+        );
+        compile_banded(1.03125, 0.5).expect("love just above 1 compiles");
+        for hates in [1.0, -0.03125] {
+            assert_eq!(
+                compile_banded(1.5, hates).unwrap_err(),
+                ContentError::AffinityBandOutOfRange {
+                    field: "affinity_hates_to",
+                    value: hates
+                }
+            );
+        }
+        compile_banded(1.5, 0.0).expect("hate at zero compiles");
+        compile_banded(1.5, 0.96875).expect("hate just below 1 compiles");
+        // Each message names only its own line's rule.
+        let message =
+            |loves: f32, hates: f32| compile_banded(loves, hates).unwrap_err().to_string();
+        assert!(message(1.0, 0.5).contains("affinity_loves_from is 1; it must be above 1,"));
+        assert!(message(1.5, 1.0).contains("affinity_hates_to is 1; it must be in [0, 1),"));
+        assert!(!message(1.5, 1.0).contains("above 1"));
+        assert!(matches!(
+            compile_banded(f32::NAN, 0.5).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
+        assert!(matches!(
+            compile_banded(1.5, f32::NAN).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
     }
 
     /// The two strings the Traits panel prints are both required, and each
@@ -6913,7 +7093,7 @@ mod tests {
         let described = compile_people_with_traits(vec![], vec![], vec![a_trait("plain")])
             .expect("a label and a description compile");
         assert_eq!(described.traits[0].label, "The plain one");
-        assert_eq!(described.traits[0].description, "What the plain one does.");
+        assert_eq!(described.traits[0].description, "Likes the plain snack.");
     }
 
     /// One trait, worn once - the review finding: `Traits` keys state
