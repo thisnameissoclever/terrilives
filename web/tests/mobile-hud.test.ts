@@ -270,8 +270,10 @@ describe('the phone Build dock', () => {
     // do not fit, as on a 320 by 481 screen with a long status.
     expect(tall).toMatch(/#builder-dock #builder-controls:not\(\[hidden\]\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*overflow-y:\s*auto;/);
     expect(tall).toMatch(/#builder-dock #builder-controls > \.builder-tool:not\(\[hidden\]\)\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/);
-    // The choices never shrink below one whole list row and its outline.
-    expect(tall).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*52px;[^}]*overflow-y:\s*auto;/);
+    expect(tall).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*box-sizing:\s*border-box;[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/);
+    // Where a tool has a list, its choices never shrink below one whole list
+    // row and its outline; the Walls and Room tools have no list to keep.
+    expect(tall).toMatch(/#builder-dock #furniture-tool \.builder-choices,\s*#builder-dock #buy-tool \.builder-choices\s*\{\s*min-height:\s*52px;\s*\}/);
     expect(tall).toMatch(/#builder-dock \.builder-actions\s*\{[^}]*flex:\s*none;/);
     // Nothing is pinned over content anywhere, so focus is never hidden.
     expect(INDEX_HTML).not.toContain('sticky');
@@ -294,19 +296,20 @@ describe('the phone Build dock', () => {
     }
   });
 
-  // A rule with two ids outranks `#builder-controls[hidden]`, so any rule
-  // that gives the panel or a tool a display must leave hidden ones alone,
-  // or the panel shows outside Build.
+  // The phone layout gives the panel and the tools displays with selectors
+  // that could outrank a plain hiding rule, which once showed the Build panel
+  // outside Build. Hiding is marked important, so only another important
+  // display could show a hidden panel or tool, and there is none.
   it('never shows the panel or a tool the game has hidden', () => {
-    const target = /#builder-controls(?![\w-])|#(?:furniture|wall|room|buy)-tool(?![\w-])|\.builder-tool(?![\w-])/;
-    const rules = [...INDEX_HTML.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
-    // Only a selector with two or more ids outranks the hidden rule.
-    const outranking = rules
-      .filter(([, , body]) => /display:\s*(?!none)/.test(body))
-      .flatMap(([, selector]) => selector.split(',').map((part) => part.trim()))
-      .filter((part) => target.test(part.split(/\s+/).at(-1) ?? '') && (part.match(/#/g) ?? []).length >= 2);
-    expect(outranking.length).toBeGreaterThan(0);
-    for (const part of outranking) expect(part).toContain(':not([hidden])');
+    expect(INDEX_HTML).toContain('#builder-controls[hidden], .builder-tool[hidden] { display: none !important; }');
+    for (const tool of ['furniture', 'wall', 'room', 'buy']) {
+      expect(INDEX_HTML).toContain(`<div id="${tool}-tool" class="builder-tool"`);
+    }
+    const uncommented = INDEX_HTML.replace(/\/\*[\s\S]*?\*\//g, '');
+    const important = [...uncommented.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, , body]) => /display:[^;}]*!important/.test(body))
+      .map(([, selector]) => selector.trim());
+    expect(important).toEqual(['#builder-controls[hidden], .builder-tool[hidden]']);
   });
 
   it('puts the tools back two by two below 301 pixels wide', () => {

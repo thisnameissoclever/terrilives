@@ -603,12 +603,14 @@
       #build-toggle { grid-area: build; width: 100%; margin-top: 6px; }
       #builder-desktop:empty { display: none; }
       #builder-controls { display: grid; gap: 8px; }
-      #builder-controls[hidden] { display: none; }
+      /* [B-phone-build-dock]: hidden always wins. The phone layout gives the
+         panel and the tools displays whose selectors could outrank a plain
+         hiding rule, which once showed the panel outside Build. */
+      #builder-controls[hidden], .builder-tool[hidden] { display: none !important; }
       #builder-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
       #builder-controls p { margin: 0; }
       /* The tool wrappers keep the panel's own spacing for what they hold. */
       #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
-      #furniture-tool[hidden], #wall-tool[hidden], #room-tool[hidden], #buy-tool[hidden] { display: none; }
       #builder-object, #buy-object, #buy-filter {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
@@ -840,14 +842,16 @@
         #builder-dock #builder-controls > .builder-tool:not([hidden]) {
           flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
         }
-        /* The choices keep one whole list row and its outline; where the
-           footer and that floor do not fit, the panel scrolls whole. The
-           padding keeps focus outlines inside the scrolling region; the
+        /* The padding keeps focus outlines inside the scrolling region; the
            margin keeps the edges where they were. */
         #builder-dock .builder-choices {
-          flex: 1 1 auto; min-height: 52px; overflow-y: auto;
+          box-sizing: border-box; flex: 1 1 auto; min-height: 0; overflow-y: auto;
           margin: -4px; padding: 4px;
         }
+        /* Where a tool has a list, its choices keep one whole list row and
+           its outline; where the footer and that floor do not fit, the panel
+           scrolls whole. */
+        #builder-dock #furniture-tool .builder-choices, #builder-dock #buy-tool .builder-choices { min-height: 52px; }
         #builder-dock .builder-actions {
           flex: none; padding-top: 8px; border-top: 1px solid var(--hud-edge);
         }

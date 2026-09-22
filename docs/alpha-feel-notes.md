@@ -3334,10 +3334,14 @@ Cancel, Sell, the note, then the keyboard help.
 **Leaving Build, 390 by 844.** Before Build the panel was hidden. Build showed
 it, 283 pixels tall; Exit build hid it again and the toggle read "Build".
 
-**320 by 481, Furniture with the stove chosen.** The choices region kept 60
+**320 by 481, Furniture with the stove chosen.** The choices region kept 52
 pixels with the list whole, and the status and the row of three buttons were
 in view. The sale note was almost all below the panel's edge; scrolling the
-whole panel 32 pixels brought all of it into view.
+whole panel 24 pixels brought all of it into view.
+
+**Hidden stays hidden, 390 by 844.** With a rule injected that gives every
+tool a flex display, the three tools not in use stayed hidden. The Walls
+panel is 198 pixels, its choices exactly its help line and outline padding.
 
 **First version, replaced.** The first build pinned the footer over a panel
 that scrolled whole. Review measured it hiding Buy's Rotate at 390 by 844 and

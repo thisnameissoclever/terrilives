@@ -28,15 +28,19 @@ and whose footer never shrinks. The footer is always in view and nothing sits
 behind it, so a tap on a visible control always reaches it, and keyboard focus
 moving into the choices scrolls them the ordinary way.
 
-The choices never shrink below 52 pixels, one whole list row and room for its
-focus outline. Where the footer and that floor together do not fit, as at 320
-by 481 with the stove's sale note, or with a status long enough to wrap to
-three lines, the panel itself scrolls as a last resort, so the end of the
-footer is always reachable.
+In the Furniture and Buy tools, which have lists, the choices never shrink
+below 52 pixels, one whole list row and room for its focus outline. The Walls
+and Room tools have only help lines there, so they keep no floor and no blank
+space. Where the footer and the floor together do not fit, as at 320 by 481
+with the stove's sale note, or with a status long enough to wrap to three
+lines, the panel itself scrolls as a last resort, so the end of the footer is
+always reachable.
 
-The column only applies while the panel is shown. A rule with two ids
-outranks the one that hides the panel outside Build, so each such rule is
-written for a panel or tool that is not hidden, and a test checks every one.
+Hidden always wins. The phone layout gives the panel and the tools displays
+whose selectors could outrank a plain hiding rule, which once showed the
+panel outside Build, so the rule hiding the panel and the tools is marked
+important. A test checks that it is, and that no other rule gives any element
+an important display.
 
 An earlier version of this slice pinned the footer over a panel that scrolled
 whole. Review found that it hid whatever scrolled behind the footer: Buy's
@@ -90,6 +94,13 @@ test over every rule that could outrank the hidden one. It also found that at
 sale note beyond reach; the choices now keep a floor and the panel scrolls
 whole as a last resort. It noted that phones no longer show "Household
 paused"; that is kept as a decision, for the reasons under [PD-rows].
+
+A third round found that the test guarding the hidden panel only caught rules
+with two ids, while one id and one class could also show every hidden tool;
+hiding is now marked important and the test checks that instead. It also
+found the list floor added blank space to the Walls and Room tools and
+measured 60 pixels, not 52, because it sat inside the padding; the floor now
+applies only where there is a list and counts the padding.
 
 ## Slices
 
