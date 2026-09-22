@@ -27,6 +27,7 @@ import { buildEdgeWallGeometry } from './edge-walls.js';
 import {
   FLOATS_PER_INSTANCE,
   TINT_NONE,
+  writeColourway,
   writeInstance,
   type InstanceArray,
 } from './instances.js';
@@ -60,6 +61,13 @@ export interface Lot {
    * frame is drawn there, so the empty doorway panel is left out.
    */
   readonly doors?: Uint32Array | null;
+  /**
+   * The house's `[width, height]` from the lot's north-west corner; every
+   * other tile is yard ([OS-yard]). Absent, the whole lot is house.
+   */
+  readonly house?: readonly [number, number] | null;
+  /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
+  readonly yardLook?: readonly [number, number, number] | null;
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -136,8 +144,13 @@ export function buildStaticInstances(
   scale = 1,
   lighting: TileLighting | null = null,
 ): StaticGeometry {
+  const house = lot.house ?? [lot.width, lot.height];
   const edgePanels = lot.edges == null ? null
-    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges, lot.doors ?? undefined);
+    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges, lot.doors ?? undefined, house);
+  // The yard's look as a two-row shift table, so a yard tile writes row 1
+  // exactly as a colourway does ([RC-shift]).
+  const yardShift = Float32Array.from([0, 1, 0, ...(lot.yardLook ?? [0, 1, 0])]);
+  const isYard = (x: number, y: number): boolean => x >= house[0] || y >= house[1];
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),
@@ -273,6 +286,7 @@ export function buildStaticInstances(
       TINT_NONE,
       lighting === null ? 0 : sampleLight(lighting, x, y),
     );
+    if (isYard(x, y)) writeColourway(instances, slot - 1, yardShift, 1);
   };
 
   for (let y = 0; y < lot.height; y++) {

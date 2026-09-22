@@ -6874,8 +6874,9 @@ step where the bug was first seen.
 
 **What happened.** PR 97's mutation sweep failed on two mutants that time out
 rather than fail: both let a count above the limit through `exceeds_limit`,
-the loader's bound on saved counts. With the bound off, the save test that feeds `issued_sim_ids =
-u32::MAX` took 15.6 seconds on a desktop and over the 60 second limit on a CI
+the loader's bound on saved counts. With the bound off, the save test that
+feeds `issued_sim_ids = u32::MAX` took 15.6 seconds on a desktop and over the
+60 second limit on a CI
 runner, because restoring the sim id allocator called `issue` once per issued
 identity. PRs 98 and 99 passed the same shard only because their runners were
 faster.
@@ -6888,9 +6889,10 @@ guards cost as well as correctness is one the sweep will break.
 replaying it. When a loader must loop over a saved number, loop over data the
 save actually contains, whose length the decoder has already paid for. The
 one exception is the entity slots in `restore_with_facings`: the ECS hands
-indices out in order, so the loader spawns one per index up to the last
-saved one, bounded by validation's check that every index is under
-`MAX_ENTITIES`, and a comment on the loop says so.
+indices out in order, so the loader spawns one per index up to the last saved
+or retired index, bounded by validation's checks that every entity index and
+every retired index is under `MAX_ENTITIES`, and a comment on the loop says
+so.
 
 **How to verify.** With `exceeds_limit` returning false,
 `invalid_snapshots_are_rejected_without_touching_the_running_sim` in
@@ -6976,3 +6978,75 @@ its tiles or elsewhere" in `web/tests/footprint-depth.test.ts` drives the
 whole frame; "draws the candidate in the colourway of the chosen object" in
 `web/tests/placement-preview.test.ts` covers the writer. Removing the ghost's
 colourway write fails both.
+
+## [L-build-where-the-tests-read] Web tests passed against a WebAssembly build nobody had made
+
+**What happened:** while building the yard, `wasm-pack` was run with
+`--out-dir ../../web/src/wasm-pkg`, a folder nothing reads. CI, the Pages build
+and the web tests all load `web/src/wasm`, so every `vitest` run in that stretch
+tested the WebAssembly left there by an earlier build. The yard's web tests
+passed while seven of them were wrong against the real 20 by 16 lot; a build
+into `web/src/wasm` showed them failing at once.
+
+**Root cause:** the out-dir was typed from memory rather than copied from
+`.github/workflows/ci.yml`, and a stale build is silent: `vitest` has no idea
+the Rust moved. This is [L8] again, reached by building somewhere else rather
+than by not building.
+
+**Prevention rule:** build with exactly the command CI runs,
+`wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
+from the repository root, before every web test run that follows a Rust
+change.
+
+**How to verify:** after the build, the timestamp of
+`web/src/wasm/terri_wasm_bg.wasm` is newer than the last Rust edit, and a web
+test that reads a boundary value you just changed, such as
+`houseSize()` in `web/tests/bridge.test.ts`, fails before the change and
+passes after.
+
+## [L-a-rule-read-the-picture] A wall rule read the presentation-only portal rows
+
+**What happened:** the yard's rule that the front door's line never becomes a
+wall first found that line through `ActivePortals`, the portal rows the
+renderer draws from. A world built without them, such as `Sim::new()` loading
+the same save, accepted the wall the game refused, and the two worlds' digests
+parted. Review caught it before merge.
+
+**Root cause:** the helper was written for the door's swing, which is
+presentation and rightly reads `ActivePortals`, and was then reused by a
+simulation rule. The `ActivePortals` doc comment in
+`crates/terri-sim/src/portals.rs` already says career routing reads the
+content's portals, not the presentation rows; a new rule did not check which
+side of that line it stood on.
+
+**Prevention rule:** a rule that decides what the simulation does reads only
+simulation state and the content, the way `check_new_walls` finds the front
+door: `content.lot.front_door` matched to its portal in `content.portals`.
+When a helper serves both the picture and a rule, it takes its source from
+the rule's side.
+
+**How to verify:** `the_front_doors_line_is_kept_without_the_doors_art` in
+`crates/terri-sim/src/placement/wall_tests.rs` loads one save into
+`Sim::new()` and into the shipped lot, asks both for the same wall, and
+compares the refusals and the digests; it fails if `front_door_lines` reads
+`ActivePortals` again.
+
+## [L-run-every-gate-ci-runs] The yard passed every local gate and failed CI's asset tests
+
+**What happened:** the yard grew the lot from 16 by 12 to 20 by 16. Every
+local gate passed, and CI's rust job failed: two tests in
+`assets/models/sims/sim-01/test_exercise_wall.py` read `content/lot.toml`
+and the bike art's exporter asserted the lot was 12 tiles tall.
+
+**Root cause:** the local gate list was written from memory, as fmt, clippy,
+the Rust tests, the doc ids, WebAssembly, the typecheck and the web tests.
+CI's rust job also runs every asset folder's Python tests and the sprite
+atlas check, which read content too.
+
+**Prevention rule:** run the gates by reading `.github/workflows/ci.yml`, or
+with a script built from it, never from a list in memory. A content change,
+such as the lot's size, reaches the asset tests as surely as the Rust ones.
+
+**How to verify:** before a push, the `Sprite atlas is reproducible` step's
+seven `unittest discover` commands and `build.py --check` pass locally
+alongside the rest.

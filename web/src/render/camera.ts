@@ -138,6 +138,21 @@ export function zoomAnchoredOrigin(
 }
 
 /**
+ * The width and height the view opens framed on ([OS-camera] in
+ * `docs/specs/2026-09-22-the-outside.md`): the house, which stands in the
+ * lot's north-west corner, so the view opens as it did before the yard. A lot
+ * smaller than the house, such as one saved before the yard that never grew,
+ * is framed whole.
+ */
+export function openingExtent(
+  lotWidth: number,
+  lotHeight: number,
+  house: readonly [number, number],
+): [number, number] {
+  return [Math.min(lotWidth, house[0]), Math.min(lotHeight, house[1])];
+}
+
+/**
  * The lot's drawn bounding box RELATIVE TO THE ORIGIN, in buffer
  * pixels at `scale` - what `clampOrigin` bounds the pan against.
  *

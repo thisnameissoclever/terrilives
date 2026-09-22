@@ -412,9 +412,10 @@ describe('the Room tool on real wasm', () => {
     expect(bridge.lastRoomResult()).toEqual({ corners: [x, y, x, y], doorway: { axis: 0, x: x + 1, y },
       reason: null, code: 0 });
     // A refusal crosses with its code, which the doorway hint reads.
-    expect(bridge.buildRoom([14, 10, 16, 11], null)).toBe(true);
+    // x = 20 is past the yard's east edge, off the lot.
+    expect(bridge.buildRoom([18, 14, 20, 15], null)).toBe(true);
     bridge.flushCommands();
-    expect(bridge.lastRoomResult()).toEqual({ corners: [14, 10, 16, 11], doorway: null,
+    expect(bridge.lastRoomResult()).toEqual({ corners: [18, 14, 20, 15], doorway: null,
       reason: roomReason(5), code: 5 });
     for (const code of [1, 4, 5, 6, 8, 9, 10, 11, 12, 13]) {
       expect(roomReason(code)).toMatch(/^[A-Z].*\.$/);

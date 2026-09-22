@@ -756,7 +756,12 @@ impl Sim {
     /// saved walls in, and the interior doors are drawn from those walls
     /// ([DR-derived]), so without this a loaded house would show its doorways
     /// doorless until the next tick.
+    ///
+    /// A house saved before the yard grows into it first ([OS-migrate]), so
+    /// every loader passes through the same growth.
     fn adopt(&mut self, mut restored: Sim) {
+        let content = restored.world.resource::<Content>().0;
+        save::yard::grow(&mut restored, content);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -1193,6 +1198,33 @@ impl Sim {
     pub fn new_from_shipped_lot() -> Self {
         let pack = terri_data::pack();
         let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
+        sim.world
+            .insert_resource(portals::ActivePortals::from_content(pack));
+        sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+        sim
+    }
+
+    /// The shipped household in its house as it stood before the yard
+    /// ([OS-grow]): the lot cut back to the house, without the walls on the
+    /// house's outside lines, which were then the lot's edge. Every save made
+    /// before the yard was made on this lot.
+    #[cfg(test)]
+    pub(crate) fn new_from_pre_yard_lot() -> Self {
+        let pack = terri_data::pack();
+        let (width, height) = pack.lot.house;
+        let lot = terri_data::CompiledLot {
+            width,
+            height,
+            wall_edges: pack
+                .lot
+                .wall_edges
+                .iter()
+                .filter(|edge| edge.in_bounds(width, height))
+                .copied()
+                .collect(),
+            ..pack.lot.clone()
+        };
+        let mut sim = Self::new_from_lot(&lot, &pack.objects);
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -2919,6 +2951,8 @@ mod lot_tests {
         CompiledLot {
             width: 6,
             height: 4,
+            house: (6, 4),
+            yard_look: [0.0, 1.0, 0.0],
             front_door: None,
             walls: vec![(3, 2), (1, 0)],
             wall_edges: Vec::new(),
@@ -3175,6 +3209,8 @@ mod lot_tests {
         CompiledLot {
             width: 7,
             height: 5,
+            house: (7, 5),
+            yard_look: [0.0, 1.0, 0.0],
             front_door: None,
             walls: vec![(6, 0)],
             wall_edges: Vec::new(),
@@ -3302,16 +3338,21 @@ mod lot_tests {
             lot.walls.is_empty(),
             "interior walls no longer consume tiles"
         );
-        assert_eq!(lot.wall_edges.len(), 34);
-        assert_eq!(grid.blocked_edges().count(), 29);
+        // The 34 interior walls, 29 of them solid, and the house's 28
+        // outside walls, all solid but the front door's line ([OS-walls]).
+        assert_eq!(lot.wall_edges.len(), 34 + 28);
+        assert_eq!(grid.blocked_edges().count(), 29 + 27);
 
         // Literal boundaries pin the reviewed house, including V(8,5), which
-        // closes a bypass through the reclaimed former wall column.
+        // closes a bypass through the reclaimed former wall column, then the
+        // house's east wall with the front door and its south wall.
         for (axis, fixed, range, doors) in [
             (EdgeAxis::Vertical, 8, 0..6, vec![2]),
             (EdgeAxis::Horizontal, 6, 0..16, vec![3, 13]),
             (EdgeAxis::Vertical, 6, 6..12, vec![9]),
             (EdgeAxis::Vertical, 12, 6..12, vec![8]),
+            (EdgeAxis::Vertical, 16, 0..12, vec![2]),
+            (EdgeAxis::Horizontal, 12, 0..16, vec![]),
         ] {
             for varying in range {
                 let (x, y) = match axis {

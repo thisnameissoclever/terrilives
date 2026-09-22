@@ -383,6 +383,13 @@ pub struct CompiledLot {
     pub front_door: Option<(u32, u32)>,
     /// Interior boundaries in declaration order. Appended for postcard stability.
     pub wall_edges: Vec<terri_core::layout::WallEdge>,
+    /// [OS-grow] in `docs/specs/2026-09-22-the-outside.md`: the house's width
+    /// and height from the lot's north-west corner; every other tile is yard.
+    /// The whole lot when `lot.toml` names no house. Appended.
+    pub house: (u32, u32),
+    /// [OS-yard]: the hue, strength and lightness a yard tile's floor art is
+    /// drawn under, as a colourway's ([RC-shift]). Appended.
+    pub yard_look: [f32; 3],
 }
 
 /// Structural routing and presentation data for one validated lot-boundary portal.
@@ -1079,6 +1086,10 @@ mod tests {
     fn a_lot() -> CompiledLot {
         CompiledLot {
             wall_edges: vec![],
+            // Neither the lot's size nor the as-drawn look, so a round trip
+            // that dropped either moves the equality below.
+            house: (4, 3),
+            yard_look: [70.0, 1.5, -0.05],
             width: 6,
             height: 4,
             // Present rather than None, with coordinates distinct from

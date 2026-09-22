@@ -841,3 +841,43 @@ fn a_single_wall_still_follows_the_single_wall_rules() {
         PlacementRefusal::SimOverlap
     );
 }
+
+/// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: once the player has
+/// opened the front door's line, a room whose outline crosses it makes it the
+/// room's doorway or is refused, since a wall there would shut the door. A
+/// room that only touches the line's numbers along another axis is built.
+#[test]
+fn a_room_never_walls_the_front_doors_line() {
+    let mut sim = Sim::new_from_shipped_lot();
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetWallEdge {
+            axis: Vertical,
+            x: 16,
+            y: 2,
+            state: WallState::Open,
+        });
+    sim.flush_commands();
+    let room = |x0, y0, x1, y1, doorway| {
+        validate_room(
+            sim.world(),
+            RoomEdit {
+                x0,
+                y0,
+                x1,
+                y1,
+                doorway,
+            },
+        )
+    };
+    assert_eq!(
+        room(16, 1, 18, 3, None).err(),
+        Some(PlacementRefusal::BlockedDoor)
+    );
+    assert!(
+        room(16, 1, 18, 3, Some(line(Vertical, 16, 2)))
+            .unwrap()
+            .changed
+    );
+    assert!(room(16, 0, 18, 1, None).unwrap().changed);
+}

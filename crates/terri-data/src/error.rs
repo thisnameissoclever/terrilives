@@ -1054,6 +1054,30 @@ pub enum ContentError {
         colourway: String,
         field: String,
     },
+    /// [OS-grow]: the house is empty or larger than the lot it stands in.
+    HouseOutsideLot {
+        width: u32,
+        height: u32,
+        lot_width: u32,
+        lot_height: u32,
+    },
+    /// [OS-grow]: a line between a house tile and a yard tile holds neither a
+    /// wall nor a doorway, so the house is open to the yard.
+    HouseNotClosed {
+        axis: terri_core::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+    },
+    /// [OS-yard]: the yard's look has a number outside a colourway's range.
+    YardLookOutOfRange {
+        field: String,
+    },
+    /// [OS-door]: a front door on no edge of the lot that does not stand on
+    /// the house's outside wall facing south-east across a doorway onto yard.
+    FrontDoorNotOutside {
+        x: u32,
+        y: u32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -2057,6 +2081,34 @@ impl fmt::Display for ContentError {
                 f,
                 "colourway '{colourway}' has a {field} outside its range: hue \
                  -180 to 180, strength 0 to 2, lightness -0.25 to 0.25"
+            ),
+            ContentError::HouseOutsideLot {
+                width,
+                height,
+                lot_width,
+                lot_height,
+            } => write!(
+                f,
+                "lot.toml declares a {width}x{height} house on a \
+                 {lot_width}x{lot_height} lot; the house must be at least 1 by 1 \
+                 and fit the lot"
+            ),
+            ContentError::HouseNotClosed { axis, x, y } => write!(
+                f,
+                "lot.toml has no wall or doorway on the house's {axis:?} outside \
+                 line at ({x}, {y}); every line between the house and the yard \
+                 needs one"
+            ),
+            ContentError::YardLookOutOfRange { field } => write!(
+                f,
+                "lot.toml's yard has a {field} outside its range: hue -180 to \
+                 180, strength 0 to 2, lightness -0.25 to 0.25"
+            ),
+            ContentError::FrontDoorNotOutside { x, y } => write!(
+                f,
+                "the animated front door at ({x}, {y}) is on no edge of the lot, \
+                 so it must stand on the house's outside wall, facing SE across \
+                 a doorway onto a yard tile"
             ),
         }
     }

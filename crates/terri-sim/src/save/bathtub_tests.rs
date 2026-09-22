@@ -16,8 +16,10 @@ fn restore_without_portals(
     restore(snapshot, content, None)
 }
 
+/// A save from before the bathtub turned, made, as every such save was, on
+/// the lot as it stood before the yard ([OS-grow]).
 pub(super) fn old_snapshot() -> SaveSnapshotV1 {
-    let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
+    let mut snapshot = Sim::new_from_pre_yard_lot().save_snapshot();
     for (x, y) in terri_core::layout::LEGACY_WALL_TILES {
         snapshot.blocked_tiles[y as usize * snapshot.grid_width as usize + x as usize] = true;
     }
@@ -613,6 +615,9 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
         }
     }
     source_pack.portals.clear();
+    // The lot as it stood before the yard ([OS-grow]), which the fingerprint
+    // does not see.
+    (source_pack.lot.width, source_pack.lot.height) = source_pack.lot.house;
     assert_eq!(
         terri_data::content_fingerprint(&source_pack),
         0xd396_b3f3_9e3c_6685

@@ -1,7 +1,7 @@
 //! Deterministic presentation projection for authored lot portals.
 
 use bevy_ecs::prelude::*;
-use terri_core::{Agent, AtWork, Career, Commuting, Path, Position};
+use terri_core::{Agent, AtWork, Career, Commuting, Path, Position, TileGrid};
 
 use crate::Content;
 
@@ -39,7 +39,8 @@ pub struct PortalBuffer {
     pub states: Vec<u32>,
     /// The tile across each row's line, `[x, y]` pairs: the renderer lights a
     /// portal from the brighter of its own tile and this one, as it lights the
-    /// walls around it. Off the lot for the front door.
+    /// walls around it. Off the lot for a front door on the lot's edge, the
+    /// yard tile beyond it for one on the house's wall ([OS-door]).
     pub far_sides: Vec<f32>,
 }
 
@@ -58,6 +59,7 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     };
     let content: &'static terri_data::ContentPack = world.resource::<Content>().0;
     let doors = interior_door_lines(world);
+    let width = lot_width(world);
 
     let mut people = world.query_filtered::<(
         &Position,
@@ -68,9 +70,13 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     ), With<Agent>>();
 
     for portal in portals {
+        // [OS-door]: a door with a yard beyond it swings for a sim walking
+        // through its line, as an interior door does, as well as for a
+        // commuter; the more open of the two wins.
+        let line = door_line(portal, width);
         let state = strongest(people.iter(world).map(
             |(position, path, commuting, at_work, career)| {
-                project_person(
+                let commute = project_person(
                     position,
                     path,
                     commuting,
@@ -78,7 +84,9 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
                     career.and_then(|career| content.careers.get(career.0 as usize)),
                     portal.position,
                     portal.inward,
-                )
+                );
+                let through = line.map_or(CLOSED, |line| project_through(position, path, line));
+                strongest([commute, through].into_iter())
             },
         ));
 
@@ -138,6 +146,48 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     }
 }
 
+/// The width of the lot this world loaded, or 0 when it has no grid.
+fn lot_width(world: &World) -> u32 {
+    world
+        .get_resource::<TileGrid>()
+        .map_or(0, |grid| grid.width() as u32)
+}
+
+/// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: the vertical line a
+/// front door facing +X stands on, as `(x, y)`, when the tile across it is on
+/// the lot, as it is where a yard lies beyond the door. A door on the lot's
+/// edge, or facing any other way, has no line on the lot.
+fn door_line(portal: &terri_data::CompiledPortal, width: u32) -> Option<(u32, u32)> {
+    let (x, y) = portal.position;
+    (portal.facing == terri_data::CompiledSocketFacing::PositiveX && x + 1 < width)
+        .then_some((x + 1, y))
+}
+
+/// The front door's line on the lot ([OS-door]), read from the content the
+/// world was built with and matched to its portal as the loader and the
+/// other door rules match it, never from the presentation-only
+/// [`ActivePortals`], so a world built without the door's art keeps the same
+/// rules and replays alike. The Walls and Room tools keep a wall off it, a lot
+/// edit keeps the tile beyond it open, and no interior door is derived on it.
+pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
+    let width = lot_width(world);
+    let Some(content) = world.get_resource::<Content>().map(|content| content.0) else {
+        return Vec::new();
+    };
+    content
+        .lot
+        .front_door
+        .and_then(|door| {
+            content
+                .portals
+                .iter()
+                .find(|portal| portal.position == door)
+        })
+        .and_then(|portal| door_line(portal, width))
+        .into_iter()
+        .collect()
+}
+
 /// The front door whose art fits a vertical line, the only art a door has:
 /// it faces +X, standing on its tile's +X edge.
 fn door_art(portals: &[terri_data::CompiledPortal]) -> Option<&terri_data::CompiledPortal> {
@@ -149,7 +199,8 @@ fn door_art(portals: &[terri_data::CompiledPortal]) -> Option<&terri_data::Compi
 /// The doorway lines that hold an interior door - [DR-derived]: every vertical
 /// doorway of an edge-wall house, as `(x, y)`, sorted, when the lot's front
 /// door has art for a vertical line. None for a horizontal doorway, which has
-/// no art yet, and none for a lot with no front door to take the art from.
+/// no art yet, none for a lot with no front door to take the art from, and
+/// none on a front door's own line, which has its door ([OS-door]).
 pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
     use terri_core::layout::{EdgeAxis, SavedLayout};
     let has_art = world
@@ -161,10 +212,12 @@ pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
     if !has_art {
         return Vec::new();
     }
+    let front = front_door_lines(world);
     let mut lines: Vec<(u32, u32)> = edges
         .iter()
         .filter(|edge| edge.doorway && edge.axis == EdgeAxis::Vertical)
         .map(|edge| (edge.x, edge.y))
+        .filter(|line| !front.contains(line))
         .collect();
     lines.sort_unstable();
     lines
@@ -582,6 +635,37 @@ mod tests {
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.load_snapshot_v2(sim.save_snapshot_v2()).unwrap();
         assert_eq!(rows(&loaded), 4, "after a V2 load");
+    }
+
+    /// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: with a yard beyond
+    /// it, the front door swings for a sim walking out through its line, as
+    /// an interior door does. On the lot's edge, or turned along its wall, it
+    /// has no line on the lot to walk through.
+    #[test]
+    fn the_front_door_swings_for_a_sim_walking_out_into_the_yard() {
+        let door = |content: &'static ContentPack, width: usize, height: usize| {
+            let mut world = world_with_active_portals(content);
+            world.insert_resource(TileGrid::new(width, height));
+            world.spawn((
+                Agent,
+                Position { x: 15.0, y: 2.0 },
+                Path {
+                    steps: vec![(16, 2)],
+                    cursor: 0,
+                },
+            ));
+            let mut buffer = PortalBuffer::default();
+            sync_portals(&mut world, &mut buffer);
+            (front_door_lines(&world), buffer.states[0])
+        };
+        let shipped = terri_data::pack();
+        assert_eq!(door(shipped, 20, 16), (vec![(16, 2)], OPENING));
+        assert_eq!(door(shipped, 17, 12), (vec![(16, 2)], OPENING));
+        assert_eq!(door(shipped, 16, 12), (vec![], CLOSED));
+        let mut turned = shipped.clone();
+        turned.portals[0].facing = terri_data::CompiledSocketFacing::PositiveY;
+        let turned: &'static ContentPack = Box::leak(Box::new(turned));
+        assert_eq!(door(turned, 20, 16), (vec![], CLOSED));
     }
 
     #[test]

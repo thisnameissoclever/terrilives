@@ -248,6 +248,26 @@ impl SimHandle {
         self.sim.world().resource::<TileGrid>().height()
     }
 
+    /// `[width, height]` of the house, from the lot's north-west corner; every
+    /// other tile of the lot is yard - [OS-yard] in
+    /// `docs/specs/2026-09-22-the-outside.md`. The view opens framed on it.
+    pub fn house_size(&self) -> Vec<u32> {
+        let (width, height) = self.sim.world().resource::<Content>().0.lot.house;
+        vec![width, height]
+    }
+
+    /// `[hue, strength, lightness]` a yard tile's floor art is drawn under, as
+    /// a colourway's - [OS-yard].
+    pub fn yard_look(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .lot
+            .yard_look
+            .to_vec()
+    }
+
     /// Current fixed-step simulation tick. The shell uses this for day-based
     /// autosave scheduling; it is simulation time, never wall-clock time.
     pub fn sim_tick(&self) -> u64 {
@@ -1640,6 +1660,8 @@ mod boundary_tests {
         let current = SimHandle::from_lot();
         let pack = current.sim.world().resource::<Content>().0;
         let mut lot = pack.lot.clone();
+        // The cell-wall house stood on the lot before the yard ([OS-grow]).
+        (lot.width, lot.height) = lot.house;
         lot.wall_edges.clear();
         lot.walls = LEGACY_WALLS.to_vec();
         let mut sim = Sim::new_from_lot(&lot, &pack.objects);
@@ -1651,6 +1673,71 @@ mod boundary_tests {
         for (x, y) in LEGACY_WALLS {
             snapshot.blocked_tiles[y as usize * snapshot.grid_width as usize + x as usize] =
                 blocked;
+        }
+    }
+
+    /// The shipped lot's size, its house's size, and its walls outside the
+    /// house ([OS-grow]), read through the simulation's content.
+    #[allow(clippy::type_complexity)]
+    fn shipped_lot() -> ((u32, u32), (u32, u32), Vec<terri_core::layout::WallEdge>) {
+        let handle = SimHandle::from_lot();
+        let lot = &handle.sim.world().resource::<Content>().0.lot;
+        let (width, height) = lot.house;
+        let outside = lot
+            .wall_edges
+            .iter()
+            .filter(|edge| !edge.in_bounds(width, height))
+            .copied()
+            .collect();
+        ((lot.width, lot.height), lot.house, outside)
+    }
+
+    /// `snapshot`, a save of the current lot, as it would have been written on
+    /// the lot before the yard ([OS-grow]): the grid cut back to the house.
+    /// Every save carrying a fingerprint from before the yard was made on
+    /// that lot, so a fixture stamped with one is cut back first.
+    fn before_the_yard(snapshot: &mut terri_core::SaveSnapshotV1) {
+        let (_, (width, height), _) = shipped_lot();
+        let stride = snapshot.grid_width as usize;
+        let cut: Vec<bool> = (0..height as usize)
+            .flat_map(|y| (0..width as usize).map(move |x| y * stride + x))
+            .map(|index| snapshot.blocked_tiles[index])
+            .collect();
+        snapshot.blocked_tiles = cut;
+        snapshot.grid_width = width;
+        snapshot.grid_height = height;
+    }
+
+    /// The house's part of a save that grew into the yard on Load
+    /// ([OS-migrate]), for comparing with the save that was loaded. It checks
+    /// first that the save did grow, and that the yard it grew into is open
+    /// ground.
+    fn house_part(mut snapshot: terri_core::SaveSnapshotV1) -> terri_core::SaveSnapshotV1 {
+        let ((width, height), house, _) = shipped_lot();
+        assert_eq!(
+            (snapshot.grid_width, snapshot.grid_height),
+            (width, height),
+            "the house grew into the yard"
+        );
+        for (index, &blocked) in snapshot.blocked_tiles.iter().enumerate() {
+            let (x, y) = (index as u32 % width, index as u32 / width);
+            if x >= house.0 || y >= house.1 {
+                assert!(!blocked, "yard tile ({x}, {y}) is open ground");
+            }
+        }
+        before_the_yard(&mut snapshot);
+        snapshot
+    }
+
+    /// `layout` followed by the content's walls outside the house, as a
+    /// house that grew into the yard on Load has them ([OS-migrate]).
+    fn grown_layout(layout: &terri_core::layout::SavedLayout) -> terri_core::layout::SavedLayout {
+        let terri_core::layout::SavedLayout::EdgeWallsV1 { edges } = layout else {
+            panic!("only an edge-wall house grows: {layout:?}");
+        };
+        let (_, _, outside) = shipped_lot();
+        terri_core::layout::SavedLayout::EdgeWallsV1 {
+            edges: edges.iter().copied().chain(outside).collect(),
         }
     }
 
@@ -1745,9 +1832,9 @@ mod boundary_tests {
         // And it is the same game, not merely a game.
         let mut expected = original.sim.save_snapshot();
         set_legacy_walls(&mut expected, false);
-        assert_eq!(resumed.sim.save_snapshot(), expected);
+        assert_eq!(house_part(resumed.sim.save_snapshot()), expected);
         assert_eq!(resumed.wall_layout_kind(), 1);
-        assert_eq!(resumed.wall_edges().len(), 34 * 4);
+        assert_eq!(resumed.wall_edges().len(), (34 + 28) * 4);
 
         // The retry must not turn genuine corruption into a load. Two
         // bytes short is not a shape any version ever wrote.
@@ -1800,8 +1887,9 @@ mod boundary_tests {
         assert_eq!(handle.wall_layout_kind(), 1);
         let before = handle.save_bytes();
         let count = handle.entity_count();
-        // The fridge occupies (0,0); the other candidates are outside the lot.
-        for (x, y) in [(0.0, 0.0), (-100.0, 1.0), (16.0, 12.0)] {
+        // The fridge occupies (0,0); the other candidates are outside the lot,
+        // which reaches (19, 15) with its yard ([OS-grow]).
+        for (x, y) in [(0.0, 0.0), (-100.0, 1.0), (20.0, 16.0)] {
             handle.spawn_agent(x, y, 50.0);
             assert_eq!(handle.entity_count(), count);
             assert_eq!(handle.save_bytes(), before);
@@ -1838,6 +1926,7 @@ mod boundary_tests {
     #[test]
     fn rotated_bathtub_loads_public_v1_bytes_and_resaves_idempotently() {
         let mut old = SimHandle::from_lot().sim.save_snapshot();
+        before_the_yard(&mut old);
         set_legacy_walls(&mut old, true);
         old.content_fingerprint = 0xa020_602a_6acd_3a90;
         old.blocked_tiles[9 * 16 + 15] = true;
@@ -1848,7 +1937,7 @@ mod boundary_tests {
             migrated.load_bytes(&bytes),
             "published Save V1 must survive the quarter-turn"
         );
-        let snapshot = migrated.sim.save_snapshot();
+        let snapshot = house_part(migrated.sim.save_snapshot());
         assert!(LEGACY_WALLS
             .iter()
             .all(|&(x, y)| !snapshot.blocked_tiles[y as usize * 16 + x as usize]));
@@ -1926,7 +2015,7 @@ mod boundary_tests {
                 .count(),
             30
         );
-        assert_eq!(migrated.sim.save_snapshot(), expected);
+        assert_eq!(house_part(migrated.sim.save_snapshot()), expected);
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&migrated.save_bytes()));
         for _ in 0..300 {
@@ -1958,7 +2047,7 @@ mod boundary_tests {
             }
             let mut migrated = SimHandle::from_lot();
             assert!(migrated.load_bytes(&bytes));
-            let current = migrated.sim.save_snapshot();
+            let current = house_part(migrated.sim.save_snapshot());
             assert_eq!(current.entities, old.entities);
             let mut expected = old.clone();
             set_legacy_walls(&mut expected, false);
@@ -1972,6 +2061,60 @@ mod boundary_tests {
                 resumed.tick();
                 assert_eq!(resumed.world_hash(), migrated.world_hash());
             }
+        }
+    }
+
+    /// [OS-migrate], with real bytes: a Save V5 written by the build before the
+    /// yard, with a wall the player built, grows into the yard on Load. The
+    /// house is kept exactly as saved, the content's walls outside it follow
+    /// the saved ones, and the grown game resaves and replays alike. See
+    /// tests/fixtures/README.md.
+    #[test]
+    fn an_actual_save_from_before_the_yard_grows_into_it() {
+        let hex: String = include_str!("../tests/fixtures/pre-yard-600.hex")
+            .split_whitespace()
+            .collect();
+        let bytes: Vec<u8> = hex
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[5, 0]);
+        let old: terri_core::SaveSnapshotV5 =
+            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        assert_eq!(old.world.tick, 600);
+        assert_eq!((old.world.grid_width, old.world.grid_height), (16, 12));
+        let player_wall = terri_core::layout::WallEdge {
+            axis: terri_core::layout::EdgeAxis::Horizontal,
+            x: 9,
+            y: 5,
+            doorway: false,
+        };
+        assert!(matches!(
+            &old.layout,
+            terri_core::layout::SavedLayout::EdgeWallsV1 { edges }
+                if edges.len() == 34 + 1 && edges.contains(&player_wall)
+        ));
+
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save from before the yard must load"
+        );
+        let current = loaded.sim.save_snapshot_v5();
+        assert_eq!(house_part(current.world.clone()), old.world);
+        assert_eq!(current.layout, grown_layout(&old.layout));
+        assert_eq!(current.object_facings, old.object_facings);
+        assert_eq!(current.retired_indices, old.retired_indices);
+        assert_eq!(current.object_colourways, old.object_colourways);
+
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&loaded.save_bytes()));
+        assert_eq!(resumed.save_bytes(), loaded.save_bytes());
+        for _ in 0..300 {
+            loaded.tick();
+            resumed.tick();
+            assert_eq!(resumed.world_hash(), loaded.world_hash());
         }
     }
 
@@ -2023,11 +2166,12 @@ mod boundary_tests {
                 loaded.load_bytes(&bytes),
                 "a save from the previous public build must load"
             );
-            let current = loaded.sim.save_snapshot_v3();
+            let mut current = loaded.sim.save_snapshot_v3();
+            current.world = house_part(current.world);
             assert_eq!(current.world.entities, old.world.entities);
             assert_eq!(current.world.funds, old.world.funds);
             assert_eq!(current.world.blocked_tiles, old.world.blocked_tiles);
-            assert_eq!(current.layout, old.layout);
+            assert_eq!(current.layout, grown_layout(&old.layout));
             assert_eq!(current.object_facings, old.object_facings);
             let mut expected = old.world.clone();
             expected.content_fingerprint = current.world.content_fingerprint;
@@ -2120,13 +2264,15 @@ mod boundary_tests {
         assert!(migrated.load_bytes(&bytes));
         assert_eq!(migrated.portal_count(), 4);
 
+        // The saved walls are kept as saved; growing into the yard only adds
+        // the house's outside walls after them ([OS-migrate]).
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
         expected_world.content_fingerprint = 0xc2cf_2919_84ed_61f7;
-        assert_eq!(current.world, expected_world);
-        assert_eq!(current.layout, prior.layout);
+        assert_eq!(house_part(current.world.clone()), expected_world);
+        assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
-        assert_eq!(migrated.wall_edges().len(), 34 * 4);
+        assert_eq!(migrated.wall_edges().len(), (34 + 28) * 4);
 
         let resaved = migrated.save_bytes();
         let mut resumed = SimHandle::from_lot();
@@ -2201,7 +2347,7 @@ mod boundary_tests {
             let bytes = save_v3_tests::v2_bytes(&snapshot);
             assert_eq!(&bytes[8..10], &[2, 0]);
             let mut restored = SimHandle::from_lot();
-            assert_eq!(restored.wall_edges().len(), 34 * 4);
+            assert_eq!(restored.wall_edges().len(), (34 + 28) * 4);
             assert!(restored.load_bytes(&bytes));
             assert_eq!((restored.lot_width(), restored.lot_height()), (5, 4));
             assert_eq!(restored.wall_layout_kind(), 1);
@@ -2280,6 +2426,7 @@ mod boundary_tests {
         let source = SimHandle::from_lot();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
+        before_the_yard(&mut snapshot);
         snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
         set_legacy_walls(&mut snapshot, true);
         // The historical fingerprint belongs to the old 2x1 bathtub grid.
@@ -2339,6 +2486,7 @@ mod boundary_tests {
         let source = SimHandle::from_lot();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
+        before_the_yard(&mut snapshot);
         snapshot.content_fingerprint = 0x26d5_982c_9af8_3de8;
         set_legacy_walls(&mut snapshot, true);
         snapshot.blocked_tiles[9 * 16 + 15] = true;
@@ -2363,7 +2511,7 @@ mod boundary_tests {
         expected.blocked_tiles[10 * 16 + 14] = true;
         set_legacy_walls(&mut expected, false);
         assert_eq!(
-            resumed.sim.save_snapshot(),
+            house_part(resumed.sim.save_snapshot()),
             expected,
             "the bridge must preserve household state and queues while rotating the bathtub, opening old wall cells and updating the digest"
         );
@@ -4305,12 +4453,12 @@ mod boundary_tests {
     }
 
     #[test]
-    fn shipped_edge_export_pins_all_34_segments_and_symmetric_collision() {
+    fn shipped_edge_export_pins_all_62_segments_and_symmetric_collision() {
         let handle = SimHandle::from_lot();
         assert!(handle.wall_tiles().is_empty());
         assert_eq!(handle.wall_layout_kind(), 1);
         let packed = handle.wall_edges();
-        assert_eq!(packed.len(), 34 * 4);
+        assert_eq!(packed.len(), (34 + 28) * 4);
         let mut expected = Vec::new();
         for y in 0..6 {
             expected.extend([0, 8, y, u32::from(y == 2)]);
@@ -4323,6 +4471,14 @@ mod boundary_tests {
         }
         for y in 6..12 {
             expected.extend([0, 12, y, u32::from(y == 8)]);
+        }
+        // The house's east wall with the front door's line, then its south
+        // wall ([OS-walls]).
+        for y in 0..12 {
+            expected.extend([0, 16, y, u32::from(y == 2)]);
+        }
+        for x in 0..16 {
+            expected.extend([1, x, 12, 0]);
         }
         assert_eq!(
             packed, expected,
@@ -4348,8 +4504,8 @@ mod boundary_tests {
                 solid += 1;
             }
         }
-        assert_eq!((solid, doors), (29, 5));
-        assert_eq!(grid.blocked_edges().count(), 29);
+        assert_eq!((solid, doors), (29 + 27, 5 + 1));
+        assert_eq!(grid.blocked_edges().count(), 29 + 27);
     }
 
     /// `sim_name` is the needs panel's header. Three answers matter and
@@ -4929,6 +5085,16 @@ mod boundary_tests {
         assert_eq!(handle.object_colourway(99_999.0), u32::MAX);
         assert!(!handle.set_colourway(1.5, 1.0));
         assert!(!handle.set_colourway(f64::from(sofa), -1.0));
+    }
+
+    /// [OS-yard]: the boundary hands the shell the house's size and the yard's
+    /// look from the content, and the lot it reports is the larger one.
+    #[test]
+    fn the_house_and_its_yard_reach_the_shell() {
+        let handle = SimHandle::from_lot();
+        assert_eq!((handle.lot_width(), handle.lot_height()), (20, 16));
+        assert_eq!(handle.house_size(), vec![16, 12]);
+        assert_eq!(handle.yard_look(), vec![65.0, 2.0, -0.22]);
     }
 
     /// [RC-slice-buy]: a purchase in a colourway is staged through the

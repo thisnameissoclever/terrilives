@@ -116,6 +116,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     let mut grid = live.clone();
     let mut walls = Vec::new();
     let mut changed = false;
+    let front = crate::portals::front_door_lines(world);
     for line in lines {
         let doorway = edit.doorway == Some(line);
         let [a, b] = record(line, doorway).cells();
@@ -129,6 +130,14 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
                 changed = true;
             }
             Some(_) => {}
+            // [OS-door]: an open front-door line is the room's doorway or
+            // is refused, since a wall there would shut the door.
+            None if !doorway
+                && line.axis == EdgeAxis::Vertical
+                && front.contains(&(line.x, line.y)) =>
+            {
+                return Err(BlockedDoor);
+            }
             None => {
                 next.push(record(line, doorway));
                 grid.set_edge_blocked(a, b, !doorway);

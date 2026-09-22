@@ -281,7 +281,9 @@ fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
 }
 
 /// What every lot edit must leave usable, proven on the candidate grid: the
-/// front door and its landing are clear, every sim stands on open floor it can
+/// front door and its landing are clear, the yard tile beyond a front door on
+/// the house's wall is open floor the door reaches ([OS-door]), every sim
+/// stands on open floor it can
 /// walk to from the front door and can finish the walk it is on, and every
 /// object keeps a clear approach there too. On a lot with a front door, floor
 /// nobody and nothing needs may be cut off. Shared by furniture moves and wall
@@ -310,6 +312,15 @@ fn prove_lot_usable(
     }
     let door = content.lot.front_door.map(|(x, y)| (x as i32, y as i32));
     let reached = reachable(grid, door);
+    // A vertical line (x, y) lies between (x - 1, y) and (x, y), so the tile
+    // beyond the door's line shares the line's numbers. Furniture on it, or a
+    // wall across the doorway, would leave the door opening onto nothing.
+    if crate::portals::front_door_lines(world)
+        .into_iter()
+        .any(|(x, y)| !reached.contains(&(x as i32, y as i32)))
+    {
+        return Err(BlockedDoor);
+    }
     for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
         let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
         for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {

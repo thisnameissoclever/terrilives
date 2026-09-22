@@ -292,6 +292,21 @@ export class SimBridge {
   }
 
   /**
+   * The house's `[width, height]` from the lot's north-west corner; every
+   * other tile is yard ([OS-yard] in `docs/specs/2026-09-22-the-outside.md`).
+   */
+  houseSize(): [number, number] {
+    const [width, height] = this.handle.house_size();
+    return [width, height];
+  }
+
+  /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
+  yardLook(): [number, number, number] {
+    const [hue, strength, lightness] = this.handle.yard_look();
+    return [hue, strength, lightness];
+  }
+
+  /**
    * `[hue, strength, lightness]` per colourway, flattened, for the shader
    * ([RC-shift]). Content, so read once and kept: the frame asks every frame
    * and must not allocate ([D11]).

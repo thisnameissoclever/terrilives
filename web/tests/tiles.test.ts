@@ -9,6 +9,9 @@ import { spriteFramingHeight } from '../src/render/sprite-anchors.js';
 import { lotExtent } from '../src/render/camera.js';
 import {
   FLOATS_PER_INSTANCE,
+  OFFSET_COLOURWAY_HUE,
+  OFFSET_COLOURWAY_LIGHTNESS,
+  OFFSET_COLOURWAY_STRENGTH,
   OFFSET_DEPTH,
   OFFSET_EMISSIVE,
   OFFSET_SCREEN_X,
@@ -691,5 +694,49 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
         expect(top).toBeGreaterThanOrEqual(extent.top);
       }
     }
+  });
+});
+
+// [OS-yard] in docs/specs/2026-09-22-the-outside.md: a yard tile is the floor's
+// art under the yard's colour shift, written as a colourway's is; a house tile,
+// and every tile of a lot that is all house, is drawn as it always was.
+describe('the yard', () => {
+  const floorShifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const shifts: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      shifts.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return shifts;
+  };
+  const lot = { width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array() };
+
+  it("draws a yard tile under the yard's look and a house tile as drawn", () => {
+    const built = buildStaticInstances({ ...lot, house: [2, 1], yardLook: [65, 2, -0.22] },
+      ORIGIN_X, ORIGIN_Y, GRID);
+    const yard = [65, 1, -0.22];
+    const drawn = [0, 0, 0];
+    // Row by row: (0, 0) and (1, 0) are house, the rest yard.
+    expect(floorShifts(built)).toEqual([drawn, drawn, yard, yard, yard, yard]);
+  });
+
+  it('draws every tile as drawn when the lot is all house or has no look', () => {
+    const drawn = Array.from({ length: 6 }, () => [0, 0, 0]);
+    expect(floorShifts(buildStaticInstances({ ...lot, yardLook: [65, 2, -0.22] },
+      ORIGIN_X, ORIGIN_Y, GRID))).toEqual(drawn);
+    expect(floorShifts(buildStaticInstances({ ...lot, house: [2, 1] },
+      ORIGIN_X, ORIGIN_Y, GRID))).toEqual(drawn);
+  });
+
+  it("passes the house to the walls, so its front walls are cut away", () => {
+    const edges = Uint32Array.from([0, 2, 0, 1]);
+    const house = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
+    const whole = buildStaticInstances({ ...lot, edges }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(whole.instances, whole.count), 1.5, 0).map((r) => SPRITES[r.sprite].name))
+      .toEqual(['doorwayJoinedNS']);
+    expect(find(rows(house.instances, house.count), 1.5, 0)).toEqual([]);
   });
 });
