@@ -127,6 +127,35 @@ fn placement_arguments(
     ))
 }
 
+/// A room from hostile JavaScript numbers, or `None` - [RT-boundary]. Four
+/// corner numbers, and a doorway of three (axis, x, y) or none at all.
+fn room_edit_arguments(
+    corners: &[f64],
+    doorway: &[f64],
+) -> Option<terri_sim::placement::rooms::RoomEdit> {
+    let [x0, y0, x1, y1] = corners else {
+        return None;
+    };
+    let doorway = match doorway {
+        [] => None,
+        [axis, x, y] => Some(terri_core::layout::WallLine {
+            axis: u8::try_from(placement_u32(*axis)?)
+                .ok()
+                .and_then(terri_core::layout::EdgeAxis::from_code)?,
+            x: placement_u32(*x)?,
+            y: placement_u32(*y)?,
+        }),
+        _ => return None,
+    };
+    Some(terri_sim::placement::rooms::RoomEdit {
+        x0: placement_u32(*x0)?,
+        y0: placement_u32(*y0)?,
+        x1: placement_u32(*x1)?,
+        y1: placement_u32(*y1)?,
+        doorway,
+    })
+}
+
 /// The directions an object has art for, given its `supports`: bit `n` for
 /// facing code `n`.
 fn facing_mask(supports: impl Fn(terri_core::Facing) -> bool) -> u32 {
@@ -520,6 +549,62 @@ impl SimHandle {
             })
     }
 
+    /// The refusal code this room would get, or zero when it would be built -
+    /// [RT-boundary]. Never writes. `corners` is two opposite corner tiles,
+    /// `[x0, y0, x1, y1]`; `doorway` is `[axis, x, y]` for one line of the
+    /// outline, axis numbered as `wall_edges` numbers it, or empty for none.
+    /// Anything else is `InvalidInput`.
+    pub fn room_edit_preview(&self, corners: &[f64], doorway: &[f64]) -> u32 {
+        use terri_sim::placement::{rooms::validate_room, PlacementRefusal};
+        let Some(edit) = room_edit_arguments(corners, doorway) else {
+            return PlacementRefusal::InvalidInput as u32;
+        };
+        validate_room(self.sim.world(), edit)
+            .err()
+            .map_or(0, |reason| reason as u32)
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain,
+    /// from `last_room_result`.
+    pub fn build_room(&mut self, corners: &[f64], doorway: &[f64]) -> bool {
+        let Some(edit) = room_edit_arguments(corners, doorway) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::BuildRoom {
+            x0: edit.x0,
+            y0: edit.y0,
+            x1: edit.x1,
+            y1: edit.y1,
+            doorway: edit.doorway,
+        })
+        .expect("a room serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[x0, y0, x1, y1, refusal]` of the last room a drain handled, then the
+    /// doorway's `[axis, x, y]` when it had one; refusal zero when it was
+    /// built. Empty before the first.
+    pub fn last_room_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_room_result
+            .map_or_else(Vec::new, |result| {
+                let edit = result.edit;
+                let mut words = vec![
+                    edit.x0,
+                    edit.y0,
+                    edit.x1,
+                    edit.y1,
+                    result.reason.map_or(0, |r| r as u32),
+                ];
+                if let Some(line) = edit.doorway {
+                    words.extend([u32::from(line.axis.code()), line.x, line.y]);
+                }
+                words
+            })
+    }
+
     pub fn lot_revision(&self) -> u64 {
         self.sim
             .world()
@@ -885,7 +970,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the ten `SimCommand`
+    /// - **an unknown variant index** - a byte past the eleven `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -4658,6 +4743,98 @@ mod boundary_tests {
         );
     }
 
+    /// [RT-boundary]: a room crosses the boundary as a preview that never
+    /// writes, a staged command, and a result the drain leaves behind, and the
+    /// renderer's `wall_edges` sees the doorway it was built with.
+    #[test]
+    fn a_room_crosses_the_boundary_and_the_renderer_sees_it() {
+        use terri_sim::placement::rooms::{validate_room, RoomEdit};
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let revision = handle.lot_revision();
+        let edges_before = handle.wall_edges();
+        let hash = handle.world_hash();
+        assert!(handle.last_room_result().is_empty());
+        // The first one-tile room the shipped house accepts that adds walls,
+        // found rather than hard-coded so a re-authored lot does not break it.
+        let (x, y) = (1..11)
+            .flat_map(|y| (1..15).map(move |x| (x, y)))
+            .find(|&(x, y)| {
+                let edit = RoomEdit {
+                    x0: x,
+                    y0: y,
+                    x1: x,
+                    y1: y,
+                    doorway: None,
+                };
+                validate_room(handle.sim.world(), edit).is_ok_and(|plan| plan.changed)
+            })
+            .expect("the shipped house has room for a room");
+        let corners = [x as f64, y as f64, x as f64, y as f64];
+        assert_eq!(handle.room_edit_preview(&corners, &[]), 0);
+        assert_eq!(handle.world_hash(), hash, "a preview wrote");
+        assert_eq!(handle.lot_revision(), revision, "a preview wrote");
+
+        // The right side of the one-tile room as its doorway.
+        let door = [0.0, (x + 1) as f64, y as f64];
+        assert_eq!(handle.room_edit_preview(&corners, &door), 0);
+        assert!(handle.build_room(&corners, &door));
+        handle.flush_commands();
+        assert_eq!(handle.last_room_result(), [x, y, x, y, 0, 0, x + 1, y]);
+        assert_eq!(handle.lot_revision(), revision + 1);
+        let after = handle.wall_edges();
+        assert!(after.len() > edges_before.len());
+        assert!(
+            after.chunks_exact(4).any(|e| e == [0, x + 1, y, 1]),
+            "the doorway is drawn as one"
+        );
+
+        // A doorway off the outline, read from the same result the shell reads.
+        let inside = [0.0, (x + 5) as f64, y as f64];
+        let invalid = PlacementRefusal::InvalidInput as u32;
+        assert_eq!(handle.room_edit_preview(&corners, &inside), invalid);
+        assert!(handle.build_room(&corners, &inside));
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_room_result(),
+            [x, y, x, y, invalid, 0, x + 5, y]
+        );
+    }
+
+    #[test]
+    fn hostile_room_numbers_are_refused_before_they_reach_the_simulation() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let invalid = PlacementRefusal::InvalidInput as u32;
+        let ok = [2.0, 2.0, 3.0, 3.0];
+        for (corners, doorway) in [
+            (vec![2.0, 2.0, 3.0], vec![]),
+            (vec![2.0, 2.0, 3.0, 3.0, 4.0], vec![]),
+            (vec![2.0, -2.0, 3.0, 3.0], vec![]),
+            (vec![2.0, 2.5, 3.0, 3.0], vec![]),
+            (vec![f64::NAN, 2.0, 3.0, 3.0], vec![]),
+            (vec![2.0, 2.0, f64::INFINITY, 3.0], vec![]),
+            (vec![2.0, 2.0, 3.0, 4_294_967_296.0], vec![]),
+            (ok.to_vec(), vec![0.0, 2.0]),
+            (ok.to_vec(), vec![0.0, 2.0, 2.0, 1.0]),
+            (ok.to_vec(), vec![2.0, 2.0, 2.0]),
+            (ok.to_vec(), vec![0.5, 2.0, 2.0]),
+            (ok.to_vec(), vec![0.0, -1.0, 2.0]),
+        ] {
+            assert_eq!(
+                handle.room_edit_preview(&corners, &doorway),
+                invalid,
+                "{corners:?} {doorway:?}"
+            );
+            assert!(
+                !handle.build_room(&corners, &doorway),
+                "{corners:?} {doorway:?}"
+            );
+        }
+        handle.flush_commands();
+        assert!(handle.last_room_result().is_empty(), "nothing was staged");
+    }
+
     #[test]
     fn hostile_purchase_numbers_are_refused_before_they_reach_the_simulation() {
         use terri_sim::placement::PlacementRefusal;
@@ -4756,10 +4933,19 @@ mod boundary_tests {
             // And `[0x07, 0x00]` became a truncated `PlaceObject`,
             // `[0x08, 0x00]` a truncated `SetWallEdge`, and `[0x09, 0x00]` a
             // truncated `BuyObject`.
+            // And `[0x0A, 0x00]` a truncated `BuildRoom`.
             (
-                "variant index 10, one past the ten SimCommand declares; \
+                "variant index 11, one past the eleven SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0A, 0x00],
+                vec![0x0B, 0x00],
+            ),
+            (
+                "BuildRoom missing its doorway option",
+                vec![0x0A, 0x01, 0x02, 0x03, 0x04],
+            ),
+            (
+                "BuildRoom with a doorway axis past the two that exist",
+                vec![0x0A, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04],
             ),
             ("BuyObject missing its facing", vec![0x09, 0x01, 0x02, 0x03]),
             (

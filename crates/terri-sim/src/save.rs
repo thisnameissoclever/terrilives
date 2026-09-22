@@ -239,6 +239,19 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        } => SavedCommand::BuildRoom {
+            x0: *x0,
+            y0: *y0,
+            x1: *x1,
+            y1: *y1,
+            doorway: *doorway,
+        },
         SimCommand::BuyObject {
             definition,
             x,
@@ -715,6 +728,19 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
     match command {
+        SavedCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        } => SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        },
         // An id this pack lacks can only come through a reviewed content
         // bridge that dropped an object. It restores as an index past every
         // object, which the drain refuses as it refuses any unknown object.
@@ -954,7 +980,8 @@ fn validate_command(
         // Impossible or stale edits must replay as refusals, not prevent Load.
         SavedCommand::PlaceObject { .. }
         | SavedCommand::SetWallEdge { .. }
-        | SavedCommand::BuyObject { .. } => Ok(()),
+        | SavedCommand::BuyObject { .. }
+        | SavedCommand::BuildRoom { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

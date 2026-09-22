@@ -14,6 +14,8 @@ import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
+import { RoomTool } from './ui/room-tool.js';
+import { RoomToolControls } from './ui/room-tool-controls.js';
 import { BuyTool } from './ui/buy-tool.js';
 import { BuyToolControls } from './ui/buy-tool-controls.js';
 import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
@@ -554,6 +556,7 @@ async function main(): Promise<void> {
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
+    roomControls?.setCompact(event.matches);
   });
   const gameHud = new GameHud(
     {
@@ -778,6 +781,7 @@ async function main(): Promise<void> {
           builder.resetAfterLoad();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
+          roomTool.resetAfterLoad(lotWidth, lotHeight);
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
@@ -1070,7 +1074,15 @@ async function main(): Promise<void> {
       toolSwitch?.render();
     },
   });
-  const buildTools = [wallTool, buyTool] as const;
+  // [RT-shell]. A whole room in one edit, beside the one-line Walls tool.
+  let roomControls: RoomToolControls | undefined;
+  const roomTool = new RoomTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      roomControls?.render();
+      toolSwitch?.render();
+    },
+  });
+  const buildTools = [wallTool, roomTool, buyTool] as const;
   const builder = new FurnitureBuilder(sim, overlayPause, {
     changed: () => builderControls?.render(),
     enter() {
@@ -1082,6 +1094,7 @@ async function main(): Promise<void> {
     },
     exit() {
       wallTool.exit();
+      roomTool.exit();
       buyTool.exit();
       mobileHud.endEditing();
       buildToggle.focus();
@@ -1094,7 +1107,13 @@ async function main(): Promise<void> {
   wallControls.setCompact(compactHudQuery.matches);
   buyControls = new BuyToolControls(document, buyTool);
   buyControls.setCompact(compactHudQuery.matches);
-  toolSwitch = new BuildToolSwitch(document, wallTool, buyTool, {
+  roomControls = new RoomToolControls(document, roomTool);
+  roomControls.setCompact(compactHudQuery.matches);
+  toolSwitch = new BuildToolSwitch(document, [
+    { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
+    { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
+    { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
+  ], {
     leaveFurniture() {
       builder.cancel();
       return builder.selected === null && !builder.pending;
@@ -1231,6 +1250,10 @@ async function main(): Promise<void> {
           if (world) wallTool.choosePoint(world[0], world[1]);
           return;
         }
+        if (roomTool.active) {
+          if (world) roomTool.choosePoint(world[0], world[1]);
+          return;
+        }
         if (buyTool.active) {
           if (tile) buyTool.moveTo(tile[0], tile[1]);
           return;
@@ -1281,7 +1304,9 @@ async function main(): Promise<void> {
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
     buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
+    roomTool.afterCommands();
     buyTool.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
@@ -1308,7 +1333,7 @@ async function main(): Promise<void> {
       lightingMode.isFlat() ? null : lighting,
       undefined,
       buyTool.ghost() ?? builder.preview,
-      wallTool.highlight(),
+      wallTool.highlight() ?? roomTool.highlight(),
     );
     // The day/night cycle. `LightingMode` combines the player's saved flat
     // choice with reduced motion's temporary constraint, so one effective
@@ -1316,7 +1341,8 @@ async function main(): Promise<void> {
     // the player's preference.
     renderer.draw(
       instances,
-      instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview, wallTool.highlight()),
+      instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
+        wallTool.highlight() ?? roomTool.highlight()),
       camera.scale,
       lightingMode.isFlat()
         ? AMBIENT_NEUTRAL

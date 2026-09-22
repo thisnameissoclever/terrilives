@@ -95,8 +95,45 @@ export function wallReason(code: number): string | null {
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
 }
 
+/** A room's refusal, worded for the Room tool - [RT-shell]. Same codes. */
+const ROOM_REASONS: Readonly<Record<number, string>> = {
+  1: "Choose the doorway on the room's outline.",
+  4: "This house's walls cannot be changed.",
+  5: 'Keep the room inside the lot.',
+  6: 'The room would cut through furniture.',
+  8: "Someone is using something across the room's outline.",
+  9: "Someone is standing on the room's outline.",
+  10: "The room would block someone's way.",
+  11: 'The room would leave furniture out of reach. Choose a doorway.',
+  12: 'The room would cut off the front door.',
+  13: 'The room would cut off the front-door landing.',
+};
+
+export function roomReason(code: number): string | null {
+  return code === 0 ? null : ROOM_REASONS[code] ?? 'That room is not possible.';
+}
+
+/** One line between two tiles, as `wall_edges` numbers it: axis 0 vertical. */
+export interface EdgeLine {
+  readonly axis: 0 | 1;
+  readonly x: number;
+  readonly y: number;
+}
+
+/** What the drain did with the last room - [RT-boundary]. */
+export interface RoomResult {
+  readonly corners: readonly [number, number, number, number];
+  readonly doorway: EdgeLine | null;
+  readonly reason: string | null;
+}
+
 function placementReason(code: number): string | null {
   return code === 0 ? null : PLACEMENT_REASONS[code] ?? 'This placement is unavailable.';
+}
+
+/** A room's doorway as the boundary takes it: three numbers, or none. */
+function roomDoorway(doorway: EdgeLine | null): Float64Array {
+  return new Float64Array(doorway === null ? [] : [doorway.axis, doorway.x, doorway.y]);
 }
 
 /** The eight numbers `placement_preview` and `purchase_preview` both return. */
@@ -234,6 +271,27 @@ export class SimBridge {
     const values = this.handle.last_wall_edit_result();
     return values.length === 0 ? null : { axis: values[0], x: values[1], y: values[2],
       state: values[3], reason: wallReason(values[4]) };
+  }
+
+  /** Corners `[x0, y0, x1, y1]`, doorway or null. Never writes. */
+  roomEditPreview(corners: readonly number[], doorway: EdgeLine | null): WallEditPreview {
+    const code = this.handle.room_edit_preview(new Float64Array(corners), roomDoorway(doorway));
+    return { valid: code === 0, reason: roomReason(code), code };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastRoomResult`. */
+  buildRoom(corners: readonly number[], doorway: EdgeLine | null): boolean {
+    return this.handle.build_room(new Float64Array(corners), roomDoorway(doorway));
+  }
+
+  lastRoomResult(): RoomResult | null {
+    const values = this.handle.last_room_result();
+    if (values.length === 0) return null;
+    return {
+      corners: [values[0], values[1], values[2], values[3]],
+      reason: roomReason(values[4]),
+      doorway: values.length === 8 ? { axis: values[5] === 1 ? 1 : 0, x: values[6], y: values[7] } : null,
+    };
   }
 
   lastPlacementResult(): { object: number; reason: string | null } | null {

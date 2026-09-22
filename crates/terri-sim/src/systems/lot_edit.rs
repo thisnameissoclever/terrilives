@@ -39,6 +39,25 @@ pub fn drain_commands(world: &mut World) {
                     },
                 );
             }
+            SimCommand::BuildRoom {
+                x0,
+                y0,
+                x1,
+                y1,
+                doorway,
+            } => {
+                flush_ordinary(world);
+                crate::placement::rooms::commit(
+                    world,
+                    crate::placement::rooms::RoomEdit {
+                        x0,
+                        y0,
+                        x1,
+                        y1,
+                        doorway,
+                    },
+                );
+            }
             ordinary => world.resource_mut::<CommandQueue>().push(ordinary),
         }
     }
