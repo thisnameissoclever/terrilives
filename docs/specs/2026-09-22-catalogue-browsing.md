@@ -25,18 +25,23 @@ every save loads as before:
 
 * every need one of the object's own interactions advertises with a positive
   delta;
-* and every need a chain advertises with a positive delta, when one of the
-  chain's steps takes a role the object has. The stove, the counter and the
-  dining table serve hunger through Cook dinner that way.
+* and every need a chain advertises with a positive delta, when the object
+  offers the chain or one of the chain's steps takes a role the object has.
+  The stove, the counter, the kitchen sink, the dining table and the desk serve
+  hunger through Cook dinner that way.
 
-A zero delta or a cost serves nothing. The boundary gives one mask per
+A zero delta or a cost serves nothing. A chain's needs are listed on every
+object it takes, on purpose: each of them is needed to get what the chain
+gives. So the kitchen sink reads Hunger, Hygiene and Comfort, though washing
+up there costs comfort, because Cook dinner's comfort comes through it too. The boundary gives one mask per
 catalogue item, in catalogue order, with bit `i` for need index `i`
 (`catalogue_needs`), beside the rows `catalogue` already gives.
 
 ### [CB-none] Items that serve no need
 
 A chair, a lamp or a plant serves no need on its own, and the line says so:
-"Good for: no need on its own." That is plain functional copy; a line of
+"Good for: no need on its own", with no full stop, like "Good for: Hunger,
+Comfort" and "Price: 40". That is plain functional copy; a line of
 description per object is voice, and waits on [T22].
 
 ### [CB-filter] The Show list
@@ -49,7 +54,34 @@ their order; the list is rebuilt rather than its options hidden, because some
 phone browsers still list a hidden option. Keyboard cycling with [ and ] skips
 what the filter hides, as it skips what the household cannot afford. A chosen
 item the filter hides is dropped, as the list's placeholder drops it. While a
-purchase is on its way the Show list is disabled with the rest of the panel.
+purchase is on its way, or another pause such as a Load holds, the Show list is
+disabled with the rest of the panel.
+
+Leaving the tool and coming back keeps the filter, as a convenience; a Load
+starts the panel afresh with Everything shown. On a desktop browser a closed
+select changes with each arrow key press, so arrowing through the Show list
+past a need the chosen item does not serve drops the choice on the way; that is
+the drop rule working, and a mouse or a phone's picker changes it only once.
+
+On a phone the Show list and the catalogue sit side by side in one row, which
+saves the row the Show list would otherwise add to the capped Build dock. The
+dock still scrolls to reach Buy and Cancel once an item is chosen, as it did
+before this slice; that is [B-phone-build-dock] in `docs/FEATURES.md`.
+
+## Review record
+
+A fresh-context review of [CB-slice-serves] found no must-fix issue. Fixed:
+the blocked guards had no test [H1]; nothing pinned how the shell pairs each
+item with its row's needs [H2]; nothing checked the Good for line empties
+[H3]; an object that offers a chain without taking a step was not counted
+[H4]; the phone layout was not checked [H5]; the played check and the
+commit message undercounted what Cook dinner adds to Hunger [H6]; what the
+filter does on leaving and on Load was unstated [H8]; two lines had no test
+[H10]; the three catalogue exports each filtered the pack themselves [H11]; and
+the strings list, the feature entry and a full stop were inconsistent [H12].
+Recorded above as decisions rather than changed: listing a chain's needs on
+every object it takes [H7], and the drop while arrowing through the closed
+Show list [H9].
 
 ## Slices
 
