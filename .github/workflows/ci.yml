@@ -155,6 +155,13 @@ jobs:
   # tested twice.
   mutants:
     runs-on: ubuntu-latest
+    # The cap below is a multiple of the suite, so a hang costs four suites
+    # rather than a fixed minute, and nothing bounds the UNMUTATED run at
+    # all: a loop introduced in a test would run until GitHub's six hour
+    # default. Shards have finished in 6 to 24 minutes and been reclaimed at
+    # 35, 36 and 72; 90 minutes is above every real run and far below the
+    # default, so a pathological one fails by name in an hour and a half.
+    timeout-minutes: 90
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
@@ -164,8 +171,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install the pinned toolchain
         run: rustup show
+      # Pinned, not merely --locked: --locked pins the dependency tree of
+      # whichever version resolves, and the cap below now rests on this
+      # tool's own auto-timeout rules (which baseline it multiplies, its 20
+      # second floor, its default multiplier). 27.1.0 is the version every
+      # sweep in docs/mutation-baseline.md was measured with; outcomes.json
+      # records the version, so a bump is checked rather than assumed.
       - name: Install cargo-mutants
-        run: cargo install cargo-mutants --locked
+        run: cargo install cargo-mutants --locked --version 27.1.0
       # cargo-mutants exits 2 whenever any mutant survives, so its exit
       # code cannot be the signal for a no-new-survivors gate. The
       # comparison in the next step is.
@@ -183,9 +196,12 @@ jobs:
       # 57 seconds on this runner, and the next three tests added turned
       # three known-equivalent baseline mutants into reported hangs on
       # PR 116. A multiplier moves with the suite instead of being overtaken
-      # by it. Four is chosen so a mutant that genuinely loops still stands
-      # out: it costs four suites rather than one, and nothing legitimate
-      # takes that long, since the slowest real mutant runs one suite.
+      # by it. Four is deliberately one below the tool's own default of five,
+      # which is what dropping the flag entirely would give: a mutant that
+      # genuinely loops then costs four suites rather than one, and nothing
+      # legitimate takes that long, since the slowest real mutant runs one
+      # suite. The multiplier has no ceiling of its own, so the job bound
+      # above is what stops a slow suite from making the cap meaningless.
       - name: Mutation sweep (shard ${{ matrix.shard }} of 8)
         run: |
           cargo mutants --package terri-core --package terri-sim \
@@ -216,6 +232,35 @@ jobs:
       # flood_fill, say) would be silently excused. The baseline file
       # keeps its line numbers for human navigation; only this
       # comparison strips them.
+      # A sweep that tested NOTHING writes an empty missed.txt and an empty
+      # timeout.txt, and both gates below then pass while proving nothing.
+      # That is not hypothetical: on PR 117, six of the eight shards timed
+      # out in the UNMUTATED baseline run against the old fixed cap and
+      # reported success with total_mutants 0. The existence checks the two
+      # gates carry cannot see it, because the files exist and are empty, so
+      # the sweep's own count is checked first.
+      - name: Fail on a sweep that tested nothing
+        run: |
+          set -eu
+          if [ ! -f mutants.out/outcomes.json ]; then
+            echo "FAIL: mutants.out/outcomes.json does not exist, so the"
+            echo "sweep did not run or its output layout changed. Fix the"
+            echo "path rather than deleting the step."
+            exit 1
+          fi
+          # python3 rather than jq: both are on the runner, and the reader
+          # below was checked against real reports before it shipped.
+          total=$(python3 -c "import json; print(json.load(open('mutants.out/outcomes.json'))['total_mutants'])")
+          if [ "$total" -le 0 ]; then
+            echo "FAIL: the sweep tested $total mutants in this shard."
+            echo "Almost always the unmutated baseline run itself failed or"
+            echo "ran past the cap, in which case cargo-mutants tests no"
+            echo "mutants at all and every gate below is vacuously green."
+            echo "The outcomes it did record:"
+            python3 -c "import json; [print(o['summary'], o['scenario']) for o in json.load(open('mutants.out/outcomes.json'))['outcomes'][:20]]"
+            exit 1
+          fi
+          echo "The sweep tested $total mutants in this shard."
       - name: Fail on survivors not in the baseline
         run: |
           set -eu
@@ -268,12 +313,17 @@ jobs:
             echo "Mutants that HANG rather than fail an assertion:"
             cat mutants.out/timeout.txt
             echo ""
-            echo "Each burns the job timeout instead of printing an assertion,"
-            echo "and the survivor gate above cannot see it: a timeout lands in"
-            echo "timeout.txt, not missed.txt. Find the unbounded loop the"
-            echo "mutant spins in and give it a bound that panics, the way"
-            echo "SimRng::draw_below_bound and roll_wander_path do. Raising"
-            echo "--timeout is not a fix."
+            echo "Each burns four times the unmutated suite instead of"
+            echo "printing an assertion, and the survivor gate above cannot"
+            echo "see it: a timeout lands in timeout.txt, not missed.txt."
+            echo "Find the unbounded loop the mutant spins in and give it a"
+            echo "bound that panics, the way SimRng::draw_below_bound and"
+            echo "roll_wander_path do. Raising the multiplier is not a fix."
+            echo ""
+            echo "One case is NOT a loop and must not be answered with a"
+            echo "bound: a mutant nothing kills runs the whole suite, so it"
+            echo "costs a full suite. If these timings sit near one suite"
+            echo "rather than four, the cap is the thing that is wrong."
             exit 1
           fi
 

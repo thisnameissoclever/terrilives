@@ -18,15 +18,24 @@ function skill(root: string, name: string): string {
 
 /**
  * Codex reads skills from `.agents/skills/`, Claude Code from
- * `.claude/skills/`. The two copies are hand-maintained mirrors. A skill tied
- * to a tool, listed in TOOL_TIED, differs only in which tool its text names;
- * every other skill, like the writing style, names no tool and its two copies
- * are byte-identical. Anything else is
- * drift: a fix made in one copy and not the other, or a blind find-and-replace
- * that renamed a real path. The first Codex copy pointed at a nonexistent
- * `.Codex/launch.json` for exactly that reason.
+ * `.claude/skills/`. The two copies are hand-maintained mirrors, and the
+ * drift they hide is a fix made in one copy and not the other, or a blind
+ * find-and-replace that renamed a real path: the first Codex copy pointed at
+ * a nonexistent `.Codex/launch.json` for exactly that reason.
  */
-const TOOL_TIED = ['cloud-run'];
+/**
+ * The skills tied to a tool, each with the wording its two copies differ by:
+ * the Codex phrase and the Claude Code one. A skill absent from here names
+ * neither tool, so its two copies must be identical byte for byte. Keeping
+ * the pair per skill rather than one phrase for all of them lets a second
+ * tool-tied skill word its difference differently.
+ */
+const TOOL_TIED: ReadonlyMap<string, readonly [string, string]> = new Map([
+  ['cloud-run', ['Codex on the web', 'Claude Code on the web'] as const],
+]);
+
+/** Every way either tool is named, so an unlisted skill can be held to naming none. */
+const TOOL_WORDS = ['Codex', 'Claude Code'];
 
 describe('agent skill mirrors', () => {
   const codexSkills = skills('.agents');
@@ -43,22 +52,21 @@ describe('agent skill mirrors', () => {
   });
 
   for (const name of codexSkills) {
-    const tied = TOOL_TIED.includes(name);
-    it(`keeps ${name} ${tied ? 'identical apart from the tool it names' : 'byte-identical'}`, () => {
+    const pair = TOOL_TIED.get(name);
+    it(`keeps ${name} ${pair ? 'identical apart from the tool it names' : 'byte-identical'}`, () => {
       const codex = skill('.agents', name);
-      if (tied) {
+      if (pair) {
         // Catches the Claude Code text pasted over the Codex copy, which the
         // comparison below would let through.
-        expect(codex).toContain('Codex on the web');
+        expect(codex).toContain(pair[0]);
+        expect(codex.replaceAll(pair[0], pair[1])).toBe(skill('.claude', name));
       } else {
-        // A skill that names a tool must be listed in TOOL_TIED, or its two
-        // copies would be checked as though neither named one.
-        expect(codex).not.toContain('Claude Code on the web');
-        expect(codex).not.toContain('Codex on the web');
+        // A skill that names a tool at all must be listed in TOOL_TIED with
+        // the wording its copies differ by, or the two are compared as
+        // though neither named one.
+        for (const word of TOOL_WORDS) expect(codex).not.toContain(word);
+        expect(codex).toBe(skill('.claude', name));
       }
-      expect(codex.replaceAll('Codex on the web', 'Claude Code on the web')).toBe(
-        skill('.claude', name),
-      );
     });
   }
 
@@ -68,6 +76,6 @@ describe('agent skill mirrors', () => {
   });
 
   it('lists only skills that exist', () => {
-    for (const name of TOOL_TIED) expect(codexSkills).toContain(name);
+    for (const name of TOOL_TIED.keys()) expect(codexSkills).toContain(name);
   });
 });

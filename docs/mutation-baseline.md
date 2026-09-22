@@ -1641,16 +1641,22 @@ panics.
 ## 2026-09-22: the test cap became a multiple of the suite
 
 Every sweep recorded above ran with `--timeout 60`, a fixed cap chosen when the
-workspace suite took about two seconds. It is now `--timeout-multiplier 4`, and
-the commands above are kept as the records of the sweeps that produced each
-baseline entry rather than as the current invocation.
+workspace suite took about two seconds. It is now `--timeout-multiplier 4`, with
+a 90 minute bound on the job and a step that fails a shard whose sweep tested
+zero mutants. The commands above are kept as the records of the sweeps that
+produced each baseline entry rather than as the current invocation.
 
 The reason is in [L-mutant-cap-must-scale] in `docs/lessons-learned.md`. A
 mutant nothing kills runs the suite to the end, so its test phase costs one
 whole suite; the suite had reached about 57 seconds on CI's runner, and the
-three tests PR 116 added took the two equivalent `rect_distance` mutants and
-the equivalent `from_seed` mutant past 60 seconds. They were reported as hangs,
-which they are not: all three are proved equivalent above, and an equivalent
-mutant finishes by definition.
+three tests PR 116 added took eight mutants past 60 seconds, including the two
+equivalent `rect_distance` clamps and the equivalent `from_seed` mutant proved
+above. They were reported as hangs, which they are not: an equivalent mutant
+finishes by definition.
 
-Nothing about which mutants survive changed, and no baseline entry moved.
+The same measurement found that six of PR 117's eight shards had already been
+timing out in the UNMUTATED baseline run, testing zero mutants and reporting
+success, because an aborted sweep still writes the empty files the gates read.
+
+Nothing about which mutants survive changed, and no baseline entry moved. What
+did change is that a shard now has to test something to pass.
