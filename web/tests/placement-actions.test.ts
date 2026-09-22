@@ -57,12 +57,16 @@ describe('where the buttons go', () => {
     const keepOut = { left: 240, gearLeft: 740, gearBottom: 60 };
     // Under the sidebar: pushed right of it.
     expect(placementActionsPosition(200, 300, 150, 44, 800, 600, keepOut)).toEqual({ x: 248, y: 248 });
-    // Up under the gear: pushed below it.
-    expect(placementActionsPosition(760, 40, 150, 44, 800, 600, keepOut)).toEqual({ x: 642, y: 68 });
+    // Up under the gear: slid left of it, still above the ghost.
+    expect(placementActionsPosition(760, 40, 150, 44, 800, 600, keepOut)).toEqual({ x: 582, y: 8 });
     // Up at the top but clear of the gear: left where it is.
     expect(placementActionsPosition(400, 40, 150, 44, 800, 600, keepOut)).toEqual({ x: 325, y: 8 });
-    // Below the gear with no room left: kept inside the window.
-    expect(placementActionsPosition(760, 40, 150, 44, 800, 100, keepOut)).toEqual({ x: 642, y: 48 });
+    // No room left of the gear: dropped below it, and kept inside the window.
+    const narrow = { left: 600, gearLeft: 740, gearBottom: 60 };
+    expect(placementActionsPosition(760, 40, 150, 44, 800, 600, narrow)).toEqual({ x: 642, y: 68 });
+    expect(placementActionsPosition(760, 40, 150, 44, 800, 100, narrow)).toEqual({ x: 642, y: 48 });
+    // A sidebar wider than the window leaves room for: never past the right edge.
+    expect(placementActionsPosition(200, 300, 150, 44, 800, 600, { ...keepOut, left: 700 }).x).toBe(642);
   });
 
   it('centres the box above the anchor with a gap, inside the window and above the dock', () => {
@@ -205,17 +209,21 @@ describe('PlacementActions', () => {
     buy.active = true;
     buy.shown = preview();
     buy.chosen = { id: 'chair' };
-    for (const [change, expected] of [
-      [() => {}, 'true'],
-      [() => { buy.pending = true; }, 'false'],
-      [() => { buy.pending = false; buy.blocked = true; }, 'false'],
-      [() => { buy.blocked = false; buy.chosen = null; }, 'false'],
-    ] as const) {
-      calls.length = 0;
-      change();
+    // Each term alone turns Cancel off from an enabled start, so deleting
+    // any one of them leaves Cancel on and fails its step.
+    const enabled = () => { buy.pending = false; buy.blocked = false; buy.chosen = { id: 'chair' }; };
+    for (const turnOff of [
+      () => { buy.pending = true; },
+      () => { buy.blocked = true; },
+      () => { buy.chosen = null; },
+    ]) {
+      enabled();
       placement.frame(camera, 800, 600);
-      const state = calls.find((call) => call.startsWith('state')) ?? '';
-      if (state !== '') expect(state.endsWith(` ${expected}`), state).toBe(true);
+      expect(calls.filter((call) => call.startsWith('state')).at(-1)).toBe(`state true ${BUY} false true`);
+      calls.length = 0;
+      turnOff();
+      placement.frame(camera, 800, 600);
+      expect(calls).toEqual([`state true ${BUY} false false`]);
     }
   });
 

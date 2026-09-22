@@ -98,10 +98,15 @@ export function placementActionsPosition(
     viewportWidth,
     viewportBottom,
   );
-  const x = Math.max(clamped.x, keepOut.left + gap);
+  const rightmost = viewportWidth - buttonsWidth - gap;
+  const x = Math.min(Math.max(clamped.x, keepOut.left + gap), rightmost);
   const underGear = x + buttonsWidth > keepOut.gearLeft - gap && clamped.y < keepOut.gearBottom + gap;
-  const y = underGear ? Math.min(keepOut.gearBottom + gap, viewportBottom - buttonsHeight - gap) : clamped.y;
-  return { x, y };
+  if (!underGear) return { x, y: clamped.y };
+  // Slide left of the gear when there is room, so the pair stays above the
+  // ghost; only when there is not does it drop below the gear.
+  const leftOfGear = keepOut.gearLeft - gap - buttonsWidth;
+  if (leftOfGear >= keepOut.left + gap) return { x: leftOfGear, y: clamped.y };
+  return { x, y: Math.min(keepOut.gearBottom + gap, viewportBottom - buttonsHeight - gap) };
 }
 
 /**
