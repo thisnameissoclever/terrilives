@@ -3250,10 +3250,11 @@ went back to "Choose something to buy", the Good for line emptied and the
 status said "Choose something to buy."
 
 **On a phone,** checked after review at 390 by 844 in the Playwright browser:
-the Show list and the catalogue sit side by side in one row. With a chair
-chosen, Buy and Cancel start just below the fold of the capped Build dock,
-which scrolls to them; they were already below it before this slice
-([B-phone-build-dock]). On a desktop width the two lists stay stacked.
+with a chair chosen, Buy and Cancel sit below the fold of the capped Build
+dock, which scrolls to them. They were already below it before this slice, and
+its Show list and Good for line move them further down ([B-phone-build-dock]).
+Putting the Show list beside the catalogue saved only a few pixels and cut off
+about half the item names, so the lists stay stacked at every width.
 
 **Not proven here.** Nothing was bought in this check; buying is unchanged
 from [A-buy-mode]. No physical phone was used.

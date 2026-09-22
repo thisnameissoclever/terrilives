@@ -136,6 +136,19 @@ describe('BuyTool', () => {
     expect(buy.filter).toBeNull();
   });
 
+  // Review finding [H19]: the redraw a Load triggers already sees the whole
+  // catalogue, so the panel never draws the old filter after a Load.
+  it('clears the filter before the redraw a Load triggers', () => {
+    const source = new FakeShop();
+    const seen: (number | null)[] = [];
+    const buy: BuyTool = new BuyTool(source, 8, 6, { changed: () => { seen.push(buy.filter); } });
+    buy.enter();
+    buy.setFilter(FUN);
+    seen.length = 0;
+    buy.resetAfterLoad(8, 6);
+    expect(seen).toEqual([null]);
+  });
+
   it('starts with nothing chosen and asks for a choice', () => {
     const { buy } = tool();
     buy.enter();

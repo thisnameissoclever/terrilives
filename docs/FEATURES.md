@@ -917,7 +917,8 @@ capped at 45% of the screen height, which scrolls. With an item chosen in the
 Buy tool, its rows (the Show and catalogue lists, the facing and Rotate row,
 the price, what it is good for and the status) push Buy and Cancel below the
 dock's fold at 390 by 844, so every purchase takes a scroll inside the panel.
-They were already below the fold before catalogue browsing. The fix is a
+They were already below the fold before catalogue browsing, whose Show list and
+Good for line moved them further down. The fix is a
 layout for the dock that keeps each tool's confirming buttons in view, such as
 a pinned action row, checked on a phone for every Build tool.
 
