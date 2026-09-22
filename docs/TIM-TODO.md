@@ -106,6 +106,19 @@ front door, the vertical direction too, matched to the existing wall art.
 Tell me whether to draft them with the generator for you to accept or reject,
 or whether you would rather supply them. Nothing is blocked meanwhile.
 
+### [T-window-art] Glazed wall panels for the Walls tool `[YOURS]`
+
+The Walls tool now fits windows: a line that stops people and lets the
+daylight through, so a back room brightens at noon instead of sitting dim.
+There is no window art, so a window draws as the wall panel it stands in,
+washed pale blue, which is the only thing telling a player which lines are
+glazed. What is needed: a wall panel with a glazed opening for the vertical
+line and one for the horizontal, matched to the existing wall art, and light
+enough that a window reads as a window at a glance rather than as a wall
+somebody tinted. Tell me whether to draft them with the generator for you to
+accept or reject, or whether you would rather supply them. Nothing is blocked
+meanwhile.
+
 ### [T-recolour-palettes] Which colourways each object comes in `[YOURS]`
 
 The Buy mode bullet of M1 includes palette recolours. The Buy tool (PR 96)

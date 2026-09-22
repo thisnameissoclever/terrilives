@@ -10,6 +10,7 @@ import {
   DOORWAY,
   OPEN,
   WALL,
+  WINDOW,
   WallTool,
   nearestLine,
   stateOf,
@@ -29,7 +30,9 @@ beforeAll(async () => {
 /** A scripted source: fixed previews per state, a staging log, a result. */
 class FakeWalls {
   edges: number[] = [];
-  refusals: [number, number, number] = [0, 0, 0];
+  /** The lines that are windows, three words each ([WN-state]). */
+  windows: number[] = [];
+  refusals: [number, number, number, number] = [0, 0, 0, 0];
   accept = true;
   staged: [number, number, number, number][] = [];
   result: { axis: number; x: number; y: number; state: number; reason: string | null } | null = null;
@@ -38,6 +41,10 @@ class FakeWalls {
 
   wallEdges(): Uint32Array | undefined {
     return new Uint32Array(this.edges);
+  }
+
+  windowLines(): Uint32Array {
+    return new Uint32Array(this.windows);
   }
 
   wallEditPreview(_axis: number, _x: number, _y: number, state: number): WallEditPreview {
@@ -143,21 +150,21 @@ describe('WallTool', () => {
     expect(source.previewCalls).toBe(0);
   });
 
-  it('reads the chosen line and previews all three states for it', () => {
+  it('reads the chosen line and previews every state for it', () => {
     const { walls, source } = tool();
     source.edges = [0, 2, 1, 1];
     walls.enter();
     walls.choosePoint(1.6, 1.0);
     expect(walls.line).toEqual({ axis: 0, x: 2, y: 1 });
     expect(walls.current).toBe(DOORWAY);
-    expect(source.previewCalls).toBe(3);
+    expect(source.previewCalls).toBe(4);
     expect(walls.status).toBe('This line is a doorway.');
     expect(([OPEN, WALL, DOORWAY] as const).map((state) => walls.canApply(state))).toEqual([true, true, false]);
   });
 
   it('says why a wall is refused, and disables only the refused state', () => {
     const { walls, source } = tool();
-    source.refusals = [0, 12, 0];
+    source.refusals = [0, 12, 0, 12];
     walls.enter();
     walls.choosePoint(1.6, 1.0);
     expect(walls.status).toBe('No wall on this line. A wall there would cut off the front door.');
@@ -230,7 +237,7 @@ describe('WallTool', () => {
     source.edges = [0, 2, 1, 1];
     source.revision = 4;
     walls.afterCommands();
-    expect(source.previewCalls).toBe(calls + 3);
+    expect(source.previewCalls).toBe(calls + 4);
     expect(walls.current).toBe(DOORWAY);
   });
 
@@ -319,7 +326,7 @@ describe('WallTool', () => {
 
   it('says only that the outside wall cannot change, on an outer line', () => {
     const { walls, source } = tool();
-    source.refusals = [5, 5, 5];
+    source.refusals = [5, 5, 5, 5];
     walls.enter();
     walls.choosePoint(-0.45, 2.0);
     expect(walls.status).toBe('The outside wall cannot be changed here.');
@@ -443,7 +450,7 @@ describe('the Walls tool on real wasm', () => {
 
 describe('the Walls tool in the page', () => {
   const IDS = ['build-tool-furniture', 'build-tool-walls', 'furniture-tool', 'wall-tool',
-    'wall-status', 'wall-build', 'wall-doorway', 'wall-remove', 'wall-keyboard-help',
+    'wall-status', 'wall-build', 'wall-doorway', 'wall-window', 'wall-remove', 'wall-keyboard-help',
     'wall-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
@@ -597,12 +604,12 @@ describe('WallToolControls', () => {
   it('disables the button for the current state and for a refused one, and presses apply', () => {
     const { walls, source, view, element } = controls(() => true);
     element('build-tool-walls').click();
-    source.refusals = [0, 12, 0];
+    source.refusals = [0, 12, 0, 12];
     source.edges = [0, 2, 1, 1];
     walls.choosePoint(1.6, 1.0);
     view.render();
-    expect(['wall-build', 'wall-doorway', 'wall-remove'].map((id) => element(id).disabled))
-      .toEqual([true, true, false]);
+    expect(['wall-build', 'wall-doorway', 'wall-window', 'wall-remove'].map((id) => element(id).disabled))
+      .toEqual([true, true, true, false]);
     expect(element('wall-status').textContent).toBe(walls.status);
     element('wall-remove').click();
     expect(source.staged).toEqual([[0, 2, 1, OPEN]]);
@@ -618,3 +625,51 @@ describe('WallToolControls', () => {
     expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([false, true]);
   });
 });
+
+// [WN-tool] in docs/specs/2026-09-22-windows.md: Window is the third thing a
+// line can become, beside Wall and Doorway.
+describe('the Window choice', () => {
+  it('reads a glazed line, offers the other states, and stages a window', () => {
+    const { walls, source } = tool();
+    source.windows = [0, 2, 1];
+    walls.enter();
+    walls.choosePoint(1.6, 1.0);
+    expect(walls.status).toBe('A window stands on this line.');
+    expect(([OPEN, WALL, DOORWAY, WINDOW] as const).map((state) => walls.canApply(state)))
+      .toEqual([true, true, true, false]);
+    // The tiles beside a glazed line are a place a barrier may stand: one does.
+    expect(walls.highlight()?.valid).toBe(true);
+
+    walls.apply(WINDOW);
+    expect(source.staged).toEqual([]);
+    walls.apply(OPEN);
+    expect(source.staged).toEqual([[0, 2, 1, OPEN]]);
+  });
+
+  it('fits a window on an open line, by button and by key', () => {
+    const { walls, source } = tool();
+    walls.enter();
+    walls.choosePoint(1.6, 1.0);
+    expect(walls.canApply(WINDOW)).toBe(true);
+    walls.apply(WINDOW);
+    expect(source.staged).toEqual([[0, 2, 1, WINDOW]]);
+    source.result = { axis: 0, x: 2, y: 1, state: WINDOW, reason: null };
+    source.windows = [0, 2, 1];
+    source.revision += 1;
+    walls.afterCommands();
+    expect(walls.status).toBe('Window fitted.');
+
+    const second = tool();
+    second.walls.enter();
+    second.walls.choosePoint(1.6, 1.0);
+    expect(second.walls.handleKey('n')).toBe(true);
+    expect(second.source.staged).toEqual([[0, 2, 1, WINDOW]]);
+  });
+
+  it('reads a line that is somehow both as the wall the simulation reports', () => {
+    expect(stateOf([0, 2, 1, 0], { axis: 0, x: 2, y: 1 }, [0, 2, 1])).toBe(WALL);
+    expect(stateOf([], { axis: 0, x: 2, y: 1 }, [0, 2, 1])).toBe(WINDOW);
+    expect(stateOf([], { axis: 0, x: 2, y: 1 }, [])).toBe(OPEN);
+  });
+});
+

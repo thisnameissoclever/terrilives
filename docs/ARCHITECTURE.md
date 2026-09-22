@@ -576,6 +576,15 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
+A window is the third thing a wall line can be ([WN-state] in
+`docs/specs/2026-09-22-windows.md`). It keeps no wall record: the saved
+layout holds the window lines in their own list, in an appended enum variant
+that appears only once a house has a window, so a house without one saves
+exactly as it did before and its world hash does not move. Movement and the
+lamp field treat a window as a wall, the sky flood passes it because it is
+not a wall record, and it draws as a full panel at its own line, in wall art
+with a pale tint until there is window art.
+
 Daylight indoors works the same way ([OS-daylight] in
 `docs/specs/2026-09-22-the-outside.md`). `render/sky.ts` floods sky exposure
 in from every tile outside the house, losing `daylight_reach_per_tile` per
