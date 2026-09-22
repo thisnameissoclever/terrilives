@@ -462,3 +462,14 @@ This removes the missing-residential-pack objection from [T7]. Before any
 purchase, test representative Town and SIMPLE House Interiors FBX assets
 together in the real renderer for style, scale, conversion quality, and the
 interaction and footprint work the raw assets do not provide.
+
+### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
+
+Selling furniture refuses to sell the last object that can fill a role a
+chain needs, such as the shipped house's only stove, the only hob Cook dinner
+can use: "Nothing else in the house can do its job." Without that, sims part
+way through cooking would wait for the stove forever and go hungry. The other
+choice is to let the sale go through and have sims give up the meal and the
+chain stop being offered until a new stove is bought. The refusal is what the
+game does now; tell me if you would rather have the other behaviour. Nothing is
+blocked meanwhile.

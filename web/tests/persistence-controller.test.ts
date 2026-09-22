@@ -169,11 +169,11 @@ describe('restorePersistenceFocus', () => {
 
 describe('PersistenceController', () => {
   it('identifies an unsupported envelope version without claiming the payload is corrupt', async () => {
-    const bytes = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 4, 0, 17]);
+    const bytes = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 5, 0, 17]);
     const view = status();
     const controller = new PersistenceController(store(bytes), sim(false), view);
     expect(await controller.restoreAtStartup()).toBe('invalid');
-    expect(view.textContent).toContain('version 4 is not supported');
+    expect(view.textContent).toContain('version 5 is not supported');
     expect(view.textContent).toContain('Saving paused');
   });
 

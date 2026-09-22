@@ -10,7 +10,7 @@ use super::{
 };
 use crate::Content;
 use bevy_ecs::prelude::*;
-use terri_core::{Funds, IntentQueue, Reserved, Target, TileGrid};
+use terri_core::{Funds, IntentQueue, Reserved, SmartObject, Target, TileGrid};
 
 /// Every entity index a sale has retired, ascending - [SL-despawn]. Saved in
 /// the V4 envelope and hashed, because it decides which indices the loader
@@ -77,6 +77,28 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
         return Err(InUse);
     }
     let price = definition.price.ok_or(NotForSale)?;
+    // The last object that can fill a role some chain needs stays: without it
+    // a sim part way through that chain would wait for a station that no
+    // longer exists, and the chain would still be offered ([SL-rules]).
+    let content = world.resource::<Content>().0;
+    let fills = |other: Entity, role: u32| {
+        world
+            .get::<SmartObject>(other)
+            .is_some_and(|object| content.object(object.0).roles.contains(&role))
+    };
+    let last_for_a_chain = definition.roles.iter().any(|&role| {
+        content
+            .chains
+            .iter()
+            .any(|chain| chain.steps.iter().any(|step| step.role == role))
+            && !rectangles.iter().any(|rect| {
+                rect.entity
+                    .is_some_and(|other| other != entity && fills(other, role))
+            })
+    });
+    if last_for_a_chain {
+        return Err(LastForAChain);
+    }
     // The fixed architecture with every other object standing on it: the
     // grid the lot has once this one is gone.
     let mut grid = walls;
@@ -85,7 +107,7 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
             grid.set_blocked(x as usize, y as usize, true);
         }
     }
-    let fraction = world.resource::<Content>().0.tuning.resale_fraction;
+    let fraction = content.tuning.resale_fraction;
     Ok(SalePlan {
         grid,
         entity,

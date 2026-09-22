@@ -585,8 +585,10 @@ this milestone and is done; what follows is M1b onwards.
 - **Smart object library:** ~40 objects across the core need categories
 - **Build mode:** walls, floors, doors, windows, roofs
 - **Buy mode:** catalog, placement, rotation, palette recolors ([G4]).
-  Catalogue, placement and rotation are built in PR 96: a Buy tool lists every
-  object by name with its price, greys out what the household cannot afford,
+  Catalogue, placement and rotation shipped in PR 96 at merge `cb2cb9a`;
+  main's CI (run 35699619286) and the Pages deployment (run 35699810650) both
+  passed for that commit, and the public page serves the Buy tool. It lists
+  every object by name with its price, greys out what the household cannot afford,
   and stands the chosen object on the floor under the rules a move obeys,
   taking the price from Funds. The design is
   `docs/specs/2026-09-21-buy-mode.md` and the played check is [A-buy-mode].

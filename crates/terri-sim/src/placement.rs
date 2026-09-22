@@ -30,6 +30,10 @@ pub enum PlacementRefusal {
     /// The object has no price, so nothing says what a sale is worth -
     /// [SL-rules] in `docs/specs/2026-09-22-selling-furniture.md`.
     NotForSale = 15,
+    /// The object is the last one that can fill a role some chain needs, the
+    /// only hob for Cook dinner, so selling it would strand every sim part
+    /// way through that chain - [SL-rules].
+    LastForAChain = 16,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

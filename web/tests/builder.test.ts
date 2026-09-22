@@ -351,3 +351,53 @@ it('sells with Delete and will not sell what a sim has been told to use', () => 
   expect(builder.selected).toBeNull();
   handle.free();
 });
+
+// Review finding [K6] on the sell branch: a sale the drain refuses keeps the
+// choice and asks again what it would sell for, so Sell does not stay on.
+it('keeps the choice and turns Sell off when the drain refuses a sale', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  builder.select(15);
+  expect(builder.canSell).toBe(true);
+  const ids = Array.from(source.ids());
+  const kinds = Array.from(source.kinds());
+  const agent = ids.find((_, row) => kinds[row] === 0)!;
+  // The order drains before the sale behind it and puts the object in use.
+  expect(source.useObject(agent, 15, 0)).toBe(true);
+  expect(builder.sell()).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(source.lastSaleResult()).toMatchObject({ object: 15, payout: 0 });
+  expect([builder.selected, builder.pending, builder.saleValue, builder.canSell, builder.status])
+    .toEqual([15, false, null, false, 'Wait until nobody is using or approaching this object.']);
+  handle.free();
+});
+
+// Review finding [K6]: a Load forgets a sale on its way, so a later result
+// for the same object from elsewhere is not taken for this tool's own.
+it('forgets a sale on its way when a game is loaded', () => {
+  const { handle, source, builder } = fixture();
+  const saved = source.saveBytes();
+  builder.enter();
+  builder.select(15);
+  builder.sell();
+  expect(source.loadBytes(saved)).toBe(true);
+  builder.resetAfterLoad();
+  builder.select(22);
+  expect(source.sellObject(15)).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.selected, builder.pending]).toEqual([22, false]);
+  expect(builder.status).not.toContain('sold');
+  handle.free();
+});
+
+// Review finding [K7]: Backspace sells as Delete does.
+it('sells with Backspace', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  builder.select(15);
+  expect(builder.handleKey('Backspace')).toBe(true);
+  expect(builder.pending).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.selected).toBeNull();
+  handle.free();
+});

@@ -23,8 +23,8 @@ use terri_core::{
 use terri_data::{ContentPack, ObjectDefId};
 
 const MAX_TILES: usize = 1_048_576;
-const MAX_ENTITIES: usize = 100_000;
-const MAX_LIST_ENTRIES: usize = 100_000;
+pub(super) const MAX_ENTITIES: usize = 100_000;
+pub(super) const MAX_LIST_ENTRIES: usize = 100_000;
 const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
@@ -1487,7 +1487,7 @@ fn strictly_increasing(values: impl IntoIterator<Item = u32>) -> bool {
     true
 }
 
-fn exceeds_limit(value: usize, inclusive_maximum: usize) -> bool {
+pub(super) fn exceeds_limit(value: usize, inclusive_maximum: usize) -> bool {
     value > inclusive_maximum
 }
 

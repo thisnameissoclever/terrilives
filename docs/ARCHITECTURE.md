@@ -629,9 +629,11 @@ Save V4 ([SL-save] in `docs/specs/2026-09-22-selling-furniture.md`) is V3 with
 `retired_indices` appended: the entity indices sales have retired. A sale
 despawns without freeing its index (`despawn_no_free`), so no later spawn can
 take it, and records it in `RetiredIndices`. The loader keeps those indices out
-of use and frees every other gap in the saved numbering as before, because the
-ECS frees indices of its own that later spawns reuse. The retired list is
-hashed. The writer emits V4; V1, V2 and V3 still load, with nothing retired.
+of use and frees every other gap in the saved numbering as before, as older
+saves and test worlds with holes rely on. The retired list is bounded like
+saved entity indices and hashed. The writer emits V4, and the browser's storage
+worker keeps a V3 recovery backup on the first V4 write; V1, V2 and V3 still
+load, with nothing retired.
 
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a

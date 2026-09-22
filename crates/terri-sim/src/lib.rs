@@ -610,7 +610,7 @@ fn authored_object_sound(
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v3` for complete persistence of a current world.
+    /// Use `save_snapshot_v4` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }

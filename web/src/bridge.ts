@@ -45,6 +45,7 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   13: 'Keep the front-door landing clear and reachable.',
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
+  16: 'Nothing else in the house can do its job.',
 };
 
 /** One object for sale - [BM-shell]. */

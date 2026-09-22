@@ -22,8 +22,8 @@ it, because selling is the first thing in the game that removes an entity.
 * **Lot edits** drain in stream order between the orders around them
   (`systems/lot_edit.rs`), each with a preview and a commit that share one
   validator, a transient last result and a lot revision the shell watches.
-* **The move rules' use check** (`InUse`): reserved, targeted, or named by any
-  queued intent.
+* **The move rules' use check** (`InUse`): reserved or targeted. A sale adds
+  one more case, named by a queued intent ([SL-rules]).
 * **Prices** on objects in `content/objects.toml` ([BM-price]).
 
 ## Decisions
@@ -45,11 +45,22 @@ so every earlier code keeps its meaning. `object` is the raw entity index, as
 4. `InUse`: reserved, targeted, or named by a queued intent.
 5. `NotForSale`, a new code 15 appended after `CannotAfford`: the object has no
    price, so the catalogue does not list it and nothing says what it is worth.
+6. `LastForAChain`, code 16: the object is the last placed one that can fill a
+   role some chain needs, such as the shipped house's only stove, its only
+   hob for Cook dinner. Without it a sim part way through the chain would wait
+   for a station that no longer exists, and the chain would still be offered,
+   so a household could be left unable to eat. Refusing keeps the build rule
+   that a lot where eating is impossible cannot be made. "Nothing else in the
+   house can do its job." Buying a second stove first lets the first one go.
 
 A sale only opens tiles, so it cannot cut anyone off or leave furniture out of
-reach, and the usability proofs are not run. The loader's grid checks are not
-run either: they look at sims, their walks and what they are walking to, and a
-sale of anything a sim is walking to or using is refused at step 4.
+reach, and the usability proofs are not run. The loader's grid checks
+(`candidate_grid_loads`) are not run either: they look at sims, their walks and
+what they are walking to, and a sale of anything a sim is walking to or using
+is refused at step 4. One loader rule sits outside them: a queued order naming
+an index that no longer exists makes a save the loader refuses. The shell
+cannot stage one, because Build closes the action menus and a sold object is
+no longer drawn, so this is recorded rather than guarded.
 
 ### [SL-pay] What a sale pays back
 
@@ -71,12 +82,19 @@ entity and its components without returning the index to the allocator, and
 records the index in `RetiredIndices`. A sold index is never handed out again,
 and a sale leaves the allocator's free list exactly as it was.
 
-The first design saved only where fresh indices start and had the loader retire
-every gap. Building it showed why that is wrong: the ECS allocates and frees
-entities of its own, for a system run once in each command drain, and later
-spawns reuse those indices. Those gaps must be freed after a Load, as the loader
-has always freed them, and only the sold ones kept out of use. So the save
-records which indices are retired, not a bound.
+The first design saved where fresh indices start, read from
+`Entities::len()`, and had the loader retire every gap. Its first test failed:
+the next spawn took an index well below that bound. Review found why:
+`Entities::len()` is the length of the ECS's internal entity record list,
+which grows in chunks (64 records for 37 entities in the shipped house), not
+the next index. The ECS does not free indices of its own in this game. The
+shipped design saves which indices are retired instead of a bound, which needs
+no allocator internals at all, and frees every other gap exactly as V1 to V3
+always did, which older saves and test worlds with holes rely on.
+
+A sold index is never reused, so each buy and sell cycle uses one index for
+good. A save holding an entity at index 100,000 or above is refused, which
+would take about a hundred thousand cycles; it is noted rather than guarded.
 
 ### [SL-save] Save V4: the retired indices
 
@@ -88,11 +106,18 @@ entities into their slots, retires the retired placeholders with
 has. A retired index above every saved one is still reached, so it stays out
 of use after the Load.
 
-A V4 save whose retired list is out of order, repeats an index, or names an
-index a saved entity holds is refused before the running world is replaced.
+A V4 save whose retired list is out of order, repeats an index, names an
+index a saved entity holds, holds more than 100,000 entries, or names an index
+at 100,000 or above, the bound saved entity indices already have, is refused
+before the running world is replaced. Without the bound one oversized index
+would have the loader spawn placeholders up to it.
 V1, V2 and V3 saves load exactly as before, with nothing retired: nothing
 written before this slice can hold a sold index. The writer emits V4 from this
-slice on, and a V3 body labelled V4 is refused for its missing list.
+slice on, and a V3 body labelled V4 is refused for its missing list. The
+browser's storage worker writes V4 and, on the first V4 write over a V3 slot,
+keeps the V3 bytes in a recovery backup beside it, as it already does for V1
+and V2, so a player who goes back to an older build can still read their game.
+A tab still running the V3 build refuses to overwrite a V4 slot.
 
 The world hash gains the retired list, its length then each index, as an
 appended section, so two worlds that would hand the next spawn different
@@ -117,8 +142,23 @@ The boundary gains `sale_preview(object)`, the refusal code and the payout,
 for the label; `sell_object(object)` to stage the sale; and
 `last_sale_result()`, the object, the refusal code and what it paid. While the
 sale is on its way the status says "Selling…"; once it lands the choice clears
-and the status says "{name} sold.", or the refusal. The Delete key sells from
-the keyboard, and the keyboard help says so.
+and the status says "{name} sold.", or the refusal. Delete or Backspace sells
+from the keyboard, since a Mac laptop's delete key sends Backspace, and the
+keyboard help says so. A sale the drain refuses keeps the choice and asks again
+what it would sell for.
+
+## Review record
+
+A fresh-context review of this slice found three must-fix problems, all fixed
+with tests: the browser's storage worker still wrote only V3, so every Save
+would have failed [K1]; selling the only stove stranded sims part way through
+Cook dinner [K2]; and the loader did not bound retired indices [K3]. It also
+found the first account of why a saved bound failed was wrong [K4], stale
+statements [K5], a refused sale leaving Sell enabled [K6], and Backspace
+missing [K7]. Two notes are recorded above rather than changed: the loader's
+queued-order rule [K8] and index use over many cycles [K9]. Whether a sold
+stove should instead make sims give up the meal is left for the owner as
+[T-selling-the-last-stove] in `docs/TIM-TODO.md`.
 
 ## Slices
 

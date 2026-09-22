@@ -10,7 +10,7 @@ export interface BuilderObject { readonly id: number; readonly name: string }
 export interface BuilderHooks { changed(): void; enter(): void; exit(): void }
 export const FACING_NAMES = ['South-east', 'South-west', 'North-west', 'North-east'] as const;
 const EDIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
-  '[', ']', 'r', 'R', 'Enter', 'Escape', 'Delete']);
+  '[', ']', 'r', 'R', 'Enter', 'Escape', 'Delete', 'Backspace']);
 
 /** Paused edit state. Rust owns every placement decision and world write. */
 export class FurnitureBuilder {
@@ -168,7 +168,8 @@ export class FurnitureBuilder {
       case ']': this.cycle(1); break;
       case 'r': case 'R': this.rotate(); break;
       case 'Enter': this.confirm(); break;
-      case 'Delete': this.sell(); break;
+      // A Mac laptop's delete key sends Backspace, as the Walls tool allows.
+      case 'Delete': case 'Backspace': this.sell(); break;
       case 'Escape': if (this.selected === null) this.exit(); else this.cancel(); break;
       default: return false;
     }
@@ -187,7 +188,10 @@ export class FurnitureBuilder {
         this.selling = null;
         this.pending = false;
         const name = this.name;
+        // A refused sale keeps the choice; ask again what it would sell for,
+        // since whatever refused it may still stand.
         if (result.reason === null) this.clearSelection();
+        else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? `${name || 'Furniture'} sold.`;
         this.hooks.changed();
       }
