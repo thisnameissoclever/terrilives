@@ -2228,6 +2228,16 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.wander_attempts == 0 {
         return Err(ContentError::ZeroWanderAttempts);
     }
+    // [CS-command]: a name of at most 256 characters is at most 1,024
+    // bytes, the loader's limit on saved text.
+    if !(1..=256).contains(&tuning.housemate_name_max_chars) {
+        return Err(ContentError::HousemateNameLimitOutOfRange {
+            value: tuning.housemate_name_max_chars,
+        });
+    }
+    if tuning.housemate_max_traits == 0 {
+        return Err(ContentError::HousemateTraitLimitIsZero);
+    }
     if tuning.wander_radius_tiles == 0 {
         return Err(ContentError::ZeroWanderRadius);
     }
@@ -2508,6 +2518,8 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             asleep_decay_scale: tuning.asleep_decay_scale,
             wander_radius_tiles: tuning.wander_radius_tiles,
             resale_fraction: tuning.resale_fraction,
+            housemate_name_max_chars: tuning.housemate_name_max_chars,
+            housemate_max_traits: tuning.housemate_max_traits,
         },
         circadian,
         tuning.sleep_tag,
@@ -3571,7 +3583,10 @@ mod tests {
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 0,
+        // **The housemate limits append two tuning bytes ([CS-command]):**
+        // `23, 5`, after `resale_fraction`'s `0, 0, 208, 62`. Read from the
+        // failing golden assertion.
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
         // The empty colourway vector, appended after the portals ([RC-content]).
@@ -3746,6 +3761,8 @@ mod tests {
             resale_fraction: 0.40625,
             affinity_loves_from: 1.46875,
             affinity_hates_to: 0.28125,
+            housemate_name_max_chars: 23,
+            housemate_max_traits: 5,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -4880,6 +4897,31 @@ mod tests {
             compile_tuned(tuning_where(|t| t.resale_fraction = f32::NAN)).unwrap_err(),
             ContentError::NonFiniteValue { .. }
         ));
+    }
+
+    /// [CS-command]: a newcomer's name may be 1 to 256 characters long, both
+    /// ends allowed, so it is never empty and always fits the loader's limit
+    /// on saved text; and a newcomer may wear at least one trait.
+    #[test]
+    fn validates_the_housemate_limits() {
+        for value in [0, 257] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.housemate_name_max_chars = value)).unwrap_err(),
+                ContentError::HousemateNameLimitOutOfRange { value },
+                "{value}"
+            );
+        }
+        for value in [1, 256] {
+            let pack = compile_tuned(tuning_where(|t| t.housemate_name_max_chars = value))
+                .expect("both ends of the range are legal");
+            assert_eq!(pack.tuning.housemate_name_max_chars, value);
+        }
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.housemate_max_traits = 0)).unwrap_err(),
+            ContentError::HousemateTraitLimitIsZero
+        );
+        let pack = compile_tuned(tuning_where(|t| t.housemate_max_traits = 1)).unwrap();
+        assert_eq!(pack.tuning.housemate_max_traits, 1);
     }
 
     /// A radius of zero cannot produce a non-empty wander path, while a radius

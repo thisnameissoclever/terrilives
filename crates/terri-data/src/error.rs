@@ -1088,6 +1088,14 @@ pub enum ContentError {
         x: u32,
         y: u32,
     },
+    /// [CS-command]: `housemate_name_max_chars` outside 1 to 256, so a name
+    /// would be empty or could pass the loader's limit on saved text.
+    HousemateNameLimitOutOfRange {
+        value: u32,
+    },
+    /// [CS-command]: `housemate_max_traits` is 0, so a newcomer could wear
+    /// nothing from the library.
+    HousemateTraitLimitIsZero,
     /// [OS-yard], [OS-street]: the yard's or the street's look has a number
     /// outside a colourway's range.
     LookOutOfRange {
@@ -2139,6 +2147,16 @@ impl fmt::Display for ContentError {
                 "lot.toml has no wall or doorway on the house's {axis:?} outside \
                  line at ({x}, {y}); every line between the house and the yard \
                  needs one"
+            ),
+            ContentError::HousemateNameLimitOutOfRange { value } => write!(
+                f,
+                "housemate_name_max_chars is {value}; must be from 1 to 256, so \
+                 a name is never empty and always fits a save"
+            ),
+            ContentError::HousemateTraitLimitIsZero => write!(
+                f,
+                "housemate_max_traits is 0; a new housemate must be able to \
+                 wear at least one trait"
             ),
             ContentError::LookOutOfRange { look, field } => write!(
                 f,

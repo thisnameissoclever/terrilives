@@ -61,6 +61,8 @@ pub struct LotEditState {
     pub last_sale_result: Option<sale::SaleResult>,
     /// What the drain did with the most recent colourway change - [RC-command].
     pub last_colourway_result: Option<colourway::ColourwayResult>,
+    /// What the drain did with the most recent move-in - [CS-command].
+    pub last_housemate_result: Option<crate::household::HousemateResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 

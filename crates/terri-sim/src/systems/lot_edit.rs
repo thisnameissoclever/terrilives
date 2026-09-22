@@ -43,6 +43,14 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::sale::commit(world, object);
             }
+            SimCommand::AddHousemate {
+                name,
+                personality,
+                traits,
+            } => {
+                flush_ordinary(world);
+                crate::household::commit(world, &name, personality, &traits);
+            }
             SimCommand::BuyObjectInColourway {
                 definition,
                 x,

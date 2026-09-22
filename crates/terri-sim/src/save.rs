@@ -260,6 +260,21 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
                 .get(*colourway as usize)
                 .map(|colourway| colourway.id.clone()),
         },
+        SimCommand::AddHousemate {
+            name,
+            personality,
+            traits,
+        } => SavedCommand::AddHousemate {
+            name: name.clone(),
+            personality: pack
+                .personalities
+                .get(*personality as usize)
+                .map(|personality| personality.id.clone()),
+            traits: traits
+                .iter()
+                .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
+                .collect(),
+        },
         SimCommand::SetColourway { object, colourway } => SavedCommand::SetColourway {
             object: *object,
             colourway: pack
@@ -836,6 +851,25 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
                 .and_then(|id| pack.colourways.iter().position(|known| known.id == id))
                 .map_or(u32::MAX, |index| index as u32),
         },
+        // [CS-save]: ids this pack lacks restore as indices past the
+        // tables, which the drain refuses.
+        SavedCommand::AddHousemate {
+            name,
+            personality,
+            traits,
+        } => SimCommand::AddHousemate {
+            name,
+            personality: personality
+                .and_then(|id| pack.personalities.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+            traits: traits
+                .into_iter()
+                .map(|id| {
+                    id.and_then(|id| pack.traits.iter().position(|known| known.id == id))
+                        .map_or(u32::MAX, |index| index as u32)
+                })
+                .collect(),
+        },
         // An id this pack lacks restores as an index past every colourway,
         // which the drain refuses, as a staged purchase of an unknown object.
         SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
@@ -1081,6 +1115,17 @@ fn validate_command(
         | SavedCommand::SellObject { .. }
         | SavedCommand::SetColourway { .. }
         | SavedCommand::BuyObjectInColourway { .. } => Ok(()),
+        // [CS-save]: held to the limits every saved name and list is held
+        // to; the drain checks the rest.
+        SavedCommand::AddHousemate { name, traits, .. } => {
+            if exceeds_limit(name.len(), MAX_TEXT_BYTES)
+                || exceeds_limit(traits.len(), MAX_LIST_ENTRIES)
+            {
+                Err(SaveError::InvalidValue)
+            } else {
+                Ok(())
+            }
+        }
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

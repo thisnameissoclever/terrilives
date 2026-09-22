@@ -331,4 +331,11 @@ pub enum SavedCommand {
         facing: crate::Facing,
         colourway: Option<String>,
     },
+    /// [CS-save]. A move-in staged just before a save, its personality and
+    /// traits recorded by id as a staged purchase records its object.
+    AddHousemate {
+        name: String,
+        personality: Option<String>,
+        traits: Vec<Option<String>>,
+    },
 }

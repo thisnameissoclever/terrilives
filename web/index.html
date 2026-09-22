@@ -576,7 +576,8 @@
         width: 100%;
       }
       #new-game-dialog,
-      #load-game-dialog {
+      #load-game-dialog,
+      #housemate-dialog {
         max-width: min(360px, calc(100vw - 32px));
         border: 1px solid var(--hud-edge);
         border-radius: 8px;
@@ -585,15 +586,35 @@
         padding: 18px;
       }
       #new-game-dialog::backdrop,
-      #load-game-dialog::backdrop {
+      #load-game-dialog::backdrop,
+      #housemate-dialog::backdrop {
         background: rgba(0, 0, 0, 0.72);
       }
       #new-game-dialog h2,
-      #load-game-dialog h2 {
+      #load-game-dialog h2,
+      #housemate-dialog h2 {
         margin-top: 0;
       }
+      /* The form's rows stack; the traits scroll so six people's worth of
+         library still fits a phone. */
+      #housemate-dialog form > label { display: block; margin-top: 10px; }
+      #housemate-dialog input[type="text"], #housemate-dialog select {
+        display: block; width: 100%; box-sizing: border-box;
+        margin-top: 4px; padding: 8px; font: inherit;
+        color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
+        border-radius: 4px;
+      }
+      #housemate-traits-field { margin: 10px 0 0; padding: 8px; border: 1px solid var(--hud-edge); border-radius: 4px; }
+      #housemate-traits { max-height: 30vh; overflow-y: auto; }
+      /* A box beside its trait's name and sentence, the box never stretched. */
+      .housemate-trait { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; cursor: pointer; }
+      .housemate-trait input { flex: none; margin: 3px 0 0; }
+      .housemate-trait span { flex: 1 1 auto; }
+      #housemate-status:empty { display: none; }
+      #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
-      #load-game-dialog menu {
+      #load-game-dialog menu,
+      #housemate-dialog menu {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
@@ -1045,6 +1066,7 @@
       <section id="household-roster" aria-labelledby="household-roster-title">
         <h2 id="household-roster-title">Household</h2>
         <div id="household-roster-members"></div>
+        <button id="new-housemate" class="hud-button" type="button">New housemate</button>
       </section>
       <details id="needs-panel" aria-label="Needs of the selected sim" open>
         <!-- Whose bars these are. Filled by NeedsPanel from the
@@ -1268,6 +1290,28 @@
         <menu>
           <button class="hud-button" value="cancel">Keep playing</button>
           <button id="confirm-new-game" class="hud-button" value="confirm">Start over</button>
+        </menu>
+      </form>
+    </dialog>
+    <!-- The New housemate form - [CS-command] in
+         docs/specs/2026-09-22-create-a-sim.md. The lists are filled from
+         content by main.ts, so nothing here names a personality or a trait. -->
+    <dialog id="housemate-dialog" aria-labelledby="housemate-title">
+      <h2 id="housemate-title">New housemate</h2>
+      <p id="housemate-count"></p>
+      <form method="dialog">
+        <label for="housemate-name">Name</label>
+        <input id="housemate-name" type="text" autocomplete="off">
+        <label for="housemate-personality">Personality</label>
+        <select id="housemate-personality"></select>
+        <fieldset id="housemate-traits-field">
+          <legend>Traits</legend>
+          <div id="housemate-traits"></div>
+        </fieldset>
+        <p id="housemate-status" role="status"></p>
+        <menu>
+          <button class="hud-button" value="cancel">Cancel</button>
+          <button id="housemate-confirm" class="hud-button" value="confirm">Move in</button>
         </menu>
       </form>
     </dialog>

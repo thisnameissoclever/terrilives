@@ -29,6 +29,28 @@ export interface PlacementPreview {
 }
 
 /** Stable Rust refusal codes; player-facing wording lives only here. */
+/** The drain's answer to a move-in ([CS-command]). */
+export interface HousemateResult {
+  /** Why the newcomer did not move in, or null when they did. */
+  readonly reason: string | null;
+  /** The newcomer's entity index, or null when nobody moved in. */
+  readonly sim: number | null;
+}
+
+const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
+  1: 'The household is full.',
+  2: 'Give them a name that fits.',
+  3: 'That personality is not available.',
+  4: 'Choose fewer traits.',
+  5: 'That trait is not available.',
+  6: 'Each trait once.',
+  7: 'There is no way in for them.',
+};
+
+export function housemateReason(code: number): string | null {
+  return code === 0 ? null : HOUSEMATE_REASONS[code] ?? 'They could not move in.';
+}
+
 const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   1: 'Choose a whole tile and a supported direction.',
   2: 'That furniture is no longer available.',
@@ -1194,6 +1216,35 @@ export class SimBridge {
   /** One plain sentence per pack trait, aligned with traitLabels - [TL-panel]. */
   traitDescriptions(): string[] {
     return this.handle.trait_descriptions();
+  }
+
+  /** Each personality's name, in pack order ([CS-command] in `docs/specs/2026-09-22-create-a-sim.md`). */
+  personalityLabels(): string[] {
+    return this.handle.personality_labels();
+  }
+
+  /** `[size, most]`: how many live here and the most that may ([CS-command]). */
+  householdSize(): [number, number] {
+    const [size, most] = this.handle.household_size();
+    return [size, most];
+  }
+
+  /** `[nameChars, traits]`: the most characters a newcomer's name may have, and the most traits. */
+  housemateLimits(): [number, number] {
+    const [nameChars, traits] = this.handle.housemate_limits();
+    return [nameChars, traits];
+  }
+
+  /** Stages a move-in ([CS-command]); queue acceptance only, read the outcome from `lastHousemateResult`. */
+  addHousemate(name: string, personality: number, traits: readonly number[]): boolean {
+    return this.handle.add_housemate(name, personality, Float64Array.from(traits));
+  }
+
+  /** The drain's answer to the last move-in, or null before the first. */
+  lastHousemateResult(): HousemateResult | null {
+    const values = this.handle.last_housemate_result();
+    return values.length === 0 ? null
+      : { reason: housemateReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1] };
   }
 
   /**

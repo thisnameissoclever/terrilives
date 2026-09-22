@@ -2,6 +2,7 @@
 
 #[cfg(test)]
 mod facing_tests;
+pub mod household;
 mod mood;
 pub mod placement;
 pub mod portals;
@@ -1251,66 +1252,23 @@ impl Sim {
         traits: &[terri_data::CompiledTrait],
     ) {
         for member in household {
-            let sim_id = self
-                .world
-                .resource_mut::<terri_core::SimIdAllocator>()
-                .issue();
-            let compiled = &personalities[member.personality as usize];
-            let personality = terri_core::Personality::with_dispositions(
-                compiled.drain,
-                compiled.satisfaction,
-                compiled.dispositions.clone(),
-            );
-            let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
-            for id in terri_core::NeedId::ALL {
-                needs.set(id, member.needs[id.index()]);
-            }
-            let mut spawned = self.world.spawn((
-                terri_core::Agent,
-                terri_core::Position {
-                    x: member.x,
-                    y: member.y,
+            household::spawn_member(
+                &mut self.world,
+                personalities,
+                traits,
+                household::Member {
+                    name: member.name.clone(),
+                    personality: member.personality,
+                    position: terri_core::Position {
+                        x: member.x,
+                        y: member.y,
+                    },
+                    needs: member.needs,
+                    hobbies: member.hobbies.clone(),
+                    traits: &member.traits,
+                    career: member.career,
                 },
-                needs,
-                sim_id,
-                terri_core::SimName(member.name.clone()),
-                personality,
-                // The second axis starts at zero - a life is judged from
-                // move-in day - and the hobbies ride as spawned content
-                // ([E1]/[E2]). Household sims carry both; bare test
-                // agents carry neither, and every consumer treats the
-                // absences as "no hobbies, no ledger", which is what
-                // keeps the pre-M2e golden vectors still.
-                terri_core::Satisfaction::default(),
-                terri_core::Hobbies(member.hobbies.clone()),
-                // Worn traits open at their content-defined states: a
-                // capability at its start_level, a condition at its
-                // start_severity, a disposition stateless at 0 ([E3]).
-                terri_core::Traits::from_entries(
-                    member
-                        .traits
-                        .iter()
-                        .map(|&index| {
-                            let state = match traits[index as usize].kind {
-                                terri_data::CompiledTraitKind::Capability {
-                                    start_level, ..
-                                } => start_level,
-                                terri_data::CompiledTraitKind::Condition {
-                                    start_severity, ..
-                                } => start_severity,
-                                terri_data::CompiledTraitKind::Disposition { .. } => 0.0,
-                            };
-                            (index, state)
-                        })
-                        .collect(),
-                ),
-            ));
-            // The job rides only on the employed, the SpriteVariant
-            // pattern: every jobless sim - and every fixture - has no
-            // component rather than a sentinel ([E4]).
-            if let Some(career) = member.career {
-                spawned.insert(terri_core::Career(career));
-            }
+            );
         }
     }
 
@@ -2759,6 +2717,31 @@ impl Sim {
                         fields
                     }
                     SellObject { object } => vec![11, *object as u64],
+                    // [CS-save]: by the personality's and the traits' ids,
+                    // an index naming nothing as `u64::MAX`; the name is in
+                    // nobody's hash row.
+                    AddHousemate {
+                        personality,
+                        traits,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            14,
+                            content
+                                .and_then(|content| {
+                                    content.0.personalities.get(*personality as usize)
+                                })
+                                .map_or(u64::MAX, |personality| id_digest(&personality.id)),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row
+                    }
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {

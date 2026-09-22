@@ -184,6 +184,15 @@ pub enum SimCommand {
         facing: crate::Facing,
         colourway: u32,
     },
+    /// A new housemate named `name` moves in, with pack personality
+    /// `personality` and pack traits `traits` - [CS-command] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. One edit, checked whole
+    /// before anything is written. Appended to preserve earlier wire codes.
+    AddHousemate {
+        name: String,
+        personality: u32,
+        traits: Vec<u32>,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -367,6 +376,16 @@ mod tests {
                 // Variant 13, then the purchase as `BuyObject` writes it,
                 // then the colourway 3.
                 &[13, 172, 2, 2, 5, 2, 3],
+            ),
+            (
+                SimCommand::AddHousemate {
+                    name: "Ann".to_string(),
+                    personality: 2,
+                    traits: vec![1, 300],
+                },
+                // Variant 14, the name's length then its bytes, the
+                // personality, then the traits' count and each as a varint.
+                &[14, 3, b'A', b'n', b'n', 2, 2, 1, 172, 2],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),
