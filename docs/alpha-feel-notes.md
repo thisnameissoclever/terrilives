@@ -3514,3 +3514,13 @@ Under Ann's needs, the Traits panel started closed. It first showed "Traits" wit
 At 375 by 812 the compact strip was Time, Funds, Menu and the save status, with the gear to its right. The gear's panel opened below it, above the house. In Build, the dock filled the bottom of the screen and the gear stayed reachable; its panel then held Light, Exit build, Save, Load, New game and Help, since Build hides sound, Clear orders and Queue. Menu opened Household, Ann, How Ann feels and the speed controls, with no Light or Build rows.
 
 **Not proven here.** Load and New game from the panel were not pressed, because New game would clear the save; the tests check, in main.ts, that each closes the panel and returns focus to the gear. Review found that at 320 pixels wide the strip clipped the Menu button by 9 pixels, and that fix was checked by its CSS test, not in the page. The phone's Ann and How Ann feels toggles show no triangle either, as before this change. No phone was used.
+
+## [A-walls-in-build] The Walls tool shows the house's front walls
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/walls-in-build` (commit 07e7e43) with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save.
+
+In play, and in Build with the Furniture tool, the house stood open on its east and south sides as always. Choosing Walls drew both of those walls along the house, with the front door in the east wall, while the yard's edge stayed open. Choosing Room kept them drawn. Choosing Furniture cut them away again, and the static block rebuilt only on those switches, not on clicks.
+
+The first load of this check showed the sidebar drawn at the window's right edge. That came from PR 111's move of the Options gear, fixed there before this check went on ([L-move-markup-by-its-tree]).
+
+**Not proven here.** Lighting and routes were not watched with the walls shown; tests and the edge list's design keep them unchanged. No phone was used.
