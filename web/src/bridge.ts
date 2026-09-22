@@ -35,6 +35,8 @@ export interface HousemateResult {
   readonly reason: string | null;
   /** The newcomer's entity index, or null when nobody moved in. */
   readonly sim: number | null;
+  /** How many move-ins this world has handled, this one included. */
+  readonly handled: number;
 }
 
 const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
@@ -1249,7 +1251,8 @@ export class SimBridge {
   lastHousemateResult(): HousemateResult | null {
     const values = this.handle.last_housemate_result();
     return values.length === 0 ? null
-      : { reason: housemateReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1] };
+      : { reason: housemateReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1],
+        handled: values[2] };
   }
 
   /**

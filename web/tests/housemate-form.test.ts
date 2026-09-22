@@ -150,9 +150,36 @@ describe('HousemateForm', () => {
       .toEqual([' Ann ', [4], 1, 'traits']);
     housemate.afterCommands();
     expect(housemate.pending).toBe(true);
-    source.result = { reason: null, sim: 41 };
+    source.result = { reason: null, sim: 41, handled: 1 };
     housemate.afterCommands();
     expect([housemate.pending, source.selected, movedIn()]).toEqual([false, [41], 1]);
+  });
+
+  it('takes only the answer to its own move-in, never an older one', () => {
+    const { housemate, source, movedIn } = form();
+    source.result = { reason: null, sim: 7, handled: 4 };
+    housemate.setName('Ann');
+    housemate.next();
+    housemate.moveIn();
+    // The drain has not reached it: the answer on show is the fourth, from before.
+    housemate.afterCommands();
+    expect([housemate.pending, source.selected, movedIn()]).toEqual([true, [], 0]);
+    source.result = { reason: 'The household is full.', sim: null, handled: 5 };
+    housemate.afterCommands();
+    expect([housemate.pending, housemate.status]).toEqual([false, 'The household is full.']);
+  });
+
+  it('keeps a move-in on its way when the form is opened again, and drops it on Load', () => {
+    const { housemate } = form();
+    housemate.setName('Ann');
+    housemate.next();
+    housemate.moveIn();
+    housemate.reset();
+    expect([housemate.pending, housemate.page, housemate.name, housemate.canMoveIn()])
+      .toEqual([true, 'traits', 'Ann', false]);
+    housemate.resetAfterLoad();
+    expect([housemate.pending, housemate.page, housemate.name, housemate.status])
+      .toEqual([false, 'personality', '', CHOOSE_NAME]);
   });
 
   it('shows the refusal and lets the player try again', () => {
@@ -160,7 +187,7 @@ describe('HousemateForm', () => {
     housemate.setName('Ann');
     housemate.next();
     housemate.moveIn();
-    source.result = { reason: 'The household is full.', sim: null };
+    source.result = { reason: 'The household is full.', sim: null, handled: 1 };
     housemate.afterCommands();
     expect([housemate.pending, housemate.status, movedIn()]).toEqual([false, 'The household is full.', 0]);
     expect(housemate.canMoveIn()).toBe(true);
@@ -294,17 +321,33 @@ describe('HousemateFormView', () => {
     expect(housemate.page).toBe('traits');
   });
 
-  it('closes the dialog from Cancel', () => {
+  it('closes the dialog from Cancel, and never lets the form submit', () => {
     const { element } = view();
     element('housemate-cancel').fire('click');
     expect(element('housemate-dialog').closedWith).toBe('cancel');
+    expect(element('housemate-form').fire('submit').defaultPrevented).toBe(true);
+  });
+
+  it('puts focus back on Move in after a refusal', () => {
+    const { housemate, source, element } = view();
+    const name = element('housemate-name');
+    name.value = 'Ann';
+    name.fire('input');
+    element('housemate-next').fire('click');
+    const confirm = element('housemate-confirm');
+    confirm.fire('click');
+    expect(confirm.focused).toBe(0);
+    source.result = { reason: 'The household is full.', sim: null, handled: 1 };
+    // The form reads the answer after a drain; a render follows its change.
+    housemate.afterCommands();
+    expect([confirm.focused, element('housemate-status').textContent]).toEqual([1, 'The household is full.']);
   });
 
   it('is wired into the page, with no button that submits the form', () => {
     for (const id of ['new-housemate', 'housemate-dialog', 'housemate-page-personality', 'housemate-page-traits',
       'housemate-name', 'housemate-personality', 'housemate-personality-list', 'housemate-traits',
       'housemate-traits-legend', 'housemate-count', 'housemate-status', 'housemate-cancel', 'housemate-next',
-      'housemate-back', 'housemate-confirm']) {
+      'housemate-back', 'housemate-confirm', 'housemate-form']) {
       expect(INDEX_HTML).toContain(`id="${id}"`);
     }
     const dialog = INDEX_HTML.slice(INDEX_HTML.indexOf('<dialog id="housemate-dialog"'));

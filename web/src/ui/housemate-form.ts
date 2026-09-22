@@ -40,6 +40,8 @@ export class HousemateForm {
   chosenTraits: number[] = [];
   /** Whether a move-in is on its way to the drain. */
   pending = false;
+  /** The drain's move-in count when this one was staged; its answer has a larger one. */
+  private stagedAfter = 0;
   status = CHOOSE_NAME;
 
   constructor(private readonly source: HousemateSource, private readonly hooks: HousemateFormHooks) {
@@ -63,8 +65,16 @@ export class HousemateForm {
     return size < most;
   }
 
-  /** Clears the form for a fresh newcomer, on its first page. */
+  /**
+   * Clears the form for a fresh newcomer, on its first page. A move-in
+   * still on its way is kept, so reopening the form cannot stage a second
+   * one before the first is answered.
+   */
   reset(): void {
+    if (this.pending) {
+      this.hooks.changed();
+      return;
+    }
     this.page = 'personality';
     this.name = '';
     this.personality = 0;
@@ -133,6 +143,7 @@ export class HousemateForm {
   /** Stages the move-in; the drain's answer arrives through `afterCommands`. */
   moveIn(): void {
     if (!this.canMoveIn()) return;
+    this.stagedAfter = this.source.lastHousemateResult()?.handled ?? 0;
     if (this.source.addHousemate(this.trimmedName(), this.personality, this.chosenTraits)) {
       this.pending = true;
       this.status = MOVING_IN;
@@ -142,11 +153,11 @@ export class HousemateForm {
     this.hooks.changed();
   }
 
-  /** Reads the drain's answer to a move-in on its way. */
+  /** Reads the drain's answer to a move-in on its way, and only that answer. */
   afterCommands(): void {
     if (!this.pending) return;
     const result = this.source.lastHousemateResult();
-    if (result === null) return;
+    if (result === null || result.handled <= this.stagedAfter) return;
     this.pending = false;
     if (result.reason !== null) {
       this.status = result.reason;
@@ -155,6 +166,16 @@ export class HousemateForm {
     }
     if (result.sim !== null) this.source.select(result.sim);
     this.hooks.movedIn();
+  }
+
+  /**
+   * A Load replaces the world, the queued move-in and the drain's count with
+   * the saved ones, so nothing is on its way any more.
+   */
+  resetAfterLoad(): void {
+    this.pending = false;
+    this.stagedAfter = 0;
+    this.reset();
   }
 
   private nameStatus(): string {
@@ -195,6 +216,7 @@ export class HousemateFormView {
   private readonly personalityRadios: HTMLInputElement[] = [];
   private readonly traitBoxes: HTMLInputElement[] = [];
   private shownPage: HousematePage | null = null;
+  private wasPending = false;
 
   constructor(document: Document, private readonly form: HousemateForm) {
     const required = <T extends HTMLElement>(id: string): T => {
@@ -203,6 +225,9 @@ export class HousemateFormView {
       return element;
     };
     this.dialog = required('housemate-dialog');
+    // Enter on a box or a radio could submit the form by the browser's
+    // implicit-submission rule and close the dialog; nothing here submits.
+    required('housemate-form').addEventListener('submit', (event) => event.preventDefault());
     this.personalityPage = required('housemate-page-personality');
     this.traitsPage = required('housemate-page-traits');
     this.nameInput = required('housemate-name');
@@ -278,7 +303,12 @@ export class HousemateFormView {
     // never left on a control that has just been hidden.
     if (this.shownPage !== null && this.shownPage !== form.page) {
       (onTraits ? this.traitBoxes[0] ?? this.confirm : this.nameInput).focus();
+    } else if (this.wasPending && !form.pending && onTraits) {
+      // Move in had focus and went off while it waited; a refusal leaves the
+      // player on the page with focus back where they pressed.
+      this.confirm.focus();
     }
     this.shownPage = form.page;
+    this.wasPending = form.pending;
   }
 }
