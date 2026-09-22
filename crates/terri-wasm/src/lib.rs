@@ -976,16 +976,19 @@ impl SimHandle {
         let x = sanitize_coord(x);
         let y = sanitize_coord(y);
         let hunger = sanitize_hunger(hunger);
-        if matches!(
-            self.sim
-                .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ) && !self
+        // Every edge layout, not one named version: a glazed house is still
+        // an edge house, and naming the version let review finding [F4] on
+        // PR 126 spawn a sim on a blocked tile once a window existed.
+        if self
             .sim
             .world()
-            .resource::<TileGrid>()
-            .is_walkable(x.round() as i32, y.round() as i32)
+            .resource::<terri_core::layout::SavedLayout>()
+            .has_edges()
+            && !self
+                .sim
+                .world()
+                .resource::<TileGrid>()
+                .is_walkable(x.round() as i32, y.round() as i32)
         {
             return;
         }
@@ -1036,12 +1039,12 @@ impl SimHandle {
         let Some(def) = self.sim.world().resource::<Content>().0.find(content_id) else {
             return false;
         };
-        if matches!(
-            self.sim
-                .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ) {
+        if self
+            .sim
+            .world()
+            .resource::<terri_core::layout::SavedLayout>()
+            .has_edges()
+        {
             let footprint = self
                 .sim
                 .world()
@@ -1914,13 +1917,15 @@ mod boundary_tests {
     /// `layout` followed by the content's walls outside the house, as a
     /// house that grew into the yard on Load has them ([OS-migrate]).
     fn grown_layout(layout: &terri_core::layout::SavedLayout) -> terri_core::layout::SavedLayout {
-        let terri_core::layout::SavedLayout::EdgeWallsV1 { edges } = layout else {
-            panic!("only an edge-wall house grows: {layout:?}");
-        };
+        assert!(
+            layout.has_edges(),
+            "only an edge-wall house grows: {layout:?}"
+        );
         let (_, _, outside) = shipped_lot();
-        terri_core::layout::SavedLayout::EdgeWallsV1 {
-            edges: edges.iter().copied().chain(outside).collect(),
-        }
+        terri_core::layout::SavedLayout::from_parts(
+            layout.edges().iter().copied().chain(outside).collect(),
+            layout.windows().to_vec(),
+        )
     }
 
     /// Hunger levels as the ECS actually stored them.
@@ -5438,6 +5443,32 @@ mod boundary_tests {
         assert_eq!(handle.street_column(), 19);
         // A lot whose front door has no yard beyond it has no street.
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
+    }
+
+    /// Review finding [F4] on PR 126: the spawn entry points check the grid
+    /// for every edge house, a glazed one included. A sim spawned onto a
+    /// blocked tile would be a world the loader then refuses.
+    #[test]
+    fn a_glazed_house_still_refuses_a_spawn_onto_a_blocked_tile() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        let before = handle.entity_count();
+
+        let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+        let (width, height) = (grid.width() as i32, grid.height() as i32);
+        let blocked = (0..width)
+            .flat_map(|x| (0..height).map(move |y| (x, y)))
+            .find(|&(x, y)| !grid.is_walkable(x, y))
+            .expect("the shipped house has a blocked tile");
+
+        handle.spawn_agent(blocked.0 as f32, blocked.1 as f32, 50.0);
+        assert_eq!(
+            handle.entity_count(),
+            before,
+            "no sim stands where the grid is blocked"
+        );
     }
 
     /// [WN-state]: a window crosses as its own list, keeps no wall record,
