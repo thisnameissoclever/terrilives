@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
-import { SimBridge, roomReason, type EdgeLine, type RoomResult, type WallEditPreview } from '../src/bridge.js';
+import { SimBridge, roomReason, type EdgeLine, type RoomPreview, type RoomResult } from '../src/bridge.js';
 import { routeBuildKey } from '../src/ui/build-tools.js';
 import { CHOOSE_CORNER, RoomTool, roomOutline } from '../src/ui/room-tool.js';
 import { RoomToolControls } from '../src/ui/room-tool-controls.js';
@@ -18,15 +18,17 @@ beforeAll(async () => {
 /** A scripted source: one refusal code for every room, a staging log, a result. */
 class FakeRooms {
   code = 0;
+  changes = true;
   accept = true;
   staged: [number[], EdgeLine | null][] = [];
   previews = 0;
   result: RoomResult | null = null;
   revision = 0;
 
-  roomEditPreview(): WallEditPreview {
+  roomEditPreview(): RoomPreview {
     this.previews += 1;
-    return { valid: this.code === 0, reason: roomReason(this.code), code: this.code };
+    return { valid: this.code === 0, reason: roomReason(this.code), code: this.code,
+      changes: this.code === 0 && this.changes };
   }
 
   buildRoom(corners: readonly number[], doorway: EdgeLine | null): boolean {
@@ -104,7 +106,7 @@ describe('RoomTool', () => {
     expect(room.highlight()?.tiles).toContainEqual([4, 2]);
     room.choosePoint(3.55, 2.0);
     expect(room.doorway).toBeNull();
-    // A click inside the room, away from any outline line, starts again.
+    // A click outside the room, away from any outline line, starts again.
     clickTile(room, 5, 3);
     expect([room.first, room.second, room.doorway]).toEqual([[5, 3], null, null]);
   });
@@ -126,6 +128,12 @@ describe('RoomTool', () => {
     source.code = 9;
     room.cycleDoorway();
     expect(room.status).toBe("Someone is standing on the room's outline.");
+    // Review finding [F7]: every refusal a doorway can mend gets the hint.
+    for (const code of [10, 12, 13]) {
+      source.code = code;
+      room.cycleDoorway();
+      expect(room.status).toMatch(/ (Choose a doorway|Try the doorway on another line)\.$/);
+    }
   });
 
   it('stages exactly the room on screen, once, and reports what the drain did', () => {
@@ -149,6 +157,33 @@ describe('RoomTool', () => {
     room.afterCommands();
     // Built and done with: the choice clears so the same room cannot be sent again.
     expect([room.pending, room.status, room.first, room.canBuild]).toEqual([false, 'Room built.', null, false]);
+  });
+
+  // Review finding [F6]: a room that is already built says so and cannot be sent.
+  it('says a room is already built and will not send it again', () => {
+    const { room, source } = tool();
+    source.changes = false;
+    room.enter();
+    clickTile(room, 2, 1);
+    clickTile(room, 3, 2);
+    expect([room.status, room.canBuild]).toEqual(['This room is already built.', false]);
+    room.build();
+    expect(source.staged).toEqual([]);
+  });
+
+  // Review finding [F5]: a result for other corners is another room's.
+  it('keeps waiting when the drain reports a room with other corners', () => {
+    const { room, source } = tool();
+    room.enter();
+    clickTile(room, 2, 1);
+    clickTile(room, 3, 2);
+    room.build();
+    source.result = { corners: [2, 1, 3, 3], doorway: null, reason: null };
+    room.afterCommands();
+    expect(room.pending).toBe(true);
+    source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
+    room.afterCommands();
+    expect(room.pending).toBe(false);
   });
 
   it('reports a refusal the drain gave, and one it could not send', () => {

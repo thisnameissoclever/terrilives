@@ -834,11 +834,10 @@ that commit. PR 95 adds a Walls tool; its merge commit and deployment are
 recorded by the next change. In Build mode the player picks the
 line between two floor tiles and makes it a wall, a doorway or nothing, and the
 house they build is saved. The design is `docs/specs/2026-09-21-wall-tool.md`
-and the played check is [A-wall-tool]. Dragging out a whole room in one edit,
-hinged interior doors, floors, windows and a larger lot remain open. A Room
-tool builds a whole rectangular room in one edit, with a doorway where the
-player asks for one; its design is `docs/specs/2026-09-22-room-tool.md` and
-its played check is [A-room-tool].
+and the played check is [A-wall-tool]. A Room tool builds a whole rectangular
+room in one edit, with a doorway where the player asks for one; its design is
+`docs/specs/2026-09-22-room-tool.md` and its played check is [A-room-tool].
+Hinged interior doors, floors, windows and a larger lot remain open.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand
@@ -860,6 +859,23 @@ touch controls share the same placement rules. Valid overlapping previews
 temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in
 `docs/specs/2026-09-20-front-door-and-builder.md`.
+
+### [B-reach-from-the-door] The house is judged from its front door
+
+Found in review of the Room tool. Every lot edit proves the house stays usable
+by flooding the floor from one tile and checking that every sim, every object
+and the front door are in that region. The flood starts from the first
+walkable tile in reading order, so an empty room sealed around that tile makes
+the rest of the house look cut off: in the shipped lot a one-tile room with no
+doorway at (7, 0) is refused as blocking someone's way, while the same room at
+(9, 0) is built. It only ever refuses too much, never too little, but the Room
+tool makes a sealed room one click.
+
+The fix is to start the flood from the front door's landing, which every
+usable house must reach anyway. That changes which reason some refusals give,
+for moves and walls as well as rooms, where a house cut in two would read
+"leave furniture out of reach" rather than "cut off the front door", so it is
+its own slice, with the wording chosen on purpose.
 
 ### [B-catalogue-browsing] The catalogue says what each thing is for
 

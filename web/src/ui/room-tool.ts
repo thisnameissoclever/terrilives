@@ -5,7 +5,7 @@
 // every decision: this controller asks for a preview, stages the room the
 // player confirms, and reads back what the drain did with it.
 
-import { OUT_OF_REACH, type EdgeLine, type SimBridge, type WallEditPreview } from '../bridge.js';
+import { DOORWAY_MENDS, type EdgeLine, type RoomPreview, type SimBridge } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { nearestLine } from './wall-tool.js';
 
@@ -15,6 +15,7 @@ export const CHOOSE_CORNER = 'Choose a corner tile of the room.';
 const CHOOSE_OPPOSITE = 'Choose the opposite corner.';
 const READY = 'Ready to build. Choose a line of the outline for a doorway.';
 const READY_WITH_DOORWAY = 'Ready to build, with a doorway.';
+const ALREADY_BUILT = 'This room is already built.';
 const BUILDING = 'Building the room…';
 const BUILT = 'Room built.';
 const NOT_SENT = 'The room could not be sent.';
@@ -59,7 +60,7 @@ export class RoomTool {
   status = CHOOSE_CORNER;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
-  private preview: WallEditPreview | null = null;
+  private preview: RoomPreview | null = null;
   private sent: Sent | null = null;
   private revision: number;
   /** Rebuilt when the room or its doorway changes, never per frame. */
@@ -74,7 +75,7 @@ export class RoomTool {
 
   get canBuild(): boolean {
     return this.active && !this.blocked && !this.pending && this.second !== null
-      && this.preview?.valid === true;
+      && this.preview?.valid === true && this.preview.changes;
   }
 
   enter(): void {
@@ -281,10 +282,11 @@ export class RoomTool {
     const preview = this.preview;
     if (preview && !preview.valid) {
       const reason = preview.reason ?? 'That room is not possible.';
-      // Out of reach is the one refusal a doorway can mend, so say how.
-      if (preview.code !== OUT_OF_REACH) return reason;
+      // Something cut off by the outline is what a doorway can mend, so say how.
+      if (!DOORWAY_MENDS.has(preview.code)) return reason;
       return `${reason} ${this.doorway === null ? 'Choose a doorway.' : 'Try the doorway on another line.'}`;
     }
+    if (preview && !preview.changes) return ALREADY_BUILT;
     return this.doorway === null ? READY : READY_WITH_DOORWAY;
   }
 

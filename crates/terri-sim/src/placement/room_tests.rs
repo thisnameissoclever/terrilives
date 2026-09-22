@@ -237,7 +237,7 @@ fn a_room_whose_outline_already_stands_writes_nothing() {
 }
 
 #[test]
-fn a_room_is_refused_for_each_reason_in_the_order_the_design_lists() {
+fn a_room_is_refused_for_each_reason_the_design_lists() {
     // A legacy house keeps its frozen walls.
     let (mut sim, _) = house(vec![]);
     sim.world_mut()
@@ -276,6 +276,42 @@ fn a_room_is_refused_for_each_reason_in_the_order_the_design_lists() {
         &mut sim,
         room(0, 0, 0, 1, None),
         PlacementRefusal::InaccessibleInteraction,
+    );
+}
+
+/// Review finding [F4] on the Room tool: the order of the checks, tested with
+/// two faults at once so the first in [RT-rules] must be the one reported.
+#[test]
+fn with_two_faults_the_earlier_check_in_the_design_is_reported() {
+    let (mut sim, _) = house(vec![]);
+    // A corner off the lot outranks a doorway off the outline.
+    refused(
+        &mut sim,
+        room(2, 1, 7, 2, Some(line(Vertical, 3, 1))),
+        PlacementRefusal::OutOfBounds,
+    );
+    // A doorway off the outline outranks every rule for the walls.
+    sim.world_mut().spawn((Agent, Position { x: 3.5, y: 2.0 }));
+    refused(
+        &mut sim,
+        room(2, 1, 3, 2, Some(line(Vertical, 3, 1))),
+        PlacementRefusal::InvalidInput,
+    );
+    // The door's one step in outranks furniture cut in half: the room's
+    // right side runs down the door line, and its left side cuts a table.
+    let (mut sim, _) = house(vec![]);
+    let table = terri_data::pack().find("dining_table").unwrap();
+    sim.spawn_object(Position { x: 3.0, y: 3.0 }, table);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(3, 3, true);
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(4, 3, true);
+    refused(
+        &mut sim,
+        room(4, 2, 5, 4, Some(line(Horizontal, 4, 2))),
+        PlacementRefusal::BlockedLanding,
     );
 }
 
@@ -441,8 +477,7 @@ fn a_built_room_and_a_staged_room_survive_save_and_load() {
     assert!(edges(&restored).contains(&wall(Horizontal, 1, 4, true)));
 }
 
-/// [RT-hash]. The digest sees every field of a staged room, and tells no
-/// doorway apart from a doorway on the first line.
+/// [RT-hash]. The digest sees every field of a staged room.
 #[test]
 fn the_world_hash_sees_every_field_of_a_staged_room() {
     let staged = |edit: RoomEdit| {
@@ -491,16 +526,62 @@ fn the_world_hash_sees_every_field_of_a_staged_room() {
     ] {
         assert_ne!(staged(changed), reference, "{name}");
     }
-    assert_ne!(
-        staged(RoomEdit {
-            doorway: None,
-            ..base
+}
+
+/// Review finding [F2] on the Room tool. Without the doorway marker these two
+/// queues write the same numbers, command count included: a room with no
+/// doorway runs on into the next command's words. The marker keeps them apart.
+#[test]
+fn the_world_hash_keeps_a_room_s_words_from_running_into_the_next_command() {
+    let hash = |commands: Vec<SimCommand>| {
+        let (mut sim, _) = house(vec![]);
+        for command in commands {
+            sim.world_mut().resource_mut::<CommandQueue>().push(command);
+        }
+        sim.world_hash()
+    };
+    let corners = room(2, 1, 3, 2, None);
+    let facing = terri_core::Facing::SouthWest;
+    let a = hash(vec![
+        command(corners),
+        SimCommand::Select(Some(4)),
+        SimCommand::PlaceObject {
+            object: 3,
+            x: 2,
+            y: 2,
+            facing,
+        },
+    ]);
+    let b = hash(vec![
+        command(RoomEdit {
+            doorway: Some(line(Vertical, 4, 7)),
+            ..corners
         }),
-        staged(RoomEdit {
-            doorway: Some(line(Vertical, 0, 0)),
-            ..base
+        SimCommand::SetSpeed(2),
+        SimCommand::CancelIntents {
+            agent: u32::from(facing.code()),
+        },
+    ]);
+    assert_ne!(a, b);
+
+    // And with only the "no doorway" marker missing: a room with a doorway
+    // writes exactly what a room without one followed by an order with the
+    // doorway's numbers would, so these two three-command queues would match.
+    let order = |x: u32, y: u32| SimCommand::UseObject {
+        agent: u32::from(Vertical.code()),
+        object: x,
+        interaction: y,
+    };
+    let (first, second) = (room(2, 1, 3, 2, None), room(1, 4, 2, 5, None));
+    let with = |edit: RoomEdit, x: u32, y: u32| {
+        command(RoomEdit {
+            doorway: Some(line(Vertical, x, y)),
+            ..edit
         })
-    );
+    };
+    let c = hash(vec![with(first, 4, 2), command(second), order(3, 5)]);
+    let d = hash(vec![command(first), order(4, 2), with(second, 3, 5)]);
+    assert_ne!(c, d);
 }
 
 #[test]
@@ -536,21 +617,35 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
 /// Every small room the shipped household accepts, with no doorway and with a
 /// doorway on its first line, leaves a save that loads - checked through a
 /// real save and load at two points in the day.
+///
+/// It also counts rooms whose finished outline passes the usability proofs
+/// but not the loader's own checks, asserts each is refused, and fails if it
+/// finds none, so a household change that moves the case away from these
+/// ticks fails loudly rather than emptying the test, as its wall twin does.
 #[test]
 fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
-    for ticks in [180, 620] {
+    let mut only_the_loader_refused = 0;
+    for ticks in [180u64, 620] {
         let mut sim = Sim::new_from_shipped_lot();
         for _ in 0..ticks {
             sim.tick();
         }
+        assert_eq!(
+            sim.world().resource::<terri_core::SimClock>().tick,
+            ticks,
+            "one tick per `Sim::tick`"
+        );
         let base = sim.save_snapshot_v3();
+        let rectangles = super::super::current_layout(sim.world())
+            .expect("the shipped house is consistent")
+            .rectangles;
         let (width, height) = {
             let grid = sim.world().resource::<TileGrid>();
             (grid.width() as u32, grid.height() as u32)
         };
         let mut accepted = 0;
-        for y in 0..height - 1 {
-            for x in 0..width - 1 {
+        for y in 0..height {
+            for x in 0..width {
                 for (w, h) in [(1, 1), (2, 1), (1, 2), (2, 2), (3, 2)] {
                     if x + w > width || y + h > height {
                         continue;
@@ -559,6 +654,13 @@ fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
                     let first = outline(width, height, (x, y), corner).first().copied();
                     for doorway in [None, first] {
                         let edit = room(x, y, corner.0, corner.1, doorway);
+                        let grid = finished(&sim, edit);
+                        if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
+                            && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
+                        {
+                            only_the_loader_refused += 1;
+                            assert!(validate_room(sim.world(), edit).is_err(), "{edit:?}");
+                        }
                         match validate_room(sim.world(), edit) {
                             Ok(plan) if plan.changed => {}
                             _ => continue,
@@ -578,6 +680,37 @@ fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
         }
         assert!(accepted > 20, "tick {ticks} accepted only {accepted}");
     }
+    assert!(
+        only_the_loader_refused > 0,
+        "no room here is refused by the loader's checks alone; choose ticks that hold one"
+    );
+}
+
+/// The grid a room would leave, built the way [RT-apply] builds it: every
+/// outline line not already recorded becomes a wall or the doorway, and the
+/// doorway asked for opens a wall already there.
+fn finished(sim: &Sim, edit: RoomEdit) -> TileGrid {
+    let mut grid = sim.world().resource::<TileGrid>().clone();
+    let recorded = edges(sim);
+    let (width, height) = (grid.width() as u32, grid.height() as u32);
+    for line in outline(
+        width,
+        height,
+        (edit.x0.min(edit.x1), edit.y0.min(edit.y1)),
+        (edit.x0.max(edit.x1), edit.y0.max(edit.y1)),
+    ) {
+        let doorway = edit.doorway == Some(line);
+        let [a, b] = wall(line.axis, line.x, line.y, doorway).cells();
+        match recorded
+            .iter()
+            .find(|e| e.axis == line.axis && e.x == line.x && e.y == line.y)
+        {
+            Some(existing) if doorway && !existing.doorway => grid.set_edge_blocked(a, b, false),
+            Some(_) => {}
+            None => grid.set_edge_blocked(a, b, !doorway),
+        }
+    }
+    grid
 }
 
 /// The doorway is not a wall: a sim standing across it, or using something

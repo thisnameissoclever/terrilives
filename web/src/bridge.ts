@@ -95,8 +95,11 @@ export function wallReason(code: number): string | null {
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
 }
 
-/** The refusal code for furniture a room or a wall would leave unreachable. */
-export const OUT_OF_REACH = 11;
+/**
+ * The refusal codes a room's doorway can mend: a sim's way, furniture, the
+ * front door and its landing cut off by the outline.
+ */
+export const DOORWAY_MENDS: ReadonlySet<number> = new Set([10, 11, 12, 13]);
 
 /** A room's refusal, worded for the Room tool - [RT-shell]. Same codes. */
 const ROOM_REASONS: Readonly<Record<number, string>> = {
@@ -121,6 +124,11 @@ export interface EdgeLine {
   readonly axis: 0 | 1;
   readonly x: number;
   readonly y: number;
+}
+
+/** A room's preview: a wall edit's, and whether building it changes anything. */
+export interface RoomPreview extends WallEditPreview {
+  readonly changes: boolean;
 }
 
 /** What the drain did with the last room - [RT-boundary]. */
@@ -277,9 +285,9 @@ export class SimBridge {
   }
 
   /** Corners `[x0, y0, x1, y1]`, doorway or null. Never writes. */
-  roomEditPreview(corners: readonly number[], doorway: EdgeLine | null): WallEditPreview {
-    const code = this.handle.room_edit_preview(new Float64Array(corners), roomDoorway(doorway));
-    return { valid: code === 0, reason: roomReason(code), code };
+  roomEditPreview(corners: readonly number[], doorway: EdgeLine | null): RoomPreview {
+    const [code, changes] = this.handle.room_edit_preview(new Float64Array(corners), roomDoorway(doorway));
+    return { valid: code === 0, reason: roomReason(code), code, changes: changes === 1 };
   }
 
   /** Queue acceptance only; read the outcome from `lastRoomResult`. */

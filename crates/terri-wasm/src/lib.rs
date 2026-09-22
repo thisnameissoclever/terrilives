@@ -549,19 +549,22 @@ impl SimHandle {
             })
     }
 
-    /// The refusal code this room would get, or zero when it would be built -
-    /// [RT-boundary]. Never writes. `corners` is two opposite corner tiles,
-    /// `[x0, y0, x1, y1]`; `doorway` is `[axis, x, y]` for one line of the
-    /// outline, axis numbered as `wall_edges` numbers it, or empty for none.
-    /// Anything else is `InvalidInput`.
-    pub fn room_edit_preview(&self, corners: &[f64], doorway: &[f64]) -> u32 {
+    /// `[refusal, changes]` for this room - [RT-boundary]: the refusal code,
+    /// zero when it would be built, and 1 when building it would change the
+    /// house, 0 when its outline already stands exactly. Never writes.
+    /// `corners` is two opposite corner tiles, `[x0, y0, x1, y1]`; `doorway` is
+    /// `[axis, x, y]` for one line of the outline, axis numbered as
+    /// `wall_edges` numbers it, or empty for none. Anything else is
+    /// `InvalidInput`, which changes nothing.
+    pub fn room_edit_preview(&self, corners: &[f64], doorway: &[f64]) -> Vec<u32> {
         use terri_sim::placement::{rooms::validate_room, PlacementRefusal};
         let Some(edit) = room_edit_arguments(corners, doorway) else {
-            return PlacementRefusal::InvalidInput as u32;
+            return vec![PlacementRefusal::InvalidInput as u32, 0];
         };
-        validate_room(self.sim.world(), edit)
-            .err()
-            .map_or(0, |reason| reason as u32)
+        match validate_room(self.sim.world(), edit) {
+            Ok(plan) => vec![0, u32::from(plan.changed)],
+            Err(reason) => vec![reason as u32, 0],
+        }
     }
 
     /// Queue acceptance only. The eventual result is read after the drain,
@@ -4771,13 +4774,13 @@ mod boundary_tests {
             })
             .expect("the shipped house has room for a room");
         let corners = [x as f64, y as f64, x as f64, y as f64];
-        assert_eq!(handle.room_edit_preview(&corners, &[]), 0);
+        assert_eq!(handle.room_edit_preview(&corners, &[]), [0, 1]);
         assert_eq!(handle.world_hash(), hash, "a preview wrote");
         assert_eq!(handle.lot_revision(), revision, "a preview wrote");
 
         // The right side of the one-tile room as its doorway.
         let door = [0.0, (x + 1) as f64, y as f64];
-        assert_eq!(handle.room_edit_preview(&corners, &door), 0);
+        assert_eq!(handle.room_edit_preview(&corners, &door), [0, 1]);
         assert!(handle.build_room(&corners, &door));
         handle.flush_commands();
         assert_eq!(handle.last_room_result(), [x, y, x, y, 0, 0, x + 1, y]);
@@ -4788,11 +4791,13 @@ mod boundary_tests {
             after.chunks_exact(4).any(|e| e == [0, x + 1, y, 1]),
             "the doorway is drawn as one"
         );
+        // Built, the same room would change nothing.
+        assert_eq!(handle.room_edit_preview(&corners, &door), [0, 0]);
 
         // A doorway off the outline, read from the same result the shell reads.
         let inside = [0.0, (x + 5) as f64, y as f64];
         let invalid = PlacementRefusal::InvalidInput as u32;
-        assert_eq!(handle.room_edit_preview(&corners, &inside), invalid);
+        assert_eq!(handle.room_edit_preview(&corners, &inside), [invalid, 0]);
         assert!(handle.build_room(&corners, &inside));
         handle.flush_commands();
         assert_eq!(
@@ -4823,7 +4828,7 @@ mod boundary_tests {
         ] {
             assert_eq!(
                 handle.room_edit_preview(&corners, &doorway),
-                invalid,
+                [invalid, 0],
                 "{corners:?} {doorway:?}"
             );
             assert!(
