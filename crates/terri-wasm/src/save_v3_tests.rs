@@ -1,6 +1,7 @@
 use super::*;
 use terri_core::{
-    layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SavedCommand,
+    layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SaveSnapshotV5,
+    SavedCommand,
 };
 
 pub(super) fn v2_bytes(snapshot: &SaveSnapshotV2) -> Vec<u8> {
@@ -20,6 +21,13 @@ fn v3_bytes(snapshot: &SaveSnapshotV3) -> Vec<u8> {
 fn v4_bytes(snapshot: &SaveSnapshotV4) -> Vec<u8> {
     let mut bytes = SAVE_MAGIC.to_vec();
     bytes.extend_from_slice(&4u16.to_le_bytes());
+    bytes.extend(postcard::to_allocvec(snapshot).unwrap());
+    bytes
+}
+
+fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
+    let mut bytes = SAVE_MAGIC.to_vec();
+    bytes.extend_from_slice(&5u16.to_le_bytes());
     bytes.extend(postcard::to_allocvec(snapshot).unwrap());
     bytes
 }
@@ -155,16 +163,16 @@ fn v3_bad_facing_rows_and_layout_are_refused_before_live_replacement() {
     }
 }
 
-/// [SL-save]: the public writer's V4 envelope ends with the retired list, and
-/// is read as strictly as V3: every truncation and trailing data refused, the
-/// running world untouched.
+/// [SL-save]: a V4 envelope ends with the retired list, and is read as
+/// strictly as V3: every truncation and trailing data refused, the running
+/// world untouched. The writer is V5 now, so the V4 bytes here are built
+/// directly.
 #[test]
 fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
     let mut source = SimHandle::new(4, 4);
     assert!(source.spawn_object(1.0, 1.0, "reading_chair"));
-    let valid = source.save_bytes();
+    let valid = v4_bytes(&source.sim.save_snapshot_v4());
     assert_eq!(&valid[8..10], &[4, 0]);
-    assert_eq!(valid, v4_bytes(&source.sim.save_snapshot_v4()));
     assert_eq!(
         valid.last(),
         Some(&0),
@@ -172,7 +180,7 @@ fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
     );
     let mut restored = SimHandle::from_lot();
     assert!(restored.load_bytes(&valid));
-    assert_eq!(restored.save_bytes(), valid);
+    assert_eq!(restored.save_bytes(), source.save_bytes());
     let mut trailing = valid.clone();
     trailing.push(0);
     let mut cases = vec![trailing];
@@ -182,6 +190,42 @@ fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
         assert!(
             !restored.load_bytes(&bytes),
             "accepted malformed V4 with {} bytes",
+            bytes.len()
+        );
+        assert_eq!(restored.save_bytes(), before);
+    }
+}
+
+/// [RC-save]: the public writer's V5 envelope ends with the colourway list,
+/// and is read as strictly as V4: every truncation and trailing data refused,
+/// the running world untouched. A recoloured object survives the round trip.
+#[test]
+fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
+    let mut source = SimHandle::new(4, 4);
+    assert!(source.spawn_object(1.0, 1.0, "reading_chair"));
+    let plain = source.save_bytes();
+    assert_eq!(&plain[8..10], &[5, 0]);
+    assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
+    assert_eq!(plain.last(), Some(&0), "no colourways is one empty list");
+    let chair = (0..16u32)
+        .find(|&index| source.object_colourway(f64::from(index)) == 0)
+        .unwrap();
+    assert!(source.set_colourway(f64::from(chair), 3.0));
+    source.sim.flush_commands();
+    let valid = source.save_bytes();
+    let mut restored = SimHandle::from_lot();
+    assert!(restored.load_bytes(&valid));
+    assert_eq!(restored.save_bytes(), valid);
+    assert_eq!(restored.object_colourway(f64::from(chair)), 3);
+    let mut trailing = valid.clone();
+    trailing.push(0);
+    let mut cases = vec![trailing];
+    cases.extend((SAVE_HEADER_BYTES..valid.len()).map(|cut| valid[..cut].to_vec()));
+    for bytes in cases {
+        let before = restored.save_bytes();
+        assert!(
+            !restored.load_bytes(&bytes),
+            "accepted malformed V5 with {} bytes",
             bytes.len()
         );
         assert_eq!(restored.save_bytes(), before);
