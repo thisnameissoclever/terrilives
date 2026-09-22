@@ -7158,3 +7158,24 @@ door.
 **Prevention rule.** When a broad check blocks a legitimate change, set the one legitimate case aside and keep the check's original reach: strip or mask the exception, then run the old assertion unchanged. Never rewrite the check in terms of what it should catch; it will catch only that.
 
 **How to verify.** After changing any test's matcher, add the thing the old matcher caught somewhere the new one does not name, run the test, and require it to fail; then restore the file and compare its hash. `web/tests/mobile-hud.test.ts`, "leaves the short panel to scroll whole", is the worked example.
+
+## [L-close-audible-browser-tests] Close game instances when browser verification ends
+
+**What happened.** Two isolated object-copy test tabs were left open after verification. The owner heard game audio continuing while the task waited for CI.
+
+**Root cause.** Isolated storage was treated as sufficient cleanup. Reloading a game also resumed its runtime, and the test pages were never closed.
+
+**Prevention rule.** Close each task-owned game page in a finally block when its browser check ends. Shut down task-owned preview servers once no further local checks need them. Never leave an audible game running during CI waits, and never close another task's pages or servers.
+
+**How to verify.** Enumerate browser pages and confirm the task-specific test URLs are absent. Verify the owned preview port has no listener. For this incident, both object-copy test tabs were closed and the verified Vite preview process on port 4173 was stopped.
+
+
+## [L-local-validation-does-not-require-duplicate-ci-wait] Do not block authorized delivery on duplicate remote checks
+
+**What happened.** The object identity implementation passed local Rust and web tests, typechecking, builds, browser checks, and targeted mutation checks. Delivery then stalled waiting for a remote mutation shard, despite the owner's direction to finish.
+
+**Root cause.** Remote CI completion was made an additional approval gate. Local evidence, additional remote mutation coverage, and the owner's merge authority were not kept distinct.
+
+**Prevention rule.** Follow AGENTS.md: do not wait for duplicate remote checks after equivalent local validation passes. When the owner explicitly authorizes merging with a remaining remote check pending, merge and report its pending state accurately. Do not require another confirmation or extend the wait.
+
+**How to verify.** Record the local validation and exact PR head, merge when authorized, verify the merged PR and clean synchronized checkout, and report any still-pending remote checks without claiming they passed.

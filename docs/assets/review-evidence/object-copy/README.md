@@ -13,7 +13,7 @@ All commands below exited 0 unless explicitly marked as an intentional mutation 
 | `cargo test --workspace --quiet` | PASS, 1,076 tests |
 | `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS |
 | `npm --prefix web run typecheck` | PASS, including final hover-boundary change |
-| `npm --prefix web test -- --maxWorkers=1` | PASS, 78 files and 1,159 tests before the final hover-boundary regression test |
+| `npm --prefix web test -- --maxWorkers=1` | PASS, 78 files and 1,161 tests after the hover-boundary fix and integration of then-current main |
 | `npm --prefix web test -- --maxWorkers=1 tests/object-identity.test.ts tests/buy-tool.test.ts tests/object-menu.test.ts` | PASS, 83 tests after the final hover-boundary change |
 | `npm --prefix web run build` | PASS, including final hover-boundary change |
 | `python check-doc-ids.py` | PASS |
@@ -41,3 +41,7 @@ Playwright used isolated browser contexts against this checkout's production pre
 5. [Mobile shop](mobile-shop.png)
 
 The screenshots show local browser output. The owner directed the implementation to be committed, pushed, and merged after receiving the copy and menu preview.
+
+## Delivery
+
+PR [#122](https://github.com/thisnameissoclever/terrilives/pull/122) merged as `6573e7973a14237313053e939798aaca02c5eda6` on 2026-09-22. Nine remote jobs had passed and mutation shard 0 was still pending when the owner explicitly directed the merge. The pending full mutation sweep is distinct from the passing local targeted mutation checks.
