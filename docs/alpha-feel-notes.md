@@ -3502,3 +3502,15 @@ At 375 by 812 the form fit the screen on both pages with its buttons in view. Mo
 The fridge bought into the yard during [A-yard] was not in this browser's save, so there was nothing to sell back.
 
 **Not proven here.** The six-person ceiling, the refusals and a staged move-in in a save were checked by tests, not in the page. No phone was used.
+
+## [A-options-flyout] Game controls behind the Options gear
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/options-flyout` (commit dda7c01, with the Traits triangle fix below), in the desktop app's browser pane at 800 by 450 and at 375 by 812, in auto light, on the household loaded from its save with Ann selected.
+
+On the desktop the sidebar held Time, Funds, the status line ("Saved game loaded"), Household with New housemate, Ann's needs, People and the speed controls, and a gear sat alone in the window's top-right corner. The gear opened a panel beneath it: Light: auto, Build, Sound: on, the Effects level, then Save, Load, Clear orders, Queue, New game and Help. The clock kept running while it was open. Build closed the panel and started Build with focus on the game view; the gear then showed Exit build, which ended Build, closed the panel and put focus back on the gear. Escape closed the panel with focus on the gear, and so did a click on the game, which also deselected Ann, as a dismissing click on the right-click flyout acts too.
+
+Under Ann's needs, the Traits panel started closed. It first showed "Traits" with no triangle, because its toggle was laid out as a flex row; it now keeps its triangle, and opening it showed "Bookworm", "Likes reading." and "Keen cyclist", "Loves the exercise bike." Its toggle is 44 pixels tall.
+
+At 375 by 812 the compact strip was Time, Funds, Menu and the save status, with the gear to its right. The gear's panel opened below it, above the house. In Build, the dock filled the bottom of the screen and the gear stayed reachable; its panel then held Light, Exit build, Save, Load, New game and Help, since Build hides sound, Clear orders and Queue. Menu opened Household, Ann, How Ann feels and the speed controls, with no Light or Build rows.
+
+**Not proven here.** Load and New game from the panel were covered by the focus tests, not pressed, because New game would clear the save. The phone's Ann and How Ann feels toggles show no triangle either, as before this change. No phone was used.

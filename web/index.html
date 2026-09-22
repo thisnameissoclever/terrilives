@@ -262,11 +262,13 @@
       #traits-block[hidden] { display: none; }
       #traits-empty[hidden] { display: none; }
       #traits-block > :not(summary) { margin-top: 4px; }
-      /* The toggle is the row's whole height, so a thumb can hit it. */
+      /* The toggle is the row's whole height, so a thumb can hit it. A list
+         item, as a summary is by default, so it keeps its open and closed
+         triangle. */
       #traits-caption {
-        display: flex;
-        align-items: center;
+        display: list-item;
         min-height: 44px;
+        line-height: 44px;
         margin: 0;
         font: inherit;
         cursor: pointer;

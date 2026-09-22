@@ -12,7 +12,7 @@ The gear stacks above the phone Build dock (z-index 2) and below the debug overl
 
 ## [OF2] Opening, closing and focus
 
-The gear opens and closes the panel. Escape closes it, and so does a press anywhere outside it; a press on the gear or a control inside does not, so the control's press still reaches it. Opening it pauses nothing and sends no command: it changes presentation only, as Menu does ([CH2] in `docs/specs/2026-08-12-collapsible-compact-hud.md`). Its Escape listener registers before the right-click flyout's and Build's, so one Escape closes the panel and nothing else.
+The gear opens and closes the panel. Escape closes it, and so does a press anywhere outside it; a press on the gear or a control inside does not, so the control's press still reaches it. A press outside that lands on the game also acts there, as it does when it closes the right-click flyout: a player who clicks the game meant to click it. Opening it pauses nothing and sends no command: it changes presentation only, as Menu does ([CH2] in `docs/specs/2026-08-12-collapsible-compact-hud.md`). Its Escape listener registers before the right-click flyout's and Build's, so one Escape closes the panel and nothing else.
 
 Choosing Build, Load, New game or Help closes the panel first. Every focus return that used to name a control now inside the panel names the gear instead, since a control in a closed panel cannot take focus: after Exit build, after Load, after a failed New game, and after Help closes. The gear leads the list of fallbacks the persistence controller tries.
 
