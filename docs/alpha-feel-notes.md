@@ -3550,4 +3550,6 @@ Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/yard-dayli
 
 At 13:54 on day 2 the yard read in full daylight, a brighter green than it had been the evening before. Inside, the floors were dimmer than the yard: lightest in the living room by the front doorway, and darkest in the kitchen at the back, which is furthest from any open doorway. The lamp's pool still showed around the floor lamp. At 20:27 on day 1 the whole lot was evenly dim, the yard included, with the lamp's pool as before, since the sky's shade scales with the sun and there is none at night.
 
+Checked again at 13:00 on day 2 after the review fixes, on the same branch, with the page driven through the `?stress=0` frame harness because the browser pane was hidden and a hidden pane never composites ([L14]). The interior doors now read at the brightness of the walls they stand in: the door between the two back rooms is no longer the brightest thing in a dim room. The only bright door frames left are the two on the east wall, which stand beside the yard and are lit as the yard is.
+
 **Not proven here.** Flat light was not toggled during this check; the tests show a shade of 0 is sent in flat light. A physical phone was not used, and the effect is deliberately mild, so a player may not notice it until windows exist ([B-windows]).
