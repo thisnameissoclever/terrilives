@@ -436,7 +436,7 @@ describe('the Room tool in the page', () => {
     const panel = INDEX_HTML.slice(INDEX_HTML.indexOf('id="builder-controls"'),
       INDEX_HTML.indexOf('</section>', INDEX_HTML.indexOf('id="builder-controls"')));
     for (const id of IDS) expect(panel).toContain(`id="${id}"`);
-    expect(panel).toContain('<div id="room-tool" hidden>');
+    expect(panel).toContain('<div id="room-tool" class="builder-tool" hidden>');
   });
 
   // Found in the played check [A-room-tool]: four tool buttons in one row

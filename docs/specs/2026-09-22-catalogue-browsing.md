@@ -67,10 +67,11 @@ it only once.
 
 The Show list stacks above the catalogue at every width. Side by side on a
 phone they saved only a few pixels and cut off about half the item names, which
-a phone player reads nowhere else before buying. On a phone the Build dock
-scrolls to reach Buy and Cancel once an item is chosen, as it did before this
-slice, and this slice's rows move them further down; that is
-[B-phone-build-dock] in `docs/FEATURES.md`.
+a phone player reads nowhere else before buying. When this slice was built, a
+phone's Build dock scrolled to reach Buy and Cancel once an item was chosen,
+and this slice's rows moved them further down. [B-phone-build-dock] in
+`docs/FEATURES.md` has since given each tool a footer of its status and
+buttons that stays in view on a phone at least 481 pixels tall.
 
 ## Review record
 

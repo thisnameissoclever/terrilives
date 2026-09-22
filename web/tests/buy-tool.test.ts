@@ -621,7 +621,7 @@ describe('the Buy tool in the page', () => {
     const panel = INDEX_HTML.slice(INDEX_HTML.indexOf('id="builder-controls"'),
       INDEX_HTML.indexOf('</section>', INDEX_HTML.indexOf('id="builder-controls"')));
     for (const id of IDS) expect(panel).toContain(`id="${id}"`);
-    expect(panel).toContain('<div id="buy-tool" hidden>');
+    expect(panel).toContain('<div id="buy-tool" class="builder-tool" hidden>');
   });
 
   it('is wired into the frame, the click, Load and leaving Build', () => {

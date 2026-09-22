@@ -3293,6 +3293,62 @@ scroll. Nothing was sold or saved on this run.
 
 **Not proven here.** A refusal at the drain was not replayed in the page; the
 Furniture tool tests cover it. No physical phone was used.
+
+## [A-phone-build-dock] The Build dock's buttons stay in view on a phone
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/phone-build-dock`, driven in the Playwright browser on the household
+loaded from its save. For each control I measured whether its whole box was in
+view and whether a tap at its centre reached it. Widths come from a desktop
+browser emulating a phone, whose scrollbars take a few pixels a phone does not.
+
+**390 by 844, Buy.** The panel is 380 pixels, 45% of the screen, as before.
+With "Chair, Standard Issue (40)" chosen, everything was whole and reached by a
+tap: the four tool buttons in one row, "Show" beside its list, "Buy" beside
+the catalogue, Rotate, the price, "Good for: no need on its own", the status,
+Buy and Cancel. The help line was cut at the edge of the scrolling choices,
+above a line over the status.
+
+**375 by 667.** Furniture with the stove chosen: the list, Rotate, the status,
+Confirm, Cancel and a disabled Sell in one row, and the "Cannot sell" note, all
+whole. Walls and Room: the help, the status and every button whole. Buy: both
+lists, the status, Buy and Cancel whole, and Rotate cut by the edge of the
+choices but reached by a tap. With the catalogue list focused, Tab moved focus
+to Rotate and the choices scrolled it whole into view.
+
+**320 by 568, Furniture with the stove chosen.** The footer holds the status,
+the row of three buttons and the two-line sale note. The choices region above
+it shows the list whole, with Rotate a scroll away. "Furniture" fits its tool
+button exactly.
+
+**280 by 653.** The tool buttons are two by two, 117 pixels each, and every
+label fits.
+
+**568 by 320, held sideways.** The panel is 144 pixels and scrolls whole, as
+before; the choices are not a region of their own.
+
+**1280 by 800.** The side panel reads as it did: heading, paused note, tools
+two by two, the list, the facing and Rotate row, the status, Confirm and
+Cancel, Sell, the note, then the keyboard help.
+
+**Leaving Build, 390 by 844.** Before Build the panel was hidden. Build showed
+it, 283 pixels tall; Exit build hid it again and the toggle read "Build".
+
+**320 by 481, Furniture with the stove chosen.** The choices region kept 52
+pixels with the list whole, and the status and the row of three buttons were
+in view. The sale note was almost all below the panel's edge; scrolling the
+whole panel 24 pixels brought all of it into view.
+
+**Hidden stays hidden, 390 by 844.** With a rule injected that gives every
+tool a flex display, the three tools not in use stayed hidden. The Walls
+panel is 198 pixels, its choices exactly its help line and outline padding.
+
+**First version, replaced.** The first build pinned the footer over a panel
+that scrolled whole. Review measured it hiding Buy's Rotate at 390 by 844 and
+the whole Buy list at 375 by 667, and I saw the list and Rotate behind the
+footer at 320 by 568. The footer now sits outside the scrolling region.
+
+**Not proven here.** No physical phone was used, and nothing was saved.
 ## [A-rotated-lights] A turned lamp and television still light the room
 
 Played on 2026-09-22 on the port 5174 dev server serving branch

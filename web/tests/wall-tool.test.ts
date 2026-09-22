@@ -454,13 +454,13 @@ describe('the Walls tool in the page', () => {
     const panel = INDEX_HTML.slice(INDEX_HTML.indexOf('id="builder-controls"'),
       INDEX_HTML.indexOf('</section>', INDEX_HTML.indexOf('id="builder-controls"')));
     for (const id of IDS) expect(panel).toContain(`id="${id}"`);
-    expect(panel).toContain('<div id="wall-tool" hidden>');
+    expect(panel).toContain('<div id="wall-tool" class="builder-tool" hidden>');
     expect(panel).toContain('aria-pressed="true">Furniture</button>');
   });
 
   it('keeps the build panel spacing inside every tool wrapper', () => {
     expect(INDEX_HTML).toContain('#furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }');
-    expect(INDEX_HTML).toContain('#furniture-tool[hidden], #wall-tool[hidden], #room-tool[hidden], #buy-tool[hidden] { display: none; }');
+    expect(INDEX_HTML).toContain('#builder-controls[hidden], .builder-tool[hidden] { display: none !important; }');
   });
 
   it('is wired into the frame, the click and Load', () => {
