@@ -340,13 +340,18 @@ rather than weighting them, and it is a tuning question, not a code one.
 deliberately presentation-only; a 20-tick real-WASM enabled-versus-disabled
 run ends at the same world hash.
 
-One finding from building it constrains every future content change:
-`ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each
-mutant's WHOLE workspace test run. A shipped content change that materially
-slows the simulation therefore has to be measured against that ceiling
-rather than against the wall clock - the circadian curve's first draft
-pushed one save test from 10 s to 39 s, which would have turned a large
-share of mutants into spurious timeouts.
+One finding from building it still constrains every future content
+change, though the number has moved. `ci.yml` bounds each mutant's WHOLE
+workspace test run. The bound was a fixed 60 seconds until 2026-09-22, when
+the suite reached about 57 seconds on the runner and three added tests were
+enough to turn eight mutants into reported hangs
+([L-mutant-cap-must-scale]). It is now the larger of 120 seconds and four
+times the unmutated run. A shipped
+content change that materially slows the simulation is therefore measured
+against a cap that rises with it, and against the job's 120 minute bound.
+The circadian curve's first draft pushed one save test from 10 s to 39 s,
+which under the old fixed cap would have turned a large share of mutants
+into spurious timeouts.
 
 Three findings from building it constrain future renderer work. The lighting
 rig fits inside the existing single instanced draw call because pools change
