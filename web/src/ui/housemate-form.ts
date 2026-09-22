@@ -9,9 +9,11 @@
 import type { SimBridge } from '../bridge.js';
 
 /** What the form reads from the simulation. */
+import { NO_RELATION, relationWord } from '../bridge.js';
+
 export type HousemateSource = Pick<SimBridge, 'personalityLabels' | 'personalityDescriptions' |
   'traitLabels' | 'traitDescriptions' | 'householdSize' | 'housemateLimits' | 'addHousemate' |
-  'lastHousemateResult' | 'select'>;
+  'lastHousemateResult' | 'select' | 'setFamilyTie'>;
 
 export const CHOOSE_NAME = 'Give them a name.';
 export const HOUSEHOLD_FULL = 'The household is full.';
@@ -79,6 +81,8 @@ export class HousemateForm {
     this.name = '';
     this.personality = 0;
     this.chosenTraits = [];
+    this.relation = NO_RELATION;
+    this.relative = null;
     this.pending = false;
     this.status = this.nameStatus();
     this.hooks.changed();
@@ -140,6 +144,29 @@ export class HousemateForm {
     return this.page === 'traits' && this.canGoNext();
   }
 
+  /**
+   * Who this newcomer is to somebody already here, and to whom ([FM-choose]
+   * in `docs/specs/2026-09-22-family.md`). `NO_RELATION` means nobody, which
+   * is the default and the only answer when the household is empty.
+   */
+  relation = NO_RELATION;
+  relative: number | null = null;
+
+  /** Picks the relation a newcomer arrives with. */
+  chooseRelation(relation: number): void {
+    if (this.pending) return;
+    if (relation !== NO_RELATION && relationWord(relation) === null) return;
+    this.relation = relation;
+    this.hooks.changed();
+  }
+
+  /** Picks which household member the relation is to, by entity index. */
+  chooseRelative(entity: number | null): void {
+    if (this.pending) return;
+    this.relative = entity;
+    this.hooks.changed();
+  }
+
   /** Stages the move-in; the drain's answer arrives through `afterCommands`. */
   moveIn(): void {
     if (!this.canMoveIn()) return;
@@ -164,7 +191,14 @@ export class HousemateForm {
       this.hooks.changed();
       return;
     }
-    if (result.sim !== null) this.source.select(result.sim);
+    if (result.sim !== null) {
+      this.source.select(result.sim);
+      // [FM-choose]: the tie is its own command, sent once the newcomer
+      // exists, because until the drain answers there is nobody to tie.
+      if (this.relation !== NO_RELATION && this.relative !== null) {
+        this.source.setFamilyTie(result.sim, this.relative, this.relation);
+      }
+    }
     this.hooks.movedIn();
   }
 

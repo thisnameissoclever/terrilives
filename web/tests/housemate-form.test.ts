@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
-import { SimBridge, housemateReason, type HousemateResult } from '../src/bridge.js';
+import { NO_RELATION, SimBridge, housemateReason, type HousemateResult } from '../src/bridge.js';
 import {
   CHOOSE_NAME, HOUSEHOLD_FULL, HousemateForm, HousemateFormView, MOVING_IN,
 } from '../src/ui/housemate-form.js';
@@ -23,6 +23,13 @@ class FakeHousehold {
   staged: [string, number, number[]][] = [];
   result: HousemateResult | null = null;
   selected: number[] = [];
+  /** [FM-choose]: the ties the form asked for, in the order it asked. */
+  ties: [number, number, number][] = [];
+
+  setFamilyTie(who: number, to: number, relation: number): boolean {
+    this.ties.push([who, to, relation]);
+    return true;
+  }
   personalityLabels() { return ['The correspondent', 'The settled', 'The flitting']; }
   personalityDescriptions() { return ['Writes letters.', 'Sits down.', 'Flits about.']; }
   traitLabels() { return ['Bookworm', 'Early riser', 'Night owl', 'Tidy', 'Loud', 'Shy']; }
@@ -406,3 +413,55 @@ describe('the New housemate form on real wasm', () => {
     expect(bridge.selectedIndex()).toBe(result.sim);
   });
 });
+
+// [FM-choose] in docs/specs/2026-09-22-family.md: a newcomer arrives as
+// somebody, and the tie is sent once the move-in lands.
+describe('who the newcomer is', () => {
+  const form2 = form;
+  const movedIn = (form: HousemateForm, source: FakeHousehold, sim: number) => {
+    source.result = { handled: 1, sim, reason: null };
+    form.afterCommands();
+  };
+
+  it('sends the tie after the move-in, from the newcomer to the member chosen', () => {
+    const { housemate: form, source } = form2();
+    form.setName('Ann');
+    form.next();
+    form.chooseRelation(1);
+    form.chooseRelative(7);
+    form.moveIn();
+    expect(source.ties).toEqual([]);
+    movedIn(form, source, 12);
+    expect(source.ties).toEqual([[12, 7, 1]]);
+  });
+
+  it('sends no tie when the newcomer is nobody to anybody', () => {
+    const { housemate: form, source } = form2();
+    form.setName('Ann');
+    form.next();
+    form.moveIn();
+    movedIn(form, source, 12);
+    expect(source.ties).toEqual([]);
+
+    // Or when a relation was chosen without saying to whom.
+    const second = form2();
+    second.housemate.setName('Bo');
+    second.housemate.next();
+    second.housemate.chooseRelation(3);
+    second.housemate.moveIn();
+    movedIn(second.housemate, second.source, 13);
+    expect(second.source.ties).toEqual([]);
+  });
+
+  it('refuses a relation it does not know, and forgets the choice on reset', () => {
+    const { housemate: form } = form2();
+    form.chooseRelation(9);
+    expect(form.relation).toBe(NO_RELATION);
+    form.chooseRelation(2);
+    form.chooseRelative(4);
+    expect([form.relation, form.relative]).toEqual([2, 4]);
+    form.reset();
+    expect([form.relation, form.relative]).toEqual([NO_RELATION, null]);
+  });
+});
+
