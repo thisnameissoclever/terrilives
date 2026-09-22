@@ -6841,3 +6841,23 @@ counts its steps and asserts afterwards: `for _ in from..stop { tick }` then
 `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fails in
 seconds with "one tick per `Sim::tick`" instead of timing out.
 
+## [L-derive-after-the-restore-is-whole] Doors drawn from walls went missing after a Load
+
+**What happened.** Interior doors are drawn from the saved walls. Straight
+after a Load a house showed its doorways doorless for one tick: the portal
+bridge test caught a loaded world with one portal row where the live one had
+four.
+
+**Root cause.** The loader syncs the render buffer while it restores the
+entities, and only afterwards puts the saved walls in. Nothing drawn before
+had depended on the walls, so the order never mattered.
+
+**Prevention rule.** Presentation derived from saved state is rebuilt once the
+restore is whole, not at whatever point the loader happens to sync. When a
+view starts reading a piece of saved state, check where the loader installs
+that state relative to its render sync.
+
+**How to verify.** Remove the `sync_portals` call at the end of
+`finish_restore` in `crates/terri-sim/src/save/architecture.rs`.
+`a_loaded_house_shows_its_doors_before_the_first_tick` fails.
+

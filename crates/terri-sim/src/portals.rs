@@ -52,6 +52,7 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
         return;
     };
     let content: &'static terri_data::ContentPack = world.resource::<Content>().0;
+    let doors = interior_door_lines(world);
 
     let mut people = world.query_filtered::<(
         &Position,
@@ -96,6 +97,109 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
             portal.open_sprite
         });
         buffer.states.push(state);
+    }
+
+    // [DR-derived]: a hinged door in every vertical doorway, drawn with the
+    // front door's art, after the front door so its row keeps index 0.
+    let Some(art) = door_art(portals) else {
+        return;
+    };
+    for (x, y) in doors {
+        let mut state = CLOSED;
+        for (position, path, ..) in people.iter(world) {
+            let candidate = project_through(position, path, (x, y));
+            if priority(candidate) > priority(state) {
+                state = candidate;
+            }
+        }
+        // The door stands on the +X edge of the tile left of its line, where
+        // the front door's art stands on its own tile.
+        buffer.positions.extend([(x - 1) as f32, y as f32]);
+        buffer.depth_offsets.push(0.5);
+        buffer.frames.push(art.frame_sprite);
+        buffer.leaves.push(match state {
+            CLOSED => art.closed_sprite,
+            OPEN => art.open_sprite,
+            OPENING | CLOSING => art.ajar_sprite,
+            _ => unreachable!("door state is produced locally"),
+        });
+        buffer.reduced_leaves.push(if state == CLOSED {
+            art.closed_sprite
+        } else {
+            art.open_sprite
+        });
+        buffer.states.push(state);
+    }
+}
+
+/// The front door whose art fits a vertical line, the only art a door has:
+/// it faces +X, standing on its tile's +X edge.
+fn door_art(portals: &[terri_data::CompiledPortal]) -> Option<&terri_data::CompiledPortal> {
+    portals
+        .iter()
+        .find(|portal| portal.facing == terri_data::CompiledSocketFacing::PositiveX)
+}
+
+/// The doorway lines that hold an interior door - [DR-derived]: every vertical
+/// doorway of an edge-wall house, as `(x, y)`, sorted, when the lot's front
+/// door has art for a vertical line. None for a horizontal doorway, which has
+/// no art yet, and none for a lot with no front door to take the art from.
+pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
+    use terri_core::layout::{EdgeAxis, SavedLayout};
+    let has_art = world
+        .get_resource::<ActivePortals>()
+        .is_some_and(|active| door_art(active.0).is_some());
+    let Some(SavedLayout::EdgeWallsV1 { edges }) = world.get_resource::<SavedLayout>() else {
+        return Vec::new();
+    };
+    if !has_art {
+        return Vec::new();
+    }
+    let mut lines: Vec<(u32, u32)> = edges
+        .iter()
+        .filter(|edge| edge.doorway && edge.axis == EdgeAxis::Vertical)
+        .map(|edge| (edge.x, edge.y))
+        .collect();
+    lines.sort_unstable();
+    lines
+}
+
+/// [DR-state]: how one sim moves the door on the vertical line `(x, y)`. Open
+/// while the sim stands in the doorway, opening while its walk crosses the
+/// line close by, closing while it walks away close by, closed otherwise. Read
+/// from the position and the walk, which are saved, so the door is too.
+fn project_through(position: &Position, path: Option<&Path>, (x, y): (u32, u32)) -> u32 {
+    let (line_x, row) = (x as f32 - 0.5, y as f32);
+    let from = |px: f32, py: f32| ((px - line_x).powi(2) + (py - row).powi(2)).sqrt();
+    let distance = from(position.x, position.y);
+    if distance <= 0.6 {
+        return OPEN;
+    }
+    if distance > 1.5 {
+        return CLOSED;
+    }
+    let Some(path) = path else {
+        return CLOSED;
+    };
+    let ahead: Vec<(f32, f32)> = std::iter::once((position.x, position.y))
+        .chain(
+            path.steps
+                .iter()
+                .skip(path.cursor)
+                .map(|&(sx, sy)| (sx as f32, sy as f32)),
+        )
+        .take(3)
+        .collect();
+    let crosses = ahead.windows(2).any(|pair| {
+        let [(ax, ay), (bx, by)] = [pair[0], pair[1]];
+        (ax - line_x) * (bx - line_x) < 0.0 && (ay - row).abs() < 0.5 && (by - row).abs() < 0.5
+    });
+    if crosses {
+        return OPENING;
+    }
+    match ahead.get(1) {
+        Some(&(nx, ny)) if from(nx, ny) > distance => CLOSING,
+        _ => CLOSED,
     }
 }
 
@@ -272,6 +376,123 @@ mod tests {
             }],
             ..base.clone()
         }))
+    }
+
+    /// The portal pack's world with a vertical doorway at (3, 4) and one at
+    /// (1, 2), a horizontal doorway at (2, 6), and a wall at (4, 4).
+    fn doorway_world() -> World {
+        use terri_core::layout::{EdgeAxis::*, SavedLayout, WallEdge};
+        let mut world = world_with_active_portals(portal_pack());
+        let edge = |axis, x, y, doorway| WallEdge {
+            axis,
+            x,
+            y,
+            doorway,
+        };
+        world.insert_resource(SavedLayout::EdgeWallsV1 {
+            edges: vec![
+                edge(Vertical, 3, 4, true),
+                edge(Horizontal, 2, 6, true),
+                edge(Vertical, 4, 4, false),
+                edge(Vertical, 1, 2, true),
+            ],
+        });
+        world
+    }
+
+    /// A sim at `(x, y)` with the steps of its walk, none for standing still.
+    type Walker = (f32, f32, Vec<(i32, i32)>);
+
+    fn doors_with(sim: Option<Walker>) -> PortalBuffer {
+        let mut world = doorway_world();
+        if let Some((x, y, steps)) = sim {
+            let mut person = world.spawn((Agent, Position { x, y }));
+            if !steps.is_empty() {
+                person.insert(Path { steps, cursor: 0 });
+            }
+        }
+        let mut buffer = PortalBuffer::default();
+        sync_portals(&mut world, &mut buffer);
+        buffer
+    }
+
+    #[test]
+    fn every_vertical_doorway_gets_a_door_after_the_front_door() {
+        let world = doorway_world();
+        assert_eq!(interior_door_lines(&world), [(1, 2), (3, 4)]);
+        let buffer = doors_with(None);
+        // The front door, then the two doors, each on the +X edge of the
+        // tile left of its line, with the front door's art.
+        assert_eq!(buffer.positions, [5.0, 2.0, 0.0, 2.0, 2.0, 4.0]);
+        assert_eq!(buffer.depth_offsets, [0.5, 0.5, 0.5]);
+        assert_eq!(buffer.frames, [41, 41, 41]);
+        assert_eq!(buffer.states, [CLOSED, CLOSED, CLOSED]);
+        assert_eq!(buffer.leaves, [42, 42, 42]);
+    }
+
+    #[test]
+    fn no_door_without_art_for_a_vertical_line_or_without_edge_walls() {
+        use terri_core::layout::SavedLayout;
+        let mut world = doorway_world();
+        world.insert_resource(SavedLayout::LegacyCells { walls: vec![] });
+        assert!(interior_door_lines(&world).is_empty());
+
+        let mut pack = portal_pack().clone();
+        pack.portals[0].facing = CompiledSocketFacing::PositiveY;
+        let pack: &'static ContentPack = Box::leak(Box::new(pack));
+        let mut world = doorway_world();
+        world.insert_resource(Content(pack));
+        world.insert_resource(ActivePortals::from_content(pack));
+        assert!(interior_door_lines(&world).is_empty());
+        let mut buffer = PortalBuffer::default();
+        sync_portals(&mut world, &mut buffer);
+        assert_eq!(buffer.states.len(), 1, "only the front door");
+    }
+
+    /// [DR-state], for the door on the line x = 3 at row 4, which stands
+    /// between tiles (2, 4) and (3, 4) at x = 2.5.
+    #[test]
+    fn a_door_opens_for_a_sim_walking_through_and_closes_behind_it() {
+        let door = |sim| doors_with(Some(sim)).states[2];
+        // In the doorway, at its middle and anywhere within 0.6 of it.
+        assert_eq!(door((2.5, 4.0, vec![])), OPEN);
+        assert_eq!(door((3.05, 4.0, vec![])), OPEN);
+        assert_eq!(door((2.5, 4.55, vec![])), OPEN);
+        // Just past that, standing still, it stays shut.
+        assert_eq!(door((3.15, 4.0, vec![])), CLOSED);
+        // Walking up to it, about to cross.
+        assert_eq!(door((1.2, 4.0, vec![(2, 4), (3, 4)])), OPENING);
+        // Through and walking away.
+        assert_eq!(door((3.4, 4.0, vec![(4, 4)])), CLOSING);
+        // Standing close by with nowhere to go.
+        assert_eq!(door((1.5, 4.0, vec![])), CLOSED);
+        // Walking past on another row, which never crosses this line.
+        assert_eq!(door((1.6, 5.0, vec![(2, 5), (3, 5)])), CLOSED);
+        // Far off.
+        assert_eq!(door((0.0, 0.0, vec![(1, 0)])), CLOSED);
+        // The other doors are not moved by this sim.
+        assert_eq!(doors_with(Some((2.5, 4.0, vec![]))).states[1], CLOSED);
+    }
+
+    /// Found by the portal bridge test: the loader synced the render buffer
+    /// before it put the saved walls in, so a loaded house drew its doorways
+    /// doorless until the next tick.
+    #[test]
+    fn a_loaded_house_shows_its_doors_before_the_first_tick() {
+        let sim = Sim::new_from_shipped_lot();
+        let doors = interior_door_lines(sim.world()).len();
+        assert!(doors > 0, "the shipped house has vertical doorways");
+        let mut loaded = Sim::new_from_shipped_lot();
+        loaded.load_snapshot_v3(sim.save_snapshot_v3()).unwrap();
+        assert_eq!(loaded.portal_buffer().states.len(), 1 + doors);
+    }
+
+    #[test]
+    fn a_door_row_draws_the_art_for_its_state() {
+        let open = doors_with(Some((2.5, 4.0, vec![])));
+        assert_eq!((open.leaves[2], open.reduced_leaves[2]), (44, 44));
+        let ajar = doors_with(Some((1.2, 4.0, vec![(2, 4), (3, 4)])));
+        assert_eq!((ajar.leaves[2], ajar.reduced_leaves[2]), (43, 44));
     }
 
     fn world_with_active_portals(content: &'static ContentPack) -> World {

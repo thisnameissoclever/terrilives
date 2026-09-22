@@ -817,6 +817,16 @@ impl SimHandle {
         self.sim.render_buffer().foreground_sprites.as_ptr()
     }
 
+    /// The doorway lines that hold an interior door ([DR-derived]), as
+    /// `[x, y]` pairs of vertical lines, sorted. The renderer draws these as
+    /// portal rows, so the shell leaves out their empty doorway panels.
+    pub fn interior_door_lines(&self) -> Vec<u32> {
+        terri_sim::portals::interior_door_lines(self.sim.world())
+            .into_iter()
+            .flat_map(|(x, y)| [x, y])
+            .collect()
+    }
+
     /// Portals have no entity IDs and cannot become interaction targets.
     pub fn portal_count(&self) -> usize {
         self.sim.portal_buffer().states.len()
@@ -1937,10 +1947,12 @@ mod boundary_tests {
             terri_core::layout::SavedLayout::EdgeWallsV1 { edges } if edges.len() == 34
         ));
 
+        // The front door, then a door in each vertical doorway ([DR-derived]).
         let mut migrated = SimHandle::from_lot();
-        assert_eq!(migrated.portal_count(), 1);
+        let doors = |handle: &SimHandle| handle.interior_door_lines().len() / 2;
+        assert_eq!(migrated.portal_count(), 1 + doors(&migrated));
         assert!(migrated.load_bytes(&bytes));
-        assert_eq!(migrated.portal_count(), 1);
+        assert_eq!(migrated.portal_count(), 1 + doors(&migrated));
 
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
@@ -1953,7 +1965,10 @@ mod boundary_tests {
         let resaved = migrated.save_bytes();
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&resaved));
-        assert_eq!(resumed.portal_count(), 1);
+        assert_eq!(
+            resumed.portal_count(),
+            1 + resumed.interior_door_lines().len() / 2
+        );
         assert_eq!(resumed.sim.save_snapshot_v2(), current);
     }
 
@@ -2531,7 +2546,12 @@ mod boundary_tests {
         assert_ne!(closed, open, "the closed and open leaves must be distinct");
         assert_ne!(ajar, open, "the ajar and open leaves must be distinct");
 
-        assert_eq!(handle.portal_count(), 1);
+        // The front door is row 0; a door in each vertical doorway follows it
+        // ([DR-derived]). The pointer reads below address row 0 only.
+        assert_eq!(
+            handle.portal_count(),
+            1 + handle.interior_door_lines().len() / 2
+        );
         assert_eq!(
             addressed(handle.portal_positions_ptr(), 2, "portal_positions_ptr"),
             vec![15.0, 2.0]
@@ -2580,7 +2600,10 @@ mod boundary_tests {
             .id();
         handle.sim.sync_render_buffer();
 
-        assert_eq!(handle.portal_count(), 1);
+        assert_eq!(
+            handle.portal_count(),
+            1 + handle.interior_door_lines().len() / 2
+        );
         assert_eq!(
             addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
             vec![ajar],

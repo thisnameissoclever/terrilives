@@ -69,6 +69,10 @@ fn finish_restore(
         )?;
     }
     candidate.world.insert_resource(layout);
+    // The render buffer was synced before the saved walls went in, and the
+    // interior doors are drawn from those walls ([DR-derived]); without this
+    // a loaded house shows its doorways doorless until the next tick.
+    crate::portals::sync_portals(&mut candidate.world, &mut candidate.portals);
     Ok(candidate)
 }
 
@@ -269,7 +273,9 @@ mod tests {
 
         shipped.load_snapshot_v2(saved.clone()).unwrap();
         assert!(shipped.world().contains_resource::<ActivePortals>());
-        assert_eq!(shipped.portal_buffer().states.len(), 1);
+        // The front door, then a door in each vertical doorway ([DR-derived]).
+        let doors = crate::portals::interior_door_lines(shipped.world()).len();
+        assert_eq!(shipped.portal_buffer().states.len(), 1 + doors);
 
         let mut blank = Sim::new();
         blank.load_snapshot_v2(saved).unwrap();

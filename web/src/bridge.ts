@@ -650,6 +650,11 @@ export class SimBridge {
   }
 
   /** Undefined is legacy architecture; an empty array is an open edge layout. */
+  /** Vertical doorway lines that hold a door, `[x, y]` pairs ([DR-derived]). */
+  interiorDoorLines(): Uint32Array {
+    return this.handle.interior_door_lines();
+  }
+
   wallEdges(): Uint32Array | undefined {
     return this.handle.wall_layout_kind() === 1 ? this.handle.wall_edges() : undefined;
   }

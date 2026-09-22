@@ -54,6 +54,11 @@ export interface Lot {
   readonly walls: Uint32Array;
   /** Explicit [axis, x, y, door] rows; absent/null retains legacy cell walls. */
   readonly edges?: Uint32Array | null;
+  /**
+   * Vertical doorway lines that hold a door, `[x, y]` pairs. The door's own
+   * frame is drawn there, so the empty doorway panel is left out.
+   */
+  readonly doors?: Uint32Array | null;
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -130,7 +135,8 @@ export function buildStaticInstances(
   scale = 1,
   lighting: TileLighting | null = null,
 ): StaticGeometry {
-  const edgePanels = lot.edges == null ? null : buildEdgeWallGeometry(lot.width, lot.height, lot.edges);
+  const edgePanels = lot.edges == null ? null
+    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges, lot.doors ?? undefined);
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),

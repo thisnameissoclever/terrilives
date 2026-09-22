@@ -3158,3 +3158,25 @@ click does nothing. Rooms want clicks on open floor. I did not watch a sim walk
 through the new doorway; the Rust tests prove the proofs let one reach inside.
 No physical phone was used.
 
+## [A-interior-doors] Doors that open as sims walk through
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree, driven in the Playwright browser, on a household loaded from its save.
+
+**The doors.** The three doorways on vertical lines, kitchen to living room,
+the hall and the bathroom, each showed a closed wooden door in the front
+door's art where an empty frame used to be. The two horizontal doorways stayed
+open frames, and so did the doorway of a room built earlier with the Room
+tool.
+
+**Walking through.** At 1x I captured the kitchen door every half second for
+twenty seconds. Casey came through from the kitchen: the door stood closed,
+swung ajar as she reached it, stood open as she passed, and was closed again
+half a second later. Bill came the same way a few seconds after, and the door
+opened and closed for him too. While a sim was on the far side the leaf hid
+their body, as a real door does.
+
+**Not proven here.** A door on a line the Room tool builds was not watched
+opening; the Rust tests prove every vertical doorway gets one. No physical
+phone was used.
+

@@ -23,7 +23,9 @@ describe('front door through the release WASM bridge', () => {
       expect(new TextDecoder().decode(bytes.slice(0, 8))).toBe('TERRISAV');
       expect(Array.from(bytes.slice(8, 10))).toEqual([2, 0]);
       expect(sim.loadBytes(bytes)).toBe(true);
-      expect(sim.portalCount).toBe(1);
+      // The front door, then a door in each vertical doorway ([DR-derived]).
+      expect(sim.portalCount).toBe(1 + sim.interiorDoorLines().length / 2);
+      expect(Array.from(sim.portalPositions().slice(0, 2))).toEqual([15, 2]);
       const migrated = sim.saveBytes();
       expect(migrated).not.toEqual(bytes);
       expect(sim.loadBytes(migrated)).toBe(true);
@@ -62,12 +64,15 @@ describe('front door through the release WASM bridge', () => {
   it('reacquires each zero-copy portal column after memory growth', () => {
     const handle = SimHandle.from_lot();
     const sim = new SimBridge(handle, memory);
-    expect(sim.portalCount).toBe(1);
-    expect(Array.from(sim.portalPositions())).toEqual([15, 2]);
-    expect(Array.from(sim.portalDepthOffsets())).toEqual([0.5]);
-    expect(Array.from(sim.portalFrames())).toEqual([spriteIndex('frontDoorFrameSELeft')]);
-    expect(Array.from(sim.portalLeaves(false))).toEqual([spriteIndex('frontDoorClosedSELeft')]);
-    expect(Array.from(sim.portalStates())).toEqual([0]);
+    // The front door, then a door in each of the shipped lot's three vertical
+    // doorways, on the +X edge of the tile left of each line ([DR-derived]).
+    expect(Array.from(sim.interiorDoorLines())).toEqual([6, 9, 8, 2, 12, 8]);
+    expect(sim.portalCount).toBe(4);
+    expect(Array.from(sim.portalPositions())).toEqual([15, 2, 5, 9, 7, 2, 11, 8]);
+    expect(Array.from(sim.portalDepthOffsets())).toEqual([0.5, 0.5, 0.5, 0.5]);
+    expect(Array.from(sim.portalFrames())).toEqual(Array(4).fill(spriteIndex('frontDoorFrameSELeft')));
+    expect(Array.from(sim.portalLeaves(false))).toEqual(Array(4).fill(spriteIndex('frontDoorClosedSELeft')));
+    expect(Array.from(sim.portalStates())).toEqual([0, 0, 0, 0]);
     const oldViews = [sim.portalPositions(), sim.portalFrames(), sim.portalLeaves(false),
       sim.portalLeaves(true), sim.portalStates(), sim.portalDepthOffsets()];
     for (const view of oldViews) expect(view.buffer).toBe(memory.buffer);
