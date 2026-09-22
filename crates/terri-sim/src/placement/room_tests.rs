@@ -586,7 +586,11 @@ fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
 fn the_doorway_line_is_never_held_to_the_rules_for_a_wall() {
     let (mut sim, _) = house(vec![]);
     sim.world_mut().spawn((Agent, Position { x: 3.5, y: 2.0 }));
-    refused(&mut sim, room(2, 1, 3, 2, None), PlacementRefusal::SimOverlap);
+    refused(
+        &mut sim,
+        room(2, 1, 3, 2, None),
+        PlacementRefusal::SimOverlap,
+    );
     built(&mut sim, room(2, 1, 3, 2, Some(line(Vertical, 4, 2))));
 }
 
@@ -604,7 +608,11 @@ fn a_room_that_only_opens_a_doorway_is_accepted_even_in_a_house_already_cut_in_t
     ]);
     let (mut sim, _) = house(walls);
     // The door strip beyond x = 5 is cut off, so any new wall is refused.
-    refused(&mut sim, room(2, 3, 2, 3, None), PlacementRefusal::BlockedDoor);
+    refused(
+        &mut sim,
+        room(2, 3, 2, 3, None),
+        PlacementRefusal::BlockedDoor,
+    );
     // The one-tile room at (2, 1) already stands; its doorway only opens it.
     built(&mut sim, room(2, 1, 2, 1, Some(line(Vertical, 3, 1))));
     assert!(edges(&sim).contains(&wall(Vertical, 3, 1, true)));

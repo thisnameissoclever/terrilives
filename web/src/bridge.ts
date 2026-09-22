@@ -95,6 +95,9 @@ export function wallReason(code: number): string | null {
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
 }
 
+/** The refusal code for furniture a room or a wall would leave unreachable. */
+export const OUT_OF_REACH = 11;
+
 /** A room's refusal, worded for the Room tool - [RT-shell]. Same codes. */
 const ROOM_REASONS: Readonly<Record<number, string>> = {
   1: "Choose the doorway on the room's outline.",
@@ -104,7 +107,7 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
   8: "Someone is using something across the room's outline.",
   9: "Someone is standing on the room's outline.",
   10: "The room would block someone's way.",
-  11: 'The room would leave furniture out of reach. Choose a doorway.',
+  11: 'The room would leave furniture out of reach.',
   12: 'The room would cut off the front door.',
   13: 'The room would cut off the front-door landing.',
 };

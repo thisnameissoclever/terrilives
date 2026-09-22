@@ -119,6 +119,13 @@ describe('RoomTool', () => {
     expect([room.canBuild, room.highlight()?.valid]).toEqual([false, false]);
     room.build();
     expect(source.staged).toEqual([]);
+    // Found in the played check: with a doorway chosen, asking for one again
+    // reads wrong. Another refusal is worded as the bridge words it.
+    room.cycleDoorway();
+    expect(room.status).toBe('The room would leave furniture out of reach. Try the doorway on another line.');
+    source.code = 9;
+    room.cycleDoorway();
+    expect(room.status).toBe("Someone is standing on the room's outline.");
   });
 
   it('stages exactly the room on screen, once, and reports what the drain did', () => {
@@ -140,7 +147,8 @@ describe('RoomTool', () => {
     source.result = { corners: [3, 2, 2, 1], doorway: { axis: 0, x: 4, y: 2 }, reason: null };
     source.revision += 1;
     room.afterCommands();
-    expect([room.pending, room.status]).toEqual([false, 'Room built.']);
+    // Built and done with: the choice clears so the same room cannot be sent again.
+    expect([room.pending, room.status, room.first, room.canBuild]).toEqual([false, 'Room built.', null, false]);
   });
 
   it('reports a refusal the drain gave, and one it could not send', () => {
@@ -152,6 +160,8 @@ describe('RoomTool', () => {
     source.result = { corners: [2, 1, 3, 2], doorway: null, reason: roomReason(9) };
     room.afterCommands();
     expect(room.status).toBe("Someone is standing on the room's outline.");
+    // A refused room stays chosen, to be changed.
+    expect(room.first).toEqual([2, 1]);
     source.accept = false;
     room.build();
     expect([room.pending, room.status]).toEqual([false, 'The room could not be sent.']);
@@ -213,8 +223,9 @@ describe('RoomTool', () => {
     expect(room.first).toEqual([2, 1]);
     source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
     room.afterCommands();
-    expect(room.handleKey('Escape')).toBe(true);
     expect(room.first).toBeNull();
+    // With nothing chosen, Escape goes to Build mode.
+    expect(room.handleKey('Escape')).toBe(false);
   });
 
   it('keeps the arrows on the lot', () => {
@@ -305,8 +316,9 @@ describe('RoomToolControls', () => {
     expect([element('room-build').disabled, element('room-cancel').disabled]).toEqual([true, true]);
     source.result = { corners: [2, 1, 3, 2], doorway: null, reason: null };
     room.afterCommands();
-    element('room-cancel').click();
-    expect(room.first).toBeNull();
+    view.render();
+    expect([room.first, element('room-cancel').disabled, element('room-status').textContent])
+      .toEqual([null, true, 'Room built.']);
   });
 
   it('shows the touch help on a phone and the keyboard help elsewhere', () => {
@@ -372,6 +384,13 @@ describe('the Room tool in the page', () => {
       INDEX_HTML.indexOf('</section>', INDEX_HTML.indexOf('id="builder-controls"')));
     for (const id of IDS) expect(panel).toContain(`id="${id}"`);
     expect(panel).toContain('<div id="room-tool" hidden>');
+  });
+
+  // Found in the played check [A-room-tool]: four tool buttons in one row
+  // overflowed the side panel and cut Buy off.
+  it('lays the four tool buttons out two by two', () => {
+    expect(INDEX_HTML).toContain('<div id="build-tools" role="group" aria-label="Build tool">');
+    expect(INDEX_HTML).toContain('#build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }');
   });
 
   it('is wired into the frame, the click, Load and leaving Build', () => {

@@ -616,6 +616,9 @@
         font: inherit; font-size: 14px;
       }
       .builder-row { display: flex; align-items: center; gap: 8px; }
+      /* Four tools do not fit one row of the side panel, so two by two. */
+      #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #build-tools > * { min-width: 0; }
       .builder-row > * { flex: 1; min-width: 0; }
       #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
       #builder-controls .hud-button:disabled { opacity: 0.5; cursor: default; }
@@ -1087,7 +1090,7 @@
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
         <h2 id="builder-name">Build mode</h2>
         <p class="builder-note">Household paused</p>
-        <div class="builder-row" role="group" aria-label="Build tool">
+        <div id="build-tools" role="group" aria-label="Build tool">
           <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true">Furniture</button>
           <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
           <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false">Room</button>

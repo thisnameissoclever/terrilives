@@ -5,7 +5,7 @@
 // every decision: this controller asks for a preview, stages the room the
 // player confirms, and reads back what the drain did with it.
 
-import type { EdgeLine, SimBridge, WallEditPreview } from '../bridge.js';
+import { OUT_OF_REACH, type EdgeLine, type SimBridge, type WallEditPreview } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 import { nearestLine } from './wall-tool.js';
 
@@ -193,7 +193,10 @@ export class RoomTool {
           this.clear();
           return;
         }
-        this.refresh();
+        // A built room is done with: its choice clears, so Build room cannot
+        // stage the same room again. A refused one stays, to be changed.
+        if (result.reason === null) this.clear();
+        else this.refresh();
         this.status = result.reason ?? BUILT;
         this.hooks.changed();
         return;
@@ -275,7 +278,13 @@ export class RoomTool {
   private describe(): string {
     if (this.first === null) return CHOOSE_CORNER;
     if (this.second === null) return CHOOSE_OPPOSITE;
-    if (this.preview && !this.preview.valid) return this.preview.reason ?? 'That room is not possible.';
+    const preview = this.preview;
+    if (preview && !preview.valid) {
+      const reason = preview.reason ?? 'That room is not possible.';
+      // Out of reach is the one refusal a doorway can mend, so say how.
+      if (preview.code !== OUT_OF_REACH) return reason;
+      return `${reason} ${this.doorway === null ? 'Choose a doorway.' : 'Try the doorway on another line.'}`;
+    }
     return this.doorway === null ? READY : READY_WITH_DOORWAY;
   }
 
