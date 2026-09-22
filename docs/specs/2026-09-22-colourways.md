@@ -1,7 +1,7 @@
 # Buy mode: colourways for furniture
 
-Status: [RC-slice-furniture] is built, on branch `twcl/colourways`.
-[RC-slice-buy] is next.
+Status: [RC-slice-furniture] is built, on branch `twcl/colourways`, and
+[RC-slice-buy] on branch `twcl/buy-in-colour`.
 
 This is [BM-slice-recolour] of `docs/specs/2026-09-21-buy-mode.md`, the last
 part of the M1 Buy mode bullet ("catalog, placement, rotation, palette
@@ -80,10 +80,10 @@ pixels before lighting. Two pictures of an object are not its own row and
 carry its shift too: the foreground layer (the bunk's upper parts), and the
 furniture layer drawn inside a sim's picture while the sim uses the object
 (the exercise bike, the reading chair, the bunk), where only the furniture
-layer turns, never the sim or the outline over it. The placement ghost
-stands in for a chosen object, so it is drawn in the object's colourway under
-its valid and invalid tints; a purchase's ghost is drawn as drawn until
-[RC-slice-buy].
+layer turns, never the sim or the outline over it. The placement ghost stands
+in for a chosen object, so it is drawn in the object's colourway under its
+valid and invalid tints, and a purchase's ghost in the colourway chosen in the
+Buy tool ([RC-slice-buy]).
 
 ## [RC-ui] A Colour list in the Furniture tool
 
@@ -102,6 +102,18 @@ the object ends in the last colour chosen.
   hash, render column, shader shift including the foreground and in-use
   layers, and the Colour list for placed furniture.
 * **[RC-slice-buy]** Choosing the colourway when buying, in the Buy tool.
+  `SimCommand::BuyObjectInColourway` is appended as wire code 13: one lot edit
+  that runs every purchase check, then refuses an unknown colourway with code
+  17, and only then buys the object drawn in the colourway, so a refusal
+  writes nothing. A staged one saves both ids, as `BuyObject` and
+  `SetColourway` do, and hashes an index that names nothing as `u64::MAX`. The
+  Buy tool gains a Colour list under the catalogue; its choice draws the ghost
+  and is kept between purchases until a Load. As drawn buys through the plain
+  `BuyObject`, so a purchase with no colourway is the command it always was.
+  A staged purchase whose colourway id the content no longer has still loads,
+  and is then refused as unknown, as a staged colour change naming it is: the
+  player chose a colour the game cannot draw, so nothing is bought rather than
+  the object arriving in a colour nobody chose.
 * The owner's colourways and names replace the placeholders when
   [T-recolour-palettes] is answered; content only, since a save naming a
   colourway id the content no longer has loads that object as drawn.
@@ -131,3 +143,25 @@ change was on its way, now showing the latest choice; the staged-command hash
 guard and both in-use shader conditions untested, now pinned; and a saved id
 naming the first colourway still refused, now loading as drawn like an
 unknown one.
+
+A fresh-context review of [RC-slice-buy] found the new hash arm's colourway
+boundary untested, which the mutation sweep would have failed, and the arm's
+other fields and its unknown-object digest untested too; each is now pinned.
+It also found the real boundary's argument order untested, now checked by a
+staged purchase whose digest sees its colourway and whose refusal echoes its
+facing; the Buy tool's refusals of a colour change while a purchase is on its
+way or while blocked, its ghost colour outside the tool, and the Colour list's
+disabled states untested, now covered; the wire's unknown-variant row still
+naming code 13, now 14; and comments that still said a purchase's ghost is
+drawn as drawn. It asked whether a staged purchase whose colourway id was
+retired should load as drawn; it is refused, as the slice above says.
+
+A second round found no fault in the code. It found a test comment claiming
+the refusal keeps the loaded world behaving as the saved one, which it cannot,
+since the saving world still had the colourway; the comment now says a colour
+the game can no longer draw is never bought. It also found that neither
+purchase command's hash was pinned to name the object by its id rather than
+its index, a gap already on main for `BuyObject`; one test now covers both.
+
+A third round found no fault in the code, and two wording slips in the docs
+this pull request carries for earlier ones, both fixed.

@@ -1230,9 +1230,11 @@ describe('SimBridge', () => {
       // meaning itself.
       // And `[0x07, 0x00]` became a truncated PlaceObject, `[0x08, 0x00]` a
       // truncated SetWallEdge, `[0x09, 0x00]` a truncated BuyObject and
-      // `[0x0a, 0x00]` a truncated BuildRoom, and `[0x0c, 0x00]` a
-      // SetColourway with no colourway.
-      ['variant index 13, one past the thirteen that exist', [0x0d, 0x00]],
+      // `[0x0a, 0x00]` a truncated BuildRoom, `[0x0c, 0x00]` a
+      // SetColourway with no colourway, and `[0x0d, 0x00]` a truncated
+      // BuyObjectInColourway.
+      ['variant index 14, one past the fourteen that exist', [0x0e, 0x00]],
+      ['BuyObjectInColourway missing its colourway', [0x0d, 0x01, 0x02, 0x03, 0x00]],
       ['SellObject missing its object', [0x0b]],
       ['SetColourway missing its colourway', [0x0c, 0x01]],
       ['BuyObject missing its facing', [0x09, 0x01, 0x02, 0x03]],

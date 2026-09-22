@@ -172,6 +172,18 @@ pub enum SimCommand {
     /// in stream order like `SellObject`. Appended to preserve earlier wire
     /// codes.
     SetColourway { object: u32, colourway: u32 },
+    /// Buy object definition `definition` at tile (x, y) facing `facing`, in
+    /// content colourway `colourway` - [RC-slice-buy] in
+    /// `docs/specs/2026-09-22-colourways.md`. One lot edit: every purchase
+    /// check, then the colourway, then the object is bought and drawn in it.
+    /// Appended to preserve earlier wire codes.
+    BuyObjectInColourway {
+        definition: u32,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+        colourway: u32,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -343,6 +355,18 @@ mod tests {
                 // Variant 12, the object 300 as a two-byte varint, then the
                 // colourway 2.
                 &[12, 172, 2, 2],
+            ),
+            (
+                SimCommand::BuyObjectInColourway {
+                    definition: 300,
+                    x: 2,
+                    y: 5,
+                    facing: crate::Facing::NorthWest,
+                    colourway: 3,
+                },
+                // Variant 13, then the purchase as `BuyObject` writes it,
+                // then the colourway 3.
+                &[13, 172, 2, 2, 5, 2, 3],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),

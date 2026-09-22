@@ -319,6 +319,12 @@ export class SimBridge {
       : { object: values[0], reason: placementReason(values[1]), colourway: values[2] };
   }
 
+  /** A purchase drawn in a colourway ([RC-slice-buy]); read the outcome from `lastPurchaseResult`. */
+  buyObjectInColourway(definition: number, x: number, y: number, facing: number,
+    colourway: number): boolean {
+    return this.handle.buy_object_in_colourway(definition, x, y, facing, colourway);
+  }
+
   /** Queue acceptance only; read the outcome from `lastPurchaseResult`. */
   buyObject(definition: number, x: number, y: number, facing: number): boolean {
     return this.handle.buy_object(definition, x, y, facing);

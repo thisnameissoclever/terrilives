@@ -27,6 +27,7 @@ export function servesLabel(needs: number, names: readonly string[]): string {
 export class BuyToolControls {
   private readonly selector: HTMLSelectElement;
   private readonly filter: HTMLSelectElement;
+  private readonly colour: HTMLSelectElement;
   private readonly placeholder: HTMLOptionElement;
   private readonly options: HTMLOptionElement[] = [];
   private readonly serves: HTMLElement;
@@ -48,6 +49,18 @@ export class BuyToolControls {
     };
     this.selector = required('buy-object');
     this.filter = required('buy-filter');
+    this.colour = required('buy-colour');
+    // [RC-slice-buy]: the colourways are content, so the list is built once.
+    for (const [index, name] of tool.colourways.entries()) {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = name;
+      this.colour.append(option);
+    }
+    this.colour.addEventListener('change', () => {
+      tool.setColourway(Number(this.colour.value));
+      this.render();
+    });
     this.facing = required('buy-facing');
     this.price = required('buy-price');
     this.serves = required('buy-serves');
@@ -111,6 +124,8 @@ export class BuyToolControls {
     tool.items.forEach((item, index) => { this.options[index].disabled = !tool.affordable(item); });
     this.selector.value = tool.chosen === null ? '' : String(tool.chosen.definition);
     this.selector.disabled = tool.pending || tool.blocked;
+    this.colour.value = String(tool.colourway);
+    this.colour.disabled = tool.pending || tool.blocked || tool.colourways.length < 2;
     this.filter.value = tool.filter === null ? '' : String(tool.filter);
     this.filter.disabled = tool.pending || tool.blocked;
     this.serves.textContent = tool.chosen ? servesLabel(tool.chosen.needs, this.needNames) : '';

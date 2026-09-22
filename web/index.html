@@ -611,7 +611,7 @@
       #builder-controls p { margin: 0; }
       /* The tool wrappers keep the panel's own spacing for what they hold. */
       #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
-      #builder-object, #builder-colour, #buy-object, #buy-filter {
+      #builder-object, #builder-colour, #buy-object, #buy-filter, #buy-colour {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
         border: 1px solid var(--hud-edge); border-radius: 4px;
@@ -1211,6 +1211,8 @@
             <select id="buy-filter"><option value="">Everything</option></select>
             <label for="buy-object">Buy</label>
             <select id="buy-object"><option value="">Choose something to buy</option></select>
+            <label for="buy-colour">Colour</label>
+            <select id="buy-colour"></select>
             <div class="builder-row">
               <span id="buy-facing"></span>
               <button id="buy-rotate" class="hud-button" type="button">Rotate</button>

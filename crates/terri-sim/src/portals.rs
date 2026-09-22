@@ -184,8 +184,8 @@ pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
 ///   walking up to it and turning away.
 ///
 /// The door's state is never saved: it is worked out again each frame from
-/// the sim's position and walk, which are, so a loaded house shows the same
-/// door as the house that was saved.
+/// the sim's position and walk, which are saved, so a loaded house shows the
+/// same door as the house that was saved.
 ///
 /// The swing is cut short in two cases, both presentation only. A walk does
 /// not keep the tile it set out from, so when its first step is the one

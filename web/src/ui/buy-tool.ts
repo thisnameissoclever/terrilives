@@ -8,7 +8,7 @@
 import type { CatalogueItem, PlacementPreview, SimBridge } from '../bridge.js';
 
 type BuySource = Pick<SimBridge, 'catalogue' | 'purchasePreview' | 'buyObject' |
-  'lastPurchaseResult' | 'lotRevision' | 'funds'>;
+  'lastPurchaseResult' | 'lotRevision' | 'funds' | 'colourwayNames' | 'buyObjectInColourway'>;
 
 export const CHOOSE_ITEM = 'Choose something to buy.';
 const READY = 'Ready to buy.';
@@ -33,6 +33,10 @@ export class BuyTool {
   /** The need the list is narrowed to, by need index, or null for everything ([CB-filter]). */
   filter: number | null = null;
   preview: PlacementPreview | null = null;
+  /** The colourway names, in content order; the first is the art as drawn ([RC-slice-buy]). */
+  readonly colourways: readonly string[];
+  /** The colourway the next purchase is drawn in; kept between purchases. */
+  colourway = 0;
   status = CHOOSE_ITEM;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
@@ -42,7 +46,16 @@ export class BuyTool {
   constructor(private readonly source: BuySource, private width: number,
     private height: number, private readonly hooks: { changed(): void }) {
     this.items = listed(source.catalogue());
+    this.colourways = source.colourwayNames();
     this.revision = source.lotRevision();
+  }
+
+  /** Chooses the colourway the ghost and the next purchase are drawn in. */
+  setColourway(colourway: number): void {
+    if (this.pending || this.blocked) return;
+    if (!Number.isInteger(colourway) || colourway < 0 || colourway >= this.colourways.length) return;
+    this.colourway = colourway;
+    this.hooks.changed();
   }
 
   get pending(): boolean { return this.sent !== null; }
@@ -154,7 +167,11 @@ export class BuyTool {
     const preview = this.preview;
     if (!this.canBuy || chosen === null || preview === null) return;
     const sent = { definition: chosen.definition, x: preview.x, y: preview.y, facing: preview.facing };
-    if (this.source.buyObject(sent.definition, sent.x, sent.y, sent.facing)) {
+    // As drawn is the plain purchase; any other colourway buys it drawn in it.
+    const staged = this.colourway === 0
+      ? this.source.buyObject(sent.definition, sent.x, sent.y, sent.facing)
+      : this.source.buyObjectInColourway(sent.definition, sent.x, sent.y, sent.facing, this.colourway);
+    if (staged) {
       this.sent = sent;
       this.status = BUYING;
     } else {
@@ -230,7 +247,13 @@ export class BuyTool {
     this.height = height;
     this.revision = this.source.lotRevision();
     this.filter = null;
+    this.colourway = 0;
     this.clear();
+  }
+
+  /** The colourway the ghost is drawn in, while this is the tool in use. */
+  ghostColourway(): number {
+    return this.active ? this.colourway : 0;
   }
 
   /** The ghost to draw, while this is the tool in use. */

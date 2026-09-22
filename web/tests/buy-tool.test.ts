@@ -56,6 +56,14 @@ class FakeShop {
     return this.accept;
   }
 
+  colourwayNames(): string[] { return ['As drawn', 'Colour 2', 'Colour 3']; }
+  inColourway: [number, number, number, number, number][] = [];
+  buyObjectInColourway(definition: number, x: number, y: number, facing: number,
+    colourway: number): boolean {
+    this.inColourway.push([definition, x, y, facing, colourway]);
+    return this.accept;
+  }
+
   lastPurchaseResult(): PurchaseResult | null { return this.result; }
   lotRevision(): number { return this.revision; }
   funds(): number { return this.money; }
@@ -399,6 +407,54 @@ describe('BuyTool', () => {
   });
 });
 
+// [RC-slice-buy] in docs/specs/2026-09-22-colourways.md: the Buy tool keeps a
+// colourway between purchases; as drawn buys through the plain purchase, any
+// other through a purchase in that colourway, and the ghost is drawn in it.
+describe('buying in a colourway', () => {
+  it('buys in the chosen colourway and keeps it for the next purchase', () => {
+    const { buy, source } = tool();
+    buy.enter();
+    buy.choose(CHAIR.definition);
+    expect([buy.colourway, buy.ghostColourway()]).toEqual([0, 0]);
+    buy.buy();
+    expect([source.staged.length, source.inColourway.length]).toEqual([1, 0]);
+    source.result = { definition: CHAIR.definition, x: source.staged[0][1], y: source.staged[0][2],
+      facing: source.staged[0][3], reason: null, object: 40 };
+    source.revision += 1;
+    buy.afterCommands();
+    buy.setColourway(2);
+    expect([buy.colourway, buy.ghostColourway()]).toEqual([2, 2]);
+    buy.choose(CHAIR.definition);
+    buy.buy();
+    expect(source.inColourway).toHaveLength(1);
+    expect(source.inColourway[0][4]).toBe(2);
+    // The purchase on its way is refused its colour change.
+    buy.setColourway(1);
+    expect(buy.colourway).toBe(2);
+    source.result = { definition: CHAIR.definition, x: source.inColourway[0][1],
+      y: source.inColourway[0][2], facing: source.inColourway[0][3], reason: null, object: 41 };
+    source.revision += 1;
+    buy.afterCommands();
+    expect(buy.colourway).toBe(2);
+    for (const refused of [-1, 3, 1.5]) {
+      buy.setColourway(refused);
+      expect(buy.colourway).toBe(2);
+    }
+    buy.setBlocked(true);
+    buy.setColourway(1);
+    expect(buy.colourway).toBe(2);
+    buy.setBlocked(false);
+    buy.exit();
+    expect([buy.colourway, buy.ghostColourway()]).toEqual([2, 0]);
+    buy.enter();
+    expect(buy.ghostColourway()).toBe(2);
+    buy.resetAfterLoad(8, 6);
+    expect(buy.colourway).toBe(0);
+    buy.exit();
+    expect(buy.ghostColourway()).toBe(0);
+  });
+});
+
 describe('BuyToolControls', () => {
   class FakeElement {
     hidden = false;
@@ -446,6 +502,44 @@ describe('BuyToolControls', () => {
     filter.value = '';
     filter.fire('change');
     expect(element('buy-object').children).toHaveLength(4);
+  });
+
+  it('offers the colourways and chooses one from the Colour list', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    view.render();
+    const colour = element('buy-colour');
+    expect(colour.children.map((option) => option.textContent)).toEqual(['As drawn', 'Colour 2', 'Colour 3']);
+    expect([colour.value, colour.disabled]).toEqual(['0', false]);
+    colour.value = '1';
+    colour.fire('change');
+    expect(buy.colourway).toBe(1);
+    buy.choose(CHAIR.definition);
+    buy.buy();
+    view.render();
+    expect([buy.pending, colour.disabled]).toEqual([true, true]);
+    buy.setBlocked(true);
+    view.render();
+    expect(colour.disabled).toBe(true);
+  });
+
+  it('offers no Colour list when there is only the art as drawn', () => {
+    const elements = new Map<string, FakeElement>();
+    const doc = {
+      querySelector: (selector: string) => {
+        const id = selector.slice(1);
+        if (!elements.has(id)) elements.set(id, new FakeElement());
+        return elements.get(id);
+      },
+      createElement: () => new FakeElement(),
+    } as unknown as Document;
+    const source = new FakeShop();
+    source.colourwayNames = () => ['As drawn'];
+    const buy = new BuyTool(source, 8, 6, { changed: () => {} });
+    const view = new BuyToolControls(doc, buy, NEEDS);
+    buy.enter();
+    view.render();
+    expect(elements.get('buy-colour')!.disabled).toBe(true);
   });
 
   it('says what the chosen item is good for', () => {
@@ -544,6 +638,29 @@ describe('BuyToolControls', () => {
 });
 
 describe('the Buy tool on real wasm', () => {
+  // [RC-slice-buy]: the bridge passes the facing and the colourway in their
+  // own places, so the object faces its way and is drawn in its colourway.
+  it('buys in a colourway through the real boundary', () => {
+    const staged = (colourway: number) => {
+      const handle = SimHandle.from_lot();
+      const bridge = new SimBridge(handle, wasmMemory);
+      // A colourway that is not the facing's code, so swapped arguments show.
+      const item = bridge.catalogue().find((entry) => entry.baseFacing !== 3)!;
+      expect(bridge.buyObjectInColourway(item.definition, 0, 0, item.baseFacing, colourway)).toBe(true);
+      return { handle, bridge, item };
+    };
+    // The staged purchase carries its colourway: the digest sees it.
+    const [second, third] = [staged(2), staged(3)];
+    expect(second.bridge.worldHash()).not.toBe(third.bridge.worldHash());
+    // The shipped house has no money, so the purchase is refused, but the
+    // result echoes it exactly as the boundary received it.
+    third.bridge.flushCommands();
+    const result = third.bridge.lastPurchaseResult()!;
+    expect([result.definition, result.facing]).toEqual([third.item.definition, third.item.baseFacing]);
+    second.handle.free();
+    third.handle.free();
+  });
+
   // [B-rotated-lights] in docs/FEATURES.md, checked against what content
   // draws rather than against the lighting's own sprite names: every item
   // glows in each direction it can face exactly when it glows as drawn by
@@ -611,7 +728,7 @@ describe('the Buy tool on real wasm', () => {
 describe('the Buy tool in the page', () => {
   const IDS = ['build-tool-buy', 'buy-tool', 'buy-filter', 'buy-object', 'buy-facing', 'buy-rotate',
     'buy-price', 'buy-serves', 'buy-status', 'buy-confirm', 'buy-cancel', 'buy-keyboard-help',
-    'buy-touch-help'];
+    'buy-touch-help', 'buy-colour'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
     expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
@@ -634,8 +751,8 @@ describe('the Buy tool in the page', () => {
     }
     // The ghost reaches both the instance writer and the instance count.
     expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(3);
-    // [RC-render]: the ghost of a purchase is drawn as drawn, a moved object's
-    // in the object's colourway.
-    expect(MAIN_TS).toContain('buyTool.ghost() ? 0 : builder.colourway ?? 0,');
+    // [RC-render]: the ghost of a purchase is drawn in the Buy tool's colourway,
+    // a moved object's in the object's own.
+    expect(MAIN_TS).toContain('buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,');
   });
 });

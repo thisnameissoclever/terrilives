@@ -1338,8 +1338,8 @@ async function main(): Promise<void> {
       undefined,
       buyTool.ghost() ?? builder.preview,
       wallTool.highlight() ?? roomTool.highlight(),
-      // A purchase is drawn as drawn; a moved object in its own colourway.
-      buyTool.ghost() ? 0 : builder.colourway ?? 0,
+      // A purchase in the Buy tool's colourway; a moved object in its own.
+      buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
     );
     // The day/night cycle. `LightingMode` combines the player's saved flat
     // choice with reduced motion's temporary constraint, so one effective

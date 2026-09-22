@@ -322,4 +322,13 @@ pub enum SavedCommand {
         object: u32,
         colourway: Option<String>,
     },
+    /// [RC-slice-buy]. A purchase in a colourway staged just before a save,
+    /// both recorded by id as `BuyObject` and `SetColourway` record them.
+    BuyObjectInColourway {
+        definition: Option<String>,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+        colourway: Option<String>,
+    },
 }

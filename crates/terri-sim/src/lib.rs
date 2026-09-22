@@ -2727,6 +2727,31 @@ impl Sim {
                         fields
                     }
                     SellObject { object } => vec![11, *object as u64],
+                    // A purchase as `BuyObject` hashes it, then its
+                    // colourway as `SetColourway` hashes one.
+                    BuyObjectInColourway {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                        colourway,
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        vec![
+                            13,
+                            content
+                                .and_then(|content| content.0.objects.get(*definition as usize))
+                                .map_or(u64::MAX, |object| id_digest(&object.id)),
+                            *x as u64,
+                            *y as u64,
+                            facing.code() as u64,
+                            content
+                                .filter(|content| {
+                                    (*colourway as usize) < content.0.colourways.len()
+                                })
+                                .map_or(u64::MAX, |_| *colourway as u64),
+                        ]
+                    }
                     // As `BuyObject`: an index the pack has no colourway
                     // for saves as none and restores as `u32::MAX`, so it
                     // hashes as one value on both sides of a Load.

@@ -240,6 +240,25 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
         SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
+        SimCommand::BuyObjectInColourway {
+            definition,
+            x,
+            y,
+            facing,
+            colourway,
+        } => SavedCommand::BuyObjectInColourway {
+            definition: pack
+                .objects
+                .get(*definition as usize)
+                .map(|object| object.id.clone()),
+            x: *x,
+            y: *y,
+            facing: *facing,
+            colourway: pack
+                .colourways
+                .get(*colourway as usize)
+                .map(|colourway| colourway.id.clone()),
+        },
         SimCommand::SetColourway { object, colourway } => SavedCommand::SetColourway {
             object: *object,
             colourway: pack
@@ -797,6 +816,25 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
         SavedCommand::SellObject { object } => SimCommand::SellObject { object },
+        // Unknown ids restore as indices past every object and colourway,
+        // which the drain refuses, as the two commands it joins do.
+        SavedCommand::BuyObjectInColourway {
+            definition,
+            x,
+            y,
+            facing,
+            colourway,
+        } => SimCommand::BuyObjectInColourway {
+            definition: definition
+                .and_then(|id| pack.find(&id))
+                .map_or(u32::MAX, |object| object.0),
+            x,
+            y,
+            facing,
+            colourway: colourway
+                .and_then(|id| pack.colourways.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+        },
         // An id this pack lacks restores as an index past every colourway,
         // which the drain refuses, as a staged purchase of an unknown object.
         SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
@@ -1028,7 +1066,8 @@ fn validate_command(
         | SavedCommand::BuyObject { .. }
         | SavedCommand::BuildRoom { .. }
         | SavedCommand::SellObject { .. }
-        | SavedCommand::SetColourway { .. } => Ok(()),
+        | SavedCommand::SetColourway { .. }
+        | SavedCommand::BuyObjectInColourway { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

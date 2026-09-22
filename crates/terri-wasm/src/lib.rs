@@ -663,6 +663,34 @@ impl SimHandle {
             })
     }
 
+    /// Stages buying object definition `definition` at tile (x, y) facing
+    /// `facing` in colourway `colourway` ([RC-slice-buy]). Queue acceptance
+    /// only; `last_purchase_result` reports what the drain did.
+    pub fn buy_object_in_colourway(
+        &mut self,
+        definition: f64,
+        x: f64,
+        y: f64,
+        facing: f64,
+        colourway: f64,
+    ) -> bool {
+        let (Some((definition, x, y, facing)), Some(colourway)) = (
+            placement_arguments(definition, x, y, facing),
+            placement_u32(colourway),
+        ) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::BuyObjectInColourway {
+            definition,
+            x,
+            y,
+            facing,
+            colourway,
+        })
+        .expect("a purchase in a colourway serializes");
+        self.enqueue_command(&bytes)
+    }
+
     /// `[refusal, changes]` for this room - [RT-boundary]: the refusal code,
     /// zero when it would be built, and 1 when building it would change the
     /// house, 0 when its outline already stands exactly. Never writes.
@@ -4903,6 +4931,53 @@ mod boundary_tests {
         assert!(!handle.set_colourway(f64::from(sofa), -1.0));
     }
 
+    /// [RC-slice-buy]: a purchase in a colourway is staged through the
+    /// boundary and bought drawn in it; one that is not a whole number is
+    /// refused there, and one past the table by the drain.
+    #[test]
+    fn a_purchase_in_a_colourway_is_staged_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        // The shipped house starts with nothing in the bank.
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds(100_000));
+        let catalogue = handle.catalogue();
+        let (definition, facing) = (catalogue[0], catalogue[3]);
+        let tile = (0..16u32)
+            .flat_map(|y| (0..16u32).map(move |x| (x, y)))
+            .find(|&(x, y)| {
+                handle.purchase_preview(
+                    f64::from(definition),
+                    f64::from(x),
+                    f64::from(y),
+                    f64::from(facing),
+                )[0] == 0.0
+            })
+            .expect("the shipped house has a free tile");
+        let args = |colourway: f64| {
+            (
+                f64::from(definition),
+                f64::from(tile.0),
+                f64::from(tile.1),
+                f64::from(facing),
+                colourway,
+            )
+        };
+        let (d, x, y, f, c) = args(1.5);
+        assert!(!handle.buy_object_in_colourway(d, x, y, f, c));
+        let (d, x, y, f, c) = args(99.0);
+        assert!(handle.buy_object_in_colourway(d, x, y, f, c));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_purchase_result()[4], 17);
+        let (d, x, y, f, c) = args(2.0);
+        assert!(handle.buy_object_in_colourway(d, x, y, f, c));
+        handle.sim.flush_commands();
+        let result = handle.last_purchase_result();
+        assert_eq!(result[4], 0);
+        assert_eq!(handle.object_colourway(f64::from(result[5])), 2);
+    }
+
     /// [BM-shell]: the catalogue is every priced object, in pack order, with
     /// its price, the directions it has art for and its base direction, and
     /// its names come in the same order. An object with no price is left out.
@@ -5216,12 +5291,17 @@ mod boundary_tests {
             // `[0x08, 0x00]` a truncated `SetWallEdge`, and `[0x09, 0x00]` a
             // truncated `BuyObject`.
             // And `[0x0A, 0x00]` a truncated `BuildRoom`, `[0x0B]` a
-            // `SellObject` with no object, and `[0x0C, 0x00]` a
-            // `SetColourway` with no colourway.
+            // `SellObject` with no object, `[0x0C, 0x00]` a `SetColourway`
+            // with no colourway, and `[0x0D, 0x00]` a truncated
+            // `BuyObjectInColourway`.
             (
-                "variant index 13, one past the thirteen SimCommand declares; \
+                "variant index 14, one past the fourteen SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0D, 0x00],
+                vec![0x0E, 0x00],
+            ),
+            (
+                "BuyObjectInColourway missing its colourway",
+                vec![0x0D, 0x01, 0x02, 0x03, 0x00],
             ),
             ("SellObject missing its object", vec![0x0B]),
             ("SetColourway missing its colourway", vec![0x0C, 0x01]),
