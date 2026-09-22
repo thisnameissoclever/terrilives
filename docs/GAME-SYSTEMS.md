@@ -247,7 +247,7 @@ A larger household also needs a larger house, so that six people are not queuein
 **What is missing, in a sensible order.**
 
 1. ~~Buy mode: a catalogue panel, placing a new object, and charging Funds for it.~~ Done in PR 96. Still open: selling an object back ([BM-slice-sell] in `docs/specs/2026-09-21-buy-mode.md`), and recolours, which need art.
-2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. Still open: a whole room outline in one edit, and hinged doors that need art.
+2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. A whole room outline in one edit is built too, with its doorway ([RT-slice-room]). Still open: hinged doors that need art.
 3. Floor and wall coverings per room or per tile.
 4. Windows, which also affect the lighting already in the game.
 5. A larger lot. The lot is 16 by 12 tiles and cannot change. This needs a lot-resize operation or a set of lot sizes to choose from.
