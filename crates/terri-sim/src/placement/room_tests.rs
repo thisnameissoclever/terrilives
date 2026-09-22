@@ -582,6 +582,20 @@ fn the_world_hash_keeps_a_room_s_words_from_running_into_the_next_command() {
     let c = hash(vec![with(first, 4, 2), command(second), order(3, 5)]);
     let d = hash(vec![command(first), order(4, 2), with(second, 3, 5)]);
     assert_ne!(c, d);
+
+    // And with only the 1 before a doorway missing, which the second review
+    // found: the doorway's numbers then read as a speed change.
+    let e = hash(vec![
+        with(first, 3, 2),
+        command(second),
+        SimCommand::SetSpeed(1),
+    ]);
+    let f = hash(vec![
+        command(first),
+        SimCommand::SetSpeed(2),
+        with(second, 3, 1),
+    ]);
+    assert_ne!(e, f);
 }
 
 #[test]
@@ -618,10 +632,12 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
 /// doorway on its first line, leaves a save that loads - checked through a
 /// real save and load at two points in the day.
 ///
-/// It also counts rooms whose finished outline passes the usability proofs
-/// but not the loader's own checks, asserts each is refused, and fails if it
-/// finds none, so a household change that moves the case away from these
-/// ticks fails loudly rather than emptying the test, as its wall twin does.
+/// It also counts rooms that only the loader's own checks refuse: the finished
+/// outline passes the usability proofs, fails the loader, and is refused as
+/// `BlockedRoute`, which with the proofs passing only the loader can give. It
+/// fails if it finds none, so a household change that moves the case away from
+/// these ticks fails loudly rather than emptying the test, as its wall twin
+/// does.
 #[test]
 fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
     let mut only_the_loader_refused = 0;
@@ -658,8 +674,13 @@ fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
                         if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
                             && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
                         {
-                            only_the_loader_refused += 1;
-                            assert!(validate_room(sim.world(), edit).is_err(), "{edit:?}");
+                            let refusal = validate_room(sim.world(), edit);
+                            assert!(refusal.is_err(), "{edit:?}");
+                            // Furniture cut in half is refused before the
+                            // loader is asked; count only what reached it.
+                            if refusal.unwrap_err() == PlacementRefusal::BlockedRoute {
+                                only_the_loader_refused += 1;
+                            }
                         }
                         match validate_room(sim.world(), edit) {
                             Ok(plan) if plan.changed => {}
