@@ -554,6 +554,66 @@ impl SimHandle {
             .collect()
     }
 
+    /// Three words per family tie: the lower sim index, the higher, and the
+    /// relation the lower one is to the higher - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Sorted, and empty for a household
+    /// of strangers.
+    pub fn family_ties(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .get_resource::<terri_core::layout::FamilyTies>()
+            .map_or_else(Vec::new, |family| {
+                family
+                    .ties()
+                    .iter()
+                    .flat_map(|&(low, high, relation)| [low, high, u32::from(relation)])
+                    .collect()
+            })
+    }
+
+    /// Stages recording that the sim at index `who` is `relation` to the sim
+    /// at index `to`, with 4 for no relation at all - [FM-tie]. False when
+    /// the numbers are not two sims and a relation.
+    pub fn set_family_tie(&mut self, who: f64, to: f64, relation: f64) -> bool {
+        let code = placement_u32(relation).and_then(|code| u8::try_from(code).ok());
+        let (Some(who), Some(to), Some(code)) = (placement_u32(who), placement_u32(to), code)
+        else {
+            return false;
+        };
+        // 4 is "no relation": one past the relations there are, so the wire
+        // grows by appending a relation rather than by moving this.
+        let relation = match code {
+            4 => None,
+            code => match terri_core::layout::Relation::from_code(code) {
+                Some(relation) => Some(relation),
+                None => return false,
+            },
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetFamilyTie { who, to, relation })
+            .expect("a family tie serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[who, to, relation, refusal]` of the last tie a drain handled, the
+    /// relation 4 for none and the refusal zero when it was applied; empty
+    /// before the first.
+    pub fn last_family_tie_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_family_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.who,
+                    result.to,
+                    result
+                        .relation
+                        .map_or(4, |relation| u32::from(relation.code())),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
+            })
+    }
+
     /// Each covering's colour shift, three numbers each in content order -
     /// [FL-draw]. The renderer appends them to the shift table the yard and
     /// the street already use, so a painted tile writes a row of it.
@@ -5607,6 +5667,67 @@ mod boundary_tests {
             before,
             "no sim stands where the grid is blocked"
         );
+    }
+
+    /// [FM-tie] in `docs/specs/2026-09-22-family.md`: a tie crosses as one
+    /// fact, reads the same from either end, and is refused for somebody who
+    /// is not a sim of this world.
+    #[test]
+    fn a_family_tie_crosses_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.family_ties().is_empty());
+        // The render rows name every entity, and a sim is one with an
+        // identity; two of them is all this needs.
+        handle.tick();
+        let count = handle.entity_count();
+        let kinds = unsafe { std::slice::from_raw_parts(handle.kinds_ptr(), count) };
+        let ids = unsafe { std::slice::from_raw_parts(handle.ids_ptr(), count) };
+        let mut sims: Vec<u32> = (0..count)
+            .filter(|&row| kinds[row] == 0)
+            .map(|row| ids[row])
+            .collect();
+        sims.sort_unstable();
+        sims.dedup();
+        assert!(sims.len() >= 2, "the shipped household has people in it");
+        let (first, second) = (sims[0], sims[1]);
+
+        // The first is the second's parent: one stored fact, from the lower.
+        assert!(handle.set_family_tie(f64::from(first), f64::from(second), 1.0));
+        handle.flush_commands();
+        assert_eq!(
+            handle.family_ties(),
+            vec![
+                first.min(second),
+                first.max(second),
+                if first < second { 1 } else { 2 }
+            ]
+        );
+        assert_eq!(handle.last_family_tie_result(), vec![first, second, 1, 0]);
+
+        // The tie survives a save and a load.
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.family_ties(), handle.family_ties());
+        assert_eq!(restored.sim.world_hash(), handle.sim.world_hash());
+
+        // 4 is no relation, which takes it away.
+        assert!(handle.set_family_tie(f64::from(second), f64::from(first), 4.0));
+        handle.flush_commands();
+        assert!(handle.family_ties().is_empty());
+
+        // Hostile or impossible arguments.
+        assert!(!handle.set_family_tie(f64::from(first), f64::from(second), 5.0));
+        assert!(!handle.set_family_tie(-1.0, f64::from(second), 0.0));
+        assert!(!handle.set_family_tie(f64::from(first), 0.5, 0.0));
+        handle.set_family_tie(f64::from(first), f64::from(first), 0.0);
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_family_tie_result()[3],
+            terri_sim::placement::PlacementRefusal::InvalidInput as u32,
+            "nobody is their own sibling"
+        );
+        assert!(handle.family_ties().is_empty());
     }
 
     /// [FL-command] in `docs/specs/2026-09-22-floors.md`: a covering crosses
