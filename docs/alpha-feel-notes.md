@@ -3461,3 +3461,22 @@ turned, and it glowed with its own smaller pool.
 
 **Not proven here.** The other two turns, north-west and north-east, were
 covered by the lighting tests rather than played.
+
+## [A-street] Tim walks out to the street and home again
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/the-street` with its WebAssembly rebuilt, driven in the Playwright
+browser at 1280 by 800 in flat light, on the household loaded from its save at
+Day 205, 00:30, with Tim selected.
+
+A grey column ran down the lot's east edge beyond the green yard. Zoomed out,
+at 06:00 Tim, the office clerk, walked through the living room to the front
+door, out through it, and across the yard to the grey street, and was gone by
+about 06:30. At about 14:30 he reappeared on the street, walked back across
+the yard, in through the front door, which stood open as he passed, and on to
+the tile inside the door. Another sim wandered the yard near the street
+meanwhile. Save said "Game saved" and a reload said "Saved game loaded" at
+Day 205, 18:48.
+
+**Not proven here.** The furniture and wall refusals that keep the street's
+exit open were checked by tests, not in the page. No physical phone was used.

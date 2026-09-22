@@ -773,6 +773,8 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.doors = sim.interiorDoorLines();
+          // A world saved before the yard that never grew has no street.
+          lot.street = sim.streetColumn();
           // A restored world may reuse entity indices for different live
           // entities. Discard every transient action that names the old world.
           lightingDirty = true;
@@ -920,7 +922,8 @@ async function main(): Promise<void> {
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
-    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook() };
+    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    street: sim.streetColumn(), streetLook: sim.streetLook() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;

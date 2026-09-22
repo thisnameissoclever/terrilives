@@ -256,6 +256,27 @@ impl SimHandle {
         vec![width, height]
     }
 
+    /// The street's column, the lot's last one across the yard from the front
+    /// door where commutes end, or -1 when the door has no yard beyond it -
+    /// [OS-street] in `docs/specs/2026-09-22-the-outside.md`.
+    pub fn street_column(&self) -> i32 {
+        let content = self.sim.world().resource::<Content>().0;
+        let width = self.sim.world().resource::<TileGrid>().width() as u32;
+        terri_sim::portals::street_exit(content, width).map_or(-1, |(x, _)| x as i32)
+    }
+
+    /// `[hue, strength, lightness]` a street tile's floor art is drawn under -
+    /// [OS-street].
+    pub fn street_look(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .lot
+            .street_look
+            .to_vec()
+    }
+
     /// `[hue, strength, lightness]` a yard tile's floor art is drawn under, as
     /// a colourway's - [OS-yard].
     pub fn yard_look(&self) -> Vec<f32> {
@@ -5095,6 +5116,10 @@ mod boundary_tests {
         assert_eq!((handle.lot_width(), handle.lot_height()), (20, 16));
         assert_eq!(handle.house_size(), vec![16, 12]);
         assert_eq!(handle.yard_look(), vec![65.0, 2.0, -0.22]);
+        assert_eq!(handle.street_look(), vec![0.0, 0.15, -0.22]);
+        assert_eq!(handle.street_column(), 19);
+        // A lot whose front door has no yard beyond it has no street.
+        assert_eq!(SimHandle::new(5, 4).street_column(), -1);
     }
 
     /// [RC-slice-buy]: a purchase in a colourway is staged through the

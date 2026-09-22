@@ -282,6 +282,14 @@ describe('SimBridge', () => {
     expect(bridge.yardLook().map((value) => Math.round(value * 100) / 100)).toEqual([65, 2, -0.22]);
   });
 
+  // [OS-street]: the street's column and look, and no street without a yard.
+  it("reports the street's column and look", () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(bridge.streetColumn()).toBe(19);
+    expect(bridge.streetLook().map((value) => Math.round(value * 100) / 100)).toEqual([0, 0.15, -0.22]);
+    expect(new SimBridge(new SimHandle(5, 4), wasmMemory).streetColumn()).toBeNull();
+  });
+
   it('keeps edge-layout spawn validation and accepted saves intact in release WASM', () => {
     const edge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(edge.wallEdges()).toHaveLength((34 + 28) * 4);

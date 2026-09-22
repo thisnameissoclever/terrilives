@@ -1036,16 +1036,27 @@ fn validate_portal_returns(
     if !grid.can_step(door, landing) {
         return Err(SaveError::InvalidGrid);
     }
+    // [OS-street]: a worker at work on the street's exit walks home along a
+    // path, so it needs one; anywhere else, the door tile included, it steps
+    // home in a straight line, which must cross no wall.
+    let exit = crate::portals::street_exit(content, grid.width() as u32)
+        .map(|(x, y)| (x as f32, y as f32));
     for worker in snapshot
         .entities
         .iter()
         .filter(|entity| entity.agent && entity.career.is_some() && entity.at_work_ticks.is_some())
     {
         let position = worker.position.ok_or(SaveError::InvalidGrid)?;
-        if !grid.segment_can_cross(
-            (position.x, position.y),
-            (landing.0 as f32, landing.1 as f32),
-        ) {
+        let home = if exit == Some((position.x, position.y)) {
+            grid.find_path((position.x as i32, position.y as i32), landing)
+                .is_some()
+        } else {
+            grid.segment_can_cross(
+                (position.x, position.y),
+                (landing.0 as f32, landing.1 as f32),
+            )
+        };
+        if !home {
             return Err(SaveError::InvalidGrid);
         }
     }
@@ -2664,6 +2675,7 @@ mod tests {
                 height: 16,
                 house: (16, 16),
                 yard_look: [0.0, 1.0, 0.0],
+                street_look: [0.0, 1.0, 0.0],
                 walls: Vec::new(),
                 wall_edges: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {

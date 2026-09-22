@@ -171,9 +171,17 @@ fn door_line(portal: &terri_data::CompiledPortal, width: u32) -> Option<(u32, u3
 /// edit keeps the tile beyond it open, and no interior door is derived on it.
 pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
     let width = lot_width(world);
-    let Some(content) = world.get_resource::<Content>().map(|content| content.0) else {
-        return Vec::new();
-    };
+    world
+        .get_resource::<Content>()
+        .and_then(|content| front_door_line(content.0, width))
+        .into_iter()
+        .collect()
+}
+
+/// The front door's line on a lot `width` tiles wide, from the content's
+/// front door matched to its portal ([OS-door]), or `None` when the door has
+/// no yard beyond it.
+pub fn front_door_line(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
     content
         .lot
         .front_door
@@ -184,8 +192,15 @@ pub fn front_door_lines(world: &World) -> Vec<(u32, u32)> {
                 .find(|portal| portal.position == door)
         })
         .and_then(|portal| door_line(portal, width))
-        .into_iter()
-        .collect()
+}
+
+/// [OS-street] in `docs/specs/2026-09-22-the-outside.md`: where a commute
+/// ends on a lot `width` tiles wide. The street is the lot's last column,
+/// across the yard the front door faces, and its exit is the tile there in
+/// the door's row. `None` when the door has no yard beyond it, where a
+/// commute ends on the door's own tile.
+pub fn street_exit(content: &terri_data::ContentPack, width: u32) -> Option<(u32, u32)> {
+    front_door_line(content, width).map(|(_, y)| (width - 1, y))
 }
 
 /// The front door whose art fits a vertical line, the only art a door has:
@@ -296,7 +311,10 @@ fn project_person(
                     CLOSED
                 };
             }
-            if endpoint == Some((inward.0 as i32, inward.1 as i32)) {
+            // [OS-street]: a commuter walking home from the street is
+            // closing the door only once it is through it; out in the yard it
+            // opens the door by the crossing rule, as anyone does.
+            if endpoint == Some((inward.0 as i32, inward.1 as i32)) && distance <= 1.5 {
                 return if distance <= 0.5 { OPEN } else { CLOSING };
             }
         }
@@ -390,9 +408,13 @@ pub fn crossing_position(world: &World, entity: Entity, position: Position) -> P
     let Some(endpoint) = path.steps.last().copied() else {
         return position;
     };
+    // [OS-street]: through a door with a yard beyond it the sim really
+    // walks, so only a door on the lot's edge takes the offset.
+    let width = lot_width(world);
     let Some(portal) = portals.0.iter().find(|portal| {
-        endpoint == (portal.position.0 as i32, portal.position.1 as i32)
-            || endpoint == (portal.inward.0 as i32, portal.inward.1 as i32)
+        door_line(portal, width).is_none()
+            && (endpoint == (portal.position.0 as i32, portal.position.1 as i32)
+                || endpoint == (portal.inward.0 as i32, portal.inward.1 as i32))
     }) else {
         return position;
     };
@@ -666,6 +688,69 @@ mod tests {
         turned.portals[0].facing = terri_data::CompiledSocketFacing::PositiveY;
         let turned: &'static ContentPack = Box::leak(Box::new(turned));
         assert_eq!(door(turned, 20, 16), (vec![], CLOSED));
+    }
+
+    /// [OS-street] in `docs/specs/2026-09-22-the-outside.md`: the street's
+    /// exit is the last column's tile in the door's row, and there is none
+    /// where the door has no yard beyond it.
+    #[test]
+    fn the_street_exit_is_across_the_yard_from_the_door() {
+        let shipped = terri_data::pack();
+        assert_eq!(street_exit(shipped, 20), Some((19, 2)));
+        assert_eq!(street_exit(shipped, 18), Some((17, 2)));
+        assert_eq!(street_exit(shipped, 16), None);
+    }
+
+    /// [OS-street]: a commuter walking home from the street counts as closing
+    /// the door only within a tile and a half of it; farther out in the yard
+    /// it leaves the door shut until it walks through.
+    #[test]
+    fn a_commuter_walking_home_closes_the_door_only_near_it() {
+        let door = |x: f32, y: f32, steps: Vec<(i32, i32)>| {
+            let mut world = world_with_active_portals(terri_data::pack());
+            world.insert_resource(TileGrid::new(20, 16));
+            world.spawn((
+                Agent,
+                Position { x, y },
+                Commuting,
+                Path { steps, cursor: 0 },
+            ));
+            let mut buffer = PortalBuffer::default();
+            sync_portals(&mut world, &mut buffer);
+            buffer.states[0]
+        };
+        assert_eq!(
+            door(18.0, 2.0, vec![(17, 2), (16, 2), (15, 2), (15, 3)]),
+            CLOSED
+        );
+        assert_eq!(door(15.0, 3.5, vec![(15, 3)]), CLOSING);
+        assert_eq!(door(15.0, 2.0, vec![(15, 3)]), OPEN);
+    }
+
+    /// [OS-street]: a sim walking through a door with a yard beyond it is
+    /// drawn where it is; the half-tile offset belongs to a door on the lot's
+    /// edge, where the walk ends on the door's tile.
+    #[test]
+    fn only_a_door_on_the_lots_edge_draws_the_crossing_offset() {
+        let drawn = |width: usize| {
+            let mut world = world_with_active_portals(terri_data::pack());
+            world.insert_resource(TileGrid::new(width, 16));
+            let sim = world
+                .spawn((
+                    Agent,
+                    Position { x: 15.0, y: 2.5 },
+                    Commuting,
+                    Path {
+                        steps: vec![(15, 3)],
+                        cursor: 0,
+                    },
+                ))
+                .id();
+            let position = crossing_position(&world, sim, Position { x: 15.0, y: 2.5 });
+            (position.x, position.y)
+        };
+        assert_eq!(drawn(20), (15.0, 2.5));
+        assert_eq!(drawn(16), (15.25, 2.5));
     }
 
     #[test]

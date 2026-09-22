@@ -190,6 +190,7 @@ table. Authored in `content/chains.toml`.
 | **lot** | The house, its yard and everything on them (`content/lot.toml`). Currently 20x16 tiles: a 16x12 house of five rooms in its north-west corner. |
 | **house** | The lot's rectangle of indoor floor, from its north-west corner. Every tile outside it is **yard**. |
 | **yard** | A lot tile outside the house: walkable floor to the simulation, drawn green until there is grass art. The house's walls facing the yard are cut away in the view, as its front sides always were. |
+| **street** | The lot's last column across the yard from the front door, drawn grey until there is street art. Its **exit**, the tile in the door's row, is where a worker leaves for work and comes back; nothing may be built there. |
 | **placement** | One object standing at one position. Several placements can share an object definition (two chairs, one `chair`). |
 | **footprint** | How many tiles an object occupies. A 2x1 bed blocks two tiles, and nothing may overlap it. |
 | **facing** | Which of the kit's four pre-rendered directions a placement is drawn with. Presentation only - the simulation neither knows nor cares which way a counter faces. |

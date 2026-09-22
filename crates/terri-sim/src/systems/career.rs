@@ -132,15 +132,17 @@ pub fn start_shift(
             }
         }
 
-        // The commute. A worker standing ON the door tile gets the
-        // empty path, walks it in zero steps, and clocks in on this
-        // same tick's `commute_and_work`.
+        // The commute, to the street's exit where the door opens onto a
+        // yard ([OS-street]), else to the door. A worker standing on the
+        // commute's end gets the empty path, walks it in zero steps, and
+        // clocks in on this same tick's `commute_and_work`.
         let from = if grid.blocked_edges().next().is_some() {
             (pos.x.round() as i32, pos.y.round() as i32)
         } else {
             (pos.x as i32, pos.y as i32)
         };
-        let to = (door.0 as i32, door.1 as i32);
+        let end = crate::portals::street_exit(content.0, grid.width() as u32).unwrap_or(door);
+        let to = (end.0 as i32, end.1 as i32);
         match grid
             .find_path(from, to)
             .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
@@ -181,6 +183,7 @@ pub fn start_shift(
 pub fn commute_and_work(
     mut commands: Commands,
     content: Res<Content>,
+    grid: Res<TileGrid>,
     mut funds: ResMut<Funds>,
     mut workers: Query<
         (
@@ -200,6 +203,7 @@ pub fn commute_and_work(
     // the discipline is cheaper than the argument for skipping it.
     let mut working: Vec<Entity> = workers.iter().map(|(entity, ..)| entity).collect();
     working.sort_by_key(|entity| entity.index());
+    let exit = crate::portals::street_exit(content.0, grid.width() as u32);
 
     for worker in working {
         let Ok((_, career, position, mut needs, mut satisfaction, at_work, commuting, has_path)) =
@@ -218,13 +222,18 @@ pub fn commute_and_work(
 
         if commuting && !has_path {
             if let Some(portal) = front_portal {
-                let away_from_door = (position.x - portal.position.0 as f32).abs() > 0.01
-                    || (position.y - portal.position.1 as f32).abs() > 0.01;
-                if away_from_door {
+                let on = |tile: (u32, u32)| {
+                    (position.x - tile.0 as f32).abs() <= 0.01
+                        && (position.y - tile.1 as f32).abs() <= 0.01
+                };
+                if !on(portal.position) && !exit.is_some_and(on) {
                     // The same marker covers both directions. An outbound
-                    // commuter exhausts its path on the door tile; an inbound
-                    // commuter exhausts it one tile inside. Position therefore
-                    // distinguishes the two without adding Save V1 state.
+                    // commuter exhausts its path on the street's exit, or on
+                    // the door tile where there is no street or the walk was
+                    // saved before there was one ([OS-street]); an inbound
+                    // commuter exhausts it on the landing inside. Position
+                    // therefore distinguishes the two without adding Save V1
+                    // state.
                     commands.entity(worker).remove::<Commuting>();
                     continue;
                 }
@@ -257,13 +266,17 @@ pub fn commute_and_work(
             let mut returning = commands.entity(worker);
             returning.remove::<AtWork>();
             if let Some(portal) = front_portal {
-                returning.insert((
-                    Commuting,
-                    Path {
-                        steps: vec![(portal.inward.0 as i32, portal.inward.1 as i32)],
-                        cursor: 0,
-                    },
-                ));
+                // Home along a path to the landing: from the street's exit
+                // back through the door ([OS-street]), from the door tile the
+                // one step in it always was. A landing the grid cannot reach
+                // keeps that one step, as before there were paths home.
+                let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
+                let from = (position.x.round() as i32, position.y.round() as i32);
+                let steps = grid
+                    .find_path(from, landing)
+                    .and_then(|steps| grid.anchor_path((position.x, position.y), steps))
+                    .unwrap_or_else(|| vec![landing]);
+                returning.insert((Commuting, Path { steps, cursor: 0 }));
             }
             needs.drain(NeedId::Energy, career.energy_cost);
             funds.0 += career.pay as i64;
@@ -271,6 +284,10 @@ pub fn commute_and_work(
         }
     }
 }
+
+#[cfg(test)]
+#[path = "street_tests.rs"]
+mod street_tests;
 
 #[cfg(test)]
 mod tests {

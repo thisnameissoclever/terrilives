@@ -307,6 +307,21 @@ export class SimBridge {
   }
 
   /**
+   * The street's column, where commutes end, or null when the front door has
+   * no yard beyond it ([OS-street] in `docs/specs/2026-09-22-the-outside.md`).
+   */
+  streetColumn(): number | null {
+    const column = this.handle.street_column();
+    return column < 0 ? null : column;
+  }
+
+  /** `[hue, strength, lightness]` a street tile's floor art is drawn under ([OS-street]). */
+  streetLook(): [number, number, number] {
+    const [hue, strength, lightness] = this.handle.street_look();
+    return [hue, strength, lightness];
+  }
+
+  /**
    * `[hue, strength, lightness]` per colourway, flattened, for the shader
    * ([RC-shift]). Content, so read once and kept: the frame asks every frame
    * and must not allocate ([D11]).

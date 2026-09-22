@@ -321,6 +321,13 @@ fn prove_lot_usable(
     {
         return Err(BlockedDoor);
     }
+    // [OS-street]: the street's exit, where every commute ends, stays open
+    // floor the door reaches, or the next shift would be missed.
+    if crate::portals::street_exit(content, grid.width() as u32)
+        .is_some_and(|(x, y)| !reached.contains(&(x as i32, y as i32)))
+    {
+        return Err(BlockedRoute);
+    }
     for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
         let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
         for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {

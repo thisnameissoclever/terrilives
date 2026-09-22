@@ -975,3 +975,21 @@ fn nothing_is_bought_onto_the_tile_beyond_the_front_door() {
     assert_eq!(buy(16, 2), Some(BlockedDoor));
     assert_eq!(buy(17, 2), None);
 }
+
+/// [OS-street]: the street's exit, where every commute ends, stays open floor
+/// the door reaches, so nothing is bought onto it; the street tile beside it
+/// takes furniture as any yard tile does.
+#[test]
+fn nothing_is_bought_onto_the_streets_exit() {
+    let buy = |x: u32, y: u32| {
+        let mut sim = Sim::new_from_shipped_lot();
+        sim.world_mut().insert_resource(Funds(1_000));
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(command(chair(x, y)));
+        sim.flush_commands();
+        last(&sim).unwrap().reason
+    };
+    assert_eq!(buy(19, 2), Some(BlockedRoute));
+    assert_eq!(buy(19, 4), None);
+}

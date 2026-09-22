@@ -870,14 +870,21 @@ fn a_room_never_walls_the_front_doors_line() {
             },
         )
     };
+    // Out to the lot's east edge, so the street's exit is inside the room
+    // the front door opens into ([OS-street]).
     assert_eq!(
-        room(16, 1, 18, 3, None).err(),
+        room(16, 1, 19, 3, None).err(),
         Some(PlacementRefusal::BlockedDoor)
     );
     assert!(
-        room(16, 1, 18, 3, Some(line(Vertical, 16, 2)))
+        room(16, 1, 19, 3, Some(line(Vertical, 16, 2)))
             .unwrap()
             .changed
+    );
+    // Short of the edge, the same room shuts the street off from the door.
+    assert_eq!(
+        room(16, 1, 18, 3, Some(line(Vertical, 16, 2))).err(),
+        Some(PlacementRefusal::BlockedRoute)
     );
     assert!(room(16, 0, 18, 1, None).unwrap().changed);
 }

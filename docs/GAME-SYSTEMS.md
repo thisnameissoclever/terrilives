@@ -418,7 +418,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-outside] A playable outside
 
-**Status: Started, about 20%.** On branch `twcl/the-yard` the house stands in a yard that sims walk out into through the front door ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`). A worker still disappears at the front door. `[B-outside]` in [FEATURES.md](FEATURES.md) plans the street, exterior walls, roofs, and outdoor lighting next. Dog walking, visitors arriving, gardening, and neighbours all need it.
+**Status: Started, about 20%.** On branch `twcl/the-yard` the house stands in a yard that sims walk out into through the front door ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`), and on branch `twcl/the-street` a worker walks out across the yard to a street along the lot's edge to leave for work ([OS-slice-street]). `[B-outside]` in [FEATURES.md](FEATURES.md) plans the street, exterior walls, roofs, and outdoor lighting next. Dog walking, visitors arriving, gardening, and neighbours all need it.
 
 ### [S-emergencies] Fires, emergencies, and disasters
 

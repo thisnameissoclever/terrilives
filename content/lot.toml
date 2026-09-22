@@ -75,6 +75,11 @@ house = { width = 16, height = 12 }
 # from beige to a muted green, as a colourway turns furniture ([OS-yard]).
 yard = { hue = 65.0, strength = 2.0, lightness = -0.22 }
 
+# How the street is drawn until there is street art: the floor's art nearly
+# grey and darker. The street is the lot's last column across the yard from
+# the front door, where commutes end ([OS-street]).
+street = { hue = 0.0, strength = 0.15, lightness = -0.22 }
+
 # Where a commute ends and the worker crosses the front door - [E4]. The
 # east edge of the living room, one tile south of the coat rack. The tile
 # stays walkable while the visual portal supplies the frame and animated leaf.
