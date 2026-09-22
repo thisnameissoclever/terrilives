@@ -4,7 +4,7 @@ import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, type CatalogueItem, type PlacementPreview, type PurchaseResult } from '../src/bridge.js';
 import { routeBuildKey } from '../src/ui/build-tools.js';
 import { BuyTool, CHOOSE_ITEM, listed } from '../src/ui/buy-tool.js';
-import { BuyToolControls, itemLabel } from '../src/ui/buy-tool-controls.js';
+import { BuyToolControls, itemLabel, servesLabel } from '../src/ui/buy-tool-controls.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -15,9 +15,18 @@ beforeAll(async () => {
   wasmMemory = wasm.memory;
 });
 
-const CHAIR: CatalogueItem = { definition: 12, name: 'Chair', price: 40, facings: 0b1111, baseFacing: 1 };
-const DESK: CatalogueItem = { definition: 24, name: 'Desk', price: 180, facings: 0b0010, baseFacing: 1 };
-const BED: CatalogueItem = { definition: 1, name: 'Bed', price: 250, facings: 0b0101, baseFacing: 0 };
+/** The need names in need-index order, as `SimBridge.needNames` gives them. */
+const NEEDS = ['hunger', 'energy', 'hygiene', 'bladder', 'social', 'fun', 'comfort'];
+const ENERGY = 1;
+const FUN = 5;
+const COMFORT = 6;
+
+const CHAIR: CatalogueItem = { definition: 12, name: 'Chair', price: 40, facings: 0b1111, baseFacing: 1,
+  needs: 0 };
+const DESK: CatalogueItem = { definition: 24, name: 'Desk', price: 180, facings: 0b0010, baseFacing: 1,
+  needs: 1 << FUN };
+const BED: CatalogueItem = { definition: 1, name: 'Bed', price: 250, facings: 0b0101, baseFacing: 0,
+  needs: (1 << ENERGY) | (1 << COMFORT) };
 
 /** A scripted source: refusals by tile, a staging log, a result. */
 class FakeShop {
@@ -66,6 +75,35 @@ describe('the catalogue order', () => {
 });
 
 describe('BuyTool', () => {
+  // [CB-filter] in docs/specs/2026-09-22-catalogue-browsing.md.
+  it('narrows the list to one need, cycles past what it hides, and drops a choice it hides', () => {
+    const { buy } = tool();
+    buy.enter();
+    buy.choose(DESK.definition);
+    buy.setFilter(ENERGY);
+    expect(buy.items.filter((item) => buy.shows(item)).map((item) => item.name)).toEqual(['Bed']);
+    expect([buy.chosen, buy.preview, buy.status]).toEqual([null, null, CHOOSE_ITEM]);
+    buy.cycle(1);
+    expect(buy.chosen?.name).toBe('Bed');
+    buy.cycle(-1);
+    expect(buy.chosen?.name).toBe('Bed');
+    // A filter the chosen item still passes keeps it.
+    buy.setFilter(COMFORT);
+    expect(buy.chosen?.name).toBe('Bed');
+    buy.setFilter(null);
+    expect(buy.items.every((item) => buy.shows(item))).toBe(true);
+    expect(buy.chosen?.name).toBe('Bed');
+  });
+
+  it('keeps the filter while a purchase is on its way', () => {
+    const { buy } = tool();
+    buy.enter();
+    buy.choose(DESK.definition);
+    buy.buy();
+    buy.setFilter(ENERGY);
+    expect([buy.filter, buy.chosen?.name]).toEqual([null, 'Desk']);
+  });
+
   it('starts with nothing chosen and asks for a choice', () => {
     const { buy } = tool();
     buy.enter();
@@ -344,9 +382,44 @@ describe('BuyToolControls', () => {
       createElement: () => new FakeElement(),
     } as unknown as Document;
     const { buy, source } = tool();
-    const view = new BuyToolControls(doc, buy);
+    const view = new BuyToolControls(doc, buy, NEEDS);
     return { buy, source, view, element: (id: string) => elements.get(id)! };
   }
+
+  it('offers only the needs something serves, in need order, and narrows the list to one', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    view.render();
+    const filter = element('buy-filter');
+    expect(filter.children.map((option) => [option.value, option.textContent])).toEqual(
+      [['', 'Everything'], ['1', 'Energy'], ['5', 'Fun'], ['6', 'Comfort']]);
+    filter.value = String(ENERGY);
+    filter.fire('change');
+    expect(element('buy-object').children.map((option) => option.textContent)).toEqual(
+      ['Choose something to buy', 'Bed (250)']);
+    filter.value = '';
+    filter.fire('change');
+    expect(element('buy-object').children).toHaveLength(4);
+  });
+
+  it('says what the chosen item is good for', () => {
+    const { buy, view, element } = controls();
+    buy.enter();
+    view.render();
+    expect(element('buy-serves').textContent).toBe('');
+    buy.choose(BED.definition);
+    view.render();
+    expect(element('buy-serves').textContent).toBe('Good for: Energy, Comfort');
+    buy.choose(CHAIR.definition);
+    view.render();
+    expect(element('buy-serves').textContent).toBe('Good for: no need on its own.');
+  });
+
+  it('words what an item is good for from the need names', () => {
+    expect(servesLabel((1 << 0) | (1 << 6), NEEDS)).toBe('Good for: Hunger, Comfort');
+    expect(servesLabel(1 << 4, NEEDS)).toBe('Good for: Social');
+    expect(servesLabel(0, NEEDS)).toBe('Good for: no need on its own.');
+  });
 
   it('lists every item with its price and greys out what the household cannot afford', () => {
     const { buy, source, view, element } = controls();
@@ -375,8 +448,8 @@ describe('BuyToolControls', () => {
     element('buy-confirm').fire('click');
     expect(source.staged).toEqual([[BED.definition, 4, 3, 2]]);
     view.render();
-    expect([element('buy-object').disabled, element('buy-confirm').disabled, element('buy-cancel').disabled])
-      .toEqual([true, true, true]);
+    expect([element('buy-object').disabled, element('buy-confirm').disabled, element('buy-cancel').disabled,
+      element('buy-filter').disabled]).toEqual([true, true, true, true]);
     source.result = { definition: BED.definition, x: 4, y: 3, facing: 2, reason: null, object: 41 };
     buy.afterCommands();
     element('buy-cancel').fire('click');
@@ -421,7 +494,12 @@ describe('the Buy tool on real wasm', () => {
       expect(item.price).toBeGreaterThan(0);
       expect(item.name).not.toBe('');
       expect(item.facings & (1 << item.baseFacing)).not.toBe(0);
+      expect(item.needs).toBeLessThan(1 << bridge.needNames().length);
     }
+    // [CB-serves]: some things serve a need and some serve none; hunger is
+    // need 0, and the fridge, the stove and the table all serve it.
+    expect(catalogue.filter((item) => (item.needs & 1) !== 0).length).toBeGreaterThanOrEqual(3);
+    expect(catalogue.some((item) => item.needs === 0)).toBe(true);
     expect(bridge.funds()).toBe(0);
     const buy = new BuyTool(bridge, 16, 12, { changed: () => undefined });
     buy.enter();
@@ -436,8 +514,9 @@ describe('the Buy tool on real wasm', () => {
 });
 
 describe('the Buy tool in the page', () => {
-  const IDS = ['build-tool-buy', 'buy-tool', 'buy-object', 'buy-facing', 'buy-rotate', 'buy-price',
-    'buy-status', 'buy-confirm', 'buy-cancel', 'buy-keyboard-help', 'buy-touch-help'];
+  const IDS = ['build-tool-buy', 'buy-tool', 'buy-filter', 'buy-object', 'buy-facing', 'buy-rotate',
+    'buy-price', 'buy-serves', 'buy-status', 'buy-confirm', 'buy-cancel', 'buy-keyboard-help',
+    'buy-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
     expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
@@ -454,7 +533,8 @@ describe('the Buy tool in the page', () => {
     for (const wiring of ['buyTool.afterCommands()', 'buyTool.moveTo(tile[0], tile[1])',
       'buyTool.resetAfterLoad(lotWidth, lotHeight)', 'buyTool.exit()',
       "buyTool.setBlocked(overlayPause.suspendedExcept('builder'))",
-      'buyControls?.setCompact(event.matches)']) {
+      'buyControls?.setCompact(event.matches)',
+      'new BuyToolControls(document, buyTool, sim.needNames())']) {
       expect(MAIN_TS).toContain(wiring);
     }
     // The ghost reaches both the instance writer and the instance count.

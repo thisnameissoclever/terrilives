@@ -902,6 +902,12 @@ needs each object's interactions serve, and the need names exist. The list can
 show them beside each price and filter by them. A one-line description per
 object is copy, and belongs with [T22].
 
+Built on branch `twcl/catalogue-browsing`: the chosen item says what it is
+good for under its price, counting what it serves through Cook dinner, and a
+Show list narrows the catalogue to one need. The design is
+`docs/specs/2026-09-22-catalogue-browsing.md` and the played check is
+[A-catalogue-browsing]. The descriptions remain open, waiting on [T22].
+
 ### [B-facing] Objects know which way they face, and overlap follows
 
 Most objects are still drawn as one sprite at one depth, and depth comes from

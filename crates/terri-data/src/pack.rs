@@ -909,11 +909,97 @@ impl ContentPack {
             .position(|o| o.id == id)
             .map(|i| ObjectDefId(i as u32))
     }
+
+    /// The needs an object is good for, bit `i` for need index `i` - [CB-serves]
+    /// in `docs/specs/2026-09-22-catalogue-browsing.md`: every need one of its
+    /// own interactions advertises with a positive delta, and every need a
+    /// chain advertises so when one of the chain's steps takes a role the
+    /// object has. The stove feeds nobody by itself; it serves hunger through
+    /// Cook dinner.
+    pub fn needs_served(&self, definition: &CompiledObject) -> u32 {
+        // A list names each need at most once, so its bits are joined with
+        // `bitor` rather than `|`: any join of distinct bits gives the same
+        // mask, and an operator here would be a mutant no input can kill.
+        let served = |advertises: &[(u8, f32)]| {
+            advertises
+                .iter()
+                .filter(|&&(_, delta)| delta > 0.0)
+                .map(|&(need, _)| 1 << need)
+                .fold(0, std::ops::BitOr::bitor)
+        };
+        let own = definition.interactions.iter().fold(0, |mask, interaction| {
+            mask | served(&interaction.advertises)
+        });
+        let chains = self
+            .chains
+            .iter()
+            .filter(|chain| {
+                chain
+                    .steps
+                    .iter()
+                    .any(|step| definition.roles.contains(&step.role))
+            })
+            .fold(0, |mask, chain| mask | served(&chain.advertises));
+        own | chains
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The needs mask with a bit for each named need.
+    fn needs(names: &[&str]) -> u32 {
+        names.iter().fold(0, |mask, name| {
+            mask | 1 << terri_core::NeedId::from_name(name).unwrap().index()
+        })
+    }
+
+    /// [CB-serves] in `docs/specs/2026-09-22-catalogue-browsing.md`.
+    #[test]
+    fn an_object_serves_its_own_needs_and_those_of_every_chain_it_stands_in() {
+        let pack = crate::pack();
+        let serves = |id: &str| pack.needs_served(pack.object(pack.find(id).unwrap()));
+        assert_eq!(serves("bed"), needs(&["energy"]));
+        assert_eq!(serves("television"), needs(&["fun", "social"]));
+        // Cook dinner advertises hunger and comfort, and takes a fridge, a
+        // prep surface, a hob and an eating surface.
+        assert_eq!(serves("stove"), needs(&["hunger", "comfort"]));
+        assert_eq!(serves("counter"), needs(&["hunger", "comfort"]));
+        assert_eq!(serves("fridge"), needs(&["hunger", "comfort"]));
+        // The table's own comfort and the chain's comfort are one need.
+        assert_eq!(
+            serves("dining_table"),
+            needs(&["hunger", "comfort", "social"])
+        );
+        // A chair has no interaction and stands in no chain.
+        assert_eq!(serves("chair"), 0);
+    }
+
+    /// Only a positive delta serves a need: a zero or a cost does not, and a
+    /// need two sources serve is still served.
+    #[test]
+    fn a_need_is_served_only_by_a_positive_delta_from_any_source() {
+        let mut pack = crate::pack().clone();
+        let bed = pack.find("bed").unwrap();
+        let hygiene = terri_core::NeedId::from_name("hygiene").unwrap().index() as u8;
+        let fun = terri_core::NeedId::from_name("fun").unwrap().index() as u8;
+        let interaction = &mut pack.objects[bed.0 as usize].interactions[0];
+        interaction.advertises.push((hygiene, 0.0));
+        interaction.advertises.push((fun, -4.0));
+        assert_eq!(pack.needs_served(pack.object(bed)), needs(&["energy"]));
+        // Two interactions on one object, and two chains, serving the same
+        // needs.
+        let second = pack.objects[bed.0 as usize].interactions[0].clone();
+        pack.objects[bed.0 as usize].interactions.push(second);
+        assert_eq!(pack.needs_served(pack.object(bed)), needs(&["energy"]));
+        pack.chains.push(pack.chains[0].clone());
+        let stove = pack.find("stove").unwrap();
+        assert_eq!(
+            pack.needs_served(pack.object(stove)),
+            needs(&["hunger", "comfort"])
+        );
+    }
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {

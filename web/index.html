@@ -609,7 +609,7 @@
       /* The tool wrappers keep the panel's own spacing for what they hold. */
       #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
       #furniture-tool[hidden], #wall-tool[hidden], #room-tool[hidden], #buy-tool[hidden] { display: none; }
-      #builder-object, #buy-object {
+      #builder-object, #buy-object, #buy-filter {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
         border: 1px solid var(--hud-edge); border-radius: 4px;
@@ -1132,6 +1132,8 @@
           <p id="room-touch-help" class="builder-note" hidden>Tap one corner tile, then the opposite one; tap a line of the outline for a doorway. Drag to pan; pinch to zoom.</p>
         </div>
         <div id="buy-tool" hidden>
+          <label for="buy-filter">Show</label>
+          <select id="buy-filter"><option value="">Everything</option></select>
           <label for="buy-object">Buy</label>
           <select id="buy-object"><option value="">Choose something to buy</option></select>
           <div class="builder-row">
@@ -1139,6 +1141,7 @@
             <button id="buy-rotate" class="hud-button" type="button">Rotate</button>
           </div>
           <p id="buy-price"></p>
+          <p id="buy-serves"></p>
           <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
           <div class="builder-row">
             <button id="buy-confirm" class="hud-button" type="button">Buy</button>
