@@ -13,7 +13,7 @@ use crate::pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, ObjectDefId, Tuning,
 };
-use crate::pack::{CompiledColourway, Facing, FacingSprites};
+use crate::pack::{CompiledColourway, CompiledCovering, Facing, FacingSprites};
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef, LotFile,
     NeedsFile, ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef,
@@ -465,7 +465,7 @@ pub fn compile(
         .iter()
         .map(|object| object.foreground_sprite.clone())
         .collect();
-    let (lot, portals) = compile_lot(
+    let (lot, portals, coverings) = compile_lot(
         lot,
         &compiled,
         &sprite_names,
@@ -584,6 +584,7 @@ pub fn compile(
         voice_clips,
         portals,
         colourways,
+        coverings,
     })
 }
 
@@ -629,6 +630,40 @@ fn compile_look(
         });
     }
     Ok([def.hue, def.strength, def.lightness])
+}
+
+/// Validates the floor coverings declared in `content/lot.toml` -
+/// [FL-content] in `docs/specs/2026-09-22-floors.md`. Each needs a name the
+/// Floors tool can show, names do not repeat, and each shift is a number the
+/// shader is built for, exactly as a yard's or a colourway's is. The order is
+/// the covering ids, counted from 1, so a list grows by appending.
+fn compile_coverings(
+    defs: &[crate::schema::CoveringDef],
+) -> Result<Vec<CompiledCovering>, ContentError> {
+    let mut coverings = Vec::with_capacity(defs.len());
+    let mut names = BTreeSet::new();
+    for def in defs {
+        let name = def.name.trim();
+        if name.is_empty() {
+            return Err(ContentError::EmptyCoveringName);
+        }
+        if !names.insert(name.to_string()) {
+            return Err(ContentError::DuplicateCoveringName {
+                name: name.to_string(),
+            });
+        }
+        if let Some(field) = shift_out_of_range(def.hue, def.strength, def.lightness) {
+            return Err(ContentError::LookOutOfRange {
+                look: format!("covering {name}"),
+                field: field.to_string(),
+            });
+        }
+        coverings.push(CompiledCovering {
+            name: name.to_string(),
+            look: [def.hue, def.strength, def.lightness],
+        });
+    }
+    Ok(coverings)
 }
 
 /// Validates the colourways declared in `content/objects.toml` - [RC-content]
@@ -2657,7 +2692,7 @@ fn compile_lot(
     sprite_names: &[String],
     foreground_sprite_names: &[Option<String>],
     sprite_index: &dyn Fn(&str) -> Option<usize>,
-) -> Result<(CompiledLot, Vec<CompiledPortal>), ContentError> {
+) -> Result<(CompiledLot, Vec<CompiledPortal>, Vec<CompiledCovering>), ContentError> {
     // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
     // walkable tile at all, so every agent on it silently never moves.
     // That is the shape of failure [D9] exists to convert into a build
@@ -2690,6 +2725,9 @@ fn compile_lot(
     };
     let yard_look = compile_look("yard", lot.yard.as_ref())?;
     let street_look = compile_look("street", lot.street.as_ref())?;
+    let coverings = compile_coverings(&lot.covering)?;
+    // Carried out of here to the pack's own tail, so the lot's bytes do not
+    // move ([FL-content]).
 
     if !lot.wall.is_empty() && !lot.wall_edge.is_empty() {
         return Err(ContentError::MixedWallArchitecture);
@@ -3128,6 +3166,7 @@ fn compile_lot(
             street_look,
         },
         portals,
+        coverings,
     ))
 }
 
@@ -3644,6 +3683,8 @@ mod tests {
         101, 112, 0, 0,
         // The empty colourway vector, appended after the portals ([RC-content]).
         0,
+        // The empty floor-covering vector, appended after it ([FL-content]).
+        0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3671,6 +3712,7 @@ mod tests {
             house: None,
             yard: None,
             street: None,
+            covering: Vec::new(),
             width: 1,
             height: 1,
             wall: Vec::new(),
@@ -3702,6 +3744,7 @@ mod tests {
             house: None,
             yard: None,
             street: None,
+            covering: Vec::new(),
             width: 5,
             height: 3,
             wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
@@ -4784,18 +4827,19 @@ mod tests {
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
         );
-        // The portal vector, then the colourway vector, each empty here, are
-        // the two bytes appended after the established pack.
-        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 2;
+        // The portal vector, then the colourway vector, then the floor
+        // coverings ([FL-content]), each empty here, are the three bytes
+        // appended after the established pack.
+        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 3;
         assert_eq!(
             &bytes[..established_prefix_len],
             &GOLDEN_PACK_BYTES[..established_prefix_len],
-            "adding the portal and colourway vectors must not move an established pack byte"
+            "appending a vector to the pack must not move an established byte"
         );
         assert_eq!(
             &bytes[established_prefix_len..],
-            &[0, 0],
-            "a coordinate-only lot with no colourways appends one empty byte for each vector"
+            &[0, 0, 0],
+            "each empty appended vector costs exactly one byte"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
     }
@@ -5037,6 +5081,62 @@ mod tests {
         );
         let pack = compile_tuned(tuning_where(|t| t.housemate_max_traits = 1)).unwrap();
         assert_eq!(pack.tuning.housemate_max_traits, 1);
+    }
+
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`: a covering needs a
+    /// name the tool can show, names do not repeat, and a shift outside the
+    /// range the shader is built for is refused, as a yard's is.
+    #[test]
+    fn validates_the_floor_coverings() {
+        use crate::schema::CoveringDef;
+        let covering = |name: &str, hue: f32| CoveringDef {
+            name: name.to_string(),
+            hue,
+            strength: 1.0,
+            lightness: 0.0,
+        };
+        let compile_with = |coverings: Vec<CoveringDef>| {
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot_where(|lot| lot.covering = coverings),
+                test_atlas(),
+                full_tuning(),
+            )
+        };
+
+        let pack = compile_with(vec![covering("Boards", 18.0), covering("Tiles", -25.0)])
+            .expect("two named coverings compile");
+        assert_eq!(
+            pack.coverings
+                .iter()
+                .map(|c| (c.name.as_str(), c.look[0]))
+                .collect::<Vec<_>>(),
+            [("Boards", 18.0), ("Tiles", -25.0)],
+            "the authored order is the covering ids"
+        );
+        assert!(compile_with(Vec::new())
+            .expect("a lot may offer none")
+            .coverings
+            .is_empty());
+
+        assert_eq!(
+            compile_with(vec![covering("   ", 0.0)]).unwrap_err(),
+            ContentError::EmptyCoveringName
+        );
+        assert_eq!(
+            compile_with(vec![covering("Boards", 0.0), covering("Boards", 10.0)]).unwrap_err(),
+            ContentError::DuplicateCoveringName {
+                name: "Boards".to_string()
+            }
+        );
+        assert_eq!(
+            compile_with(vec![covering("Boards", 181.0)]).unwrap_err(),
+            ContentError::LookOutOfRange {
+                look: "covering Boards".to_string(),
+                field: "hue".to_string()
+            }
+        );
     }
 
     /// [OS-daylight]: each daylight knob's range, pinned from both sides of
@@ -5538,6 +5638,7 @@ mod tests {
             house: None,
             yard: None,
             street: None,
+            covering: Vec::new(),
             front_door: None,
             width: 4,
             height: 4,
@@ -7830,6 +7931,7 @@ mod tests {
             house: None,
             yard: None,
             street: None,
+            covering: Vec::new(),
             front_door: None,
             width,
             height,

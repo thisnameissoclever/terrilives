@@ -80,6 +80,21 @@ yard = { hue = 65.0, strength = 2.0, lightness = -0.22 }
 # the front door, where commutes end ([OS-street]).
 street = { hue = 0.0, strength = 0.15, lightness = -0.22 }
 
+# What the player may lay on a floor tile, in the Floors tool's order
+# ([FL-content] in docs/specs/2026-09-22-floors.md). There is one floor
+# sprite, so each of these is that art under a colour shift, as the yard and
+# the street are; real floor art is [T-floor-art]. A covering's id is its
+# place in this list counted from 1, and 0 is the tile drawn by where it is,
+# so the list grows by appending and never by reordering.
+covering = [
+  # Warmer and darker than the house's own floor: boards.
+  { name = "Boards", hue = 18.0, strength = 1.15, lightness = -0.12 },
+  # Cooler and paler: a tiled floor.
+  { name = "Tiles", hue = -25.0, strength = 0.55, lightness = 0.1 },
+  # Deep and soft: carpet.
+  { name = "Carpet", hue = -20.0, strength = 1.6, lightness = -0.18 },
+]
+
 # Where a commute ends and the worker crosses the front door - [E4]. The
 # east edge of the living room, one tile south of the coat rack. The tile
 # stays walkable while the visual portal supplies the frame and animated leaf.

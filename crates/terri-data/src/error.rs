@@ -1118,6 +1118,14 @@ pub enum ContentError {
     DaylightReachOutOfRange {
         value: f32,
     },
+    /// [FL-content]: a floor covering in `content/lot.toml` has no name, so
+    /// the Floors tool would offer a blank button.
+    EmptyCoveringName,
+    /// [FL-content]: two floor coverings share a name, so the tool would
+    /// offer the same word twice for different floors.
+    DuplicateCoveringName {
+        name: String,
+    },
     /// [OS-yard], [OS-street]: the yard's or the street's look has a number
     /// outside a colourway's range.
     LookOutOfRange {
@@ -2197,6 +2205,14 @@ impl fmt::Display for ContentError {
                 f,
                 "interior_daylight_shade is {value}; must be in [0, 0.5], so a \
                  room the sky cannot reach keeps at least half the day's light"
+            ),
+            ContentError::EmptyCoveringName => write!(
+                f,
+                "a floor covering in lot.toml has no name; the Floors tool                  shows the name on its button"
+            ),
+            ContentError::DuplicateCoveringName { name } => write!(
+                f,
+                "two floor coverings are both named {name}; a player choosing                  one could not tell which floor they were choosing"
             ),
             ContentError::DaylightReachOutOfRange { value } => write!(
                 f,
