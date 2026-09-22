@@ -1052,14 +1052,14 @@ a socket-projected body. The bunk now uses it for its upper mattress, near
 posts, rail, and ladder. Other furniture still needs authored pieces before it
 can use the same infrastructure.
 
-Two pieces, and they are separable:
+Two pieces, and they are separable.
 
-* **Facing.** The approved bike and reading chair already have real rendered
-  art and matching interaction poses for all four directions. The kitchen also
-  has hand-authored `SW` variants. The builder unit adds persistent runtime
-  direction and player controls; it must expose only directions with matching
-  art, foregrounds and sockets. Available art alone does not make an object
-  player-rotatable.
+* **Facing is shipped.** Every object a player can move or buy turns with R
+  in the Furniture tool and with Rotate in Buy, its direction is saved with
+  the house, and the tool offers only the directions the object has art for.
+  Measured on the shipped catalogue on 2026-09-22: 29 of its 30 objects
+  support all four directions, and the aquarium supports one, which is what
+  its art has. Nothing here is waiting on code.
 * **Sub-object depth.** A tall object needs more than one depth. The bunk is
   the first shipped proof. Television screens, refrigerator doors, and other
   moving or occluding parts still need their own authored split.
