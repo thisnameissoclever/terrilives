@@ -3171,8 +3171,8 @@ tool.
 
 **Walking through.** At 1x I captured the kitchen door every half second for
 twenty seconds. Casey came through from the kitchen: the door stood closed,
-swung ajar as she reached it, stood open as she passed, and was closed again
-half a second later. Bill came the same way a few seconds after, and the door
+swung ajar as Casey reached it, stood open while Casey passed, and was closed
+again half a second later. Bill came the same way a few seconds after, and the door
 opened and closed for him too. While a sim was on the far side the leaf hid
 their body, as a real door does.
 
@@ -3180,3 +3180,26 @@ their body, as a real door does.
 opening; the Rust tests prove every vertical doorway gets one. No physical
 phone was used.
 
+## [A-door-steps] Doors that swing only for a sim walking through
+
+Played on 2026-09-22 on the port 5174 dev server serving the doors branch
+after its review fixes, driven in the Playwright browser on the household
+loaded from its save, at 1x. I captured the kitchen, hall and bathroom doors
+every 40 milliseconds for 45 seconds, 1129 frames, and read the frames around
+each change.
+
+**Walking through.** Tim came up the living-room side of the wall below the
+kitchen door, stepped through into the kitchen, and walked back down the
+kitchen side of the same wall. The door stood closed while Tim was far off,
+swung ajar as Tim walked the last tile towards it, stood open while Tim
+stepped through, swung ajar again for the step after, and was shut while Tim
+walked on along the wall.
+
+**Standing beside it.** Tim stood on the tile right beside the bathroom door
+for about two and a half seconds, and the door stayed shut. Under the first
+rule a sim that close held it open. When Tim walked out through it, it went
+ajar, open, ajar and shut in the same order as the kitchen door.
+
+**Not proven here.** The lighting change, a door lit from the brighter room
+beside it, was not seen by eye: no lamp stood next to an interior door in
+this house. The renderer tests prove it. No physical phone was used.

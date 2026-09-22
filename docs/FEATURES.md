@@ -841,8 +841,8 @@ room in one edit, with a doorway where the player asks for one; its design is
 `docs/specs/2026-09-22-room-tool.md` and its played check is [A-room-tool].
 Every vertical doorway now holds a hinged door that swings open as a sim walks
 through it, drawn with the front door's art; its design is
-`docs/specs/2026-09-22-interior-doors.md` and its played check is
-[A-interior-doors]. Doors on horizontal doorways wait on their art
+`docs/specs/2026-09-22-interior-doors.md` and its played checks are
+[A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
 ([T-interior-door-art]). Floors, windows and a larger lot remain open.
 
 It is also the thing that makes several complaints below stop mattering.
