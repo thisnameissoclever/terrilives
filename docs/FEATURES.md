@@ -957,6 +957,27 @@ contract. Each additional split still costs an instance and needs visual,
 picking, lighting, and interaction review; it is no longer an unknown renderer
 architecture problem.
 
+### [B-rotated-lights] A lamp or television keeps its light when turned
+
+Found while researching palette recolours. The player can turn a floor lamp or
+a television in the Furniture tool, which draws it with the sprite for its new
+direction. Lighting knew each light by its default sprite only, so a turned
+lamp or television lit nothing around it at night and lost its own glow.
+
+Built on branch `twcl/rotated-lights`: lighting knows each light in all four
+directions its art is drawn in, so a turned lamp or television lights the room
+and glows as it did before it was turned. The played check is
+[A-rotated-lights]. A test built on the real simulation checks every
+catalogue item in every direction it can face, and each picture's foreground
+layer: it fails if the floor lamp or the television is drawn with a picture
+the lighting does not know, or if anything else glows. A new kind of light
+still has to be added by hand, to the lighting and to that test's list.
+Review suggested declaring each light in content instead of by picture name,
+which would remove that step. It is not needed yet, since colourways shift
+colours in the shader and add no pictures. Revisit it before work starts on
+outdoor lighting, the room score's lighting or bills for lights left on,
+since each needs lights the simulation can read.
+
 ### [A-art-pass] The furniture does not survive being looked at
 
 The generator replaced every borrowed sprite, which was the point, and
