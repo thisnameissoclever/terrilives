@@ -28,7 +28,11 @@ export const OPEN_SKY: SkyExposure = { width: 0, height: 0, values: new Float32A
  * `[axis, x, y, door]` rows: axis 0 is the vertical line at `x` between
  * tiles `(x - 1, y)` and `(x, y)`, axis 1 the horizontal line at `y`
  * between `(x, y - 1)` and `(x, y)`. A wall (door 0) blocks; a doorway
- * (door 1) does not. With no edges or no house, everything is open sky.
+ * (door 1) does not. `edges` null means a save older than edge walls, and
+ * `house` null a lot with no house: both are open sky everywhere, as is a
+ * reach outside `(0, 1]`. An empty edge list is a house with no walls, which
+ * the sky reaches into from the yard on every side, still losing
+ * `reachPerTile` per tile.
  */
 export function buildSkyExposure(
   width: number,

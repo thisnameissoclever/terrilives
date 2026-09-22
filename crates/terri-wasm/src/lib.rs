@@ -5348,15 +5348,15 @@ mod boundary_tests {
         assert_eq!(SimHandle::new(5, 4).street_column(), -1);
     }
 
-    /// [WB-draw]: the shipped front door's line, the one the Walls tool
-    /// must not draw a second frame on: the house's east wall, on the door's
-    /// row (`content/lot.toml`'s front door is the tile at x 15, y 2).
     /// [OS-daylight]: the daylight knobs cross as the tuning file sets them.
     #[test]
     fn the_daylight_tuning_crosses_the_boundary() {
         assert_eq!(SimHandle::from_lot().daylight_tuning(), vec![0.25, 0.2]);
     }
 
+    /// [WB-draw]: the shipped front door's line, the one the Walls tool
+    /// must not draw a second frame on: the house's east wall, on the door's
+    /// row (`content/lot.toml`'s front door is the tile at x 15, y 2).
     #[test]
     fn the_front_door_line_crosses_the_boundary() {
         let handle = SimHandle::from_lot();

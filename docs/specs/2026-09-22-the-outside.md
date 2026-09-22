@@ -215,8 +215,9 @@ yard. Now each floor tile has a **sky exposure** from 0 to 1: every tile outside
 the house is under open sky (1), and inside, the sky reaches in through open
 lines and doorways, losing `daylight_reach_per_tile` (`content/tuning.toml`) for
 each tile it travels; walls stop it. A wall panel takes the exposure of the
-most open tile beside it, and a person or an object the exposure of the tile it
-stands on.
+most open tile beside it, and so does a door in its line; a person, an object
+or the preview of one being placed takes the exposure of the tile it stands
+on. Markers such as selection rings stay unshaded.
 
 By day an instance keeps its full share of daylight only as far as it is
 exposed: the shader takes up to `interior_daylight_shade` of the day's colour
@@ -225,6 +226,8 @@ time-of-day curve (none at night, full from mid-morning to mid-afternoon). A
 lamp's own light lifts what it lights exactly as before, so by day a lamp now
 matters in a closed room. At night nothing changes, so the night's floor for
 legibility ([ML-a11y]) still holds, and flat light turns the whole effect off.
+The content compiler refuses a shade above a half, so by day no room falls
+below that floor either.
 
 It is presentation only: nothing enters the simulation, a save or the world
 hash, and a lot with no edge walls (a save older than the Walls tool) is drawn

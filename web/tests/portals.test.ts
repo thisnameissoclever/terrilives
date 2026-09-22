@@ -3,7 +3,7 @@ import { writePortals, type PortalSource } from '../src/render/portals.js';
 import {
   FLOATS_PER_INSTANCE, OFFSET_DEPTH, OFFSET_SPRITE, OFFSET_EMISSIVE,
   OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
-  OFFSET_FOOTPRINT_SPAN,
+  OFFSET_FOOTPRINT_SPAN, OFFSET_SHADE,
 } from '../src/render/instances.js';
 import { LAYER_PROP, LAYER_FOREGROUND, LAYER_SIM, layeredDepth } from '../src/render/iso.js';
 import { spriteIndex } from '../src/render/atlas.js';
@@ -94,5 +94,24 @@ describe('portal rendering', () => {
     };
     expect(lit(0.25, 0.5)).toEqual([0.5, 0.5]);
     expect(lit(0.5, 0.25)).toEqual([0.5, 0.5]);
+  });
+
+  // Review finding [F1] on PR 116: a door took no sky shade, so by day an
+  // interior door between two dim rooms was brighter than the wall around it.
+  it('shades a portal from the less shaded side of its line, like a wall panel', () => {
+    const shaded = (own: number, far: number) => {
+      // The portal stands at (3, 2); the tile across its line is (4, 2).
+      const values = new Float32Array(5 * 3).fill(1);
+      values[2 * 5 + 3] = 1 - own;
+      values[2 * 5 + 4] = 1 - far;
+      const out = new Float32Array(2 * FLOATS_PER_INSTANCE).fill(-999);
+      writePortals(out, 0, portal, 0, 0, 20, 1, false, null, { width: 5, height: 3, values });
+      return [out[OFFSET_SHADE], out[FLOATS_PER_INSTANCE + OFFSET_SHADE]];
+    };
+    expect(shaded(0.75, 0.5)).toEqual([0.5, 0.5]);
+    expect(shaded(0.25, 0.5)).toEqual([0.25, 0.25]);
+    const out = new Float32Array(2 * FLOATS_PER_INSTANCE).fill(-999);
+    writePortals(out, 0, portal, 0, 0, 20, 1, false, null);
+    expect([out[OFFSET_SHADE], out[FLOATS_PER_INSTANCE + OFFSET_SHADE]]).toEqual([0, 0]);
   });
 });

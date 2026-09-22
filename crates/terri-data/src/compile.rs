@@ -2257,7 +2257,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         tuning.daylight_reach_per_tile,
         "daylight_reach_per_tile in tuning.toml",
     )?;
-    if !(0.0..1.0).contains(&tuning.interior_daylight_shade) {
+    // At most a half, so a room the sky cannot reach keeps half the day's
+    // light at noon, above the 0.42 floor night never goes below
+    // ([ML-a11y], `AMBIENT_FLOOR` in web/src/render/daylight.ts).
+    if !(0.0..=0.5).contains(&tuning.interior_daylight_shade) {
         return Err(ContentError::DaylightShadeOutOfRange {
             value: tuning.interior_daylight_shade,
         });
@@ -4964,13 +4967,13 @@ mod tests {
     /// each edge, and neither may be a non-number.
     #[test]
     fn validates_the_daylight_knobs() {
-        for shade in [1.0, -0.03125] {
+        for shade in [0.53125, -0.03125] {
             assert_eq!(
                 compile_tuned(tuning_where(|t| t.interior_daylight_shade = shade)).unwrap_err(),
                 ContentError::DaylightShadeOutOfRange { value: shade }
             );
         }
-        for shade in [0.0, 0.96875] {
+        for shade in [0.0, 0.5] {
             let pack = compile_tuned(tuning_where(|t| t.interior_daylight_shade = shade)).unwrap();
             assert_eq!(pack.tuning.interior_daylight_shade, shade);
         }

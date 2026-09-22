@@ -582,7 +582,9 @@ in from every tile outside the house, losing `daylight_reach_per_tile` per
 step, passing doorways and stopping at walls, and is rebuilt with the lamp
 field. Each instance carries its tile's shade (one minus its exposure) in the
 spare fourth float of its colourway attribute, instance slot 15; static rows
-bake it with the camera block and dynamic rows sample it per frame. The sprite
+bake it with the camera block, and people, furniture, doors and the placement
+preview sample it per frame. Markers (the selection and footprint rings, the
+tile highlight and activity bubbles) stay unshaded. The sprite
 uniform grows by one vec4, `sky`, whose first float is
 `interior_daylight_shade` times the sun's strength, or 0 in flat light. The
 shader multiplies the ambient by one minus that times the instance's shade

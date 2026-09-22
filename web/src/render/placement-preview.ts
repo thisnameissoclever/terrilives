@@ -1,10 +1,11 @@
 import type { PlacementPreview } from '../bridge.js';
 import { spriteIndex } from './atlas.js';
-import { writeColourway, writeInstance } from './instances.js';
+import { writeColourway, writeInstance, writeShade } from './instances.js';
 import { LAYER_FOREGROUND, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
 import { emissiveForSprite, sampleLight, type TileLighting } from './lighting.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './sprite-anchors.js';
 import { writeFootprintProjection } from './footprint-depth.js';
+import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 
 const RING = spriteIndex('selectionRing');
 const VALID = [0.75, 0.9, 1] as const;
@@ -42,12 +43,15 @@ export function placementInstanceCount(preview: PlacementPreview | null): number
  * Appends a tinted candidate without changing the original object's rows.
  * The candidate stands in for the object while it is chosen, so it is drawn
  * in the object's colourway ([RC-render]). A purchase's candidate is drawn in
- * the colourway chosen in the Buy tool's Colour list.
+ * the colourway chosen in the Buy tool's Colour list. Its art takes the sky's
+ * shade on the tile it would stand on, as the placed object will
+ * ([OS-daylight]); the footprint rings are markers and stay unshaded.
  */
 export function writePlacementPreview(out: Float32Array, slot: number,
   preview: PlacementPreview | null, originX: number, originY: number,
   gridSize: number, scale: number, lighting: TileLighting | null,
-  colourwayShifts: Float32Array | null = null, colourway = 0): number {
+  colourwayShifts: Float32Array | null = null, colourway = 0,
+  sky: SkyExposure = OPEN_SKY): number {
   if (!preview || placementInstanceCount(preview) === 0) return slot;
   const tint = preview.valid ? VALID : INVALID;
   for (let dy = 0; dy < preview.depth; dy += 1) {
@@ -60,6 +64,7 @@ export function writePlacementPreview(out: Float32Array, slot: number,
   const x = preview.x + (preview.width - 1) / 2;
   const y = preview.y + (preview.depth - 1) / 2;
   const light = lighting ? sampleLight(lighting, Math.floor(x), Math.floor(y)) : 0;
+  const shade = sampleShade(sky, Math.floor(x), Math.floor(y));
   for (let layer = 0; layer < 2; layer += 1) {
     const sprite = layer === 0 ? preview.sprite : preview.foreground;
     if (sprite === null) continue;
@@ -68,6 +73,7 @@ export function writePlacementPreview(out: Float32Array, slot: number,
       layeredDepth(x, y, gridSize, (layer === 0 ? LAYER_PROP : LAYER_FOREGROUND) + 0.5),
       sprite, ...tint, Math.max(light, emissiveForSprite(sprite)));
     if (colourwayShifts !== null) writeColourway(out, slot - 1, colourwayShifts, colourway);
+    writeShade(out, slot - 1, shade);
     writeFootprintProjection(out, slot - 1, preview.width, preview.depth, sprite, gridSize);
   }
   return slot;

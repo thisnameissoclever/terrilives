@@ -1084,7 +1084,7 @@ export function buildInstances(
   // owns those pixels.
   let slot = count;
   if (portals !== undefined) {
-    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting);
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
   }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
@@ -1260,7 +1260,7 @@ export function buildInstances(
   }
 
   slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
-    colourwayShifts, placementColourway);
+    colourwayShifts, placementColourway, sky);
   writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   return scratch;
 }
