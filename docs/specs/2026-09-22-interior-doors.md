@@ -61,7 +61,7 @@ out from, so when a walk's first step is the one through the door, the door
 can snap open or shut without its ajar frame. And a walk that ends on the tile
 just past the door is removed on the next tick, so the door swings shut in
 one tick instead of over a whole step. In a 20,000-tick run of the shipped
-household the reviewer counted about 280 full swings, 8 snaps and 9 short
+household the reviewer counted about 270 full swings, 8 snaps and 9 short
 closes. The swing is presentation; saving the start tile only to show it is
 not worth a save change.
 
@@ -118,6 +118,9 @@ A second round on the fixes found two more, both fixed:
   test now does.
 * [F10]: the limitation above named one of the two ways a swing is cut
   short.
+
+A third round confirmed both and found [F11], a swing count in this spec off
+by ten, now corrected.
 
 ## Slices
 
