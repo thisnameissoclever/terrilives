@@ -6,6 +6,8 @@ column is intentionally unfilled until the owner authors or approves it, per
 [L58]. This file is the handoff for playable-alpha criterion 11, not permission
 to invent the game's voice unattended.
 
+The project writing direction is defined in [.agents/skills/natural-causes-writing-style/SKILL.md](../.agents/skills/natural-causes-writing-style/SKILL.md). It requires clear object types as primary identification, secondary model names, and descriptions with optional humor. The proposed menu and shop presentation is guidance for future implementation; this inventory still records current behavior. Existing strings are material to review, not examples of the desired voice. Sample copy in the skill is draft guidance and does not close the owner's voice-review gate.
+
 ## Functional text that stays plain
 
 These strings are controls, state, instructions, confirmations, or failures.
