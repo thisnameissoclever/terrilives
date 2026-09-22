@@ -150,6 +150,7 @@ pub fn object_sized(
         base_facing: terri_core::Facing::SouthEast,
         facing_sprites: terri_data::FacingSprites::south_east_only(terri_data::pack().sim_sprite),
         facing_foreground_sprites: terri_data::FacingSprites::NONE,
+        price: None,
     }
 }
 

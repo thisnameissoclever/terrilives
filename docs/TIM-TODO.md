@@ -101,6 +101,16 @@ wall directions, matched to the existing wall art. Tell me whether to draft
 them with the generator for you to accept or reject, or whether you would
 rather supply them. Nothing is blocked meanwhile; doorways work.
 
+### [T-recolour-palettes] Which colourways each object comes in `[YOURS]`
+
+The Buy mode bullet of M1 includes palette recolours. The Buy tool (PR 96)
+sells every object in the one colourway its art has. I will build the
+mechanism ([BM-slice-recolour] in `docs/specs/2026-09-21-buy-mode.md`): a
+colourway per placed object that the renderer applies to the existing art,
+with a few plain placeholder palettes taken from the approved one. Which
+colourways each object should really come in, and what to call them, is
+yours. Nothing is blocked meanwhile.
+
 ### [T-trait-copy] The twelve new traits need your words `[YOURS]`
 
 The trait library grew from three traits to fifteen (PR 87), and every trait

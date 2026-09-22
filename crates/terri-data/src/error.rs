@@ -752,6 +752,11 @@ pub enum ContentError {
     DuplicateTrait {
         id: String,
     },
+    /// An object priced at zero - [BM-price]. Leave `price` out to keep an
+    /// object out of the catalogue instead.
+    ZeroPrice {
+        object: String,
+    },
     /// A trait with a blank label. Unlike an interaction there is no
     /// id-shaped fallback that reads as anything but a bug in a UI's
     /// trait list, so the label is simply required.
@@ -1712,6 +1717,10 @@ impl fmt::Display for ContentError {
             ContentError::DuplicateTrait { id } => {
                 write!(f, "traits.toml declares '{id}' more than once")
             }
+            ContentError::ZeroPrice { object } => write!(
+                f,
+                "object '{object}' has price 0; leave price out to keep it out of the catalogue"
+            ),
             ContentError::EmptyTraitLabel { id } => write!(
                 f,
                 "trait '{id}' has a blank label; a trait list has no \

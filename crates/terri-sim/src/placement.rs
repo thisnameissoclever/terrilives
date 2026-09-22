@@ -25,6 +25,8 @@ pub enum PlacementRefusal {
     InaccessibleInteraction = 11,
     BlockedDoor = 12,
     BlockedLanding = 13,
+    /// The household's Funds are less than the price - [BM-buy].
+    CannotAfford = 14,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,6 +43,8 @@ pub struct LotEditState {
     /// The most recent wall edit the drain committed or refused, so the shell
     /// can report a refusal only the commit could see - [WT-boundary].
     pub last_wall_result: Option<walls::WallEditResult>,
+    /// The most recent purchase the drain committed or refused - [BM-buy].
+    pub last_purchase_result: Option<purchase::PurchaseResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -79,7 +83,9 @@ pub fn object_definition(
 
 #[derive(Clone, Copy)]
 struct Rectangle {
-    entity: Entity,
+    /// The object standing here, or `None` for one a purchase is about to
+    /// bring onto the lot.
+    entity: Option<Entity>,
     origin: (u32, u32),
     footprint: Footprint,
 }
@@ -227,7 +233,7 @@ fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
             return Err(UnsupportedLayout);
         }
         let rect = Rectangle {
-            entity: row.id(),
+            entity: Some(row.id()),
             origin: (position.x as u32, position.y as u32),
             footprint: def.footprint_at(direction),
         };
@@ -339,6 +345,76 @@ fn prove_lot_usable(
     Ok(())
 }
 
+/// The rectangle rules a move and a purchase share - [BM-buy]. `moving` is
+/// the object a move lifts off the lot first, or `None` for a purchase, which
+/// lifts nothing. Returns the grid with the rectangle standing in place; no
+/// mutation and no random draws.
+fn plan_rectangle(
+    world: &World,
+    moving: Option<Entity>,
+    footprint: Footprint,
+    origin: (u32, u32),
+) -> Result<TileGrid, PlacementRefusal> {
+    use PlacementRefusal::*;
+    let live = world.resource::<TileGrid>();
+    let CurrentLayout {
+        walls,
+        mut rectangles,
+    } = current_layout(world)?;
+    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
+    if !fits(live, origin, footprint) {
+        return Err(OutOfBounds);
+    }
+    if moving.is_some_and(|entity| {
+        world.get::<Reserved>(entity).is_some()
+            || entities
+                .iter(world)
+                .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))
+    }) {
+        return Err(InUse);
+    }
+    let candidate = Rectangle {
+        entity: moving,
+        origin,
+        footprint,
+    };
+    if crosses_wall(candidate, &walls)
+        || cells(candidate).any(|(x, y)| !walls.is_walkable(x as i32, y as i32))
+    {
+        return Err(WallOverlap);
+    }
+    // Every placed rectangle has an entity, so for a purchase this keeps them
+    // all and for a move it drops only the object being moved.
+    rectangles.retain(|rect| rect.entity != moving);
+    let mut grid = walls;
+    for rect in &rectangles {
+        for (x, y) in cells(*rect) {
+            grid.set_blocked(x as usize, y as usize, true);
+        }
+    }
+    if cells(candidate).any(|(x, y)| !grid.is_walkable(x as i32, y as i32)) {
+        return Err(FurnitureOverlap);
+    }
+    for (x, y) in cells(candidate) {
+        grid.set_blocked(x as usize, y as usize, true);
+    }
+    rectangles.push(candidate);
+    prove_lot_usable(world, &grid, &rectangles)?;
+    // Last, the loader's own grid checks - [L-an-edit-must-pass-the-loader].
+    // For what a furniture edit adds they are implied today by the proofs
+    // above: a sim's tile and walk must be open floor there too, and blocking
+    // a tile never changes a contact, which the loader reads through walls
+    // alone. They are asked anyway, so a rule the loader gains later is
+    // honoured here without a second edit, and so no edit is accepted in a
+    // world that already fails the loader. The rectangle itself is not in this world yet; the
+    // loader's rule for it, no wall through it, is `WallOverlap` above.
+    crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
+        crate::save::LoadProblem::PortalReturn => BlockedLanding,
+        crate::save::LoadProblem::EdgeWorld => BlockedRoute,
+    })?;
+    Ok(grid)
+}
+
 /// Produces a complete owned transaction; no mutation and no random draws.
 pub fn validate_placement(
     world: &World,
@@ -351,51 +427,8 @@ pub fn validate_placement(
     if !definition.supports(facing) {
         return Err(UnsupportedFacing);
     }
-    let live = world.resource::<TileGrid>();
-    let CurrentLayout {
-        walls,
-        mut rectangles,
-    } = current_layout(world)?;
-    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
     let footprint = definition.footprint_at(facing);
-    if !fits(live, origin, footprint) {
-        return Err(OutOfBounds);
-    }
-    if world.get::<Reserved>(entity).is_some()
-        || entities
-            .iter(world)
-            .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))
-    {
-        return Err(InUse);
-    }
-    let candidate = Rectangle {
-        entity,
-        origin,
-        footprint,
-    };
-    if crosses_wall(candidate, &walls)
-        || cells(candidate).any(|(x, y)| !walls.is_walkable(x as i32, y as i32))
-    {
-        return Err(WallOverlap);
-    }
-    let mut grid = walls;
-    for rect in rectangles.iter().filter(|r| r.entity != entity) {
-        for (x, y) in cells(*rect) {
-            grid.set_blocked(x as usize, y as usize, true);
-        }
-    }
-    if cells(candidate).any(|(x, y)| !grid.is_walkable(x as i32, y as i32)) {
-        return Err(FurnitureOverlap);
-    }
-    for (x, y) in cells(candidate) {
-        grid.set_blocked(x as usize, y as usize, true);
-    }
-    for rect in &mut rectangles {
-        if rect.entity == entity {
-            *rect = candidate;
-        }
-    }
-    prove_lot_usable(world, &grid, &rectangles)?;
+    let grid = plan_rectangle(world, Some(entity), footprint, origin)?;
     Ok(PlacementPlan {
         grid,
         entity,
@@ -434,6 +467,7 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
     world.resource_mut::<LotEditState>().last_result = Some(PlacementResult { object, reason });
 }
 
+pub mod purchase;
 pub mod walls;
 
 #[cfg(test)]

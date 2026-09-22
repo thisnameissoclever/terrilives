@@ -12,6 +12,15 @@ on:
   # command instead of an evening.
   workflow_dispatch:
 
+# A new push to a pull request cancels that pull request's older runs. Without
+# this, every push left its eight-shard mutation sweep running beside the new
+# one, and on PR 95 three heads' sweeps queued for the same runners, so the
+# head that could merge waited behind two that never could. A push to main is
+# never cancelled: each merge commit's run is its own record.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   rust:
     runs-on: ubuntu-latest

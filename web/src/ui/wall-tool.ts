@@ -43,15 +43,19 @@ const NOT_SENT = 'That change could not be sent.';
  * sits at x - 0.5. The nearer of the nearest vertical and the nearest
  * horizontal line wins. A lot's outer lines are offered too, so a click there
  * reads the simulation's own refusal rather than quietly choosing another line.
+ * The lot's edge counts as on the lot on all four sides. A point exactly on
+ * the far corner ties, and a tie goes vertical, so its row is clamped to the
+ * last one; a horizontal line never lands past the last column, because a
+ * point on the right edge always ties vertical.
  */
 export function nearestLine(wx: number, wy: number, width: number, height: number): WallLine | null {
   if (!Number.isFinite(wx) || !Number.isFinite(wy) || width < 1 || height < 1) return null;
   const tx = wx + 0.5;
   const ty = wy + 0.5;
-  if (tx < 0 || ty < 0 || tx >= width || ty >= height) return null;
+  if (tx < 0 || ty < 0 || tx > width || ty > height) return null;
   const vertical = Math.abs(tx - Math.round(tx)) <= Math.abs(ty - Math.round(ty));
   return vertical
-    ? { axis: 0, x: Math.round(tx), y: Math.floor(ty) }
+    ? { axis: 0, x: Math.round(tx), y: Math.min(Math.floor(ty), height - 1) }
     : { axis: 1, x: Math.floor(tx), y: Math.round(ty) };
 }
 
@@ -60,17 +64,6 @@ export function tilesBeside(line: WallLine): [[number, number], [number, number]
   return line.axis === 0
     ? [[line.x - 1, line.y], [line.x, line.y]]
     : [[line.x, line.y - 1], [line.x, line.y]];
-}
-
-/**
- * Where a key in Build mode goes - [WT-shell]. While Walls is the tool, a key it
- * does not use goes nowhere, except Escape, which Build mode reads to leave: a
- * furniture key must not move furniture the player cannot see is selected.
- */
-export function routeBuildKey(key: string, walls: Pick<WallTool, 'active' | 'handleKey'>,
-  furniture: { handleKey(key: string): boolean }): boolean {
-  if (!walls.active) return furniture.handleKey(key);
-  return walls.handleKey(key) || (key === 'Escape' && furniture.handleKey(key));
 }
 
 /** What `wall_edges` says the line is: four words per record. */

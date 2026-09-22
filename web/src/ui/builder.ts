@@ -163,8 +163,12 @@ export class FurnitureBuilder {
     this.revision = revision;
     if (changed && this.active) {
       this.refreshObjects();
+      // The list changed even when nothing is selected, as after a purchase,
+      // so the controls redraw either way; a query redraws them itself.
       if (this.preview && this.selected !== null) {
         this.query(this.preview.x, this.preview.y, this.preview.facing);
+      } else {
+        this.hooks.changed();
       }
     }
     if (this.pending) {

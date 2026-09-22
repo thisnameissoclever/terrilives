@@ -3064,3 +3064,59 @@ person sheet's caption lagged a reload until the next drawn frame. That is the
 viewer and not the game ([L14]). The
 exercise bike is still almost never chosen unprompted: four uses in 120000
 ticks, even with a Keen cyclist in the house. No physical phone was used.
+## [A-buy-mode] Buying furniture from a catalogue
+
+Played on 2026-09-21 on the port 5174 dev server serving this branch's working
+tree, which I confirmed by the Buy button being in the Build panel. The in-app
+pane only draws while it is on screen, so I drove the page in the Playwright
+browser instead ([L59]).
+
+**Earning first.** A new game starts with 0 Funds. At 3x the first shift paid
+120 at about 15:00 on day 1.
+
+**The catalogue.** Build, then Buy, showed the list with all thirty objects by
+name, each with its price in brackets, and everything dearer than 120 greyed
+out: fourteen of the thirty were left to choose. After a 40 chair the list
+greyed down to the nine that 80 buys.
+
+**Placing.** Choosing the chair drew its ghost mid-lot and said "Ready to buy."
+A click beside the living-room armchair turned the ghost red with "Leave every
+object reachable." and disabled Buy. Arrow keys moved it; onto the sofa it said
+"That position overlaps other furniture."; one tile back it said "Ready to buy."
+again. R turned it from South-east to South-west. Enter bought it: the chair
+stood on the floor, Funds went from 120 to 80, and the status said "Chair,
+Standard Issue bought." A bin's first spot said "That position blocks a Sim's
+route."
+
+**A bug, fixed here.** The Furniture tool's list still showed two chairs after
+the purchase. The furniture builder re-read its object list when the lot
+changed but only told its controls to redraw when something was selected.
+With the fix the list showed three.
+
+**Saved.** Save, then a second purchase (a bin, Funds 60), then Load: Funds
+went back to 80, the chair was still there and the bin was gone. The Buy tool
+came back to "Choose something to buy."
+
+**Used.** A chair has no action of its own; a sim sits on it only when using a
+table, so ordering someone to a lone bought chair did nothing visible. A bought
+radio did: Casey walked from the bathroom to it and the panel said "Using
+object".
+
+**Phone.** At 390 by 844 the Build dock holds the three tool buttons, the list,
+the price, Rotate, Buy, Cancel and the touch help without sideways scroll.
+
+**What play showed a real game needs.** The names are jokes and say nothing
+about what a thing does: "Wall of Intent" and "Frequency of Record" could be
+anything. Thirty names in one list is already long. A player needs to see what
+each object is for and to narrow the list, which is [B-catalogue-browsing].
+After a purchase the ghost stays on the bought object's tile, red, under a
+status that says it was bought; clear enough, but a second glance.
+
+**After the review fixes.** Re-checked on the same server: pressing Buy put
+keyboard focus on the game view; with 80 in Funds, `]` skipped the 220
+aquarium and chose the first thing 80 buys; setting the list back to "Choose
+something to buy" said so, cleared the price and disabled Buy. The console
+showed no errors or warnings.
+
+**Not proven here.** No physical phone was used. The chair's use at a table
+was not watched.

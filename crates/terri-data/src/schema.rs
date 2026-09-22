@@ -266,6 +266,11 @@ pub struct ObjectDef {
     /// Resolved alongside `sprite`; absent preserves every existing object.
     #[serde(default)]
     pub foreground_sprite: Option<String>,
+    /// What the Buy tool charges for one, in Funds - [BM-price]. Absent keeps
+    /// the object out of the catalogue. Zero is refused: a free object is a
+    /// statement nobody made on purpose.
+    #[serde(default)]
+    pub price: Option<u32>,
     /// How many tiles this object occupies, as
     /// `footprint = { width = 2, depth = 1 }`.
     ///

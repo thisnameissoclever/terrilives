@@ -170,9 +170,9 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
             let across = |mine: (i32, i32), theirs: (i32, i32)| {
                 tiles.contains(&mine)
                     && if world.get::<SmartObject>(target).is_some() {
-                        rectangles
-                            .iter()
-                            .any(|rect| rect.entity == target && rectangle_holds(rect, theirs))
+                        rectangles.iter().any(|rect| {
+                            rect.entity == Some(target) && rectangle_holds(rect, theirs)
+                        })
                     } else {
                         world
                             .get::<Position>(target)

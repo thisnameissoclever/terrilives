@@ -243,6 +243,10 @@ pub struct CompiledObject {
     pub facing_foreground_sprites: FacingSprites,
     /// Authored geometry and default art orientation. Transforms use a relative turn.
     pub base_facing: Facing,
+    /// What the Buy tool charges, or `None` for an object not in the
+    /// catalogue - [BM-price]. Last, because it was appended. Not in the save
+    /// compatibility digest: a save stores Funds, never prices.
+    pub price: Option<u32>,
 }
 
 impl CompiledObject {
@@ -1103,6 +1107,7 @@ mod tests {
                         } else {
                             FacingSprites::NONE
                         },
+                        price: None,
                     }
                 })
                 .collect(),
@@ -1359,6 +1364,7 @@ mod tests {
             facing_sprites,
             facing_foreground_sprites,
             base_facing: Facing::SouthEast,
+            price: None,
         }
     }
 

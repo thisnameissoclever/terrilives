@@ -6764,6 +6764,15 @@ keeps V1 on purpose, because its fixture is only valid there, and compares V1
 records. With the wall hash in place, turning either back into a V1 world-hash
 comparison makes it fail.
 
+**It happened again, the other way round (PR 96).** The world hash never read
+which object a placed entity is, because the lot content fixed that. Buying
+made it a player's choice, and the review bought a radio and a desk chair, same
+price, same tile, in two copies of one household: equal hashes, different
+saves. The rule that would have caught it: **when a feature makes some state a
+player's choice for the first time, check the digest reads that state.**
+`the_world_hash_sees_which_object_was_bought` fails if the object-kinds
+section is removed from `world_hash`.
+
 ## [L-an-edit-must-pass-the-loader] A lot edit's own rules accepted walls the loader refused
 
 **What happened.** The first review of the Walls tool found two walls the
@@ -6790,3 +6799,45 @@ test does not, because the door rule now refuses that wall first. The
 household test also fails on its own if its ticks stop holding a wall that
 only the loader refuses: the trait library moved the household once already
 and silently emptied the ticks it first used.
+
+## [L-a-list-refreshed-in-silence] The Furniture list missed a bought chair
+
+**What happened.** In the played check of the Buy tool, a chair bought with
+nothing selected in the Furniture tool did not appear in that tool's list. The
+list showed two chairs where the lot had three.
+
+**Root cause.** The furniture builder re-read its object list whenever the lot
+changed, but only told its controls to redraw from inside the preview query,
+which runs only when something is selected. Until buying existed, nothing
+added or removed an object, so a stale list was never visible.
+
+**Prevention rule.** A controller that changes what its view shows tells the
+view in the same branch, not only in the branch that happened to exist first.
+When a feature adds a new way for shared state to change, check every view
+that reads that state for how it hears about the change.
+
+**How to verify.** Remove the `else` branch that calls `hooks.changed()` after
+`refreshObjects()` in `FurnitureBuilder.afterCommands`.
+`tells its controls when a lot change refreshes the object list with nothing
+selected` in `web/tests/builder.test.ts` fails.
+
+## [L-a-test-that-waits-must-be-bounded] A test's clock loop hung two mutants
+
+**What happened.** PR 95's household wall test advanced the game with
+`while tick < stop { sim.tick() }`. The mutation sweep replaced `Sim::tick`
+and `advance_clock` with nothing; the clock never moved, the loop never ended,
+and both mutants burned the 60-second timeout. The shard's hang check failed
+the whole pull request after an hour of CI.
+
+**Root cause.** A loop whose exit depends on the code under test is a loop the
+mutation sweep can break. The test assumed the one thing a mutant exists to
+remove.
+
+**Prevention rule.** A test that waits for the simulation to reach a state
+counts its steps and asserts afterwards: `for _ in from..stop { tick }` then
+`assert_eq!(clock, stop)`. Never `while` or `loop` on simulation state.
+
+**How to verify.** Make `Sim::tick` return at once.
+`every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fails in
+seconds with "one tick per `Sim::tick`" instead of timing out.
+

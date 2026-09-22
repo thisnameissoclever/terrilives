@@ -27,10 +27,10 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-skills] | Skills | Foundation only | 5% |
 | [S-pets] | Pets as full characters | Not started | 0% |
 | [S-household-events] | Random household events and messes | Not started | 0% |
-| [S-money] | Money: deep earning and spending | Foundation only | 5% |
+| [S-money] | Money: deep earning and spending | Partial | 10% |
 | [S-catalogue] | Furniture and visual asset volume | Partial | 15% |
 | [S-household-size] | More people in the house | Partial | 35% |
-| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 30% |
+| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 40% |
 
 ### Systems the owner added in a second round on 2026-09-21
 
@@ -188,11 +188,11 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 ### [S-money] Money: deep earning and spending
 
-**Status: Foundation only, about 5%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
+**Status: Partial, about 10%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it. Since PR 96 the household has something to spend on.
 
-**What exists.** The household has one shared Funds number. It is saved and shown in the HUD. Exactly one thing changes it: Tim's office job pays 120 at the end of each shift. Nothing in the game costs money. A comment in the career content says so directly: the number is a score until there is something to buy.
+**What exists.** The household has one shared Funds number. It is saved and shown in the HUD. Two things change it: Tim's office job pays 120 at the end of each shift, and the Buy tool takes an object's price when the household buys it. Nothing else costs money yet.
 
-**What is missing.** A price on every object. Charging for purchases and refunding for sales, which arrives with buy mode in [S-build]. Costs for walls, floors, and lot expansion.
+**What is missing.** Refunds for sales, which arrive with selling in [S-build]. Costs for walls, floors, and lot expansion. Since PR 96 every object has a price in `content/objects.toml` and the Buy tool charges it.
 
 Recurring costs: rent or a mortgage, utility bills that scale with the house and what runs in it, groceries, and pet food and vet fees. Consequences for not paying, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
 
@@ -240,13 +240,13 @@ A larger household also needs a larger house, so that six people are not queuein
 
 ### [S-build] Build mode: buying, walls, rooms, and a bigger house
 
-**Status: Partial, about 30%.**
+**Status: Partial, about 40%.**
 
-**What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
+**What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
 
 **What is missing, in a sensible order.**
 
-1. Buy mode: a catalogue panel, placing a new object, deleting or selling an object, and charging Funds for it.
+1. ~~Buy mode: a catalogue panel, placing a new object, and charging Funds for it.~~ Done in PR 96. Still open: selling an object back ([BM-slice-sell] in `docs/specs/2026-09-21-buy-mode.md`), and recolours, which need art.
 2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. Still open: a whole room outline in one edit, and hinged doors that need art.
 3. Floor and wall coverings per room or per tile.
 4. Windows, which also affect the lighting already in the game.

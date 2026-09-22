@@ -261,4 +261,16 @@ pub enum SavedCommand {
         y: u32,
         state: crate::layout::WallState,
     },
+    /// [BM-buy]. A purchase staged just before a save. It names the object
+    /// by id rather than by pack index: the save digest covers the object
+    /// ids but not their order, so an index could name a different object
+    /// once the content file is reordered. `None` for a command whose index
+    /// named no object at all; it loads as one that still names none, and
+    /// is refused when it drains exactly as it would have been.
+    BuyObject {
+        definition: Option<String>,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+    },
 }

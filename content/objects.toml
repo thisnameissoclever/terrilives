@@ -43,9 +43,17 @@
 # down" is complete. Nouns appear only as generic idiom that does not
 # point at an instance: "Watch TV", "Take a shower", "Use the toilet".
 
+# `price` is what the Buy tool charges for one, in Funds - [BM-price] in
+# docs/specs/2026-09-21-buy-mode.md. It is not in the save compatibility
+# digest, so repricing changes nothing an old save means. A shift pays 120
+# (careers.toml), so the dearest piece, at 400, is a little over three days'
+# work. Leave it out to keep an
+# object out of the catalogue; zero is refused.
+
 [[object]]
 id = "fridge"
 name = "Chill-o-Matic 3000"
+price = 300
 sprite = "offlineFridge"
 # Station roles - [K1] in the M2f working design. A role is a fact
 # about furniture ("this is where ingredients live"), kept apart from
@@ -79,6 +87,7 @@ roles = ["cold_storage"]
 [[object]]
 id = "bed"
 name = "Sleepeazy Deluxe"
+price = 250
 sprite = "offlineBunk"
 
   # The FIRST object in shipped content that was not 1x1 - there are six now,
@@ -125,6 +134,7 @@ sprite = "offlineBunk"
 [[object]]
 id = "shower"
 name = "Rainfall Cubicle"
+price = 250
 sprite = "offlineShower"
 
   # The trade-off object, and the reason negative deltas are allowed. It
@@ -143,6 +153,7 @@ sprite = "offlineShower"
 [[object]]
 id = "toilet"
 name = "Porcelain Standard"
+price = 150
 sprite = "offlineToilet"
 
   # Cheap, fast and near-total. Bladder is the fastest-draining need
@@ -167,6 +178,7 @@ sprite = "offlineToilet"
 [[object]]
 id = "television"
 name = "Cathode Companion"
+price = 350
 sprite = "televisionVintage"
 
   # Presentation treats the screen as a weak local light. There is no authored
@@ -258,6 +270,7 @@ sprite = "televisionVintage"
 [[object]]
 id = "sofa"
 name = "Chesterfield Regret"
+price = 200
 sprite = "loungeSofaOttoman"
 
   # Two advertised needs, deliberately. [D6]'s scoring SUMS across
@@ -280,6 +293,7 @@ sprite = "loungeSofaOttoman"
 [[object]]
 id = "sink"
 name = "Basin Basic"
+price = 80
 sprite = "offlineBathroomSink"
 
   # The quick partial fix for hygiene, and its whole reason for existing
@@ -329,6 +343,7 @@ sprite = "offlineBathroomSink"
 [[object]]
 id = "bookshelf"
 name = "Wall of Intent"
+price = 120
 sprite = "bookcaseClosedDoors"
 
   # The low end of the fun range, so the three fun objects span a real spread
@@ -404,6 +419,7 @@ sprite = "bookcaseClosedDoors"
 [[object]]
 id = "stove"
 name = "The Combustible Optimist"
+price = 260
 sprite = "offlineStove"
 roles = ["hob"]
 
@@ -423,6 +439,7 @@ roles = ["hob"]
 [[object]]
 id = "counter"
 name = "Surface of Deferred Decisions"
+price = 90
 sprite = "offlineCounter"
 # The middle step this object was placed for, per the comment below -
 # the chain has arrived.
@@ -439,6 +456,7 @@ roles = ["prep_surface"]
 [[object]]
 id = "kitchen_sink"
 name = "Basin, Communal"
+price = 150
 sprite = "offlineSink"
 # A second prep station, so two cooks do not serialise on one counter
 # tile and a one-counter lot still compiles.
@@ -482,6 +500,7 @@ roles = ["prep_surface"]
 [[object]]
 id = "dining_table"
 name = "The Table Nobody Sits At"
+price = 120
 sprite = "table"
 footprint = { width = 2, depth = 1 }
 # The chain's terminal station: the table finally gets somebody to
@@ -519,6 +538,7 @@ roles = ["eating_surface"]
 [[object]]
 id = "chair"
 name = "Chair, Standard Issue"
+price = 40
 sprite = "chair"
 
   # No interactions. A chair at a table is where a sim sits when it uses the
@@ -533,6 +553,7 @@ sprite = "chair"
 [[object]]
 id = "trashcan"
 name = "Receptacle for Later"
+price = 20
 sprite = "trashcan"
 
   # No interactions. Scenery, and a promise.
@@ -542,6 +563,7 @@ sprite = "trashcan"
 [[object]]
 id = "long_sofa"
 name = "The Sectional Compromise"
+price = 280
 sprite = "loungeSofaLong"
 footprint = { width = 2, depth = 1 }
 
@@ -581,6 +603,7 @@ footprint = { width = 2, depth = 1 }
 [[object]]
 id = "armchair"
 name = "The Chair That Is His"
+price = 140
 sprite = "loungeChair"
 foreground_sprite = "loungeChairForeground"
 
@@ -617,6 +640,7 @@ foreground_sprite = "loungeChairForeground"
 [[object]]
 id = "radio"
 name = "Frequency of Record"
+price = 60
 sprite = "radio"
 
   # 22 fun and 5 social at 38 ticks. Deliberately sat just under the
@@ -644,6 +668,7 @@ sprite = "radio"
 [[object]]
 id = "potted_plant"
 name = "Ficus, Under Review"
+price = 30
 sprite = "pottedPlant"
 
   # No interactions. Placed twice.
@@ -651,6 +676,7 @@ sprite = "pottedPlant"
 [[object]]
 id = "floor_lamp"
 name = "Illumination, Ambient"
+price = 45
 sprite = "lampRoundFloor"
 
   # No interactions. Presentation uses this footprint as the room's strongest
@@ -661,6 +687,7 @@ sprite = "lampRoundFloor"
 [[object]]
 id = "coat_rack"
 name = "Vertical Filing for Outerwear"
+price = 35
 sprite = "coatRackStanding"
 
   # No interactions.
@@ -670,6 +697,7 @@ sprite = "coatRackStanding"
 [[object]]
 id = "double_bed"
 name = "The Restorative Unit"
+price = 400
 sprite = "offlineDoubleBed"
 footprint = { width = 2, depth = 2 }
 
@@ -708,6 +736,7 @@ footprint = { width = 2, depth = 2 }
 [[object]]
 id = "nightstand"
 name = "Repository of Unread Nightstand Books"
+price = 50
 sprite = "offlineNightstand"
 
   # No interactions.
@@ -715,6 +744,7 @@ sprite = "offlineNightstand"
 [[object]]
 id = "dresser"
 name = "Storage, Personal Effects"
+price = 110
 sprite = "offlineDresser"
 
   # No interactions. It will hold clothes when there are clothes.
@@ -722,6 +752,7 @@ sprite = "offlineDresser"
 [[object]]
 id = "moving_box"
 name = "Wellness Initiative, Indoor"
+price = 260
 sprite = "offlineBike"
 
   # `moving_box` is now a Save V1 persistence key rather than a description.
@@ -749,6 +780,7 @@ sprite = "offlineBike"
 [[object]]
 id = "desk"
 name = "Station of Ongoing Concern"
+price = 180
 sprite = "offlineDeskSW"
 base_facing = "SW"
 footprint = { width = 2, depth = 1 }
@@ -786,6 +818,7 @@ roles = ["eating_surface"]
 [[object]]
 id = "desk_chair"
 name = "Ergonomic, Allegedly"
+price = 60
 sprite = "chairDesk"
 
   # No interactions, for the same reason as the dining chairs.
@@ -793,6 +826,7 @@ sprite = "chairDesk"
 [[object]]
 id = "reading_chair"
 name = "The Wingback Sabbatical"
+price = 110
 sprite = "offlineChair"
 
   [[object.action_socket]]
@@ -846,6 +880,7 @@ sprite = "offlineChair"
 [[object]]
 id = "reference_shelf"
 name = "Aquarium of Managed Expectations"
+price = 220
 sprite = "bookcaseClosedWide"
 
   # `reference_shelf` is now a Save V1 persistence key rather than a
@@ -867,6 +902,7 @@ sprite = "bookcaseClosedWide"
 [[object]]
 id = "bathtub"
 name = "The Long Soak Directive"
+price = 320
 # Default art and collision share the same quarter-turn, including spawned tubs.
 sprite = "offlineBathtubSW"
 base_facing = "SW"
@@ -910,6 +946,7 @@ footprint = { width = 1, depth = 2 }
 [[object]]
 id = "laundry"
 name = "Cycle, Perpetual"
+price = 300
 sprite = "offlineLaundry"
 
   # **No interactions, and this is the one that was hardest to leave alone.**
