@@ -1,6 +1,6 @@
 # Options: one gear for the controls a player reaches for now and then
 
-Status: built on branch `twcl/options-flyout`; its played check is [A-options-flyout].
+Status: shipped in PR 111 at merge `74152ee`; its played check is [A-options-flyout].
 
 This is [B-options-flyout] in `docs/FEATURES.md`, asked for by the owner on 2026-09-22 after playing. The sidebar held every control the game has, and on a desktop it grew taller than the window. The owner asked for Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help to move into one flyout opened from a gear at the window's top right. The same notes asked for the Traits panel to be collapsible and closed by default.
 

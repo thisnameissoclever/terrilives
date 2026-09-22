@@ -585,7 +585,11 @@ this milestone and is done; what follows is M1b onwards.
   check is [A-trait-library]. Choosing traits for a new sim belongs to
   Create-a-sim below.
 - **Smart object library:** ~40 objects across the core need categories
-- **Build mode:** walls, floors, doors, windows, roofs
+- **Build mode:** walls, floors, doors, windows, roofs. Walls shipped in
+  PR 95 at merge `1a90a75`, whole rooms in PR 97 at merge `e2f60a9`, and
+  hinged doors in vertical doorways in PR 98 at merge `2534ec5` ([B-builder]);
+  for PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Floors, windows and roofs remain
+  ([B-floors], [B-windows]).
 - **Buy mode:** catalog, placement, rotation, palette recolors ([G4]).
   Catalogue, placement and rotation shipped in PR 96 at merge `cb2cb9a`;
   main's CI (run 35699619286) and the Pages deployment (run 35699810650) both
@@ -596,25 +600,28 @@ this milestone and is done; what follows is M1b onwards.
   `docs/specs/2026-09-21-buy-mode.md` and the played check is [A-buy-mode].
   Palette recolours are [BM-slice-recolour] there, designed in
   `docs/specs/2026-09-22-colourways.md`. Its first slice, [RC-slice-furniture],
-  is built on branch `twcl/colourways`: a Colour list in the Furniture tool
+  shipped in PR 104 at merge `cd62592`: a Colour list in the Furniture tool
   redraws a placed object in a colourway, saved with the game, and the
   played check is [A-colourways]. Choosing the colourway when buying,
-  [RC-slice-buy], is built on branch `twcl/buy-in-colour`: a Colour list in
+  [RC-slice-buy], shipped in PR 105 at merge `90454e7`: a Colour list in
   the Buy tool, and the played check is [A-buy-in-colour]. The real
   colourways and their names wait on
   [T-recolour-palettes].
-  Selling an object back is [BM-slice-sell] there, built on branch
-  `twcl/sell-furniture`: a Sell button in the Furniture tool pays back half an
+  Selling an object back is [BM-slice-sell] there, shipped in PR 101 at
+  merge `a342eb6`: a Sell button in the Furniture tool pays back half an
   object's price and removes it, refused while a sim uses it, is walking to
   it or has been told to use it, when it has no price, or when it is the last
   object that can do a job a chain needs, such as the house's only stove. Its
   design is
   `docs/specs/2026-09-22-selling-furniture.md` and its played check is
-  [A-selling-furniture].
+  [A-selling-furniture]. For PRs 101, 104 and 105, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Every
+  code slice of this bullet has shipped; what remains is the owner's palettes
+  ([T-recolour-palettes]).
 - **Create-a-sim:** body type, face, hair, clothing, trait selection - in
   progress. The first slice, [CS-slice-housemate] in
-  `docs/specs/2026-09-22-create-a-sim.md`, is built on branch
-  `twcl/housemate-pages`: a New housemate button under Household opens a
+  `docs/specs/2026-09-22-create-a-sim.md`, shipped in PR 110 at merge
+  `31c4edb`; main's CI (run 35756583023) and the Pages deployment (run
+  35756846314) both passed for that commit. A New housemate button under Household opens a
   two-page form, a name and a personality, each described, then up to four
   traits, and the newcomer walks in from the street and joins the household.
   Choosing a body, face, hair and clothes waits on art ([CS-slice-looks],
@@ -649,8 +656,11 @@ What makes it a *life* sim rather than a needs sim.
   `docs/specs/2026-07-30-household-and-relationships-design.md` record the detailed
   constraints.
 - **Skills:** learned through interaction, gating better outcomes
-- **Careers:** rabbit-hole model for the beta - the sim leaves the lot and
-  returns with an outcome. **Simulated workplaces are a near-term post-v1
+- ~~**Careers:** rabbit-hole model for the beta - the sim leaves the lot and
+  returns with an outcome~~ - done: the shipped career is a content-defined
+  rabbit hole with a schedule, pay, need costs and a satisfaction reward, and
+  since PR 107 the worker walks out to the street for it ([B-jobs-careers]
+  carries the full system). **Simulated workplaces are a near-term post-v1
   goal with a recorded compatibility target** ([D15]); the shipped rabbit hole
   is deliberately smaller and does not already contain workplace lots,
   promotion ladders, coworker entities, or a shared outcome interface.
@@ -737,18 +747,18 @@ objects, and transitions between home, neighborhood, and future lots. This is
 the spatial foundation for visitors, pets, disasters, and neighborhood play.
 
 The design is `docs/specs/2026-09-22-the-outside.md`, in slices. The first,
-[OS-slice-yard], is built on branch `twcl/the-yard`: the lot grows to 20 by 16
+[OS-slice-yard], shipped in PR 106 at merge `00e8c81`: the lot grows to 20 by 16
 and the house stands in a yard four tiles deep on its east and south sides,
 drawn as green floor until there is grass art ([T-yard-art]). Sims walk out
 through the front door, which swings for them, and furniture can be bought and
 walls built in the yard. A saved house whose walls are edges, which is every
 save since the Walls tool, grows into the yard on Load. The
-played check is [A-yard]. The second, [OS-slice-street], is built on branch
-`twcl/the-street`: a street along the lot's east edge, drawn grey until there
+played check is [A-yard]. The second, [OS-slice-street], shipped in PR 107
+at merge `5f7cc73`: a street along the lot's east edge, drawn grey until there
 is street art, where a worker walks out through the front door and across
 the yard to leave for work, and back the same way; its played check is
-[A-street]. Daylight on the yard, the house seen from outside and outdoor
-objects remain.
+[A-street]. For both, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Daylight on the yard, the house
+seen from outside and outdoor objects remain.
 
 ### [B-floors] The player chooses what each floor is
 
@@ -766,19 +776,19 @@ daylight on the yard ([OS-slice-daylight]) and needs window art.
 
 ### [B-trait-words] A trait says whether they like, love, dislike or hate it
 
-Asked for by the owner on 2026-09-22 after playing. A disposition trait's sentence used to say "More drawn to" or "Less drawn to", which reads like a statistic. Each now opens with "Likes", "Loves", "Dislikes" or "Hates", chosen by how strongly its number pulls or pushes, and the content compiler refuses a sentence whose verb disagrees with the number ([TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`). The two lines between the verbs are in `content/tuning.toml`. The capability and condition sentences were reworded in the same plain style. Built on branch `twcl/affinity-words`; the played check is [A-trait-words].
+Asked for by the owner on 2026-09-22 after playing. A disposition trait's sentence used to say "More drawn to" or "Less drawn to", which reads like a statistic. Each now opens with "Likes", "Loves", "Dislikes" or "Hates", chosen by how strongly its number pulls or pushes, and the content compiler refuses a sentence whose verb disagrees with the number ([TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`). The two lines between the verbs are in `content/tuning.toml`. The capability and condition sentences were reworded in the same plain style. Done in PR 109 at merge `2ed0136`; main's CI (run 35755581216) and the Pages deployment (run 35756846314) both passed. The played check is [A-trait-words].
 
 ### [B-options-flyout] Game controls live behind one Options button
 
-Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, People and the speed controls. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry. Built on branch `twcl/options-flyout`; the design is `docs/specs/2026-09-22-options-flyout.md` and the played check is [A-options-flyout].
+Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, People and the speed controls. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry. Done in PR 111 at merge `74152ee`; main's CI (run 35757487127) and the Pages deployment (run 35757776137) both passed. The design is `docs/specs/2026-09-22-options-flyout.md` and the played check is [A-options-flyout].
 
 ### [B-walls-in-build] The Walls tool shows every wall
 
-Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Built on branch `twcl/walls-in-build`; the design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
+Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
 
 ### [B-placement-buttons] Confirm and Cancel sit over the moved object
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Built on branch `twcl/placement-buttons`; the design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
@@ -906,15 +916,20 @@ that commit, and the public page serves it. In Build mode the player picks the
 line between two floor tiles and makes it a wall, a doorway or nothing, and the
 house they build is saved. The design is `docs/specs/2026-09-21-wall-tool.md`
 and the played check is [A-wall-tool]. A Room tool builds a whole rectangular
-room in one edit, with a doorway where the player asks for one; its design is
+room in one edit, with a doorway where the player asks for one, shipped in
+PR 97 at merge `e2f60a9`; its design is
 `docs/specs/2026-09-22-room-tool.md` and its played check is [A-room-tool].
 Every vertical doorway now holds a hinged door that swings open as a sim walks
-through it, drawn with the front door's art; its design is
+through it, drawn with the front door's art, shipped in PR 98 at merge
+`2534ec5`; its design is
 `docs/specs/2026-09-22-interior-doors.md` and its played checks are
 [A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
 ([T-interior-door-art]). Floors and windows are their own entries,
 [B-floors] and [B-windows]. The larger lot is the yard, the first slice of
-[B-outside].
+[B-outside]. For PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. With rooms, walls,
+doors, furniture placement and rotation, buy mode and a saved player-edited
+lot all shipped, this entry is done; floors and windows continue in their own
+entries.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand
@@ -954,7 +969,7 @@ moves and walls as well as rooms, where a house cut in two reads "leave
 furniture out of reach" rather than "cut off the front door", so it was its
 own slice, with the wording chosen on purpose.
 
-Built on branch `twcl/reach-from-the-door`: the flood starts at the front
+Done in PR 99 at merge `ed9f5fb`; main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The flood starts at the front
 door's tile, an empty sealed room is built wherever it stands, and a house cut
 off from its door is refused for the sim or furniture the cut leaves out of
 reach. The design is `docs/specs/2026-09-22-reach-from-the-door.md` and the
@@ -973,7 +988,7 @@ needs each object's interactions serve, and the need names exist. The list can
 show them beside each price and filter by them. A one-line description per
 object is copy, and belongs with [T22].
 
-Built on branch `twcl/catalogue-browsing`: the chosen item says what it is
+Done in PR 100 at merge `8370e50`; main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The chosen item says what it is
 good for under its price, counting what it serves through Cook dinner, and a
 Show list narrows the catalogue to one need. The needs show for the chosen item
 rather than beside every price, which would crowd the list, and the build adds
@@ -993,7 +1008,7 @@ Good for line moved them further down. The fix is a
 layout for the dock that keeps each tool's confirming buttons in view, such as
 a pinned action row, checked on a phone for every Build tool.
 
-Built on branch `twcl/phone-build-dock`. Each Build tool holds its choices,
+Done in PR 102 at merge `909604a`; main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Each Build tool holds its choices,
 then a footer of its status line and the buttons that act on it. On a compact
 screen at least 481 pixels tall only the choices scroll, so Confirm, Buy,
 Build room and the wall buttons are always in view and nothing sits behind
@@ -1038,7 +1053,7 @@ a television in the Furniture tool, which draws it with the sprite for its new
 direction. Lighting knew each light by its default sprite only, so a turned
 lamp or television lit nothing around it at night and lost its own glow.
 
-Built on branch `twcl/rotated-lights`: lighting knows each light in all four
+Done in PR 103 at merge `4e6aae1`; main's CI (run 35727098559) and the Pages deployment (run 35727407232) both passed. Lighting knows each light in all four
 directions its art is drawn in, so a turned lamp or television lights the room
 and glows as it did before it was turned. The played check is
 [A-rotated-lights]. A test built on the real simulation checks every

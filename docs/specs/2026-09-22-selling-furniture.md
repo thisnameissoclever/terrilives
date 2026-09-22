@@ -1,6 +1,6 @@
 # Buy mode: selling furniture
 
-Status: [SL-slice-sell] is built, on branch `twcl/sell-furniture`. It is
+Status: [SL-slice-sell] shipped in PR 101 at merge `a342eb6`. It is
 [BM-slice-sell] in `docs/specs/2026-09-21-buy-mode.md`.
 
 The Buy tool (PR 96) spends Funds on furniture. Nothing gives any back, and a

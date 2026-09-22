@@ -1,7 +1,7 @@
 # Buy mode: colourways for furniture
 
-Status: [RC-slice-furniture] is built, on branch `twcl/colourways`, and
-[RC-slice-buy] on branch `twcl/buy-in-colour`.
+Status: [RC-slice-furniture] shipped in PR 104 at merge `cd62592`, and
+[RC-slice-buy] in PR 105 at merge `90454e7`.
 
 This is [BM-slice-recolour] of `docs/specs/2026-09-21-buy-mode.md`, the last
 part of the M1 Buy mode bullet ("catalog, placement, rotation, palette

@@ -1,6 +1,6 @@
 # Build mode: hinged doors in doorways
 
-Status: [DR-slice-derived] is built, on branch `twcl/interior-doors`.
+Status: [DR-slice-derived] shipped in PR 98 at merge `2534ec5`.
 
 This is [WT-slice-interior-doors] in `docs/specs/2026-09-21-wall-tool.md` and
 the "doors" part of [B-builder] in `docs/FEATURES.md`. The Walls and Room tools

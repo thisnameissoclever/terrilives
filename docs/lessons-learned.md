@@ -33,6 +33,7 @@ placements for unchanged items or duplicate a completed manual confirmation.
 command-time rejection, rapid reselection, Load reset and dropdown state. Removing
 the valid-preview guard failed with selected object 15 instead of 22. Restored
 builder.ts SHA256 is 8DC185DBEAC1B512188BD91330DC3DB981CB6FD55F6A3D10EFB1E67C882A9524.
+
 ## [L-wide-furniture-depth] Wall-plane depth needs compatible furniture depth
 
 **What happened.** The first clipping correction restored the laundry, toilet
@@ -75,6 +76,7 @@ candidates retain the original artwork.
 assert matching draw counts, untouched other rows and byte-identical saves.
 Played desktop and 390x844 phone checks confirm clean artwork and readable
 controls. Evening and reduced-motion checks are separate visual observations.
+
 ## [L-atlas-append-provenance] Reconcile provenance after another sprite batch merges
 
 **What happened.** Asset notes retained a 1,221-record total and door indices
@@ -193,6 +195,7 @@ release before claiming defaults survived.
 **How to verify.** Run the relative-base geometry tests, the 34-object prior
 release render comparison, and real pre-builder and pre-bathtub byte fixtures.
 Change one base direction and require old digest bridges to close.
+
 ## [L-migration-pins-both-endpoints] Reconstructing a known source does not approve the destination
 
 **What happened.** Final front-door review found that the old bathtub migration
@@ -271,6 +274,7 @@ resulting career state and settled position, not only the rendered door state.
 **How to verify.** The two career arrival regressions must pass; the targeted
 mutation run must catch all eight changed comparisons and coordinate
 subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+
 ## [L-wall-plane-depth-closeups] Review wall contact at object scale
 
 **What happened.** The shipped boundary-wall layout passed a whole-room
@@ -3106,6 +3110,7 @@ not the arithmetic; it was believing an observable existed.
 `Eating` and the released `Reserved` on the tick the command arrives. Its
 `tick_until_interacting` helper is the distinction the outside-in pass
 lacked.
+
 ## [L49] A need nothing advertises is invisible to the suite for the same reason it is inert
 
 **What happened:** `content/needs.toml` declared `social`, `content/tuning.toml`
@@ -3563,6 +3568,7 @@ object "busy", the other "contested" - and the merged result had to pick one.
 Naming is where parallel work diverges first and most visibly, and it is the
 cheapest thing to standardise in advance if a findings list is going to be split
 across sessions.
+
 ## [L57] A hand-mutation restored with `mv` reports the mutant's verdict against the original's source
 
 **What happened.** Verifying two M2d guards by hand-deletion (they are
@@ -3815,6 +3821,7 @@ a simulated day and prove no save bytes are captured or queued. While clear is
 pending, attempt manual Save and prove the only storage operation after the
 initial restore remains clear. In both cases, assert all persistence controls
 are disabled until the owner operation settles.
+
 ## [L65] A validator that models one case of a union rejects the other two silently
 
 **What happened.** `Target` names one of three things - a chain station
@@ -4122,6 +4129,7 @@ that name. Review caught both. A checker written from the failure you
 just had sees that failure and no other; the cheap correction is to ask
 what ELSE satisfies the rule you wrote, before the rule is the thing
 everyone trusts.
+
 ## [L74] A shipped checkbox left open becomes counterfeit backlog
 
 **What happened.** The feature overview correctly described save/load, time
@@ -4739,6 +4747,7 @@ or acceptance record where the owner stated it. If no such source exists,
 classify the text as a project decision rather than owner authority. Confirm
 that the replacement behavior is documented, causally tested, and played at
 the viewport where the old choice failed.
+
 ## [L-a-save-digest-exception-does-not-migrate-the-world] Accepting a fingerprint does not rebuild an old snapshot
 
 **What happened.** The aquarium mock wanted a wider cabinet, and the exercise
@@ -5585,6 +5594,7 @@ simulation.
 **How to verify.** Trace the actual support endpoints and tube radius against
 the complete cloth surface, then inspect the fold and both tails from all four
 rotations. A passing radius test alone is insufficient.
+
 ## [L-boundary-panel-endpoints] A corner post cannot close a gap between panel ends
 
 **What happened:** the back corner had a visible gap and a stray upright;
@@ -5736,6 +5746,7 @@ unchanged.
 **How to verify.** Assert the complete cycling order for every facing and shirt
 colour, assert reading order stays 0,1,2,3, then play the built animation. A
 paused pose or an unordered contact sheet cannot satisfy this check.
+
 ## [L-wall-corner-definition] Closed joins still need a visible change of plane
 
 **What happened:** continuous wall faces blended together at actual corners
@@ -6228,6 +6239,7 @@ counts. The final hidden work sample and first visible return sample must both
 begin at the physical threshold, followed by inward movement. Changing only
 the landing must change compatibility, while the specifically reviewed
 pre-door public save remains loadable.
+
 ## [L-cancelled-mutation-sweeps-are-not-local-test-results] Distinguish verification costs and coverage
 
 **What happened.** PR83 waited on two full eight-shard mutation sweeps after
@@ -6292,6 +6304,7 @@ wall contact and an occupied approach. Each `y - 1` mutation to addition or
 division fails before source restoration; all 27 placement tests then pass.
 An integration check requiring some reachable contact is not proof that the
 helper enumerates every contact the placement policy promises to protect.
+
 ## [L-continuous-wall-rejection-boundaries] Separate the conditions that reject a route
 
 **What happened.** PR84's full mutation sweep found two unconstrained wall
@@ -6567,6 +6580,7 @@ change gives the mutation sweep nothing to do.
 
 **How to verify.** PR 87 was opened as a draft holding only its design, one
 commit after the fetch that found PR 85.
+
 ## [L-first-3d-character-checkpoint] Review the actual silhouette before developing the rig
 
 **What happened.** The first local Blender character render clipped its hair
@@ -6899,6 +6913,7 @@ so.
 `crates/terri-sim/src/save.rs` fails in well under a second, and
 `a_resumed_allocator_matches_one_that_issued_as_many` in
 `crates/terri-core/src/components.rs` covers `SimIdAllocator::resumed`.
+
 ## [L-sprite-keyed-tables-miss-new-directions] Rotation added sprites that a lighting table never learned
 
 **What happened.** The furniture builder let the player turn objects, and a

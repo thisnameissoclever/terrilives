@@ -1,6 +1,6 @@
 # The Walls tool shows every wall
 
-Status: built on branch `twcl/walls-in-build`; its played check is [A-walls-in-build].
+Status: shipped in PR 112 at merge `c88ca76`; its played check is [A-walls-in-build].
 
 This is [B-walls-in-build] in `docs/FEATURES.md`, asked for by the owner on 2026-09-22. During play the house's east and south walls, and any wall or doorway on a line with house on its north or west side and yard on its south or east side, are cut away so the rooms can be seen ([OS-walls] in `docs/specs/2026-09-22-the-outside.md`). In the Walls tool that hid exactly the lines the player might want to edit.
 

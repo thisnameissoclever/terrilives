@@ -1,6 +1,6 @@
 # Confirm and Cancel over the piece being placed
 
-Status: built on branch `twcl/placement-buttons`; its played check is [A-placement-buttons].
+Status: shipped in PR 113 at merge `5b124bc`; its played check is [A-placement-buttons].
 
 This is [B-placement-buttons] in `docs/FEATURES.md`, asked for by the owner on 2026-09-22. Moving a piece of furniture put its ghost in the game view but its Confirm and Cancel in the Build panel, so nothing near the piece said the move waited on the player.
 

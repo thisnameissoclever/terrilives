@@ -1,6 +1,6 @@
 # Buy mode: the catalogue says what each thing is for
 
-Status: [CB-slice-serves] is built, on branch `twcl/catalogue-browsing`.
+Status: [CB-slice-serves] shipped in PR 100 at merge `8370e50`.
 
 This is [B-catalogue-browsing] in `docs/FEATURES.md`, found in the played check
 [A-buy-mode]; its own played check is [A-catalogue-browsing]. The Buy tool

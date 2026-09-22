@@ -1,6 +1,6 @@
 # Create-a-sim: a new housemate moves in
 
-Status: [CS-slice-housemate] built on branch `twcl/housemate-pages`; its played check is [A-housemate].
+Status: [CS-slice-housemate] shipped in PR 110 at merge `31c4edb`; its played check is [A-housemate].
 
 This is the Create-a-sim bullet of M1 in `docs/FEATURES.md`, and the start of
 [S-create-a-sim], [S-household-size] and [F-entity-lifecycle] in
