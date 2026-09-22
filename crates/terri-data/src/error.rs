@@ -1827,8 +1827,13 @@ impl fmt::Display for ContentError {
             ),
             ContentError::AffinityBandOutOfRange { field, value } => write!(
                 f,
-                "{field} is {value}; affinity_loves_from must be above 1 and \
-                 affinity_hates_to in [0, 1), so each disposition earns one verb"
+                "{field} is {value}; it must be {}, so each disposition earns \
+                 one verb",
+                if *field == "affinity_loves_from" {
+                    "above 1"
+                } else {
+                    "in [0, 1)"
+                }
             ),
             ContentError::DispositionChangesNothing { id } => write!(
                 f,

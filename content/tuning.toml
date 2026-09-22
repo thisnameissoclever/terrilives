@@ -139,9 +139,10 @@ resale_fraction = 0.5
 # The content compiler refuses a sentence with the wrong verb, so the
 # Traits panel never says more or less than the choice tables do. Exactly
 # 1 is refused: it changes no choice. 1.5 is where the library's pulls
-# start to read as more than a preference. 0.5 halves the activity's score
-# before the soft choice, a strong push away but not a refusal: the sim
-# still does it when the need is pressing enough.
+# start to read as more than a preference. 0.5 halves what the activity
+# offers before the soft choice, while its walk still costs in full: a strong
+# push away but not a refusal, so the sim still does it when the need is
+# pressing enough.
 affinity_loves_from = 1.5
 affinity_hates_to = 0.5
 
