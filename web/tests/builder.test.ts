@@ -432,3 +432,21 @@ it('recolours the chosen object and keeps it chosen', () => {
   expect(builder.status).not.toContain('recoloured');
   handle.free();
 });
+
+// [RC-ui]: a keyboard steps through the Colour list one change at a time; a
+// choice made while a change is on its way waits and follows it, and the last
+// choice is what the object ends in.
+it('sends a colourway chosen while one is on its way once that lands', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  builder.select(15);
+  expect(builder.recolour(1)).toBe(true);
+  expect(builder.recolour(2)).toBe(true);
+  expect(builder.recolour(3)).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending]).toEqual([1, true]);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending]).toEqual([3, false]);
+  expect(source.objectColourway(15)).toBe(3);
+  handle.free();
+});

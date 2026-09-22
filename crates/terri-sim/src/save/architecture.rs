@@ -44,9 +44,10 @@ pub(crate) fn restore_v3(
 
 /// [RC-save] in `docs/specs/2026-09-22-colourways.md`: the V4 envelope's
 /// checks, then each saved colourway ascending by entity index, naming a
-/// placed object in the candidate and a colourway the content has other than
-/// the first, which the writer never records. The candidate is discarded on
-/// any failure, so the running world is untouched.
+/// placed object in the candidate and never the first colourway, which the
+/// writer never records. An id the content no longer has loads as drawn, so
+/// retiring or renaming a colourway id keeps every save loading. The
+/// candidate is discarded on any failure, so the running world is untouched.
 pub(crate) fn restore_v5(
     snapshot: SaveSnapshotV5,
     content: &'static ContentPack,
@@ -76,12 +77,10 @@ pub(crate) fn restore_v5(
         active_portals,
     )?;
     for (index, id) in object_colourways {
-        let colourway = content
-            .colourways
-            .iter()
-            .position(|known| known.id == id)
-            .filter(|&colourway| colourway > 0)
-            .ok_or(SaveError::InvalidValue)?;
+        let colourway = content.colourways.iter().position(|known| known.id == id);
+        if colourway == Some(0) {
+            return Err(SaveError::InvalidValue);
+        }
         let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
             .map(|index| candidate.world.entities().resolve_from_index(index))
             .filter(|&entity| {
@@ -91,10 +90,12 @@ pub(crate) fn restore_v5(
                     .is_ok_and(|object| object.contains::<SmartObject>())
             })
             .ok_or(SaveError::InvalidValue)?;
-        candidate
-            .world
-            .entity_mut(entity)
-            .insert(Colourway(colourway as u32));
+        if let Some(colourway) = colourway {
+            candidate
+                .world
+                .entity_mut(entity)
+                .insert(Colourway(colourway as u32));
+        }
     }
     Ok(candidate)
 }

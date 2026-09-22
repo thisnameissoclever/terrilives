@@ -3375,6 +3375,16 @@ and the grey of the floor stayed as drawn.
 said "Saved game loaded", and the Colour list showed Colour 2 for the armchair
 and Rich for the sofa.
 
+**After review, the ghost elsewhere and the keyboard.** With the sofa saved in
+Rich and chosen, focusing the Colour list and pressing the up arrow twice
+stepped it to Muted, then Colour 3: the list kept focus and stayed enabled,
+and the status said "The Sectional Compromise recoloured." each time. With
+the game view focused, the arrow keys moved the ghost onto the wall by the
+bookcase, refused and red, and then to a free spot off the sofa's own tiles,
+where the ghost was drawn slate under its blue tint, the Colour 3 mauve
+rather than the teal of the art as drawn. Cancel put everything back; nothing
+was saved.
+
 **Not proven here.** A sim using a recoloured exercise bike, reading chair or
 bunk was not staged in the page; the frame test covers which picture takes
 the shift, and the shader's text test that only the furniture layer turns.

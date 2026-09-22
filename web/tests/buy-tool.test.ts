@@ -607,5 +607,8 @@ describe('the Buy tool in the page', () => {
     }
     // The ghost reaches both the instance writer and the instance count.
     expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(3);
+    // [RC-render]: the ghost of a purchase is drawn as drawn, a moved object's
+    // in the object's colourway.
+    expect(MAIN_TS).toContain('buyTool.ghost() ? 0 : builder.colourway ?? 0,');
   });
 });

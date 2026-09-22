@@ -241,8 +241,10 @@ fn fs(in: VertexOut) -> FragmentOut {
     // The furniture layer is premultiplied; only it takes the colourway of
     // the object the sim is using, never the sim or the ink over it.
     let layer = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, 0.0);
-    let prop = select(vec4f(recolour(layer.rgb / layer.a, in.colourway) * layer.a, layer.a),
-      layer, layer.a <= 0.0);
+    var prop = layer;
+    if (layer.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
+      prop = vec4f(recolour(layer.rgb / layer.a, in.colourway) * layer.a, layer.a);
+    }
     let ink = textureSampleLevel(atlasTexture, atlasSampler, outlineUv, 0.0);
     let sum = colour + prop;
     colour = ink + sum * (1.0 - ink.a);

@@ -209,7 +209,8 @@ describe('save worker recovery backup', () => {
     },
   );
 
-  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 6, 0, 77])])(
+  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 6, 0, 77]),
+    new Uint8Array([...v1.slice(0, 8), 0, 0, 77])])(
     'refuses unknown primary headers before a V5 write', async (previous) => {
       const slot = await workerSlot(previous);
       expect(await slot.request('save', v5)).toMatchObject({ ok: false });

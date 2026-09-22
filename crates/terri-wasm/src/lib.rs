@@ -4073,6 +4073,28 @@ mod boundary_tests {
     }
 
     #[test]
+    fn colourways_ptr_addresses_the_column_after_growth() {
+        let mut handle = SimHandle::new(96, 96);
+        assert!(handle.spawn_object(1.0, 1.0, "armchair"));
+        assert!(handle.set_colourway(0.0, 2.0));
+        handle.sim.flush_commands();
+        for index in 0..48 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+        handle.sim.sync_render_buffer();
+        let colourways = addressed(
+            handle.colourways_ptr(),
+            handle.entity_count(),
+            "colourways_ptr",
+        );
+        assert_eq!(colourways[0], 2, "the recoloured armchair");
+        assert!(
+            colourways[1..].iter().all(|&colourway| colourway == 0),
+            "sims carry the art as drawn"
+        );
+    }
+
+    #[test]
     fn foreground_sprites_ptr_addresses_the_optional_layer_after_growth() {
         let mut handle = SimHandle::new(96, 96);
         assert!(handle.spawn_object(1.0, 1.0, "armchair"));

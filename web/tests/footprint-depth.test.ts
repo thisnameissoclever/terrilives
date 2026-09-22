@@ -95,3 +95,34 @@ describe('colourways at the frame boundary', () => {
     expect(shiftAt(still, 1)).toEqual(none);
   });
 });
+
+// [RC-render]: the ghost takes the colourway main gives it wherever it stands
+// and whether or not it is valid, since it stands in for the chosen object.
+describe('the ghost at the frame boundary', () => {
+  const shifts = new Float32Array([0, 1, 0, 120, 1.4, -0.04]);
+  it('draws the ghost in the given colourway, valid or not, on its tiles or elsewhere', () => {
+    for (const [x, valid] of [[9, true], [9, false], [3, true], [3, false]] as const) {
+      const source = fixture(2, 1);
+      source.colourways = () => new Uint32Array([1]);
+      source.colourwayShifts = () => shifts;
+      const ghost = { valid, reason: valid ? null : 'no', x, y: 6, facing: 0, width: 2, depth: 1,
+        sprite: spriteIndex('offlineBunk'), foreground: null };
+      const count = instanceCount(source, 40, undefined, ghost, null);
+      // The ghost's art is the last slot drawing the bunk; the bunk's own row
+      // comes first.
+      const ghostSlot = (out: Float32Array) => {
+        let slot = -1;
+        for (let i = 0; i < count; i++) {
+          if (out[i * FLOATS_PER_INSTANCE + 3] === spriteIndex('offlineBunk')) slot = i;
+        }
+        return slot;
+      };
+      const out = buildInstances(source, 1, 0, 0, 16, 40, 1, false, 0, null, undefined, ghost, null, 1);
+      const slot = ghostSlot(out);
+      expect(slot, `${x} ${valid}`).toBeGreaterThan(0);
+      expect(out[slot * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE], `${x} ${valid}`).toBe(120);
+      const plain = buildInstances(source, 1, 0, 0, 16, 40, 1, false, 0, null, undefined, ghost, null, 0);
+      expect(plain[ghostSlot(plain) * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE], `${x} ${valid} as drawn`).toBe(0);
+    }
+  });
+});

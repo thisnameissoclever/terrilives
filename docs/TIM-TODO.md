@@ -118,12 +118,13 @@ yours. Nothing is blocked meanwhile.
 
 Built on branch `twcl/colourways`: the art has no palette to map, so a
 colourway turns an object's hues, scales how strongly its colours show and
-shifts its lightness, leaving ink, metal and white as drawn. The placeholders
+shifts its lightness, leaving the colour of ink, metal and white alone. The placeholders
 are declared at the end of `content/objects.toml` and named for what they do,
 since a turn changes each object differently: As drawn, Colour 2, Colour 3,
 Muted and Rich. Every object takes every colourway for now. Tell me the
 colourways you want, by name and by eye, and whether some objects should offer
-fewer; saves record a colourway by its id, so renaming one keeps saves.
+fewer. Renaming a colourway keeps saves as they are; an object saved in a
+colourway whose id is retired or renamed loads as drawn.
 
 ### [T-trait-copy] The twelve new traits need your words `[YOURS]`
 

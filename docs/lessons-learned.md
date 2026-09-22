@@ -6913,6 +6913,14 @@ list the pictures from the frame's writers (`writeInstance` callers in
 `web/src/frame.ts` and `web/src/render/`), not from the simulation's rows,
 and play the change with the object chosen as well as not.
 
-**How to verify.** "draws the candidate in the colourway of the chosen object"
-in `web/tests/placement-preview.test.ts` fails if the ghost's colourway write
-is removed.
+The first fix took the colourway from the row the ghost replaced, which the
+frame only has while the ghost is valid and on the object's own tiles; review
+found it, and main now passes the chosen object's colourway to the frame.
+Test the picture where the player sees it, in every state it can be in, not
+the writer alone.
+
+**How to verify.** "draws the ghost in the given colourway, valid or not, on
+its tiles or elsewhere" in `web/tests/footprint-depth.test.ts` drives the
+whole frame; "draws the candidate in the colourway of the chosen object" in
+`web/tests/placement-preview.test.ts` covers the writer. Removing the ghost's
+colourway write fails both.

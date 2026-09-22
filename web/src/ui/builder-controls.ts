@@ -98,7 +98,9 @@ export class BuilderControls {
     this.sell.disabled = !builder.canSell;
     this.sell.textContent = builder.saleValue === null ? 'Sell' : `Sell for ${formatFunds(builder.saleValue)}`;
     this.colour.value = builder.colourway === null ? '0' : String(builder.colourway);
-    this.colour.disabled = builder.colourway === null || builder.pending || builder.blocked
+    // Not disabled while a change is on its way: disabling the focused list
+    // would drop keyboard focus out of the panel. The builder queues it.
+    this.colour.disabled = builder.colourway === null || builder.blocked
       || builder.colourways.length < 2;
     // A chosen object that would not sell says why, as the rotation note does.
     this.saleNote.hidden = builder.saleRefusal === null;

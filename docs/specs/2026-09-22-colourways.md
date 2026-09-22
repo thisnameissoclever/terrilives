@@ -31,9 +31,11 @@ keyed on sprite numbers must learn, the mistake behind
 
 A colourway turns the object's hues and scales their strength, in a
 perceptual colour space, before lighting. Near-grey pixels (the ink outline,
-metal, white, black) have almost no hue to turn, so they stay as drawn; the
-coloured materials, such as upholstery, paint and wood, change. Shading is
-kept because lightness is kept, apart from an optional small shift. This
+metal, white, black) have almost no hue to turn or colour to scale, so they
+keep their colour; the coloured materials, such as upholstery, paint and
+wood, change. A colourway with a lightness shift, such as Rich, still lightens
+or darkens them a little: Rich takes white 255 to 242. Shading is kept
+because lightness is kept, apart from that small shift. This
 works on every object's existing art with no new assets, and the same shift
 applies to every direction and animation frame.
 
@@ -43,7 +45,8 @@ Colourways are declared in `content/objects.toml` as `[[colourway]]` entries,
 beside the objects they apply to: an id, a plain name, a hue turn in degrees,
 a colour strength factor and a lightness shift. The first entry must be the
 art as drawn, which changes nothing. The placeholders are a few shifts named
-plainly by colour. Every placed object takes every colourway until the owner
+for what they do rather than for a colour, since a hue turn changes each
+object differently. Every placed object takes every colourway until the owner
 says otherwise. The compiled table is appended to the content pack.
 
 ## [RC-command] Choosing a colourway is a lot edit
@@ -59,13 +62,15 @@ a result the shell reads, like the other lot edits.
 
 Save V5 appends `object_colourways`: for each placed object not in the first
 colourway, its index and the colourway's id, ascending by index. Ids rather
-than indices keep a save meaning the same colours when colourways are added
-or reordered. The loader refuses an entry that names no saved object, repeats
-or breaks the order, or names an id the content does not have, before the
-running world is replaced. V1 to V4 load with every object as drawn. The world
-hash gains a colourway section written only when some object has one, so every
-existing golden hash stands. The browser's storage worker writes V5 and keeps
-the V4 bytes in a recovery backup on the first V5 write over a V4 slot.
+than indices keep a save meaning the same colours when colourways are added or
+reordered, and an id the content no longer has loads as drawn, so retiring or
+renaming a colourway id never stops a save loading. The loader refuses an
+entry that names no saved object, repeats or breaks the order, or names the
+first colourway, which the writer never records, before the running world is
+replaced. V1 to V4 load with every object as drawn. The world hash gains a
+colourway section written only when some object has one, so every existing
+golden hash stands. The browser's storage worker writes V5 and keeps the V4
+bytes in a recovery backup on the first V5 write over a V4 slot.
 
 ## [RC-render] The shift reaches every picture of the object
 
@@ -95,4 +100,22 @@ keeps the object chosen; while it is on its way the status says
   layers, and the Colour list for placed furniture.
 * **[RC-slice-buy]** Choosing the colourway when buying, in the Buy tool.
 * The owner's colourways and names replace the placeholders when
-  [T-recolour-palettes] is answered; content only.
+  [T-recolour-palettes] is answered; content only, since a save naming a
+  colourway id the content no longer has loads that object as drawn.
+
+## Review record
+
+A fresh-context review of [RC-slice-furniture] found the placement ghost took
+the object's colourway only while it stood valid on the object's own tiles,
+because it was read from the row the ghost replaced; main now passes the
+chosen object's colourway, and 0 for a purchase, to the frame. It also found
+the render column's pointer untested, which the mutation sweep would have
+failed; the hash section's sort untested; a staged change naming no
+colourway hashing differently across a Load; saves refusing to load once a
+colourway id was retired, now loading that object as drawn; the Colour list
+dropping keyboard focus and sending a change per arrow press, now kept
+enabled with the latest choice waiting for the change on its way; an
+untested version-0 guard in the storage worker, now a lookup that refuses any
+version it has no backup name for; stale docs on the instance size and on
+ink and white under a lightness shift; and a divide in the in-use layer when
+there is nothing to shift. Each is fixed with a test.

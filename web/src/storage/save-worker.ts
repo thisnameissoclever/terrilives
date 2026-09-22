@@ -17,6 +17,10 @@ const V1_BACKUP_FILE = 'terri-save-1.v1-backup.bin';
 const V2_BACKUP_FILE = 'terri-save-1.v2-backup.bin';
 const V3_BACKUP_FILE = 'terri-save-1.v3-backup.bin';
 const V4_BACKUP_FILE = 'terri-save-1.v4-backup.bin';
+/** The recovery file for each older version a V5 write may replace. */
+const HISTORICAL_BACKUP_FILES: Readonly<Record<number, string>> = {
+  1: V1_BACKUP_FILE, 2: V2_BACKUP_FILE, 3: V3_BACKUP_FILE, 4: V4_BACKUP_FILE,
+};
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
@@ -117,11 +121,11 @@ async function preserveHistoricalBackup(
   const previous = await read(root);
   if (previous === null) return;
   const previousVersion = saveSchemaVersion(new Uint8Array(previous));
-  if (previousVersion === null || previousVersion < 1 || previousVersion > 5) {
+  if (previousVersion === 5) return;
+  const backupFile = previousVersion === null ? undefined : HISTORICAL_BACKUP_FILES[previousVersion];
+  if (backupFile === undefined) {
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');
   }
-  if (previousVersion === 5) return;
-  const backupFile = [V1_BACKUP_FILE, V2_BACKUP_FILE, V3_BACKUP_FILE, V4_BACKUP_FILE][previousVersion - 1];
   const existingBackup = await read(root, backupFile);
   if (existingBackup !== null) {
     if (saveSchemaVersion(new Uint8Array(existingBackup)) !== previousVersion) {

@@ -201,8 +201,9 @@ it('recolours the chosen furniture from the Colour list', () => {
   selector.value = '15'; selector.fire('change');
   expect([colour.disabled, colour.value]).toEqual([false, '0']);
   colour.value = '2'; colour.fire('change');
+  // The list stays enabled, so keyboard focus stays on it.
   expect([builder.pending, colour.disabled, node('builder-status').textContent])
-    .toEqual([true, true, 'Recolouring…']);
+    .toEqual([true, false, 'Recolouring…']);
   source.flushCommands(); builder.afterCommands();
   expect(source.lastColourwayResult()).toEqual({ object: 15, reason: null, colourway: 2 });
   expect([builder.pending, builder.selected, colour.value, node('builder-status').textContent])

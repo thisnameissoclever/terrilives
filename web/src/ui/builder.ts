@@ -35,6 +35,8 @@ export class FurnitureBuilder {
   colourway: number | null = null;
   /** The object a colourway change on its way names, until the drain reports it. */
   private recolouring: number | null = null;
+  /** A colourway chosen while a change was on its way, sent when it lands. */
+  private nextColourway: number | null = null;
   private mask = 0;
   private revision: number;
   private original: { x: number; y: number; facing: number } | null = null;
@@ -172,9 +174,15 @@ export class FurnitureBuilder {
    * while the object is in use, since it changes only how it is drawn.
    */
   recolour(colourway: number): boolean {
-    if (!this.active || this.blocked || this.pending || this.selected === null) return false;
+    if (!this.active || this.blocked || this.selected === null) return false;
     if (!Number.isInteger(colourway) || colourway < 0 || colourway >= this.colourways.length) return false;
-    if (colourway === this.colourway) return false;
+    // A keyboard steps through the list one change at a time; the latest
+    // choice waits for the change on its way and follows it.
+    if (this.recolouring !== null) {
+      this.nextColourway = colourway;
+      return true;
+    }
+    if (this.pending || colourway === this.colourway) return false;
     this.pending = this.source.setColourway(this.selected, colourway);
     if (this.pending) this.recolouring = this.selected;
     this.status = this.pending ? 'Recolouring…' : 'The colour change could not be sent.';
@@ -242,6 +250,9 @@ export class FurnitureBuilder {
         this.pending = false;
         this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
         this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
+        const next = this.nextColourway;
+        this.nextColourway = null;
+        if (next !== null) this.recolour(next);
         this.hooks.changed();
       }
     }
@@ -271,6 +282,7 @@ export class FurnitureBuilder {
     this.pending = false;
     this.selling = null;
     this.recolouring = null;
+    this.nextColourway = null;
     this.clearSelection();
     this.revision = this.source.lotRevision();
     if (this.active) this.refreshObjects();
