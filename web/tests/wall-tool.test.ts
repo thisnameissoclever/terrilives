@@ -485,7 +485,7 @@ describe('the Walls tool in the page', () => {
     // The canvas listener handles every key; the document listener catches
     // Escape wherever focus is.
     expect(MAIN_TS.split('routeBuildKey(event.key, buildTools, builder)')).toHaveLength(3);
-    expect(MAIN_TS).toContain('const buildTools = [wallTool, roomTool, buyTool] as const;');
+    expect(MAIN_TS).toContain('const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;');
     expect(MAIN_TS).toContain("wallTool.setBlocked(overlayPause.suspendedExcept('builder'))");
   });
 });

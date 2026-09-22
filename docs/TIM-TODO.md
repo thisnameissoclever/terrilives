@@ -106,6 +106,19 @@ front door, the vertical direction too, matched to the existing wall art.
 Tell me whether to draft them with the generator for you to accept or reject,
 or whether you would rather supply them. Nothing is blocked meanwhile.
 
+### [T-floor-art] Floors that look like floors `[YOURS]`
+
+The Floors tool lays a covering on a tile, and there is one floor sprite, so
+Boards, Tiles and Carpet are that sprite under three colour shifts: warmer and
+darker, cooler and paler, deeper and softer. They read as three shades of the
+same floor rather than as three materials. What is needed: floor art per
+covering, tiling cleanly across neighbouring tiles at the isometric angle the
+rest of the art uses, and ideally a name apiece that the tool can show. The
+covering list in `content/lot.toml` grows by appending, so new art is a
+content edit rather than a code change. Tell me whether to draft them with the
+generator for you to accept or reject, or whether you would rather supply
+them. Nothing is blocked meanwhile.
+
 ### [T-window-art] Glazed wall panels for the Walls tool `[YOURS]`
 
 The Walls tool now fits windows: a line that stops people and lets the
