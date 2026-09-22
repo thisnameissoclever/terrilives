@@ -3544,6 +3544,15 @@ The first attempt put the pair about 60 pixels above every piece: the anchor lef
 
 **Not proven here.** A pinch zoom and a physical phone were not used.
 
+## [A-phone-toggle-triangles] The phone's person and How they feel toggles show a triangle
+
+Checked on 2026-09-22 against the port 5174 dev server at 375 by 812, in a headless Chromium driven by Playwright, on the household the page started with (Tim, Bill and Casey on Day 1). The server was serving another session's worktree on branch `twcl/yard-daylight` (commit af6319e), and taking the port for this branch was refused as interfering with that session's server. That branch has the same compact caption rule and the same two `<summary class="needs-caption">` elements as `origin/main`, so this branch's new rules were added to the served page as a style tag and the toggles were used with real clicks. The desktop app's browser pane was hidden and dropped every click, which is why Playwright was used.
+
+With Menu open and before the rules, the "Tim" and "How Tim feels" toggles were each 44 pixels tall with no triangle. With the rules, each showed a small triangle to the left of its caption, pointing right. Clicking each toggle opened its panel and turned its triangle to point down; clicking again closed the panel and turned it back. Both toggles stayed 44 pixels tall in every state, with the caption 13 pixels from the top and 14 from the bottom. With the People caption set to "How Annabelle feels", it wrapped to two lines and the toggle stayed one 44-pixel target, the text 4 pixels from the top and 5 from the bottom, with the triangle still showing.
+
+Review found that Windows High Contrast paints transparent borders in the system text colour, which made each triangle a solid bar; emulating forced colours in the same browser showed the bar. With the triangle opted out of forced colours and drawn in `CanvasText`, the page in dark forced colours showed a white triangle on the black panel beside each yellow caption, pointing right on the closed "Tim" and down on the open "How Tim feels".
+
+**Not proven here.** This branch's own server was not run, so the rules were checked by adding them to the served page rather than as shipped; `web/tests/mobile-hud.test.ts` pins them in `web/index.html`. Safari, where the browser's own marker is hidden by the `::-webkit-details-marker` rule, and a physical phone were not used.
 ## [A-chair-click-target] The empty space above the reading chair is no longer the chair
 
 Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/chair-content-bounds` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save at Day 2, 00:41. The server belongs to another session's worktree; it lent me the port and I put its own server back afterwards.
