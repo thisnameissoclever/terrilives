@@ -817,6 +817,15 @@ export class SimBridge {
     return this.handle.interior_door_lines();
   }
 
+  /**
+   * The lines that are windows, three words each: axis (0 vertical), x, y
+   * ([WN-state] in `docs/specs/2026-09-22-windows.md`). Separate from
+   * `wallEdges` so a window can never be read as a doorway.
+   */
+  windowLines(): Uint32Array {
+    return this.handle.window_lines();
+  }
+
   /** Undefined is legacy architecture; an empty array is an open edge layout. */
   wallEdges(): Uint32Array | undefined {
     return this.handle.wall_layout_kind() === 1 ? this.handle.wall_edges() : undefined;

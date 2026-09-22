@@ -1281,7 +1281,8 @@ describe('SimBridge', () => {
       ['SetColourway missing its colourway', [0x0c, 0x01]],
       ['BuyObject missing its facing', [0x09, 0x01, 0x02, 0x03]],
       ['BuildRoom missing its doorway option', [0x0a, 0x01, 0x02, 0x03, 0x04]],
-      ['SetWallEdge with a state past the three that exist', [0x08, 0x00, 0x01, 0x02, 0x03]],
+      // 3 is Window since [WN-state]; 4 is the first unused code.
+      ['SetWallEdge with a state past the four that exist', [0x08, 0x00, 0x01, 0x02, 0x04]],
       ['variant index 0xFF', [0xff]],
       ['TalkTo missing its interaction field', [0x04, 0x03, 0x05]],
       ['UseObjectFirst missing its interaction field', [0x05, 0x03, 0x09]],

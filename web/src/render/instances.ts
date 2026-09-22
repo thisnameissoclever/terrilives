@@ -241,3 +241,22 @@ export function growCapacity(current: number, needed: number): number {
 export function writeShade(out: Float32Array, index: number, shade: number): void {
   out[index * FLOATS_PER_INSTANCE + OFFSET_SHADE] = shade;
 }
+
+/**
+ * The pale wash a window is drawn in until there is window art ([WN-art] in
+ * `docs/specs/2026-09-22-windows.md`). Cool and light rather than a colour
+ * nothing else in the house uses, because it has to read as glass in a wall
+ * rather than as a mistake.
+ */
+export const WINDOW_TINT = [0.72, 0.86, 1] as const;
+
+/**
+ * Tints an instance as a window, after `writeInstance` has written it as the
+ * wall panel it borrows its art from.
+ */
+export function writeWindowTint(out: Float32Array, index: number): void {
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_TINT_R] = WINDOW_TINT[0];
+  out[base + OFFSET_TINT_R + 1] = WINDOW_TINT[1];
+  out[base + OFFSET_TINT_R + 2] = WINDOW_TINT[2];
+}

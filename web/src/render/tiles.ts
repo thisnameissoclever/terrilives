@@ -32,6 +32,7 @@ import {
   writeInstance,
   writeShade,
   type InstanceArray,
+  writeWindowTint,
 } from './instances.js';
 import {
   sampleLight,
@@ -63,6 +64,11 @@ export interface Lot {
    * frame is drawn there, so the empty doorway panel is left out.
    */
   readonly doors?: Uint32Array | null;
+  /**
+   * The lines that are windows, three words each ([WN-state]). Drawn in
+   * wall art in a paler tint until there is window art ([WN-art]).
+   */
+  readonly windows?: Uint32Array | null;
   /**
    * The house's `[width, height]` from the lot's north-west corner; every
    * other tile is yard ([OS-yard]). Absent, the whole lot is house.
@@ -176,7 +182,8 @@ export function buildStaticInstances(
   const house = lot.house ?? [lot.width, lot.height];
   const edgePanels = lot.edges == null ? null
     : buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
-      [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.showCutAwayWalls === true);
+      [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.showCutAwayWalls === true,
+      lot.windows ?? []);
   // The yard's and the street's looks as a shift table, so a yard tile
   // writes row 1 and a street tile row 2 exactly as a colourway does
   // ([RC-shift]).
@@ -357,8 +364,13 @@ export function buildStaticInstances(
     }
     // A wall spans a plane, not the constant-depth billboard used by furniture.
     // Doors share that plane; their transparent aperture remains in the atlas.
-    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' ? 5 : 10);
+    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS'
+      || (panel.window === true && panel.spriteName === 'wallNS') ? 5 : 10);
     write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask, shade);
+    // [WN-art]: there is no window art, so a window is its wall panel in a
+    // paler tint. The tint is the only thing that says which lines are
+    // glazed, so it goes until [T-window-art] lands.
+    if (panel.window === true) writeWindowTint(instances, slot - 1);
   }
   for (const [x, y, sprite] of boundary) {
     write(
