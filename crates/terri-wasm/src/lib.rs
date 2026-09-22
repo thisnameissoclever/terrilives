@@ -1106,6 +1106,17 @@ impl SimHandle {
             .collect()
     }
 
+    /// The front door's line, as an `[x, y]` pair, or empty on a lot with no
+    /// front door - [WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`.
+    /// The door draws its own frame there, so when the Walls tool shows the
+    /// house's front walls the shell leaves out that line's doorway panel.
+    pub fn front_door_lines(&self) -> Vec<u32> {
+        terri_sim::portals::front_door_lines(self.sim.world())
+            .into_iter()
+            .flat_map(|(x, y)| [x, y])
+            .collect()
+    }
+
     /// Portals have no entity IDs and cannot become interaction targets.
     pub fn portal_count(&self) -> usize {
         self.sim.portal_buffer().states.len()
@@ -5331,6 +5342,16 @@ mod boundary_tests {
     /// find by the returned index; an index that is not a whole number is
     /// refused there, and one past the table by the drain. The form's lists
     /// and limits come from content.
+    /// [WB-draw]: the shipped front door's line, the one the Walls tool
+    /// must not draw a second frame on.
+    #[test]
+    fn the_front_door_line_crosses_the_boundary() {
+        let handle = SimHandle::from_lot();
+        let door = handle.front_door_lines();
+        assert_eq!(door.len(), 2);
+        assert_eq!(door[0], handle.house_size()[0]);
+    }
+
     #[test]
     fn a_move_in_is_staged_through_the_boundary() {
         let mut handle = SimHandle::from_lot();

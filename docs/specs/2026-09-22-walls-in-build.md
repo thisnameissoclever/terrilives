@@ -8,6 +8,8 @@ This is [B-walls-in-build] in `docs/FEATURES.md`, asked for by the owner on 2026
 
 While the Walls tool or the Room tool is in use, every wall and doorway on the lot's edge list is drawn, the cut-away ones included. Leaving the tool, or leaving Build, cuts them away again. The back walls still run along the house's north and west sides only, so the yard's edge gains no wall. The Furniture and Buy tools keep the cut-away view, since furniture is placed inside the rooms.
 
+The front door draws its own frame on its line, so that line's empty doorway panel is left out, as a hinged interior door's is; the shell reads the line from the boundary's `front_door_lines`.
+
 Only the drawing changes. Sims and light already read the edge list, not the drawn panels, so nothing a sim does and no light changes when the walls appear. The yard's floor keeps its look, which follows the house's size separately. The static floor and wall block is rebuilt when the choice changes, not on every click in the tool.
 
 ## [WB-evidence] Evidence

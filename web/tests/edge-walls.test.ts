@@ -117,6 +117,9 @@ describe('a house standing in a yard', () => {
       panels.filter((p) => p.x >= 0 && p.y >= 0);
     expect(withoutBack(shown)).toEqual(withoutBack(buildEdgeWallGeometry(5, 4, all)));
     expect(shown.filter((p) => p.mask === 0)).toHaveLength(1);
+    // The cut-away wall at x = 3 meets the north back wall at the house's
+    // corner: an arm down and an arm west.
+    expect(shown.find((p) => p.x === 2.5 && p.y === -0.5)?.mask).toBe(12);
     expect(buildEdgeWallGeometry(5, 4, new Uint32Array(), [], [3, 2], true))
       .toEqual(buildEdgeWallGeometry(5, 4, new Uint32Array(), [], [3, 2]));
   });
