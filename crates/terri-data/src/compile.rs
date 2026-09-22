@@ -13,10 +13,11 @@ use crate::pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, ObjectDefId, Tuning,
 };
-use crate::pack::{Facing, FacingSprites};
+use crate::pack::{CompiledColourway, Facing, FacingSprites};
 use crate::schema::{
-    AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
-    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef, VoiceFile,
+    AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef, LotFile,
+    NeedsFile, ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef,
+    VoiceFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::layout::WallEdge;
@@ -105,6 +106,9 @@ pub fn compile(
     voice_clip_ticks: Vec<u32>,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
+    // Colourways ride in objects.toml but apply to every object; they are
+    // validated last, on their own.
+    let colourway_defs = objects.colourway.clone();
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
         sprite: SIM_SPRITE.to_string(),
     })? as u32;
@@ -544,6 +548,7 @@ pub fn compile(
     // `social` runs the other way and at runtime, where the draw reads both.
     let voice_clips = compile_voice(voice, voice_clip_ticks)?;
     check_voice_floor(&voice_clips, &tuning)?;
+    let colourways = compile_colourways(&colourway_defs)?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
@@ -563,7 +568,69 @@ pub fn compile(
         sleep_tag,
         voice_clips,
         portals,
+        colourways,
     })
+}
+
+/// The largest hue turn a colourway may ask for, in degrees either way.
+const COLOURWAY_HUE_LIMIT: f32 = 180.0;
+/// The largest factor a colourway may scale the art's colours by.
+const COLOURWAY_STRENGTH_MAX: f32 = 2.0;
+/// The largest lightness shift a colourway may ask for, either way.
+const COLOURWAY_LIGHTNESS_LIMIT: f32 = 0.25;
+
+/// Validates the colourways declared in `content/objects.toml` - [RC-content]
+/// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
+/// the art as drawn; ids are unique and, like names, not empty; each shift
+/// is a number within the range the shader is built for.
+fn compile_colourways(defs: &[ColourwayDef]) -> Result<Vec<CompiledColourway>, ContentError> {
+    let mut seen = BTreeSet::new();
+    for (index, def) in defs.iter().enumerate() {
+        let colourway = || def.id.clone();
+        if def.id.is_empty() || def.name.is_empty() {
+            return Err(ContentError::EmptyColourwayText {
+                colourway: colourway(),
+            });
+        }
+        if !seen.insert(def.id.as_str()) {
+            return Err(ContentError::DuplicateColourway {
+                colourway: colourway(),
+            });
+        }
+        for (field, value, low, high) in [
+            ("hue", def.hue, -COLOURWAY_HUE_LIMIT, COLOURWAY_HUE_LIMIT),
+            ("strength", def.strength, 0.0, COLOURWAY_STRENGTH_MAX),
+            (
+                "lightness",
+                def.lightness,
+                -COLOURWAY_LIGHTNESS_LIMIT,
+                COLOURWAY_LIGHTNESS_LIMIT,
+            ),
+        ] {
+            // `contains` is false for NaN, so a missing number is refused too.
+            if !(low..=high).contains(&value) {
+                return Err(ContentError::ColourwayOutOfRange {
+                    colourway: colourway(),
+                    field: field.to_string(),
+                });
+            }
+        }
+        if index == 0 && (def.hue != 0.0 || def.strength != 1.0 || def.lightness != 0.0) {
+            return Err(ContentError::FirstColourwayNotAsDrawn {
+                colourway: colourway(),
+            });
+        }
+    }
+    Ok(defs
+        .iter()
+        .map(|def| CompiledColourway {
+            id: def.id.clone(),
+            name: def.name.clone(),
+            hue: def.hue,
+            strength: def.strength,
+            lightness: def.lightness,
+        })
+        .collect())
 }
 
 /// Validates `content/voice.toml` against the lengths the build script read
@@ -3346,6 +3413,8 @@ mod tests {
         25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
+        // The empty colourway vector, appended after the portals ([RC-content]).
+        0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3424,6 +3493,7 @@ mod tests {
     /// assume it.
     fn three_objects() -> ObjectsFile {
         ObjectsFile {
+            colourway: Vec::new(),
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
@@ -3569,6 +3639,7 @@ mod tests {
     /// `one_object` with a footprint, for the rules that need a rectangle.
     fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
+            colourway: Vec::new(),
             object: vec![ObjectDef {
                 roles: vec![],
                 action_socket: vec![],
@@ -4412,16 +4483,18 @@ mod tests {
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
         );
-        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 1;
+        // The portal vector, then the colourway vector, each empty here, are
+        // the two bytes appended after the established pack.
+        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 2;
         assert_eq!(
             &bytes[..established_prefix_len],
             &GOLDEN_PACK_BYTES[..established_prefix_len],
-            "adding the portal vector must not move an established pack byte"
+            "adding the portal and colourway vectors must not move an established pack byte"
         );
         assert_eq!(
             &bytes[established_prefix_len..],
-            &[0],
-            "a coordinate-only lot appends one empty portal-vector byte"
+            &[0, 0],
+            "a coordinate-only lot with no colourways appends one empty byte for each vector"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
     }
@@ -5496,6 +5569,7 @@ mod tests {
     /// holds art for, which is enough: no rule below needs a fourth object.
     fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
         ObjectsFile {
+            colourway: Vec::new(),
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
@@ -8467,6 +8541,7 @@ mod tests {
         let pack = compile_objects(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![reading_object()],
             },
         )
@@ -8519,6 +8594,7 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![object],
                 },
             )
@@ -8621,6 +8697,7 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![donor, reader],
                 }
             )
@@ -8755,6 +8832,7 @@ mod tests {
             let pack = compile_bare(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![reading_object()],
                 },
                 lot,
@@ -8815,6 +8893,7 @@ mod tests {
                 compile_bare(
                     full_needs(),
                     ObjectsFile {
+                        colourway: Vec::new(),
                         object: vec![object],
                     },
                     bare_lot(),
@@ -8866,6 +8945,7 @@ mod tests {
             compile_bare(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![object],
                 },
                 lot,
@@ -8903,6 +8983,7 @@ mod tests {
         let pack = compile_bare(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![object],
             },
             lot,
@@ -9251,6 +9332,7 @@ mod tests {
         compile(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0), ("sink", 3.0, 1.0)]),
@@ -9666,6 +9748,7 @@ mod tests {
         let err = compile(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0)]),
@@ -9754,6 +9837,7 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![fridge],
                 },
             )
@@ -9797,5 +9881,139 @@ mod tests {
             VoiceFile { clip: vec![] },
             vec![],
         )
+    }
+
+    fn colourway(id: &str, hue: f32, strength: f32, lightness: f32) -> ColourwayDef {
+        ColourwayDef {
+            id: id.to_string(),
+            name: id.to_uppercase(),
+            hue,
+            strength,
+            lightness,
+        }
+    }
+
+    fn as_drawn() -> ColourwayDef {
+        colourway("as_drawn", 0.0, 1.0, 0.0)
+    }
+
+    fn with_colourways(colourways: Vec<ColourwayDef>) -> Result<ContentPack, ContentError> {
+        let mut objects = three_objects();
+        objects.colourway = colourways;
+        compile_objects(full_needs(), objects)
+    }
+
+    /// [RC-content] in `docs/specs/2026-09-22-colourways.md`: colourways
+    /// compile in content order, and a pack may have none.
+    #[test]
+    fn colourways_compile_in_content_order() {
+        let pack =
+            with_colourways(vec![as_drawn(), colourway("rich", 120.0, 1.3, -0.05)]).expect("valid");
+        assert_eq!(
+            pack.colourways,
+            [
+                CompiledColourway {
+                    id: "as_drawn".into(),
+                    name: "AS_DRAWN".into(),
+                    hue: 0.0,
+                    strength: 1.0,
+                    lightness: 0.0,
+                },
+                CompiledColourway {
+                    id: "rich".into(),
+                    name: "RICH".into(),
+                    hue: 120.0,
+                    strength: 1.3,
+                    lightness: -0.05,
+                },
+            ]
+        );
+        assert!(with_colourways(vec![])
+            .expect("valid")
+            .colourways
+            .is_empty());
+    }
+
+    /// [RC-content]: the first colourway is the art as drawn, so an object
+    /// with no colourway and one in the first look the same.
+    #[test]
+    fn the_first_colourway_is_the_art_as_drawn() {
+        for first in [
+            colourway("warm", 10.0, 1.0, 0.0),
+            colourway("warm", 0.0, 0.9, 0.0),
+            colourway("warm", 0.0, 1.0, 0.1),
+        ] {
+            assert_eq!(
+                with_colourways(vec![first, as_drawn()]).unwrap_err(),
+                ContentError::FirstColourwayNotAsDrawn {
+                    colourway: "warm".into()
+                }
+            );
+        }
+    }
+
+    /// [RC-content]: a save records a colourway by id, so an id names one.
+    #[test]
+    fn a_colourway_id_is_declared_once() {
+        let err = with_colourways(vec![
+            as_drawn(),
+            colourway("muted", 0.0, 0.5, 0.0),
+            colourway("muted", 0.0, 0.6, 0.0),
+        ])
+        .unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::DuplicateColourway {
+                colourway: "muted".into()
+            }
+        );
+    }
+
+    /// [RC-content]: the Colour list shows a name, and a save an id.
+    #[test]
+    fn a_colourway_has_an_id_and_a_name() {
+        let mut nameless = colourway("muted", 0.0, 0.5, 0.0);
+        nameless.name = String::new();
+        for bad in [colourway("", 0.0, 0.5, 0.0), nameless] {
+            let id = bad.id.clone();
+            assert_eq!(
+                with_colourways(vec![as_drawn(), bad]).unwrap_err(),
+                ContentError::EmptyColourwayText { colourway: id }
+            );
+        }
+    }
+
+    /// [RC-shift]: each shift stays in the range the shader is built for, and
+    /// the ends of each range are allowed.
+    #[test]
+    fn colourway_shifts_stay_in_range() {
+        for (hue, strength, lightness, field) in [
+            (180.5, 1.0, 0.0, "hue"),
+            (-180.5, 1.0, 0.0, "hue"),
+            (f32::NAN, 1.0, 0.0, "hue"),
+            (0.0, -0.1, 0.0, "strength"),
+            (0.0, 2.1, 0.0, "strength"),
+            (0.0, f32::INFINITY, 0.0, "strength"),
+            (0.0, 1.0, 0.26, "lightness"),
+            (0.0, 1.0, -0.26, "lightness"),
+            (0.0, 1.0, f32::NAN, "lightness"),
+        ] {
+            assert_eq!(
+                with_colourways(vec![as_drawn(), colourway("odd", hue, strength, lightness)])
+                    .unwrap_err(),
+                ContentError::ColourwayOutOfRange {
+                    colourway: "odd".into(),
+                    field: field.into(),
+                },
+                "{hue} {strength} {lightness}"
+            );
+        }
+        for (hue, strength, lightness) in [(180.0, 2.0, 0.25), (-180.0, 0.0, -0.25)] {
+            assert!(with_colourways(vec![
+                as_drawn(),
+                colourway("edge", hue, strength, lightness)
+            ])
+            .is_ok());
+        }
     }
 }

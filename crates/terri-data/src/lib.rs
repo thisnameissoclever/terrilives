@@ -845,6 +845,32 @@ mod tests {
         }
     }
 
+    /// [RC-content] in `docs/specs/2026-09-22-colourways.md`: the shipped pack
+    /// offers colourways, the first leaving the art as drawn and each other
+    /// one changing it. The names are placeholders until the owner chooses,
+    /// [T-recolour-palettes] in `docs/TIM-TODO.md`.
+    #[test]
+    fn the_shipped_pack_offers_colourways_starting_with_the_art_as_drawn() {
+        let colourways = &pack().colourways;
+        assert!(colourways.len() >= 3, "{colourways:?}");
+        let first = &colourways[0];
+        assert_eq!(
+            (first.id.as_str(), first.name.as_str()),
+            ("as_drawn", "As drawn")
+        );
+        assert_eq!(
+            (first.hue, first.strength, first.lightness),
+            (0.0, 1.0, 0.0)
+        );
+        for colourway in &colourways[1..] {
+            assert!(
+                colourway.hue != 0.0 || colourway.strength != 1.0 || colourway.lightness != 0.0,
+                "{} leaves the art as drawn",
+                colourway.id
+            );
+        }
+    }
+
     /// The shipped dinner chain, end to end through the embedded pack:
     /// four steps at four stations, hands that add up (yield, carry,
     /// transform, consume), the cooking tag on the hob step where

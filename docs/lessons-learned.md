@@ -6947,3 +6947,32 @@ after a sale, and
 compares a loaded world's next purchase with continuous play, both in
 `crates/terri-sim/src/placement/sale_tests.rs`. Replacing `despawn_no_free` in
 the sale with `despawn` fails both.
+
+## [L-list-every-picture-of-an-object] The colourway design missed the placement ghost
+
+**What happened.** The colourways design listed the pictures an object's
+colourway must reach: its own row, its foreground layer and the furniture
+layer inside a sim using it. It said the placement ghost keeps its tints and
+nothing more. In play, recolouring the chosen sofa changed nothing on screen,
+because while an object is chosen the Furniture tool hides it and draws the
+ghost in its place.
+
+**Root cause.** The list was built from the render buffer's rows, and the
+ghost is not a row: the shell draws it from the builder's preview.
+
+**Prevention rule.** When a change must reach every picture of an object,
+list the pictures from the frame's writers (`writeInstance` callers in
+`web/src/frame.ts` and `web/src/render/`), not from the simulation's rows,
+and play the change with the object chosen as well as not.
+
+The first fix took the colourway from the row the ghost replaced, which the
+frame only has while the ghost is valid and on the object's own tiles; review
+found it, and main now passes the chosen object's colourway to the frame.
+Test the picture where the player sees it, in every state it can be in, not
+the writer alone.
+
+**How to verify.** "draws the ghost in the given colourway, valid or not, on
+its tiles or elsewhere" in `web/tests/footprint-depth.test.ts` drives the
+whole frame; "draws the candidate in the colourway of the chosen object" in
+`web/tests/placement-preview.test.ts` covers the writer. Removing the ghost's
+colourway write fails both.

@@ -331,6 +331,7 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // fixture's career return route through shipped geometry it did not
         // ask to exercise. Portal tests install their own compiled row.
         portals: Vec::new(),
+        colourways: Vec::new(),
     }))
 }
 

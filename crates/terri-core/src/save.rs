@@ -12,9 +12,23 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 4;
+pub const SAVE_SCHEMA_VERSION: u16 = 5;
 
-/// Current envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
+/// Current envelope - [RC-save] in `docs/specs/2026-09-22-colourways.md`: the
+/// V4 envelope with each placed object's colourway appended, for the objects
+/// not in the first, as drawn. Each entry is a saved entity index, ascending,
+/// and a colourway id, so a save means the same colours when colourways are
+/// added or reordered.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV5 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    pub object_facings: Vec<(u32, u8)>,
+    pub retired_indices: Vec<u32>,
+    pub object_colourways: Vec<(u32, String)>,
+}
+
+/// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
 /// the V3 envelope with the entity indices sales have retired appended. A
 /// retired index belongs to no entity and is never handed out again, so the
 /// loader must not free it the way it frees the other gaps in the numbering.
@@ -299,5 +313,13 @@ pub enum SavedCommand {
     /// `PlaceObject` names its object.
     SellObject {
         object: u32,
+    },
+    /// [RC-command]. A colourway change staged just before a save. The
+    /// colourway is its id, as `BuyObject` records its object; `None` records
+    /// an index the pack had no colourway for, which restores as one the
+    /// drain refuses.
+    SetColourway {
+        object: u32,
+        colourway: Option<String>,
     },
 }

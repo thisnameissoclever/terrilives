@@ -46,6 +46,7 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
   16: 'Nothing else in the house can do its job.',
+  17: 'That colour is not available.',
 };
 
 /** One object for sale - [BM-shell]. */
@@ -66,6 +67,13 @@ export interface SalePreview {
   readonly reason: string | null;
   /** What the sale would pay back; zero when it would not sell. */
   readonly payout: number;
+}
+
+/** What the drain did with the last colourway change ([RC-command]). */
+export interface ColourwayResult {
+  readonly object: number;
+  readonly reason: string | null;
+  readonly colourway: number;
 }
 
 /** What the drain did with the last sale; `payout` is zero when nothing sold. */
@@ -276,6 +284,39 @@ export class SimBridge {
     const values = this.handle.last_sale_result();
     return values.length === 0 ? null
       : { object: values[0], reason: placementReason(values[1]), payout: values[2] };
+  }
+
+  /** The colourway names, in content order; the first is the art as drawn ([RC-ui]). */
+  colourwayNames(): string[] {
+    return this.handle.colourway_names();
+  }
+
+  /**
+   * `[hue, strength, lightness]` per colourway, flattened, for the shader
+   * ([RC-shift]). Content, so read once and kept: the frame asks every frame
+   * and must not allocate ([D11]).
+   */
+  colourwayShifts(): Float32Array {
+    this.shifts ??= this.handle.colourway_shifts();
+    return this.shifts;
+  }
+  private shifts: Float32Array | undefined;
+
+  /** The colourway a placed object is drawn in, or null when nothing placed carries `object`. */
+  objectColourway(object: number): number | null {
+    const colourway = this.handle.object_colourway(object);
+    return colourway === 0xffffffff ? null : colourway;
+  }
+
+  /** Queue acceptance only; read the outcome from `lastColourwayResult`. */
+  setColourway(object: number, colourway: number): boolean {
+    return this.handle.set_colourway(object, colourway);
+  }
+
+  lastColourwayResult(): ColourwayResult | null {
+    const values = this.handle.last_colourway_result();
+    return values.length === 0 ? null
+      : { object: values[0], reason: placementReason(values[1]), colourway: values[2] };
   }
 
   /** Queue acceptance only; read the outcome from `lastPurchaseResult`. */
@@ -617,6 +658,15 @@ export class SimBridge {
     return new Uint32Array(
       this.memory.buffer,
       this.handle.sprites_ptr(),
+      this.count,
+    );
+  }
+
+  /** Each row's colourway, 0 for the art as drawn ([RC-render]). */
+  colourways(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.colourways_ptr(),
       this.count,
     );
   }

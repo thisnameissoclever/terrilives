@@ -37,7 +37,7 @@ describe('portal rendering', () => {
     for (const base of [frameBase, leafBase]) {
       expect(out[base + OFFSET_WALL_MASK]).toBe(0);
       expect(out[base + OFFSET_WALL_DEPTH_STEP]).toBe(0);
-      expect(Array.from(out.subarray(base + OFFSET_FOOTPRINT_SPAN, base + FLOATS_PER_INSTANCE))).toEqual([0, 0]);
+      expect(Array.from(out.subarray(base + OFFSET_FOOTPRINT_SPAN, base + OFFSET_FOOTPRINT_SPAN + 2))).toEqual([0, 0]);
     }
     expect(out[0]).toBe(-999);
     expect(out[3 * FLOATS_PER_INSTANCE]).toBe(-999);
@@ -62,7 +62,7 @@ describe('portal rendering', () => {
     for (const base of [0, FLOATS_PER_INSTANCE]) {
       expect(instances[base + OFFSET_WALL_MASK]).toBe(0);
       expect(instances[base + OFFSET_WALL_DEPTH_STEP]).toBe(0);
-      expect(Array.from(instances.subarray(base + OFFSET_FOOTPRINT_SPAN, base + FLOATS_PER_INSTANCE))).toEqual([0, 0]);
+      expect(Array.from(instances.subarray(base + OFFSET_FOOTPRINT_SPAN, base + OFFSET_FOOTPRINT_SPAN + 2))).toEqual([0, 0]);
     }
     expect(source.count).toBe(0);
   });

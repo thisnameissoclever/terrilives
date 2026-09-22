@@ -21,6 +21,7 @@ import {
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
+  writeColourway,
   type InstanceArray,
 } from './render/instances.js';
 import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
@@ -814,6 +815,10 @@ export interface RenderSource {
   sprites(): Uint32Array;
   /** Optional authored object layer drawn in front of a socket-projected sim. */
   foregroundSprites?(): Uint32Array;
+  /** Each row's colourway, 0 for the art as drawn ([RC-render]). */
+  colourways?(): Uint32Array;
+  /** The colourway shift table, `[hue, strength, lightness]` flattened; static content. */
+  colourwayShifts?(): Float32Array;
   /** Current oriented furniture dimensions, used for depth and preview replacement. */
   footprintWidths?(): Uint32Array;
   footprintDepths?(): Uint32Array;
@@ -944,6 +949,8 @@ export function buildInstances(
   interactions: InteractionSelection = frameInteractions,
   placement: PlacementPreview | null = null,
   highlight: TileHighlight | null = null,
+  /** The colourway the ghost is drawn in: a moved object's, 0 for a purchase ([RC-render]). */
+  placementColourway = 0,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -971,6 +978,8 @@ export function buildInstances(
   const facings = source.facings();
   const ids = source.ids();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  const colourways = source.colourways?.() ?? null;
+  const colourwayShifts = source.colourwayShifts?.() ?? null;
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
@@ -1052,6 +1061,14 @@ export function buildInstances(
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),
     );
+    // [RC-render]: an object takes its own colourway; a sim drawn using an
+    // object takes that object's, which the shader applies to the furniture
+    // layer only.
+    if (colourways !== null && colourwayShifts !== null) {
+      const colourwayRow = interactions.bodies[i] >= 0 ? interactions.targetRows[i]
+        : kinds[i] === KIND_AGENT ? -1 : i;
+      if (colourwayRow >= 0) writeColourway(scratch, i, colourwayShifts, colourways[colourwayRow]);
+    }
     writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
   }
@@ -1087,6 +1104,9 @@ export function buildInstances(
         TINT_NONE,
         Math.max(emissiveForSprite(sprite), localLight),
       );
+      if (colourways !== null && colourwayShifts !== null) {
+        writeColourway(scratch, slot - 1, colourwayShifts, colourways[i]);
+      }
       writeFootprintProjection(scratch, slot - 1, footprintWidths?.[i] ?? 0,
         footprintDepths?.[i] ?? 0, sprite, gridSize);
     }
@@ -1232,7 +1252,8 @@ export function buildInstances(
     );
   }
 
-  slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting);
+  slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
+    colourwayShifts, placementColourway);
   writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   return scratch;
 }

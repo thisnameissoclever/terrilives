@@ -21,6 +21,12 @@
 //         completely. A lamp that dimmed as night fell would be exactly
 //         backwards, and that is what this component is for.
 //
+// @location(3) colourway - [RC-render] in docs/specs/2026-09-22-colourways.md:
+//   x = degrees the object's hues turn
+//   y = its colour strength minus one
+//   z = a lightness shift
+//   All zero for the art as drawn, which returns every colour unchanged.
+//
 // Not alpha for a mechanical reason as well as a naming one: the
 // fragment shader alpha-TESTS at 0.5 and writes depth, so anything
 // scaling alpha would move the discard threshold and erode every sprite
@@ -102,6 +108,7 @@ struct VertexOut {
   @location(1) tint: vec4<f32>,
   @location(5) localPixel: vec2<f32>,
   @location(6) @interpolate(flat) wall: vec4<f32>,
+  @location(7) @interpolate(flat) colourway: vec4<f32>,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -119,6 +126,7 @@ fn vs(
   @location(0) instance: vec4<f32>,
   @location(1) tint: vec4<f32>,
   @location(2) wall: vec4<f32>,
+  @location(3) colourway: vec4<f32>,
 ) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
@@ -148,7 +156,45 @@ fn vs(
   out.tint = tint;
   out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + corner * size;
   out.wall = wall;
+  out.colourway = colourway;
   return out;
+}
+
+// [RC-shift]: turns a straight-alpha colour's hue and scales its colour
+// strength in OKLab, a perceptual space, and shifts its lightness. The
+// atlas holds sRGB-encoded values, so the colour goes to linear light and
+// back. A near-grey pixel has almost no colour to turn, so ink, metal and
+// white stay as drawn while coloured materials change; lightness is kept,
+// so the art's shading is too.
+fn recolour(rgb: vec3<f32>, shift: vec4<f32>) -> vec3<f32> {
+  if (all(shift.xyz == vec3f(0.0))) {
+    return rgb;
+  }
+  let linear = select(pow((rgb + 0.055) / 1.055, vec3f(2.4)), rgb / 12.92, rgb <= vec3f(0.04045));
+  let lms = pow(mat3x3f(
+    0.4122214708, 0.2119034982, 0.0883024619,
+    0.5363325363, 0.6806995451, 0.2817188376,
+    0.0514459929, 0.1073969566, 0.6299787005,
+  ) * linear, vec3f(1.0 / 3.0));
+  let lab = mat3x3f(
+    0.2104542553, 1.9779984951, 0.0259040371,
+    0.7936177850, -2.4285922050, 0.7827717662,
+    -0.0040720468, 0.4505937099, -0.8086757660,
+  ) * lms;
+  let turn = radians(shift.x);
+  let ab = mat2x2f(cos(turn), sin(turn), -sin(turn), cos(turn)) * lab.yz * (1.0 + shift.y);
+  let shifted = vec3f(clamp(lab.x + shift.z, 0.0, 1.0), ab);
+  let lmsBack = mat3x3f(
+    1.0, 1.0, 1.0,
+    0.3963377774, -0.1055613458, -0.0894841775,
+    0.2158037573, -0.0638541728, -1.2914855480,
+  ) * shifted;
+  let back = clamp(mat3x3f(
+    4.0767416621, -1.2684380046, -0.0041960863,
+    -3.3077115913, 2.6097574011, -0.7034186147,
+    0.2309699292, -0.3413193965, 1.7076147010,
+  ) * (lmsBack * lmsBack * lmsBack), vec3f(0.0), vec3f(1.0));
+  return select(1.055 * pow(back, vec3f(1.0 / 2.4)) - 0.055, back * 12.92, back <= vec3f(0.0031308));
 }
 
 struct FragmentOut {
@@ -192,7 +238,13 @@ fn fs(in: VertexOut) -> FragmentOut {
     let outlineUv = clamp(mix(outline.uv.xy, outline.uv.zw, in.corner),
       outline.uv.xy + halfTexel, outline.uv.zw - halfTexel);
     // Explicit LOD avoids derivative-uniformity restrictions in this branch.
-    let prop = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, 0.0);
+    // The furniture layer is premultiplied; only it takes the colourway of
+    // the object the sim is using, never the sim or the ink over it.
+    let layer = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, 0.0);
+    var prop = layer;
+    if (layer.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
+      prop = vec4f(recolour(layer.rgb / layer.a, in.colourway) * layer.a, layer.a);
+    }
     let ink = textureSampleLevel(atlasTexture, atlasSampler, outlineUv, 0.0);
     let sum = colour + prop;
     colour = ink + sum * (1.0 - ink.a);
@@ -214,6 +266,10 @@ fn fs(in: VertexOut) -> FragmentOut {
   }
   if (in.pair.x > 0u) {
     colour = vec4f(colour.rgb / colour.a, colour.a);
+  } else {
+    // An object's own picture takes its colourway; everything else carries
+    // the all-zero shift, which returns the colour unchanged.
+    colour = vec4f(recolour(colour.rgb, in.colourway), colour.a);
   }
   // AFTER the alpha test, deliberately. Tinting before it would scale
   // alpha along with the colour and make the discard threshold move with

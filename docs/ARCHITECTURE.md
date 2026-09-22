@@ -430,8 +430,9 @@ An invalid candidate never replaces the running world. V1 and V2 cannot store
 runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
-bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin` or
-`terri-save-1.v3-backup.bin`, according to its source version. It never replaces an existing recovery file. A backup
+bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
+`terri-save-1.v3-backup.bin` or `terri-save-1.v4-backup.bin`, according to its
+source version. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -440,8 +441,9 @@ storage clearing can still erase all copies; this is not an external backup.
 The lock does not detect stale progress from another tab. Two supported game
 tabs still use last-writer-wins storage; play a household in one tab. A cached
 V2 writer rejects a primary V3 header instead of overwriting its directions,
-and a cached V3 writer rejects a primary V4 header instead of overwriting its
-retired indices.
+a cached V3 writer rejects a primary V4 header instead of overwriting its
+retired indices, and a cached V4 writer rejects a primary V5 header instead of
+overwriting its colourways.
 Earlier V1 workers do not have that protection or participate in the lock;
 close stale game tabs before continuing. The worker checks file
 headers, not full payload validity; recoverability is established by loading
@@ -633,9 +635,18 @@ despawns without freeing its index (`despawn_no_free`), so no later spawn can
 take it, and records it in `RetiredIndices`. The loader keeps those indices out
 of use and frees every other gap in the saved numbering as before, as older
 saves and test worlds with holes rely on. The retired list is bounded like
-saved entity indices and hashed. The writer emits V4, and the browser's storage
-worker keeps a V3 recovery backup on the first V4 write; V1, V2 and V3 still
-load, with nothing retired.
+saved entity indices and hashed. V1, V2 and V3 still load, with nothing
+retired.
+
+Save V5 ([RC-save] in `docs/specs/2026-09-22-colourways.md`) is V4 with
+`object_colourways` appended: each placed object not in the first colourway,
+as its entity index and the colourway's content id, ascending. A colourway is
+a `Colourway` component holding an index into the content pack's colourways,
+never stored for the first, so the world hash gains its colourway section only
+when some object has one. The render buffer carries a colourway column, and
+each GPU instance a colourway shift the shader applies before lighting. The
+writer emits V5, and the browser's storage worker keeps a V4 recovery backup
+on the first V5 write; V1 to V4 still load, with every object as drawn.
 
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a

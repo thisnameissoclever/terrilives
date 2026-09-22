@@ -192,6 +192,11 @@ function packed(
     0,
     0,
     0,
+    // The colourway shift, none for an object never recoloured ([RC-render]).
+    0,
+    0,
+    0,
+    0,
   ];
 }
 

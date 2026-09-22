@@ -961,3 +961,49 @@ sprite = "offlineLaundry"
   # where "neglected needs subtract" gives a chore something to prevent rather
   # than something to provide. The washer is placed now so that it is already
   # in the room when that lands.
+
+# Colourways - [RC-content] in docs/specs/2026-09-22-colourways.md. The
+# shader turns an object's hues by `hue` degrees, scales how strongly its
+# colours show by `strength`, and shifts its lightness by `lightness`, so
+# near-grey ink, metal and white keep their colour while coloured materials
+# change; only a lightness shift moves them, a little. A turn changes each
+# object differently, so these placeholders are named for what they do
+# rather than for a colour. Every placed object can take every colourway,
+# and the first must leave the art as drawn. The owner chooses the real
+# colourways and their names: [T-recolour-palettes] in docs/TIM-TODO.md.
+# Saves record a colourway by its id.
+
+[[colourway]]
+id = "as_drawn"
+name = "As drawn"
+hue = 0.0
+strength = 1.0
+lightness = 0.0
+
+[[colourway]]
+id = "colour_2"
+name = "Colour 2"
+hue = 120.0
+strength = 1.0
+lightness = 0.0
+
+[[colourway]]
+id = "colour_3"
+name = "Colour 3"
+hue = -120.0
+strength = 1.0
+lightness = 0.0
+
+[[colourway]]
+id = "muted"
+name = "Muted"
+hue = 0.0
+strength = 0.45
+lightness = 0.02
+
+[[colourway]]
+id = "rich"
+name = "Rich"
+hue = 0.0
+strength = 1.4
+lightness = -0.04

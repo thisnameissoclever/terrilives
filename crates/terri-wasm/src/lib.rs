@@ -600,6 +600,69 @@ impl SimHandle {
             })
     }
 
+    /// The colourway names, in content order - [RC-ui] in
+    /// `docs/specs/2026-09-22-colourways.md`. The first is the art as drawn;
+    /// a colourway's index here is the number a command and the render
+    /// buffer carry.
+    pub fn colourway_names(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content.colourways.iter().map(|c| c.name.clone()).collect()
+    }
+
+    /// `[hue, strength, lightness]` for each colourway, in content order and
+    /// flattened - [RC-shift]: the shift the shader applies.
+    pub fn colourway_shifts(&self) -> Vec<f32> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .colourways
+            .iter()
+            .flat_map(|c| [c.hue, c.strength, c.lightness])
+            .collect()
+    }
+
+    /// The colourway the placed object carrying entity index `object` is
+    /// drawn in, or `u32::MAX` when no placed object carries that index or it
+    /// is not a whole number. Never writes.
+    pub fn object_colourway(&self, object: f64) -> u32 {
+        let world = self.sim.world();
+        placement_u32(object)
+            .and_then(|object| terri_sim::placement::object_definition(world, object))
+            .map_or(u32::MAX, |(entity, _, _)| {
+                world
+                    .get::<terri_core::Colourway>(entity)
+                    .map_or(0, |colourway| colourway.0)
+            })
+    }
+
+    /// Stages drawing the object carrying entity index `object` in colourway
+    /// `colourway` ([RC-command]). Queue acceptance only;
+    /// `last_colourway_result` reports what the drain did.
+    pub fn set_colourway(&mut self, object: f64, colourway: f64) -> bool {
+        let (Some(object), Some(colourway)) = (placement_u32(object), placement_u32(colourway))
+        else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetColourway { object, colourway })
+            .expect("a colourway change serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[object, refusal, colourway]` of the last colourway change a drain
+    /// handled: refusal zero when it applied. Empty before any.
+    pub fn last_colourway_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_colourway_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.object,
+                    result.reason.map_or(0, |r| r as u32),
+                    result.colourway,
+                ]
+            })
+    }
+
     /// `[refusal, changes]` for this room - [RT-boundary]: the refusal code,
     /// zero when it would be built, and 1 when building it would change the
     /// house, 0 when its outline already stands exactly. Never writes.
@@ -868,6 +931,12 @@ impl SimHandle {
         self.sim.render_buffer().foreground_sprites.as_ptr()
     }
 
+    /// Each row's colourway, 0 for the art as drawn ([RC-render]). Re-read
+    /// after every sync or memory growth.
+    pub fn colourways_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().colourways.as_ptr()
+    }
+
     /// The doorway lines that hold an interior door ([DR-derived]), as
     /// `[x, y]` pairs of vertical lines, sorted. The renderer draws these as
     /// portal rows, so the shell leaves out their empty doorway panels.
@@ -1109,7 +1178,7 @@ impl SimHandle {
     /// interpret a shape it does not understand.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v4()).expect("SaveSnapshotV4 serialises");
+            postcard::to_allocvec(&self.sim.save_snapshot_v5()).expect("SaveSnapshotV5 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -1132,6 +1201,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 5 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v5(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 4 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV4>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v4(snapshot).is_ok(),
@@ -2043,8 +2118,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            4,
-            "the public writer must emit the V4 envelope"
+            5,
+            "the public writer must emit the V5 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -3998,6 +4073,28 @@ mod boundary_tests {
     }
 
     #[test]
+    fn colourways_ptr_addresses_the_column_after_growth() {
+        let mut handle = SimHandle::new(96, 96);
+        assert!(handle.spawn_object(1.0, 1.0, "armchair"));
+        assert!(handle.set_colourway(0.0, 2.0));
+        handle.sim.flush_commands();
+        for index in 0..48 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+        handle.sim.sync_render_buffer();
+        let colourways = addressed(
+            handle.colourways_ptr(),
+            handle.entity_count(),
+            "colourways_ptr",
+        );
+        assert_eq!(colourways[0], 2, "the recoloured armchair");
+        assert!(
+            colourways[1..].iter().all(|&colourway| colourway == 0),
+            "sims carry the art as drawn"
+        );
+    }
+
+    #[test]
     fn foreground_sprites_ptr_addresses_the_optional_layer_after_growth() {
         let mut handle = SimHandle::new(96, 96);
         assert!(handle.spawn_object(1.0, 1.0, "armchair"));
@@ -4764,6 +4861,48 @@ mod boundary_tests {
         assert!(!handle.sell_object(-1.0));
     }
 
+    /// [RC-ui]: the colourways cross in content order with their shifts; a
+    /// change is staged, reported and read back; and an index that names no
+    /// object or colourway is refused by the drain, one that is not a whole
+    /// number at the boundary.
+    #[test]
+    fn a_colourway_is_staged_reported_and_read_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        let pack = handle.sim.world().resource::<Content>().0;
+        let names = handle.colourway_names();
+        assert_eq!(names.len(), pack.colourways.len());
+        assert_eq!(names[0], "As drawn");
+        let shifts = handle.colourway_shifts();
+        assert_eq!(shifts.len(), 3 * names.len());
+        for (index, colourway) in pack.colourways.iter().enumerate() {
+            assert_eq!(names[index], colourway.name);
+            assert_eq!(
+                shifts[3 * index..3 * index + 3],
+                [colourway.hue, colourway.strength, colourway.lightness]
+            );
+        }
+        assert!(handle.last_colourway_result().is_empty());
+        let sofa = (0..64u32)
+            .find(|&index| handle.object_colourway(f64::from(index)) == 0)
+            .expect("the shipped house has an object");
+        assert!(handle.set_colourway(f64::from(sofa), 2.0));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_colourway_result(), vec![sofa, 0, 2]);
+        assert_eq!(handle.object_colourway(f64::from(sofa)), 2);
+        let unknown = names.len() as f64;
+        assert!(handle.set_colourway(f64::from(sofa), unknown));
+        handle.sim.flush_commands();
+        assert_eq!(
+            handle.last_colourway_result(),
+            vec![sofa, 17, unknown as u32]
+        );
+        assert_eq!(handle.object_colourway(f64::from(sofa)), 2);
+        assert_eq!(handle.object_colourway(1.5), u32::MAX);
+        assert_eq!(handle.object_colourway(99_999.0), u32::MAX);
+        assert!(!handle.set_colourway(1.5, 1.0));
+        assert!(!handle.set_colourway(f64::from(sofa), -1.0));
+    }
+
     /// [BM-shell]: the catalogue is every priced object, in pack order, with
     /// its price, the directions it has art for and its base direction, and
     /// its names come in the same order. An object with no price is left out.
@@ -5076,14 +5215,16 @@ mod boundary_tests {
             // And `[0x07, 0x00]` became a truncated `PlaceObject`,
             // `[0x08, 0x00]` a truncated `SetWallEdge`, and `[0x09, 0x00]` a
             // truncated `BuyObject`.
-            // And `[0x0A, 0x00]` a truncated `BuildRoom`, and `[0x0B]` a
-            // `SellObject` with no object.
+            // And `[0x0A, 0x00]` a truncated `BuildRoom`, `[0x0B]` a
+            // `SellObject` with no object, and `[0x0C, 0x00]` a
+            // `SetColourway` with no colourway.
             (
-                "variant index 12, one past the twelve SimCommand declares; \
+                "variant index 13, one past the thirteen SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0C, 0x00],
+                vec![0x0D, 0x00],
             ),
             ("SellObject missing its object", vec![0x0B]),
+            ("SetColourway missing its colourway", vec![0x0C, 0x01]),
             (
                 "BuildRoom missing its doorway option",
                 vec![0x0A, 0x01, 0x02, 0x03, 0x04],

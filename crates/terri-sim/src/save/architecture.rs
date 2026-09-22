@@ -4,7 +4,8 @@ use super::{SaveError, Sim};
 use crate::portals::ActivePortals;
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{
-    layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, TileGrid,
+    layout::SavedLayout, Colourway, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4,
+    SaveSnapshotV5, SmartObject, TileGrid,
 };
 use terri_data::ContentPack;
 
@@ -39,6 +40,67 @@ pub(crate) fn restore_v3(
         content,
         active_portals,
     )
+}
+
+/// [RC-save] in `docs/specs/2026-09-22-colourways.md`: the V4 envelope's
+/// checks, then each saved colourway ascending by entity index, naming a
+/// placed object in the candidate. An id the content no longer has, or one
+/// that now names the first colourway, loads as drawn, so retiring or
+/// renaming a colourway id keeps every save loading. The
+/// candidate is discarded on any failure, so the running world is untouched.
+pub(crate) fn restore_v5(
+    snapshot: SaveSnapshotV5,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    let SaveSnapshotV5 {
+        world,
+        layout,
+        object_facings,
+        retired_indices,
+        object_colourways,
+    } = snapshot;
+    if object_colourways
+        .windows(2)
+        .any(|pair| pair[0].0 >= pair[1].0)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    let mut candidate = restore_v4(
+        SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+        },
+        content,
+        active_portals,
+    )?;
+    for (index, id) in object_colourways {
+        // The first colourway is the art as drawn, which is how an unknown
+        // id loads too, so both simply leave the object as drawn.
+        let colourway = content
+            .colourways
+            .iter()
+            .position(|known| known.id == id)
+            .filter(|&colourway| colourway > 0);
+        let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
+            .map(|index| candidate.world.entities().resolve_from_index(index))
+            .filter(|&entity| {
+                candidate
+                    .world
+                    .get_entity(entity)
+                    .is_ok_and(|object| object.contains::<SmartObject>())
+            })
+            .ok_or(SaveError::InvalidValue)?;
+        if let Some(colourway) = colourway {
+            candidate
+                .world
+                .entity_mut(entity)
+                .insert(Colourway(colourway as u32));
+        }
+    }
+    Ok(candidate)
 }
 
 /// [SL-save]: the V3 envelope's checks, and the retired indices ascending,

@@ -1,6 +1,6 @@
 import type { PlacementPreview } from '../bridge.js';
 import { spriteIndex } from './atlas.js';
-import { writeInstance } from './instances.js';
+import { writeColourway, writeInstance } from './instances.js';
 import { LAYER_FOREGROUND, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
 import { emissiveForSprite, sampleLight, type TileLighting } from './lighting.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './sprite-anchors.js';
@@ -38,10 +38,15 @@ export function placementInstanceCount(preview: PlacementPreview | null): number
     ? preview.width * preview.depth + 1 + (preview.foreground === null ? 0 : 1) : 0;
 }
 
-/** Appends a tinted candidate without changing the original object's rows. */
+/**
+ * Appends a tinted candidate without changing the original object's rows.
+ * The candidate stands in for the object while it is chosen, so it is drawn
+ * in the object's colourway ([RC-render]); a purchase is drawn as drawn.
+ */
 export function writePlacementPreview(out: Float32Array, slot: number,
   preview: PlacementPreview | null, originX: number, originY: number,
-  gridSize: number, scale: number, lighting: TileLighting | null): number {
+  gridSize: number, scale: number, lighting: TileLighting | null,
+  colourwayShifts: Float32Array | null = null, colourway = 0): number {
   if (!preview || placementInstanceCount(preview) === 0) return slot;
   const tint = preview.valid ? VALID : INVALID;
   for (let dy = 0; dy < preview.depth; dy += 1) {
@@ -61,6 +66,7 @@ export function writePlacementPreview(out: Float32Array, slot: number,
       screenY(x, y, originY, scale) + spriteDrawOffsetY(sprite) * scale,
       layeredDepth(x, y, gridSize, (layer === 0 ? LAYER_PROP : LAYER_FOREGROUND) + 0.5),
       sprite, ...tint, Math.max(light, emissiveForSprite(sprite)));
+    if (colourwayShifts !== null) writeColourway(out, slot - 1, colourwayShifts, colourway);
     writeFootprintProjection(out, slot - 1, preview.width, preview.depth, sprite, gridSize);
   }
   return slot;

@@ -4,7 +4,8 @@ import type { OverlayPauseController } from './overlay-pause.js';
 type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
   'objectName' | 'objectFacing' | 'objectFacingMask' | 'footprintWidths' |
   'footprintDepths' | 'placementPreview' | 'placeObject' | 'lotRevision' |
-  'lastPlacementResult' | 'salePreview' | 'sellObject' | 'lastSaleResult'>;
+  'lastPlacementResult' | 'salePreview' | 'sellObject' | 'lastSaleResult' |
+  'colourwayNames' | 'objectColourway' | 'setColourway' | 'lastColourwayResult'>;
 
 export interface BuilderObject { readonly id: number; readonly name: string }
 export interface BuilderHooks { changed(): void; enter(): void; exit(): void }
@@ -28,6 +29,18 @@ export class FurnitureBuilder {
   saleRefusal: string | null = null;
   /** The object a sale on its way names, until the drain reports it ([SL-shell]). */
   private selling: number | null = null;
+  /** The colourway names, in content order; the first is the art as drawn ([RC-ui]). */
+  readonly colourways: readonly string[];
+  /** The chosen object's colourway, or null when nothing is chosen. */
+  colourway: number | null = null;
+  /** The object a colourway change on its way names, until the drain reports it. */
+  private recolouring: number | null = null;
+  /** A colourway chosen while a change was on its way, sent when it lands. */
+  private nextColourway: number | null = null;
+  /** The colourway the change on its way asks for. */
+  private recolouringTo: number | null = null;
+  /** Whether a move is on its way; only then is a placement result this tool's. */
+  private placing = false;
   private mask = 0;
   private revision: number;
   private original: { x: number; y: number; facing: number } | null = null;
@@ -36,11 +49,16 @@ export class FurnitureBuilder {
   constructor(private readonly source: BuilderSource,
     private readonly pause: OverlayPauseController, private readonly hooks: BuilderHooks) {
     this.revision = source.lotRevision();
+    this.colourways = source.colourwayNames();
   }
 
   get canRotate(): boolean { return (this.mask & (this.mask - 1)) !== 0; }
   get canConfirm(): boolean {
     return this.active && !this.blocked && !this.pending && this.preview?.valid === true;
+  }
+  /** What the Colour list shows: the latest choice, even before it lands. */
+  get shownColourway(): number | null {
+    return this.nextColourway ?? this.recolouringTo ?? this.colourway;
   }
   get canSell(): boolean {
     return this.active && !this.blocked && !this.pending && this.selected !== null
@@ -137,6 +155,7 @@ export class FurnitureBuilder {
     if (!this.canConfirm || this.selected === null || this.preview === null) return false;
     const { x, y, facing } = this.preview;
     this.pending = this.source.placeObject(this.selected, x, y, facing);
+    this.placing = this.pending;
     this.status = this.pending ? 'Placing furniture…' : 'The placement could not be queued.';
     this.hooks.changed();
     return this.pending;
@@ -154,6 +173,31 @@ export class FurnitureBuilder {
     this.pending = this.source.sellObject(this.selected);
     if (this.pending) this.selling = this.selected;
     this.status = this.pending ? 'Selling…' : 'The sale could not be sent.';
+    this.hooks.changed();
+    return this.pending;
+  }
+
+  /**
+   * Draws the chosen object in colourway `colourway` ([RC-ui]); the drain
+   * applies it and `afterCommands` reports it. Costs nothing and is allowed
+   * while the object is in use, since it changes only how it is drawn.
+   */
+  recolour(colourway: number): boolean {
+    if (!this.active || this.blocked || this.selected === null) return false;
+    if (!Number.isInteger(colourway) || colourway < 0 || colourway >= this.colourways.length) return false;
+    // A keyboard steps through the list one change at a time; the latest
+    // choice waits for the change on its way and follows it.
+    if (this.recolouring !== null) {
+      this.nextColourway = colourway;
+      return true;
+    }
+    if (this.pending || colourway === this.colourway) return false;
+    this.pending = this.source.setColourway(this.selected, colourway);
+    if (this.pending) {
+      this.recolouring = this.selected;
+      this.recolouringTo = colourway;
+    }
+    this.status = this.pending ? 'Recolouring…' : 'The colour change could not be sent.';
     this.hooks.changed();
     return this.pending;
   }
@@ -208,9 +252,29 @@ export class FurnitureBuilder {
         this.hooks.changed();
       }
     }
-    if (this.pending) {
+    // A colourway change keeps the choice; read what it is drawn in now.
+    // After the requery above, which a change's new lot revision triggers,
+    // so the status it sets is the one left showing.
+    if (this.recolouring !== null) {
+      const result = this.source.lastColourwayResult();
+      if (result?.object === this.recolouring) {
+        this.recolouring = null;
+        this.recolouringTo = null;
+        this.pending = false;
+        this.colourway = this.selected === null ? null : this.source.objectColourway(this.selected);
+        this.status = result.reason ?? `${this.name || 'Furniture'} recoloured.`;
+        const next = this.nextColourway;
+        this.nextColourway = null;
+        if (next !== null) this.recolour(next);
+        this.hooks.changed();
+      }
+    }
+    // Only a move of this tool's own names a placement result: an earlier
+    // move's result for the same object must not end a colour change.
+    if (this.placing) {
       const result = this.source.lastPlacementResult();
       if (result?.object === this.selected) {
+        this.placing = false;
         this.pending = false;
         const next = this.nextSelection;
         this.nextSelection = null;
@@ -233,6 +297,10 @@ export class FurnitureBuilder {
   resetAfterLoad(): void {
     this.pending = false;
     this.selling = null;
+    this.recolouring = null;
+    this.recolouringTo = null;
+    this.nextColourway = null;
+    this.placing = false;
     this.clearSelection();
     this.revision = this.source.lotRevision();
     if (this.active) this.refreshObjects();
@@ -259,10 +327,12 @@ export class FurnitureBuilder {
     const sale = this.source.salePreview(this.selected);
     this.saleValue = sale.reason === null ? sale.payout : null;
     this.saleRefusal = sale.reason;
+    this.colourway = this.source.objectColourway(this.selected);
     this.hooks.changed();
   }
 
   private clearSelection(): void {
+    this.colourway = null;
     this.saleValue = null;
     this.saleRefusal = null;
     this.nextSelection = null;

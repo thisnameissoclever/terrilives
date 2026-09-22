@@ -1035,6 +1035,25 @@ pub enum ContentError {
         chain: String,
         item: String,
     },
+    /// [RC-content]: the first colourway changes the art, so an object with
+    /// no colourway and one in the first would look different.
+    FirstColourwayNotAsDrawn {
+        colourway: String,
+    },
+    /// [RC-content]: two colourways share an id, which a save records.
+    DuplicateColourway {
+        colourway: String,
+    },
+    /// [RC-content]: a colourway with an empty id or name.
+    EmptyColourwayText {
+        colourway: String,
+    },
+    /// [RC-shift]: a colourway's hue, strength or lightness is outside the
+    /// range the shader is built for, or is not a number.
+    ColourwayOutOfRange {
+        colourway: String,
+        field: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -2018,6 +2037,26 @@ impl fmt::Display for ContentError {
                 "chain '{chain}' ends with the sim still carrying \
                  '{item}' - the terminal step must consume what is in \
                  hand"
+            ),
+            ContentError::FirstColourwayNotAsDrawn { colourway } => write!(
+                f,
+                "colourway '{colourway}' is first in objects.toml, so it must \
+                 leave the art as drawn: hue 0, strength 1, lightness 0"
+            ),
+            ContentError::DuplicateColourway { colourway } => write!(
+                f,
+                "colourway '{colourway}' is declared twice in objects.toml; \
+                 saves record a colourway by its id"
+            ),
+            ContentError::EmptyColourwayText { colourway } => write!(
+                f,
+                "colourway '{colourway}' needs both an id and a name in \
+                 objects.toml"
+            ),
+            ContentError::ColourwayOutOfRange { colourway, field } => write!(
+                f,
+                "colourway '{colourway}' has a {field} outside its range: hue \
+                 -180 to 180, strength 0 to 2, lightness -0.25 to 0.25"
             ),
         }
     }

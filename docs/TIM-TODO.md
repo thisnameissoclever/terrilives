@@ -34,9 +34,9 @@ error line.
   resets every player's sound, lighting and help settings;
 - the save fingerprint seeds in `terri-data`: renaming them invalidates every
   existing save;
-- the save file `terri-save-1.bin` and its three backups,
-  `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin` and
-  `terri-save-1.v3-backup.bin`: the game opens
+- the save file `terri-save-1.bin` and its four backups,
+  `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
+  `terri-save-1.v3-backup.bin` and `terri-save-1.v4-backup.bin`: the game opens
   saves only under these names, so renaming them leaves every existing save
   unfound. At startup the player would see "No save yet" and a new household,
   while the old save stayed on disk unseen;
@@ -115,6 +115,16 @@ colourway per placed object that the renderer applies to the existing art,
 with a few plain placeholder palettes taken from the approved one. Which
 colourways each object should really come in, and what to call them, is
 yours. Nothing is blocked meanwhile.
+
+Built on branch `twcl/colourways`: the art has no palette to map, so a
+colourway turns an object's hues, scales how strongly its colours show and
+shifts its lightness, leaving the colour of ink, metal and white alone. The
+placeholders are declared at the end of `content/objects.toml` and named for
+what they do, since a turn changes each object differently: As drawn, Colour
+2, Colour 3, Muted and Rich. Every object takes every colourway for now. Tell
+me the colourways you want, by name and by eye, and whether some objects
+should offer fewer. Renaming a colourway keeps saves as they are; an object
+saved in a colourway whose id is retired or renamed loads as drawn.
 
 ### [T-trait-copy] The twelve new traits need your words `[YOURS]`
 

@@ -13,6 +13,7 @@ import type { GpuContext } from './device.js';
 import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
+  COLOURWAY_ATTRIBUTE_OFFSET,
   TINT_ATTRIBUTE_OFFSET,
   WALL_ATTRIBUTE_OFFSET,
   VERTICES_PER_QUAD,
@@ -285,6 +286,8 @@ export class SpriteRenderer {
                 format: 'float32x4',
               },
               { shaderLocation: 2, offset: WALL_ATTRIBUTE_OFFSET, format: 'float32x4' },
+              // [RC-render]: the colourway shift, all zero for the art as drawn.
+              { shaderLocation: 3, offset: COLOURWAY_ATTRIBUTE_OFFSET, format: 'float32x4' },
             ],
           },
         ],

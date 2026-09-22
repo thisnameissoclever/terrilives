@@ -403,3 +403,75 @@ it('sells with Backspace', () => {
   expect(builder.selected).toBeNull();
   handle.free();
 });
+
+// [RC-ui]: a colourway change keeps the choice and reads back what the object
+// is drawn in; the same colourway, one past the list, a blocked tool or no
+// choice sends nothing; and a Load forgets a change on its way.
+it('recolours the chosen object and keeps it chosen', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  expect(builder.recolour(1)).toBe(false);
+  builder.select(15);
+  expect(builder.colourway).toBe(0);
+  for (const refused of [0, builder.colourways.length, -1, 1.5]) {
+    expect(builder.recolour(refused)).toBe(false);
+  }
+  const saved = source.saveBytes();
+  expect(builder.recolour(3)).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.selected, builder.pending, builder.colourway]).toEqual([15, false, 3]);
+  expect(builder.status).toBe(`${source.objectName(15)} recoloured.`);
+  builder.setBlocked(true);
+  expect(builder.recolour(1)).toBe(false);
+  builder.setBlocked(false);
+  expect(builder.recolour(1)).toBe(true);
+  expect(source.loadBytes(saved)).toBe(true);
+  builder.resetAfterLoad();
+  expect([builder.selected, builder.pending, builder.colourway]).toEqual([null, false, null]);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.status).not.toContain('recoloured');
+  handle.free();
+});
+
+// [RC-ui]: a keyboard steps through the Colour list one change at a time; a
+// choice made while a change is on its way waits and follows it, and the last
+// choice is what the object ends in.
+it('sends a colourway chosen while one is on its way once that lands', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  builder.select(15);
+  expect(builder.recolour(1)).toBe(true);
+  expect(builder.recolour(2)).toBe(true);
+  expect(builder.recolour(3)).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending]).toEqual([1, true]);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending]).toEqual([3, false]);
+  expect(source.objectColourway(15)).toBe(3);
+  handle.free();
+});
+
+// [RC-ui]: an earlier move's result for the chosen object is not taken for a
+// colour change sent after it, so a change queued behind another keeps the
+// tool waiting until it lands, and the object keeps the choice made last.
+it('does not take an earlier move for a colour change on its way', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter();
+  builder.select(15);
+  builder.moveTo(7, 0);
+  expect(builder.confirm()).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.status).toBe('Furniture placed.');
+  expect(builder.recolour(1)).toBe(true);
+  expect(builder.recolour(2)).toBe(true);
+  expect(builder.shownColourway).toBe(2);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending, builder.status])
+    .toEqual([1, true, 'Recolouring…']);
+  builder.select(22);
+  expect(builder.selected).toBe(15);
+  source.flushCommands(); builder.afterCommands();
+  expect([builder.colourway, builder.pending]).toEqual([2, false]);
+  expect([source.objectColourway(15), source.objectColourway(22)]).toEqual([2, 0]);
+  handle.free();
+});

@@ -224,6 +224,24 @@ pub struct NeedDef {
 #[derive(Debug, Deserialize)]
 pub struct ObjectsFile {
     pub object: Vec<ObjectDef>,
+    /// The colourways any placed object can be drawn in - [RC-content] in
+    /// `docs/specs/2026-09-22-colourways.md`. Absent means none.
+    #[serde(default)]
+    pub colourway: Vec<ColourwayDef>,
+}
+
+/// One colourway: a colour shift the shader applies to an object's art.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ColourwayDef {
+    pub id: String,
+    /// What the Colour list shows.
+    pub name: String,
+    /// Degrees the art's hues turn, from -180 to 180.
+    pub hue: f32,
+    /// How strongly the art's colours show, as a factor from 0 to 2.
+    pub strength: f32,
+    /// A shift in lightness, from -0.25 to 0.25.
+    pub lightness: f32,
 }
 
 /// Mirrors `content/social.toml` - the interactions a SIM advertises to
