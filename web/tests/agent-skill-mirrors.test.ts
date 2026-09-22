@@ -18,12 +18,15 @@ function skill(root: string, name: string): string {
 
 /**
  * Codex reads skills from `.agents/skills/`, Claude Code from
- * `.claude/skills/`. The two copies are hand-maintained mirrors, and the only
- * intended difference is which tool the description names. Anything else is
- * drift: a fix made in one copy and not the other, or a blind find-and-replace
- * that renamed a real path. The first Codex copy pointed at a nonexistent
- * `.Codex/launch.json` for exactly that reason.
+ * `.claude/skills/`. The two copies are hand-maintained mirrors. A skill tied
+ * to a tool, listed in TOOL_TIED, differs only in which tool its text names;
+ * every other skill, like the writing style, names no tool and its copies are
+ * byte-identical. Anything else is drift: a fix made in one copy and not the
+ * other, or a blind find-and-replace that renamed a real path. The first Codex
+ * copy pointed at a nonexistent `.Codex/launch.json` for exactly that reason.
  */
+const TOOL_TIED = ['cloud-run'];
+
 describe('agent skill mirrors', () => {
   const codexSkills = skills('.agents');
   const claudeSkills = skills('.claude');
@@ -38,19 +41,26 @@ describe('agent skill mirrors', () => {
     expect(codexSkills).toEqual(claudeSkills);
   });
 
-  // A skill tied to a tool names it; a skill for any tool, like the writing
-  // style, names none, and its two copies are byte-identical.
-  it('names the tool in the one skill that is tied to it', () => {
-    expect(skill('.agents', 'cloud-run')).toContain('Codex on the web');
-    expect(skill('.claude', 'cloud-run')).toContain('Claude Code on the web');
-  });
-
   for (const name of codexSkills) {
-    it(`keeps ${name} identical apart from the tool it names`, () => {
+    const tied = TOOL_TIED.includes(name);
+    it(`keeps ${name} ${tied ? 'identical apart from the tool it names' : 'byte-identical'}`, () => {
       const codex = skill('.agents', name);
+      if (tied) {
+        // Catches the Claude Code text pasted over the Codex copy, which the
+        // comparison below would let through.
+        expect(codex).toContain('Codex on the web');
+      } else {
+        // A skill that names a tool must be listed in TOOL_TIED.
+        expect(codex).not.toContain('Claude Code on the web');
+        expect(codex).not.toContain('Codex on the web');
+      }
       expect(codex.replaceAll('Codex on the web', 'Claude Code on the web')).toBe(
         skill('.claude', name),
       );
     });
   }
+
+  it('lists only skills that exist', () => {
+    for (const name of TOOL_TIED) expect(codexSkills).toContain(name);
+  });
 });
