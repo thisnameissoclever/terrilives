@@ -36,7 +36,7 @@ describe('footprint projection at the frame boundary', () => {
   it('uses the occupied furniture footprint, not the one-tile Sim, and clears the suppressed owner', () => {
     const source = fixture(2, 1, true);
     const out = buildInstances(source, 1, 0, 0, 16);
-    expect(Array.from(out.subarray(8, FLOATS_PER_INSTANCE))).toEqual([0, 0, 0, 0]);
+    expect(Array.from(out.subarray(8, 12))).toEqual([0, 0, 0, 0]);
     const body = FLOATS_PER_INSTANCE;
     expect(out[body + OFFSET_WALL_MASK]).toBe(-1);
     expect(out[body + OFFSET_FOOTPRINT_SPAN]).toBe(0.5);
@@ -55,7 +55,7 @@ describe('footprint projection at the frame boundary', () => {
     const source = fixture();
     source.foregroundSprites = () => new Uint32Array([spriteIndex('offlineBunk')]);
     const out = buildInstances(source, 1, 0, 0, 16);
-    expect(Array.from(out.subarray(8, 12))).toEqual(Array.from(out.subarray(FLOATS_PER_INSTANCE + 8, 2 * FLOATS_PER_INSTANCE)));
+    expect(Array.from(out.subarray(8, 12))).toEqual(Array.from(out.subarray(FLOATS_PER_INSTANCE + 8, FLOATS_PER_INSTANCE + 12)));
     const square = buildInstances(fixture(2, 2), 1, 0, 0, 16);
     expect(Array.from(square.subarray(8, 12))).toEqual([0, 0, 0, 0]);
   });

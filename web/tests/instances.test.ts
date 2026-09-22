@@ -10,6 +10,9 @@ import {
   VERTICES_PER_QUAD,
   growCapacity,
   writeInstance,
+  writeColourway,
+  COLOURWAY_ATTRIBUTE_OFFSET,
+  OFFSET_COLOURWAY_HUE,
 } from '../src/render/instances.js';
 
 // Node has no WebGPU, so nothing here touches a device. Mocking GPUDevice
@@ -35,7 +38,8 @@ describe('instance layout', () => {
     expect(out[5]).toBe(0.625);
     expect(out[6]).toBe(0.75);
     expect(out[7]).toBe(0.875);
-    expect(Array.from(out.subarray(8))).toEqual([0, 0, 0, 0]);
+    // Projection, then the colourway shift, all none.
+    expect(Array.from(out.subarray(8))).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
   });
 
   it('defaults an untinted instance to white and non-emissive', () => {
@@ -64,7 +68,7 @@ describe('instance layout', () => {
     writeInstance(out, 2, 7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1);
 
     expect(Array.from(out.subarray(2 * FLOATS_PER_INSTANCE, 3 * FLOATS_PER_INSTANCE))).toEqual([
-      7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1, 0, 0, 0, 0,
+      7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1, 0, 0, 0, 0, 0, 0, 0, 0,
     ]);
     // Precondition and the actual claim in one: everything else is still
     // the sentinel, so the write was confined to slot 2.
@@ -72,11 +76,11 @@ describe('instance layout', () => {
     expect(Array.from(out.subarray(3 * FLOATS_PER_INSTANCE))).toEqual(Array(FLOATS_PER_INSTANCE).fill(-1));
   });
 
-  it('sizes one instance at twelve contiguous f32s, including depth projection', () => {
+  it('sizes one instance at sixteen contiguous f32s, including projection and colourway', () => {
     // The vertex buffer arrayStride. A stride that disagrees with the
     // packer reads each entity's fields from a sliding offset into its
     // neighbour, which is a smear rather than a crash.
-    expect(BYTES_PER_INSTANCE).toBe(48);
+    expect(BYTES_PER_INSTANCE).toBe(64);
     expect(BYTES_PER_INSTANCE).toBe(FLOATS_PER_INSTANCE * 4);
     // The second attribute starts where the first one ends. This is the
     // number `createRenderPipeline` is given for `shaderLocation: 1`, and
@@ -84,14 +88,35 @@ describe('instance layout', () => {
     // arithmetic rather than by adjacency in a struct.
     expect(TINT_ATTRIBUTE_OFFSET).toBe(16);
     expect(WALL_ATTRIBUTE_OFFSET).toBe(32);
+    expect(COLOURWAY_ATTRIBUTE_OFFSET).toBe(48);
   });
 
   it('writes wall projection and clears it when the slot becomes furniture', () => {
     const out = new Float32Array(FLOATS_PER_INSTANCE).fill(-999);
     writeInstance(out, 0, 0, 0, 0.5, 1, 1, 1, 1, 0, 5, 0.03125);
-    expect(Array.from(out.subarray(8))).toEqual([5, 0.03125, 0, 0]);
+    expect(Array.from(out.subarray(8, 12))).toEqual([5, 0.03125, 0, 0]);
     writeInstance(out, 0, 0, 0, 0.5, 1);
-    expect(Array.from(out.subarray(8))).toEqual([0, 0, 0, 0]);
+    expect(Array.from(out.subarray(8, 12))).toEqual([0, 0, 0, 0]);
+  });
+
+  // [RC-render] in docs/specs/2026-09-22-colourways.md: a slot takes a
+  // colourway's shift as hue, strength minus one and lightness, so all
+  // zero is the art as drawn; the first colourway and an index past the
+  // table leave it so, and the next writeInstance resets it.
+  it('writes a colourway shift, and resets it when the slot is reused', () => {
+    const shifts = new Float32Array([0, 1, 0, 120, 1.4, -0.04]);
+    const out = new Float32Array(2 * FLOATS_PER_INSTANCE).fill(-1);
+    writeInstance(out, 1, 0, 0, 0.5, 1);
+    writeColourway(out, 1, shifts, 1);
+    expect(Array.from(out.subarray(FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE))).toEqual([
+      120, expect.closeTo(0.4), expect.closeTo(-0.04), 0,
+    ]);
+    expect(Array.from(out.subarray(0, FLOATS_PER_INSTANCE))).toEqual(Array(FLOATS_PER_INSTANCE).fill(-1));
+    writeInstance(out, 1, 0, 0, 0.5, 1);
+    for (const colourway of [0, 2, 99]) {
+      writeColourway(out, 1, shifts, colourway);
+      expect(Array.from(out.subarray(FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE))).toEqual([0, 0, 0, 0]);
+    }
   });
 });
 
@@ -127,7 +152,7 @@ describe('sprites.wgsl contract', () => {
   // says - only a GPU can do that - but they are the only mechanism tying
   // the TypeScript constants to the WGSL declarations, and CI has no GPU.
 
-  it('declares three instance attributes totalling FLOATS_PER_INSTANCE', () => {
+  it('declares four instance attributes totalling FLOATS_PER_INSTANCE', () => {
     const position = shader.match(/@location\(0\)\s+instance:\s*vec(\d)<f32>/);
     const tint = shader.match(/@location\(1\)\s+tint:\s*vec(\d)<f32>/g);
     // Rule 5: without these the regexes could stop matching after a
@@ -143,7 +168,22 @@ describe('sprites.wgsl contract', () => {
     const wall = shader.match(/@location\(2\)\s+wall:\s*vec(\d)<f32>/);
     expect(wall).not.toBeNull();
     expect(Number(wall![1])).toBe(4);
-    expect(4 + 4 + 4).toBe(FLOATS_PER_INSTANCE);
+    const colourway = shader.match(/@location\(3\)\s+colourway:\s*vec(\d)<f32>/);
+    expect(colourway).not.toBeNull();
+    expect(Number(colourway![1])).toBe(4);
+    expect(4 + 4 + 4 + 4).toBe(FLOATS_PER_INSTANCE);
+  });
+
+  it('shifts the picture of an object, or only the furniture layer of a sim using one', () => {
+    // [RC-render]. No GPU in CI, so the shader is read as text: the shift
+    // must reach both places, and the all-zero shift must return the colour
+    // unchanged, or every unrecoloured sprite would pass through OKLab.
+    expect(shader).toMatch(/fn recolour\(rgb: vec3<f32>, shift: vec4<f32>\) -> vec3<f32>/);
+    expect(shader).toMatch(/if \(all\(shift\.xyz == vec3f\(0\.0\)\)\) \{\s*return rgb;/);
+    expect(shader).toMatch(/recolour\(layer\.rgb \/ layer\.a, in\.colourway\)/);
+    expect(shader).toMatch(/colour = vec4f\(recolour\(colour\.rgb, in\.colourway\), colour\.a\)/);
+    // Before the tint, so lighting and the time of day apply to the new colour.
+    expect(shader.indexOf('recolour(colour.rgb')).toBeLessThan(shader.indexOf('colour.rgb * in.tint.rgb'));
   });
 
   it('multiplies by the instance tint and lets emissive resist the hour', () => {

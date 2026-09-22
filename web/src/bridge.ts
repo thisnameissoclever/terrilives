@@ -291,10 +291,16 @@ export class SimBridge {
     return this.handle.colourway_names();
   }
 
-  /** `[hue, strength, lightness]` per colourway, flattened, for the shader ([RC-shift]). */
+  /**
+   * `[hue, strength, lightness]` per colourway, flattened, for the shader
+   * ([RC-shift]). Content, so read once and kept: the frame asks every frame
+   * and must not allocate ([D11]).
+   */
   colourwayShifts(): Float32Array {
-    return this.handle.colourway_shifts();
+    this.shifts ??= this.handle.colourway_shifts();
+    return this.shifts;
   }
+  private shifts: Float32Array | undefined;
 
   /** The colourway a placed object is drawn in, or null when nothing placed carries `object`. */
   objectColourway(object: number): number | null {
