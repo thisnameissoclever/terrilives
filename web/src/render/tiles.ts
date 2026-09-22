@@ -68,6 +68,10 @@ export interface Lot {
   readonly house?: readonly [number, number] | null;
   /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
   readonly yardLook?: readonly [number, number, number] | null;
+  /** The street's column, where commutes end ([OS-street]); absent, no street. */
+  readonly street?: number | null;
+  /** `[hue, strength, lightness]` a street tile's floor art is drawn under ([OS-street]). */
+  readonly streetLook?: readonly [number, number, number] | null;
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -147,10 +151,15 @@ export function buildStaticInstances(
   const house = lot.house ?? [lot.width, lot.height];
   const edgePanels = lot.edges == null ? null
     : buildEdgeWallGeometry(lot.width, lot.height, lot.edges, lot.doors ?? undefined, house);
-  // The yard's look as a two-row shift table, so a yard tile writes row 1
-  // exactly as a colourway does ([RC-shift]).
-  const yardShift = Float32Array.from([0, 1, 0, ...(lot.yardLook ?? [0, 1, 0])]);
-  const isYard = (x: number, y: number): boolean => x >= house[0] || y >= house[1];
+  // The yard's and the street's looks as a shift table, so a yard tile
+  // writes row 1 and a street tile row 2 exactly as a colourway does
+  // ([RC-shift]).
+  const lookShifts = Float32Array.from([
+    0, 1, 0, ...(lot.yardLook ?? [0, 1, 0]), ...(lot.streetLook ?? [0, 1, 0]),
+  ]);
+  const street = lot.street ?? null;
+  const lookOf = (x: number, y: number): number => (x === street ? 2
+    : x >= house[0] || y >= house[1] ? 1 : 0);
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),
@@ -286,7 +295,7 @@ export function buildStaticInstances(
       TINT_NONE,
       lighting === null ? 0 : sampleLight(lighting, x, y),
     );
-    if (isYard(x, y)) writeColourway(instances, slot - 1, yardShift, 1);
+    writeColourway(instances, slot - 1, lookShifts, lookOf(x, y));
   };
 
   for (let y = 0; y < lot.height; y++) {

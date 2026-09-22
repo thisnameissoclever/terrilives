@@ -321,6 +321,17 @@ fn prove_lot_usable(
     {
         return Err(BlockedDoor);
     }
+    // [OS-street]: the street's exit, where every commute ends, stays open
+    // floor the door reaches. Only an edit that cuts off an exit the door
+    // reaches now is refused, so a house saved with furniture on the exit
+    // can still be changed, and mended.
+    if let Some((x, y)) = crate::portals::street_exit(content, grid.width() as u32) {
+        let exit = (x as i32, y as i32);
+        if !reached.contains(&exit) && reachable(world.resource::<TileGrid>(), door).contains(&exit)
+        {
+            return Err(BlockedRoute);
+        }
+    }
     for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
         let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
         for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {

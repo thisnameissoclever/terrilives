@@ -73,3 +73,13 @@ ticks and saved with `save_bytes()`. It is 2,944 bytes with SHA-256
 grid and 35 saved wall edges. The test loads it into the 20 by 16 lot and
 checks the house is kept as saved and the house's outside walls follow the
 saved ones ([OS-migrate] in `docs/specs/2026-09-22-the-outside.md`).
+
+`main-commuting-366.hex` contains actual Save V3 bytes written by main at
+`4e6aae1`, before the yard, in a native test build of that tree. A fresh
+`SimHandle::from_lot()` was advanced 366 ticks, six into the worker's walk to
+the front door, and saved with `save_bytes()`. It is 3,003 bytes with SHA-256
+`d26e914be8bea6cb73deda33148cdb78b28fd4124bd20f10f0bc931ef3e9b0e1`. With
+`pre-builder-600.hex` (at work on the door) and `pre-builder-908.hex`
+(walking home), it shows every saved stage of a shift finishing as it started
+on the street build, paid once, with the next shift going out to the street
+([OS-street] in `docs/specs/2026-09-22-the-outside.md`).

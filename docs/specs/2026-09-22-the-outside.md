@@ -1,7 +1,8 @@
 # The outside: a yard, then a street
 
 Status: [OS-slice-yard] is built, on branch `twcl/the-yard`. Its played
-check is [A-yard].
+check is [A-yard]. [OS-slice-street] is built on branch `twcl/the-street`, and
+its played check is [A-street].
 
 This is [B-outside] in `docs/FEATURES.md` and the larger lot, item 5 of
 [S-build] in `docs/GAME-SYSTEMS.md`. Before it, the lot was the house and
@@ -111,20 +112,20 @@ landing, (15, 3). Its line, (16, 2), is now a doorway into the yard.
   and a content change to them is a change of the lot itself, the kind
   [OS-migrate] meets with a reviewed migration.
 
-Commuters still leave and arrive at the door's tile, as now. Walking out
-through the yard to a street is [OS-slice-street].
+Commuters walk out through the yard to the street: [OS-street].
 
-**Known until later slices.** A worker out in the yard when a shift starts
-walks back in through the door and vanishes in the doorway, since a commute
-still ends on the door's tile ([OS-slice-street]). The house's cut-away walls
-facing the yard show nothing, so a doorway the player makes in one changes
-nothing on screen though sims now walk through it, and lamp light stops at a
-line nobody can see; only the floor's colour marks the house's edge until
-there is low wall art ([T-yard-art]). Walls or a room around the tile beyond
-the door can shut the rest of an empty yard off from the door, since nothing
-yet needs to reach it; the street will, and [OS-slice-street] keeps it
-reachable. A save crafted with the front door's line walled still loads, and
-the Walls tool can open the line again.
+**Known until later slices.** The house's cut-away walls facing the yard show
+nothing, so a doorway the player makes in one changes nothing on screen though
+sims now walk through it, and lamp light stops at a line nobody can see; only
+the floor's colour marks the house's edge until there is low wall art
+([T-yard-art]). Walls or a room can still shut parts of an empty yard off from
+the door where nothing needs to reach them, but never the street's exit
+([OS-street]). The exit looks like the rest of the street, so furniture
+refused there reads as blocking someone's route with nobody in sight; marking
+the exit waits on street art. A save crafted with the front door's line walled
+still loads, and the Walls tool can open the line again. A worker reaching the
+street vanishes on its tile, at the lot's edge, until there is a way to draw
+it walking off along the street.
 
 ## [OS-migrate] An older save grows into the yard on Load
 
@@ -163,13 +164,57 @@ see the yard. Panning, and the rule that keeps part of the lot in view, use the
 whole lot. A lot smaller than the house, one saved before the yard that never
 grew, opens framed whole.
 
+## [OS-street] Commuters walk out to the street
+
+This is [OS-slice-street]. The street is the lot's edge column that the front
+door faces across the yard: for the shipped lot, the east column, x = 19. Its
+**exit** is the street tile straight across the yard from the door, (19, 2).
+Both are worked out from the content's front door, its portal and the lot's
+width, as the door's line is ([OS-door]), so nothing is added to the save and
+the save digest does not move. A lot whose front door has no yard beyond it
+has no street, and its commute ends on the door's tile as it always has.
+
+* **Leaving.** At the shift's start the worker walks from where it stands, out
+  through the front door and across the yard, to the exit, and clocks in
+  there, out of sight. The door swings as it passes. A house saved with
+  furniture on the exit, by a build that had the yard before the street,
+  sends its worker out by the door instead, as before the street.
+* **Coming home.** At the shift's end the worker reappears on the exit and
+  walks home along a path to the door's landing, in through the front door
+  unless the player has opened another way into the house. The pay, the
+  energy and the satisfaction are settled on the tick it reappears, as
+  before.
+* **Old saves finish as they started.** A commuter saved on its way to the door
+  still clocks in at the door; a worker saved at work on the door's tile still
+  steps home to the landing; a commuter saved on its way home still ends there.
+  Which way a commuter is going is still read from where its walk ends, so no
+  save field is added.
+* **The save check.** A worker saved at work on the exit must have a path
+  home to the landing; one at work anywhere else keeps the straight-line check
+  it had.
+* **The way stays open.** A lot edit that would cut off an exit the front
+  door reaches is refused as blocking someone's way (refusal 10). One that
+  leaves an already shut-off exit shut off is not, so a house saved that way
+  can still be changed and mended.
+* **The door.** Only the one step in from the door's tile counts as closing
+  the door; a walk home from the street swings it by the crossing rule as
+  anyone's does, and leaves it shut when it comes in by another doorway. The
+  half-tile drawing offset for a commuter stepping through a door on the lot's
+  edge is not applied to one walking through a door with a yard beyond it;
+  a worker at work on the door's tile keeps it, though it is not drawn then.
+* **The look.** The street column is drawn as the floor under the lot's
+  `street` colour shift, grey until there is street art ([T-yard-art]); it is
+  yard to everything else, so furniture and walls may stand on it, off the
+  exit.
+
 ## Slices
 
 * **[OS-slice-yard]** Everything above, in one pull request: the yard, the
   door onto it, the walls, the migration and the camera.
 * **[OS-slice-street]** A street along the yard's far edge. Commuters walk out
-  of the door, through the yard and off the lot along the street, and come back
-  the same way, so the door stops being where a sim vanishes.
+  of the door and through the yard to the street, vanish there, and come back
+  the same way, so the door stops being where a sim vanishes. Walking off
+  along the street waits on a way to draw it.
 * **[OS-slice-daylight]** Sunlight on the yard by day and darkness by night,
   separate from the house's lamps, and windows ([B-windows]) letting it in.
 * **[OS-slice-exterior]** The house seen from outside: exterior wall art and
@@ -210,3 +255,23 @@ into the yard first. It also found that a walled-off yard behind the tile is
 possible, now recorded above, a reason for not hashing the door's facing that
 leaned on the lot's size, now reworded, and no lesson for reading a rule from
 presentation-only state, now [L-a-rule-read-the-picture].
+
+A fresh-context review of [OS-slice-street] played every real saved stage of
+a shift, the front door release's at work and walking home and main's
+walking out, and 22 more saves from main and the yard build, to their end,
+each paid once. It found a house saved by the yard build with furniture on
+the exit would miss every shift and refuse almost every edit, now sent out
+by the door, with edits refused only for cutting off an exit the door
+reaches; the door drawn closing for a walk home by another doorway, now only
+the one step in closes it; a test for a shut-in exit that passed without its
+rule, now isolated with a doorway that clears the straight line; the fixture
+tests comparing two loaded games rather than the shift's end, now played to
+it with a real mid-commute save from main; one test for standing on a tile
+shared by the commute and the save check; and stale comments and docs.
+
+A second round found the round's fixes sound across 30 saves played for
+3,000 ticks each, and that a hand-edited save with a worker a hair short of
+the exit had its way home judged from the wrong tile, now judged from the exit
+itself, as the walk home starts there; no lesson for the first round's
+stranded yard-build save, now [L-a-new-rule-meets-old-saves]; and a paragraph
+left badly wrapped.

@@ -482,7 +482,11 @@ pub struct LotFile {
     /// [OS-yard]: the colour shift a yard tile's floor art is drawn under.
     /// Omitted, a yard tile is drawn as the floor is.
     #[serde(default)]
-    pub yard: Option<YardDef>,
+    pub yard: Option<LookDef>,
+    /// [OS-street]: the colour shift a street tile's floor art is drawn under.
+    /// Omitted, a street tile is drawn as the floor is.
+    #[serde(default)]
+    pub street: Option<LookDef>,
 }
 
 /// The house's size in tiles, from the lot's north-west corner - [OS-grow].
@@ -492,10 +496,10 @@ pub struct HouseDef {
     pub height: u32,
 }
 
-/// How a yard tile is drawn - [OS-yard]: a colour shift with a colourway's
-/// three numbers and their ranges ([RC-shift]).
+/// How a yard or street tile is drawn - [OS-yard], [OS-street]: a colour
+/// shift with a colourway's three numbers and their ranges ([RC-shift]).
 #[derive(Debug, Deserialize)]
-pub struct YardDef {
+pub struct LookDef {
     pub hue: f32,
     pub strength: f32,
     pub lightness: f32,

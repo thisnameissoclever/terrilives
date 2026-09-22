@@ -1068,8 +1068,10 @@ pub enum ContentError {
         x: u32,
         y: u32,
     },
-    /// [OS-yard]: the yard's look has a number outside a colourway's range.
-    YardLookOutOfRange {
+    /// [OS-yard], [OS-street]: the yard's or the street's look has a number
+    /// outside a colourway's range.
+    LookOutOfRange {
+        look: String,
         field: String,
     },
     /// [OS-door]: a front door on no edge of the lot that does not stand on
@@ -2099,10 +2101,10 @@ impl fmt::Display for ContentError {
                  line at ({x}, {y}); every line between the house and the yard \
                  needs one"
             ),
-            ContentError::YardLookOutOfRange { field } => write!(
+            ContentError::LookOutOfRange { look, field } => write!(
                 f,
-                "lot.toml's yard has a {field} outside its range: hue -180 to \
-                 180, strength 0 to 2, lightness -0.25 to 0.25"
+                "lot.toml's {look} has a {field} outside its range: hue -180 \
+                 to 180, strength 0 to 2, lightness -0.25 to 0.25"
             ),
             ContentError::FrontDoorNotOutside { x, y } => write!(
                 f,

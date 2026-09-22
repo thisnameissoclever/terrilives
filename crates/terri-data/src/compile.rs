@@ -598,6 +598,24 @@ fn shift_out_of_range(hue: f32, strength: f32, lightness: f32) -> Option<&'stati
     .map(|(field, ..)| field)
 }
 
+/// A lot tile's look - [OS-yard], [OS-street]: the art as drawn when
+/// omitted, else a colour shift checked against a colourway's ranges.
+fn compile_look(
+    look: &str,
+    def: Option<&crate::schema::LookDef>,
+) -> Result<[f32; 3], ContentError> {
+    let Some(def) = def else {
+        return Ok([0.0, 1.0, 0.0]);
+    };
+    if let Some(field) = shift_out_of_range(def.hue, def.strength, def.lightness) {
+        return Err(ContentError::LookOutOfRange {
+            look: look.to_string(),
+            field: field.to_string(),
+        });
+    }
+    Ok([def.hue, def.strength, def.lightness])
+}
+
 /// Validates the colourways declared in `content/objects.toml` - [RC-content]
 /// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
 /// the art as drawn; ids are unique and, like names, not empty; each shift
@@ -2541,17 +2559,8 @@ fn compile_lot(
             (house.width, house.height)
         }
     };
-    let yard_look = match &lot.yard {
-        None => [0.0, 1.0, 0.0],
-        Some(yard) => {
-            if let Some(field) = shift_out_of_range(yard.hue, yard.strength, yard.lightness) {
-                return Err(ContentError::YardLookOutOfRange {
-                    field: field.to_string(),
-                });
-            }
-            [yard.hue, yard.strength, yard.lightness]
-        }
-    };
+    let yard_look = compile_look("yard", lot.yard.as_ref())?;
+    let street_look = compile_look("street", lot.street.as_ref())?;
 
     if !lot.wall.is_empty() && !lot.wall_edge.is_empty() {
         return Err(ContentError::MixedWallArchitecture);
@@ -2987,6 +2996,7 @@ fn compile_lot(
             wall_edges,
             house,
             yard_look,
+            street_look,
         },
         portals,
     ))
@@ -3487,6 +3497,8 @@ mod tests {
         // are the as-drawn look, hue 0, strength 1 and lightness 0, as
         // little-endian floats. Read from the failing golden assertion.
         5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
+        // **The street's look follows ([OS-street]),** as drawn here too.
+        0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
         0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
@@ -3523,6 +3535,7 @@ mod tests {
             wall_edge: vec![],
             house: None,
             yard: None,
+            street: None,
             width: 1,
             height: 1,
             wall: Vec::new(),
@@ -3553,6 +3566,7 @@ mod tests {
             wall_edge: vec![],
             house: None,
             yard: None,
+            street: None,
             width: 5,
             height: 3,
             wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
@@ -5262,6 +5276,7 @@ mod tests {
             wall_edge: vec![],
             house: None,
             yard: None,
+            street: None,
             front_door: None,
             width: 4,
             height: 4,
@@ -7429,6 +7444,7 @@ mod tests {
             wall_edge: vec![],
             house: None,
             yard: None,
+            street: None,
             front_door: None,
             width,
             height,
@@ -7552,39 +7568,50 @@ mod tests {
         );
     }
 
-    /// [OS-yard]: the yard's look has a colourway's three ranges, each limit
-    /// allowed, and a number past one names the number.
+    /// [OS-yard], [OS-street]: the yard's and the street's looks each have a
+    /// colourway's three ranges, each limit allowed, and a number past one
+    /// names the look and the number.
     #[test]
-    fn the_yard_look_has_a_colourways_ranges() {
-        let yard = |hue: &str, strength: &str, lightness: &str| {
-            let lot: LotFile = toml::from_str(&format!(
-                "width = 5\nheight = 4\nyard = {{ hue = {hue}, strength = {strength}, lightness = {lightness} }}\n"
-            ))
-            .unwrap();
-            compile_geometry(one_object(snack()), lot)
-        };
-        assert_eq!(
-            yard("70.0", "1.5", "-0.05").unwrap().lot.yard_look,
-            [70.0, 1.5, -0.05]
-        );
-        yard("180.0", "2.0", "0.25").expect("the upper limits");
-        yard("-180.0", "0.0", "-0.25").expect("the lower limits");
-        for (hue, strength, lightness, field) in [
-            ("180.5", "1.0", "0.0", "hue"),
-            ("-180.5", "1.0", "0.0", "hue"),
-            ("nan", "1.0", "0.0", "hue"),
-            ("0.0", "2.1", "0.0", "strength"),
-            ("0.0", "-0.1", "0.0", "strength"),
-            ("0.0", "1.0", "0.3", "lightness"),
-            ("0.0", "1.0", "-0.3", "lightness"),
-        ] {
+    fn the_yard_and_street_looks_have_a_colourways_ranges() {
+        for look in ["yard", "street"] {
+            let with = |hue: &str, strength: &str, lightness: &str| {
+                let lot: LotFile = toml::from_str(&format!(
+                    "width = 5\nheight = 4\n{look} = {{ hue = {hue}, strength = {strength}, lightness = {lightness} }}\n"
+                ))
+                .unwrap();
+                compile_geometry(one_object(snack()), lot)
+            };
+            let pack = with("70.0", "1.5", "-0.05").unwrap();
+            let (set, other) = if look == "yard" {
+                (pack.lot.yard_look, pack.lot.street_look)
+            } else {
+                (pack.lot.street_look, pack.lot.yard_look)
+            };
             assert_eq!(
-                yard(hue, strength, lightness).unwrap_err(),
-                ContentError::YardLookOutOfRange {
-                    field: field.into()
-                },
-                "{hue} {strength} {lightness}"
+                (set, other),
+                ([70.0, 1.5, -0.05], [0.0, 1.0, 0.0]),
+                "{look}"
             );
+            with("180.0", "2.0", "0.25").expect("the upper limits");
+            with("-180.0", "0.0", "-0.25").expect("the lower limits");
+            for (hue, strength, lightness, field) in [
+                ("180.5", "1.0", "0.0", "hue"),
+                ("-180.5", "1.0", "0.0", "hue"),
+                ("nan", "1.0", "0.0", "hue"),
+                ("0.0", "2.1", "0.0", "strength"),
+                ("0.0", "-0.1", "0.0", "strength"),
+                ("0.0", "1.0", "0.3", "lightness"),
+                ("0.0", "1.0", "-0.3", "lightness"),
+            ] {
+                assert_eq!(
+                    with(hue, strength, lightness).unwrap_err(),
+                    ContentError::LookOutOfRange {
+                        look: look.into(),
+                        field: field.into()
+                    },
+                    "{look} {hue} {strength} {lightness}"
+                );
+            }
         }
     }
 
@@ -7693,7 +7720,9 @@ mod tests {
         assert_eq!(decoded, pack.lot);
         // The house, then the yard look as three little-endian floats, are
         // appended after the wall edges ([OS-grow], [OS-yard]).
-        const HOUSE_AND_LOOK: [u8; 14] = [5, 4, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0];
+        const HOUSE_AND_LOOK: [u8; 26] = [
+            5, 4, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
+        ];
         let (edges, appended) = bytes.split_at(bytes.len() - HOUSE_AND_LOOK.len());
         assert_eq!(appended, HOUSE_AND_LOOK);
         assert_eq!(&edges[edges.len() - 9..], &[2, 1, 3, 2, 1, 0, 1, 3, 0]);

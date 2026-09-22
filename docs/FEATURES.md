@@ -734,8 +734,12 @@ drawn as green floor until there is grass art ([T-yard-art]). Sims walk out
 through the front door, which swings for them, and furniture can be bought and
 walls built in the yard. A saved house whose walls are edges, which is every
 save since the Walls tool, grows into the yard on Load. The
-played check is [A-yard]. The street, daylight on the yard, the house seen from
-outside and outdoor objects remain.
+played check is [A-yard]. The second, [OS-slice-street], is built on branch
+`twcl/the-street`: a street along the lot's east edge, drawn grey until there
+is street art, where a worker walks out through the front door and across
+the yard to leave for work, and back the same way; its played check is
+[A-street]. Daylight on the yard, the house seen from outside and outdoor
+objects remain.
 
 ### [B-floors] The player chooses what each floor is
 

@@ -244,7 +244,7 @@ two rendered frames produces the same saved world as draining it in one batch.
     draws x then y from the shared PRNG after useful choices have failed and
     processes sims in entity-index order before those draws.
 8. `follow_path` - move one deterministic step along the chosen path.
-9. `commute_and_work` - clock in at the door, run the shift, pay, and return.
+9. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
 10. `tick_interactions` - advance ordinary object interactions and need deltas.
 11. `tick_chain_steps` - advance station work and terminal-only chain payoff.
 12. `tick_social` - advance conversations and directional relationships.
@@ -1074,10 +1074,16 @@ connection; ghosts will be strictly additive.
 
 The alpha ships one content-defined rabbit-hole career. `Career(u32)` names a
 pack row containing label, shift start, duration, pay, energy cost, and
-satisfaction. At shift time, `Commuting` sends the sim to the front door;
-`AtWork { remaining_ticks }` keeps the off-lot countdown in deterministic world
-state; completion pays household Funds, applies the authored costs and reward,
-and returns the sim to the lot. The normal HUD exposes the career, activity,
+satisfaction. At shift time, `Commuting` sends the sim to the street's exit,
+the lot's last column across the yard from the front door, or to the front
+door on a lot with no yard beyond it (`portals::street_exit`, [OS-street] in
+`docs/specs/2026-09-22-the-outside.md`); `AtWork { remaining_ticks }` keeps the
+off-lot countdown in deterministic world state; completion pays household
+Funds, applies the authored costs and reward, and returns the sim to the lot,
+walking home along a path to the door's landing. Which way a commuter is going
+is read from where its walk ends, so the street added no save field, and the
+exit is worked out from the content's door and the lot's width, so it added
+nothing to the save digest. The normal HUD exposes the career, activity,
 clock, and Funds.
 
 The alpha does **not** contain workplace lot references, promotion ladders,

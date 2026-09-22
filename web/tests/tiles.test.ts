@@ -740,3 +740,31 @@ describe('the yard', () => {
     expect(find(rows(house.instances, house.count), 1.5, 0)).toEqual([]);
   });
 });
+
+// [OS-street] in docs/specs/2026-09-22-the-outside.md: the street's column is
+// the floor under the street's look, whatever else the tile is.
+describe('the street', () => {
+  const shifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const out: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      out.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return out;
+  };
+
+  it("draws the street's column under the street's look, beside the yard", () => {
+    const built = buildStaticInstances({
+      width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array(),
+      house: [1, 1], yardLook: [65, 2, -0.22], street: 2, streetLook: [0, 0.15, -0.22],
+    }, ORIGIN_X, ORIGIN_Y, GRID);
+    const drawn = [0, 0, 0];
+    const yard = [65, 1, -0.22];
+    const street = [0, -0.85, -0.22];
+    // Row by row: (0, 0) house, (1, 0) yard, (2, 0) street, then the yard row.
+    expect(shifts(built)).toEqual([drawn, yard, street, yard, yard, street]);
+  });
+});

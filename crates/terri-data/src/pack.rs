@@ -390,6 +390,8 @@ pub struct CompiledLot {
     /// [OS-yard]: the hue, strength and lightness a yard tile's floor art is
     /// drawn under, as a colourway's ([RC-shift]). Appended.
     pub yard_look: [f32; 3],
+    /// [OS-street]: the same for a street tile. Appended.
+    pub street_look: [f32; 3],
 }
 
 /// Structural routing and presentation data for one validated lot-boundary portal.
@@ -1090,6 +1092,7 @@ mod tests {
             // that dropped either moves the equality below.
             house: (4, 3),
             yard_look: [70.0, 1.5, -0.05],
+            street_look: [0.0, 0.2, -0.2],
             width: 6,
             height: 4,
             // Present rather than None, with coordinates distinct from
