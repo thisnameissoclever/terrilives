@@ -12,6 +12,8 @@ import { SimBridge } from './bridge.js';
 import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
+import { WallTool, routeBuildKey } from './ui/wall-tool.js';
+import { WallToolControls } from './ui/wall-tool-controls.js';
 import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
@@ -547,6 +549,7 @@ async function main(): Promise<void> {
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
+    wallControls?.setCompact(event.matches);
   });
   const gameHud = new GameHud(
     {
@@ -769,6 +772,7 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           builder.resetAfterLoad();
+          wallTool.resetAfterLoad(lotWidth, lotHeight);
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
@@ -1043,6 +1047,12 @@ async function main(): Promise<void> {
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
   let builderControls: BuilderControls;
+  // [WT-shell]. Build mode's second tool; it is only ever active while the
+  // furniture builder is, because Build is what pauses the household.
+  let wallControls: WallToolControls | undefined;
+  const wallTool = new WallTool(sim, lotWidth, lotHeight, {
+    changed: () => wallControls?.render(),
+  });
   const builder = new FurnitureBuilder(sim, overlayPause, {
     changed: () => builderControls?.render(),
     enter() {
@@ -1053,6 +1063,7 @@ async function main(): Promise<void> {
       cameraDirty = true;
     },
     exit() {
+      wallTool.exit();
       mobileHud.endEditing();
       buildToggle.focus();
       cameraDirty = true;
@@ -1060,10 +1071,18 @@ async function main(): Promise<void> {
   });
   builderControls = new BuilderControls(document, builder);
   builderControls.setCompact(compactHudQuery.matches);
+  wallControls = new WallToolControls(document, wallTool, {
+    leaveFurniture() {
+      builder.cancel();
+      return builder.selected === null && !builder.pending;
+    },
+  });
+  wallControls.setCompact(compactHudQuery.matches);
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
-      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey && builder.handleKey(event.key)) {
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && routeBuildKey(event.key, wallTool, builder)) {
         event.preventDefault();
       }
       return;
@@ -1184,7 +1203,11 @@ async function main(): Promise<void> {
     () => audio.emit({ type: 'command.staged' }),
     {
       active: () => builder.active,
-      click(pick, tile) {
+      click(pick, tile, world) {
+        if (wallTool.active) {
+          if (world) wallTool.choosePoint(world[0], world[1]);
+          return;
+        }
         if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
         else if (tile) builder.moveTo(tile[0], tile[1]);
       },
@@ -1194,7 +1217,7 @@ async function main(): Promise<void> {
     if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
     const target = event.target;
     if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if (builder.handleKey(event.key)) event.preventDefault();
+    if (routeBuildKey(event.key, wallTool, builder)) event.preventDefault();
   });
 
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -1229,6 +1252,8 @@ async function main(): Promise<void> {
       () => audio.emit({ type: 'command.rejected' }),
     );
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
+    wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    wallTool.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
@@ -1254,6 +1279,7 @@ async function main(): Promise<void> {
       lightingMode.isFlat() ? null : lighting,
       undefined,
       builder.preview,
+      wallTool.highlight(),
     );
     // The day/night cycle. `LightingMode` combines the player's saved flat
     // choice with reduced motion's temporary constraint, so one effective
@@ -1261,7 +1287,7 @@ async function main(): Promise<void> {
     // the player's preference.
     renderer.draw(
       instances,
-      instanceCount(sim, selected, undefined, builder.preview),
+      instanceCount(sim, selected, undefined, builder.preview, wallTool.highlight()),
       camera.scale,
       lightingMode.isFlat()
         ? AMBIENT_NEUTRAL

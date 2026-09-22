@@ -38,6 +38,9 @@ pub struct PlacementResult {
 pub struct LotEditState {
     pub revision: u64,
     pub last_result: Option<PlacementResult>,
+    /// The most recent wall edit the drain committed or refused, so the shell
+    /// can report a refusal only the commit could see - [WT-boundary].
+    pub last_wall_result: Option<walls::WallEditResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -190,19 +193,17 @@ fn crosses_wall(rect: Rectangle, grid: &TileGrid) -> bool {
         .any(|(a, b)| contains(a) && contains(b))
 }
 
-/// Produces a complete owned transaction; no mutation and no random draws.
-pub fn validate_placement(
-    world: &World,
-    object: u32,
-    origin: (u32, u32),
-    facing: Facing,
-) -> Result<PlacementPlan, PlacementRefusal> {
-    use PlacementRefusal::*;
-    let (entity, definition, _) = object_definition(world, object).ok_or(UnknownObject)?;
-    if !definition.supports(facing) {
-        return Err(UnsupportedFacing);
-    }
-    let content = world.resource::<Content>().0;
+/// The fixed architecture and every placed object, proven to account for the
+/// live grid exactly. Every lot edit starts here: an edit validated against a
+/// world whose grid nobody can explain would be validated against a guess.
+struct CurrentLayout {
+    walls: TileGrid,
+    rectangles: Vec<Rectangle>,
+}
+
+fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
+    use PlacementRefusal::UnsupportedLayout;
+    let content = world.get_resource::<Content>().ok_or(UnsupportedLayout)?.0;
     let live = world.resource::<TileGrid>();
     let walls = fixed_architecture(world, live)?;
     let mut current = walls.clone();
@@ -250,6 +251,112 @@ pub fn validate_placement(
     {
         return Err(UnsupportedLayout);
     }
+    Ok(CurrentLayout { walls, rectangles })
+}
+
+/// What every lot edit must leave usable, proven on the candidate grid: the
+/// front door and its landing are clear, every sim stands on open floor in
+/// one connected region and can finish the walk it is on, and every object
+/// keeps a clear approach in that same region. Shared by furniture moves and
+/// wall edits so the two cannot drift - [WT-rules].
+fn prove_lot_usable(
+    world: &World,
+    grid: &TileGrid,
+    rectangles: &[Rectangle],
+) -> Result<(), PlacementRefusal> {
+    use PlacementRefusal::*;
+    let content = world.resource::<Content>().0;
+    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
+    if content
+        .lot
+        .front_door
+        .is_some_and(|(x, y)| !grid.is_walkable(x as i32, y as i32))
+    {
+        return Err(BlockedDoor);
+    }
+    if content
+        .portals
+        .iter()
+        .any(|p| !grid.is_walkable(p.inward.0 as i32, p.inward.1 as i32))
+    {
+        return Err(BlockedLanding);
+    }
+    let reached = reachable(grid);
+    for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
+        let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
+        for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {
+            for y in [pos.y.floor() as i32, pos.y.ceil() as i32] {
+                if !grid.is_walkable(x, y) {
+                    return Err(SimOverlap);
+                }
+                if !reached.contains(&(x, y)) {
+                    return Err(BlockedRoute);
+                }
+            }
+        }
+        if let Some(path) = row.get::<Path>() {
+            let Some(remaining) = path.steps.get(path.cursor..) else {
+                return Err(BlockedRoute);
+            };
+            let mut previous = (pos.x, pos.y);
+            for &(x, y) in remaining {
+                let next = (x as f32, y as f32);
+                if !reached.contains(&(x, y)) || !grid.segment_can_cross(previous, next) {
+                    return Err(BlockedRoute);
+                }
+                previous = next;
+            }
+            if remaining
+                .windows(2)
+                .any(|pair| pair[0] != pair[1] && !grid.can_step(pair[0], pair[1]))
+            {
+                return Err(BlockedRoute);
+            }
+        }
+    }
+    // Match F5: every object, including scenery, has a clear approach and
+    // every clear approach belongs to the common reachable region.
+    for &rect in rectangles {
+        let beside = approaches(rect, grid);
+        if beside.is_empty() || beside.iter().any(|tile| !reached.contains(tile)) {
+            return Err(InaccessibleInteraction);
+        }
+    }
+    if content
+        .lot
+        .front_door
+        .is_some_and(|(x, y)| !reached.contains(&(x as i32, y as i32)))
+    {
+        return Err(BlockedDoor);
+    }
+    if content
+        .portals
+        .iter()
+        .any(|p| !reached.contains(&(p.inward.0 as i32, p.inward.1 as i32)))
+    {
+        return Err(BlockedLanding);
+    }
+    Ok(())
+}
+
+/// Produces a complete owned transaction; no mutation and no random draws.
+pub fn validate_placement(
+    world: &World,
+    object: u32,
+    origin: (u32, u32),
+    facing: Facing,
+) -> Result<PlacementPlan, PlacementRefusal> {
+    use PlacementRefusal::*;
+    let (entity, definition, _) = object_definition(world, object).ok_or(UnknownObject)?;
+    if !definition.supports(facing) {
+        return Err(UnsupportedFacing);
+    }
+    let live = world.resource::<TileGrid>();
+    let CurrentLayout {
+        walls,
+        mut rectangles,
+    } = current_layout(world)?;
+    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
     let footprint = definition.footprint_at(facing);
     if !fits(live, origin, footprint) {
         return Err(OutOfBounds);
@@ -288,75 +395,7 @@ pub fn validate_placement(
             *rect = candidate;
         }
     }
-    if content
-        .lot
-        .front_door
-        .is_some_and(|(x, y)| !grid.is_walkable(x as i32, y as i32))
-    {
-        return Err(BlockedDoor);
-    }
-    if content
-        .portals
-        .iter()
-        .any(|p| !grid.is_walkable(p.inward.0 as i32, p.inward.1 as i32))
-    {
-        return Err(BlockedLanding);
-    }
-    let reached = reachable(&grid);
-    for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
-        let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
-        for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {
-            for y in [pos.y.floor() as i32, pos.y.ceil() as i32] {
-                if !grid.is_walkable(x, y) {
-                    return Err(SimOverlap);
-                }
-                if !reached.contains(&(x, y)) {
-                    return Err(BlockedRoute);
-                }
-            }
-        }
-        if let Some(path) = row.get::<Path>() {
-            let Some(remaining) = path.steps.get(path.cursor..) else {
-                return Err(BlockedRoute);
-            };
-            let mut previous = (pos.x, pos.y);
-            for &(x, y) in remaining {
-                let next = (x as f32, y as f32);
-                if !reached.contains(&(x, y)) || !grid.segment_can_cross(previous, next) {
-                    return Err(BlockedRoute);
-                }
-                previous = next;
-            }
-            if remaining
-                .windows(2)
-                .any(|pair| pair[0] != pair[1] && !grid.can_step(pair[0], pair[1]))
-            {
-                return Err(BlockedRoute);
-            }
-        }
-    }
-    // Match F5: every object, including scenery, has a clear approach and
-    // every clear approach belongs to the common reachable region.
-    for rect in rectangles {
-        let beside = approaches(rect, &grid);
-        if beside.is_empty() || beside.iter().any(|tile| !reached.contains(tile)) {
-            return Err(InaccessibleInteraction);
-        }
-    }
-    if content
-        .lot
-        .front_door
-        .is_some_and(|(x, y)| !reached.contains(&(x as i32, y as i32)))
-    {
-        return Err(BlockedDoor);
-    }
-    if content
-        .portals
-        .iter()
-        .any(|p| !reached.contains(&(p.inward.0 as i32, p.inward.1 as i32)))
-    {
-        return Err(BlockedLanding);
-    }
+    prove_lot_usable(world, &grid, &rectangles)?;
     Ok(PlacementPlan {
         grid,
         entity,
@@ -394,6 +433,8 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
     }
     world.resource_mut::<LotEditState>().last_result = Some(PlacementResult { object, reason });
 }
+
+pub mod walls;
 
 #[cfg(test)]
 mod tests;

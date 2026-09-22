@@ -6737,3 +6737,56 @@ this summary.
 `bpy.app.background` true and the Blender version. For actual renders, also
 require the script's complete status, every expected output, hashes and visual
 inspection. A launcher process ID or successful shell exit alone is insufficient.
+
+## [L-a-blind-digest-proves-false-equalities] A hash that cannot see something lets tests call two worlds equal
+
+**What happened.** Adding the saved walls to the world hash for the Walls tool
+failed two save tests. Each round-tripped the shipped house through the old V1
+record and asserted the restored world had the same hash. A V1 record carries
+no wall edges, so the restored house had no walls at all. The assertion had
+only ever held because the hash could not see walls.
+
+**Root cause.** A test that compares digests proves equality only of what the
+digest reads. When state lives outside the digest, "same hash" silently means
+"same except that", and a test can pass for years while asserting something
+false.
+
+**Prevention rule.** When a digest gains a field, expect failures and read each
+one as a question about the test, not the digest: was the test's claim ever
+true? When a test compares two worlds through a lossy format, compare what that
+format carries, or use the format the game writes.
+
+**How to verify.** `fridge_art_replacement_restores_authored_and_dynamic_objects_without_save_changes`
+keeps its V1 load and compares V1 records, and adds a V3 round trip that
+compares hashes;
+`load_during_settle_in_reconstructs_the_socketed_render_endpoint_before_another_tick`
+keeps V1 on purpose, because its fixture is only valid there, and compares V1
+records. With the wall hash in place, turning either back into a V1 world-hash
+comparison makes it fail.
+
+## [L-an-edit-must-pass-the-loader] A lot edit's own rules accepted walls the loader refused
+
+**What happened.** The first review of the Walls tool found two walls the
+validator accepted that left a save the V3 loader refused: one between where a
+sim's walk ends and the object it is walking to, and one between the front door
+and its landing while another way in stayed open. The player could not resume
+the game. Both came up in ordinary play of the shipped household.
+
+**Root cause.** I built the wall validator from the furniture validator's
+rules and added the ones I could think of. The loader has its own, older rules
+about walls, walks and the front door, and nothing tied the two lists
+together. Any rule only the loader knew was a way to write a save it refuses.
+
+**Prevention rule.** An edit that writes saved state must pass the loader's
+checks on the candidate state, by calling them rather than copying them. Test
+the invariant directly: every edit the validator accepts leaves a save the
+loader accepts, over the real household at more than one moment.
+
+**How to verify.** Remove the `candidate_grid_loads` call from
+`validate_wall_edit`. `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`
+and `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fail;
+the second names the vertical line at x 14, y 6, at tick 180. The front-door
+test does not, because the door rule now refuses that wall first. The
+household test also fails on its own if its ticks stop holding a wall that
+only the loader refuses: the trait library moved the household once already
+and silently emptied the ticks it first used.

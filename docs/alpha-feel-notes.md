@@ -2970,6 +2970,37 @@ The remaining gaps beside interior walls are explicitly deferred to the
 separate edge-wall/navigation/save-layout change. Retained screenshots and
 commands are in `assets/review-evidence/bathroom/bathtub-quarter-turn.md`.
 
+## [A-wall-tool] Walls and doorways, one line at a time
+
+Played on 2026-09-21 on the port 5174 dev server serving this branch, which I
+confirmed by the Walls button being in the Build panel.
+
+**Choosing a line.** In Build mode I pressed Walls. The furniture controls gave
+way to three buttons, all disabled, and "Choose a line between two floor
+tiles." A click on the living-room floor ringed the two tiles either side of
+the nearest line in the preview's blue, said "No wall on this line.", and
+enabled Wall and Doorway but not Remove.
+
+**Building.** Wall drew a wall panel between the two tiles and said "Wall
+built."; Wall was then disabled and Doorway and Remove enabled. Doorway turned
+the panel into a frame and said "Doorway made."
+
+**A refusal.** A click on the line between a sim at the kitchen counter and the
+counter ringed the tiles in red and said "No wall on this line. A wall there
+would leave furniture out of reach." Only Doorway stayed enabled.
+
+**Saved.** Save, then a reload, brought back "Saved game loaded" with the
+doorway frame still standing in the living room.
+
+**Phone.** At 390 by 844 the Build dock holds the tool switch, the status, the
+three buttons and the help line without sideways scroll, and a tap on the floor
+chose a line the same way a click does.
+
+**Not proven here.** I did not watch a sim walk around a new wall; the Rust
+tests prove the grid refuses the crossing and the pathing already obeys edges.
+The first status read after pressing Wall came one frame before the drain and
+still showed the old state; the screen caught up on the next frame. No physical
+phone was used.
 ## [A-trait-library] Fifteen traits, and a panel that says what they do
 
 Played on 2026-09-21 on the port 5174 dev server, serving this branch's working

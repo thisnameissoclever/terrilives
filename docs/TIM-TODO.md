@@ -92,6 +92,15 @@ for you to veto.
 Cheap to start and easy to stop - and until it happens, the alpha is
 complete but voiceless.
 
+### [T-interior-door-art] Hinged doors for the Walls tool `[YOURS]`
+
+The Walls tool (PR 95) makes doorways: gaps in a wall that draw as a frame.
+They have no door in them. A hinged interior door like the front door needs
+art: a frame and a leaf in open, ajar and closed states for each of the two
+wall directions, matched to the existing wall art. Tell me whether to draft
+them with the generator for you to accept or reject, or whether you would
+rather supply them. Nothing is blocked meanwhile; doorways work.
+
 ### [T-trait-copy] The twelve new traits need your words `[YOURS]`
 
 The trait library grew from three traits to fifteen (PR 87), and every trait

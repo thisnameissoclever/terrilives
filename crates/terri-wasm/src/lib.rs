@@ -127,6 +127,28 @@ fn placement_arguments(
     ))
 }
 
+/// A wall edit from hostile JavaScript numbers, or `None` - [WT-boundary].
+fn wall_edit_arguments(
+    axis: f64,
+    x: f64,
+    y: f64,
+    state: f64,
+) -> Option<terri_sim::placement::walls::WallEdit> {
+    use terri_core::layout::{EdgeAxis, WallState};
+    let axis = u8::try_from(placement_u32(axis)?)
+        .ok()
+        .and_then(EdgeAxis::from_code)?;
+    let state = u8::try_from(placement_u32(state)?)
+        .ok()
+        .and_then(WallState::from_code)?;
+    Some(terri_sim::placement::walls::WallEdit {
+        axis,
+        x: placement_u32(x)?,
+        y: placement_u32(y)?,
+        state,
+    })
+}
+
 /// Decode frozen V1, including only the historical missing sleep-pressure list.
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
     match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
@@ -324,6 +346,54 @@ impl SimHandle {
                     .filter(|&f| definition.supports(f))
                     .map(|f| 1u32 << f.code())
                     .sum()
+            })
+    }
+
+    /// The refusal code this wall edit would get, or zero when it would be
+    /// applied - [WT-boundary]. Never writes. Axis 0 is vertical and 1
+    /// horizontal, as `wall_edges` numbers them; state 0 is open, 1 a wall and
+    /// 2 a doorway. Anything else is `InvalidInput`.
+    pub fn wall_edit_preview(&self, axis: f64, x: f64, y: f64, state: f64) -> u32 {
+        use terri_sim::placement::{walls::validate_wall_edit, PlacementRefusal};
+        let Some(edit) = wall_edit_arguments(axis, x, y, state) else {
+            return PlacementRefusal::InvalidInput as u32;
+        };
+        validate_wall_edit(self.sim.world(), edit)
+            .err()
+            .map_or(0, |reason| reason as u32)
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain,
+    /// from `last_wall_edit_result`.
+    pub fn set_wall_edge(&mut self, axis: f64, x: f64, y: f64, state: f64) -> bool {
+        let Some(edit) = wall_edit_arguments(axis, x, y, state) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetWallEdge {
+            axis: edit.axis,
+            x: edit.x,
+            y: edit.y,
+            state: edit.state,
+        })
+        .expect("a wall edit serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[axis, x, y, state, refusal]` of the last wall edit a drain handled,
+    /// refusal zero when it was applied; empty before the first.
+    pub fn last_wall_edit_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_wall_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    u32::from(result.edit.axis.code()),
+                    result.edit.x,
+                    result.edit.y,
+                    u32::from(result.edit.state.code()),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
             })
     }
 
@@ -692,7 +762,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the seven `SimCommand`
+    /// - **an unknown variant index** - a byte past the nine `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -4316,8 +4386,91 @@ mod boundary_tests {
         );
     }
 
+    /// [WT-boundary]: a wall edit crosses the boundary as a preview that never
+    /// writes, a staged command, and a result the drain leaves behind, and the
+    /// renderer's `wall_edges` sees the new house.
+    #[test]
+    fn a_wall_edit_crosses_the_boundary_and_the_renderer_sees_it() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let revision = handle.lot_revision();
+        let edges_before = handle.wall_edges();
+        let wall = 1.0;
+        // The first interior vertical line the shipped house accepts a wall on,
+        // found rather than hard-coded so a re-authored lot does not break it.
+        let (x, y) = (1..16)
+            .flat_map(|x| (0..12).map(move |y| (x, y)))
+            .find(|&(x, y)| {
+                handle.wall_edit_preview(0.0, x as f64, y as f64, wall) == 0
+                    && !edges_before
+                        .chunks_exact(4)
+                        .any(|e| e[0] == 0 && e[1] == x && e[2] == y)
+            })
+            .expect("the shipped house has somewhere to put a wall");
+        assert_eq!(handle.wall_edges(), edges_before, "a preview wrote");
+        assert_eq!(handle.lot_revision(), revision, "a preview wrote");
+        assert!(handle.last_wall_edit_result().is_empty());
+
+        assert!(handle.set_wall_edge(0.0, x as f64, y as f64, wall));
+        handle.flush_commands();
+        assert_eq!(handle.last_wall_edit_result(), [0, x, y, 1, 0]);
+        assert_eq!(handle.lot_revision(), revision + 1);
+        let after = handle.wall_edges();
+        assert_eq!(after.len(), edges_before.len() + 4);
+        assert_eq!(&after[after.len() - 4..], &[0, x, y, 0]);
+
+        // A doorway on the same line, then the refusal for the outside wall,
+        // read from the same result the shell reads.
+        assert!(handle.set_wall_edge(0.0, x as f64, y as f64, 2.0));
+        handle.flush_commands();
+        assert_eq!(handle.last_wall_edit_result(), [0, x, y, 2, 0]);
+        assert_eq!(&handle.wall_edges()[after.len() - 4..], &[0, x, y, 1]);
+        let out = PlacementRefusal::OutOfBounds as u32;
+        assert_eq!(handle.wall_edit_preview(0.0, 0.0, 1.0, wall), out);
+        assert!(handle.set_wall_edge(0.0, 0.0, 1.0, wall));
+        handle.flush_commands();
+        assert_eq!(handle.last_wall_edit_result(), [0, 0, 1, 1, out]);
+    }
+
+    #[test]
+    fn hostile_wall_edit_numbers_are_refused_before_they_reach_the_simulation() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let invalid = PlacementRefusal::InvalidInput as u32;
+        for (axis, x, y, state) in [
+            (2.0, 3.0, 2.0, 1.0),
+            (-1.0, 3.0, 2.0, 1.0),
+            (0.5, 3.0, 2.0, 1.0),
+            (0.0, 3.0, 2.0, 3.0),
+            (0.0, 3.0, 2.0, f64::NAN),
+            (0.0, f64::INFINITY, 2.0, 1.0),
+            (0.0, 3.5, 2.0, 1.0),
+            (0.0, 3.0, -2.0, 1.0),
+            (0.0, 3.0, 2.0, 257.0),
+            (0.0, 4_294_967_296.0, 2.0, 1.0),
+        ] {
+            assert_eq!(
+                handle.wall_edit_preview(axis, x, y, state),
+                invalid,
+                "({axis}, {x}, {y}, {state})"
+            );
+            assert!(
+                !handle.set_wall_edge(axis, x, y, state),
+                "({axis}, {x}, {y}, {state})"
+            );
+        }
+        handle.flush_commands();
+        assert!(
+            handle.last_wall_edit_result().is_empty(),
+            "nothing was staged"
+        );
+    }
+
     #[test]
     fn malformed_command_bytes_are_rejected_rather_than_trapping_the_module() {
+        // The well-formed twin of the SetWallEdge rows below, so a row can
+        // only fail for the byte it changes.
+        assert!(SimHandle::from_lot().enqueue_command(&[0x08, 0x00, 0x01, 0x02, 0x01]));
         // **The mutation this is written against: `unwrap` or `expect` on
         // the decode.** That compiles, ships, and survives `--release` -
         // which is what makes it worse than the [L12] `debug_assert!`
@@ -4341,10 +4494,24 @@ mod boundary_tests {
             // trap once `UseObjectFirst` took 5: each is a TRUNCATED valid
             // variant, still rejected, but no longer testing the unknown
             // index its label names. The row has to track the enum's edge.
+            // And `[0x07, 0x00]` became a truncated `PlaceObject`, and
+            // `[0x08, 0x00]` a truncated `SetWallEdge`.
             (
-                "variant index 7, one past the seven SimCommand declares; \
+                "variant index 9, one past the nine SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x07, 0x00],
+                vec![0x09, 0x00],
+            ),
+            (
+                "SetWallEdge missing its state",
+                vec![0x08, 0x00, 0x01, 0x02],
+            ),
+            (
+                "SetWallEdge with a state past the three that exist",
+                vec![0x08, 0x00, 0x01, 0x02, 0x03],
+            ),
+            (
+                "SetWallEdge with an axis past the two that exist",
+                vec![0x08, 0x02, 0x01, 0x02, 0x01],
             ),
             ("variant index 0xFF", vec![0xFF]),
             (

@@ -131,6 +131,15 @@ pub enum SimCommand {
         y: u32,
         facing: crate::Facing,
     },
+    /// Make one boundary between two tiles open, a wall, or a doorway -
+    /// [WT-command]. A lot edit, applied by itself in stream order like
+    /// `PlaceObject`. Appended to preserve earlier wire codes.
+    SetWallEdge {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        state: crate::layout::WallState,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -238,6 +247,17 @@ mod tests {
                     facing: crate::Facing::NorthWest,
                 },
                 &[7, 172, 2, 2, 5, 2],
+            ),
+            (
+                SimCommand::SetWallEdge {
+                    axis: crate::layout::EdgeAxis::Horizontal,
+                    x: 300,
+                    y: 4,
+                    state: crate::layout::WallState::Doorway,
+                },
+                // Read from this assertion's failure: variant 8, axis 1,
+                // x 300 as a two-byte varint, y 4, state 2.
+                &[8, 1, 172, 2, 4, 2],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),
