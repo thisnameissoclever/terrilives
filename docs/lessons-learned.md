@@ -7014,9 +7014,10 @@ parted. Review caught it before merge.
 
 **Root cause:** the helper was written for the door's swing, which is
 presentation and rightly reads `ActivePortals`, and was then reused by a
-simulation rule. [L-portal-runtime-boundaries] already says career routing
-reads the content's portals, not the presentation rows; a new rule did not
-check which side of that line it stood on.
+simulation rule. The `ActivePortals` doc comment in
+`crates/terri-sim/src/portals.rs` already says career routing reads the
+content's portals, not the presentation rows; a new rule did not check which
+side of that line it stood on.
 
 **Prevention rule:** a rule that decides what the simulation does reads only
 simulation state and the content, the way `check_new_walls` finds the front
@@ -7029,3 +7030,23 @@ the rule's side.
 `Sim::new()` and into the shipped lot, asks both for the same wall, and
 compares the refusals and the digests; it fails if `front_door_lines` reads
 `ActivePortals` again.
+
+## [L-run-every-gate-ci-runs] The yard passed every local gate and failed CI's asset tests
+
+**What happened:** the yard grew the lot from 16 by 12 to 20 by 16. Every
+local gate passed, and CI's rust job failed: two tests in
+`assets/models/sims/sim-01/test_exercise_wall.py` read `content/lot.toml`
+and the bike art's exporter asserted the lot was 12 tiles tall.
+
+**Root cause:** the local gate list was written from memory, as fmt, clippy,
+the Rust tests, the doc ids, WebAssembly, the typecheck and the web tests.
+CI's rust job also runs every asset folder's Python tests and the sprite
+atlas check, which read content too.
+
+**Prevention rule:** run the gates by reading `.github/workflows/ci.yml`, or
+with a script built from it, never from a list in memory. A content change,
+such as the lot's size, reaches the asset tests as surely as the Rust ones.
+
+**How to verify:** before a push, the `Sprite atlas is reproducible` step's
+seven `unittest discover` commands and `build.py --check` pass locally
+alongside the rest.
