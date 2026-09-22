@@ -680,6 +680,7 @@ export interface InteractionSource {
    * rather than as a blank line.
    */
   entityName(entity: number): string;
+  objectDetails?(entity: number): import('./ui/object-identity.js').ObjectDetails | undefined;
   /**
    * The social vocabulary's labels, index-ordered - the rows for a
    * flyout over a fellow SIM, per [A-11]'s "interact with other Sims".
@@ -877,6 +878,7 @@ export function resolveRightClick(
     target.entityName(pick.entity),
     target.interactionLabels(pick.entity),
     pick.entity,
+    target.objectDetails?.(pick.entity),
   );
 }
 

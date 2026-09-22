@@ -155,6 +155,13 @@ jobs:
   # tested twice.
   mutants:
     runs-on: ubuntu-latest
+    # Nothing bounds the UNMUTATED run, because the cap below is measured
+    # from it: a loop introduced in a test would run until GitHub's six hour
+    # default. Shards have finished in 3 minutes and in 95, and been
+    # reclaimed at 35, 36 and 72; 120 minutes is above every real run and
+    # far below the default, so a pathological one fails by name in two
+    # hours rather than burning a runner all afternoon.
+    timeout-minutes: 120
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
@@ -164,22 +171,60 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install the pinned toolchain
         run: rustup show
+      # Pinned, not merely --locked: --locked pins the dependency tree of
+      # whichever version resolves, and the cap below now rests on this
+      # tool's own auto-timeout rules (which baseline it multiplies, its 20
+      # second floor, its default multiplier). 27.1.0 is the version every
+      # sweep in docs/mutation-baseline.md was measured with; outcomes.json
+      # records the version, so a bump is checked rather than assumed.
       - name: Install cargo-mutants
-        run: cargo install cargo-mutants --locked
+        run: cargo install cargo-mutants --locked --version 27.1.0
       # cargo-mutants exits 2 whenever any mutant survives, so its exit
       # code cannot be the signal for a no-new-survivors gate. The
       # comparison in the next step is.
-      # --build-timeout bounds the phase --timeout does not: --timeout caps
-      # a mutant's TEST run, and both of shard 2's reclaimed attempts died
-      # in phase=Build, where nothing bounded a compile at all. Ten minutes
-      # is far above any legitimate incremental rebuild here and far below
-      # the reclaim horizon, so a pathological build costs ten minutes and
-      # a named Timeout instead of the whole job.
+      # --build-timeout bounds the phase the test timeout does not: the test
+      # timeout caps a mutant's TEST run, and both of shard 2's reclaimed
+      # attempts died in phase=Build, where nothing bounded a compile at all.
+      # Ten minutes is far above any legitimate incremental rebuild here and
+      # far below the reclaim horizon, so a pathological build costs ten
+      # minutes and a named Timeout instead of the whole job.
+      #
+      # The test cap was a fixed 60 seconds until 2026-09-22, and two
+      # different runs were being timed by it. Each MUTANT is tested with
+      # `cargo test --workspace`, because of --test-workspace above, and that takes
+      # about 57 seconds on this runner; a mutant no test kills pays all of
+      # it, and one caught by a late test pays most of it. The unmutated
+      # BASELINE is not that command: cargo-mutants runs only the packages
+      # it will mutate, which is 1.2 seconds for terri-core, 0.4 for
+      # terri-data, and over 60 for a shard holding a terri-sim mutant.
+      #
+      # One number could not sit right for both. It was a few seconds above
+      # the workspace suite, so the three tests PR 116 added were enough to
+      # turn eight mutants into reported hangs, two of them the rect_distance
+      # clamps and one the from_seed mutant that docs/mutation-baseline.md
+      # proves equivalent. And it was below the baseline of any shard with a
+      # terri-sim mutant, which aborted the sweep before a single mutant ran:
+      # cargo-mutants still writes an empty missed.txt and timeout.txt, so
+      # four of PR 116's eight shards and six of PR 117's tested nothing and
+      # reported success.
+      #
+      # Hence a floor AND a multiplier. The floor does the work on most
+      # shards: 120 seconds is about twice the workspace suite, so a survivor
+      # finishes well inside it. The tool's own multiplier cannot do that job
+      # alone, because it is measured against the baseline, which is the
+      # smaller command: four times terri-core's 1.2 seconds resolves to the
+      # tool's 20 second minimum and every survivor would time out. The
+      # multiplier earns its place on terri-sim shards, where the baseline is
+      # over a minute and 120 seconds would be too tight. Verified on
+      # cargo-mutants 27.1.0: these flags print "Auto-set test timeout to
+      # 120s" for terri-core, where the multiplier alone prints 20s. The job
+      # bound above is the ceiling the multiplier has none of.
       - name: Mutation sweep (shard ${{ matrix.shard }} of 8)
         run: |
           cargo mutants --package terri-core --package terri-sim \
             --package terri-data --package terri-wasm \
-            --test-workspace true --timeout 60 --build-timeout 600 \
+            --test-workspace true --timeout-multiplier 4 \
+            --minimum-test-timeout 120 --build-timeout 600 \
             --shard ${{ matrix.shard }}/8 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a
@@ -205,6 +250,35 @@ jobs:
       # flood_fill, say) would be silently excused. The baseline file
       # keeps its line numbers for human navigation; only this
       # comparison strips them.
+      # A sweep that tested NOTHING writes an empty missed.txt and an empty
+      # timeout.txt, and both gates below then pass while proving nothing.
+      # That is not hypothetical: on PR 117, six of the eight shards timed
+      # out in the UNMUTATED baseline run against the old fixed cap and
+      # reported success with total_mutants 0. The existence checks the two
+      # gates carry cannot see it, because the files exist and are empty, so
+      # the sweep's own count is checked first.
+      - name: Fail on a sweep that tested nothing
+        run: |
+          set -eu
+          if [ ! -f mutants.out/outcomes.json ]; then
+            echo "FAIL: mutants.out/outcomes.json does not exist, so the"
+            echo "sweep did not run or its output layout changed. Fix the"
+            echo "path rather than deleting the step."
+            exit 1
+          fi
+          # python3 rather than jq: both are on the runner, and the reader
+          # below was checked against real reports before it shipped.
+          total=$(python3 -c "import json; print(json.load(open('mutants.out/outcomes.json'))['total_mutants'])")
+          if [ "$total" -le 0 ]; then
+            echo "FAIL: the sweep tested $total mutants in this shard."
+            echo "Almost always the unmutated baseline run itself failed or"
+            echo "ran past the cap, in which case cargo-mutants tests no"
+            echo "mutants at all and every gate below is vacuously green."
+            echo "The outcomes it did record:"
+            python3 -c "import json; [print(o['summary'], o['scenario']) for o in json.load(open('mutants.out/outcomes.json'))['outcomes'][:20]]"
+            exit 1
+          fi
+          echo "The sweep tested $total mutants in this shard."
       - name: Fail on survivors not in the baseline
         run: |
           set -eu
@@ -257,12 +331,16 @@ jobs:
             echo "Mutants that HANG rather than fail an assertion:"
             cat mutants.out/timeout.txt
             echo ""
-            echo "Each burns the job timeout instead of printing an assertion,"
-            echo "and the survivor gate above cannot see it: a timeout lands in"
+            echo "Each burns the cap instead of printing an assertion, and"
+            echo "the survivor gate above cannot see it: a timeout lands in"
             echo "timeout.txt, not missed.txt. Find the unbounded loop the"
             echo "mutant spins in and give it a bound that panics, the way"
-            echo "SimRng::draw_below_bound and roll_wander_path do. Raising"
-            echo "--timeout is not a fix."
+            echo "SimRng::draw_below_bound and roll_wander_path do."
+            echo ""
+            echo "Check the timings in outcomes.json before reaching for a"
+            echo "bound. A mutant that makes real work slower rather than"
+            echo "endless finishes near the cap rather than at it, and the"
+            echo "answer there is the cap, not a bound in the simulation."
             exit 1
           fi
 

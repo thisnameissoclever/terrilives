@@ -1637,3 +1637,24 @@ at three phases including the point's own tick.
 
 The empty arm stays, and is not equivalent: without it `points[0]`
 panics.
+
+## 2026-09-22: the test cap became a floor plus a multiple
+
+Every sweep recorded above ran with `--timeout 60`, one fixed cap. It is now
+`--timeout-multiplier 4 --minimum-test-timeout 120`, with a 120 minute bound on
+the job and a step that fails a shard whose sweep tested zero mutants. The
+commands above are kept as the records of the sweeps that produced each baseline
+entry rather than as the current invocation.
+
+The reason is in [L-mutant-cap-must-scale] in `docs/lessons-learned.md`. The cap
+was timing two different commands: a mutant is tested with `cargo test --workspace`,
+about 57 seconds on CI, while the unmutated baseline runs only the packages being
+mutated, from 0.4 seconds to over a minute. One number therefore sat just above
+the first and below the second. It turned eight mutants on PR 116 into reported
+hangs, including the two equivalent `rect_distance` clamps and the equivalent
+`from_seed` mutant proved above, and it aborted the sweep entirely on shards
+holding a `terri-sim` mutant, which then tested nothing and passed.
+
+Nothing about which mutants survive changed, and no baseline entry moved. What
+did change is that a shard now has to test something to pass, and that a
+`Timeout` line means the cap was hit rather than that a loop ran away.

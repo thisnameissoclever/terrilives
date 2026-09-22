@@ -46,6 +46,19 @@ function details(open = true): MobileHudDetails {
   return { open };
 }
 
+/** The rules of the first `@media` block whose condition matches `condition`. */
+function mediaBlock(condition: RegExp): string {
+  const start = INDEX_HTML.search(condition);
+  if (start < 0) return '';
+  let depth = 0;
+  for (let at = INDEX_HTML.indexOf('{', start); at < INDEX_HTML.length; at += 1) {
+    if (INDEX_HTML[at] === '{') depth += 1;
+    if (INDEX_HTML[at] === '}') depth -= 1;
+    if (depth === 0) return INDEX_HTML.slice(start, at);
+  }
+  return '';
+}
+
 function openingTagFor(id: string): string {
   const tag = INDEX_HTML.match(new RegExp(`<[^>]+\\bid="${id}"[^>]*>`))?.[0];
   if (!tag) {
@@ -197,19 +210,6 @@ describe('the phone Build dock', () => {
     return '';
   }
 
-  /** The rules of the first `@media` block whose condition matches `condition`. */
-  function mediaBlock(condition: RegExp): string {
-    const start = INDEX_HTML.search(condition);
-    if (start < 0) return '';
-    let depth = 0;
-    for (let at = INDEX_HTML.indexOf('{', start); at < INDEX_HTML.length; at += 1) {
-      if (INDEX_HTML[at] === '{') depth += 1;
-      if (INDEX_HTML[at] === '}') depth -= 1;
-      if (depth === 0) return INDEX_HTML.slice(start, at);
-    }
-    return '';
-  }
-
   const COMPACT = /@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/;
   const TALL = /@media\s*\(max-width:\s*600px\)\s*and\s*\(min-height:\s*481px\)/;
   const NARROW = /@media\s*\(max-width:\s*300px\)/;
@@ -272,8 +272,11 @@ describe('the phone Build dock', () => {
 
   // Below 481 pixels of height the panel can be 144 pixels tall, too short
   // for a fixed footer and a region above it, so the whole panel scrolls.
+  // The person and How they feel toggles share this block and are flex
+  // boxes by design, so their rules are set aside before the check.
   it('leaves the short panel to scroll whole', () => {
-    expect(mediaBlock(COMPACT)).not.toMatch(/display:\s*flex/);
+    const withoutToggles = mediaBlock(COMPACT).replace(/\.needs-caption[^{}]*\{[^}]*\}/g, '');
+    expect(withoutToggles).not.toMatch(/display:\s*flex/);
   });
 
   // On a desktop the choices join the tool's own grid and the help lines
@@ -305,5 +308,52 @@ describe('the phone Build dock', () => {
 
   it('puts the tools back two by two below 301 pixels wide', () => {
     expect(mediaBlock(NARROW)).toMatch(/#builder-dock #build-tools\s*\{\s*grid-template-columns:\s*1fr 1fr;/);
+  });
+});
+
+// On every compact screen the Needs and People toggles are flex boxes, so a
+// caption that wraps, such as "How Ann feels", stays one 44-pixel target with
+// its text centred. A flex summary loses the browser's open and closed
+// triangle, so the compact layout draws its own.
+describe('the compact Needs and People toggles', () => {
+  const COMPACT = /@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/;
+  const PHONE = /@media\s*\(max-width:\s*600px\)\s*\{/;
+  const SIDEWAYS = /@media\s*\(max-height:\s*480px\)\s*and\s*\(min-width:\s*361px\)/;
+
+  it('stay one centred 44-pixel target however the caption wraps', () => {
+    const compact = mediaBlock(COMPACT);
+    expect(compact).toMatch(/\n        \.needs-caption\s*\{[^}]*display:\s*flex;[^}]*min-height:\s*44px;[^}]*align-items:\s*center;/);
+    expect(compact).not.toMatch(/\.needs-caption\s*\{[^}]*line-height:\s*44px/);
+  });
+
+  it('draw a triangle that points right when closed and down when open', () => {
+    const compact = mediaBlock(COMPACT);
+    // A border shape with no text, so a screen reader hears only the caption.
+    expect(compact).toMatch(/\n        \.needs-caption::before\s*\{[^}]*content:\s*'';[^}]*flex:\s*none;[^}]*border-block:\s*5px solid transparent;[^}]*border-left:\s*6px solid currentColor;/);
+    expect(compact).toMatch(/\n        details\[open\] > \.needs-caption::before\s*\{\s*transform:\s*rotate\(90deg\);\s*\}/);
+    // Safari draws its own marker inside a flex summary; one triangle only.
+    expect(compact).toMatch(/\n        \.needs-caption::-webkit-details-marker\s*\{\s*display:\s*none;\s*\}/);
+  });
+
+  // High Contrast paints every border in the system text colour, the
+  // transparent ones too, which turns the triangle into a solid bar.
+  it('keep the triangle a triangle under forced colours', () => {
+    expect(mediaBlock(COMPACT)).toMatch(/@media\s*\(forced-colors:\s*active\)\s*\{\s*\.needs-caption::before\s*\{\s*forced-color-adjust:\s*none;\s*border-left-color:\s*CanvasText;\s*\}/);
+  });
+
+  // A phone held sideways, 812 by 375 say, is wider than 600 pixels, so it
+  // matches only the blocks for every compact screen and for short wide
+  // screens. The toggle rules live in the first of those and nowhere else,
+  // so that phone gets the same 44-pixel toggles and never a second triangle.
+  it('are styled once, where a sideways phone reads them too', () => {
+    expect(mediaBlock(PHONE)).not.toContain('.needs-caption');
+    expect(mediaBlock(SIDEWAYS)).not.toContain('.needs-caption');
+    expect(INDEX_HTML.match(/\.needs-caption::before\s*\{[^}]*content:/g) ?? []).toHaveLength(1);
+    expect(INDEX_HTML.match(/\.needs-caption::-webkit-details-marker/g) ?? []).toHaveLength(1);
+  });
+
+  it('are the summaries of both panels', () => {
+    expect(INDEX_HTML).toContain('<summary id="needs-caption" class="needs-caption">');
+    expect(INDEX_HTML).toContain('<summary id="people-caption" class="needs-caption">');
   });
 });

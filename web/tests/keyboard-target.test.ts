@@ -23,6 +23,17 @@ function source(selected: number | null = 4): KeyboardTargetSource {
 }
 
 describe('keyboard targets', () => {
+  it('opens descriptions for decorative objects without inventing actions', () => {
+    const details = { modelName: 'Perpetual Cycle', description: 'Decorative washing machine.' };
+    const described = { ...source(), objectDetails: (id: number) => id === 7 ? details : undefined };
+    expect(keyboardTargets(described).map(target => target.entity)).toEqual([2, 4, 7, 9]);
+    const picker = new KeyboardTargetController(described, { hidden: true, textContent: '' });
+    picker.cycle(1);
+    picker.cycle(1);
+    picker.cycle(1);
+    expect(picker.activate()).toMatchObject({ kind: 'menu', menu: { title: 'Rug', details,
+      entries: [{ action: { kind: 'cancel' } }] } });
+  });
   it('includes named people and actionable objects only', () => {
     expect(keyboardTargets(source())).toEqual([
       { entity: 2, kind: 'object', label: 'Fridge' },
