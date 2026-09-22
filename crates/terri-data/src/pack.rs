@@ -601,6 +601,12 @@ pub struct Tuning {
     /// added after `asleep_decay_scale`, which remains in place so existing
     /// tuning bytes retain their offsets.
     pub wander_radius_tiles: u32,
+    /// What a sale pays back, as a fraction of the object's price, in
+    /// `[0, 1]` and finite - [SL-pay] in
+    /// `docs/specs/2026-09-22-selling-furniture.md`. A sale pays
+    /// `floor(price * resale_fraction)`. Last in this struct, per the
+    /// appending rule; `wander_radius_tiles` was last until it arrived.
+    pub resale_fraction: f32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -1133,6 +1139,7 @@ mod tests {
             neglect_bleed_per_tick: 0.0075,
             day_ticks: 23,
             wander_radius_tiles: 29,
+            resale_fraction: 0.40625,
         }
     }
 
@@ -1729,27 +1736,40 @@ mod tests {
 
     /// A new tuning knob belongs at the end of the serialized `Tuning`
     /// record, even when it is conceptually related to fields near the
-    /// beginning. Two one-byte values make the byte that changes unambiguous:
-    /// it must be the final byte and every established field must stay put.
+    /// beginning. `resale_fraction` ([SL-pay]) is the final four bytes, and
+    /// `wander_radius_tiles`, the one-byte knob appended before it, sits just
+    /// ahead of them; every established field stays put.
     #[test]
-    fn wander_radius_occupies_the_appended_tuning_slot() {
+    fn resale_fraction_occupies_the_appended_tuning_slot() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
-        let after = postcard::to_allocvec(&Tuning {
-            wander_radius_tiles: 31,
-            ..a_tuning()
-        })
-        .expect("tuning must serialise");
-
-        assert_eq!(before.len(), after.len());
-        let changed: Vec<usize> = before
-            .iter()
-            .zip(&after)
-            .enumerate()
-            .filter_map(|(index, (left, right))| (left != right).then_some(index))
-            .collect();
-        assert_eq!(changed, vec![before.len() - 1]);
-        assert_eq!(before.last(), Some(&29));
-        assert_eq!(after.last(), Some(&31));
+        let changed = |after: Tuning| -> Vec<usize> {
+            let after = postcard::to_allocvec(&after).expect("tuning must serialise");
+            assert_eq!(before.len(), after.len());
+            before
+                .iter()
+                .zip(&after)
+                .enumerate()
+                .filter_map(|(index, (left, right))| (left != right).then_some(index))
+                .collect()
+        };
+        let end = before.len();
+        // 0.40625 and 0.46875 differ only in their top two bytes.
+        assert_eq!(
+            changed(Tuning {
+                resale_fraction: 0.46875,
+                ..a_tuning()
+            }),
+            vec![end - 2]
+        );
+        assert_eq!(before[end - 4..], 0.40625f32.to_le_bytes());
+        assert_eq!(
+            changed(Tuning {
+                wander_radius_tiles: 31,
+                ..a_tuning()
+            }),
+            vec![end - 5]
+        );
+        assert_eq!(before[end - 5], 29);
     }
 
     /// Pins both the appended chain-step field and the append-only enum

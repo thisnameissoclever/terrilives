@@ -6869,6 +6869,7 @@ edge walls in a later step, still drew its doors late. The rebuild now sits in
 the one place every loader passes through after the restore is whole: a fix
 for an ordering bug belongs after the last step of every path, not after the
 step where the bug was first seen.
+
 ## [L-restore-without-counting-up] A Load counted up to a saved number
 
 **What happened.** PR 97's mutation sweep failed on two mutants that time out
@@ -6921,3 +6922,28 @@ for every catalogue item in every direction, and checks the lighting against
 those. Dropping a turn from `inEveryDirection` in `web/src/render/lighting.ts`
 fails it, as does the per-turn case in `web/tests/lighting.test.ts`.
 
+## [L-probe-a-library-accessor] A library accessor was read by its name, then explained by a guess
+
+**What happened.** The selling design saved where fresh entity indices start,
+read from `Entities::len()`, and had the loader retire every gap in the saved
+numbering. The first test failed: after a sale the next spawn took an index
+well below that bound. I explained it as the ECS freeing indices of its own and
+wrote that into the design, the architecture notes, a test comment and this
+lesson. Review probed it and found the ECS frees nothing of its own here.
+
+**Root cause.** `Entities::len()` is the length of the ECS's internal entity
+record list, which grows in chunks (64 for 37 entities), not the next index. I
+read the accessor by its name and, when the test disagreed, reached for a
+cause that fit instead of probing the one I had.
+
+**Prevention rule.** Before designing around a library accessor, probe what it
+returns in the case that matters. When a test contradicts a design, confirm the
+cause with a direct probe before writing it down anywhere. The shipped design
+saves the retired indices instead, which needs no allocator internals.
+
+**How to verify.** `a_sold_index_is_never_handed_out_again` spawns and drains
+after a sale, and
+`after_two_sales_a_save_and_a_load_the_next_purchase_matches_continuous_play`
+compares a loaded world's next purchase with continuous play, both in
+`crates/terri-sim/src/placement/sale_tests.rs`. Replacing `despawn_no_free` in
+the sale with `despawn` fails both.

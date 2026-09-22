@@ -34,8 +34,9 @@ error line.
   resets every player's sound, lighting and help settings;
 - the save fingerprint seeds in `terri-data`: renaming them invalidates every
   existing save;
-- the save file `terri-save-1.bin` and its two backups,
-  `terri-save-1.v1-backup.bin` and `terri-save-1.v2-backup.bin`: the game opens
+- the save file `terri-save-1.bin` and its three backups,
+  `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin` and
+  `terri-save-1.v3-backup.bin`: the game opens
   saves only under these names, so renaming them leaves every existing save
   unfound. At startup the player would see "No save yet" and a new household,
   while the old save stayed on disk unseen;
@@ -462,3 +463,14 @@ This removes the missing-residential-pack objection from [T7]. Before any
 purchase, test representative Town and SIMPLE House Interiors FBX assets
 together in the real renderer for style, scale, conversion quality, and the
 interaction and footprint work the raw assets do not provide.
+
+### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
+
+Selling furniture refuses to sell the last object that can fill a role a
+chain needs, such as the shipped house's only stove, the only hob Cook dinner
+can use: "Nothing else in the house can do its job." Without that, sims part
+way through cooking would wait for the stove forever and go hungry. The other
+choice is to let the sale go through and have sims give up the meal and the
+chain stop being offered until a new stove is bought. The refusal is what the
+game does now; tell me if you would rather have the other behaviour. Nothing is
+blocked meanwhile.

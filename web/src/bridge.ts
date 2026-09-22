@@ -44,6 +44,8 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   12: 'Keep the front door clear and reachable.',
   13: 'Keep the front-door landing clear and reachable.',
   14: 'The household cannot afford that.',
+  15: 'That furniture is not for sale.',
+  16: 'Nothing else in the house can do its job.',
 };
 
 /** One object for sale - [BM-shell]. */
@@ -57,6 +59,20 @@ export interface CatalogueItem {
   readonly baseFacing: number;
   /** Bit `n` set for each need index `n` the object is good for ([CB-serves]). */
   readonly needs: number;
+}
+
+/** Whether a placed object would sell, and for how much - [SL-shell]. */
+export interface SalePreview {
+  readonly reason: string | null;
+  /** What the sale would pay back; zero when it would not sell. */
+  readonly payout: number;
+}
+
+/** What the drain did with the last sale; `payout` is zero when nothing sold. */
+export interface SaleResult {
+  readonly object: number;
+  readonly reason: string | null;
+  readonly payout: number;
 }
 
 /** What the drain did with the last purchase; `object` is null when nothing was bought. */
@@ -243,6 +259,23 @@ export class SimBridge {
   /** The ghost for an object not yet bought; the same shape as `placementPreview`. Never writes. */
   purchasePreview(definition: number, x: number, y: number, facing: number): PlacementPreview {
     return previewOf(this.handle.purchase_preview(definition, x, y, facing));
+  }
+
+  /** Whether the object carrying `object` would sell, and for how much. Never writes. */
+  salePreview(object: number): SalePreview {
+    const values = this.handle.sale_preview(object);
+    return { reason: placementReason(values[0]), payout: values[1] };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastSaleResult`. */
+  sellObject(object: number): boolean {
+    return this.handle.sell_object(object);
+  }
+
+  lastSaleResult(): SaleResult | null {
+    const values = this.handle.last_sale_result();
+    return values.length === 0 ? null
+      : { object: values[0], reason: placementReason(values[1]), payout: values[2] };
   }
 
   /** Queue acceptance only; read the outcome from `lastPurchaseResult`. */

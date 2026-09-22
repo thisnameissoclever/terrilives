@@ -3,7 +3,9 @@
 use super::{SaveError, Sim};
 use crate::portals::ActivePortals;
 use std::collections::{BTreeMap, BTreeSet};
-use terri_core::{layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, TileGrid};
+use terri_core::{
+    layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, TileGrid,
+};
 use terri_data::ContentPack;
 
 #[cfg(test)]
@@ -27,7 +29,48 @@ pub(crate) fn restore_v3(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
+    restore_v4(
+        SaveSnapshotV4 {
+            world: snapshot.world,
+            layout: snapshot.layout,
+            object_facings: snapshot.object_facings,
+            retired_indices: Vec::new(),
+        },
+        content,
+        active_portals,
+    )
+}
+
+/// [SL-save]: the V3 envelope's checks, and the retired indices ascending,
+/// under the bound saved entity indices have, none of them an index a saved
+/// entity holds. The loader spawns a placeholder up to the highest, so an
+/// unbounded one would ask for memory the save has no business naming. The
+/// list's length needs no bound of its own: an ascending list of indices
+/// under the bound has no more entries than the bound.
+pub(crate) fn restore_v4(
+    snapshot: SaveSnapshotV4,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
     super::validate_snapshot(&snapshot.world, content)?;
+    let retired = &snapshot.retired_indices;
+    if retired
+        .iter()
+        .any(|&index| index as usize >= super::MAX_ENTITIES)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    if retired.windows(2).any(|pair| pair[0] >= pair[1])
+        || retired.iter().any(|index| {
+            snapshot
+                .world
+                .entities
+                .binary_search_by_key(index, |entity| entity.index)
+                .is_ok()
+        })
+    {
+        return Err(SaveError::InvalidValue);
+    }
     let mut facings = BTreeMap::new();
     for (index, code) in snapshot.object_facings {
         let facing = Facing::from_code(code).ok_or(SaveError::InvalidValue)?;
@@ -44,7 +87,13 @@ pub(crate) fn restore_v3(
             return Err(SaveError::InvalidValue);
         }
     }
-    let candidate = super::restore_with_facings(snapshot.world, content, active_portals, &facings)?;
+    let candidate = super::restore_with_facings(
+        snapshot.world,
+        content,
+        active_portals,
+        &facings,
+        &snapshot.retired_indices,
+    )?;
     finish_restore(candidate, snapshot.layout, content)
 }
 

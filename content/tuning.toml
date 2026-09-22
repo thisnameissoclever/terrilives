@@ -126,6 +126,12 @@ wander_attempts = 8
 # every observed path stayed at or below this cap.
 wander_radius_tiles = 3
 
+# What selling an object pays back, as a fraction of its price, in [0, 1]:
+# a sale pays the price times this, rounded down ([SL-pay] in
+# docs/specs/2026-09-22-selling-furniture.md). A half keeps selling a way
+# to undo a mistake without making buying and selling pay.
+resale_fraction = 0.5
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

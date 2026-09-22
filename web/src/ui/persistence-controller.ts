@@ -244,7 +244,7 @@ export class PersistenceController {
   private protectSavedGame(bytes?: Uint8Array): void {
     this.savingPaused = true;
     const version = bytes ? saveSchemaVersion(bytes) : null;
-    const reason = version !== null && version !== 1 && version !== 2 && version !== 3
+    const reason = version !== null && version !== 1 && version !== 2 && version !== 3 && version !== 4
       ? `Saved game version ${version} is not supported.`
       : 'Load failed.';
     this.show(

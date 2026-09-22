@@ -447,6 +447,11 @@ pub enum ContentError {
     RelationshipGainOutOfRange {
         value: f32,
     },
+    /// A `resale_fraction` outside `[0, 1]` - [SL-pay]. Above 1 a sale pays
+    /// more than the purchase cost; below 0 it charges for selling.
+    ResaleFractionOutOfRange {
+        value: f32,
+    },
     /// A zero or negative relationship decay - the one-way-ratchet rule
     /// [`ContentError::NonPositiveHabituationDecay`] states, applied to
     /// relationships.
@@ -1398,6 +1403,12 @@ impl fmt::Display for ContentError {
                 "relationship_gain_per_talk is {value}; must be in [0, 1]. \
                  0 disables the mechanic; above 1 saturates a friendship in \
                  a single conversation"
+            ),
+            ContentError::ResaleFractionOutOfRange { value } => write!(
+                f,
+                "resale_fraction is {value}; must be in [0, 1]. Above 1 a sale \
+                 pays back more than the object cost; below 0 it charges for \
+                 selling"
             ),
             ContentError::NonPositiveRelationshipDecay { value } => write!(
                 f,

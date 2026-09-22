@@ -276,6 +276,12 @@ impl IntentQueue {
         self.0.contains(&intent)
     }
 
+    /// Whether any queued intent names `object`, whatever it asks of it.
+    /// What a sale asks before it removes the object ([SL-rules]).
+    pub fn names(&self, object: Entity) -> bool {
+        self.0.iter().any(|queued| queued.object == object)
+    }
+
     /// Removes the first queued copy of `intent`, wherever it sits, and
     /// says whether there was one. What a completed directed action pops:
     /// the order it carried out, not whatever happens to be at the front.

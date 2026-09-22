@@ -2048,6 +2048,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         tuning.relationship_gain_per_talk,
         "relationship_gain_per_talk in tuning.toml",
     )?;
+    check_finite(tuning.resale_fraction, "resale_fraction in tuning.toml")?;
     check_finite(
         tuning.relationship_decay_per_tick,
         "relationship_decay_per_tick in tuning.toml",
@@ -2142,6 +2143,13 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if !(0.0..=1.0).contains(&tuning.relationship_gain_per_talk) {
         return Err(ContentError::RelationshipGainOutOfRange {
             value: tuning.relationship_gain_per_talk,
+        });
+    }
+    // [SL-pay]: a sale that paid more than the price would turn buying and
+    // selling into a money machine, and a negative one would charge for it.
+    if !(0.0..=1.0).contains(&tuning.resale_fraction) {
+        return Err(ContentError::ResaleFractionOutOfRange {
+            value: tuning.resale_fraction,
         });
     }
     if tuning.relationship_decay_per_tick <= 0.0 {
@@ -2340,6 +2348,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             day_ticks: tuning.day_ticks,
             asleep_decay_scale: tuning.asleep_decay_scale,
             wander_radius_tiles: tuning.wander_radius_tiles,
+            resale_fraction: tuning.resale_fraction,
         },
         circadian,
         tuning.sleep_tag,
@@ -3285,6 +3294,11 @@ mod tests {
         // everything before it kept its offset, which is what the
         // append discipline buys.
         //
+        // **Selling appended one tuning field ([SL-pay]).** The four bytes
+        // `0, 0, 208, 62` after the `29` are the fixture's `resale_fraction`,
+        // 0.40625 in little-endian binary32, read from the failing golden
+        // assertion: the only insertion, at the end of the `Tuning` record.
+        //
         // **Local idle wandering appended one tuning field.** The lone
         // `29` after `asleep_decay_scale`'s four bytes is the fixture's
         // `wander_radius_tiles`. It is at the end of the `Tuning` record,
@@ -3329,7 +3343,7 @@ mod tests {
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0,
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
     ];
@@ -3492,6 +3506,7 @@ mod tests {
             relationship_delta_scale: 0.8125,
             day_ticks: 19,
             wander_radius_tiles: 29,
+            resale_fraction: 0.40625,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -4451,6 +4466,7 @@ mod tests {
         assert_eq!(tuning.neglect_floor, 23.0);
         assert_eq!(tuning.neglect_bleed_per_tick, 0.0078125);
         assert_eq!(tuning.wander_radius_tiles, 29);
+        assert_eq!(tuning.resale_fraction, 0.40625);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -4599,6 +4615,29 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.wander_attempts = 1))
             .expect("a single attempt is legal, if a stubborn sim it is not");
         assert_eq!(pack.tuning.wander_attempts, 1);
+    }
+
+    /// [SL-pay]: a resale fraction is in `[0, 1]`, both ends included, and
+    /// finite. Each side just past the range is refused, so neither bound can
+    /// quietly move.
+    #[test]
+    fn validates_the_resale_fraction_range() {
+        for value in [-0.001, 1.001] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.resale_fraction = value)).unwrap_err(),
+                ContentError::ResaleFractionOutOfRange { value },
+                "{value}"
+            );
+        }
+        for value in [0.0, 1.0] {
+            let pack = compile_tuned(tuning_where(|t| t.resale_fraction = value))
+                .expect("both ends of the range are legal");
+            assert_eq!(pack.tuning.resale_fraction, value);
+        }
+        assert!(matches!(
+            compile_tuned(tuning_where(|t| t.resale_fraction = f32::NAN)).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
     }
 
     /// A radius of zero cannot produce a non-empty wander path, while a radius

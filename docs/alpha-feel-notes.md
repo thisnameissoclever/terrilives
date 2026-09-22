@@ -3258,6 +3258,41 @@ about half the item names, so the lists stay stacked at every width.
 
 **Not proven here.** Nothing was bought in this check; buying is unchanged
 from [A-buy-mode]. No physical phone was used.
+
+## [A-selling-furniture] Selling a chair back
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree with its WebAssembly rebuilt, driven in the Playwright browser on the
+household loaded from its save, with 12,800 in Funds.
+
+**Sell.** In Build mode the Furniture tool showed a Sell button, disabled and
+reading "Sell" with nothing chosen. Choosing "Chair, Standard Issue" from the
+list ringed the chair beside the dining table and the button read "Sell for
+20", half its price of 40. Pressing it took the chair away from beside the
+table, the status said "Chair, Standard Issue sold.", Funds read 12,820, the
+list lost the chair, and the button went back to a disabled "Sell".
+
+**Nothing kept, then.** I did not save on that first run, and a reload brought
+back "Saved game loaded" with 12,800 in Funds and the chair back at the table.
+Review then found that saving itself was broken: the browser's storage worker
+still wrote only V3.
+
+**After the fixes, saved and reloaded.** On the fixed build, with the saved
+game now at 12,920 in Funds, the stove's Sell button stayed a disabled "Sell":
+it is the house's only hob, so it is the last object Cook dinner can use. The
+chair sold for 20, Funds read 12,940, Exit build then Save said "Game saved",
+and a reload said "Saved game loaded" with 12,940 in Funds and the chair still
+gone. The storage worker kept the V3 slot it replaced as a recovery backup.
+
+**Why Sell is off.** After the second review, choosing the stove, "The
+Combustible Optimist", showed a disabled "Sell" with "Cannot sell: Nothing else
+in the house can do its job." under it. Cancel hid the note, and choosing the
+bin, "Receptacle for Later", showed "Sell for 10" with no note. At 390 by 844
+the note fits on one line under Sell in the Build dock, with no sideways
+scroll. Nothing was sold or saved on this run.
+
+**Not proven here.** A refusal at the drain was not replayed in the page; the
+Furniture tool tests cover it. No physical phone was used.
 ## [A-rotated-lights] A turned lamp and television still light the room
 
 Played on 2026-09-22 on the port 5174 dev server serving branch

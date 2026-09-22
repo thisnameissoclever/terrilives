@@ -23,7 +23,7 @@ use terri_core::{
 use terri_data::{ContentPack, ObjectDefId};
 
 const MAX_TILES: usize = 1_048_576;
-const MAX_ENTITIES: usize = 100_000;
+pub(super) const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
 const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
@@ -239,6 +239,7 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
         SimCommand::BuildRoom {
             x0,
             y0,
@@ -350,14 +351,20 @@ pub(super) fn restore_legacy(
         content,
         active_portals,
         &std::collections::BTreeMap::new(),
+        &[],
     )
 }
 
+/// `retired` lists the indices sales retired ([SL-save]), ascending and
+/// already checked against the saved entities. Every other gap in the saved
+/// numbering is freed for reuse, as it always was; a retired one is kept out
+/// of use, as the world that was saved kept it.
 fn restore_with_facings(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
+    retired: &[u32],
 ) -> Result<Sim, SaveError> {
     let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
@@ -391,13 +398,19 @@ fn restore_with_facings(
     sim.world
         .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
-    // One slot per index up to the last saved one: the ECS hands indices out
-    // in order, so the gaps must be spawned too. Sized by a saved number, so
-    // bounded only by validation's check that every index is under
-    // MAX_ENTITIES ([L-restore-without-counting-up]).
-    let max_index = snapshot.entities.last().map(|entity| entity.index);
+    // One slot per index up to the last saved or retired one: the ECS hands
+    // indices out in order, so the gaps must be spawned too. Sized by saved
+    // numbers, so bounded only by validation's check that every entity index
+    // and every retired index is under MAX_ENTITIES
+    // ([L-restore-without-counting-up]).
+    let max_index = snapshot
+        .entities
+        .last()
+        .map(|entity| entity.index)
+        .max(retired.last().copied());
     let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
     let mut holes = Vec::new();
+    let mut retiring = Vec::new();
     let mut saved_cursor = 0usize;
     if let Some(max_index) = max_index {
         for index in 0..=max_index {
@@ -412,6 +425,8 @@ fn restore_with_facings(
             {
                 slots[index as usize] = Some(spawned);
                 saved_cursor += 1;
+            } else if retired.binary_search(&index).is_ok() {
+                retiring.push(spawned);
             } else {
                 holes.push(spawned);
             }
@@ -445,6 +460,17 @@ fn restore_with_facings(
         let removed = sim.world.despawn(hole);
         debug_assert!(removed, "placeholder entity was live before removal");
     }
+    for index in retiring {
+        let removed = sim.world.despawn_no_free(index);
+        debug_assert!(
+            removed.is_some(),
+            "placeholder entity was live before removal"
+        );
+    }
+    sim.world
+        .insert_resource(crate::placement::sale::RetiredIndices::from_sorted(
+            retired.to_vec(),
+        ));
 
     let commands = snapshot
         .queued_commands
@@ -763,6 +789,7 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
+        SavedCommand::SellObject { object } => SimCommand::SellObject { object },
         SavedCommand::PlaceObject {
             object,
             x,
@@ -984,7 +1011,8 @@ fn validate_command(
         SavedCommand::PlaceObject { .. }
         | SavedCommand::SetWallEdge { .. }
         | SavedCommand::BuyObject { .. }
-        | SavedCommand::BuildRoom { .. } => Ok(()),
+        | SavedCommand::BuildRoom { .. }
+        | SavedCommand::SellObject { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

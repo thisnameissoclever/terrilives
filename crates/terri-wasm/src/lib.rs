@@ -554,6 +554,52 @@ impl SimHandle {
             })
     }
 
+    /// `[refusal, payout]` for selling the object carrying entity index
+    /// `object` - [SL-shell] in `docs/specs/2026-09-22-selling-furniture.md`:
+    /// the refusal code, zero when it would sell, and what the sale would pay
+    /// back, zero when it would not. Never writes. An index that is not a
+    /// whole number is `InvalidInput`.
+    pub fn sale_preview(&self, object: f64) -> Vec<u32> {
+        use terri_sim::placement::sale::validate_sale;
+        use terri_sim::placement::PlacementRefusal;
+        let Some(object) = placement_u32(object) else {
+            return vec![PlacementRefusal::InvalidInput as u32, 0];
+        };
+        match validate_sale(self.sim.world(), object) {
+            Ok(plan) => vec![0, plan.payout],
+            Err(reason) => vec![reason as u32, 0],
+        }
+    }
+
+    /// Stages the sale of the object carrying entity index `object`
+    /// ([SL-command]). Queue acceptance only; `last_sale_result` reports what
+    /// the drain did.
+    pub fn sell_object(&mut self, object: f64) -> bool {
+        let Some(object) = placement_u32(object) else {
+            return false;
+        };
+        let bytes =
+            postcard::to_allocvec(&SimCommand::SellObject { object }).expect("a sale serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[object, refusal, payout]` of the last sale a drain handled: refusal
+    /// zero and the amount paid when it sold, or the refusal code and zero.
+    /// Empty before any sale.
+    pub fn last_sale_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_sale_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.object,
+                    result.reason.map_or(0, |r| r as u32),
+                    result.payout.unwrap_or(0),
+                ]
+            })
+    }
+
     /// `[refusal, changes]` for this room - [RT-boundary]: the refusal code,
     /// zero when it would be built, and 1 when building it would change the
     /// house, 0 when its outline already stands exactly. Never writes.
@@ -994,7 +1040,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the eleven `SimCommand`
+    /// - **an unknown variant index** - a byte past the twelve `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -1063,7 +1109,7 @@ impl SimHandle {
     /// interpret a shape it does not understand.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v3()).expect("SaveSnapshotV3 serialises");
+            postcard::to_allocvec(&self.sim.save_snapshot_v4()).expect("SaveSnapshotV4 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -1086,6 +1132,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 4 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV4>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v4(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 3 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV3>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v3(snapshot).is_ok(),
@@ -1991,8 +2043,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            3,
-            "the public writer must emit the V3 envelope"
+            4,
+            "the public writer must emit the V4 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -4675,6 +4727,43 @@ mod boundary_tests {
         assert_eq!(handle.last_wall_edit_result(), [0, 0, 1, 1, out]);
     }
 
+    /// [SL-shell]: a sale is previewed with its payout, staged, and reported,
+    /// and an index that names nothing or is not a whole number is refused.
+    #[test]
+    fn a_sale_is_previewed_staged_and_reported_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.last_sale_result().is_empty());
+        // The first object the shipped house would sell now.
+        let (object, payout) = (0..64)
+            .find_map(|index| {
+                let preview = handle.sale_preview(f64::from(index));
+                (preview[0] == 0).then(|| (index, preview[1]))
+            })
+            .expect("the shipped house has something to sell");
+        let (_, definition, _) =
+            terri_sim::placement::object_definition(handle.sim.world(), object).unwrap();
+        let price = definition.price.unwrap();
+        assert_eq!(payout, terri_sim::placement::sale::sale_value(price, 0.5));
+        assert!(payout > 0);
+        let funds = handle.sim.world().resource::<terri_core::Funds>().0;
+        assert!(handle.sell_object(f64::from(object)));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_sale_result(), vec![object, 0, payout]);
+        assert_eq!(
+            handle.sim.world().resource::<terri_core::Funds>().0,
+            funds + i64::from(payout)
+        );
+        // Gone, so the same index now names nothing: code 2 at every step.
+        assert_eq!(handle.sale_preview(f64::from(object)), vec![2, 0]);
+        assert!(handle.sell_object(f64::from(object)));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_sale_result(), vec![object, 2, 0]);
+        // Not a whole number: refused at the boundary, nothing staged.
+        assert_eq!(handle.sale_preview(1.5), vec![1, 0]);
+        assert!(!handle.sell_object(1.5));
+        assert!(!handle.sell_object(-1.0));
+    }
+
     /// [BM-shell]: the catalogue is every priced object, in pack order, with
     /// its price, the directions it has art for and its base direction, and
     /// its names come in the same order. An object with no price is left out.
@@ -4987,12 +5076,14 @@ mod boundary_tests {
             // And `[0x07, 0x00]` became a truncated `PlaceObject`,
             // `[0x08, 0x00]` a truncated `SetWallEdge`, and `[0x09, 0x00]` a
             // truncated `BuyObject`.
-            // And `[0x0A, 0x00]` a truncated `BuildRoom`.
+            // And `[0x0A, 0x00]` a truncated `BuildRoom`, and `[0x0B]` a
+            // `SellObject` with no object.
             (
-                "variant index 11, one past the eleven SimCommand declares; \
+                "variant index 12, one past the twelve SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x0B, 0x00],
+                vec![0x0C, 0x00],
             ),
+            ("SellObject missing its object", vec![0x0B]),
             (
                 "BuildRoom missing its doorway option",
                 vec![0x0A, 0x01, 0x02, 0x03, 0x04],

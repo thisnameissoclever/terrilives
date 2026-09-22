@@ -161,6 +161,11 @@ pub enum SimCommand {
         y1: u32,
         doorway: Option<crate::layout::WallLine>,
     },
+    /// Sell the placed object carrying entity index `object` - [SL-command]
+    /// in `docs/specs/2026-09-22-selling-furniture.md`. A lot edit, applied
+    /// by itself in stream order like `PlaceObject`. Appended to preserve
+    /// earlier wire codes.
+    SellObject { object: u32 },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -317,6 +322,12 @@ mod tests {
                 },
                 // Read from this assertion's failure: no doorway is one 0.
                 &[10, 1, 2, 3, 4, 0],
+            ),
+            (
+                SimCommand::SellObject { object: 300 },
+                // Read from this assertion's failure: variant 11, then the
+                // object 300 as a two-byte varint.
+                &[11, 172, 2],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),

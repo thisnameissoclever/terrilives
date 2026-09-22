@@ -39,6 +39,10 @@ pub fn drain_commands(world: &mut World) {
                     },
                 );
             }
+            SimCommand::SellObject { object } => {
+                flush_ordinary(world);
+                crate::placement::sale::commit(world, object);
+            }
             SimCommand::BuildRoom {
                 x0,
                 y0,
