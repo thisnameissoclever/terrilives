@@ -427,10 +427,26 @@ describe('buying in a colourway', () => {
     buy.buy();
     expect(source.inColourway).toHaveLength(1);
     expect(source.inColourway[0][4]).toBe(2);
+    // The purchase on its way is refused its colour change.
+    buy.setColourway(1);
+    expect(buy.colourway).toBe(2);
+    source.result = { definition: CHAIR.definition, x: source.inColourway[0][1],
+      y: source.inColourway[0][2], facing: source.inColourway[0][3], reason: null, object: 41 };
+    source.revision += 1;
+    buy.afterCommands();
+    expect(buy.colourway).toBe(2);
     for (const refused of [-1, 3, 1.5]) {
       buy.setColourway(refused);
       expect(buy.colourway).toBe(2);
     }
+    buy.setBlocked(true);
+    buy.setColourway(1);
+    expect(buy.colourway).toBe(2);
+    buy.setBlocked(false);
+    buy.exit();
+    expect([buy.colourway, buy.ghostColourway()]).toEqual([2, 0]);
+    buy.enter();
+    expect(buy.ghostColourway()).toBe(2);
     buy.resetAfterLoad(8, 6);
     expect(buy.colourway).toBe(0);
     buy.exit();
@@ -497,9 +513,32 @@ describe('BuyToolControls', () => {
     colour.value = '1';
     colour.fire('change');
     expect(buy.colourway).toBe(1);
+    buy.choose(CHAIR.definition);
+    buy.buy();
+    view.render();
+    expect([buy.pending, colour.disabled]).toEqual([true, true]);
     buy.setBlocked(true);
     view.render();
     expect(colour.disabled).toBe(true);
+  });
+
+  it('offers no Colour list when there is only the art as drawn', () => {
+    const elements = new Map<string, FakeElement>();
+    const doc = {
+      querySelector: (selector: string) => {
+        const id = selector.slice(1);
+        if (!elements.has(id)) elements.set(id, new FakeElement());
+        return elements.get(id);
+      },
+      createElement: () => new FakeElement(),
+    } as unknown as Document;
+    const source = new FakeShop();
+    source.colourwayNames = () => ['As drawn'];
+    const buy = new BuyTool(source, 8, 6, { changed: () => {} });
+    const view = new BuyToolControls(doc, buy, NEEDS);
+    buy.enter();
+    view.render();
+    expect(elements.get('buy-colour')!.disabled).toBe(true);
   });
 
   it('says what the chosen item is good for', () => {
@@ -598,6 +637,29 @@ describe('BuyToolControls', () => {
 });
 
 describe('the Buy tool on real wasm', () => {
+  // [RC-slice-buy]: the bridge passes the facing and the colourway in their
+  // own places, so the object faces its way and is drawn in its colourway.
+  it('buys in a colourway through the real boundary', () => {
+    const staged = (colourway: number) => {
+      const handle = SimHandle.from_lot();
+      const bridge = new SimBridge(handle, wasmMemory);
+      // A colourway that is not the facing's code, so swapped arguments show.
+      const item = bridge.catalogue().find((entry) => entry.baseFacing !== 3)!;
+      expect(bridge.buyObjectInColourway(item.definition, 0, 0, item.baseFacing, colourway)).toBe(true);
+      return { handle, bridge, item };
+    };
+    // The staged purchase carries its colourway: the digest sees it.
+    const [second, third] = [staged(2), staged(3)];
+    expect(second.bridge.worldHash()).not.toBe(third.bridge.worldHash());
+    // The shipped house has no money, so the purchase is refused, but the
+    // result echoes it exactly as the boundary received it.
+    third.bridge.flushCommands();
+    const result = third.bridge.lastPurchaseResult()!;
+    expect([result.definition, result.facing]).toEqual([third.item.definition, third.item.baseFacing]);
+    second.handle.free();
+    third.handle.free();
+  });
+
   it('lists the whole catalogue and words the refusal a household with no money gets', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const catalogue = bridge.catalogue();
@@ -662,8 +724,8 @@ describe('the Buy tool in the page', () => {
     }
     // The ghost reaches both the instance writer and the instance count.
     expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(3);
-    // [RC-render]: the ghost of a purchase is drawn as drawn, a moved object's
-    // in the object's colourway.
+    // [RC-render]: the ghost of a purchase is drawn in the Buy tool's colourway,
+    // a moved object's in the object's own.
     expect(MAIN_TS).toContain('buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,');
   });
 });

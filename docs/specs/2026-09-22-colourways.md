@@ -110,6 +110,10 @@ the object ends in the last colour chosen.
   Buy tool gains a Colour list under the catalogue; its choice draws the ghost
   and is kept between purchases until a Load. As drawn buys through the plain
   `BuyObject`, so a purchase with no colourway is the command it always was.
+  A staged purchase whose colourway id the content no longer has still loads,
+  and is then refused as unknown, as a staged colour change naming it is: the
+  player chose a colour the game cannot draw, so nothing is bought rather than
+  the object arriving in a colour nobody chose.
 * The owner's colourways and names replace the placeholders when
   [T-recolour-palettes] is answered; content only, since a save naming a
   colourway id the content no longer has loads that object as drawn.
@@ -139,3 +143,15 @@ change was on its way, now showing the latest choice; the staged-command hash
 guard and both in-use shader conditions untested, now pinned; and a saved id
 naming the first colourway still refused, now loading as drawn like an
 unknown one.
+
+A fresh-context review of [RC-slice-buy] found the new hash arm's colourway
+boundary untested, which the mutation sweep would have failed, and the arm's
+other fields and its unknown-object digest untested too; each is now pinned.
+It also found the real boundary's argument order untested, now checked by a
+staged purchase whose digest sees its colourway and whose refusal echoes its
+facing; the Buy tool's refusals of a colour change while a purchase is on its
+way or while blocked, its ghost colour outside the tool, and the Colour list's
+disabled states untested, now covered; the wire's unknown-variant row still
+naming code 13, now 14; and comments that still said a purchase's ghost is
+drawn as drawn. It asked whether a staged purchase whose colourway id was
+retired should load as drawn; it is refused, as the slice above says.

@@ -812,8 +812,6 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
         SavedCommand::SellObject { object } => SimCommand::SellObject { object },
-        // An id this pack lacks restores as an index past every colourway,
-        // which the drain refuses, as a staged purchase of an unknown object.
         // Unknown ids restore as indices past every object and colourway,
         // which the drain refuses, as the two commands it joins do.
         SavedCommand::BuyObjectInColourway {
@@ -833,6 +831,8 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
                 .and_then(|id| pack.colourways.iter().position(|known| known.id == id))
                 .map_or(u32::MAX, |index| index as u32),
         },
+        // An id this pack lacks restores as an index past every colourway,
+        // which the drain refuses, as a staged purchase of an unknown object.
         SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
             object,
             colourway: colourway

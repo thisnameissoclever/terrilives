@@ -2727,9 +2727,6 @@ impl Sim {
                         fields
                     }
                     SellObject { object } => vec![11, *object as u64],
-                    // As `BuyObject`: an index the pack has no colourway
-                    // for saves as none and restores as `u32::MAX`, so it
-                    // hashes as one value on both sides of a Load.
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {
@@ -2755,6 +2752,9 @@ impl Sim {
                                 .map_or(u64::MAX, |_| *colourway as u64),
                         ]
                     }
+                    // As `BuyObject`: an index the pack has no colourway
+                    // for saves as none and restores as `u32::MAX`, so it
+                    // hashes as one value on both sides of a Load.
                     SetColourway { object, colourway } => vec![
                         12,
                         *object as u64,

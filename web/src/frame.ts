@@ -949,7 +949,7 @@ export function buildInstances(
   interactions: InteractionSelection = frameInteractions,
   placement: PlacementPreview | null = null,
   highlight: TileHighlight | null = null,
-  /** The colourway the ghost is drawn in: a moved object's, 0 for a purchase ([RC-render]). */
+  /** The colourway the ghost is drawn in: a moved object's, or a purchase's ([RC-render]). */
   placementColourway = 0,
 ): InstanceArray {
   const count = source.count;

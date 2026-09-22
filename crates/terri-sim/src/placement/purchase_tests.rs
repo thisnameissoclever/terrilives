@@ -783,7 +783,8 @@ fn a_purchase_in_an_unknown_colourway_writes_nothing() {
 /// colourway hashes alike on both sides of the Load.
 #[test]
 fn a_staged_purchase_in_a_colourway_is_saved_and_replayed() {
-    for colourway in [3, 99] {
+    let past = pack().colourways.len() as u32;
+    for colourway in [3, past, 99] {
         let mut playing = house(1_000, vec![]);
         playing
             .world_mut()
@@ -812,4 +813,100 @@ fn purchases_in_different_colourways_hash_apart() {
         .resource_mut::<CommandQueue>()
         .push(in_colourway(chair(3, 3), 2));
     assert_ne!(first.world_hash(), second.world_hash());
+}
+
+/// [RC-slice-buy]: the digest sees every field of a staged purchase in a
+/// colourway, and sees the object and the colourway by what they are: two
+/// indices that both name nothing hash alike.
+#[test]
+fn the_world_hash_sees_every_field_of_a_staged_purchase_in_a_colourway() {
+    let staged = |change: &dyn Fn(Purchase) -> Purchase, colourway: u32| {
+        let mut sim = house(1_000, vec![]);
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(in_colourway(change(chair(3, 3)), colourway));
+        sim.world_hash()
+    };
+    let reference = staged(&|p| p, 1);
+    let turn = |p: Purchase| Purchase {
+        facing: turned(p.definition),
+        ..p
+    };
+    let sofa = index("sofa");
+    for (name, hash) in [
+        (
+            "definition",
+            staged(
+                &|p| Purchase {
+                    definition: sofa,
+                    ..p
+                },
+                1,
+            ),
+        ),
+        ("x", staged(&|p| Purchase { x: 4, ..p }, 1)),
+        ("y", staged(&|p| Purchase { y: 4, ..p }, 1)),
+        ("facing", staged(&turn, 1)),
+        ("colourway", staged(&|p| p, 2)),
+    ] {
+        assert_ne!(hash, reference, "{name}");
+    }
+    let nothing = |definition: u32| staged(&move |p| Purchase { definition, ..p }, 1);
+    assert_eq!(nothing(5_000), nothing(u32::MAX));
+    let past = pack().colourways.len() as u32;
+    assert_eq!(staged(&|p| p, past), staged(&|p| p, u32::MAX));
+}
+
+/// [RC-slice-buy]: a staged purchase in a colourway naming no object saves,
+/// loads with the same digest, and is refused as it would have been.
+#[test]
+fn a_staged_purchase_in_a_colourway_of_nothing_saves_loads_and_is_refused() {
+    let mut sim = house(1_000, vec![]);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(in_colourway(
+            Purchase {
+                definition: 5_000,
+                ..chair(3, 3)
+            },
+            1,
+        ));
+    let mut restored = house(0, vec![]);
+    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    assert_eq!(restored.world_hash(), sim.world_hash());
+    restored.flush_commands();
+    assert_eq!(last(&restored).unwrap().reason, Some(UnknownObject));
+}
+
+/// [RC-slice-buy]: ids the pack no longer has load rather than refusing the
+/// save. A retired object is refused as unknown; a retired colourway refuses
+/// the purchase too, as a staged colour change naming it is, so the world
+/// that loads behaves as the one that saved.
+#[test]
+fn a_staged_purchase_in_a_colourway_naming_what_the_game_dropped_loads_and_is_refused() {
+    for (definition, colourway, reason) in [
+        (Some("a_retired_object"), Some("colour_2"), UnknownObject),
+        (None, Some("a_retired_colourway"), UnknownColourway),
+    ] {
+        let sim = house(1_000, vec![]);
+        let mut saved = sim.save_snapshot_v5();
+        saved
+            .world
+            .queued_commands
+            .push(terri_core::SavedCommand::BuyObjectInColourway {
+                definition: Some(definition.unwrap_or("chair").to_string()),
+                x: 3,
+                y: 3,
+                facing: chair(3, 3).facing,
+                colourway: colourway.map(str::to_string),
+            });
+        let mut restored = house(0, vec![]);
+        restored.load_snapshot_v5(saved).expect("loads");
+        restored.flush_commands();
+        let result = last(&restored).unwrap();
+        assert_eq!((result.object, result.reason), (None, Some(reason)));
+        if definition.is_some() {
+            assert_eq!(result.purchase.definition, u32::MAX);
+        }
+    }
 }
