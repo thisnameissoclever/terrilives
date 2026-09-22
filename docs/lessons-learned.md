@@ -6897,6 +6897,30 @@ saved one, bounded by validation's check that every index is under
 `crates/terri-sim/src/save.rs` fails in well under a second, and
 `a_resumed_allocator_matches_one_that_issued_as_many` in
 `crates/terri-core/src/components.rs` covers `SimIdAllocator::resumed`.
+## [L-sprite-keyed-tables-miss-new-directions] Rotation added sprites that a lighting table never learned
+
+**What happened.** The furniture builder let the player turn objects, and a
+turned object is drawn with its direction's own sprite. The shell's lighting
+knew the floor lamp and the television by one sprite each, the default
+direction, so a turned lamp or television lit nothing around it at night and
+lost its glow. Nothing failed: the lighting tests only placed unturned
+lights, and nobody turned a light and waited for night.
+
+**Root cause.** Rotation changed which sprite an object is drawn with, and
+the change was checked in the simulation and the renderer's draw path, not in
+the shell tables that key on sprite numbers to mean "this object".
+
+**Prevention rule.** When an object gains sprites (a direction, a frame, a
+variant), search the shell for every lookup keyed on a sprite number or name
+(`spriteIndex(` and tables indexed by `sprites[...]`) and decide for each
+whether it means the object or that exact picture. A table that means the
+object must list every sprite the object can be drawn with.
+
+**How to verify.** "lights every direction of a light and nothing else" in
+`web/tests/buy-tool.test.ts` asks the real simulation which picture it draws
+for every catalogue item in every direction, and checks the lighting against
+those. Dropping a turn from `inEveryDirection` in `web/src/render/lighting.ts`
+fails it, as does the per-turn case in `web/tests/lighting.test.ts`.
 
 ## [L-probe-a-library-accessor] A library accessor was read by its name, then explained by a guess
 

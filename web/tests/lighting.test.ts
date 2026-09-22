@@ -131,6 +131,22 @@ describe('tile light profiles', () => {
     expect(emissiveForSprite(TELEVISION)).toBeCloseTo(0.85);
     expect(emissiveForSprite(CHAIR)).toBe(0);
   });
+
+  // [B-rotated-lights] in docs/FEATURES.md: the player can turn a lamp or a
+  // television, which draws it with another direction's sprite. Each
+  // direction lights the room and glows exactly as the default one does.
+  it.each(['SW', 'NW', 'NE'])('lights the room from a lamp or television turned to %s', (turn) => {
+    const lamp = spriteIndex(`lampRoundFloor${turn}`);
+    const television = spriteIndex(`televisionVintage${turn}`);
+    const lampField = buildLightField(rows([[4, 3, 1, lamp]]), 10, 7, NO_WALLS, true);
+    expect([0, 1, 2, 3, 4].map((step) => sampleLight(lampField, 4 - step, 3)))
+      .toEqual([0.35, 0.22, 0.1, 0.04, 0].map((value) => expect.closeTo(value)));
+    const televisionField = buildLightField(rows([[4, 3, 1, television]]), 10, 7, NO_WALLS, true);
+    expect([0, 1, 2, 3].map((step) => sampleLight(televisionField, 4 - step, 3)))
+      .toEqual([0.25, 0.12, 0.04, 0].map((value) => expect.closeTo(value)));
+    expect(emissiveForSprite(lamp)).toBeCloseTo(0.85);
+    expect(emissiveForSprite(television)).toBeCloseTo(0.85);
+  });
 });
 
 describe('occlusion and wall sampling', () => {
