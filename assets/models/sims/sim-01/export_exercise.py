@@ -20,7 +20,10 @@ def bike_wall_panels(lot):
     """The two solid segments below the bedroom door, using runtime vertex ownership."""
     placement = next(row for row in lot['place'] if row['object'] == 'moving_box')
     assert (placement['x'], placement['y']) == (4, 11)
-    assert lot['height'] == 12
+    # The run ends at the house's south edge. Since the yard, that is a wall
+    # the view cuts away ([OS-walls]), so it adds no arm at (6, 12), just as
+    # the lot's edge did before it.
+    assert lot.get('house', {}).get('height', lot['height']) == 12
     run = [edge for edge in lot['wall_edge']
            if edge['axis'] == 'vertical' and edge['x'] == 6 and edge['y'] >= 9]
     assert sorted((edge['y'], edge.get('doorway', False)) for edge in run) == [
