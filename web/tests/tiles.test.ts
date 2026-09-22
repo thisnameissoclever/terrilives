@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
+  setCutAwayWalls,
 } from '../src/render/tiles.js';
 import { SPRITES, spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
@@ -739,6 +740,20 @@ describe('the yard', () => {
       .toEqual(['doorwayJoinedNS']);
     const hidden = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
     expect(floorShifts(shown)).toEqual(floorShifts(hidden));
+  });
+
+  it("leaves the front door's own frame alone when the front walls are shown", () => {
+    const edges = Uint32Array.from([0, 2, 0, 1]);
+    const shown = buildStaticInstances({ ...lot, edges, house: [2, 1], showCutAwayWalls: true,
+      frontDoors: Uint32Array.from([2, 0]) }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(shown.instances, shown.count), 1.5, 0)).toEqual([]);
+  });
+
+  it('rebuilds only when the cut-away walls are turned on or off', () => {
+    const state: { showCutAwayWalls?: boolean } = {};
+    expect([setCutAwayWalls(state, false), setCutAwayWalls(state, true), setCutAwayWalls(state, true),
+      setCutAwayWalls(state, false), setCutAwayWalls(state, false)]).toEqual([false, true, false, true, false]);
+    expect(state.showCutAwayWalls).toBe(false);
   });
 
   it("passes the house to the walls, so its front walls are cut away", () => {

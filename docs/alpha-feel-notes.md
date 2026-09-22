@@ -3523,4 +3523,4 @@ In play, and in Build with the Furniture tool, the house stood open on its east 
 
 The first load of this check showed the sidebar drawn at the window's right edge. That came from PR 111's move of the Options gear, fixed there before this check went on ([L-move-markup-by-its-tree]).
 
-**Not proven here.** Lighting and routes were not watched with the walls shown; tests and the edge list's design keep them unchanged. No phone was used.
+**Not proven here.** Lighting and routes were not watched with the walls shown; tests and the edge list's design keep them unchanged. No phone was used. Review found this check had drawn a second doorway frame over the front door with the walls shown; that is fixed and covered by a tile test, not re-played. With the front walls up, they also hide the tiles and people just inside them, as a full-height wall would; low front walls would be a follow-up.
