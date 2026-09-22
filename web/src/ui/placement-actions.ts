@@ -12,7 +12,7 @@
  */
 import type { PlacementPreview } from '../bridge.js';
 import { canvasToClient } from '../input.js';
-import { screenX, screenY } from '../render/iso.js';
+import { TILE_HALF_HEIGHT, screenX, screenY } from '../render/iso.js';
 import { clampMenuPosition, type MenuPosition } from './object-menu.js';
 
 /** The ghost's tile footprint: its north-west corner and its size. */
@@ -41,13 +41,16 @@ export function ghostAnchorX(ghost: GhostFootprint, camera: ActionsCamera): numb
 }
 
 /**
- * The drawing-buffer y of the top of the ghost's art: its tile's point less
- * the sprite's lift, scaled with the camera as the activity bubble's is, so
- * the buttons sit on a zoomed-in piece rather than sinking into it.
+ * The drawing-buffer y of the top of the ghost's visible art. The shader
+ * stands a sprite's anchor half a tile below its point, on the diamond's
+ * south corner, and the art rises `artHeight` above the anchor; picking in
+ * `input.ts` does the same arithmetic. Every distance scales with the camera,
+ * so the buttons sit on a zoomed piece rather than sinking into it or
+ * floating over it.
  */
-export function ghostAnchorTop(ghost: GhostFootprint, camera: ActionsCamera, spriteLift: number): number {
+export function ghostAnchorTop(ghost: GhostFootprint, camera: ActionsCamera, artHeight: number): number {
   const [x, y] = centre(ghost);
-  return screenY(x, y, camera.originY, camera.scale) - spriteLift * camera.scale;
+  return screenY(x, y, camera.originY, camera.scale) + (TILE_HALF_HEIGHT - artHeight) * camera.scale;
 }
 
 /**

@@ -32,7 +32,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { SPRITES } from './render/atlas.js';
-import { spriteContentLift, spriteFramingHeight } from './render/sprite-anchors.js';
+import { spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
 import {
   BOUNDARY_SPRITE_NAMES,
@@ -1193,7 +1193,9 @@ async function main(): Promise<void> {
       dockTop, () => placementButtons.confirm(), () => placementButtons.cancel()),
     builder,
     buyTool,
-    spriteContentLift,
+    // The visible art's top: content bounds cover furniture, where the
+    // content-top table the activity bubble reads covers only people.
+    spriteFramingHeight,
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;

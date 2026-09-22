@@ -39,14 +39,16 @@ describe('canvasToClient', () => {
 describe('where the buttons go', () => {
   const ghost = { x: 2, y: 3, width: 2, depth: 1 };
 
-  it('anchors on the ghost body centre, lifted by the sprite scaled with the camera', () => {
-    // Centre (2.5, 3): x = (2.5 - 3) * half width + origin; y = (5.5) * half height + origin.
+  it("anchors on the top of the ghost's art, where the shader stands it, scaled with the camera", () => {
+    // Centre (2.5, 3): x = (2.5 - 3) * half width + origin. The tile's point
+    // is 5.5 half heights down; the art's base half a tile lower, at 6.5,
+    // and its top 30 above that.
     const one = { scale: 1, originX: 100, originY: 50 };
     expect(ghostAnchorX(ghost, one)).toBe(-0.5 * TILE_HALF_WIDTH + 100);
-    expect(ghostAnchorTop(ghost, one, 30)).toBe(5.5 * TILE_HALF_HEIGHT + 50 - 30);
+    expect(ghostAnchorTop(ghost, one, 30)).toBe(6.5 * TILE_HALF_HEIGHT + 50 - 30);
     const two = { scale: 2, originX: 100, originY: 50 };
     expect(ghostAnchorX(ghost, two)).toBe(-1 * TILE_HALF_WIDTH + 100);
-    expect(ghostAnchorTop(ghost, two, 30)).toBe(11 * TILE_HALF_HEIGHT + 50 - 60);
+    expect(ghostAnchorTop(ghost, two, 30)).toBe(13 * TILE_HALF_HEIGHT + 50 - 60);
   });
 
   it('centres the box above the anchor with a gap, inside the window and above the dock', () => {
@@ -221,5 +223,9 @@ describe('the placement buttons in the page', () => {
     expect(frame).toBeGreaterThan(camera);
     expect(MAIN_TS).toContain('placementActions?.invalidate();');
     expect(MAIN_TS).toContain('new PlacementActions(');
+    // Furniture's art top comes from its content bounds, not the people-only table.
+    const built = MAIN_TS.slice(MAIN_TS.indexOf('new PlacementActions('));
+    expect(built.slice(0, built.indexOf(');'))).toContain('spriteFramingHeight,');
+    expect(built.slice(0, built.indexOf(');'))).not.toContain('spriteContentLift');
   });
 });

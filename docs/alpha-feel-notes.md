@@ -3524,3 +3524,15 @@ In play, and in Build with the Furniture tool, the house stood open on its east 
 The first load of this check showed the sidebar drawn at the window's right edge. That came from PR 111's move of the Options gear, fixed there before this check went on ([L-move-markup-by-its-tree]).
 
 **Not proven here.** Lighting and routes were not watched with the walls shown; tests and the edge list's design keep them unchanged. No phone was used. Review found this check had drawn a second doorway frame over the front door with the walls shown; that is fixed and covered by a tile test, not re-played. With the front walls up, they also hide the tiles and people just inside them, as a full-height wall would; low front walls would be a follow-up.
+
+## [A-placement-buttons] Confirm and Cancel over the chair being moved
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/placement-buttons` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720 and at 375 by 812, on the household loaded from its save.
+
+In Build with the Furniture tool, clicking the kitchen's dining chair ("Chair, Standard Issue") lifted it, and Confirm and Cancel appeared in the game view just above its art, centred on it. Two presses of the down arrow moved the ghost two tiles and the pair followed it, while the marker stayed on the chair's old spot. Zoomed in with the mouse wheel to 1.43, the pair sat just above the chair again; measured in the page, the box's bottom edge plus its 8-pixel gap was exactly the art top the arithmetic gives. The floating Cancel put the chair back, cleared the choice ("Choose furniture to move or rotate.") and hid the pair, with focus handed to the game view. In the Buy tool, choosing the aquarium and pointing at the floor showed Buy, greyed out as the panel's was because the household could not afford it, and Cancel above the ghost.
+
+At 375 by 812, choosing a kitchen counter from the list showed the pair just above it, with its bottom edge at 270 pixels and the Build dock's top at 469, and the dock's own Confirm, Cancel and Sell still in its footer.
+
+The first attempt put the pair about 60 pixels above every piece: the anchor left out the half tile the shader drops each sprite's base below its point, which picking in `input.ts` already allowed for. That is fixed and pinned by the anchor test. The reading chair ("The Wingback Sabbatical") still shows the pair about 36 pixels above its art, because its base sprites have transparent padding above the art and no content bounds in the atlas; that is logged as its own task.
+
+**Not proven here.** A pinch zoom and a physical phone were not used.
