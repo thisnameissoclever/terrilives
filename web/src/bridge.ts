@@ -1223,6 +1223,11 @@ export class SimBridge {
     return this.handle.personality_labels();
   }
 
+  /** What each personality is like, aligned with `personalityLabels` ([CS-personality]). */
+  personalityDescriptions(): string[] {
+    return this.handle.personality_descriptions();
+  }
+
   /** `[size, most]`: how many live here and the most that may ([CS-command]). */
   householdSize(): [number, number] {
     const [size, most] = this.handle.household_size();

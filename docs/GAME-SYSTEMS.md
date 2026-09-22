@@ -55,7 +55,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | 45% |
 | [S-family] | Family relationships and kinship | Not started | 0% |
 | [S-careers] | Jobs and careers, with player-directed career paths | Partial | 15% |
-| [S-create-a-sim] | Create-a-sim and appearance | Not started | 0% |
+| [S-create-a-sim] | Create-a-sim and appearance | Partial | 25% |
 | [S-life-stages] | Life stages and aging | Not started | 0% |
 | [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | 0% |
 | [S-death] | Death and its consequences | Not started | 0% |
@@ -232,7 +232,7 @@ Walls, floors, doors, and windows as selectable styles. Recolours of existing ob
 
 **What exists.** The content format accepts up to six household members and rejects a seventh. The roster, the people panel, and the save format all handle six. The shipped household has three people, Tim, Bill, and Casey, and all three share one face, hairstyle, and body and differ only by shirt colour.
 
-**What is missing.** A way to add a person during play: a new housemate, a partner moving in, a baby, or an adopted child. A way for a person to leave. Both need [F-entity-lifecycle].
+**What is missing.** A new housemate can move in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`); a partner moving in, a baby, or an adopted child cannot yet. A way for a person to leave ([CS-slice-move-out]). Both need [F-entity-lifecycle].
 
 A larger household also needs a larger house, so that six people are not queueing for one bathroom. That ties this entry to [S-build]. More people need to look different from each other, which ties it to [S-create-a-sim]. Whether six is the right ceiling is an open design question; performance is not the limit, since the engine has been measured with a thousand characters on screen.
 
@@ -402,7 +402,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
-**Status: Not started, 0%.** Every person uses one approved face, hairstyle, and body. The household is authored in a content file. There is no screen for making a person, and no body, face, hair, or clothing options to choose from. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
+**Status: Partial, about 25%.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
 
 ### [S-life-stages] Life stages and aging
 

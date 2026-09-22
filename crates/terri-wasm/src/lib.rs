@@ -643,6 +643,17 @@ impl SimHandle {
             .collect()
     }
 
+    /// What each pack personality is like, aligned with
+    /// `personality_labels` - [CS-personality].
+    pub fn personality_descriptions(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .personalities
+            .iter()
+            .map(|personality| personality.description.clone())
+            .collect()
+    }
+
     /// How many people the household has, and the most it may have -
     /// [CS-command]: `[size, most]`.
     pub fn household_size(&self) -> Vec<u32> {
@@ -5314,6 +5325,9 @@ mod boundary_tests {
             handle.personality_labels(),
             vec!["The correspondent", "The settled", "The flitting"]
         );
+        let descriptions = handle.personality_descriptions();
+        assert_eq!(descriptions.len(), 3);
+        assert!(descriptions[1].starts_with("Keeps ordinary hours"));
         assert!(!handle.add_housemate("Ann", 1.5, &[]));
         assert!(!handle.add_housemate("Ann", 1.0, &[0.5]));
         assert!(handle.add_housemate("Ann", 99.0, &[]));

@@ -595,21 +595,27 @@
       #housemate-dialog h2 {
         margin-top: 0;
       }
-      /* The form's rows stack; the traits scroll so six people's worth of
-         library still fits a phone. */
-      #housemate-dialog form > label { display: block; margin-top: 10px; }
-      #housemate-dialog input[type="text"], #housemate-dialog select {
+      /* Two pages ([CS-pages]): the name and the personalities, then the
+         traits. Each list scrolls on its own so a phone keeps the page's
+         buttons in view. */
+      #housemate-page-personality > label { display: block; margin-top: 10px; }
+      #housemate-dialog input[type="text"] {
         display: block; width: 100%; box-sizing: border-box;
         margin-top: 4px; padding: 8px; font: inherit;
         color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
         border-radius: 4px;
       }
-      #housemate-traits-field { margin: 10px 0 0; padding: 8px; border: 1px solid var(--hud-edge); border-radius: 4px; }
-      #housemate-traits { max-height: 30vh; overflow-y: auto; }
-      /* A box beside its trait's name and sentence, the box never stretched. */
-      .housemate-trait { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; cursor: pointer; }
-      .housemate-trait input { flex: none; margin: 3px 0 0; }
-      .housemate-trait span { flex: 1 1 auto; }
+      #housemate-personality, #housemate-traits-field {
+        margin: 10px 0 0; padding: 8px; border: 1px solid var(--hud-edge); border-radius: 4px;
+      }
+      #housemate-personality-list, #housemate-traits { max-height: 42vh; overflow-y: auto; }
+      /* A control beside a name in bold and its sentence below it; the
+         control never stretches. */
+      .housemate-option { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; cursor: pointer; }
+      .housemate-option input { flex: none; margin: 3px 0 0; }
+      .housemate-option > span { flex: 1 1 auto; display: grid; gap: 2px; }
+      .housemate-option-name { font-weight: 600; }
+      .housemate-option-text { color: var(--hud-muted); }
       #housemate-status:empty { display: none; }
       #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
@@ -1299,20 +1305,32 @@
     <dialog id="housemate-dialog" aria-labelledby="housemate-title">
       <h2 id="housemate-title">New housemate</h2>
       <p id="housemate-count"></p>
+      <p id="housemate-status" role="status"></p>
       <form method="dialog">
-        <label for="housemate-name">Name</label>
-        <input id="housemate-name" type="text" autocomplete="off">
-        <label for="housemate-personality">Personality</label>
-        <select id="housemate-personality"></select>
-        <fieldset id="housemate-traits-field">
-          <legend>Traits</legend>
-          <div id="housemate-traits"></div>
-        </fieldset>
-        <p id="housemate-status" role="status"></p>
-        <menu>
-          <button class="hud-button" value="cancel">Cancel</button>
-          <button id="housemate-confirm" class="hud-button" value="confirm">Move in</button>
-        </menu>
+        <!-- [CS-pages]: every button is type="button", so no press submits
+             the form; the view moves between pages and closes the dialog. -->
+        <div id="housemate-page-personality">
+          <label for="housemate-name">Name</label>
+          <input id="housemate-name" type="text" autocomplete="off">
+          <fieldset id="housemate-personality">
+            <legend>Personality</legend>
+            <div id="housemate-personality-list"></div>
+          </fieldset>
+          <menu>
+            <button id="housemate-cancel" class="hud-button" type="button">Cancel</button>
+            <button id="housemate-next" class="hud-button" type="button">Next</button>
+          </menu>
+        </div>
+        <div id="housemate-page-traits" hidden>
+          <fieldset id="housemate-traits-field">
+            <legend id="housemate-traits-legend">Traits</legend>
+            <div id="housemate-traits"></div>
+          </fieldset>
+          <menu>
+            <button id="housemate-back" class="hud-button" type="button">Back</button>
+            <button id="housemate-confirm" class="hud-button" type="button">Move in</button>
+          </menu>
+        </div>
       </form>
     </dialog>
     <dialog id="load-game-dialog" aria-labelledby="load-game-title">

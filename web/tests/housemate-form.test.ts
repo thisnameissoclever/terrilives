@@ -24,6 +24,7 @@ class FakeHousehold {
   result: HousemateResult | null = null;
   selected: number[] = [];
   personalityLabels() { return ['The correspondent', 'The settled', 'The flitting']; }
+  personalityDescriptions() { return ['Writes letters.', 'Sits down.', 'Flits about.']; }
   traitLabels() { return ['Bookworm', 'Early riser', 'Night owl', 'Tidy', 'Loud', 'Shy']; }
   traitDescriptions() { return this.traitLabels().map((label) => `About ${label.toLowerCase()}.`); }
   householdSize(): [number, number] { return [this.size, this.most]; }
@@ -47,29 +48,62 @@ function form() {
   return { housemate, source, changes: () => changes, movedIn: () => movedIn };
 }
 
-// [CS-command] in docs/specs/2026-09-22-create-a-sim.md: the form mirrors the
-// simulation's rules so Move in is off before a refusal, never instead of one.
+// [CS-command] and [CS-pages] in docs/specs/2026-09-22-create-a-sim.md: the
+// form mirrors the simulation's rules so a button is off before a refusal,
+// never instead of one.
 describe('HousemateForm', () => {
-  it('reads its lists and limits from content and starts empty', () => {
+  it('reads its lists and limits from content and starts empty on the first page', () => {
     const { housemate } = form();
     expect(housemate.personalities).toHaveLength(3);
+    expect(housemate.personalityDescriptions).toEqual(['Writes letters.', 'Sits down.', 'Flits about.']);
     expect(housemate.traits).toHaveLength(6);
     expect([housemate.nameMaxChars, housemate.maxTraits]).toEqual([8, 2]);
-    expect([housemate.name, housemate.personality, housemate.chosenTraits, housemate.status])
-      .toEqual(['', 0, [], CHOOSE_NAME]);
+    expect([housemate.page, housemate.name, housemate.personality, housemate.chosenTraits, housemate.status])
+      .toEqual(['personality', '', 0, [], CHOOSE_NAME]);
+    expect([housemate.canGoNext(), housemate.canMoveIn()]).toEqual([false, false]);
+  });
+
+  it('needs a name that fits before the traits, and trims it', () => {
+    const { housemate } = form();
+    housemate.setName('   ');
+    expect([housemate.canGoNext(), housemate.status]).toEqual([false, CHOOSE_NAME]);
+    housemate.next();
+    expect(housemate.page).toBe('personality');
+    housemate.setName('  Ann  ');
+    expect([housemate.trimmedName(), housemate.canGoNext(), housemate.status]).toEqual(['Ann', true, '']);
+    housemate.setName('Annabella');
+    expect(housemate.canGoNext()).toBe(false);
+    housemate.setName('Annabell');
+    expect(housemate.canGoNext()).toBe(true);
+  });
+
+  it('moves in only from the traits page, and Back keeps every choice', () => {
+    const { housemate, source } = form();
+    housemate.setName('Ann');
+    housemate.setPersonality(2);
+    expect(housemate.canMoveIn()).toBe(false);
+    housemate.moveIn();
+    expect(source.staged).toEqual([]);
+    housemate.next();
+    expect([housemate.page, housemate.canMoveIn(), housemate.status]).toEqual(['traits', true, '']);
+    housemate.toggleTrait(1);
+    housemate.back();
+    expect([housemate.page, housemate.name, housemate.personality, housemate.chosenTraits])
+      .toEqual(['personality', 'Ann', 2, [1]]);
+    housemate.next();
+    housemate.next();
+    expect(housemate.page).toBe('traits');
+    // A name emptied after Next still stops Move in.
+    housemate.setName(' ');
     expect(housemate.canMoveIn()).toBe(false);
   });
 
-  it('needs a name that fits, and trims it', () => {
+  it('starts every opening on the first page', () => {
     const { housemate } = form();
-    housemate.setName('   ');
-    expect([housemate.canMoveIn(), housemate.status]).toEqual([false, CHOOSE_NAME]);
-    housemate.setName('  Ann  ');
-    expect([housemate.trimmedName(), housemate.canMoveIn()]).toEqual(['Ann', true]);
-    housemate.setName('Annabella');
-    expect(housemate.canMoveIn()).toBe(false);
-    housemate.setName('Annabell');
-    expect(housemate.canMoveIn()).toBe(true);
+    housemate.setName('Ann');
+    housemate.next();
+    housemate.reset();
+    expect([housemate.page, housemate.name, housemate.status]).toEqual(['personality', '', CHOOSE_NAME]);
   });
 
   it('wears at most the tuned number of traits, each once, and only known ones', () => {
@@ -94,7 +128,7 @@ describe('HousemateForm', () => {
     source.size = 6;
     housemate.reset();
     housemate.setName('Ann');
-    expect([housemate.roomForOne(), housemate.canMoveIn(), housemate.status])
+    expect([housemate.roomForOne(), housemate.canGoNext(), housemate.status])
       .toEqual([false, false, HOUSEHOLD_FULL]);
   });
 
@@ -102,15 +136,18 @@ describe('HousemateForm', () => {
     const { housemate, source, movedIn } = form();
     housemate.setName(' Ann ');
     housemate.setPersonality(1);
+    housemate.next();
     housemate.toggleTrait(4);
     housemate.moveIn();
     expect(source.staged).toEqual([['Ann', 1, [4]]]);
     expect([housemate.pending, housemate.status, housemate.canMoveIn()]).toEqual([true, MOVING_IN, false]);
-    // Nothing changes while the move-in is on its way.
+    // Nothing changes while the move-in is on its way, not even the page.
     housemate.setName('Bo');
     housemate.toggleTrait(0);
     housemate.setPersonality(2);
-    expect([housemate.name, housemate.chosenTraits, housemate.personality]).toEqual([' Ann ', [4], 1]);
+    housemate.back();
+    expect([housemate.name, housemate.chosenTraits, housemate.personality, housemate.page])
+      .toEqual([' Ann ', [4], 1, 'traits']);
     housemate.afterCommands();
     expect(housemate.pending).toBe(true);
     source.result = { reason: null, sim: 41 };
@@ -121,6 +158,7 @@ describe('HousemateForm', () => {
   it('shows the refusal and lets the player try again', () => {
     const { housemate, source, movedIn } = form();
     housemate.setName('Ann');
+    housemate.next();
     housemate.moveIn();
     source.result = { reason: 'The household is full.', sim: null };
     housemate.afterCommands();
@@ -139,23 +177,32 @@ describe('HousemateForm', () => {
 });
 
 describe('HousemateFormView', () => {
+  interface FakeEvent { key?: string; defaultPrevented: boolean; preventDefault(): void }
   class FakeElement {
     disabled = false;
     checked = false;
+    hidden = false;
     textContent = '';
     value = '';
+    name = '';
     maxLength = 0;
     type = '';
     className = '';
+    closedWith: string | null = null;
+    focused = 0;
     readonly children: FakeElement[] = [];
-    readonly listeners = new Map<string, ((event: { preventDefault(): void }) => void)[]>();
-    addEventListener(type: string, listener: (event: { preventDefault(): void }) => void) {
+    readonly listeners = new Map<string, ((event: FakeEvent) => void)[]>();
+    addEventListener(type: string, listener: (event: FakeEvent) => void) {
       this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
     }
-    fire(type: string) {
-      for (const listener of this.listeners.get(type) ?? []) listener({ preventDefault() {} });
+    fire(type: string, key?: string): FakeEvent {
+      const event: FakeEvent = { key, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+      for (const listener of this.listeners.get(type) ?? []) listener(event);
+      return event;
     }
     append(...children: FakeElement[]) { this.children.push(...children); }
+    close(value: string) { this.closedWith = value; }
+    focus() { this.focused += 1; }
   }
 
   function view() {
@@ -175,44 +222,97 @@ describe('HousemateFormView', () => {
       movedIn: () => {},
     });
     formView = new HousemateFormView(doc, housemate);
-    return { housemate, source, formView, element: (id: string) => elements.get(id)! };
+    const element = (id: string) => elements.get(id)!;
+    /** A row's [control, name, sentence]. */
+    const row = (list: string, index: number) => {
+      const [control, text] = element(list).children[index].children;
+      return { control, name: text.children[0].textContent, sentence: text.children[1].textContent };
+    };
+    return { housemate, source, formView, element, row };
   }
 
-  it('lists the personalities and the traits with their sentences, and caps the name', () => {
-    const { element } = view();
-    expect(element('housemate-personality').children.map((o) => o.textContent))
-      .toEqual(['The correspondent', 'The settled', 'The flitting']);
-    const rows = element('housemate-traits').children;
-    expect(rows).toHaveLength(6);
-    expect(rows[0].children[1].textContent).toBe('Bookworm: About bookworm.');
+  it('lists each personality as a radio with its sentence, and caps the name', () => {
+    const { element, row } = view();
+    expect(element('housemate-personality-list').children).toHaveLength(3);
+    const settled = row('housemate-personality-list', 1);
+    expect([settled.control.type, settled.control.name, settled.name, settled.sentence])
+      .toEqual(['radio', 'housemate-personality', 'The settled', 'Sits down.']);
+    expect(row('housemate-personality-list', 0).control.checked).toBe(true);
     expect(element('housemate-name').maxLength).toBe(8);
     expect(element('housemate-count').textContent).toBe('3 of 6 live here.');
-    expect(element('housemate-confirm').disabled).toBe(true);
+    expect([element('housemate-page-personality').hidden, element('housemate-page-traits').hidden])
+      .toEqual([false, true]);
+    expect(element('housemate-next').disabled).toBe(true);
   });
 
-  it('drives the form from its controls and greys out the boxes past the limit', () => {
-    const { housemate, source, element } = view();
+  it('lists the traits with their sentences on the second page, with the limit in the legend', () => {
+    const { element, row } = view();
+    expect(element('housemate-traits').children).toHaveLength(6);
+    const bookworm = row('housemate-traits', 0);
+    expect([bookworm.control.type, bookworm.name, bookworm.sentence])
+      .toEqual(['checkbox', 'Bookworm', 'About bookworm.']);
+    expect(element('housemate-traits-legend').textContent).toBe('Traits, up to 2');
+  });
+
+  it('drives both pages from their controls and greys out the boxes past the limit', () => {
+    const { housemate, source, element, row } = view();
     const name = element('housemate-name');
     name.value = 'Ann';
     name.fire('input');
-    element('housemate-personality').value = '2';
-    element('housemate-personality').fire('change');
-    const boxes = element('housemate-traits').children.map((row) => row.children[0]);
+    row('housemate-personality-list', 2).control.fire('change');
+    expect(row('housemate-personality-list', 2).control.checked).toBe(true);
+    expect(row('housemate-personality-list', 0).control.checked).toBe(false);
+    expect(element('housemate-next').disabled).toBe(false);
+    element('housemate-next').fire('click');
+    expect([element('housemate-page-personality').hidden, element('housemate-page-traits').hidden])
+      .toEqual([true, false]);
+    const boxes = element('housemate-traits').children.map((r) => r.children[0]);
+    // Focus follows the page, onto its first box.
+    expect(boxes[0].focused).toBe(1);
     boxes[1].fire('change');
     boxes[5].fire('change');
     expect([housemate.name, housemate.personality, housemate.chosenTraits]).toEqual(['Ann', 2, [1, 5]]);
     expect(boxes.map((box) => box.disabled)).toEqual([true, false, true, true, true, false]);
+    element('housemate-back').fire('click');
+    expect([housemate.page, name.focused]).toEqual(['personality', 1]);
+    element('housemate-next').fire('click');
     expect(element('housemate-confirm').disabled).toBe(false);
     element('housemate-confirm').fire('click');
     expect(source.staged).toEqual([['Ann', 2, [1, 5]]]);
-    expect([name.disabled, element('housemate-status').textContent]).toEqual([true, MOVING_IN]);
+    expect([element('housemate-back').disabled, element('housemate-status').textContent]).toEqual([true, MOVING_IN]);
   });
 
-  it('is wired into the page', () => {
-    for (const id of ['new-housemate', 'housemate-dialog', 'housemate-name', 'housemate-personality',
-      'housemate-traits', 'housemate-count', 'housemate-status', 'housemate-confirm']) {
+  it('turns Enter in the name box into Next instead of closing the dialog', () => {
+    const { housemate, element } = view();
+    const name = element('housemate-name');
+    expect(name.fire('keydown', 'Enter').defaultPrevented).toBe(true);
+    expect(housemate.page).toBe('personality');
+    name.value = 'Ann';
+    name.fire('input');
+    expect(name.fire('keydown', 'a').defaultPrevented).toBe(false);
+    name.fire('keydown', 'Enter');
+    expect(housemate.page).toBe('traits');
+  });
+
+  it('closes the dialog from Cancel', () => {
+    const { element } = view();
+    element('housemate-cancel').fire('click');
+    expect(element('housemate-dialog').closedWith).toBe('cancel');
+  });
+
+  it('is wired into the page, with no button that submits the form', () => {
+    for (const id of ['new-housemate', 'housemate-dialog', 'housemate-page-personality', 'housemate-page-traits',
+      'housemate-name', 'housemate-personality', 'housemate-personality-list', 'housemate-traits',
+      'housemate-traits-legend', 'housemate-count', 'housemate-status', 'housemate-cancel', 'housemate-next',
+      'housemate-back', 'housemate-confirm']) {
       expect(INDEX_HTML).toContain(`id="${id}"`);
     }
+    const dialog = INDEX_HTML.slice(INDEX_HTML.indexOf('<dialog id="housemate-dialog"'));
+    const markup = dialog.slice(0, dialog.indexOf('</dialog>'));
+    const buttons = markup.match(/<button[^>]*>/g) ?? [];
+    expect(buttons).toHaveLength(4);
+    for (const button of buttons) expect(button).toContain('type="button"');
+    expect(markup).toContain('<div id="housemate-page-traits" hidden>');
     expect(MAIN_TS).toContain("overlayPause.suspend('housemate')");
     expect(MAIN_TS).toContain("overlayPause.resume('housemate')");
     expect(MAIN_TS).toContain('housemateForm.afterCommands();');
@@ -224,11 +324,13 @@ describe('the New housemate form on real wasm', () => {
     const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(bridge.householdSize()).toEqual([3, 6]);
     expect(bridge.personalityLabels()).toEqual(['The correspondent', 'The settled', 'The flitting']);
+    expect(bridge.personalityDescriptions().map((text) => text.split(' ')[0])).toEqual(['Up', 'Keeps', 'A']);
     expect(bridge.housemateLimits()).toEqual([24, 4]);
     let movedIn = 0;
     const housemate = new HousemateForm(bridge, { changed: () => {}, movedIn: () => { movedIn += 1; } });
     housemate.setName('Ann');
     housemate.setPersonality(1);
+    housemate.next();
     housemate.toggleTrait(0);
     housemate.toggleTrait(3);
     housemate.moveIn();

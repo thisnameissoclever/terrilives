@@ -3510,6 +3510,7 @@ mod household_tests {
                 satisfaction: [1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0],
                 dispositions: vec![(terri_core::ObjectDefId(3), 1, 0.25)],
                 chronotype_offset_ticks: 0,
+                description: String::new(),
             },
             terri_data::CompiledPersonality {
                 id: "b".into(),
@@ -3517,6 +3518,7 @@ mod household_tests {
                 satisfaction: [1.0, 1.0, 1.0, 1.125, 1.0, 1.0, 1.0],
                 dispositions: vec![],
                 chronotype_offset_ticks: 0,
+                description: String::new(),
             },
         ];
         let household = vec![

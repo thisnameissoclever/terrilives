@@ -335,6 +335,11 @@ pub enum ContentError {
     DuplicateArchetype {
         id: String,
     },
+    /// An archetype with a blank description - [CS-personality]. The New
+    /// housemate form prints one beside each personality's name.
+    EmptyPersonalityDescription {
+        id: String,
+    },
     /// An archetype's `drain` or `satisfaction` map names a need rustc
     /// does not know. Same dangling-reference shape as
     /// [`ContentError::UnknownNeed`], one file over.
@@ -1364,6 +1369,11 @@ impl fmt::Display for ContentError {
             ContentError::ZeroQueuedCommands => write!(
                 f,
                 "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1"
+            ),
+            ContentError::EmptyPersonalityDescription { id } => write!(
+                f,
+                "archetype '{id}' has a blank description; the New housemate \
+                 form prints one beside each personality's name"
             ),
             ContentError::DuplicateArchetype { id } => write!(
                 f,

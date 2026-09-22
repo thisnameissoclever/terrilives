@@ -670,6 +670,10 @@ pub struct CompiledPersonality {
     /// [ML-chrono]. 0 is "sleeps when everyone else does", which is the
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
+    /// What this personality is like, for the New housemate form -
+    /// [CS-personality]. Last, because it was appended; personalities are
+    /// in no save and not in the save digest.
+    pub description: String,
 }
 
 /// One trait, compiled - [E3]. The kind-specific numbers live in an
@@ -1283,6 +1287,7 @@ mod tests {
                 satisfaction: [0.5, 1.75, 2.0, 0.625, 1.375, 0.8125, 1.0625],
                 dispositions: vec![(ObjectDefId(1), 0, 1.875), (ObjectDefId(2), 1, 0.25)],
                 chronotype_offset_ticks: 0,
+                description: "Sits down and stays down.".to_string(),
             }],
             household: vec![CompiledHouseholdMember {
                 name: "Terri".to_string(),

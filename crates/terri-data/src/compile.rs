@@ -1840,6 +1840,11 @@ fn compile_personalities(
                 id: archetype.id.clone(),
             });
         }
+        if archetype.description.trim().is_empty() {
+            return Err(ContentError::EmptyPersonalityDescription {
+                id: archetype.id.clone(),
+            });
+        }
 
         let mut drain = [1.0f32; NEED_COUNT];
         for (need_name, value) in &archetype.drain {
@@ -1944,6 +1949,7 @@ fn compile_personalities(
             // wraps, and "three hours later than everyone" and "twenty-one
             // hours earlier" are the same sim.
             chronotype_offset_ticks: archetype.chronotype_offset_ticks,
+            description: archetype.description.clone(),
         });
     }
 
@@ -5813,6 +5819,7 @@ mod tests {
     fn archetype(id: &str) -> ArchetypeDef {
         ArchetypeDef {
             chronotype_offset_ticks: 0,
+            description: format!("The {id} sort."),
             id: id.to_string(),
             drain: [("fun".to_string(), 1.5)].into_iter().collect(),
             satisfaction: [("hunger".to_string(), 0.75)].into_iter().collect(),
@@ -7301,6 +7308,20 @@ mod tests {
             pack.personalities[0].dispositions,
             vec![(ObjectDefId(0), 0, 0.25), (ObjectDefId(1), 0, 1.75)]
         );
+    }
+
+    #[test]
+    fn rejects_a_blank_personality_description_and_keeps_a_real_one() {
+        let mut blank = archetype("quiet");
+        blank.description = " \t".to_string();
+        assert_eq!(
+            compile_people(vec![blank], vec![]).unwrap_err(),
+            ContentError::EmptyPersonalityDescription {
+                id: "quiet".to_string()
+            }
+        );
+        let pack = compile_people(vec![archetype("quiet")], vec![]).expect("described");
+        assert_eq!(pack.personalities[0].description, "The quiet sort.");
     }
 
     #[test]

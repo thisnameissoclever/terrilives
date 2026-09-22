@@ -1,6 +1,6 @@
 # Create-a-sim: a new housemate moves in
 
-Status: design. [CS-slice-housemate] is next.
+Status: [CS-slice-housemate] built on branch `twcl/housemate-pages`; its played check is [A-housemate].
 
 This is the Create-a-sim bullet of M1 in `docs/FEATURES.md`, and the start of
 [S-create-a-sim], [S-household-size] and [F-entity-lifecycle] in
@@ -13,8 +13,9 @@ a death) needs the household to change during play first.
 
 * **A New housemate button** in the Household section, off while the household
   already has six people.
-* **A form**: a name, one of the three personalities, and up to four traits
-  from the trait library, each shown with its one sentence. Move in, or Cancel.
+* **A form in two pages** ([CS-pages]): a name and one of the three
+  personalities, each described; then up to four traits from the trait
+  library, each shown with its one sentence. Move in, Back, or Cancel.
 * **They arrive from the street.** The newcomer appears on the street's exit
   ([OS-street] in `docs/specs/2026-09-22-the-outside.md`), walks in through
   the front door, and is a household member like the others: in the roster,
@@ -41,6 +42,16 @@ Only then is a sim id issued and the sim spawned, by the same function that
 spawns the household from content: every need full, the personality's
 numbers, no hobbies and no job, and each trait at its kind's starting state.
 A refusal writes nothing and is reported with a code, as a purchase's is.
+
+## [CS-pages] Two pages: who they are, then their traits
+
+Added 2026-09-22 at the owner's request, after they found a drop-down of personality names told them nothing. Page 1 holds the name and the personalities as radio buttons, each with its name in bold and its description ([CS-personality]) below it, then Cancel and Next. Page 2 holds the traits, each with its label and sentence, under a legend saying how many may be chosen, then Back and Move in. The dialog pauses the game like Load does.
+
+Next is off until the name is complete, and Move in is only on page 2, so a newcomer cannot be sent without a name. Back keeps every choice, and opening the form again starts on page 1, empty. Every button is `type="button"`: nothing submits the dialog's form, and Enter in the name box moves on to page 2 rather than closing the dialog. A page change moves keyboard focus onto the new page.
+
+## [CS-personality] A personality says what it is like
+
+Each archetype in `content/personalities.toml` gains a `description`, one or two plain sentences read from its numbers, appended last to the compiled personality. The compile step refuses a blank one. Its verbs follow [TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`: the correspondent's desk weight of 1.7 is "Loves", the settled's desk weight of 0.45 is "hates". Personalities are in no save and not in the save digest, so the new field changes neither. The names stay the content ids in words ("The correspondent") until the owner names them ([T22]).
 
 ## [CS-arrival] From the street, through the front door
 

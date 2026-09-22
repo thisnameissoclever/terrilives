@@ -578,6 +578,21 @@ mod tests {
         }
     }
 
+    /// [CS-personality]: each shipped personality says what it is like in
+    /// plain sentences short enough for the New housemate form on a phone.
+    #[test]
+    fn every_shipped_personality_says_what_it_is_like() {
+        let personalities = &pack().personalities;
+        assert!(!personalities.is_empty());
+        for p in personalities {
+            let text = p.description.as_str();
+            assert_eq!(text, text.trim(), "{}: stray whitespace", p.id);
+            assert!(text.ends_with('.'), "{}: '{text}' is not a sentence", p.id);
+            assert!(text.len() <= 160, "{}: {} characters", p.id, text.len());
+            assert!(!text.contains('\u{2014}') && !text.contains('\u{2013}'));
+        }
+    }
+
     /// [TL-household]: each member keeps the trait old saves know them by,
     /// first in the authored list, and gains two or three.
     #[test]

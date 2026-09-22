@@ -609,7 +609,14 @@ this milestone and is done; what follows is M1b onwards.
   design is
   `docs/specs/2026-09-22-selling-furniture.md` and its played check is
   [A-selling-furniture].
-- **Create-a-sim:** body type, face, hair, clothing, trait selection
+- **Create-a-sim:** body type, face, hair, clothing, trait selection - in
+  progress. The first slice, [CS-slice-housemate] in
+  `docs/specs/2026-09-22-create-a-sim.md`, is built on branch
+  `twcl/housemate-pages`: a New housemate button under Household opens a
+  two-page form, a name and a personality, each described, then up to four
+  traits, and the newcomer walks in from the street and joins the household.
+  Choosing a body, face, hair and clothes waits on art ([CS-slice-looks],
+  [T-sim-looks]). Its played check is [A-housemate].
 - ~~**Household** of up to ~6 sims~~ - done. Content preserves declaration
   order, enforces a six-member ceiling, and the normal HUD provides one
   keyboard-operable selection button per live household member. Buttons key

@@ -207,7 +207,7 @@ pub struct TuningFile {
     /// "Likes", below 1 "Dislikes", and at or below `affinity_hates_to`
     /// "Hates". The compiler holds each description to its verb. The
     /// simulation never reads either line, so neither is copied into the
-    /// compiled pack. Last in this record on purpose, per the appending rule.
+    /// compiled pack.
     pub affinity_loves_from: f32,
     pub affinity_hates_to: f32,
     /// The most characters a new housemate's name may have - [CS-command] in
@@ -635,6 +635,13 @@ pub struct ArchetypeDef {
     /// those are different numbers read by different systems.
     #[serde(default)]
     pub satisfaction: BTreeMap<String, f32>,
+    /// What this personality is like, in a sentence or two the New
+    /// housemate form prints beside its name - [CS-personality] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. Defaulted so an archetype
+    /// parses from its id alone; the compile step refuses it blank, as it
+    /// refuses a blank trait description.
+    #[serde(default)]
+    pub description: String,
     /// Per-interaction weights - "loves reading", "fears the couch". A
     /// weight of 0 is legal and IS the fear: the interaction scores as
     /// nothing, so the sim never chooses it on its own.
