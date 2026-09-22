@@ -86,9 +86,6 @@ describe('MobileHud', () => {
     expect(INDEX_HTML).toMatch(
       /#hud\[data-mobile-open='false'\]\s*>\s*:not\(#household-summary\)\s*\{\s*display:\s*none\s*;/,
     );
-    expect(INDEX_HTML).toMatch(
-      /#hud\[data-mobile-open='false'\]\s+#lighting-mode\s*\{\s*display:\s*none\s*;/,
-    );
     expect(openingTagFor('hud')).toMatch(/\bdata-mobile-open\s*=\s*"false"/);
     const controlledIds = attributeValue(
       openingTagFor('mobile-hud-toggle'),
@@ -97,15 +94,9 @@ describe('MobileHud', () => {
       .split(/\s+/)
       .sort();
     expect(controlledIds).toEqual(
-      [
-        'lighting-mode',
-        'household-roster',
-        'needs-panel',
-        'people-panel',
-        'time-controls',
-        'audio-controls',
-        'game-actions',
-      ].sort(),
+      // Light, sound and the game actions live in the Options flyout
+      // ([OF3]), which has its own gear.
+      ['household-roster', 'needs-panel', 'people-panel', 'time-controls'].sort(),
     );
   });
 

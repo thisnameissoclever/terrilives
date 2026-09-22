@@ -53,6 +53,7 @@ import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { GameHud } from './ui/game-hud.js';
+import { OptionsMenu } from './ui/options-menu.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
@@ -480,7 +481,7 @@ async function main(): Promise<void> {
     sim.needBarRefreshMs(),
   );
   // [TL-panel]. A missing element throws, for the [L17] reason above.
-  const traitsBlock = document.querySelector<HTMLElement>('#traits-block');
+  const traitsBlock = document.querySelector<HTMLDetailsElement>('#traits-block');
   const traitsEmpty = document.querySelector<HTMLElement>('#traits-empty');
   const traitList = document.querySelector<HTMLElement>('#trait-list');
   if (!traitsBlock || !traitsEmpty || !traitList) {
@@ -549,9 +550,27 @@ async function main(): Promise<void> {
   const mobileHud = new MobileHud(hudRoot, mobileHudButton, [
     needsRoot,
     peopleRoot,
+    traitsBlock,
   ]);
   mobileHud.setCompact(compactHudQuery.matches);
   mobileHudButton.addEventListener('click', () => mobileHud.toggle());
+  // [OF2] in docs/specs/2026-09-22-options-flyout.md. Registered before the
+  // right-click flyout's and Build's document listeners, so an open panel
+  // takes Escape first and Build does not also act on it.
+  const optionsRoot = document.querySelector<HTMLElement>('#options');
+  const optionsToggle = document.querySelector<HTMLButtonElement>('#options-toggle');
+  const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
+  if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
+  const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  optionsToggle.addEventListener('click', () => optionsMenu.toggle());
+  document.addEventListener('pointerdown', (event) => {
+    optionsMenu.pointerDown(event.target instanceof Node && optionsRoot.contains(event.target));
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented || !optionsMenu.handleKey(event.key)) return;
+    event.preventDefault();
+    if (optionsRoot.contains(document.activeElement)) optionsToggle.focus();
+  });
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
@@ -702,7 +721,9 @@ async function main(): Promise<void> {
     effectsVolume,
     effectsVolumeValue,
   );
+  // Every other fallback may sit in the closed Options panel ([OF2]).
   const persistenceFocusFallbacks = [
+    optionsToggle,
     saveButton,
     stopOrdersButton,
     queueButton,
@@ -747,6 +768,7 @@ async function main(): Promise<void> {
   });
   let loadingGame = false;
   loadButton.addEventListener('click', () => {
+    optionsMenu.close();
     overlayPause.suspend('load-game');
     loadGameDialog.showModal();
   });
@@ -801,7 +823,7 @@ async function main(): Promise<void> {
         restorePersistenceFocus(
           document,
           loadGameDialog,
-          loadButton,
+          optionsToggle,
           persistenceFocusFallbacks,
         );
         overlayPause.resume('load-game');
@@ -837,6 +859,7 @@ async function main(): Promise<void> {
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
+    optionsMenu.close();
     overlayPause.suspend('new-game');
     newGameDialog.showModal();
   });
@@ -863,7 +886,7 @@ async function main(): Promise<void> {
         restorePersistenceFocus(
           document,
           newGameDialog,
-          newGameButton,
+          optionsToggle,
           persistenceFocusFallbacks,
         );
       }
@@ -895,7 +918,8 @@ async function main(): Promise<void> {
   if (firstRunHelpOpened) overlayPause.suspend('help');
   helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   helpButton.addEventListener('click', () => {
-    helpReturnTarget = helpButton;
+    optionsMenu.close();
+    helpReturnTarget = optionsToggle;
     if (helpPanel.open()) overlayPause.suspend('help');
     helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   });
@@ -1124,6 +1148,7 @@ async function main(): Promise<void> {
   const builder = new FurnitureBuilder(sim, overlayPause, {
     changed: () => builderControls?.render(),
     enter() {
+      optionsMenu.close();
       canvas.focus();
       menu.close();
       keyboardTargets.clear();
@@ -1135,7 +1160,10 @@ async function main(): Promise<void> {
       roomTool.exit();
       buyTool.exit();
       mobileHud.endEditing();
-      buildToggle.focus();
+      // Exit build is pressed inside the Options panel; closing it returns
+      // focus to the gear, the one control always in view ([OF2]).
+      optionsMenu.close();
+      optionsToggle.focus();
       cameraDirty = true;
     },
   });

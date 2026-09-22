@@ -186,7 +186,6 @@
       }
       #lighting-mode {
         width: 100%;
-        margin-top: 6px;
       }
       #selected-summary {
         display: grid;
@@ -257,17 +256,24 @@
         background: var(--need-fill);
       }
       #traits-block {
-        display: grid;
-        gap: 4px;
         margin-top: 7px;
-        padding-top: 5px;
         border-top: 1px solid var(--hud-edge);
       }
       #traits-block[hidden] { display: none; }
       #traits-empty[hidden] { display: none; }
+      #traits-block > :not(summary) { margin-top: 4px; }
+      /* The toggle is the row's whole height, so a thumb can hit it. */
       #traits-caption {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
         margin: 0;
         font: inherit;
+        cursor: pointer;
+      }
+      #traits-caption:focus-visible {
+        outline: 2px solid var(--need-fill);
+        outline-offset: -2px;
       }
       #traits-empty {
         margin: 0;
@@ -482,14 +488,24 @@
       .mobile-hud-toggle {
         display: none;
       }
+      #hud-status {
+        display: grid;
+        gap: 2px;
+        margin-top: 6px;
+      }
       #save-status,
       #command-feedback,
       #keyboard-target {
-        grid-column: 1 / -1;
         min-height: 1.4em;
         margin: 0;
         color: var(--hud-muted);
         font-size: 12px;
+      }
+      /* An empty line takes no room, so the compact strip grows by one
+         line, the save status, rather than three. */
+      #command-feedback:empty,
+      #keyboard-target:empty {
+        display: none;
       }
       #save-status[data-kind='error'],
       #command-feedback[data-kind='error'] {
@@ -627,7 +643,7 @@
         margin: 16px 0 0;
         padding: 0;
       }
-      #build-toggle { grid-area: build; width: 100%; margin-top: 6px; }
+      #build-toggle { width: 100%; }
       #builder-desktop:empty { display: none; }
       #builder-controls { display: grid; gap: 8px; }
       /* [B-phone-build-dock]: hidden always wins. The phone layout gives the
@@ -705,25 +721,15 @@
         #hud[data-mobile-open='false'] > :not(#household-summary) {
           display: none;
         }
-        #hud[data-mobile-open='false'] #lighting-mode {
-          display: none;
-        }
         #household-summary {
           display: grid;
           grid-template-areas:
             'time menu'
             'funds menu'
-            'lighting lighting'
-            'build build';
+            'status status';
           grid-template-columns: minmax(0, 1fr) auto;
           align-items: stretch;
           gap: 6px;
-        }
-        #hud[data-mobile-open='false'] #household-summary {
-          grid-template-areas:
-            'time menu'
-            'funds menu'
-            'build build';
         }
         #household-summary > .summary-row:first-child {
           grid-area: time;
@@ -731,8 +737,9 @@
         #household-summary > .summary-row:nth-child(2) {
           grid-area: funds;
         }
-        #lighting-mode {
-          grid-area: lighting;
+        #hud-status {
+          grid-area: status;
+          margin-top: 0;
         }
         .mobile-hud-toggle {
           grid-area: menu;
@@ -744,7 +751,8 @@
       @media (max-width: 600px) {
         #hud {
           top: max(8px, env(safe-area-inset-top));
-          right: max(8px, env(safe-area-inset-right));
+          /* Clear of the Options gear in the top-right corner ([OF1]). */
+          right: calc(max(8px, env(safe-area-inset-right)) + 52px);
           bottom: auto;
           left: max(8px, env(safe-area-inset-left));
           width: auto;
@@ -759,11 +767,9 @@
             'summary summary'
             'roster roster'
             'needs people'
-            'speed speed'
-            'audio audio'
-            'actions actions';
+            'speed speed';
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          grid-template-rows: repeat(6, auto);
+          grid-template-rows: repeat(4, auto);
         }
         #hud[data-mobile-open='false'] {
           grid-template-areas: 'summary summary';
@@ -776,13 +782,9 @@
           grid-area: summary;
           grid-template-areas:
             'time funds menu'
-            'lighting lighting lighting'
-            'build build build';
+            'status status status';
           grid-template-columns:
             minmax(125px, 2fr) minmax(50px, 1fr) minmax(64px, auto);
-        }
-        #hud[data-mobile-open='false'] #household-summary {
-          grid-template-areas: 'time funds menu' 'build build build';
         }
         #household-summary > .summary-row {
           display: grid;
@@ -800,10 +802,6 @@
           text-align: left;
           text-overflow: ellipsis;
           white-space: nowrap;
-        }
-        #lighting-mode {
-          margin-top: 0;
-          padding-inline: 5px;
         }
         #household-roster {
           grid-area: roster;
@@ -849,13 +847,6 @@
           width: 100%;
           min-width: 44px;
         }
-        #audio-controls {
-          grid-area: audio;
-        }
-        #game-actions {
-          grid-area: actions;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
       }
       /* [B-phone-build-dock]: where the panel is tall enough, only a tool's
          choices scroll, so its status and buttons are always in view and
@@ -897,15 +888,8 @@
           grid-template-areas:
             'time menu'
             'funds menu'
-            'lighting lighting'
-            'build build';
+            'status status';
           grid-template-columns: minmax(0, 1fr) auto;
-        }
-        #hud[data-mobile-open='false'] #household-summary {
-          grid-template-areas:
-            'time menu'
-            'funds menu'
-            'build build';
         }
         #needs-panel,
         #people-panel {
@@ -949,6 +933,54 @@
       }
       #object-menu[hidden] {
         display: none;
+      }
+      /* [OF1]: the gear stays in the window's top-right corner on every
+         screen size, in and out of Build. Above the Build dock (2), below
+         the debug overlay (9) and the right-click flyout (10). */
+      #options {
+        position: fixed;
+        top: max(8px, env(safe-area-inset-top));
+        right: max(8px, env(safe-area-inset-right));
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        z-index: 8;
+      }
+      .options-toggle {
+        width: 44px;
+        min-height: 44px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        background: var(--hud-bg);
+      }
+      .options-toggle svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+      #options-panel {
+        box-sizing: border-box;
+        width: min(240px, calc(100vw - 16px));
+        max-height: calc(
+          100dvh - 52px - max(8px, env(safe-area-inset-top)) -
+            max(8px, env(safe-area-inset-bottom))
+        );
+        overflow-y: auto;
+        display: grid;
+        gap: 8px;
+        padding: 8px 10px;
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-edge);
+        border-radius: 6px;
+      }
+      #options-panel[hidden] {
+        display: none;
+      }
+      #options-panel > section {
+        padding-top: 8px;
+        border-top: 1px solid var(--hud-edge);
       }
       /* What was right-clicked. Not a row: it takes no focus, has no
          hover state, and the keyboard walk lands past it on the first
@@ -1003,7 +1035,8 @@
          stays visible. Never wider than the viewport either way. */
       #debug-panel {
         position: fixed;
-        top: 8px;
+        /* Below the Options gear, which owns the corner ([OF1]). */
+        top: calc(max(8px, env(safe-area-inset-top)) + 52px);
         right: 8px;
         max-width: min(44em, calc(100vw - 16px));
         max-height: calc(100vh - 16px);
@@ -1051,22 +1084,21 @@
           <strong id="funds-value" class="summary-value">0</strong>
         </div>
         <button
-          id="lighting-mode"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Light: auto</button>
-        <button
           id="mobile-hud-toggle"
           class="hud-button mobile-hud-toggle"
           type="button"
-          aria-controls="lighting-mode household-roster needs-panel people-panel time-controls audio-controls game-actions"
+          aria-controls="household-roster needs-panel people-panel time-controls"
           aria-expanded="false"
           aria-label="Open game menu"
           hidden
         >Menu</button>
-        <button id="build-toggle" class="hud-button" type="button"
-          aria-pressed="false" aria-controls="builder-controls">Build</button>
+        <!-- The status lines live here so every compact layout shows them:
+             a live region inside a closed panel is not announced ([OF3]). -->
+        <div id="hud-status">
+          <p id="save-status" role="status" aria-live="polite">Starting</p>
+          <p id="command-feedback" role="status" aria-live="polite"></p>
+          <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
+        </div>
       </section>
       <div id="builder-desktop"></div>
       <section id="household-roster" aria-labelledby="household-roster-title">
@@ -1116,11 +1148,13 @@
         <!-- Below the need bars, which are read far more often. Hidden
              until somebody is selected: the line above already says to
              select a person, and saying it twice is noise. -->
-        <section id="traits-block" aria-label="Traits" hidden>
-          <p id="traits-caption" class="summary-label" aria-hidden="true">Traits</p>
+        <!-- Collapsed until opened ([OF3]): the need bars above are read
+             far more often. Each load starts closed. -->
+        <details id="traits-block" aria-label="Traits" hidden>
+          <summary id="traits-caption" class="summary-label">Traits</summary>
           <p id="traits-empty" hidden></p>
           <ul id="trait-list" hidden></ul>
-        </section>
+        </details>
       </details>
       <details id="people-panel" aria-label="Relationships of the selected sim" open>
         <summary id="people-caption" class="needs-caption">People</summary>
@@ -1128,49 +1162,6 @@
         <div id="people-list" hidden></div>
       </details>
       <section id="time-controls" aria-label="Simulation speed"></section>
-      <section id="audio-controls" aria-label="Audio controls">
-        <button
-          id="audio-mute"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Sound: on</button>
-        <label class="audio-effects-label" for="effects-volume">
-          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
-        </label>
-        <input
-          id="effects-volume"
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          value="70"
-          aria-label="Effects volume"
-          aria-valuetext="70%"
-        />
-      </section>
-      <section id="game-actions" aria-label="Game actions">
-        <button id="save-game" class="hud-button" type="button">Save</button>
-        <button id="load-game" class="hud-button" type="button">Load</button>
-        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
-        <button
-          id="queue-mode"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Queue</button>
-        <button id="new-game" class="hud-button" type="button">New game</button>
-        <button
-          id="show-help"
-          class="hud-button"
-          type="button"
-          aria-controls="help-panel"
-          aria-expanded="false"
-        >Help</button>
-        <p id="save-status" role="status" aria-live="polite">Starting</p>
-        <p id="command-feedback" role="status" aria-live="polite"></p>
-        <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
-      </section>
     </div>
     <div id="builder-dock">
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
@@ -1279,10 +1270,9 @@
           <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
           <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
-          <li>Open the selected person's name to show or hide the needs panel.</li>
+          <li>Open the selected person's name to show or hide the needs panel, and Traits under it to show their traits.</li>
           <li>Open People to see how the selected person feels about everyone else.</li>
-          <li>Use Light: flat for neutral daylight without the automatic lighting cycle.</li>
-          <li>Use Sound to mute everything, and Effects to set cue and footstep volume.</li>
+          <li>Open Options, the gear at the top right, for Light, Build, Sound, Save, Load, Clear orders, Queue, New game and Help. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets cue and footstep volume.</li>
         </ol>
       </div>
       <div id="help-actions">
@@ -1355,6 +1345,71 @@
         <pre id="debug-report"></pre>
       </details>
     </section>
+    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
+         Outside #hud for #object-menu's reason: it is fixed to the window's
+         top right, not part of the sidebar's column. The panel holds the
+         controls a player reaches for now and then; the sidebar keeps what
+         they read all the time. -->
+    <div id="options">
+      <button
+        id="options-toggle"
+        class="hud-button options-toggle"
+        type="button"
+        aria-label="Options"
+        aria-controls="options-panel"
+        aria-expanded="false"
+      ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
+      <div id="options-panel" role="group" aria-label="Options" hidden>
+        <button
+          id="lighting-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Light: auto</button>
+        <button id="build-toggle" class="hud-button" type="button"
+          aria-pressed="false" aria-controls="builder-controls">Build</button>
+        <section id="audio-controls" aria-label="Audio controls">
+        <button
+          id="audio-mute"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Sound: on</button>
+        <label class="audio-effects-label" for="effects-volume">
+          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
+        </label>
+        <input
+          id="effects-volume"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value="70"
+          aria-label="Effects volume"
+          aria-valuetext="70%"
+        />
+        </section>
+        <section id="game-actions" aria-label="Game actions">
+        <button id="save-game" class="hud-button" type="button">Save</button>
+        <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
+        <button
+          id="queue-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Queue</button>
+        <button id="new-game" class="hud-button" type="button">New game</button>
+        <button
+          id="show-help"
+          class="hud-button"
+          type="button"
+          aria-controls="help-panel"
+          aria-expanded="false"
+        >Help</button>
+        </section>
+      </div>
+    </div>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the
          pointer, so nesting it would inherit a layout it has to fight.
