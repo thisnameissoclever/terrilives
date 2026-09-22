@@ -646,7 +646,9 @@ never stored for the first, so the world hash gains its colourway section only
 when some object has one. The render buffer carries a colourway column, and
 each GPU instance a colourway shift the shader applies before lighting. The
 writer emits V5, and the browser's storage worker keeps a V4 recovery backup
-on the first V5 write; V1 to V4 still load, with every object as drawn.
+on the first V5 write; V1 to V4 still load, with every object as drawn. A
+colourway is set by `SetColourway` (wire code 12) or bought with the object by
+`BuyObjectInColourway` (code 13), each a lot edit.
 
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a

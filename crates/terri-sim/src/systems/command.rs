@@ -118,7 +118,8 @@ impl Placement {
             | SimCommand::BuyObject { .. }
             | SimCommand::BuildRoom { .. }
             | SimCommand::SellObject { .. }
-            | SimCommand::SetColourway { .. } => Self::Back,
+            | SimCommand::SetColourway { .. }
+            | SimCommand::BuyObjectInColourway { .. } => Self::Back,
         }
     }
 }
@@ -366,7 +367,8 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::BuyObject { .. }
             | SimCommand::BuildRoom { .. }
             | SimCommand::SellObject { .. }
-            | SimCommand::SetColourway { .. } => {
+            | SimCommand::SetColourway { .. }
+            | SimCommand::BuyObjectInColourway { .. } => {
                 unreachable!("lot edit splits ordinary stretches")
             }
             // A stale index leaves the selection ALONE rather than

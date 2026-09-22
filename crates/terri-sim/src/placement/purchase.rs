@@ -77,7 +77,24 @@ pub fn validate_purchase(
 /// Revalidation and writes happen in one exclusive command drain: the object
 /// appears, its tiles block and the price leaves Funds together or not at all.
 pub(crate) fn commit(world: &mut World, purchase: Purchase) {
-    let result = validate_purchase(world, purchase);
+    commit_in(world, purchase, None);
+}
+
+/// [RC-slice-buy] in `docs/specs/2026-09-22-colourways.md`: a purchase in
+/// colourway `colourway`, as one edit. Every purchase check comes first, then
+/// an unknown colourway is refused, and only then is the object bought, so a
+/// refusal writes nothing.
+pub(crate) fn commit_in_colourway(world: &mut World, purchase: Purchase, colourway: u32) {
+    commit_in(world, purchase, Some(colourway));
+}
+
+fn commit_in(world: &mut World, purchase: Purchase, colourway: Option<u32>) {
+    let mut result = validate_purchase(world, purchase);
+    if let (Ok(_), Some(colourway)) = (&result, colourway) {
+        if colourway as usize >= world.resource::<crate::Content>().0.colourways.len() {
+            result = Err(PlacementRefusal::UnknownColourway);
+        }
+    }
     let reason = result.as_ref().err().copied();
     let mut object = None;
     if let Ok(plan) = result {
@@ -91,6 +108,12 @@ pub(crate) fn commit(world: &mut World, purchase: Purchase) {
             .spawn((origin, SmartObject(ObjectDefId(purchase.definition))))
             .id();
         apply_object_placement(world, entity, definition, origin, purchase.facing);
+        // The first colourway, the art as drawn, is stored as no component.
+        if let Some(colourway) = colourway.filter(|&colourway| colourway > 0) {
+            world
+                .entity_mut(entity)
+                .insert(terri_core::Colourway(colourway));
+        }
         world.resource_mut::<Funds>().0 -= i64::from(plan.price);
         let mut state = world.resource_mut::<LotEditState>();
         state.revision = state.revision.saturating_add(1);

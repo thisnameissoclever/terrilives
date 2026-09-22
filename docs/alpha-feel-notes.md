@@ -3389,3 +3389,25 @@ was saved.
 bunk was not staged in the page; the frame test covers which picture takes
 the shift, and the shader's text test that only the furniture layer turns.
 No physical phone was used.
+
+## [A-buy-in-colour] Buying an armchair in Colour 2
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/buy-in-colour` with its WebAssembly rebuilt, driven in the Playwright
+browser at 1280 by 800 in flat light, on the household loaded from its save
+with 17,860 in Funds.
+
+In Build the Buy tool showed a Colour list under the catalogue, at As drawn,
+offering As drawn, Colour 2, Colour 3, Muted and Rich. I chose "The Chair That
+Is His (140)" and Colour 2: the ghost by the bunk was drawn green where the
+chair's art is red, and the status said "Ready to buy." Buy said "The Chair
+That Is His bought." and Funds read 17,720. The list stayed at Colour 2 for
+the next purchase.
+
+Exit build, then Save said "Game saved". A reload said "Saved game loaded"
+with 17,720 in Funds, and in the Furniture tool the new chair's Colour list
+read Colour 2, as did the armchair recoloured earlier.
+
+**Not proven here.** A purchase refused for its colourway cannot be reached
+from the list, which offers only the colourways there are; the tests cover
+it. No physical phone was used.

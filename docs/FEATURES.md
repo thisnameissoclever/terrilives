@@ -596,8 +596,10 @@ this milestone and is done; what follows is M1b onwards.
   `docs/specs/2026-09-22-colourways.md`. Its first slice, [RC-slice-furniture],
   is built on branch `twcl/colourways`: a Colour list in the Furniture tool
   redraws a placed object in a colourway, saved with the game, and the
-  played check is [A-colourways]. Choosing the colourway when buying is
-  [RC-slice-buy]; the real colourways and their names wait on
+  played check is [A-colourways]. Choosing the colourway when buying,
+  [RC-slice-buy], is built on branch `twcl/buy-in-colour`: a Colour list in
+  the Buy tool, and the played check is [A-buy-in-colour]. The real
+  colourways and their names wait on
   [T-recolour-palettes].
   Selling an object back is [BM-slice-sell] there, built on branch
   `twcl/sell-furniture`: a Sell button in the Furniture tool pays back half an

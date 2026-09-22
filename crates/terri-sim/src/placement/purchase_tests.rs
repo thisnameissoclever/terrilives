@@ -695,3 +695,121 @@ fn every_chair_the_shipped_household_can_buy_leaves_a_save_that_loads() {
         assert!(accepted > 20, "tick {ticks} accepted only {accepted}");
     }
 }
+
+fn in_colourway(purchase: Purchase, colourway: u32) -> SimCommand {
+    SimCommand::BuyObjectInColourway {
+        definition: purchase.definition,
+        x: purchase.x,
+        y: purchase.y,
+        facing: purchase.facing,
+        colourway,
+    }
+}
+
+fn colourway_of(sim: &Sim, index: u32) -> Option<u32> {
+    let world = sim.world();
+    let entity = world
+        .entities()
+        .resolve_from_index(bevy_ecs::entity::EntityIndex::from_raw_u32(index).unwrap());
+    world
+        .get::<terri_core::Colourway>(entity)
+        .map(|colourway| colourway.0)
+}
+
+/// [RC-slice-buy] in `docs/specs/2026-09-22-colourways.md`: a purchase in a
+/// colourway is one edit that buys the object drawn in it; in the first
+/// colourway it is stored as none, like any object as drawn.
+#[test]
+fn a_purchase_in_a_colourway_is_bought_drawn_in_it() {
+    let mut sim = house(1_000, vec![]);
+    let before = revision(&sim);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(in_colourway(chair(3, 3), 2));
+    sim.flush_commands();
+    let bought = last(&sim).unwrap().object.expect("the chair is bought");
+    assert_eq!(colourway_of(&sim, bought), Some(2));
+    assert_eq!(funds(&sim), 1_000 - price("chair"));
+    assert_eq!(revision(&sim), before + 1);
+
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(in_colourway(chair(4, 4), 0));
+    sim.flush_commands();
+    let plain = last(&sim)
+        .unwrap()
+        .object
+        .expect("the second chair is bought");
+    assert_eq!(colourway_of(&sim, plain), None);
+}
+
+/// [RC-slice-buy]: every purchase check comes before the colourway, and an
+/// unknown colourway is refused before anything is bought, so a refusal
+/// writes nothing.
+#[test]
+fn a_purchase_in_an_unknown_colourway_writes_nothing() {
+    let count = pack().colourways.len() as u32;
+    let mut poor = house(0, vec![]);
+    poor.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(in_colourway(chair(3, 3), count));
+    poor.flush_commands();
+    assert_eq!(
+        last(&poor).unwrap().reason,
+        Some(PlacementRefusal::CannotAfford)
+    );
+
+    let mut sim = house(1_000, vec![]);
+    let hash = sim.world_hash();
+    let before = objects(&mut sim);
+    for colourway in [count, u32::MAX] {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(in_colourway(chair(3, 3), colourway));
+        sim.flush_commands();
+        let result = last(&sim).unwrap();
+        assert_eq!(
+            (result.object, result.reason),
+            (None, Some(PlacementRefusal::UnknownColourway))
+        );
+        assert_eq!(sim.world_hash(), hash);
+        assert_eq!(objects(&mut sim), before);
+        assert_eq!(funds(&sim), 1_000);
+    }
+}
+
+/// [RC-slice-buy]: a purchase in a colourway staged just before a save is
+/// saved by id and replays after the Load as it would have, and one naming no
+/// colourway hashes alike on both sides of the Load.
+#[test]
+fn a_staged_purchase_in_a_colourway_is_saved_and_replayed() {
+    for colourway in [3, 99] {
+        let mut playing = house(1_000, vec![]);
+        playing
+            .world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(in_colourway(chair(3, 3), colourway));
+        let mut loaded = house(0, vec![]);
+        loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
+        assert_eq!(loaded.world_hash(), playing.world_hash(), "{colourway}");
+        playing.flush_commands();
+        loaded.flush_commands();
+        assert_eq!(loaded.world_hash(), playing.world_hash(), "{colourway}");
+    }
+}
+
+/// [RC-slice-buy]: the hash tells purchases in different colourways apart.
+#[test]
+fn purchases_in_different_colourways_hash_apart() {
+    let mut first = house(1_000, vec![]);
+    let mut second = house(1_000, vec![]);
+    first
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(in_colourway(chair(3, 3), 1));
+    second
+        .world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(in_colourway(chair(3, 3), 2));
+    assert_ne!(first.world_hash(), second.world_hash());
+}

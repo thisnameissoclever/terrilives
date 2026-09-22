@@ -43,6 +43,25 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::sale::commit(world, object);
             }
+            SimCommand::BuyObjectInColourway {
+                definition,
+                x,
+                y,
+                facing,
+                colourway,
+            } => {
+                flush_ordinary(world);
+                crate::placement::purchase::commit_in_colourway(
+                    world,
+                    crate::placement::purchase::Purchase {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                    },
+                    colourway,
+                );
+            }
             SimCommand::SetColourway { object, colourway } => {
                 flush_ordinary(world);
                 crate::placement::colourway::commit(world, object, colourway);
