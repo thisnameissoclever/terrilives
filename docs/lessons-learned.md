@@ -6390,6 +6390,28 @@ test after successful compilation, with zero survivors or timeouts. Native
 WASM-boundary tests pass 86/86 after restoring the original source. These are
 test-only changes; neither production validation nor the baseline is relaxed.
 
+## [L-capture-health-is-not-visibility] Test capture directly before declaring it unavailable
+
+**What happened.** Three live screenshot attempts failed on September 21.
+Subsequent release heartbeats checked only browser visibility and repeatedly
+reported capture unavailable until September 27. A harmless same-browser
+page then captured successfully, followed by the save-safe live game LOOK.
+
+**Root cause.** A suspected correlation between hidden presentation and the
+original timeout became a permanent diagnosis. The monitor checked a proxy
+instead of the failed capability and had no useful recovery test.
+
+**Prevention rule.** Treat historical failures as historical. A visibility flag
+does not establish screenshot health. After investigating repeated failures,
+use a bounded direct capture on a harmless page to test recovery without
+touching protected application state. Do not repeat an unsupported diagnosis
+or infer when recovery occurred from a later successful test.
+
+**How to verify.** Capture and inspect an ordinary non-game page in the same
+browser. Separately verify the deployed game under the documented save-safety
+procedure, including unchanged pre/post hashes. Record actual results and
+remove stale blocker instructions from the recurring monitor.
+
 ## [L-live-verification-autosave] Ordinary play can violate save-preservation requirements
 
 **What happened.** A live front-door check advanced the public household across
