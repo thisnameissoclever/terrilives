@@ -1,0 +1,269 @@
+//! Wall edits: make one boundary between two tiles open, a wall, or a
+//! doorway - [WT-rules] and [WT-apply] in `docs/specs/2026-09-21-wall-tool.md`.
+//!
+//! Preview and commit share [`validate_wall_edit`], exactly as furniture
+//! preview and commit share `validate_placement`, and the two validators share
+//! the layout check and the usability proofs, so a wall can never be accepted
+//! by a rule a sofa would be refused by.
+
+use super::{
+    crosses_wall, current_layout, prove_lot_usable, CurrentLayout, LotEditState, PlacementRefusal,
+    Rectangle,
+};
+use crate::Content;
+use bevy_ecs::prelude::*;
+use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge, WallState};
+use terri_core::{Agent, Position, SmartObject, Target, TileGrid};
+
+/// One requested edit: this boundary, in this state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WallEdit {
+    pub axis: EdgeAxis,
+    pub x: u32,
+    pub y: u32,
+    pub state: WallState,
+}
+
+/// What the drain did with the most recent wall edit. `reason` is `None` when
+/// the edit was applied, including when it asked for the state the line
+/// already had.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WallEditResult {
+    pub edit: WallEdit,
+    pub reason: Option<PlacementRefusal>,
+}
+
+/// A validated edit, owned and ready to write. `changed` is false when the
+/// line already had the requested state; nothing is written then.
+#[derive(Debug)]
+pub struct WallPlan {
+    pub changed: bool,
+    edges: Vec<WallEdge>,
+    windows: Vec<terri_core::layout::WallLine>,
+    grid: TileGrid,
+}
+
+/// A sim, the tiles it stands on, and what it is walking to or using.
+struct Standing {
+    tiles: [(i32, i32); 4],
+    target: Option<Entity>,
+}
+
+/// The tiles a sim standing at `position` touches: one, two or four, the same
+/// floor and ceiling pairs the placement proofs read.
+fn tiles_under(position: &Position) -> [(i32, i32); 4] {
+    let (x0, x1) = (position.x.floor() as i32, position.x.ceil() as i32);
+    let (y0, y1) = (position.y.floor() as i32, position.y.ceil() as i32);
+    [(x0, y0), (x1, y0), (x0, y1), (x1, y1)]
+}
+
+fn rectangle_holds(rect: &Rectangle, (x, y): (i32, i32)) -> bool {
+    x >= rect.origin.0 as i32
+        && y >= rect.origin.1 as i32
+        && x < (rect.origin.0 + rect.footprint.width) as i32
+        && y < (rect.origin.1 + rect.footprint.depth) as i32
+}
+
+/// The rules every new wall is held to, run over all the new walls of one edit
+/// against the candidate grid - [WT-rules] checks 4 to 9. A single wall passes
+/// one pair of tiles and a room its whole outline ([RT-rules]); each check runs
+/// over every wall before the next check starts, so the reason a player reads
+/// is the first kind of thing wrong, in the order [WT-rules] lists. Only walls
+/// are passed: a doorway or an opening removes a barrier and is never asked.
+pub(super) fn check_new_walls(
+    world: &World,
+    rectangles: &[Rectangle],
+    grid: &TileGrid,
+    walls: &[[(i32, i32); 2]],
+) -> Result<(), PlacementRefusal> {
+    use PlacementRefusal::*;
+    // The front door's one step in, whoever lives here now: a wall there
+    // would meet the first person to take a job. Matched to its portal the
+    // way the loader matches it.
+    let content = world.resource::<Content>().0;
+    let door = content
+        .lot
+        .front_door
+        .and_then(|door| content.portals.iter().find(|p| p.position == door))
+        .map(|portal| {
+            (
+                (portal.position.0 as i32, portal.position.1 as i32),
+                (portal.inward.0 as i32, portal.inward.1 as i32),
+            )
+        });
+    if walls.iter().any(|&[a, b]| {
+        door.is_some_and(|(door, landing)| (a, b) == (door, landing) || (a, b) == (landing, door))
+    }) {
+        return Err(BlockedLanding);
+    }
+    if rectangles.iter().any(|&rect| crosses_wall(rect, grid)) {
+        return Err(WallOverlap);
+    }
+    // Nothing registered as a sim yet means there are no sims to wall in.
+    // Every check below asks whether ANY sim matches, so the order the query
+    // returns them in cannot change an answer.
+    let standing: Vec<Standing> = world
+        .try_query_filtered::<(Entity, &Position), With<Agent>>()
+        .map(|mut agents| {
+            agents
+                .iter(world)
+                .map(|(entity, position)| Standing {
+                    tiles: tiles_under(position),
+                    target: world.get::<Target>(entity).map(|t| t.object),
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    if walls.iter().any(|&[a, b]| {
+        standing
+            .iter()
+            .any(|sim| sim.tiles.contains(&a) && sim.tiles.contains(&b))
+    }) {
+        return Err(SimOverlap);
+    }
+    // A wall must not come down between a sim and the thing it is using or
+    // the person it is talking to: it would carry on through the wall.
+    for Standing { tiles, target, .. } in &standing {
+        let Some(target) = *target else {
+            continue;
+        };
+        let across = |mine: (i32, i32), theirs: (i32, i32)| {
+            tiles.contains(&mine)
+                && if world.get::<SmartObject>(target).is_some() {
+                    rectangles
+                        .iter()
+                        .any(|rect| rect.entity == Some(target) && rectangle_holds(rect, theirs))
+                } else {
+                    world
+                        .get::<Position>(target)
+                        .is_some_and(|p| tiles_under(p).contains(&theirs))
+                }
+        };
+        if walls.iter().any(|&[a, b]| across(a, b) || across(b, a)) {
+            return Err(InUse);
+        }
+    }
+    prove_lot_usable(world, grid, rectangles)?;
+    // Last, the loader's own grid checks: a wall that passed everything above
+    // can still leave a save that will not load - a sim walking to an object
+    // that is now across the wall from where its walk ends. The review of the
+    // Walls tool found that in ordinary play. The loader's front-door check is
+    // subsumed today by the door rule at the top; it is asked anyway, so a door
+    // rule the loader gains later is honoured here without a second edit.
+    crate::save::candidate_grid_loads(world, grid).map_err(|problem| match problem {
+        crate::save::LoadProblem::PortalReturn => BlockedLanding,
+        crate::save::LoadProblem::EdgeWorld => BlockedRoute,
+    })
+}
+
+/// Produces a complete owned transaction; no mutation and no random draws.
+///
+/// The checks run in the order [WT-rules] lists, so the reason a player reads
+/// is the first thing wrong, not whichever check happened to run first.
+pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, PlacementRefusal> {
+    use PlacementRefusal::*;
+    let Some(layout) = world
+        .get_resource::<SavedLayout>()
+        .filter(|l| l.has_edges())
+    else {
+        // A legacy household keeps its frozen walls. Guessing an edge list
+        // for it would rewrite a house the player never touched.
+        return Err(UnsupportedLayout);
+    };
+    let edges = layout.edges();
+    let CurrentLayout { rectangles, .. } = current_layout(world)?;
+    let live = world.resource::<TileGrid>();
+    let line = WallEdge {
+        axis: edit.axis,
+        x: edit.x,
+        y: edit.y,
+        doorway: edit.state == WallState::Doorway,
+    };
+    // Interior boundaries only: the outside wall belongs with [B-outside].
+    if !line.in_bounds(live.width() as u32, live.height() as u32) {
+        return Err(OutOfBounds);
+    }
+    // [OS-door]: a barrier on the front door's line would shut the door.
+    // Opening the line or glazing nothing cuts nobody's way, so only a
+    // barrier is refused, and a window is one ([WN-rules]).
+    if edit.state.blocks_movement()
+        && edit.axis == EdgeAxis::Vertical
+        && crate::portals::front_door_lines(world).contains(&(edit.x, edit.y))
+    {
+        return Err(BlockedDoor);
+    }
+
+    let existing = edges
+        .iter()
+        .position(|e| e.axis == edit.axis && e.x == edit.x && e.y == edit.y);
+    let requested_line = terri_core::layout::WallLine {
+        axis: edit.axis,
+        x: edit.x,
+        y: edit.y,
+    };
+    if layout.state_of(requested_line) == edit.state {
+        return Ok(WallPlan {
+            changed: false,
+            edges: edges.to_vec(),
+            windows: layout.windows().to_vec(),
+            grid: live.clone(),
+        });
+    }
+
+    // The record is updated where it is, appended when new and removed when
+    // opened. Never re-sorted, so the same edits in the same order give the
+    // same save bytes - [WT-apply].
+    let mut next = edges.to_vec();
+    match (existing, edit.state) {
+        // A window keeps no wall record: the line moves from one list to the
+        // other, never sitting in both ([WN-state]).
+        (Some(index), WallState::Open | WallState::Window) => {
+            next.remove(index);
+        }
+        (Some(index), state) => next[index].doorway = state == WallState::Doorway,
+        (None, WallState::Open | WallState::Window) => {}
+        (None, _) => next.push(line),
+    }
+    let mut windows = layout.windows().to_vec();
+    windows.retain(|held| *held != requested_line);
+    if edit.state == WallState::Window {
+        windows.push(requested_line);
+    }
+    let [a, b] = line.cells();
+    let mut grid = live.clone();
+    grid.set_edge_blocked(a, b, edit.state.blocks_movement());
+
+    // Opening a line or making it a doorway only ever removes a barrier, so
+    // it cannot cut anything off. Running the proofs for it would refuse to
+    // mend a house that was already in trouble. A window is a barrier and is
+    // held to every proof a wall is ([WN-rules]).
+    if edit.state.blocks_movement() {
+        check_new_walls(world, &rectangles, &grid, &[[a, b]])?;
+    }
+
+    Ok(WallPlan {
+        changed: true,
+        edges: next,
+        windows,
+        grid,
+    })
+}
+
+/// Revalidation and writes happen in one exclusive command drain.
+pub(crate) fn commit(world: &mut World, edit: WallEdit) {
+    let result = validate_wall_edit(world, edit);
+    let reason = result.as_ref().err().copied();
+    if let Ok(plan) = result {
+        if plan.changed {
+            world.insert_resource(plan.grid);
+            world.insert_resource(SavedLayout::from_parts(plan.edges, plan.windows));
+            let mut state = world.resource_mut::<LotEditState>();
+            state.revision = state.revision.saturating_add(1);
+        }
+    }
+    world.resource_mut::<LotEditState>().last_wall_result = Some(WallEditResult { edit, reason });
+}
+
+#[cfg(test)]
+#[path = "wall_tests.rs"]
+mod tests;

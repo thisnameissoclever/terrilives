@@ -3,7 +3,7 @@ import { writePortals, type PortalSource } from '../src/render/portals.js';
 import {
   FLOATS_PER_INSTANCE, OFFSET_DEPTH, OFFSET_SPRITE, OFFSET_EMISSIVE,
   OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
-  OFFSET_FOOTPRINT_SPAN,
+  OFFSET_FOOTPRINT_SPAN, OFFSET_SHADE,
 } from '../src/render/instances.js';
 import { LAYER_PROP, LAYER_FOREGROUND, LAYER_SIM, layeredDepth } from '../src/render/iso.js';
 import { spriteIndex } from '../src/render/atlas.js';
@@ -19,6 +19,7 @@ describe('portal rendering', () => {
     portalFrames: () => new Uint32Array([frame]),
     portalDepthOffsets: () => new Float32Array([0.5]),
     portalLeaves: reduced => new Uint32Array([reduced ? open : closed]),
+    portalFarSides: () => new Float32Array([4, 2]),
   };
 
   it('places the body between frame and leaf and uses the reduced-motion column', () => {
@@ -36,7 +37,7 @@ describe('portal rendering', () => {
     for (const base of [frameBase, leafBase]) {
       expect(out[base + OFFSET_WALL_MASK]).toBe(0);
       expect(out[base + OFFSET_WALL_DEPTH_STEP]).toBe(0);
-      expect(Array.from(out.subarray(base + OFFSET_FOOTPRINT_SPAN, base + FLOATS_PER_INSTANCE))).toEqual([0, 0]);
+      expect(Array.from(out.subarray(base + OFFSET_FOOTPRINT_SPAN, base + OFFSET_FOOTPRINT_SPAN + 2))).toEqual([0, 0]);
     }
     expect(out[0]).toBe(-999);
     expect(out[3 * FLOATS_PER_INSTANCE]).toBe(-999);
@@ -61,7 +62,7 @@ describe('portal rendering', () => {
     for (const base of [0, FLOATS_PER_INSTANCE]) {
       expect(instances[base + OFFSET_WALL_MASK]).toBe(0);
       expect(instances[base + OFFSET_WALL_DEPTH_STEP]).toBe(0);
-      expect(Array.from(instances.subarray(base + OFFSET_FOOTPRINT_SPAN, base + FLOATS_PER_INSTANCE))).toEqual([0, 0]);
+      expect(Array.from(instances.subarray(base + OFFSET_FOOTPRINT_SPAN, base + OFFSET_FOOTPRINT_SPAN + 2))).toEqual([0, 0]);
     }
     expect(source.count).toBe(0);
   });
@@ -77,5 +78,40 @@ describe('portal rendering', () => {
     writePortals(out, 0, portal, 0, 0, 20, 1, false, null);
     expect(out[OFFSET_EMISSIVE]).toBe(0);
     expect(out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(0);
+  });
+
+  // Review finding [F5] on the doors branch: a door read only the room on
+  // its own tile, so between a lit room and a dark one it was darker than
+  // the wall around it, which takes the brighter side.
+  it('lights a portal from the brighter side of its line', () => {
+    const lit = (own: number, far: number) => {
+      const values = new Float32Array(36);
+      values[(2 + 1) * 6 + (3 + 1)] = own;
+      values[(2 + 1) * 6 + (4 + 1)] = far;
+      const out = new Float32Array(2 * FLOATS_PER_INSTANCE);
+      writePortals(out, 0, portal, 0, 0, 20, 1, false, { width: 4, height: 4, stride: 6, values });
+      return [out[OFFSET_EMISSIVE], out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]];
+    };
+    expect(lit(0.25, 0.5)).toEqual([0.5, 0.5]);
+    expect(lit(0.5, 0.25)).toEqual([0.5, 0.5]);
+  });
+
+  // Review finding [F1] on PR 116: a door took no sky shade, so by day an
+  // interior door between two dim rooms was brighter than the wall around it.
+  it('shades a portal from the less shaded side of its line, like a wall panel', () => {
+    const shaded = (own: number, far: number) => {
+      // The portal stands at (3, 2); the tile across its line is (4, 2).
+      const values = new Float32Array(5 * 3).fill(1);
+      values[2 * 5 + 3] = 1 - own;
+      values[2 * 5 + 4] = 1 - far;
+      const out = new Float32Array(2 * FLOATS_PER_INSTANCE).fill(-999);
+      writePortals(out, 0, portal, 0, 0, 20, 1, false, null, { width: 5, height: 3, values });
+      return [out[OFFSET_SHADE], out[FLOATS_PER_INSTANCE + OFFSET_SHADE]];
+    };
+    expect(shaded(0.75, 0.5)).toEqual([0.5, 0.5]);
+    expect(shaded(0.25, 0.5)).toEqual([0.25, 0.25]);
+    const out = new Float32Array(2 * FLOATS_PER_INSTANCE).fill(-999);
+    writePortals(out, 0, portal, 0, 0, 20, 1, false, null);
+    expect([out[OFFSET_SHADE], out[FLOATS_PER_INSTANCE + OFFSET_SHADE]]).toEqual([0, 0]);
   });
 });

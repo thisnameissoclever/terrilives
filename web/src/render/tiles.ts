@@ -1,12 +1,13 @@
 /**
  * The lot's floor and walls, as GPU instances.
  *
- * These are the only things on screen that are not entities. They are
- * also the only things that cannot move: a lot's dimensions and its wall
- * tiles are fixed for the session, so this runs only through `main.ts`'s
- * camera-dirty gate: at startup, after Load, when the window or camera
- * changes, and when flat lighting changes the static tint. Its output is
- * uploaded to the front of the instance buffer and left there between changes.
+ * These are the only things on screen that are not entities. They change
+ * only when the lot does: a Load, or a lot edit such as a wall or a moved,
+ * turned or bought light. So this runs only through `main.ts`'s
+ * camera-dirty gate: at startup, after Load, after a lot edit, when the
+ * window or camera changes, and when flat lighting changes the static
+ * tint. Its output is uploaded to the front of the instance buffer and left
+ * there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
@@ -21,13 +22,17 @@
  * testable in Node.
  */
 
+import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
 import { buildEdgeWallGeometry } from './edge-walls.js';
 import {
   FLOATS_PER_INSTANCE,
   TINT_NONE,
+  writeColourway,
   writeInstance,
+  writeShade,
   type InstanceArray,
+  writeWindowTint,
 } from './instances.js';
 import {
   sampleLight,
@@ -54,6 +59,58 @@ export interface Lot {
   readonly walls: Uint32Array;
   /** Explicit [axis, x, y, door] rows; absent/null retains legacy cell walls. */
   readonly edges?: Uint32Array | null;
+  /**
+   * Vertical doorway lines that hold a door, `[x, y]` pairs. The door's own
+   * frame is drawn there, so the empty doorway panel is left out.
+   */
+  readonly doors?: Uint32Array | null;
+  /**
+   * The lines that are windows, three words each ([WN-state]). Drawn in
+   * wall art in a paler tint until there is window art ([WN-art]).
+   */
+  readonly windows?: Uint32Array | null;
+  /**
+   * What the player has laid on each painted tile, three words each: x, y,
+   * covering ([FL-save]). A tile with no entry is drawn by where it is.
+   */
+  readonly floors?: Uint32Array | null;
+  /**
+   * Each covering's colour shift, three numbers each, in content order
+   * ([FL-content]). A covering's id is its place here counted from 1.
+   */
+  readonly coveringLooks?: Float32Array | null;
+  /**
+   * The house's `[width, height]` from the lot's north-west corner; every
+   * other tile is yard ([OS-yard]). Absent, the whole lot is house.
+   */
+  readonly house?: readonly [number, number] | null;
+  /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
+  readonly yardLook?: readonly [number, number, number] | null;
+  /** The street's column, where commutes end ([OS-street]); absent, no street. */
+  readonly street?: number | null;
+  /** `[hue, strength, lightness]` a street tile's floor art is drawn under ([OS-street]). */
+  readonly streetLook?: readonly [number, number, number] | null;
+  /**
+   * Draws the walls the view cuts away during play, while the Walls or Room
+   * tool is in use ([WB-draw]). The yard's floor look still follows `house`.
+   */
+  readonly showCutAwayWalls?: boolean;
+  /**
+   * The front door's line, `[x, y]`, which draws its own frame. Its doorway
+   * panel is left out like a hinged door's, which matters once the Walls
+   * tool shows the house's front walls ([WB-draw]).
+   */
+  readonly frontDoors?: Uint32Array | null;
+}
+
+/**
+ * [WB-draw]: sets whether the cut-away walls are drawn, and says whether that
+ * changed, so the static block is rebuilt on a change and not every frame.
+ */
+export function setCutAwayWalls(lot: { showCutAwayWalls?: boolean }, show: boolean): boolean {
+  if ((lot.showCutAwayWalls === true) === show) return false;
+  lot.showCutAwayWalls = show;
+  return true;
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -129,8 +186,36 @@ export function buildStaticInstances(
   gridSize: number,
   scale = 1,
   lighting: TileLighting | null = null,
+  /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
+  sky: SkyExposure = OPEN_SKY,
 ): StaticGeometry {
-  const edgePanels = lot.edges == null ? null : buildEdgeWallGeometry(lot.width, lot.height, lot.edges);
+  const house = lot.house ?? [lot.width, lot.height];
+  const edgePanels = lot.edges == null ? null
+    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
+      [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.showCutAwayWalls === true,
+      lot.windows ?? []);
+  // The yard's and the street's looks as a shift table, so a yard tile
+  // writes row 1 and a street tile row 2 exactly as a colourway does
+  // ([RC-shift]).
+  // Rows 0 to 2 are where a tile is: the house, the yard, the street. The
+  // coverings the player may lay follow, so a painted tile writes row 3
+  // upward and nothing else changes ([FL-draw]).
+  const lookShifts = Float32Array.from([
+    0, 1, 0, ...(lot.yardLook ?? [0, 1, 0]), ...(lot.streetLook ?? [0, 1, 0]),
+    ...(lot.coveringLooks ?? []),
+  ]);
+  // The covering on each painted tile, keyed by tile ([FL-save]).
+  const painted = new Map<number, number>();
+  for (let i = 0; i + 2 < (lot.floors?.length ?? 0); i += 3) {
+    const covering = lot.floors![i + 2];
+    if (covering > 0 && covering * 3 < lookShifts.length - 6) {
+      painted.set(lot.floors![i] * lot.height + lot.floors![i + 1], covering + 2);
+    }
+  }
+  const street = lot.street ?? null;
+  const lookOf = (x: number, y: number): number => painted.get(x * lot.height + y)
+    ?? (x === street ? 2
+      : x >= house[0] || y >= house[1] ? 1 : 0);
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),
@@ -228,6 +313,7 @@ export function buildStaticInstances(
     sprite: number,
     emissive = 0,
     wallMask = 0,
+    shade = 0,
   ): void => {
     writeInstance(
       instances,
@@ -244,6 +330,7 @@ export function buildStaticInstances(
       wallMask === 0 ? 0 : layeredDepth(0, 0, gridSize, LAYER_PROP)
         - layeredDepth(1, 0, gridSize, LAYER_PROP),
     );
+    writeShade(instances, slot - 1, shade);
   };
 
   /**
@@ -266,6 +353,8 @@ export function buildStaticInstances(
       TINT_NONE,
       lighting === null ? 0 : sampleLight(lighting, x, y),
     );
+    writeColourway(instances, slot - 1, lookShifts, lookOf(x, y));
+    writeShade(instances, slot - 1, sampleShade(sky, x, y));
   };
 
   for (let y = 0; y < lot.height; y++) {
@@ -289,10 +378,22 @@ export function buildStaticInstances(
         emissive = Math.max(emissive, sampleLight(lighting, x, y));
       }
     }
+    // [OS-daylight]: a wall takes the exposure of the more open side on the
+    // lot. The back walls' outer side is off the lot, which is not the sky
+    // the room sees, so it does not count.
+    let shade = 1;
+    for (const [x, y] of panel.lightSamples) {
+      if (x >= 0 && y >= 0 && x < lot.width && y < lot.height) shade = Math.min(shade, sampleShade(sky, x, y));
+    }
     // A wall spans a plane, not the constant-depth billboard used by furniture.
     // Doors share that plane; their transparent aperture remains in the atlas.
-    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' ? 5 : 10);
-    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask);
+    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS'
+      || (panel.window === true && panel.spriteName === 'wallNS') ? 5 : 10);
+    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask, shade);
+    // [WN-art]: there is no window art, so a window is its wall panel in a
+    // paler tint. The tint is the only thing that says which lines are
+    // glazed, so it goes until [T-window-art] lands.
+    if (panel.window === true) writeWindowTint(instances, slot - 1);
   }
   for (const [x, y, sprite] of boundary) {
     write(

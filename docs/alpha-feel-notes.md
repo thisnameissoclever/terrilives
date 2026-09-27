@@ -1716,6 +1716,7 @@ quickly to see.
 - **Runtime remained healthy.** The completed reload reported no console errors
   or warnings. Unit tests separately hold Load pending across a simulated-day
   boundary and prove autosave never captures bytes or reaches storage.
+
 ## [A-19] The alpha acceptance pass - all eleven criteria, one build
 
 The first measurement of the criteria against the code-complete alpha systems
@@ -2736,6 +2737,7 @@ supplied phone screenshot.
   server returned one unrelated 404 for `favicon.ico`. Merge, exact-head CI,
   public Pages deployment, safe-area hardware, and a physical-phone pass remain
   open.
+
 ## [A-aquarium-exercise-bike] The new objects are reachable without starving the old lot
 
 The 2026-08-12 implementation replaces two inert, one-tile persistence slots
@@ -2956,6 +2958,7 @@ Evidence and exact proof boundaries are in
 `docs/assets/review-evidence/front-door/README.md`. This entry records local
 play, not a claim that the Pages release has already happened. An outside
 world, room construction and movable furniture are not part of this door slice.
+
 ## [A-bathtub-quarter-turn] Rotated tub and saved-household upgrade
 
 On 2026-09-20, the isolated production build loaded a save produced by the
@@ -2969,3 +2972,646 @@ standing position. This is the existing standing use, not a new bathing pose.
 The remaining gaps beside interior walls are explicitly deferred to the
 separate edge-wall/navigation/save-layout change. Retained screenshots and
 commands are in `assets/review-evidence/bathroom/bathtub-quarter-turn.md`.
+
+## [A-wall-tool] Walls and doorways, one line at a time
+
+Played on 2026-09-21 on the port 5174 dev server serving this branch, which I
+confirmed by the Walls button being in the Build panel.
+
+**Choosing a line.** In Build mode I pressed Walls. The furniture controls gave
+way to three buttons, all disabled, and "Choose a line between two floor
+tiles." A click on the living-room floor ringed the two tiles either side of
+the nearest line in the preview's blue, said "No wall on this line.", and
+enabled Wall and Doorway but not Remove.
+
+**Building.** Wall drew a wall panel between the two tiles and said "Wall
+built."; Wall was then disabled and Doorway and Remove enabled. Doorway turned
+the panel into a frame and said "Doorway made."
+
+**A refusal.** A click on the line between a sim at the kitchen counter and the
+counter ringed the tiles in red and said "No wall on this line. A wall there
+would leave furniture out of reach." Only Doorway stayed enabled.
+
+**Saved.** Save, then a reload, brought back "Saved game loaded" with the
+doorway frame still standing in the living room.
+
+**Phone.** At 390 by 844 the Build dock holds the tool switch, the status, the
+three buttons and the help line without sideways scroll, and a tap on the floor
+chose a line the same way a click does.
+
+**Not proven here.** I did not watch a sim walk around a new wall; the Rust
+tests prove the grid refuses the crossing and the pathing already obeys edges.
+The first status read after pressing Wall came one frame before the drain and
+still showed the old state; the screen caught up on the next frame. No physical
+phone was used.
+
+## [A-trait-library] Fifteen traits, and a panel that says what they do
+
+Played on 2026-09-21 on the port 5174 dev server, serving this branch's working
+tree, which I confirmed by the Traits block being in the page at all.
+
+**A new game.** Tim shows Low spirits at Severity 60%, Bookworm, and Out of
+shape at Skill 42%. Bill shows Television devotee, Avoids exercise, Fish
+watcher and Private person, none with a number. Casey shows Can't cook at
+Skill 25%, Keen cyclist, Chatterbox and Slow reader at Skill 58%. Each row has
+its sentence under it. The block is hidden until somebody is selected.
+
+**It moves.** I selected Tim, right-clicked the exercise bike, chose Use the
+exercise bike and ran at 3x. After the session, Out of shape read Skill 44%.
+Save, then a reload, brought back "Saved game loaded" and 44%.
+
+**An old save.** I put `pre-trait-library-600.hex`, a save written by the last
+public build, into the page's storage and reloaded. It loaded at Day 1, 10:05
+with one trait each: Low spirits 60%, Television devotee, Can't cook 25%.
+Nothing was granted. For this one check I clicked the roster buttons from
+script rather than by hand.
+
+**The first layout was wrong.** I put the block above the need bars and it
+pushed them down the panel. The bars are read constantly and the traits
+rarely, so it now sits below them.
+
+**Phones.** At 390 by 844 and 320 by 568 Bill's four rows scroll inside the
+person sheet. Nothing overflows sideways, no text is clipped, and the console
+stayed empty throughout.
+
+**Measured, 120000 ticks of the shipped household**, on main and on this
+branch, with `cargo run --release -p terri-sim --example trace -- 120000`:
+
+| | main | this branch |
+| --- | --- | --- |
+| interactions, Tim / Bill / Casey | 808 / 1010 / 974 | 831 / 982 / 1006 |
+| Tim's lowest hunger, energy, bladder, fun | 0.0, 0.0, 0.0, 0.0 | 0.0, 0.0, 0.0, 0.0 |
+| Bill's lowest need | 15.0 (hunger) | 20.1 (hunger) |
+| Casey's lowest need | 6.1 (hunger) | 16.0 (hunger) |
+| bookshelf uses (Tim is a Bookworm) | 81 | 121 |
+| aquarium uses (Bill is a Fish watcher) | 14 | 21 |
+| exercise bike uses | 1 | 4 |
+| television uses | 216 | 191 |
+| conversations | 78 | 89 |
+| life satisfaction, Tim / Bill / Casey | 1460 / 989 / 584 | 1680 / 1070 / 567 |
+
+Tim is the only worker and touches zero on four needs in both columns, so that
+squeeze is main's and not the traits'. [T23] in `docs/TIM-TODO.md` records the
+earlier fix to the worker's day and the question it left with the owner.
+The traits steer choices in the direction each one names.
+
+A 12000-tick run is too short to read. This simulation is chaotic enough that a
+one-tick change in timing reshuffles a short run: two builds of this branch,
+identical but for where the freeze fix lived, gave Tim a lowest need of 10.0 in
+one and 0.0 in the other. The first short run of all showed Casey with every
+need at zero and 12 interactions, which was not noise; it led to the engine
+defect recorded at [L-cleanup-removes-only-what-it-owns]. Every number above is
+from after that fix.
+
+**Not proven here.** The pane composites only while it is on screen, so the
+person sheet's caption lagged a reload until the next drawn frame. That is the
+viewer and not the game ([L14]). The
+exercise bike is still almost never chosen unprompted: four uses in 120000
+ticks, even with a Keen cyclist in the house. No physical phone was used.
+
+## [A-buy-mode] Buying furniture from a catalogue
+
+Played on 2026-09-21 on the port 5174 dev server serving this branch's working
+tree, which I confirmed by the Buy button being in the Build panel. The in-app
+pane only draws while it is on screen, so I drove the page in the Playwright
+browser instead ([L59]).
+
+**Earning first.** A new game starts with 0 Funds. At 3x the first shift paid
+120 at about 15:00 on day 1.
+
+**The catalogue.** Build, then Buy, showed the list with all thirty objects by
+name, each with its price in brackets, and everything dearer than 120 greyed
+out: fourteen of the thirty were left to choose. After a 40 chair the list
+greyed down to the nine that 80 buys.
+
+**Placing.** Choosing the chair drew its ghost mid-lot and said "Ready to buy."
+A click beside the living-room armchair turned the ghost red with "Leave every
+object reachable." and disabled Buy. Arrow keys moved it; onto the sofa it said
+"That position overlaps other furniture."; one tile back it said "Ready to buy."
+again. R turned it from South-east to South-west. Enter bought it: the chair
+stood on the floor, Funds went from 120 to 80, and the status said "Chair,
+Standard Issue bought." A bin's first spot said "That position blocks a Sim's
+route."
+
+**A bug, fixed here.** The Furniture tool's list still showed two chairs after
+the purchase. The furniture builder re-read its object list when the lot
+changed but only told its controls to redraw when something was selected.
+With the fix the list showed three.
+
+**Saved.** Save, then a second purchase (a bin, Funds 60), then Load: Funds
+went back to 80, the chair was still there and the bin was gone. The Buy tool
+came back to "Choose something to buy."
+
+**Used.** A chair has no action of its own; a sim sits on it only when using a
+table, so ordering someone to a lone bought chair did nothing visible. A bought
+radio did: Casey walked from the bathroom to it and the panel said "Using
+object".
+
+**Phone.** At 390 by 844 the Build dock holds the three tool buttons, the list,
+the price, Rotate, Buy, Cancel and the touch help without sideways scroll.
+
+**What play showed a real game needs.** The names are jokes and say nothing
+about what a thing does: "Wall of Intent" and "Frequency of Record" could be
+anything. Thirty names in one list is already long. A player needs to see what
+each object is for and to narrow the list, which is [B-catalogue-browsing].
+After a purchase the ghost stays on the bought object's tile, red, under a
+status that says it was bought; clear enough, but a second glance.
+
+**After the review fixes.** Re-checked on the same server: pressing Buy put
+keyboard focus on the game view; with 80 in Funds, `]` skipped the 220
+aquarium and chose the first thing 80 buys; setting the list back to "Choose
+something to buy" said so, cleared the price and disabled Buy. The console
+showed no errors or warnings.
+
+**Not proven here.** No physical phone was used. The chair's use at a table
+was not watched.
+
+## [A-room-tool] A whole room in one edit
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree, which I confirmed by the Room button being in the Build panel, driven in
+the Playwright browser.
+
+**The tool.** Build showed four tool buttons. Room put the keyboard on the game
+view and said "Choose a corner tile of the room." A click on bedroom floor said
+"Choose the opposite corner." and ringed that tile; a second click ringed a two
+by two block in the valid tint and said "Ready to build. Choose a line of the
+outline for a doorway."
+
+**Built.** D chose a doorway ("Ready to build, with a doorway."), Enter built
+it: walls rose on the outline with a doorway frame in one side, the status said
+"Room built.", and the choice cleared. Save, then a page reload, brought back
+"Saved game loaded" with the room still standing.
+
+**Refused.** Corners either side of the bed and nightstand tinted the room red
+with "The room would leave furniture out of reach. Choose a doorway." Stepping
+D along the outline kept it refused on the lines that do not reach both pieces,
+until the sixth said "Ready to build, with a doorway." Escape cleared it.
+
+**Two things fixed here.** Four tool buttons in one row overflowed the side
+panel, clipping Furniture and cutting Buy off behind a sideways scroll; they
+are now two by two. After a room was built its choice stayed and Build room
+stayed enabled, which would stage the same room again; a built room now clears
+its choice. A third, wording: with a doorway already chosen, "Choose a doorway."
+read wrong, so that case now says "Try the doorway on another line."
+
+**Phone.** At 390 by 844 the dock shows the two by two buttons, the status,
+Build room, Cancel and the touch help, with no sideways scroll.
+
+**What play showed.** A click on the tall part of a sprite, such as the bed's
+headboard, lands on the floor tile behind it, which here is off the lot, so the
+click does nothing. Rooms want clicks on open floor. I did not watch a sim walk
+through the new doorway; the Rust tests prove the proofs let one reach inside.
+No physical phone was used.
+
+## [A-interior-doors] Doors that open as sims walk through
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree, driven in the Playwright browser, on a household loaded from its save.
+
+**The doors.** The three doorways on vertical lines, kitchen to living room,
+the hall and the bathroom, each showed a closed wooden door in the front
+door's art where an empty frame used to be. The two horizontal doorways stayed
+open frames, and so did the doorway of a room built earlier with the Room
+tool.
+
+**Walking through.** At 1x I captured the kitchen door every half second for
+twenty seconds. Casey came through from the kitchen: the door stood closed,
+swung ajar as Casey reached it, stood open while Casey passed, and was closed
+again half a second later. Bill came the same way a few seconds after, and the door
+opened and closed for him too. While a sim was on the far side the leaf hid
+their body, as a real door does.
+
+**Not proven here.** A door on a line the Room tool builds was not watched
+opening; the Rust tests prove every vertical doorway gets one. No physical
+phone was used.
+
+## [A-door-steps] Doors that swing only for a sim walking through
+
+Played on 2026-09-22 on the port 5174 dev server serving the doors branch
+after its review fixes, driven in the Playwright browser on the household
+loaded from its save, at 1x. I captured the kitchen, hall and bathroom doors
+every 40 milliseconds for 45 seconds, 1129 frames, and read the frames around
+each change.
+
+**Walking through.** Tim came up the living-room side of the wall below the
+kitchen door, stepped through into the kitchen, and walked back down the
+kitchen side of the same wall. The door stood closed while Tim was far off,
+swung ajar as Tim walked the last tile towards it, stood open while Tim
+stepped through, swung ajar again for the step after, and was shut while Tim
+walked on along the wall.
+
+**Standing beside it.** Tim stood on the tile right beside the bathroom door
+for about two and a half seconds, and the door stayed shut. Under the first
+rule a sim that close held it open. When Tim walked out through it, it went
+ajar, open, ajar and shut in the same order as the kitchen door.
+
+**Not proven here.** The lighting change, a door lit from the brighter room
+beside it, was not seen by eye: no lamp stood next to an interior door in
+this house. The renderer tests prove it. No physical phone was used.
+
+## [A-reach-from-the-door] A sealed empty room in the kitchen corner
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree with its WebAssembly rebuilt, driven in the Playwright browser on the
+household loaded from its save.
+
+**Built where it used to be refused.** In Build mode, Room said "Choose a
+corner tile of the room." One click on the kitchen floor at the end of the
+counter, tile (7, 0), said "Choose the opposite corner."; a second on the same
+tile said "Ready to build. Choose a line of the outline for a doorway." with
+Build room enabled. Build room said "Room built." and two walls went up,
+closing that corner off as a one-tile closet against the wall to the living
+room. Before this change the same room was refused as blocking someone's way,
+because the check started from that very tile.
+
+**Nothing kept.** I did not save. A reload brought back "Saved game loaded"
+with the corner open again.
+
+**Not proven here.** A cut that leaves furniture out of reach was not replayed;
+the refusal wording is unchanged from [A-room-tool], and the Rust tests prove
+which refusal each cut gives. No physical phone was used.
+
+## [A-catalogue-browsing] What each thing in the catalogue is for
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree with its WebAssembly rebuilt, driven in the Playwright browser on the
+household loaded from its save, which had 10,760 in Funds.
+
+**The Show list.** Build, then Buy, showed a Show list above the catalogue
+holding Everything and all seven needs, Hunger to Comfort. Everything listed
+all thirty items. Hunger narrowed the list to six: the fridge, the kitchen
+sink, the counter, the stove, the dining table and the desk. Five of them are
+there only because Cook dinner takes them, as a prep surface, a hob or an
+eating surface; the fridge feeds a sim by itself too.
+
+**Good for.** Choosing the stove showed "Price: 260" and under it "Good for:
+Hunger, Comfort". The chair, under Everything, said "Good for: no need on its
+own." At the time the line ended in a full stop; review later removed it.
+
+**Keys and hiding.** With the game view focused and Hunger chosen, ] stepped
+through the six hunger items in list order and wrapped round to the first.
+With the chair chosen, switching Show to Energy dropped the choice: the list
+went back to "Choose something to buy", the Good for line emptied and the
+status said "Choose something to buy."
+
+**On a phone,** checked after review at 390 by 844 in the Playwright browser:
+with a chair chosen, Buy and Cancel sit below the fold of the capped Build
+dock, which scrolls to them. They were already below it before this slice, and
+its Show list and Good for line move them further down ([B-phone-build-dock]).
+Putting the Show list beside the catalogue saved only a few pixels and cut off
+about half the item names, so the lists stay stacked at every width.
+
+**Not proven here.** Nothing was bought in this check; buying is unchanged
+from [A-buy-mode]. No physical phone was used.
+
+## [A-selling-furniture] Selling a chair back
+
+Played on 2026-09-22 on the port 5174 dev server serving this branch's working
+tree with its WebAssembly rebuilt, driven in the Playwright browser on the
+household loaded from its save, with 12,800 in Funds.
+
+**Sell.** In Build mode the Furniture tool showed a Sell button, disabled and
+reading "Sell" with nothing chosen. Choosing "Chair, Standard Issue" from the
+list ringed the chair beside the dining table and the button read "Sell for
+20", half its price of 40. Pressing it took the chair away from beside the
+table, the status said "Chair, Standard Issue sold.", Funds read 12,820, the
+list lost the chair, and the button went back to a disabled "Sell".
+
+**Nothing kept, then.** I did not save on that first run, and a reload brought
+back "Saved game loaded" with 12,800 in Funds and the chair back at the table.
+Review then found that saving itself was broken: the browser's storage worker
+still wrote only V3.
+
+**After the fixes, saved and reloaded.** On the fixed build, with the saved
+game now at 12,920 in Funds, the stove's Sell button stayed a disabled "Sell":
+it is the house's only hob, so it is the last object Cook dinner can use. The
+chair sold for 20, Funds read 12,940, Exit build then Save said "Game saved",
+and a reload said "Saved game loaded" with 12,940 in Funds and the chair still
+gone. The storage worker kept the V3 slot it replaced as a recovery backup.
+
+**Why Sell is off.** After the second review, choosing the stove, "The
+Combustible Optimist", showed a disabled "Sell" with "Cannot sell: Nothing else
+in the house can do its job." under it. Cancel hid the note, and choosing the
+bin, "Receptacle for Later", showed "Sell for 10" with no note. At 390 by 844
+the note fits on one line under Sell in the Build dock, with no sideways
+scroll. Nothing was sold or saved on this run.
+
+**Not proven here.** A refusal at the drain was not replayed in the page; the
+Furniture tool tests cover it. No physical phone was used.
+
+## [A-phone-build-dock] The Build dock's buttons stay in view on a phone
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/phone-build-dock`, driven in the Playwright browser on the household
+loaded from its save. For each control I measured whether its whole box was in
+view and whether a tap at its centre reached it. Widths come from a desktop
+browser emulating a phone, whose scrollbars take a few pixels a phone does not.
+
+**390 by 844, Buy.** The panel is 380 pixels, 45% of the screen, as before.
+With "Chair, Standard Issue (40)" chosen, everything was whole and reached by a
+tap: the four tool buttons in one row, "Show" beside its list, "Buy" beside
+the catalogue, Rotate, the price, "Good for: no need on its own", the status,
+Buy and Cancel. The help line was cut at the edge of the scrolling choices,
+above a line over the status.
+
+**375 by 667.** Furniture with the stove chosen: the list, Rotate, the status,
+Confirm, Cancel and a disabled Sell in one row, and the "Cannot sell" note, all
+whole. Walls and Room: the help, the status and every button whole. Buy: both
+lists, the status, Buy and Cancel whole, and Rotate cut by the edge of the
+choices but reached by a tap. With the catalogue list focused, Tab moved focus
+to Rotate and the choices scrolled it whole into view.
+
+**320 by 568, Furniture with the stove chosen.** The footer holds the status,
+the row of three buttons and the two-line sale note. The choices region above
+it shows the list whole, with Rotate a scroll away. "Furniture" fits its tool
+button exactly.
+
+**280 by 653.** The tool buttons are two by two, 117 pixels each, and every
+label fits.
+
+**568 by 320, held sideways.** The panel is 144 pixels and scrolls whole, as
+before; the choices are not a region of their own.
+
+**1280 by 800.** The side panel reads as it did: heading, paused note, tools
+two by two, the list, the facing and Rotate row, the status, Confirm and
+Cancel, Sell, the note, then the keyboard help.
+
+**Leaving Build, 390 by 844.** Before Build the panel was hidden. Build showed
+it, 283 pixels tall; Exit build hid it again and the toggle read "Build".
+
+**320 by 481, Furniture with the stove chosen.** The choices region kept 52
+pixels with the list whole, and the status and the row of three buttons were
+in view. The sale note was almost all below the panel's edge; scrolling the
+whole panel 24 pixels brought all of it into view.
+
+**Hidden stays hidden, 390 by 844.** With a rule injected that gives every
+tool a flex display, the three tools not in use stayed hidden. The Walls
+panel is 198 pixels, its choices exactly its help line and outline padding.
+
+**First version, replaced.** The first build pinned the footer over a panel
+that scrolled whole. Review measured it hiding Buy's Rotate at 390 by 844 and
+the whole Buy list at 375 by 667, and I saw the list and Rotate behind the
+footer at 320 by 568. The footer now sits outside the scrolling region.
+
+**Not proven here.** No physical phone was used, and nothing was saved.
+
+## [A-colourways] Recolouring the sofa and the armchair
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/colourways` with its WebAssembly rebuilt, driven in the Playwright
+browser at 1280 by 800 on the household loaded from its version 4 save.
+
+**The list.** In Build the Furniture tool showed a Colour list under the
+facing row, disabled with nothing chosen, offering As drawn, Colour 2, Colour
+3, Muted and Rich. Choosing "The Sectional Compromise" enabled it at As drawn.
+
+**The ghost.** Choosing Colour 2 said "The Sectional Compromise recoloured."
+and kept the sofa chosen, but the sofa looked unchanged: while chosen it is
+drawn as the placement ghost, which did not carry the colourway. After Cancel
+the sofa showed its new colour. The ghost now carries it, and with Colour 3
+the chosen sofa was drawn in it under the ghost's tint.
+
+**In flat light.** With Light set to flat, the red armchair, "The Chair That
+Is His", in Colour 2 turned green, and the sofa in Rich showed its own teal
+stronger; in Colour 3 it had been a greyed mauve. Outlines, the wooden legs
+and the grey of the floor stayed as drawn.
+
+**Saved and reloaded.** Exit build, then Save said "Game saved". A reload
+said "Saved game loaded", and the Colour list showed Colour 2 for the armchair
+and Rich for the sofa.
+
+**After review, the ghost elsewhere and the keyboard.** With the sofa saved in
+Rich and chosen, focusing the Colour list and pressing the up arrow twice
+stepped it to Muted, then Colour 3: the list kept focus and stayed enabled,
+and the status said "The Sectional Compromise recoloured." each time. With
+the game view focused, the arrow keys moved the ghost onto the wall by the
+bookcase, refused and red, and then to a free spot off the sofa's own tiles,
+where the ghost was drawn slate under its blue tint, the Colour 3 mauve
+rather than the teal of the art as drawn. Cancel put everything back; nothing
+was saved.
+
+**Not proven here.** A sim using a recoloured exercise bike, reading chair or
+bunk was not staged in the page; the frame test covers which picture takes
+the shift, and the shader's text test that only the furniture layer turns.
+No physical phone was used.
+
+## [A-buy-in-colour] Buying an armchair in Colour 2
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/buy-in-colour` with its WebAssembly rebuilt, driven in the Playwright
+browser at 1280 by 800 in flat light, on the household loaded from its save
+with 17,860 in Funds.
+
+In Build the Buy tool showed a Colour list under the catalogue, at As drawn,
+offering As drawn, Colour 2, Colour 3, Muted and Rich. I chose "The Chair That
+Is His (140)" and Colour 2: the ghost by the bunk was drawn green where the
+chair's art is red, and the status said "Ready to buy." Buy said "The Chair
+That Is His bought." and Funds read 17,720. The list stayed at Colour 2 for
+the next purchase.
+
+Exit build, then Save said "Game saved". A reload said "Saved game loaded"
+with 17,720 in Funds, and in the Furniture tool the new chair's Colour list
+read Colour 2, as did the armchair recoloured earlier.
+
+**Not proven here.** A purchase refused for its colourway cannot be reached
+from the list, which offers only the colourways there are; the tests cover
+it. No physical phone was used.
+
+## [A-yard] The saved household's house, standing in its yard
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/the-yard` with its WebAssembly rebuilt, driven in the Playwright browser
+at 1280 by 800 in flat light, on the household loaded from its save at Day 174
+with 20,600 in Funds. The save was made before the yard.
+
+The page opened on the house exactly as before: same scale, same framing, the
+front sides cut away. A green yard showed past the house's east and south
+edges. Zoomed out, the whole lot showed the house in the north-west corner
+with the yard wrapping its east and south sides and no wall along the yard's
+own edges.
+
+In Build, the Buy tool offered the Chill-o-Matic 3000 at 300; a click on the
+tile outside the front door stood its ghost there with "Ready to buy.", and Buy
+said "Chill-o-Matic 3000 bought." with Funds at 20,300. After Exit build, over
+the next few game hours a sim was out in the yard beside the fridge, walked
+about there, and came back in through the front door, which stood open as they
+passed and was shut again once they were inside. Save said "Game saved"; a
+reload said "Saved game loaded" with the fridge still outside the door and the
+yard still there.
+
+In the Walls tool, a click near the door first chose the line north of the
+door tile, and Wall built a short wall there, which Remove took away again.
+Stepping onto the front door's line with the arrow keys showed "This line is a
+doorway. A wall there would cut off the front door.", with the Wall button
+disabled; pressing W changed nothing. At 390 by 844 the page opened centred on
+the house with the yard below it.
+
+**Not proven here.** A sim was not seen using the fridge in the yard in the
+time watched. The yard is floor recoloured green, not grass ([T-yard-art]). No
+physical phone was used.
+
+## [A-rotated-lights] A turned lamp and television still light the room
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/rotated-lights`, driven in the Playwright browser at 1280 by 800 on the
+shipped house. The browser's saved game is version 4, newer than this branch,
+so the game said so, kept the save untouched and paused saving; I played the
+shipped house and nothing was saved.
+
+At 01:48 on day 1, night, I opened Build, chose the floor lamp, "Illumination,
+Ambient", pressed Rotate to face it south-west and confirmed. After Exit
+build, its shade glowed and a pool of light lay on the floor around it, as
+the unturned lamp's does. I then turned the television, "Cathode Companion",
+to face south-west the same way: at 04:01 it was drawn with its screen
+turned, and it glowed with its own smaller pool.
+
+**Not proven here.** The other two turns, north-west and north-east, were
+covered by the lighting tests rather than played.
+
+## [A-street] Tim walks out to the street and home again
+
+Played on 2026-09-22 on the port 5174 dev server serving branch
+`twcl/the-street` with its WebAssembly rebuilt, driven in the Playwright
+browser at 1280 by 800 in flat light, on the household loaded from its save at
+Day 205, 00:30, with Tim selected.
+
+A grey column ran down the lot's east edge beyond the green yard. Zoomed out,
+at 06:00 Tim, the office clerk, walked through the living room to the front
+door, out through it, and across the yard to the grey street, and was gone by
+about 06:30. At about 14:30 he reappeared on the street, walked back across
+the yard, in through the front door, which stood open as he passed, and on to
+the tile inside the door. Another sim wandered the yard near the street
+meanwhile. Save said "Game saved" and a reload said "Saved game loaded" at
+Day 205, 18:48.
+
+**Not proven here.** The furniture and wall refusals that keep the street's
+exit open were checked by tests, not in the page. No physical phone was used.
+
+## [A-trait-words] The Traits panel says loves, likes and hates
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/affinity-words` with its WebAssembly rebuilt, in the desktop app's browser pane at 800 by 450, in auto light, on the household loaded from its save at Day 1, 00:36. This save is from before the trait library grew, so each person wears the one trait they were saved with.
+
+Selecting each person from the Household buttons and opening their panel, the Traits rows read "Television devotee" with "Loves watching television." for Bill, "Low spirits", "Severity 60%" with "Gets less out of everything; attending to correspondence eases it." for Tim, and "Can't cook", "Skill 25%" with "Ruins meals at first, and gets better with every attempt." for Casey (reworded after review to "Ruins most meals at first", since she fails three attempts in four rather than every one). No row said "drawn to". The Light button read "Light: auto".
+
+The owner approved these words, drafted in the plan of 2026-09-22, before they were built; this is the approval `docs/player-visible-strings.md` asks to be recorded.
+
+**Not proven here.** The fuller household a new game gets (Tim's Bookworm, "Likes reading.", and the other dispositions) was checked by the bridge test on the real WebAssembly rather than in the page, because starting a new game would clear the saved household. No phone was used.
+
+## [A-housemate] Ann moves in from the street
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/housemate-pages` (commit ccffbc7) with its WebAssembly rebuilt, in the desktop app's browser pane at 800 by 450 and at 375 by 812, in auto light, on the household loaded from its save at Day 1.
+
+New housemate under Household opened the form on its first page: "3 of 6 live here.", "Give them a name.", a Name box, and the three personalities as radio buttons, each with its name in bold and its description beneath, with Next off. After typing Ann, choosing The settled and pressing Enter in the name box, the second page showed "Traits, up to 4" with each trait's name and sentence, and Back and Move in; focus had moved to the first box. With Bookworm and Keen cyclist ticked, Move in closed the form. Ann appeared in the roster, selected, standing on the grey street at the lot's east edge, and walked across the yard to the front door. Her panel read "Good" mood with every need full, and her Traits read "Bookworm", "Likes reading." and "Keen cyclist", "Loves the exercise bike."
+
+At 375 by 812 the form fit the screen on both pages with its buttons in view. Moving Ann in again there, then Save from the Menu ("Game saved") and a reload ("Saved game loaded"), kept her in the roster. A reload before saving had brought back the last save without her, as a reload without Save does for any change.
+
+The fridge bought into the yard during [A-yard] was not in this browser's save, so there was nothing to sell back.
+
+**Not proven here.** The six-person ceiling, the refusals and a staged move-in in a save were checked by tests, not in the page. No phone was used.
+
+## [A-options-flyout] Game controls behind the Options gear
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/options-flyout` (commit dda7c01, with the Traits triangle fix below), in the desktop app's browser pane at its desktop size (the sidebar layout, with no Menu button) and at 375 by 812, in auto light, on the household loaded from its save with Ann selected.
+
+On the desktop the sidebar held Time, Funds, the status line ("Saved game loaded"), Household with New housemate, Ann's needs, People and the speed controls, and a gear sat alone in the window's top-right corner. The gear opened a panel beneath it: Light: auto, Build, Sound: on, the Effects level, then Save, Load, Clear orders, Queue, New game and Help. The clock kept running while it was open. Build closed the panel and started Build with focus on the game view; the gear then showed Exit build, which ended Build, closed the panel and put focus back on the gear. Escape closed the panel with focus on the gear, and so did a click on the game, which also deselected Ann, as a dismissing click on the right-click flyout acts too.
+
+Under Ann's needs, the Traits panel started closed. It first showed "Traits" with no triangle, because its toggle was laid out as a flex row; it now keeps its triangle, and opening it showed "Bookworm", "Likes reading." and "Keen cyclist", "Loves the exercise bike." Its toggle is 44 pixels tall.
+
+At 375 by 812 the compact strip was Time, Funds, Menu and the save status, with the gear to its right. The gear's panel opened below it, above the house. In Build, the dock filled the bottom of the screen and the gear stayed reachable; its panel then held Light, Exit build, Save, Load, New game and Help, since Build hides sound, Clear orders and Queue. Menu opened Household, Ann, How Ann feels and the speed controls, with no Light or Build rows.
+
+**Not proven here.** Load and New game from the panel were not pressed, because New game would clear the save; the tests check, in main.ts, that each closes the panel and returns focus to the gear. Review found that at 320 pixels wide the strip clipped the Menu button by 9 pixels, and that fix was checked by its CSS test, not in the page. The phone's Ann and How Ann feels toggles show no triangle either, as before this change. No phone was used.
+
+## [A-walls-in-build] The Walls tool shows the house's front walls
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/walls-in-build` (commit 07e7e43) with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save.
+
+In play, and in Build with the Furniture tool, the house stood open on its east and south sides as always. Choosing Walls drew both of those walls along the house, with the front door in the east wall, while the yard's edge stayed open. Choosing Room kept them drawn. Choosing Furniture cut them away again, and the static block rebuilt only on those switches, not on clicks.
+
+The first load of this check showed the sidebar drawn at the window's right edge. That came from PR 111's move of the Options gear, fixed there before this check went on ([L-move-markup-by-its-tree]).
+
+**Not proven here.** Lighting and routes were not watched with the walls shown; tests and the edge list's design keep them unchanged. No phone was used. Review found this check had drawn a second doorway frame over the front door with the walls shown; that is fixed and covered by a tile test, not re-played. With the front walls up, they also hide the tiles and people just inside them, as a full-height wall would; low front walls would be a follow-up.
+
+## [A-placement-buttons] Confirm and Cancel over the chair being moved
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/placement-buttons` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720 and at 375 by 812, on the household loaded from its save.
+
+In Build with the Furniture tool, clicking the kitchen's dining chair ("Chair, Standard Issue") lifted it, and Confirm and Cancel appeared in the game view just above its art, centred on it. Two presses of the down arrow moved the ghost two tiles and the pair followed it, while the marker stayed on the chair's old spot. Zoomed in with the mouse wheel to 1.43, the pair sat just above the chair again; measured in the page, the box's bottom edge plus its 8-pixel gap was exactly the art top the arithmetic gives. The floating Cancel put the chair back, cleared the choice ("Choose furniture to move or rotate.") and hid the pair, with focus handed to the game view. In the Buy tool, choosing the aquarium and pointing at the floor showed Buy, greyed out as the panel's was because the household could not afford it, and Cancel above the ghost.
+
+At 375 by 812, choosing a kitchen counter from the list showed the pair just above it, with its bottom edge at 270 pixels and the Build dock's top at 469, and the dock's own Confirm, Cancel and Sell still in its footer.
+
+The first attempt put the pair about 60 pixels above every piece: the anchor left out the half tile the shader drops each sprite's base below its point, which picking in `input.ts` already allowed for. That is fixed and pinned by the anchor test. The reading chair ("The Wingback Sabbatical") still shows the pair about 36 pixels above its art, because its base sprites have transparent padding above the art and no content bounds in the atlas; that is logged as its own task.
+
+**Not proven here.** A pinch zoom and a physical phone were not used.
+
+## [A-yard-daylight] The sky lights the yard and reaches in through the doorways
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/yard-daylight` with its WebAssembly rebuilt, in the desktop app's browser pane at 919 by 890, on the household loaded from its save, with Light on auto.
+
+At 13:54 on day 2 the yard read in full daylight, a brighter green than it had been the evening before. Inside, the floors were dimmer than the yard: lightest in the living room by the front doorway, and darkest in the kitchen at the back, which is furthest from any open doorway. The lamp's pool still showed around the floor lamp. At 20:27 on day 1 the whole lot was evenly dim, the yard included, with the lamp's pool as before, since the sky's shade scales with the sun and there is none at night.
+
+Checked again at 13:00 on day 2 after the review fixes, on the same branch, with the page driven through the `?stress=0` frame harness because the browser pane was hidden and a hidden pane never composites ([L14]). The interior doors now read at the brightness of the walls they stand in: the door between the two back rooms is no longer the brightest thing in a dim room. The only bright door frames left are the two on the east wall, which stand beside the yard and are lit as the yard is.
+
+**Not proven here.** Flat light was not toggled during this check; the tests show a shade of 0 is sent in flat light. A physical phone was not used, and the effect is deliberately mild, so a player may not notice it until windows exist ([B-windows]).
+## [A-chair-click-target] The empty space above the reading chair is no longer the chair
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/chair-content-bounds` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save at Day 2, 00:41. The server belongs to another session's worktree; it lent me the port and I put its own server back afterwards.
+
+In Build with the Furniture tool, clicking the red armchair beside the aquarium selected "The Wingback Sabbatical", and the floating Confirm and Cancel sat just above its art, with their bottom edge at 448 pixels and the chair's drawn top at about 456. They used to float about 36 pixels higher, over empty space, which is what [A-placement-buttons] logged.
+
+Cancel put the chair back and cleared the choice. A click 10 pixels above the chair's art then selected nothing, and the panel still read "Choose furniture to move or rotate." A click 2 pixels inside the art selected the chair again. The household stayed paused throughout, nothing was confirmed, and nothing was saved.
+
+Review then found that the first version of this fix also cut the click target at the sides and the base for 142 sprites whose art already reached their canvas top, which took the front half of the trashcan's own tile out of its target. The generator now cuts only the band above the art, and the two clicks above were repeated on that build with the same results.
+
+**Not proven here.** The pre-fix behaviour was not replayed in the page; it is pinned by "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts`, which fails when picking ignores content bounds. The chair's other three facings and the other 142 sprites that gained a box, the exercise bike among them, were checked by `assets/sprites/gen/test_content_bounds.py`, not by clicking each one. No phone was used.
+## [A-phone-toggle-triangles] The phone's person and How they feel toggles show a triangle
+
+Checked on 2026-09-22 against the port 5174 dev server at 375 by 812, in a headless Chromium driven by Playwright, on the household the page started with (Tim, Bill and Casey on Day 1). The server was serving another session's worktree on branch `twcl/yard-daylight` (commit af6319e), and taking the port for this branch was refused as interfering with that session's server. That branch has the same compact caption rule and the same two `<summary class="needs-caption">` elements as `origin/main`, so this branch's new rules were added to the served page as a style tag and the toggles were used with real clicks. The desktop app's browser pane was hidden and dropped every click, which is why Playwright was used.
+
+With Menu open and before the rules, the "Tim" and "How Tim feels" toggles were each 44 pixels tall with no triangle. With the rules, each showed a small triangle to the left of its caption, pointing right. Clicking each toggle opened its panel and turned its triangle to point down; clicking again closed the panel and turned it back. Both toggles stayed 44 pixels tall in every state, with the caption 13 pixels from the top and 14 from the bottom. With the People caption set to "How Annabelle feels", it wrapped to two lines and the toggle stayed one 44-pixel target, the text 4 pixels from the top and 5 from the bottom, with the triangle still showing.
+
+Review found that Windows High Contrast paints transparent borders in the system text colour, which made each triangle a solid bar; emulating forced colours in the same browser showed the bar. With the triangle opted out of forced colours and drawn in `CanvasText`, the page in dark forced colours showed a white triangle on the black panel beside each yellow caption, pointing right on the closed "Tim" and down on the open "How Tim feels".
+
+**Not proven here.** This branch's own server was not run, so the rules were checked by adding them to the served page rather than as shipped; `web/tests/mobile-hud.test.ts` pins them in `web/index.html`. Safari, where the browser's own marker is hidden by the `::-webkit-details-marker` rule, and a physical phone were not used.
+
+## [A-sideways-toggle-targets] The person and How they feel toggles are 44 pixels tall on a phone held sideways
+
+Checked on 2026-09-22 against the port 5174 dev server at 812 by 375, in Playwright's Chromium, on the household the page started with (Tim, Bill and Casey on Day 1). The server was serving another session's worktree on branch `twcx/object-type-and-description`, whose `web/index.html` matches `origin/main`, so this branch's `web/index.html` was served in place of it by answering the page request from the file, with every script and the WebAssembly still coming from the server. The first-run Help was dismissed with Got it and Menu was pressed.
+
+Before the change, the "Tim" and "How Tim feels" toggles were each 18.2 pixels tall, laid out as list items with the browser's own marker and no drawn triangle: the 44-pixel rules lived only in the block for screens at most 600 pixels wide, which a phone held sideways does not match. With the rules moved to the block every compact screen matches, both toggles were 44 pixels tall with the caption 12.9 pixels from the top and 14.1 from the bottom, each with one drawn triangle pointing right. Clicking each opened its panel and turned its triangle to point down; clicking "Tim" again closed its panel and turned the triangle back. Both toggles stayed 44 pixels tall in every state. The page matched the queries for every compact screen and for short wide screens, and not the phone-only one. The sidebar sat at the left, 220 pixels wide and 355 tall, and with both panels open it scrolled within itself, as before.
+
+At 375 by 812 the same page gave both toggles at 44 pixels with the triangle, as [A-phone-toggle-triangles] recorded, and at 1280 by 720 they stayed 18.2 pixels tall with the browser's own marker, so the desktop is unchanged.
+
+**Not proven here.** This branch's own server was not run; the page came from the file while its scripts came from another tree. Safari, Windows High Contrast and a physical phone were not used. `web/tests/mobile-hud.test.ts` pins the rules to the block every compact screen matches and pins their absence from the phone-only and short-wide blocks, so no screen draws two triangles.
+
+## [A-windows] Fitting a window and watching the row behind it brighten
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/windows` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save, at 13:00 on day 3 with Light on auto. The page was driven through the `?stress=0` frame harness for the clock, because a hidden pane never composites ([L14]); every choice below was a real click.
+
+Options, then Build, then Walls. The dock read Wall, Doorway, Window, Remove, and the help line under it listed N for a window beside W and D. Clicking near the house's east wall on row 4 chose that line and the status said "A wall stands on this line." Window was offered rather than greyed out, and pressing it gave "Window fitted." The wall panel there turned pale blue while the Walls tool was showing every wall, which is how a player tells which lines are glazed until there is window art.
+
+Leaving Build, the east wall is cut away again, so the window is not drawn: it sits on a line the view looks through. What is visible is the light. The row behind the window now reads one step of daylight brighter than the rows above and below it, all the way in: 0.8, 0.6, 0.4 and 0.2 across the four tiles nearest the wall, against 0.6, 0.4, 0.2 and 0 on its neighbours.
+
+**Not proven here.** The brightening is real but slight, because a fully shaded tile only loses a quarter of the day's light and each tile in recovers a fifth of that: at most about five percent per step. It reads as "this room is a little less gloomy" rather than as sunlight falling through glass. A window on a wall the view cuts away cannot be seen at all outside Build, which is right for a wall and arguable for a window. A phone width and a saved-and-reloaded window were not tested here; the save is covered by tests.
+
+## [A-floors] Laying a carpet, and seeing the room change under it
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/floors` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save, at 13:00 on day 3. The clock ran through the `?stress=0` frame harness, because a hidden pane never composites ([L14]); every choice below was a real click.
+
+Options, then Build, then Floors. The dock showed Boards, Tiles, Carpet and Remove, built from the content, and the status read "Choose a tile." Choosing Carpet and clicking a bathroom tile laid it: the status changed to "This floor is Carpet." and the tile went deeper and warmer than the beige around it. Three more clicks carpeted the rest of that corner, one tile per click, each waiting for the last to land as the other Build tools make a player wait. Choosing Boards and clicking one of those four tiles changed that tile alone, immediately, with no pan or zoom needed.
+
+The patch is easy to miss at the zoom the game opens at: four tiles of a slightly different beige, in a house of beige. Zoomed one step in it reads clearly as a different floor.
+
+**Not proven here.** Saving and reloading a painted house was not done by hand in the browser. Review of the pull request found that the round trip was NOT covered, and that a Load left the previous game's floors on screen; both are fixed and now tested. Nobody walked on the new carpet, because a covering changes nothing but how a tile is drawn. A phone width was not tested. The three coverings are the one floor sprite under a colour shift, so none of them reads as boards or as carpet in the way art would: that is [T-floor-art].
+
+## [A-family] Moving Dana in as Bill's sister
+
+Played on 2026-09-22 on the port 5174 dev server serving branch `twcl/family` with its WebAssembly rebuilt, in the desktop app's browser pane at 1280 by 720, on the household loaded from its save. The clock ran through the `?stress=0` frame harness, because a hidden pane never composites ([L14]).
+
+New housemate, then a name, then Next. The second page asked it plainly under the traits: "They are the [Nobody] of [nobody here]", with the person list greyed out. The relation list offered Nobody, partner, parent, child and sibling; the person list offered Tim, Bill, Casey and Ann, which is the household as it stood at that moment. Choosing sibling enabled the person list, choosing Bill filled it, and Move in closed the dialog with Dana in the household and the tie recorded between Bill and her.
+
+**What the play check caught.** The relationship list did not say it. The tie was stored and the view model carried it, and the panel's own renderer never wrote it, so every row still read just a name and a feeling. That is fixed, and the panel test now covers the row's text rather than only the view behind it. After the fix, with Ann selected and a tie to Bill, the list reads "Bill, their parent" beside his feeling, and the rows with no tie read as they did.
+
+Review afterwards found the row was stating parent and child backwards, which this session's play could not have caught: the tie set here was a sibling, and a sibling reads the same from both sides. That is fixed, and the test that covered it had asserted the wrong answer.
+
+**Not proven here.** The fix was confirmed by setting a tie through the harness on a reloaded page rather than by moving a second person in, because the reload had already cleared the first one. Saving and reloading a household with a tie is covered by tests rather than by hand here. Nothing in the game yet behaves differently for family: a brother is a word on a row, not a reason to do anything.

@@ -23,7 +23,7 @@ use terri_core::{
 use terri_data::{ContentPack, ObjectDefId};
 
 const MAX_TILES: usize = 1_048_576;
-const MAX_ENTITIES: usize = 100_000;
+pub(super) const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
 const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
@@ -38,6 +38,7 @@ mod v3_tests;
 mod wall_migration;
 #[cfg(test)]
 mod wall_migration_tests;
+pub(crate) mod yard;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
@@ -54,7 +55,11 @@ pub enum SaveError {
 }
 
 pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
-    let world = sim.world();
+    capture_world(sim.world())
+}
+
+/// [`capture`] for anything holding a world, which a lot-edit validator does.
+fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
     let pack = world.resource::<Content>().0;
     let grid = world.resource::<TileGrid>();
 
@@ -107,7 +112,7 @@ pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
-            .map(capture_command)
+            .map(|command| capture_command(command, pack))
             .collect(),
     }
 }
@@ -233,8 +238,93 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
     }
 }
 
-fn capture_command(command: &SimCommand) -> SavedCommand {
+fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::SellObject { object } => SavedCommand::SellObject { object: *object },
+        SimCommand::BuyObjectInColourway {
+            definition,
+            x,
+            y,
+            facing,
+            colourway,
+        } => SavedCommand::BuyObjectInColourway {
+            definition: pack
+                .objects
+                .get(*definition as usize)
+                .map(|object| object.id.clone()),
+            x: *x,
+            y: *y,
+            facing: *facing,
+            colourway: pack
+                .colourways
+                .get(*colourway as usize)
+                .map(|colourway| colourway.id.clone()),
+        },
+        SimCommand::AddHousemate {
+            name,
+            personality,
+            traits,
+        } => SavedCommand::AddHousemate {
+            name: name.clone(),
+            personality: pack
+                .personalities
+                .get(*personality as usize)
+                .map(|personality| personality.id.clone()),
+            traits: traits
+                .iter()
+                .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
+                .collect(),
+        },
+        SimCommand::SetColourway { object, colourway } => SavedCommand::SetColourway {
+            object: *object,
+            colourway: pack
+                .colourways
+                .get(*colourway as usize)
+                .map(|colourway| colourway.id.clone()),
+        },
+        SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        } => SavedCommand::BuildRoom {
+            x0: *x0,
+            y0: *y0,
+            x1: *x1,
+            y1: *y1,
+            doorway: *doorway,
+        },
+        SimCommand::BuyObject {
+            definition,
+            x,
+            y,
+            facing,
+        } => SavedCommand::BuyObject {
+            definition: pack
+                .objects
+                .get(*definition as usize)
+                .map(|object| object.id.clone()),
+            x: *x,
+            y: *y,
+            facing: *facing,
+        },
+        SimCommand::SetWallEdge { axis, x, y, state } => SavedCommand::SetWallEdge {
+            axis: *axis,
+            x: *x,
+            y: *y,
+            state: *state,
+        },
+        SimCommand::SetFloor { x, y, covering } => SavedCommand::SetFloor {
+            x: *x,
+            y: *y,
+            covering: *covering,
+        },
+        SimCommand::SetFamilyTie { who, to, relation } => SavedCommand::SetFamilyTie {
+            who: *who,
+            to: *to,
+            relation: *relation,
+        },
         SimCommand::PlaceObject {
             object,
             x,
@@ -313,14 +403,20 @@ pub(super) fn restore_legacy(
         content,
         active_portals,
         &std::collections::BTreeMap::new(),
+        &[],
     )
 }
 
+/// `retired` lists the indices sales retired ([SL-save]), ascending and
+/// already checked against the saved entities. Every other gap in the saved
+/// numbering is freed for reuse, as it always was; a retired one is kept out
+/// of use, as the world that was saved kept it.
 fn restore_with_facings(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
+    retired: &[u32],
 ) -> Result<Sim, SaveError> {
     let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
@@ -335,11 +431,10 @@ fn restore_with_facings(
     sim.world.insert_resource(snapshot.rng);
     sim.world.insert_resource(Funds(snapshot.funds));
 
-    let mut allocator = SimIdAllocator::default();
-    for _ in 0..snapshot.issued_sim_ids {
-        allocator.issue();
-    }
-    sim.world.insert_resource(allocator);
+    // Resumed at the saved count rather than counted up to it: the loader's
+    // bound on the count must not be the only thing keeping a Load quick.
+    sim.world
+        .insert_resource(SimIdAllocator::resumed(snapshot.issued_sim_ids));
 
     let mut grid = TileGrid::new(snapshot.grid_width as usize, snapshot.grid_height as usize);
     for (index, blocked) in snapshot.blocked_tiles.into_iter().enumerate() {
@@ -355,9 +450,19 @@ fn restore_with_facings(
     sim.world
         .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
-    let max_index = snapshot.entities.last().map(|entity| entity.index);
+    // One slot per index up to the last saved or retired one: the ECS hands
+    // indices out in order, so the gaps must be spawned too. Sized by saved
+    // numbers, so bounded only by validation's check that every entity index
+    // and every retired index is under MAX_ENTITIES
+    // ([L-restore-without-counting-up]).
+    let max_index = snapshot
+        .entities
+        .last()
+        .map(|entity| entity.index)
+        .max(retired.last().copied());
     let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
     let mut holes = Vec::new();
+    let mut retiring = Vec::new();
     let mut saved_cursor = 0usize;
     if let Some(max_index) = max_index {
         for index in 0..=max_index {
@@ -372,6 +477,8 @@ fn restore_with_facings(
             {
                 slots[index as usize] = Some(spawned);
                 saved_cursor += 1;
+            } else if retired.binary_search(&index).is_ok() {
+                retiring.push(spawned);
             } else {
                 holes.push(spawned);
             }
@@ -405,11 +512,22 @@ fn restore_with_facings(
         let removed = sim.world.despawn(hole);
         debug_assert!(removed, "placeholder entity was live before removal");
     }
+    for index in retiring {
+        let removed = sim.world.despawn_no_free(index);
+        debug_assert!(
+            removed.is_some(),
+            "placeholder entity was live before removal"
+        );
+    }
+    sim.world
+        .insert_resource(crate::placement::sale::RetiredIndices::from_sorted(
+            retired.to_vec(),
+        ));
 
     let commands = snapshot
         .queued_commands
         .into_iter()
-        .map(restore_command)
+        .map(|command| restore_command(command, content))
         .collect();
     sim.world
         .insert_resource(CommandQueue::from_commands(commands));
@@ -689,8 +807,91 @@ fn placement_matches(
         && placement.y.to_bits() == position.y.to_bits()
 }
 
-fn restore_command(command: SavedCommand) -> SimCommand {
+fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
     match command {
+        SavedCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        } => SimCommand::BuildRoom {
+            x0,
+            y0,
+            x1,
+            y1,
+            doorway,
+        },
+        // An id this pack lacks can only come through a reviewed content
+        // bridge that dropped an object. It restores as an index past every
+        // object, which the drain refuses as it refuses any unknown object.
+        SavedCommand::BuyObject {
+            definition,
+            x,
+            y,
+            facing,
+        } => SimCommand::BuyObject {
+            definition: definition
+                .and_then(|id| pack.find(&id))
+                .map_or(u32::MAX, |object| object.0),
+            x,
+            y,
+            facing,
+        },
+        SavedCommand::SetWallEdge { axis, x, y, state } => {
+            SimCommand::SetWallEdge { axis, x, y, state }
+        }
+        SavedCommand::SetFloor { x, y, covering } => SimCommand::SetFloor { x, y, covering },
+        SavedCommand::SetFamilyTie { who, to, relation } => {
+            SimCommand::SetFamilyTie { who, to, relation }
+        }
+        SavedCommand::SellObject { object } => SimCommand::SellObject { object },
+        // Unknown ids restore as indices past every object and colourway,
+        // which the drain refuses, as the two commands it joins do.
+        SavedCommand::BuyObjectInColourway {
+            definition,
+            x,
+            y,
+            facing,
+            colourway,
+        } => SimCommand::BuyObjectInColourway {
+            definition: definition
+                .and_then(|id| pack.find(&id))
+                .map_or(u32::MAX, |object| object.0),
+            x,
+            y,
+            facing,
+            colourway: colourway
+                .and_then(|id| pack.colourways.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+        },
+        // [CS-save]: ids this pack lacks restore as indices past the
+        // tables, which the drain refuses.
+        SavedCommand::AddHousemate {
+            name,
+            personality,
+            traits,
+        } => SimCommand::AddHousemate {
+            name,
+            personality: personality
+                .and_then(|id| pack.personalities.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+            traits: traits
+                .into_iter()
+                .map(|id| {
+                    id.and_then(|id| pack.traits.iter().position(|known| known.id == id))
+                        .map_or(u32::MAX, |index| index as u32)
+                })
+                .collect(),
+        },
+        // An id this pack lacks restores as an index past every colourway,
+        // which the drain refuses, as a staged purchase of an unknown object.
+        SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
+            object,
+            colourway: colourway
+                .and_then(|id| pack.colourways.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+        },
         SavedCommand::PlaceObject {
             object,
             x,
@@ -822,6 +1023,45 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     Ok(())
 }
 
+/// Which of the loader's grid checks a candidate grid fails, if any.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LoadProblem {
+    /// `validate_portal_returns`: the door, its landing, or a worker's way
+    /// back to it.
+    PortalReturn,
+    /// The edge-wall checks: a sim, its walk, or its contact with what it
+    /// is using, against the walls.
+    EdgeWorld,
+}
+
+/// Whether this world, with `grid` in place of its own, passes the grid checks
+/// the V3 loader runs - [WT-rules]. A lot edit that passes every rule of its own
+/// and fails this would save a game that refuses to load, so lot edits ask the
+/// loader rather than keeping a second copy of its rules.
+///
+/// Under the same conditions as the loader, too: `finish_restore` runs the
+/// edge-wall checks only for an edge-wall house, so a cell-wall house is not
+/// held to rules its own Load never applies (review finding [F8] on PR 96).
+pub(crate) fn candidate_grid_loads(
+    world: &bevy_ecs::world::World,
+    grid: &TileGrid,
+) -> Result<(), LoadProblem> {
+    let content = world.resource::<Content>().0;
+    let snapshot = capture_world(world);
+    validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
+    // Every edge layout, not one named version: a house with a window is
+    // still an edge house, and naming the version here is what let review
+    // finding [F1] on PR 126 skip this whole check for a glazed house.
+    if !world
+        .get_resource::<terri_core::layout::SavedLayout>()
+        .is_some_and(|layout| layout.has_edges())
+    {
+        return Ok(());
+    }
+    architecture::validate_edge_world(&snapshot, grid, content, world)
+        .map_err(|_| LoadProblem::EdgeWorld)
+}
+
 fn validate_portal_returns(
     snapshot: &SaveSnapshotV1,
     grid: &TileGrid,
@@ -847,16 +1087,28 @@ fn validate_portal_returns(
     if !grid.can_step(door, landing) {
         return Err(SaveError::InvalidGrid);
     }
+    // [OS-street]: a worker at work on the street's exit walks home a long
+    // way, so it needs a path, found from the exit tile as the walk home
+    // finds it. Anywhere else, the door tile included, the straight line to
+    // the landing must cross no wall, as it always had to.
+    let exit = crate::portals::street_exit(content, grid.width() as u32);
     for worker in snapshot
         .entities
         .iter()
         .filter(|entity| entity.agent && entity.career.is_some() && entity.at_work_ticks.is_some())
     {
         let position = worker.position.ok_or(SaveError::InvalidGrid)?;
-        if !grid.segment_can_cross(
-            (position.x, position.y),
-            (landing.0 as f32, landing.1 as f32),
-        ) {
+        let home =
+            match exit.filter(|&exit| crate::portals::on_tile((position.x, position.y), exit)) {
+                Some(exit) => grid
+                    .find_path((exit.0 as i32, exit.1 as i32), landing)
+                    .is_some(),
+                None => grid.segment_can_cross(
+                    (position.x, position.y),
+                    (landing.0 as f32, landing.1 as f32),
+                ),
+            };
+        if !home {
             return Err(SaveError::InvalidGrid);
         }
     }
@@ -873,7 +1125,26 @@ fn validate_command(
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
         // Placement is revalidated when its position in the stream drains.
         // Impossible or stale edits must replay as refusals, not prevent Load.
-        SavedCommand::PlaceObject { .. } => Ok(()),
+        SavedCommand::PlaceObject { .. }
+        | SavedCommand::SetWallEdge { .. }
+        | SavedCommand::BuyObject { .. }
+        | SavedCommand::BuildRoom { .. }
+        | SavedCommand::SellObject { .. }
+        | SavedCommand::SetColourway { .. }
+        | SavedCommand::BuyObjectInColourway { .. }
+        | SavedCommand::SetFloor { .. }
+        | SavedCommand::SetFamilyTie { .. } => Ok(()),
+        // [CS-save]: held to the limits every saved name and list is held
+        // to; the drain checks the rest.
+        SavedCommand::AddHousemate { name, traits, .. } => {
+            if exceeds_limit(name.len(), MAX_TEXT_BYTES)
+                || exceeds_limit(traits.len(), MAX_LIST_ENTRIES)
+            {
+                Err(SaveError::InvalidValue)
+            } else {
+                Ok(())
+            }
+        }
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }
@@ -2338,29 +2609,40 @@ mod tests {
         }
         assert_eq!(source.save_snapshot(), before);
         assert_eq!(source.world_hash(), world_hash);
-        let mut restored = Sim::new_from_shipped_lot();
-        restored
+        // An old save is a V1 record, and the V1 loader must still restore
+        // both fridges' art from it. A V1 record carries no wall edges, so
+        // the world hash, which sees walls since [WT-hash], is compared on the
+        // V3 round trip the game now writes, beside the V1 record check.
+        let mut historical = Sim::new_from_shipped_lot();
+        historical
             .load_snapshot(source.save_snapshot())
             .expect("old fridge art saves load");
+        assert_eq!(historical.save_snapshot(), before);
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot_v3(source.save_snapshot_v3())
+            .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
-        restored.sync_render_buffer();
-        for original in fridge_entities {
-            let buffer = restored.render_buffer();
-            let row = buffer
-                .ids
-                .iter()
-                .position(|id| *id == original.index_u32())
-                .expect("fridge render row");
-            assert_eq!(
-                buffer.sprites[row],
-                if original == dynamic {
-                    expected_sprite
-                } else {
-                    authored_sprite
-                },
-                "restoring art must preserve the kitchen's room-facing placement"
-            );
+        for (format, world) in [("V1", &mut historical), ("V3", &mut restored)] {
+            world.sync_render_buffer();
+            for original in &fridge_entities {
+                let buffer = world.render_buffer();
+                let row = buffer
+                    .ids
+                    .iter()
+                    .position(|id| *id == original.index_u32())
+                    .expect("fridge render row");
+                assert_eq!(
+                    buffer.sprites[row],
+                    if *original == dynamic {
+                        expected_sprite
+                    } else {
+                        authored_sprite
+                    },
+                    "{format}: restoring art must preserve the kitchen's room-facing placement"
+                );
+            }
         }
     }
 
@@ -2456,6 +2738,9 @@ mod tests {
             lot: terri_data::CompiledLot {
                 width: 16,
                 height: 16,
+                house: (16, 16),
+                yard_look: [0.0, 1.0, 0.0],
+                street_look: [0.0, 1.0, 0.0],
                 walls: Vec::new(),
                 wall_edges: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {
@@ -2573,14 +2858,19 @@ mod tests {
                 },
             ))
             .id();
+        // Deliberately the V1 path: the saved reader stands far from its
+        // chair to prove the render endpoint comes from the socket, and only
+        // the V1 loader accepts that. A V1 record carries no wall edges, so
+        // the restored house has none and the world hash, which sees walls
+        // since [WT-hash], differs by exactly that. Everything V1 does carry
+        // is compared instead.
         let snapshot = source.save_snapshot();
-        let source_hash = source.world_hash();
 
         let mut restored = Sim::new_from_shipped_lot();
         restored
-            .load_snapshot(snapshot)
+            .load_snapshot(snapshot.clone())
             .expect("active reading save restores");
-        assert_eq!(restored.world_hash(), source_hash);
+        assert_eq!(restored.save_snapshot(), snapshot);
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );
@@ -2617,7 +2907,7 @@ mod tests {
         for _ in 0..3 {
             source.tick();
             restored.tick();
-            assert_eq!(restored.world_hash(), source.world_hash());
+            assert_eq!(restored.save_snapshot(), source.save_snapshot());
         }
     }
 
@@ -3554,7 +3844,15 @@ mod tests {
             current.content_fingerprint,
             terri_data::content_fingerprint(terri_data::pack())
         );
-        assert_eq!(current.blocked_tiles, expected_blocked);
+        // The house then grows into the yard, each tile kept where it was
+        // saved ([OS-migrate]).
+        let lot = &terri_data::pack().lot;
+        let grown_width = lot.width as usize;
+        let mut grown = vec![false; grown_width * lot.height as usize];
+        for (index, &blocked) in expected_blocked.iter().enumerate() {
+            grown[(index / width) * grown_width + index % width] = blocked;
+        }
+        assert_eq!(current.blocked_tiles, grown);
         assert_eq!(current.entities, expected_entities);
         let name = current
             .entities

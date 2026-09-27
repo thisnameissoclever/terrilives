@@ -9,6 +9,10 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    EmptyObjectText {
+        object: String,
+        field: &'static str,
+    },
     UnknownNeed {
         object: String,
         interaction: String,
@@ -335,6 +339,11 @@ pub enum ContentError {
     DuplicateArchetype {
         id: String,
     },
+    /// An archetype with a blank description - [CS-personality]. The New
+    /// housemate form prints one beside each personality's name.
+    EmptyPersonalityDescription {
+        id: String,
+    },
     /// An archetype's `drain` or `satisfaction` map names a need rustc
     /// does not know. Same dangling-reference shape as
     /// [`ContentError::UnknownNeed`], one file over.
@@ -445,6 +454,11 @@ pub enum ContentError {
     /// [`ContentError::HabituationPerUseOutOfRange`]: 0 legally disables
     /// the mechanic, above 1 saturates a friendship in one conversation.
     RelationshipGainOutOfRange {
+        value: f32,
+    },
+    /// A `resale_fraction` outside `[0, 1]` - [SL-pay]. Above 1 a sale pays
+    /// more than the purchase cost; below 0 it charges for selling.
+    ResaleFractionOutOfRange {
         value: f32,
     },
     /// A zero or negative relationship decay - the one-way-ratchet rule
@@ -752,11 +766,42 @@ pub enum ContentError {
     DuplicateTrait {
         id: String,
     },
+    /// An object priced at zero - [BM-price]. Leave `price` out to keep an
+    /// object out of the catalogue instead.
+    ZeroPrice {
+        object: String,
+    },
     /// A trait with a blank label. Unlike an interaction there is no
     /// id-shaped fallback that reads as anything but a bug in a UI's
     /// trait list, so the label is simply required.
     EmptyTraitLabel {
         id: String,
+    },
+    /// A trait with a blank description. The Traits panel prints one
+    /// sentence per trait, and a trait that cannot say what it does is
+    /// a row of unexplained jargon - [TL-description].
+    EmptyTraitDescription {
+        id: String,
+    },
+    /// An `affinity_loves_from` at or below 1, or an `affinity_hates_to`
+    /// outside `[0, 1)` - [TL-affinity]. Either would give one multiplier
+    /// two verbs, or call a pull a push.
+    AffinityBandOutOfRange {
+        field: &'static str,
+        value: f32,
+    },
+    /// A disposition whose multiplier is exactly 1 - [TL-affinity]. It
+    /// changes no choice, so its description has nothing true to say.
+    DispositionChangesNothing {
+        id: String,
+    },
+    /// A disposition whose description does not open with the verb its
+    /// multiplier earns - [TL-affinity]. The Traits panel would tell the
+    /// player something the simulation does not do.
+    TraitVerbDisagrees {
+        id: String,
+        verb: &'static str,
+        multiplier: f32,
     },
     /// A trait keyed on a tag no interaction carries: a fear of nothing,
     /// a skill at nothing, a condition managed by nothing - [D9]'s
@@ -1019,6 +1064,80 @@ pub enum ContentError {
         chain: String,
         item: String,
     },
+    /// [RC-content]: the first colourway changes the art, so an object with
+    /// no colourway and one in the first would look different.
+    FirstColourwayNotAsDrawn {
+        colourway: String,
+    },
+    /// [RC-content]: two colourways share an id, which a save records.
+    DuplicateColourway {
+        colourway: String,
+    },
+    /// [RC-content]: a colourway with an empty id or name.
+    EmptyColourwayText {
+        colourway: String,
+    },
+    /// [RC-shift]: a colourway's hue, strength or lightness is outside the
+    /// range the shader is built for, or is not a number.
+    ColourwayOutOfRange {
+        colourway: String,
+        field: String,
+    },
+    /// [OS-grow]: the house is empty or larger than the lot it stands in.
+    HouseOutsideLot {
+        width: u32,
+        height: u32,
+        lot_width: u32,
+        lot_height: u32,
+    },
+    /// [OS-grow]: a line between a house tile and a yard tile holds neither a
+    /// wall nor a doorway, so the house is open to the yard.
+    HouseNotClosed {
+        axis: terri_core::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+    },
+    /// [CS-command]: `housemate_name_max_chars` outside 1 to 256, so a name
+    /// would be empty or could pass the loader's limit on saved text.
+    HousemateNameLimitOutOfRange {
+        value: u32,
+    },
+    /// [CS-command]: `housemate_max_traits` is 0, so a newcomer could wear
+    /// nothing from the library.
+    HousemateTraitLimitIsZero,
+    /// [OS-daylight]: `interior_daylight_shade` outside `[0, 0.5]`: above a
+    /// half a room the sky cannot reach would fall below the 0.42 legibility
+    /// floor at noon ([ML-a11y]), and below 0 it would be brighter than the
+    /// yard.
+    DaylightShadeOutOfRange {
+        value: f32,
+    },
+    /// [OS-daylight]: `daylight_reach_per_tile` outside `(0, 1]`: at 0 the
+    /// sky would reach every room undimmed, and past 1 it would not get
+    /// past the doorway.
+    DaylightReachOutOfRange {
+        value: f32,
+    },
+    /// [FL-content]: a floor covering in `content/lot.toml` has no name, so
+    /// the Floors tool would offer a blank button.
+    EmptyCoveringName,
+    /// [FL-content]: two floor coverings share a name, so the tool would
+    /// offer the same word twice for different floors.
+    DuplicateCoveringName {
+        name: String,
+    },
+    /// [OS-yard], [OS-street]: the yard's or the street's look has a number
+    /// outside a colourway's range.
+    LookOutOfRange {
+        look: String,
+        field: String,
+    },
+    /// [OS-door]: a front door on no edge of the lot that does not stand on
+    /// the house's outside wall facing south-east across a doorway onto yard.
+    FrontDoorNotOutside {
+        x: u32,
+        y: u32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -1052,6 +1171,9 @@ impl fmt::Display for ContentError {
                     f,
                     "tuning.toml's [decay_per_tick] gives a rate for unknown need '{need}'"
                 )
+            }
+            ContentError::EmptyObjectText { object, field } => {
+                write!(f, "object '{object}' has empty {field} text")
             }
             ContentError::DuplicateObjectId { id } => {
                 write!(f, "duplicate object id '{id}'")
@@ -1276,6 +1398,11 @@ impl fmt::Display for ContentError {
                 f,
                 "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1"
             ),
+            ContentError::EmptyPersonalityDescription { id } => write!(
+                f,
+                "archetype '{id}' has a blank description; the New housemate \
+                 form prints one beside each personality's name"
+            ),
             ContentError::DuplicateArchetype { id } => write!(
                 f,
                 "personalities.toml declares archetype '{id}' more than once; \
@@ -1387,6 +1514,12 @@ impl fmt::Display for ContentError {
                 "relationship_gain_per_talk is {value}; must be in [0, 1]. \
                  0 disables the mechanic; above 1 saturates a friendship in \
                  a single conversation"
+            ),
+            ContentError::ResaleFractionOutOfRange { value } => write!(
+                f,
+                "resale_fraction is {value}; must be in [0, 1]. Above 1 a sale \
+                 pays back more than the object cost; below 0 it charges for \
+                 selling"
             ),
             ContentError::NonPositiveRelationshipDecay { value } => write!(
                 f,
@@ -1706,10 +1839,43 @@ impl fmt::Display for ContentError {
             ContentError::DuplicateTrait { id } => {
                 write!(f, "traits.toml declares '{id}' more than once")
             }
+            ContentError::ZeroPrice { object } => write!(
+                f,
+                "object '{object}' has price 0; leave price out to keep it out of the catalogue"
+            ),
             ContentError::EmptyTraitLabel { id } => write!(
                 f,
                 "trait '{id}' has a blank label; a trait list has no \
                  id-shaped fallback that reads as anything but a bug"
+            ),
+            ContentError::EmptyTraitDescription { id } => write!(
+                f,
+                "trait '{id}' has a blank description; the Traits panel \
+                 prints one sentence saying what each trait does"
+            ),
+            ContentError::AffinityBandOutOfRange { field, value } => write!(
+                f,
+                "{field} is {value}; it must be {}, so each disposition earns \
+                 one verb",
+                if *field == "affinity_loves_from" {
+                    "above 1"
+                } else {
+                    "in [0, 1)"
+                }
+            ),
+            ContentError::DispositionChangesNothing { id } => write!(
+                f,
+                "trait '{id}' has score_multiplier 1, which changes no choice; \
+                 a disposition must pull toward its activity or push away"
+            ),
+            ContentError::TraitVerbDisagrees {
+                id,
+                verb,
+                multiplier,
+            } => write!(
+                f,
+                "trait '{id}' has score_multiplier {multiplier}, so its \
+                 description must open with \"{verb} \""
             ),
             ContentError::TraitAboutNothing { id, tag } => write!(
                 f,
@@ -1987,6 +2153,82 @@ impl fmt::Display for ContentError {
                 "chain '{chain}' ends with the sim still carrying \
                  '{item}' - the terminal step must consume what is in \
                  hand"
+            ),
+            ContentError::FirstColourwayNotAsDrawn { colourway } => write!(
+                f,
+                "colourway '{colourway}' is first in objects.toml, so it must \
+                 leave the art as drawn: hue 0, strength 1, lightness 0"
+            ),
+            ContentError::DuplicateColourway { colourway } => write!(
+                f,
+                "colourway '{colourway}' is declared twice in objects.toml; \
+                 saves record a colourway by its id"
+            ),
+            ContentError::EmptyColourwayText { colourway } => write!(
+                f,
+                "colourway '{colourway}' needs both an id and a name in \
+                 objects.toml"
+            ),
+            ContentError::ColourwayOutOfRange { colourway, field } => write!(
+                f,
+                "colourway '{colourway}' has a {field} outside its range: hue \
+                 -180 to 180, strength 0 to 2, lightness -0.25 to 0.25"
+            ),
+            ContentError::HouseOutsideLot {
+                width,
+                height,
+                lot_width,
+                lot_height,
+            } => write!(
+                f,
+                "lot.toml declares a {width}x{height} house on a \
+                 {lot_width}x{lot_height} lot; the house must be at least 1 by 1 \
+                 and fit the lot"
+            ),
+            ContentError::HouseNotClosed { axis, x, y } => write!(
+                f,
+                "lot.toml has no wall or doorway on the house's {axis:?} outside \
+                 line at ({x}, {y}); every line between the house and the yard \
+                 needs one"
+            ),
+            ContentError::HousemateNameLimitOutOfRange { value } => write!(
+                f,
+                "housemate_name_max_chars is {value}; must be from 1 to 256, so \
+                 a name is never empty and always fits a save"
+            ),
+            ContentError::HousemateTraitLimitIsZero => write!(
+                f,
+                "housemate_max_traits is 0; a new housemate must be able to \
+                 wear at least one trait"
+            ),
+            ContentError::DaylightShadeOutOfRange { value } => write!(
+                f,
+                "interior_daylight_shade is {value}; must be in [0, 0.5], so a \
+                 room the sky cannot reach keeps at least half the day's light"
+            ),
+            ContentError::EmptyCoveringName => write!(
+                f,
+                "a floor covering in lot.toml has no name; the Floors tool                  shows the name on its button"
+            ),
+            ContentError::DuplicateCoveringName { name } => write!(
+                f,
+                "two floor coverings are both named {name}; a player choosing                  one could not tell which floor they were choosing"
+            ),
+            ContentError::DaylightReachOutOfRange { value } => write!(
+                f,
+                "daylight_reach_per_tile is {value}; must be in (0, 1], so the \
+                 sky fades indoors and still reaches through a doorway"
+            ),
+            ContentError::LookOutOfRange { look, field } => write!(
+                f,
+                "lot.toml's {look} has a {field} outside its range: hue -180 \
+                 to 180, strength 0 to 2, lightness -0.25 to 0.25"
+            ),
+            ContentError::FrontDoorNotOutside { x, y } => write!(
+                f,
+                "the animated front door at ({x}, {y}) is on no edge of the lot, \
+                 so it must stand on the house's outside wall, facing SE across \
+                 a doorway onto a yard tile"
             ),
         }
     }

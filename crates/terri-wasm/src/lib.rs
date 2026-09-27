@@ -127,7 +127,127 @@ fn placement_arguments(
     ))
 }
 
+/// A room from hostile JavaScript numbers, or `None` - [RT-boundary]. Four
+/// corner numbers, and a doorway of three (axis, x, y) or none at all.
+fn room_edit_arguments(
+    corners: &[f64],
+    doorway: &[f64],
+) -> Option<terri_sim::placement::rooms::RoomEdit> {
+    let [x0, y0, x1, y1] = corners else {
+        return None;
+    };
+    let doorway = match doorway {
+        [] => None,
+        [axis, x, y] => Some(terri_core::layout::WallLine {
+            axis: u8::try_from(placement_u32(*axis)?)
+                .ok()
+                .and_then(terri_core::layout::EdgeAxis::from_code)?,
+            x: placement_u32(*x)?,
+            y: placement_u32(*y)?,
+        }),
+        _ => return None,
+    };
+    Some(terri_sim::placement::rooms::RoomEdit {
+        x0: placement_u32(*x0)?,
+        y0: placement_u32(*y0)?,
+        x1: placement_u32(*x1)?,
+        y1: placement_u32(*y1)?,
+        doorway,
+    })
+}
+
+/// The directions an object has art for, given its `supports`: bit `n` for
+/// facing code `n`.
+fn facing_mask(supports: impl Fn(terri_core::Facing) -> bool) -> u32 {
+    terri_core::Facing::ALL
+        .into_iter()
+        .filter(|&f| supports(f))
+        .map(|f| 1u32 << f.code())
+        .sum()
+}
+
+/// A wall edit from hostile JavaScript numbers, or `None` - [WT-boundary].
+fn wall_edit_arguments(
+    axis: f64,
+    x: f64,
+    y: f64,
+    state: f64,
+) -> Option<terri_sim::placement::walls::WallEdit> {
+    use terri_core::layout::{EdgeAxis, WallState};
+    let axis = u8::try_from(placement_u32(axis)?)
+        .ok()
+        .and_then(EdgeAxis::from_code)?;
+    let state = u8::try_from(placement_u32(state)?)
+        .ok()
+        .and_then(WallState::from_code)?;
+    Some(terri_sim::placement::walls::WallEdit {
+        axis,
+        x: placement_u32(x)?,
+        y: placement_u32(y)?,
+        state,
+    })
+}
+
+/// A floor edit's arguments, or `None` when the numbers are not a tile and a
+/// covering at all - [FL-command]. Hostile input is refused here rather than
+/// rounded into something the simulation would accept.
+fn floor_edit_arguments(
+    x: f64,
+    y: f64,
+    covering: f64,
+) -> Option<terri_sim::placement::floors::FloorEdit> {
+    let covering = u8::try_from(placement_u32(covering)?).ok()?;
+    Some(terri_sim::placement::floors::FloorEdit {
+        x: placement_u32(x)?,
+        y: placement_u32(y)?,
+        covering,
+    })
+}
+
 /// Decode frozen V1, including only the historical missing sleep-pressure list.
+/// Decodes a V5 payload, including one written before the lists appended to
+/// it existed - [FL-save] and [FM-save].
+///
+/// The same trick `decode_save_payload` uses for the sleep-pressure list, and
+/// for the same reason: postcard writes a struct's fields back to back, so an
+/// older payload is a prefix of a newer one and one zero byte is each empty
+/// list it lacks. One pad per appended list, and a padded decode is accepted
+/// only when every list the padding could have filled comes back empty, so
+/// padding can never invent a floor nobody laid or a family nobody has.
+///
+/// Only a payload that ran OUT of bytes is padded. Any other failure means
+/// the bytes decoded into something else and stopped making sense, and
+/// padding such a payload rescues a corrupt save: a name whose length byte
+/// grew by one eats a terminator, and the pad puts one back. Review finding
+/// [F2] on PR 128 reproduced exactly that.
+fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
+    /// The lists appended to V5 since it shipped, so an older payload is
+    /// this many zero bytes short of a current one.
+    const APPENDED_LISTS: usize = 2;
+    let mut padded = payload.to_vec();
+    for pad in 0..=APPENDED_LISTS {
+        match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
+            Ok((snapshot, [])) => {
+                // Only the lists the padding could have filled must come
+                // back empty, and that is the LAST `pad` of them. One pad
+                // fills the family list alone, so a save written before
+                // ties existed keeps the floors its player painted. Asking
+                // every appended list to be empty at every pad level is how
+                // review finding [F1] on PR 131 refused those saves.
+                let invented = match pad {
+                    0 => 0,
+                    1 => snapshot.family.ties().len(),
+                    _ => snapshot.family.ties().len() + snapshot.floors.tiles().len(),
+                };
+                return (invented == 0).then_some(snapshot);
+            }
+            Err(postcard::Error::DeserializeUnexpectedEnd) => padded.push(0),
+            _ => return None,
+        }
+    }
+    None
+}
+
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
     match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
         Ok((snapshot, rest)) => rest.is_empty().then_some(snapshot),
@@ -187,6 +307,47 @@ impl SimHandle {
         self.sim.world().resource::<TileGrid>().height()
     }
 
+    /// `[width, height]` of the house, from the lot's north-west corner; every
+    /// other tile of the lot is yard - [OS-yard] in
+    /// `docs/specs/2026-09-22-the-outside.md`. The view opens framed on it.
+    pub fn house_size(&self) -> Vec<u32> {
+        let (width, height) = self.sim.world().resource::<Content>().0.lot.house;
+        vec![width, height]
+    }
+
+    /// The street's column, the lot's last one across the yard from the front
+    /// door where commutes end, or -1 when the door has no yard beyond it -
+    /// [OS-street] in `docs/specs/2026-09-22-the-outside.md`.
+    pub fn street_column(&self) -> i32 {
+        let content = self.sim.world().resource::<Content>().0;
+        let width = self.sim.world().resource::<TileGrid>().width() as u32;
+        terri_sim::portals::street_exit(content, width).map_or(-1, |(x, _)| x as i32)
+    }
+
+    /// `[hue, strength, lightness]` a street tile's floor art is drawn under -
+    /// [OS-street].
+    pub fn street_look(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .lot
+            .street_look
+            .to_vec()
+    }
+
+    /// `[hue, strength, lightness]` a yard tile's floor art is drawn under, as
+    /// a colourway's - [OS-yard].
+    pub fn yard_look(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .lot
+            .yard_look
+            .to_vec()
+    }
+
     /// Current fixed-step simulation tick. The shell uses this for day-based
     /// autosave scheduling; it is simulation time, never wall-clock time.
     pub fn sim_tick(&self) -> u64 {
@@ -210,26 +371,43 @@ impl SimHandle {
         let walls = match self.sim.world().resource::<SavedLayout>() {
             SavedLayout::LegacyAuthoredV1 => LEGACY_WALL_TILES.as_slice(),
             SavedLayout::LegacyCells { walls } => walls.as_slice(),
-            SavedLayout::EdgeWallsV1 { .. } => &[],
+            SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. } => &[],
         };
         walls.iter().flat_map(|&(x, y)| [x, y]).collect()
     }
 
+    /// Three words per window: axis (0 vertical, 1 horizontal), x, y
+    /// ([WN-state] in `docs/specs/2026-09-22-windows.md`). Separate from
+    /// `wall_edges` rather than a fourth state in its fourth word, so a
+    /// reader that has never heard of windows cannot mistake one for a
+    /// doorway and walk a sim through it.
+    pub fn window_lines(&self) -> Vec<u32> {
+        use terri_core::layout::{EdgeAxis, SavedLayout};
+        self.sim
+            .world()
+            .resource::<SavedLayout>()
+            .windows()
+            .iter()
+            .flat_map(|line| [u32::from(line.axis == EdgeAxis::Horizontal), line.x, line.y])
+            .collect()
+    }
+
     /// 0 uses legacy wall cells; 1 uses explicit edges, including an empty set.
     pub fn wall_layout_kind(&self) -> u32 {
-        u32::from(matches!(
+        u32::from(
             self.sim
                 .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ))
+                .resource::<terri_core::layout::SavedLayout>()
+                .has_edges(),
+        )
     }
 
     /// Four words per segment: axis (0 vertical, 1 horizontal), x, y, doorway.
     pub fn wall_edges(&self) -> Vec<u32> {
         use terri_core::layout::{EdgeAxis, SavedLayout};
         match self.sim.world().resource::<SavedLayout>() {
-            SavedLayout::EdgeWallsV1 { edges } => edges
+            layout if layout.has_edges() => layout
+                .edges()
                 .iter()
                 .flat_map(|edge| {
                     [
@@ -319,11 +497,640 @@ impl SimHandle {
         placement_u32(object)
             .and_then(|id| terri_sim::placement::object_definition(self.sim.world(), id))
             .map_or(0, |(_, definition, _)| {
-                terri_core::Facing::ALL
-                    .into_iter()
-                    .filter(|&f| definition.supports(f))
-                    .map(|f| 1u32 << f.code())
-                    .sum()
+                facing_mask(|f| definition.supports(f))
+            })
+    }
+
+    /// The refusal code this wall edit would get, or zero when it would be
+    /// applied - [WT-boundary]. Never writes. Axis 0 is vertical and 1
+    /// horizontal, as `wall_edges` numbers them; state 0 is open, 1 a wall,
+    /// 2 a doorway and 3 a window ([WN-state]). Anything else is
+    /// `InvalidInput`.
+    pub fn wall_edit_preview(&self, axis: f64, x: f64, y: f64, state: f64) -> u32 {
+        use terri_sim::placement::{walls::validate_wall_edit, PlacementRefusal};
+        let Some(edit) = wall_edit_arguments(axis, x, y, state) else {
+            return PlacementRefusal::InvalidInput as u32;
+        };
+        validate_wall_edit(self.sim.world(), edit)
+            .err()
+            .map_or(0, |reason| reason as u32)
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain,
+    /// from `last_wall_edit_result`.
+    pub fn set_wall_edge(&mut self, axis: f64, x: f64, y: f64, state: f64) -> bool {
+        let Some(edit) = wall_edit_arguments(axis, x, y, state) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetWallEdge {
+            axis: edit.axis,
+            x: edit.x,
+            y: edit.y,
+            state: edit.state,
+        })
+        .expect("a wall edit serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[axis, x, y, state, refusal]` of the last wall edit a drain handled,
+    /// refusal zero when it was applied; empty before the first.
+    pub fn last_wall_edit_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_wall_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    u32::from(result.edit.axis.code()),
+                    result.edit.x,
+                    result.edit.y,
+                    u32::from(result.edit.state.code()),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
+            })
+    }
+
+    /// The floor coverings the player may choose, in content order -
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`. A covering's id is
+    /// its place here counted from 1; 0 is no covering at all.
+    pub fn covering_names(&self) -> Vec<String> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .coverings
+            .iter()
+            .map(|covering| covering.name.clone())
+            .collect()
+    }
+
+    /// Three words per family tie: the lower entity index, the higher, and
+    /// the relation the lower one is to the higher - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Sorted, and empty for a household
+    /// of strangers.
+    pub fn family_ties(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .get_resource::<terri_core::layout::FamilyTies>()
+            .map_or_else(Vec::new, |family| {
+                family
+                    .ties()
+                    .iter()
+                    .flat_map(|&(low, high, relation)| [low, high, u32::from(relation)])
+                    .collect()
+            })
+    }
+
+    /// Stages recording that the sim at entity index `who` is `relation` to
+    /// the sim at index `to`, with 4 for no relation at all - [FM-tie].
+    /// False when the numbers are not two indices and a relation.
+    pub fn set_family_tie(&mut self, who: f64, to: f64, relation: f64) -> bool {
+        let code = placement_u32(relation).and_then(|code| u8::try_from(code).ok());
+        let (Some(who), Some(to), Some(code)) = (placement_u32(who), placement_u32(to), code)
+        else {
+            return false;
+        };
+        // 4 is "no relation": one past the relations there are, so the wire
+        // grows by appending a relation rather than by moving this.
+        let relation = match code {
+            4 => None,
+            code => match terri_core::layout::Relation::from_code(code) {
+                Some(relation) => Some(relation),
+                None => return false,
+            },
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetFamilyTie { who, to, relation })
+            .expect("a family tie serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[who, to, relation, refusal]` of the last tie a drain handled, the
+    /// relation 4 for none and the refusal zero when it was applied; empty
+    /// before the first.
+    pub fn last_family_tie_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_family_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.who,
+                    result.to,
+                    result
+                        .relation
+                        .map_or(4, |relation| u32::from(relation.code())),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
+            })
+    }
+
+    /// Each covering's colour shift, three numbers each in content order -
+    /// [FL-draw]. The renderer appends them to the shift table the yard and
+    /// the street already use, so a painted tile writes a row of it.
+    pub fn covering_looks(&self) -> Vec<f32> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .coverings
+            .iter()
+            .flat_map(|covering| covering.look)
+            .collect()
+    }
+
+    /// Three words per painted tile: x, y, covering - [FL-save]. Sorted by
+    /// tile, and empty for a house nobody has painted.
+    pub fn floor_tiles(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .get_resource::<terri_core::layout::SavedFloors>()
+            .map_or_else(Vec::new, |floors| {
+                floors
+                    .tiles()
+                    .iter()
+                    .flat_map(|&(x, y, covering)| [x, y, u32::from(covering)])
+                    .collect()
+            })
+    }
+
+    /// The refusal code laying this covering would get, or zero when it
+    /// would be applied - [FL-command]. Never writes.
+    pub fn floor_edit_preview(&self, x: f64, y: f64, covering: f64) -> u32 {
+        use terri_sim::placement::{floors::validate_floor_edit, PlacementRefusal};
+        let Some(edit) = floor_edit_arguments(x, y, covering) else {
+            return PlacementRefusal::InvalidInput as u32;
+        };
+        validate_floor_edit(self.sim.world(), edit)
+            .err()
+            .map_or(0, |r| r as u32)
+    }
+
+    /// Stages laying `covering` on the tile at (x, y), 0 to take one away.
+    /// False when the numbers are not a tile and a covering at all.
+    pub fn set_floor(&mut self, x: f64, y: f64, covering: f64) -> bool {
+        let Some(edit) = floor_edit_arguments(x, y, covering) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetFloor {
+            x: edit.x,
+            y: edit.y,
+            covering: edit.covering,
+        })
+        .expect("a floor edit serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[x, y, covering, refusal]` of the last floor change a drain handled,
+    /// refusal zero when it was applied; empty before the first.
+    pub fn last_floor_edit_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_floor_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.edit.x,
+                    result.edit.y,
+                    u32::from(result.edit.covering),
+                    result.reason.map_or(0, |r| r as u32),
+                ]
+            })
+    }
+
+    /// Every object for sale - [BM-shell]: four words each, the pack object
+    /// index, the price, the mask of directions it has art for (bit `n` for
+    /// facing code `n`) and its base direction. In pack order; the shell
+    /// decides how to list them. Names come from `catalogue_names`.
+    pub fn catalogue(&self) -> Vec<u32> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .catalogue()
+            .flat_map(|(id, object, price)| {
+                [
+                    id.0,
+                    price,
+                    facing_mask(|f| object.supports(f)),
+                    u32::from(object.base_facing.code()),
+                ]
+            })
+            .collect()
+    }
+
+    /// The display name of each object `catalogue` lists, in the same order.
+    pub fn catalogue_names(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .catalogue()
+            .map(|(_, object, _)| object.display_name().to_string())
+            .collect()
+    }
+
+    /// Model name and description pairs, in the same order as `catalogue`.
+    pub fn catalogue_details(&self) -> Vec<String> {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .catalogue()
+            .flat_map(|(_, object, _)| {
+                object
+                    .presentation
+                    .as_ref()
+                    .map_or([String::new(), String::new()], |text| {
+                        [object.name.clone(), text.description.clone()]
+                    })
+            })
+            .collect()
+    }
+
+    /// What each object `catalogue` lists is good for, in the same order: bit
+    /// `i` is set for need index `i`, the order of `need_names` - [CB-serves].
+    pub fn catalogue_needs(&self) -> Vec<u32> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .catalogue()
+            .map(|(id, _, _)| content.needs_served(id))
+            .collect()
+    }
+
+    /// The purchase preview - [BM-shell]: the same eight numbers as
+    /// `placement_preview`, for an object not yet on the lot. `definition` is
+    /// a pack object index from `catalogue`. Never writes.
+    pub fn purchase_preview(&self, definition: f64, x: f64, y: f64, facing: f64) -> Vec<f64> {
+        use terri_sim::placement::purchase::{for_sale, validate_purchase, Purchase};
+        use terri_sim::placement::PlacementRefusal;
+        let mut out = vec![
+            PlacementRefusal::InvalidInput as u32 as f64,
+            x,
+            y,
+            facing,
+            0.0,
+            0.0,
+            0.0,
+            -1.0,
+        ];
+        let Some((definition, x, y, direction)) = placement_arguments(definition, x, y, facing)
+        else {
+            return out;
+        };
+        if let Some((object, _)) = for_sale(self.sim.world(), definition) {
+            let footprint = object.footprint_at(direction);
+            out[4] = footprint.width as f64;
+            out[5] = footprint.depth as f64;
+            out[6] = object
+                .facing_sprites
+                .get(direction)
+                .unwrap_or(object.sprite) as f64;
+            out[7] = object
+                .facing_foreground_sprites
+                .get(direction)
+                .map_or(-1.0, |s| s as f64);
+        }
+        out[0] = validate_purchase(
+            self.sim.world(),
+            Purchase {
+                definition,
+                x,
+                y,
+                facing: direction,
+            },
+        )
+        .err()
+        .map_or(0.0, |reason| reason as u32 as f64);
+        out
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain,
+    /// from `last_purchase_result`.
+    pub fn buy_object(&mut self, definition: f64, x: f64, y: f64, facing: f64) -> bool {
+        let Some((definition, x, y, facing)) = placement_arguments(definition, x, y, facing) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::BuyObject {
+            definition,
+            x,
+            y,
+            facing,
+        })
+        .expect("a purchase serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[definition, x, y, facing, refusal, object]` of the last purchase a
+    /// drain handled: refusal zero when it was bought, and `object` the new
+    /// object's entity index, or `u32::MAX` when nothing was bought. Empty
+    /// before the first.
+    pub fn last_purchase_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_purchase_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.purchase.definition,
+                    result.purchase.x,
+                    result.purchase.y,
+                    u32::from(result.purchase.facing.code()),
+                    result.reason.map_or(0, |r| r as u32),
+                    result.object.unwrap_or(u32::MAX),
+                ]
+            })
+    }
+
+    /// Stages a new housemate named `name`, with pack personality
+    /// `personality` and pack traits `traits`, moving in - [CS-command] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. Queue acceptance only;
+    /// `last_housemate_result` reports what the drain did. An index that is
+    /// not a whole number is refused here, and so is a name or a trait
+    /// list past the tuned limits: the drain would refuse it anyway, and a
+    /// staged command that long could be saved and then refused by the
+    /// loader's size checks.
+    pub fn add_housemate(&mut self, name: &str, personality: f64, traits: &[f64]) -> bool {
+        let Some(personality) = placement_u32(personality) else {
+            return false;
+        };
+        let Some(traits) = traits
+            .iter()
+            .map(|&index| placement_u32(index))
+            .collect::<Option<Vec<u32>>>()
+        else {
+            return false;
+        };
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+            || traits.len() > tuning.housemate_max_traits as usize
+        {
+            return false;
+        }
+        let bytes = postcard::to_allocvec(&SimCommand::AddHousemate {
+            name: name.to_string(),
+            personality,
+            traits,
+        })
+        .expect("a move-in serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[refusal, sim, handled]` of the last move-in a drain handled -
+    /// [CS-command]: refusal zero when the housemate moved in, `sim` the
+    /// newcomer's entity index or `u32::MAX` when nobody did, and how many
+    /// move-ins this world has handled. Empty before the first.
+    pub fn last_housemate_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_housemate_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.reason.map_or(0, |r| r as u32),
+                    result.sim.unwrap_or(u32::MAX),
+                    result.handled,
+                ]
+            })
+    }
+
+    /// The name of each pack personality, in pack order, as the New
+    /// housemate form lists them - [CS-command].
+    pub fn personality_labels(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .personalities
+            .iter()
+            .map(|personality| terri_sim::household::personality_label(&personality.id))
+            .collect()
+    }
+
+    /// What each pack personality is like, aligned with
+    /// `personality_labels` - [CS-personality].
+    pub fn personality_descriptions(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .personalities
+            .iter()
+            .map(|personality| personality.description.clone())
+            .collect()
+    }
+
+    /// How many people the household has, and the most it may have -
+    /// [CS-command]: `[size, most]`.
+    pub fn household_size(&self) -> Vec<u32> {
+        vec![
+            terri_sim::household::household_size(self.sim.world()) as u32,
+            terri_sim::household::MAX_HOUSEHOLD_SIZE as u32,
+        ]
+    }
+
+    /// How the sky lights the house - [OS-daylight] in
+    /// `docs/specs/2026-09-22-the-outside.md`: `[interior shade at noon,
+    /// exposure lost per tile]`, from the tuning file.
+    pub fn daylight_tuning(&self) -> Vec<f32> {
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        vec![
+            tuning.interior_daylight_shade,
+            tuning.daylight_reach_per_tile,
+        ]
+    }
+
+    /// The most characters a new housemate's name may have, and the most
+    /// traits - [CS-command]: `[name_chars, traits]`, from the tuning file.
+    pub fn housemate_limits(&self) -> Vec<u32> {
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        vec![tuning.housemate_name_max_chars, tuning.housemate_max_traits]
+    }
+
+    /// `[refusal, payout]` for selling the object carrying entity index
+    /// `object` - [SL-shell] in `docs/specs/2026-09-22-selling-furniture.md`:
+    /// the refusal code, zero when it would sell, and what the sale would pay
+    /// back, zero when it would not. Never writes. An index that is not a
+    /// whole number is `InvalidInput`.
+    pub fn sale_preview(&self, object: f64) -> Vec<u32> {
+        use terri_sim::placement::sale::validate_sale;
+        use terri_sim::placement::PlacementRefusal;
+        let Some(object) = placement_u32(object) else {
+            return vec![PlacementRefusal::InvalidInput as u32, 0];
+        };
+        match validate_sale(self.sim.world(), object) {
+            Ok(plan) => vec![0, plan.payout],
+            Err(reason) => vec![reason as u32, 0],
+        }
+    }
+
+    /// Stages the sale of the object carrying entity index `object`
+    /// ([SL-command]). Queue acceptance only; `last_sale_result` reports what
+    /// the drain did.
+    pub fn sell_object(&mut self, object: f64) -> bool {
+        let Some(object) = placement_u32(object) else {
+            return false;
+        };
+        let bytes =
+            postcard::to_allocvec(&SimCommand::SellObject { object }).expect("a sale serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[object, refusal, payout]` of the last sale a drain handled: refusal
+    /// zero and the amount paid when it sold, or the refusal code and zero.
+    /// Empty before any sale.
+    pub fn last_sale_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_sale_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.object,
+                    result.reason.map_or(0, |r| r as u32),
+                    result.payout.unwrap_or(0),
+                ]
+            })
+    }
+
+    /// The colourway names, in content order - [RC-ui] in
+    /// `docs/specs/2026-09-22-colourways.md`. The first is the art as drawn;
+    /// a colourway's index here is the number a command and the render
+    /// buffer carry.
+    pub fn colourway_names(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content.colourways.iter().map(|c| c.name.clone()).collect()
+    }
+
+    /// `[hue, strength, lightness]` for each colourway, in content order and
+    /// flattened - [RC-shift]: the shift the shader applies.
+    pub fn colourway_shifts(&self) -> Vec<f32> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .colourways
+            .iter()
+            .flat_map(|c| [c.hue, c.strength, c.lightness])
+            .collect()
+    }
+
+    /// The colourway the placed object carrying entity index `object` is
+    /// drawn in, or `u32::MAX` when no placed object carries that index or it
+    /// is not a whole number. Never writes.
+    pub fn object_colourway(&self, object: f64) -> u32 {
+        let world = self.sim.world();
+        placement_u32(object)
+            .and_then(|object| terri_sim::placement::object_definition(world, object))
+            .map_or(u32::MAX, |(entity, _, _)| {
+                world
+                    .get::<terri_core::Colourway>(entity)
+                    .map_or(0, |colourway| colourway.0)
+            })
+    }
+
+    /// Stages drawing the object carrying entity index `object` in colourway
+    /// `colourway` ([RC-command]). Queue acceptance only;
+    /// `last_colourway_result` reports what the drain did.
+    pub fn set_colourway(&mut self, object: f64, colourway: f64) -> bool {
+        let (Some(object), Some(colourway)) = (placement_u32(object), placement_u32(colourway))
+        else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetColourway { object, colourway })
+            .expect("a colourway change serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[object, refusal, colourway]` of the last colourway change a drain
+    /// handled: refusal zero when it applied. Empty before any.
+    pub fn last_colourway_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_colourway_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.object,
+                    result.reason.map_or(0, |r| r as u32),
+                    result.colourway,
+                ]
+            })
+    }
+
+    /// Stages buying object definition `definition` at tile (x, y) facing
+    /// `facing` in colourway `colourway` ([RC-slice-buy]). Queue acceptance
+    /// only; `last_purchase_result` reports what the drain did.
+    pub fn buy_object_in_colourway(
+        &mut self,
+        definition: f64,
+        x: f64,
+        y: f64,
+        facing: f64,
+        colourway: f64,
+    ) -> bool {
+        let (Some((definition, x, y, facing)), Some(colourway)) = (
+            placement_arguments(definition, x, y, facing),
+            placement_u32(colourway),
+        ) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::BuyObjectInColourway {
+            definition,
+            x,
+            y,
+            facing,
+            colourway,
+        })
+        .expect("a purchase in a colourway serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[refusal, changes]` for this room - [RT-boundary]: the refusal code,
+    /// zero when it would be built, and 1 when building it would change the
+    /// house, 0 when its outline already stands exactly. Never writes.
+    /// `corners` is two opposite corner tiles, `[x0, y0, x1, y1]`; `doorway` is
+    /// `[axis, x, y]` for one line of the outline, axis numbered as
+    /// `wall_edges` numbers it, or empty for none. Anything else is
+    /// `InvalidInput`, which changes nothing.
+    pub fn room_edit_preview(&self, corners: &[f64], doorway: &[f64]) -> Vec<u32> {
+        use terri_sim::placement::{rooms::validate_room, PlacementRefusal};
+        let Some(edit) = room_edit_arguments(corners, doorway) else {
+            return vec![PlacementRefusal::InvalidInput as u32, 0];
+        };
+        match validate_room(self.sim.world(), edit) {
+            Ok(plan) => vec![0, u32::from(plan.changed)],
+            Err(reason) => vec![reason as u32, 0],
+        }
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain,
+    /// from `last_room_result`.
+    pub fn build_room(&mut self, corners: &[f64], doorway: &[f64]) -> bool {
+        let Some(edit) = room_edit_arguments(corners, doorway) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::BuildRoom {
+            x0: edit.x0,
+            y0: edit.y0,
+            x1: edit.x1,
+            y1: edit.y1,
+            doorway: edit.doorway,
+        })
+        .expect("a room serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[x0, y0, x1, y1, refusal]` of the last room a drain handled, then the
+    /// doorway's `[axis, x, y]` when it had one; refusal zero when it was
+    /// built. Empty before the first.
+    pub fn last_room_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_room_result
+            .map_or_else(Vec::new, |result| {
+                let edit = result.edit;
+                let mut words = vec![
+                    edit.x0,
+                    edit.y0,
+                    edit.x1,
+                    edit.y1,
+                    result.reason.map_or(0, |r| r as u32),
+                ];
+                if let Some(line) = edit.doorway {
+                    words.extend([u32::from(line.axis.code()), line.x, line.y]);
+                }
+                words
             })
     }
 
@@ -375,16 +1182,19 @@ impl SimHandle {
         let x = sanitize_coord(x);
         let y = sanitize_coord(y);
         let hunger = sanitize_hunger(hunger);
-        if matches!(
-            self.sim
-                .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ) && !self
+        // Every edge layout, not one named version: a glazed house is still
+        // an edge house, and naming the version let review finding [F4] on
+        // PR 126 spawn a sim on a blocked tile once a window existed.
+        if self
             .sim
             .world()
-            .resource::<TileGrid>()
-            .is_walkable(x.round() as i32, y.round() as i32)
+            .resource::<terri_core::layout::SavedLayout>()
+            .has_edges()
+            && !self
+                .sim
+                .world()
+                .resource::<TileGrid>()
+                .is_walkable(x.round() as i32, y.round() as i32)
         {
             return;
         }
@@ -435,12 +1245,12 @@ impl SimHandle {
         let Some(def) = self.sim.world().resource::<Content>().0.find(content_id) else {
             return false;
         };
-        if matches!(
-            self.sim
-                .world()
-                .resource::<terri_core::layout::SavedLayout>(),
-            terri_core::layout::SavedLayout::EdgeWallsV1 { .. }
-        ) {
+        if self
+            .sim
+            .world()
+            .resource::<terri_core::layout::SavedLayout>()
+            .has_edges()
+        {
             let footprint = self
                 .sim
                 .world()
@@ -536,6 +1346,33 @@ impl SimHandle {
         self.sim.render_buffer().foreground_sprites.as_ptr()
     }
 
+    /// Each row's colourway, 0 for the art as drawn ([RC-render]). Re-read
+    /// after every sync or memory growth.
+    pub fn colourways_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().colourways.as_ptr()
+    }
+
+    /// The doorway lines that hold an interior door ([DR-derived]), as
+    /// `[x, y]` pairs of vertical lines, sorted. The renderer draws these as
+    /// portal rows, so the shell leaves out their empty doorway panels.
+    pub fn interior_door_lines(&self) -> Vec<u32> {
+        terri_sim::portals::interior_door_lines(self.sim.world())
+            .into_iter()
+            .flat_map(|(x, y)| [x, y])
+            .collect()
+    }
+
+    /// The front door's line, as an `[x, y]` pair, or empty on a lot with no
+    /// front door - [WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`.
+    /// The door draws its own frame there, so when the Walls tool shows the
+    /// house's front walls the shell leaves out that line's doorway panel.
+    pub fn front_door_lines(&self) -> Vec<u32> {
+        terri_sim::portals::front_door_lines(self.sim.world())
+            .into_iter()
+            .flat_map(|(x, y)| [x, y])
+            .collect()
+    }
+
     /// Portals have no entity IDs and cannot become interaction targets.
     pub fn portal_count(&self) -> usize {
         self.sim.portal_buffer().states.len()
@@ -563,6 +1400,12 @@ impl SimHandle {
 
     pub fn portal_states_ptr(&self) -> *const u32 {
         self.sim.portal_buffer().states.as_ptr()
+    }
+
+    /// The tile across each portal row's line, `[x, y]` pairs, which the
+    /// renderer lights the row from as well as its own tile.
+    pub fn portal_far_sides_ptr(&self) -> *const f32 {
+        self.sim.portal_buffer().far_sides.as_ptr()
     }
 
     /// What each row is doing, as `render_buffer::activity` codes -
@@ -692,7 +1535,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the seven `SimCommand`
+    /// - **an unknown variant index** - a byte past the fifteen `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -761,7 +1604,7 @@ impl SimHandle {
     /// interpret a shape it does not understand.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v3()).expect("SaveSnapshotV3 serialises");
+            postcard::to_allocvec(&self.sim.save_snapshot_v5()).expect("SaveSnapshotV5 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -784,6 +1627,18 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 5 {
+            return match decode_v5(payload) {
+                Some(snapshot) => self.sim.load_snapshot_v5(snapshot).is_ok(),
+                None => false,
+            };
+        }
+        if version == 4 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV4>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v4(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 3 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV3>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v3(snapshot).is_ok(),
@@ -890,6 +1745,17 @@ impl SimHandle {
             .collect()
     }
 
+    /// One plain sentence per pack trait, aligned with `trait_labels` -
+    /// what the Traits panel prints under each label ([TL-panel]). Read
+    /// once at startup, like the labels.
+    pub fn trait_descriptions(&self) -> Vec<String> {
+        self.sim
+            .trait_descriptions()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
     /// The kind of each pack trait - "disposition", "capability" or
     /// "condition" - aligned with `trait_labels`, so the overlay can
     /// word a level and a severity differently.
@@ -917,6 +1783,19 @@ impl SimHandle {
         self.sim
             .object_name_of(entity_index)
             .map(str::to_string)
+            .unwrap_or_default()
+    }
+
+    /// Model name and description; empty for objects without authored detail.
+    pub fn object_details_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .object_definition_of(entity_index)
+            .and_then(|object| {
+                object
+                    .presentation
+                    .as_ref()
+                    .map(|text| vec![object.name.clone(), text.description.clone()])
+            })
             .unwrap_or_default()
     }
 
@@ -1172,6 +2051,8 @@ mod boundary_tests {
         let current = SimHandle::from_lot();
         let pack = current.sim.world().resource::<Content>().0;
         let mut lot = pack.lot.clone();
+        // The cell-wall house stood on the lot before the yard ([OS-grow]).
+        (lot.width, lot.height) = lot.house;
         lot.wall_edges.clear();
         lot.walls = LEGACY_WALLS.to_vec();
         let mut sim = Sim::new_from_lot(&lot, &pack.objects);
@@ -1184,6 +2065,73 @@ mod boundary_tests {
             snapshot.blocked_tiles[y as usize * snapshot.grid_width as usize + x as usize] =
                 blocked;
         }
+    }
+
+    /// The shipped lot's size, its house's size, and its walls outside the
+    /// house ([OS-grow]), read through the simulation's content.
+    #[allow(clippy::type_complexity)]
+    fn shipped_lot() -> ((u32, u32), (u32, u32), Vec<terri_core::layout::WallEdge>) {
+        let handle = SimHandle::from_lot();
+        let lot = &handle.sim.world().resource::<Content>().0.lot;
+        let (width, height) = lot.house;
+        let outside = lot
+            .wall_edges
+            .iter()
+            .filter(|edge| !edge.in_bounds(width, height))
+            .copied()
+            .collect();
+        ((lot.width, lot.height), lot.house, outside)
+    }
+
+    /// `snapshot`, a save of the current lot, as it would have been written on
+    /// the lot before the yard ([OS-grow]): the grid cut back to the house.
+    /// Every save carrying a fingerprint from before the yard was made on
+    /// that lot, so a fixture stamped with one is cut back first.
+    fn before_the_yard(snapshot: &mut terri_core::SaveSnapshotV1) {
+        let (_, (width, height), _) = shipped_lot();
+        let stride = snapshot.grid_width as usize;
+        let cut: Vec<bool> = (0..height as usize)
+            .flat_map(|y| (0..width as usize).map(move |x| y * stride + x))
+            .map(|index| snapshot.blocked_tiles[index])
+            .collect();
+        snapshot.blocked_tiles = cut;
+        snapshot.grid_width = width;
+        snapshot.grid_height = height;
+    }
+
+    /// The house's part of a save that grew into the yard on Load
+    /// ([OS-migrate]), for comparing with the save that was loaded. It checks
+    /// first that the save did grow, and that the yard it grew into is open
+    /// ground.
+    fn house_part(mut snapshot: terri_core::SaveSnapshotV1) -> terri_core::SaveSnapshotV1 {
+        let ((width, height), house, _) = shipped_lot();
+        assert_eq!(
+            (snapshot.grid_width, snapshot.grid_height),
+            (width, height),
+            "the house grew into the yard"
+        );
+        for (index, &blocked) in snapshot.blocked_tiles.iter().enumerate() {
+            let (x, y) = (index as u32 % width, index as u32 / width);
+            if x >= house.0 || y >= house.1 {
+                assert!(!blocked, "yard tile ({x}, {y}) is open ground");
+            }
+        }
+        before_the_yard(&mut snapshot);
+        snapshot
+    }
+
+    /// `layout` followed by the content's walls outside the house, as a
+    /// house that grew into the yard on Load has them ([OS-migrate]).
+    fn grown_layout(layout: &terri_core::layout::SavedLayout) -> terri_core::layout::SavedLayout {
+        assert!(
+            layout.has_edges(),
+            "only an edge-wall house grows: {layout:?}"
+        );
+        let (_, _, outside) = shipped_lot();
+        terri_core::layout::SavedLayout::from_parts(
+            layout.edges().iter().copied().chain(outside).collect(),
+            layout.windows().to_vec(),
+        )
     }
 
     /// Hunger levels as the ECS actually stored them.
@@ -1277,9 +2225,9 @@ mod boundary_tests {
         // And it is the same game, not merely a game.
         let mut expected = original.sim.save_snapshot();
         set_legacy_walls(&mut expected, false);
-        assert_eq!(resumed.sim.save_snapshot(), expected);
+        assert_eq!(house_part(resumed.sim.save_snapshot()), expected);
         assert_eq!(resumed.wall_layout_kind(), 1);
-        assert_eq!(resumed.wall_edges().len(), 34 * 4);
+        assert_eq!(resumed.wall_edges().len(), (34 + 28) * 4);
 
         // The retry must not turn genuine corruption into a load. Two
         // bytes short is not a shape any version ever wrote.
@@ -1332,8 +2280,9 @@ mod boundary_tests {
         assert_eq!(handle.wall_layout_kind(), 1);
         let before = handle.save_bytes();
         let count = handle.entity_count();
-        // The fridge occupies (0,0); the other candidates are outside the lot.
-        for (x, y) in [(0.0, 0.0), (-100.0, 1.0), (16.0, 12.0)] {
+        // The fridge occupies (0,0); the other candidates are outside the lot,
+        // which reaches (19, 15) with its yard ([OS-grow]).
+        for (x, y) in [(0.0, 0.0), (-100.0, 1.0), (20.0, 16.0)] {
             handle.spawn_agent(x, y, 50.0);
             assert_eq!(handle.entity_count(), count);
             assert_eq!(handle.save_bytes(), before);
@@ -1370,6 +2319,7 @@ mod boundary_tests {
     #[test]
     fn rotated_bathtub_loads_public_v1_bytes_and_resaves_idempotently() {
         let mut old = SimHandle::from_lot().sim.save_snapshot();
+        before_the_yard(&mut old);
         set_legacy_walls(&mut old, true);
         old.content_fingerprint = 0xa020_602a_6acd_3a90;
         old.blocked_tiles[9 * 16 + 15] = true;
@@ -1380,7 +2330,7 @@ mod boundary_tests {
             migrated.load_bytes(&bytes),
             "published Save V1 must survive the quarter-turn"
         );
-        let snapshot = migrated.sim.save_snapshot();
+        let snapshot = house_part(migrated.sim.save_snapshot());
         assert!(LEGACY_WALLS
             .iter()
             .all(|&(x, y)| !snapshot.blocked_tiles[y as usize * 16 + x as usize]));
@@ -1458,7 +2408,7 @@ mod boundary_tests {
                 .count(),
             30
         );
-        assert_eq!(migrated.sim.save_snapshot(), expected);
+        assert_eq!(house_part(migrated.sim.save_snapshot()), expected);
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&migrated.save_bytes()));
         for _ in 0..300 {
@@ -1490,7 +2440,7 @@ mod boundary_tests {
             }
             let mut migrated = SimHandle::from_lot();
             assert!(migrated.load_bytes(&bytes));
-            let current = migrated.sim.save_snapshot();
+            let current = house_part(migrated.sim.save_snapshot());
             assert_eq!(current.entities, old.entities);
             let mut expected = old.clone();
             set_legacy_walls(&mut expected, false);
@@ -1505,6 +2455,290 @@ mod boundary_tests {
                 assert_eq!(resumed.world_hash(), migrated.world_hash());
             }
         }
+    }
+
+    /// A checked-in fixture's bytes.
+    fn fixture_bytes(hex: &str) -> Vec<u8> {
+        let hex: String = hex.split_whitespace().collect();
+        hex.as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect()
+    }
+
+    /// The household's worker as the world holds it: where it stands, whether
+    /// it is at work and whether it is commuting, with the household's Funds.
+    fn worker_state(handle: &mut SimHandle) -> ((f32, f32), bool, bool, i64) {
+        let world = handle.sim.world_mut();
+        world.register_component::<terri_core::AtWork>();
+        world.register_component::<terri_core::Commuting>();
+        let mut query = world
+            .try_query::<(
+                &terri_core::Career,
+                &Position,
+                Option<&terri_core::AtWork>,
+                Option<&terri_core::Commuting>,
+            )>()
+            .expect("the worker's components are registered");
+        let (_, position, at_work, commuting) = query
+            .iter(world)
+            .next()
+            .expect("the household has a worker");
+        (
+            (position.x, position.y),
+            at_work.is_some(),
+            commuting.is_some(),
+            world.resource::<terri_core::Funds>().0,
+        )
+    }
+
+    /// Ticks until the worker's state passes `done`, and returns it.
+    fn tick_until(
+        handle: &mut SimHandle,
+        done: impl Fn(&((f32, f32), bool, bool, i64)) -> bool,
+    ) -> ((f32, f32), bool, bool, i64) {
+        for _ in 0..3_000 {
+            handle.tick();
+            let state = worker_state(handle);
+            if done(&state) {
+                return state;
+            }
+        }
+        panic!("the worker never got there");
+    }
+
+    /// [OS-street], review finding [S4], with real bytes: every saved stage of
+    /// a shift finishes on the street build as it started, paid exactly once,
+    /// and the next shift goes out to the street. `pre-builder-600` is at work
+    /// on the door and `pre-builder-908` is walking home, both from the front
+    /// door release; `main-commuting-366` is walking out to the door, from main
+    /// before the yard. See tests/fixtures/README.md.
+    #[test]
+    fn real_saved_shifts_finish_as_they_started_and_the_next_goes_to_the_street() {
+        let (door, landing, exit) = ((15.0, 2.0), (15.0, 3.0), (19.0, 2.0));
+        let main: terri_core::SaveSnapshotV3 = postcard::from_bytes(
+            &fixture_bytes(include_str!("../tests/fixtures/main-commuting-366.hex"))
+                [SAVE_HEADER_BYTES..],
+        )
+        .unwrap();
+        let walking_to = main
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.commuting)
+            .and_then(|entity| entity.path.as_ref())
+            .and_then(|path| path.steps.last().copied());
+        assert_eq!(walking_to, Some((15, 2)), "saved walking out to the door");
+
+        for (name, hex, clocks_in_at_the_door) in [
+            (
+                "at work",
+                include_str!("../tests/fixtures/pre-builder-600.hex"),
+                false,
+            ),
+            (
+                "walking home",
+                include_str!("../tests/fixtures/pre-builder-908.hex"),
+                false,
+            ),
+            (
+                "walking out",
+                include_str!("../tests/fixtures/main-commuting-366.hex"),
+                true,
+            ),
+        ] {
+            let mut handle = SimHandle::from_lot();
+            assert!(handle.load_bytes(&fixture_bytes(hex)), "{name}");
+            let pay = i64::from(handle.sim.world().resource::<Content>().0.careers[0].pay);
+            let (_, at_work, _, funds) = worker_state(&mut handle);
+            let owed = if at_work || clocks_in_at_the_door {
+                pay
+            } else {
+                0
+            };
+            if clocks_in_at_the_door {
+                let (at, ..) = tick_until(&mut handle, |state| state.1);
+                assert_eq!(at, door, "{name}: clocks in at the door");
+            }
+            let (at, _, _, paid) = tick_until(&mut handle, |state| !state.1 && !state.2);
+            assert_eq!(
+                (at, paid),
+                (landing, funds + owed),
+                "{name}: home, paid once"
+            );
+            let (at, ..) = tick_until(&mut handle, |state| state.1);
+            assert_eq!(at, exit, "{name}: the next shift goes to the street");
+        }
+    }
+
+    /// [OS-migrate], with real bytes: a Save V5 written by the build before the
+    /// yard, with a wall the player built, grows into the yard on Load. The
+    /// house is kept exactly as saved, the content's walls outside it follow
+    /// the saved ones, and the grown game resaves and replays alike. See
+    /// tests/fixtures/README.md.
+    #[test]
+    fn an_actual_save_from_before_the_yard_grows_into_it() {
+        let hex: String = include_str!("../tests/fixtures/pre-yard-600.hex")
+            .split_whitespace()
+            .collect();
+        let bytes: Vec<u8> = hex
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[5, 0]);
+        // Written before the floors list was appended ([FL-save]), so it
+        // decodes through the loader's own pad rather than bare postcard.
+        let old = decode_v5(&bytes[SAVE_HEADER_BYTES..]).expect("a real save still decodes");
+        assert!(old.floors.tiles().is_empty(), "nobody had painted a floor");
+        assert_eq!(old.world.tick, 600);
+        assert_eq!((old.world.grid_width, old.world.grid_height), (16, 12));
+        let player_wall = terri_core::layout::WallEdge {
+            axis: terri_core::layout::EdgeAxis::Horizontal,
+            x: 9,
+            y: 5,
+            doorway: false,
+        };
+        assert!(matches!(
+            &old.layout,
+            terri_core::layout::SavedLayout::EdgeWallsV1 { edges }
+                if edges.len() == 34 + 1 && edges.contains(&player_wall)
+        ));
+
+        let mut loaded = SimHandle::from_lot();
+        assert!(
+            loaded.load_bytes(&bytes),
+            "a save from before the yard must load"
+        );
+        let current = loaded.sim.save_snapshot_v5();
+        assert_eq!(house_part(current.world.clone()), old.world);
+        assert_eq!(current.layout, grown_layout(&old.layout));
+        assert_eq!(current.object_facings, old.object_facings);
+        assert_eq!(current.retired_indices, old.retired_indices);
+        assert_eq!(current.object_colourways, old.object_colourways);
+
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&loaded.save_bytes()));
+        assert_eq!(resumed.save_bytes(), loaded.save_bytes());
+        for _ in 0..300 {
+            loaded.tick();
+            resumed.tick();
+            assert_eq!(resumed.world_hash(), loaded.world_hash());
+        }
+    }
+
+    /// [TL-old-saves], with real bytes. Both files were written by the last
+    /// public build before the trait library (main at 097a849), by advancing
+    /// a fresh `SimHandle::from_lot()` and calling `save_bytes()`. See
+    /// tests/fixtures/README.md.
+    ///
+    /// The promise has two halves and the test holds both: the save LOADS,
+    /// and it loads AS IT WAS SAVED - one trait per person, with the level or
+    /// severity it had, and no library trait granted behind the player's back.
+    #[test]
+    fn actual_pre_trait_library_saves_load_with_exactly_their_saved_traits() {
+        for (tick, hex) in [
+            (
+                600,
+                include_str!("../tests/fixtures/pre-trait-library-600.hex"),
+            ),
+            (
+                2400,
+                include_str!("../tests/fixtures/pre-trait-library-2400.hex"),
+            ),
+        ] {
+            let hex: String = hex.split_whitespace().collect();
+            let bytes: Vec<u8> = hex
+                .as_bytes()
+                .chunks_exact(2)
+                .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+                .collect();
+            assert_eq!(&bytes[SAVE_MAGIC.len()..SAVE_HEADER_BYTES], &[3, 0]);
+            let old: terri_core::SaveSnapshotV3 =
+                postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+            assert_eq!(old.world.tick, tick);
+            assert_eq!(
+                old.world.content_fingerprint, 0x4dab_6950_757c_1f15,
+                "the fixture must carry the previous public digest, or it proves nothing"
+            );
+            let saved_traits: Vec<_> = old
+                .world
+                .entities
+                .iter()
+                .filter_map(|entity| entity.traits.clone())
+                .collect();
+            assert_eq!(saved_traits.len(), 3, "three people");
+            assert!(saved_traits.iter().all(|worn| worn.len() == 1));
+
+            let mut loaded = SimHandle::from_lot();
+            assert!(
+                loaded.load_bytes(&bytes),
+                "a save from the previous public build must load"
+            );
+            let mut current = loaded.sim.save_snapshot_v3();
+            current.world = house_part(current.world);
+            assert_eq!(current.world.entities, old.world.entities);
+            assert_eq!(current.world.funds, old.world.funds);
+            assert_eq!(current.world.blocked_tiles, old.world.blocked_tiles);
+            assert_eq!(current.layout, grown_layout(&old.layout));
+            assert_eq!(current.object_facings, old.object_facings);
+            let mut expected = old.world.clone();
+            expected.content_fingerprint = current.world.content_fingerprint;
+            assert_eq!(
+                current.world, expected,
+                "only the digest may differ after a load"
+            );
+            assert_ne!(
+                current.world.content_fingerprint,
+                old.world.content_fingerprint
+            );
+
+            let mut resumed = SimHandle::from_lot();
+            assert!(resumed.load_bytes(&loaded.save_bytes()));
+            for _ in 0..320 {
+                loaded.tick();
+                resumed.tick();
+                assert_eq!(resumed.world_hash(), loaded.world_hash());
+            }
+            let after: Vec<usize> = loaded
+                .sim
+                .save_snapshot()
+                .entities
+                .iter()
+                .filter_map(|entity| entity.traits.as_ref().map(Vec::len))
+                .collect();
+            assert_eq!(after, [1, 1, 1], "play grants nothing either");
+        }
+    }
+
+    /// The new game is where the library shows: a fresh household wears what
+    /// household.toml authors, and the boundary's three startup reads agree
+    /// on how many traits there are.
+    #[test]
+    fn a_new_household_wears_the_library_and_the_trait_reads_align() {
+        let handle = SimHandle::from_lot();
+        let labels = handle.trait_labels();
+        let kinds = handle.trait_kinds();
+        let descriptions = handle.trait_descriptions();
+        assert_eq!(labels.len(), 15);
+        assert_eq!(kinds.len(), labels.len());
+        assert_eq!(descriptions.len(), labels.len());
+        assert_eq!(labels[0], "Television devotee");
+        assert_eq!(descriptions[0], "Loves watching television.");
+        assert_eq!(labels[14], "Cooped up");
+        assert_eq!(
+            descriptions[14],
+            "Gets less out of everything; exercise eases it."
+        );
+
+        let worn: Vec<usize> = handle
+            .sim
+            .save_snapshot()
+            .entities
+            .iter()
+            .filter_map(|entity| entity.traits.as_ref().map(Vec::len))
+            .collect();
+        assert_eq!(worn, [3, 4, 4]);
     }
 
     #[test]
@@ -1532,23 +2766,27 @@ mod boundary_tests {
             terri_core::layout::SavedLayout::EdgeWallsV1 { edges } if edges.len() == 34
         ));
 
+        // The front door, then a door in each of the three vertical
+        // doorways ([DR-derived]).
         let mut migrated = SimHandle::from_lot();
-        assert_eq!(migrated.portal_count(), 1);
+        assert_eq!(migrated.portal_count(), 4);
         assert!(migrated.load_bytes(&bytes));
-        assert_eq!(migrated.portal_count(), 1);
+        assert_eq!(migrated.portal_count(), 4);
 
+        // The saved walls are kept as saved; growing into the yard only adds
+        // the house's outside walls after them ([OS-migrate]).
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
-        expected_world.content_fingerprint = 0x4dab_6950_757c_1f15;
-        assert_eq!(current.world, expected_world);
-        assert_eq!(current.layout, prior.layout);
+        expected_world.content_fingerprint = 0xc2cf_2919_84ed_61f7;
+        assert_eq!(house_part(current.world.clone()), expected_world);
+        assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
-        assert_eq!(migrated.wall_edges().len(), 34 * 4);
+        assert_eq!(migrated.wall_edges().len(), (34 + 28) * 4);
 
         let resaved = migrated.save_bytes();
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&resaved));
-        assert_eq!(resumed.portal_count(), 1);
+        assert_eq!(resumed.portal_count(), 4);
         assert_eq!(resumed.sim.save_snapshot_v2(), current);
     }
 
@@ -1563,8 +2801,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            3,
-            "the public writer must emit the V3 envelope"
+            5,
+            "the public writer must emit the V5 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -1618,7 +2856,7 @@ mod boundary_tests {
             let bytes = save_v3_tests::v2_bytes(&snapshot);
             assert_eq!(&bytes[8..10], &[2, 0]);
             let mut restored = SimHandle::from_lot();
-            assert_eq!(restored.wall_edges().len(), 34 * 4);
+            assert_eq!(restored.wall_edges().len(), (34 + 28) * 4);
             assert!(restored.load_bytes(&bytes));
             assert_eq!((restored.lot_width(), restored.lot_height()), (5, 4));
             assert_eq!(restored.wall_layout_kind(), 1);
@@ -1697,6 +2935,7 @@ mod boundary_tests {
         let source = SimHandle::from_lot();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
+        before_the_yard(&mut snapshot);
         snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
         set_legacy_walls(&mut snapshot, true);
         // The historical fingerprint belongs to the old 2x1 bathtub grid.
@@ -1756,6 +2995,7 @@ mod boundary_tests {
         let source = SimHandle::from_lot();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
+        before_the_yard(&mut snapshot);
         snapshot.content_fingerprint = 0x26d5_982c_9af8_3de8;
         set_legacy_walls(&mut snapshot, true);
         snapshot.blocked_tiles[9 * 16 + 15] = true;
@@ -1780,7 +3020,7 @@ mod boundary_tests {
         expected.blocked_tiles[10 * 16 + 14] = true;
         set_legacy_walls(&mut expected, false);
         assert_eq!(
-            resumed.sim.save_snapshot(),
+            house_part(resumed.sim.save_snapshot()),
             expected,
             "the bridge must preserve household state and queues while rotating the bathtub, opening old wall cells and updating the digest"
         );
@@ -2126,7 +3366,16 @@ mod boundary_tests {
         assert_ne!(closed, open, "the closed and open leaves must be distinct");
         assert_ne!(ajar, open, "the ajar and open leaves must be distinct");
 
-        assert_eq!(handle.portal_count(), 1);
+        // The front door is row 0; a door in each of the three vertical
+        // doorways follows it ([DR-derived]). The pointer reads below address
+        // row 0 only.
+        assert_eq!(handle.portal_count(), 4);
+        assert_eq!(handle.interior_door_lines(), [6, 9, 8, 2, 12, 8]);
+        // Outside the front door, then the tile right of each door's line.
+        assert_eq!(
+            addressed(handle.portal_far_sides_ptr(), 8, "portal_far_sides_ptr"),
+            vec![16.0, 2.0, 6.0, 9.0, 8.0, 2.0, 12.0, 8.0]
+        );
         assert_eq!(
             addressed(handle.portal_positions_ptr(), 2, "portal_positions_ptr"),
             vec![15.0, 2.0]
@@ -2175,7 +3424,7 @@ mod boundary_tests {
             .id();
         handle.sim.sync_render_buffer();
 
-        assert_eq!(handle.portal_count(), 1);
+        assert_eq!(handle.portal_count(), 4);
         assert_eq!(
             addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
             vec![ajar],
@@ -3509,6 +4758,28 @@ mod boundary_tests {
     }
 
     #[test]
+    fn colourways_ptr_addresses_the_column_after_growth() {
+        let mut handle = SimHandle::new(96, 96);
+        assert!(handle.spawn_object(1.0, 1.0, "armchair"));
+        assert!(handle.set_colourway(0.0, 2.0));
+        handle.sim.flush_commands();
+        for index in 0..48 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+        handle.sim.sync_render_buffer();
+        let colourways = addressed(
+            handle.colourways_ptr(),
+            handle.entity_count(),
+            "colourways_ptr",
+        );
+        assert_eq!(colourways[0], 2, "the recoloured armchair");
+        assert!(
+            colourways[1..].iter().all(|&colourway| colourway == 0),
+            "sims carry the art as drawn"
+        );
+    }
+
+    #[test]
     fn foreground_sprites_ptr_addresses_the_optional_layer_after_growth() {
         let mut handle = SimHandle::new(96, 96);
         assert!(handle.spawn_object(1.0, 1.0, "armchair"));
@@ -3691,12 +4962,12 @@ mod boundary_tests {
     }
 
     #[test]
-    fn shipped_edge_export_pins_all_34_segments_and_symmetric_collision() {
+    fn shipped_edge_export_pins_all_62_segments_and_symmetric_collision() {
         let handle = SimHandle::from_lot();
         assert!(handle.wall_tiles().is_empty());
         assert_eq!(handle.wall_layout_kind(), 1);
         let packed = handle.wall_edges();
-        assert_eq!(packed.len(), 34 * 4);
+        assert_eq!(packed.len(), (34 + 28) * 4);
         let mut expected = Vec::new();
         for y in 0..6 {
             expected.extend([0, 8, y, u32::from(y == 2)]);
@@ -3709,6 +4980,14 @@ mod boundary_tests {
         }
         for y in 6..12 {
             expected.extend([0, 12, y, u32::from(y == 8)]);
+        }
+        // The house's east wall with the front door's line, then its south
+        // wall ([OS-walls]).
+        for y in 0..12 {
+            expected.extend([0, 16, y, u32::from(y == 2)]);
+        }
+        for x in 0..16 {
+            expected.extend([1, x, 12, 0]);
         }
         assert_eq!(
             packed, expected,
@@ -3734,8 +5013,8 @@ mod boundary_tests {
                 solid += 1;
             }
         }
-        assert_eq!((solid, doors), (29, 5));
-        assert_eq!(grid.blocked_edges().count(), 29);
+        assert_eq!((solid, doors), (29 + 27, 5 + 1));
+        assert_eq!(grid.blocked_edges().count(), 29 + 27);
     }
 
     /// `sim_name` is the needs panel's header. Three answers matter and
@@ -3789,6 +5068,49 @@ mod boundary_tests {
         let first_sim = pack.lot.placements.len() as u32;
         assert_eq!(handle.object_name_of(first_sim), "");
         assert_eq!(handle.object_name_of(u32::MAX), "");
+    }
+
+    #[test]
+    fn object_identity_reaches_menu_and_catalogue_without_changing_saves() {
+        let handle = SimHandle::from_lot();
+        let before = handle.save_bytes();
+        let pack = handle.sim.world().resource::<Content>().0;
+        let rows = handle.catalogue();
+        let names = handle.catalogue_names();
+        let details = handle.catalogue_details();
+        assert_eq!(details.len(), names.len() * 2);
+        for (id, kind, model) in [
+            ("laundry", "Washing machine", "Perpetual Cycle"),
+            ("armchair", "Armchair", "Staying In"),
+            ("dining_table", "Dining table", "Visiting Hours"),
+        ] {
+            let def = pack.find(id).unwrap();
+            let row = rows
+                .chunks_exact(4)
+                .position(|row| row[0] == def.0)
+                .unwrap();
+            assert_eq!(names[row], kind);
+            assert_eq!(details[row * 2], model);
+            assert!(!details[row * 2 + 1].is_empty());
+            let mut query = handle
+                .sim
+                .world()
+                .try_query::<(terri_core::Entity, &terri_core::SmartObject)>()
+                .unwrap();
+            let entity = query
+                .iter(handle.sim.world())
+                .find(|(_, object)| object.0 == def)
+                .unwrap()
+                .0
+                .index_u32();
+            assert_eq!(handle.object_name_of(entity), kind);
+            assert_eq!(
+                handle.object_details_of(entity),
+                details[row * 2..row * 2 + 2]
+            );
+        }
+        assert!(handle.object_details_of(u32::MAX).is_empty());
+        assert_eq!(handle.save_bytes(), before);
     }
 
     // ---- Player commands ----------------------------------------------
@@ -4192,8 +5514,784 @@ mod boundary_tests {
         );
     }
 
+    /// [WT-boundary]: a wall edit crosses the boundary as a preview that never
+    /// writes, a staged command, and a result the drain leaves behind, and the
+    /// renderer's `wall_edges` sees the new house.
+    #[test]
+    fn a_wall_edit_crosses_the_boundary_and_the_renderer_sees_it() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let revision = handle.lot_revision();
+        let edges_before = handle.wall_edges();
+        let wall = 1.0;
+        // The first interior vertical line the shipped house accepts a wall on,
+        // found rather than hard-coded so a re-authored lot does not break it.
+        let (x, y) = (1..16)
+            .flat_map(|x| (0..12).map(move |y| (x, y)))
+            .find(|&(x, y)| {
+                handle.wall_edit_preview(0.0, x as f64, y as f64, wall) == 0
+                    && !edges_before
+                        .chunks_exact(4)
+                        .any(|e| e[0] == 0 && e[1] == x && e[2] == y)
+            })
+            .expect("the shipped house has somewhere to put a wall");
+        assert_eq!(handle.wall_edges(), edges_before, "a preview wrote");
+        assert_eq!(handle.lot_revision(), revision, "a preview wrote");
+        assert!(handle.last_wall_edit_result().is_empty());
+
+        assert!(handle.set_wall_edge(0.0, x as f64, y as f64, wall));
+        handle.flush_commands();
+        assert_eq!(handle.last_wall_edit_result(), [0, x, y, 1, 0]);
+        assert_eq!(handle.lot_revision(), revision + 1);
+        let after = handle.wall_edges();
+        assert_eq!(after.len(), edges_before.len() + 4);
+        assert_eq!(&after[after.len() - 4..], &[0, x, y, 0]);
+
+        // A doorway on the same line, then the refusal for the outside wall,
+        // read from the same result the shell reads.
+        assert!(handle.set_wall_edge(0.0, x as f64, y as f64, 2.0));
+        handle.flush_commands();
+        assert_eq!(handle.last_wall_edit_result(), [0, x, y, 2, 0]);
+        assert_eq!(&handle.wall_edges()[after.len() - 4..], &[0, x, y, 1]);
+        let out = PlacementRefusal::OutOfBounds as u32;
+        assert_eq!(handle.wall_edit_preview(0.0, 0.0, 1.0, wall), out);
+        assert!(handle.set_wall_edge(0.0, 0.0, 1.0, wall));
+        handle.flush_commands();
+        assert_eq!(handle.last_wall_edit_result(), [0, 0, 1, 1, out]);
+    }
+
+    /// [SL-shell]: a sale is previewed with its payout, staged, and reported,
+    /// and an index that names nothing or is not a whole number is refused.
+    #[test]
+    fn a_sale_is_previewed_staged_and_reported_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.last_sale_result().is_empty());
+        // The first object the shipped house would sell now.
+        let (object, payout) = (0..64)
+            .find_map(|index| {
+                let preview = handle.sale_preview(f64::from(index));
+                (preview[0] == 0).then(|| (index, preview[1]))
+            })
+            .expect("the shipped house has something to sell");
+        let (_, definition, _) =
+            terri_sim::placement::object_definition(handle.sim.world(), object).unwrap();
+        let price = definition.price.unwrap();
+        assert_eq!(payout, terri_sim::placement::sale::sale_value(price, 0.5));
+        assert!(payout > 0);
+        let funds = handle.sim.world().resource::<terri_core::Funds>().0;
+        assert!(handle.sell_object(f64::from(object)));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_sale_result(), vec![object, 0, payout]);
+        assert_eq!(
+            handle.sim.world().resource::<terri_core::Funds>().0,
+            funds + i64::from(payout)
+        );
+        // Gone, so the same index now names nothing: code 2 at every step.
+        assert_eq!(handle.sale_preview(f64::from(object)), vec![2, 0]);
+        assert!(handle.sell_object(f64::from(object)));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_sale_result(), vec![object, 2, 0]);
+        // Not a whole number: refused at the boundary, nothing staged.
+        assert_eq!(handle.sale_preview(1.5), vec![1, 0]);
+        assert!(!handle.sell_object(1.5));
+        assert!(!handle.sell_object(-1.0));
+    }
+
+    /// [RC-ui]: the colourways cross in content order with their shifts; a
+    /// change is staged, reported and read back; and an index that names no
+    /// object or colourway is refused by the drain, one that is not a whole
+    /// number at the boundary.
+    #[test]
+    fn a_colourway_is_staged_reported_and_read_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        let pack = handle.sim.world().resource::<Content>().0;
+        let names = handle.colourway_names();
+        assert_eq!(names.len(), pack.colourways.len());
+        assert_eq!(names[0], "As drawn");
+        let shifts = handle.colourway_shifts();
+        assert_eq!(shifts.len(), 3 * names.len());
+        for (index, colourway) in pack.colourways.iter().enumerate() {
+            assert_eq!(names[index], colourway.name);
+            assert_eq!(
+                shifts[3 * index..3 * index + 3],
+                [colourway.hue, colourway.strength, colourway.lightness]
+            );
+        }
+        assert!(handle.last_colourway_result().is_empty());
+        let sofa = (0..64u32)
+            .find(|&index| handle.object_colourway(f64::from(index)) == 0)
+            .expect("the shipped house has an object");
+        assert!(handle.set_colourway(f64::from(sofa), 2.0));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_colourway_result(), vec![sofa, 0, 2]);
+        assert_eq!(handle.object_colourway(f64::from(sofa)), 2);
+        let unknown = names.len() as f64;
+        assert!(handle.set_colourway(f64::from(sofa), unknown));
+        handle.sim.flush_commands();
+        assert_eq!(
+            handle.last_colourway_result(),
+            vec![sofa, 17, unknown as u32]
+        );
+        assert_eq!(handle.object_colourway(f64::from(sofa)), 2);
+        assert_eq!(handle.object_colourway(1.5), u32::MAX);
+        assert_eq!(handle.object_colourway(99_999.0), u32::MAX);
+        assert!(!handle.set_colourway(1.5, 1.0));
+        assert!(!handle.set_colourway(f64::from(sofa), -1.0));
+    }
+
+    /// [OS-yard]: the boundary hands the shell the house's size and the yard's
+    /// look from the content, and the lot it reports is the larger one.
+    #[test]
+    fn the_house_and_its_yard_reach_the_shell() {
+        let handle = SimHandle::from_lot();
+        assert_eq!((handle.lot_width(), handle.lot_height()), (20, 16));
+        assert_eq!(handle.house_size(), vec![16, 12]);
+        assert_eq!(handle.yard_look(), vec![65.0, 2.0, -0.22]);
+        assert_eq!(handle.street_look(), vec![0.0, 0.15, -0.22]);
+        assert_eq!(handle.street_column(), 19);
+        // A lot whose front door has no yard beyond it has no street.
+        assert_eq!(SimHandle::new(5, 4).street_column(), -1);
+    }
+
+    /// Review finding [F4] on PR 126: the spawn entry points check the grid
+    /// for every edge house, a glazed one included. A sim spawned onto a
+    /// blocked tile would be a world the loader then refuses.
+    #[test]
+    fn a_glazed_house_still_refuses_a_spawn_onto_a_blocked_tile() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        let before = handle.entity_count();
+
+        let grid = handle.sim.world().resource::<terri_core::TileGrid>();
+        let (width, height) = (grid.width() as i32, grid.height() as i32);
+        let blocked = (0..width)
+            .flat_map(|x| (0..height).map(move |y| (x, y)))
+            .find(|&(x, y)| !grid.is_walkable(x, y))
+            .expect("the shipped house has a blocked tile");
+
+        handle.spawn_agent(blocked.0 as f32, blocked.1 as f32, 50.0);
+        assert_eq!(
+            handle.entity_count(),
+            before,
+            "no sim stands where the grid is blocked"
+        );
+    }
+
+    /// [FM-tie] in `docs/specs/2026-09-22-family.md`: a tie crosses as one
+    /// fact, reads the same from either end, and is refused for somebody who
+    /// is not a sim of this world.
+    #[test]
+    fn a_family_tie_crosses_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.family_ties().is_empty());
+        // The render rows name every entity, and a sim is one with an
+        // identity; two of them is all this needs.
+        handle.tick();
+        let count = handle.entity_count();
+        let kinds = unsafe { std::slice::from_raw_parts(handle.kinds_ptr(), count) };
+        let ids = unsafe { std::slice::from_raw_parts(handle.ids_ptr(), count) };
+        let mut sims: Vec<u32> = (0..count)
+            .filter(|&row| kinds[row] == 0)
+            .map(|row| ids[row])
+            .collect();
+        sims.sort_unstable();
+        sims.dedup();
+        assert!(sims.len() >= 2, "the shipped household has people in it");
+        let (first, second) = (sims[0], sims[1]);
+
+        // The first is the second's parent: one stored fact, from the lower.
+        assert!(handle.set_family_tie(f64::from(first), f64::from(second), 1.0));
+        handle.flush_commands();
+        assert_eq!(
+            handle.family_ties(),
+            vec![
+                first.min(second),
+                first.max(second),
+                if first < second { 1 } else { 2 }
+            ]
+        );
+        assert_eq!(handle.last_family_tie_result(), vec![first, second, 1, 0]);
+
+        // The tie survives a save and a load.
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.family_ties(), handle.family_ties());
+        assert_eq!(restored.sim.world_hash(), handle.sim.world_hash());
+
+        // 4 is no relation, which takes it away.
+        assert!(handle.set_family_tie(f64::from(second), f64::from(first), 4.0));
+        handle.flush_commands();
+        assert!(handle.family_ties().is_empty());
+
+        // Hostile or impossible arguments.
+        assert!(!handle.set_family_tie(f64::from(first), f64::from(second), 5.0));
+        assert!(!handle.set_family_tie(-1.0, f64::from(second), 0.0));
+        assert!(!handle.set_family_tie(f64::from(first), 0.5, 0.0));
+        handle.set_family_tie(f64::from(first), f64::from(first), 0.0);
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_family_tie_result()[3],
+            terri_sim::placement::PlacementRefusal::InvalidInput as u32,
+            "nobody is their own sibling"
+        );
+        assert!(handle.family_ties().is_empty());
+    }
+
+    /// [FL-command] in `docs/specs/2026-09-22-floors.md`: a covering crosses
+    /// as the tile list, a repeat writes nothing, 0 lifts it, and a tile off
+    /// the lot or a covering the content lacks is refused.
+    #[test]
+    fn a_floor_covering_crosses_the_boundary() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let coverings = handle.covering_names();
+        assert_eq!(coverings, ["Boards", "Tiles", "Carpet"]);
+        assert!(handle.floor_tiles().is_empty(), "nobody has painted yet");
+
+        assert!(handle.set_floor(3.0, 2.0, 2.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![3, 2, 2]);
+        assert_eq!(handle.last_floor_edit_result(), vec![3, 2, 2, 0]);
+
+        // Sorted by tile, whatever order they were painted in.
+        assert!(handle.set_floor(1.0, 0.0, 1.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1, 3, 2, 2]);
+
+        // Lifting it leaves the tile drawn by where it is.
+        assert!(handle.set_floor(3.0, 2.0, 0.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1]);
+
+        // A tile off the lot and a covering the content does not have.
+        assert_eq!(
+            handle.floor_edit_preview(999.0, 0.0, 1.0),
+            PlacementRefusal::OutOfBounds as u32
+        );
+        assert_eq!(
+            handle.floor_edit_preview(1.0, 0.0, 9.0),
+            PlacementRefusal::InvalidInput as u32
+        );
+        assert_eq!(handle.floor_edit_preview(1.0, 0.0, 3.0), 0);
+        assert!(
+            !handle.set_floor(1.0, 0.0, -1.0),
+            "a negative is not a covering"
+        );
+        assert!(
+            !handle.set_floor(0.5, 0.0, 1.0),
+            "half a tile is not a tile"
+        );
+
+        handle.set_floor(999.0, 0.0, 1.0);
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_floor_edit_result(),
+            vec![999, 0, 1, PlacementRefusal::OutOfBounds as u32]
+        );
+        assert_eq!(
+            handle.floor_tiles(),
+            vec![1, 0, 1],
+            "a refusal writes nothing"
+        );
+    }
+
+    /// [FL-save], and review findings [F1] to [F3] on PR 128: a painted
+    /// house saves, loads and digests as one, a covering the content no
+    /// longer has drops rather than refusing the save, and a payload that
+    /// decoded wrong is never rescued by the compatibility pad.
+    #[test]
+    fn a_painted_house_saves_loads_and_digests() {
+        let mut handle = SimHandle::from_lot();
+        let bare = handle.sim.world_hash();
+        assert!(handle.set_floor(3.0, 2.0, 3.0));
+        assert!(handle.set_floor(1.0, 0.0, 1.0));
+        handle.flush_commands();
+        assert_eq!(handle.floor_tiles(), vec![1, 0, 1, 3, 2, 3]);
+
+        // [F3]: painting changes the house, and so does painting elsewhere.
+        let painted = handle.sim.world_hash();
+        assert_ne!(painted, bare, "a painted floor changes the house");
+        let mut elsewhere = SimHandle::from_lot();
+        assert!(elsewhere.set_floor(3.0, 2.0, 3.0));
+        assert!(elsewhere.set_floor(1.0, 1.0, 1.0));
+        elsewhere.flush_commands();
+        assert_ne!(
+            elsewhere.sim.world_hash(),
+            painted,
+            "the same coverings on different tiles are different houses"
+        );
+
+        // The round trip, through the real save bytes.
+        let bytes = handle.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&bytes));
+        assert_eq!(restored.floor_tiles(), vec![1, 0, 1, 3, 2, 3]);
+        assert_eq!(restored.sim.world_hash(), painted);
+        assert_eq!(restored.save_bytes(), bytes);
+
+        // [F2]: a payload whose own bytes decoded wrong is refused, pad or
+        // no pad. Flipping a length byte inside it is not a truncation.
+        let mut corrupt = bytes.clone();
+        let at = SAVE_HEADER_BYTES + 1;
+        corrupt[at] = corrupt[at].wrapping_add(1);
+        let before = restored.save_bytes();
+        assert!(!restored.load_bytes(&corrupt) || restored.save_bytes() == before);
+    }
+
+    /// [FL-save]: a covering the content no longer has takes that tile's
+    /// covering away rather than making the whole save unloadable.
+    #[test]
+    fn a_floor_naming_an_unknown_covering_drops_that_tile_only() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.set_floor(2.0, 2.0, 1.0));
+        handle.flush_commands();
+        let mut snapshot = handle.sim.save_snapshot_v5();
+        let tiles = vec![(2, 2, 1), (4, 4, 200)];
+        snapshot.floors = terri_core::layout::SavedFloors::from_saved(tiles, 20, 16, 200)
+            .expect("the fixture list is well formed");
+
+        let mut live = SimHandle::from_lot();
+        assert!(live.sim.load_snapshot_v5(snapshot).is_ok());
+        assert_eq!(
+            live.floor_tiles(),
+            vec![2, 2, 1],
+            "the known covering stays and the unknown one is dropped"
+        );
+    }
+
+    /// [WN-state]: a window crosses as its own list, keeps no wall record,
+    /// and stops a sim exactly where the wall it replaced did.
+    #[test]
+    fn a_window_crosses_the_boundary_and_stops_a_sim() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.window_lines().is_empty());
+        let walls_before = handle.wall_edges().len();
+        // An interior wall of the shipped house with a clear tile on each
+        // side, away from the front door: the vertical line at x 8, row 4.
+        let blocked = |handle: &SimHandle| {
+            !handle
+                .sim
+                .world()
+                .resource::<terri_core::TileGrid>()
+                .can_step((7, 4), (8, 4))
+        };
+        assert!(blocked(&handle), "the line starts as a wall");
+
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        assert_eq!(
+            handle.wall_edges().len(),
+            walls_before - 4,
+            "the wall record moved to the window list rather than being kept in both"
+        );
+        assert!(blocked(&handle), "a window stops a person like a wall");
+
+        // Opening the line takes the window away and lets a sim through.
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 0.0));
+        handle.flush_commands();
+        assert!(handle.window_lines().is_empty());
+        assert!(!blocked(&handle));
+
+        // And glazing an open line blocks it again.
+        assert!(handle.set_wall_edge(0.0, 8.0, 4.0, 3.0));
+        handle.flush_commands();
+        assert_eq!(handle.window_lines(), vec![0, 8, 4]);
+        assert!(blocked(&handle));
+    }
+
+    /// [OS-daylight]: the daylight knobs cross as the tuning file sets them.
+    #[test]
+    fn the_daylight_tuning_crosses_the_boundary() {
+        assert_eq!(SimHandle::from_lot().daylight_tuning(), vec![0.25, 0.2]);
+    }
+
+    /// [WB-draw]: the shipped front door's line, the one the Walls tool
+    /// must not draw a second frame on: the house's east wall, on the door's
+    /// row (`content/lot.toml`'s front door is the tile at x 15, y 2).
+    #[test]
+    fn the_front_door_line_crosses_the_boundary() {
+        let handle = SimHandle::from_lot();
+        assert_eq!(handle.front_door_lines(), vec![handle.house_size()[0], 2]);
+    }
+
+    /// [CS-command]: a move-in is staged through the boundary with its name
+    /// carried whole, and the newcomer is a household member the shell can
+    /// find by the returned index; an index that is not a whole number is
+    /// refused there, and one past the table by the drain. The form's lists
+    /// and limits come from content.
+    #[test]
+    fn a_move_in_is_staged_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        assert_eq!(handle.household_size(), vec![3, 6]);
+        assert_eq!(handle.housemate_limits(), vec![24, 4]);
+        assert_eq!(
+            handle.personality_labels(),
+            vec!["The correspondent", "The settled", "The flitting"]
+        );
+        let descriptions = handle.personality_descriptions();
+        assert_eq!(descriptions.len(), 3);
+        assert!(descriptions[1].starts_with("Keeps ordinary hours"));
+        assert!(!handle.add_housemate("Ann", 1.5, &[]));
+        assert!(!handle.add_housemate("Ann", 1.0, &[0.5]));
+        assert!(handle.add_housemate("Ann", 99.0, &[]));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_housemate_result(), vec![3, u32::MAX, 1]);
+        // Past the tuned limits, refused before it is queued.
+        assert!(!handle.add_housemate(&"a".repeat(25), 1.0, &[]));
+        assert!(!handle.add_housemate("Ann", 1.0, &[0.0, 1.0, 2.0, 3.0, 4.0]));
+        assert!(handle.add_housemate(
+            &format!("  {}  ", "a".repeat(24)),
+            1.0,
+            &[0.0, 1.0, 2.0, 3.0]
+        ));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_housemate_result()[2], 2);
+        assert!(handle.add_housemate("Ann Lee", 1.0, &[0.0, 5.0]));
+        handle.sim.flush_commands();
+        let result = handle.last_housemate_result();
+        assert_eq!((result[0], result[2]), (0, 3));
+        assert_eq!(handle.household_size(), vec![5, 6]);
+        assert_eq!(handle.sim_name(result[1]), "Ann Lee");
+    }
+
+    /// [RC-slice-buy]: a purchase in a colourway is staged through the
+    /// boundary and bought drawn in it; one that is not a whole number is
+    /// refused there, and one past the table by the drain.
+    #[test]
+    fn a_purchase_in_a_colourway_is_staged_through_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        // The shipped house starts with nothing in the bank.
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds(100_000));
+        let catalogue = handle.catalogue();
+        let (definition, facing) = (catalogue[0], catalogue[3]);
+        let tile = (0..16u32)
+            .flat_map(|y| (0..16u32).map(move |x| (x, y)))
+            .find(|&(x, y)| {
+                handle.purchase_preview(
+                    f64::from(definition),
+                    f64::from(x),
+                    f64::from(y),
+                    f64::from(facing),
+                )[0] == 0.0
+            })
+            .expect("the shipped house has a free tile");
+        let args = |colourway: f64| {
+            (
+                f64::from(definition),
+                f64::from(tile.0),
+                f64::from(tile.1),
+                f64::from(facing),
+                colourway,
+            )
+        };
+        let (d, x, y, f, c) = args(1.5);
+        assert!(!handle.buy_object_in_colourway(d, x, y, f, c));
+        let (d, x, y, f, c) = args(99.0);
+        assert!(handle.buy_object_in_colourway(d, x, y, f, c));
+        handle.sim.flush_commands();
+        assert_eq!(handle.last_purchase_result()[4], 17);
+        let (d, x, y, f, c) = args(2.0);
+        assert!(handle.buy_object_in_colourway(d, x, y, f, c));
+        handle.sim.flush_commands();
+        let result = handle.last_purchase_result();
+        assert_eq!(result[4], 0);
+        assert_eq!(handle.object_colourway(f64::from(result[5])), 2);
+    }
+
+    /// [BM-shell]: the catalogue is every priced object, in pack order, with
+    /// its price, the directions it has art for and its base direction, and
+    /// its names come in the same order. An object with no price is left out.
+    #[test]
+    fn the_catalogue_lists_every_priced_object_and_nothing_else() {
+        let mut handle = SimHandle::from_lot();
+        let mut pack = handle.sim.world().resource::<Content>().0.clone();
+        let dropped = pack.find("coat_rack").unwrap().0 as usize;
+        pack.objects[dropped].price = None;
+        let pack = &*Box::leak(Box::new(pack));
+        handle.sim.world_mut().insert_resource(Content(pack));
+        let catalogue = handle.catalogue();
+        let names = handle.catalogue_names();
+        let needs = handle.catalogue_needs();
+        let priced: Vec<_> = pack
+            .objects
+            .iter()
+            .enumerate()
+            .filter(|(index, _)| *index != dropped)
+            .collect();
+        assert_eq!(names.len(), priced.len());
+        assert_eq!(needs.len(), priced.len());
+        assert_eq!(catalogue.len(), 4 * priced.len());
+        for (((row, name), served), (index, object)) in catalogue
+            .chunks_exact(4)
+            .zip(&names)
+            .zip(&needs)
+            .zip(priced)
+        {
+            let mask: u32 = terri_core::Facing::ALL
+                .into_iter()
+                .filter(|&f| object.supports(f))
+                .map(|f| 1 << f.code())
+                .sum();
+            assert_eq!(
+                row,
+                [
+                    index as u32,
+                    object.price.unwrap(),
+                    mask,
+                    u32::from(object.base_facing.code())
+                ],
+                "{}",
+                object.id
+            );
+            assert_eq!(name, object.display_name());
+            assert_eq!(
+                *served,
+                pack.needs_served(pack.find(&object.id).unwrap()),
+                "{}",
+                object.id
+            );
+        }
+        // The catalogue holds items that serve needs and items that serve
+        // none, so a column shifted by a row shows above.
+        assert!(needs.contains(&0));
+        assert!(needs.iter().any(|&mask| mask != 0));
+    }
+
+    /// [BM-shell]: a purchase crosses the boundary as a preview that never
+    /// writes, a staged command, and a result the drain leaves behind, and
+    /// the renderer sees the new object.
+    #[test]
+    fn a_purchase_crosses_the_boundary_and_the_renderer_sees_it() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds(1_000));
+        let pack = handle.sim.world().resource::<Content>().0;
+        let chair = pack.find("chair").unwrap().0;
+        let price = pack.objects[chair as usize].price.unwrap();
+        let facing = handle
+            .catalogue()
+            .chunks_exact(4)
+            .find(|row| row[0] == chair)
+            .expect("the chair is for sale")[3];
+        assert!(handle.last_purchase_result().is_empty());
+        let revision = handle.lot_revision();
+        let hash = handle.world_hash();
+        let preview = |handle: &SimHandle, x: u32, y: u32| {
+            handle.purchase_preview(chair as f64, x as f64, y as f64, facing as f64)
+        };
+        // The first tile the shipped house accepts a chair on, found rather
+        // than hard-coded so a re-authored lot does not break it.
+        let (x, y) = (0..16)
+            .flat_map(|y| (0..16).map(move |x| (x, y)))
+            .find(|&(x, y)| preview(&handle, x, y)[0] == 0.0)
+            .expect("the shipped house has room for a chair");
+        let shown = preview(&handle, x, y);
+        assert_eq!(shown[1..6], [x as f64, y as f64, facing as f64, 1.0, 1.0]);
+        assert!(shown[6] >= 0.0, "the ghost has art");
+        assert_eq!(shown[7], -1.0, "a chair has no foreground layer");
+        assert_eq!(handle.world_hash(), hash, "a preview wrote");
+        assert_eq!(handle.lot_revision(), revision, "a preview wrote");
+
+        let objects = handle.entity_count();
+        assert!(handle.buy_object(chair as f64, x as f64, y as f64, facing as f64));
+        handle.flush_commands();
+        let result = handle.last_purchase_result();
+        assert_eq!(result[..5], [chair, x, y, facing, 0]);
+        assert_ne!(result[5], u32::MAX, "the bought object is named");
+        assert!(handle.sim.render_buffer().ids.contains(&result[5]));
+        assert_eq!(handle.entity_count(), objects + 1);
+        assert_eq!(handle.lot_revision(), revision + 1);
+        assert_eq!(handle.funds(), f64::from(1_000 - price));
+
+        // Too dear now, read from the same result the shell reads.
+        handle.sim.world_mut().insert_resource(terri_core::Funds(0));
+        let dear = PlacementRefusal::CannotAfford as u32;
+        assert_eq!(preview(&handle, x + 1, y)[0], f64::from(dear));
+        assert!(handle.buy_object(chair as f64, (x + 1) as f64, y as f64, facing as f64));
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_purchase_result(),
+            [chair, x + 1, y, facing, dear, u32::MAX]
+        );
+    }
+
+    /// [RT-boundary]: a room crosses the boundary as a preview that never
+    /// writes, a staged command, and a result the drain leaves behind, and the
+    /// renderer's `wall_edges` sees the doorway it was built with.
+    #[test]
+    fn a_room_crosses_the_boundary_and_the_renderer_sees_it() {
+        use terri_sim::placement::rooms::{validate_room, RoomEdit};
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let revision = handle.lot_revision();
+        let edges_before = handle.wall_edges();
+        let hash = handle.world_hash();
+        assert!(handle.last_room_result().is_empty());
+        // The first one-tile room the shipped house accepts that adds walls,
+        // found rather than hard-coded so a re-authored lot does not break it.
+        let (x, y) = (1..11)
+            .flat_map(|y| (1..15).map(move |x| (x, y)))
+            .find(|&(x, y)| {
+                let edit = RoomEdit {
+                    x0: x,
+                    y0: y,
+                    x1: x,
+                    y1: y,
+                    doorway: None,
+                };
+                validate_room(handle.sim.world(), edit).is_ok_and(|plan| plan.changed)
+            })
+            .expect("the shipped house has room for a room");
+        let corners = [x as f64, y as f64, x as f64, y as f64];
+        assert_eq!(handle.room_edit_preview(&corners, &[]), [0, 1]);
+        assert_eq!(handle.world_hash(), hash, "a preview wrote");
+        assert_eq!(handle.lot_revision(), revision, "a preview wrote");
+
+        // The right side of the one-tile room as its doorway.
+        let door = [0.0, (x + 1) as f64, y as f64];
+        assert_eq!(handle.room_edit_preview(&corners, &door), [0, 1]);
+        assert!(handle.build_room(&corners, &door));
+        handle.flush_commands();
+        assert_eq!(handle.last_room_result(), [x, y, x, y, 0, 0, x + 1, y]);
+        assert_eq!(handle.lot_revision(), revision + 1);
+        let after = handle.wall_edges();
+        assert!(after.len() > edges_before.len());
+        assert!(
+            after.chunks_exact(4).any(|e| e == [0, x + 1, y, 1]),
+            "the doorway is drawn as one"
+        );
+        // Built, the same room would change nothing.
+        assert_eq!(handle.room_edit_preview(&corners, &door), [0, 0]);
+
+        // A doorway off the outline, read from the same result the shell reads.
+        let inside = [0.0, (x + 5) as f64, y as f64];
+        let invalid = PlacementRefusal::InvalidInput as u32;
+        assert_eq!(handle.room_edit_preview(&corners, &inside), [invalid, 0]);
+        assert!(handle.build_room(&corners, &inside));
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_room_result(),
+            [x, y, x, y, invalid, 0, x + 5, y]
+        );
+    }
+
+    #[test]
+    fn hostile_room_numbers_are_refused_before_they_reach_the_simulation() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let invalid = PlacementRefusal::InvalidInput as u32;
+        let ok = [2.0, 2.0, 3.0, 3.0];
+        for (corners, doorway) in [
+            (vec![2.0, 2.0, 3.0], vec![]),
+            (vec![2.0, 2.0, 3.0, 3.0, 4.0], vec![]),
+            (vec![2.0, -2.0, 3.0, 3.0], vec![]),
+            (vec![2.0, 2.5, 3.0, 3.0], vec![]),
+            (vec![f64::NAN, 2.0, 3.0, 3.0], vec![]),
+            (vec![2.0, 2.0, f64::INFINITY, 3.0], vec![]),
+            (vec![2.0, 2.0, 3.0, 4_294_967_296.0], vec![]),
+            (ok.to_vec(), vec![0.0, 2.0]),
+            (ok.to_vec(), vec![0.0, 2.0, 2.0, 1.0]),
+            (ok.to_vec(), vec![2.0, 2.0, 2.0]),
+            (ok.to_vec(), vec![0.5, 2.0, 2.0]),
+            (ok.to_vec(), vec![0.0, -1.0, 2.0]),
+        ] {
+            assert_eq!(
+                handle.room_edit_preview(&corners, &doorway),
+                [invalid, 0],
+                "{corners:?} {doorway:?}"
+            );
+            assert!(
+                !handle.build_room(&corners, &doorway),
+                "{corners:?} {doorway:?}"
+            );
+        }
+        handle.flush_commands();
+        assert!(handle.last_room_result().is_empty(), "nothing was staged");
+    }
+
+    #[test]
+    fn hostile_purchase_numbers_are_refused_before_they_reach_the_simulation() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let invalid = f64::from(PlacementRefusal::InvalidInput as u32);
+        for (definition, x, y, facing) in [
+            (-1.0, 3.0, 2.0, 0.0),
+            (0.5, 3.0, 2.0, 0.0),
+            (f64::NAN, 3.0, 2.0, 0.0),
+            (0.0, f64::INFINITY, 2.0, 0.0),
+            (0.0, 3.5, 2.0, 0.0),
+            (0.0, 3.0, -2.0, 0.0),
+            (0.0, 3.0, 2.0, 4.0),
+            (0.0, 3.0, 2.0, 257.0),
+            (4_294_967_296.0, 3.0, 2.0, 0.0),
+        ] {
+            assert_eq!(
+                handle.purchase_preview(definition, x, y, facing)[0],
+                invalid,
+                "({definition}, {x}, {y}, {facing})"
+            );
+            assert!(
+                !handle.buy_object(definition, x, y, facing),
+                "({definition}, {x}, {y}, {facing})"
+            );
+        }
+        handle.flush_commands();
+        assert!(
+            handle.last_purchase_result().is_empty(),
+            "nothing was staged"
+        );
+    }
+
+    #[test]
+    fn hostile_wall_edit_numbers_are_refused_before_they_reach_the_simulation() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let invalid = PlacementRefusal::InvalidInput as u32;
+        for (axis, x, y, state) in [
+            (2.0, 3.0, 2.0, 1.0),
+            (-1.0, 3.0, 2.0, 1.0),
+            (0.5, 3.0, 2.0, 1.0),
+            // 3 is Window since [WN-state]; 4 is the first unused code.
+            (0.0, 3.0, 2.0, 4.0),
+            (0.0, 3.0, 2.0, f64::NAN),
+            (0.0, f64::INFINITY, 2.0, 1.0),
+            (0.0, 3.5, 2.0, 1.0),
+            (0.0, 3.0, -2.0, 1.0),
+            (0.0, 3.0, 2.0, 257.0),
+            (0.0, 4_294_967_296.0, 2.0, 1.0),
+        ] {
+            assert_eq!(
+                handle.wall_edit_preview(axis, x, y, state),
+                invalid,
+                "({axis}, {x}, {y}, {state})"
+            );
+            assert!(
+                !handle.set_wall_edge(axis, x, y, state),
+                "({axis}, {x}, {y}, {state})"
+            );
+        }
+        handle.flush_commands();
+        assert!(
+            handle.last_wall_edit_result().is_empty(),
+            "nothing was staged"
+        );
+    }
+
     #[test]
     fn malformed_command_bytes_are_rejected_rather_than_trapping_the_module() {
+        // The well-formed twin of the SetWallEdge rows below, so a row can
+        // only fail for the byte it changes.
+        assert!(SimHandle::from_lot().enqueue_command(&[0x08, 0x00, 0x01, 0x02, 0x01]));
         // **The mutation this is written against: `unwrap` or `expect` on
         // the decode.** That compiles, ships, and survives `--release` -
         // which is what makes it worse than the [L12] `debug_assert!`
@@ -4217,10 +6315,53 @@ mod boundary_tests {
             // trap once `UseObjectFirst` took 5: each is a TRUNCATED valid
             // variant, still rejected, but no longer testing the unknown
             // index its label names. The row has to track the enum's edge.
+            // And `[0x07, 0x00]` became a truncated `PlaceObject`,
+            // `[0x08, 0x00]` a truncated `SetWallEdge`, and `[0x09, 0x00]` a
+            // truncated `BuyObject`.
+            // And `[0x0A, 0x00]` a truncated `BuildRoom`, `[0x0B]` a
+            // `SellObject` with no object, `[0x0C, 0x00]` a `SetColourway`
+            // with no colourway, `[0x0D, 0x00]` a truncated
+            // `BuyObjectInColourway`, and `[0x0E, 0x00]` an `AddHousemate`
+            // with an empty name and nothing after it.
             (
-                "variant index 7, one past the seven SimCommand declares; \
+                "variant index 15, one past the fifteen SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x07, 0x00],
+                vec![0x0F, 0x00],
+            ),
+            (
+                "AddHousemate missing its traits",
+                vec![0x0E, 0x03, b'A', b'n', b'n', 0x01],
+            ),
+            (
+                "BuyObjectInColourway missing its colourway",
+                vec![0x0D, 0x01, 0x02, 0x03, 0x00],
+            ),
+            ("SellObject missing its object", vec![0x0B]),
+            ("SetColourway missing its colourway", vec![0x0C, 0x01]),
+            (
+                "BuildRoom missing its doorway option",
+                vec![0x0A, 0x01, 0x02, 0x03, 0x04],
+            ),
+            (
+                "BuildRoom with a doorway axis past the two that exist",
+                vec![0x0A, 0x01, 0x02, 0x03, 0x04, 0x01, 0x02, 0x03, 0x04],
+            ),
+            ("BuyObject missing its facing", vec![0x09, 0x01, 0x02, 0x03]),
+            (
+                "BuyObject with a facing past the four that exist",
+                vec![0x09, 0x01, 0x02, 0x03, 0x04],
+            ),
+            (
+                "SetWallEdge missing its state",
+                vec![0x08, 0x00, 0x01, 0x02],
+            ),
+            (
+                "SetWallEdge with a state past the four that exist",
+                vec![0x08, 0x00, 0x01, 0x02, 0x04],
+            ),
+            (
+                "SetWallEdge with an axis past the two that exist",
+                vec![0x08, 0x02, 0x01, 0x02, 0x01],
             ),
             ("variant index 0xFF", vec![0xFF]),
             (
@@ -4539,12 +6680,28 @@ mod boundary_tests {
             kinds.len(),
             "labels and kinds are two columns of one table"
         );
+        // Tim wears three ([TL-household]), and the pairs come back in pack
+        // order whatever order household.toml wrote them in: the condition
+        // she always had, then a disposition, then a capability. A
+        // disposition carries no state, so its slot reads zero.
         let worn = handle.traits_of(tim);
-        assert_eq!(worn.len(), 2, "one trait is one (index, state) pair");
-        let which = worn[0] as usize;
-        assert_eq!(labels[which], "Low spirits");
-        assert_eq!(kinds[which], "condition");
-        assert_eq!(worn[1], 0.6, "the authored start severity rides as state");
+        assert_eq!(worn.len(), 6, "one trait is one (index, state) pair");
+        let described: Vec<(&str, &str, f32)> = worn
+            .chunks_exact(2)
+            .map(|pair| {
+                let which = pair[0] as usize;
+                (labels[which].as_str(), kinds[which].as_str(), pair[1])
+            })
+            .collect();
+        assert_eq!(
+            described,
+            [
+                ("Low spirits", "condition", 0.6),
+                ("Bookworm", "disposition", 0.0),
+                ("Out of shape", "capability", 0.42),
+            ],
+            "the authored start severity and start level ride as state"
+        );
     }
 
     #[test]

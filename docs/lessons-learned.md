@@ -33,6 +33,7 @@ placements for unchanged items or duplicate a completed manual confirmation.
 command-time rejection, rapid reselection, Load reset and dropdown state. Removing
 the valid-preview guard failed with selected object 15 instead of 22. Restored
 builder.ts SHA256 is 8DC185DBEAC1B512188BD91330DC3DB981CB6FD55F6A3D10EFB1E67C882A9524.
+
 ## [L-wide-furniture-depth] Wall-plane depth needs compatible furniture depth
 
 **What happened.** The first clipping correction restored the laundry, toilet
@@ -75,6 +76,7 @@ candidates retain the original artwork.
 assert matching draw counts, untouched other rows and byte-identical saves.
 Played desktop and 390x844 phone checks confirm clean artwork and readable
 controls. Evening and reduced-motion checks are separate visual observations.
+
 ## [L-atlas-append-provenance] Reconcile provenance after another sprite batch merges
 
 **What happened.** Asset notes retained a 1,221-record total and door indices
@@ -193,6 +195,7 @@ release before claiming defaults survived.
 **How to verify.** Run the relative-base geometry tests, the 34-object prior
 release render comparison, and real pre-builder and pre-bathtub byte fixtures.
 Change one base direction and require old digest bridges to close.
+
 ## [L-migration-pins-both-endpoints] Reconstructing a known source does not approve the destination
 
 **What happened.** Final front-door review found that the old bathtub migration
@@ -271,6 +274,7 @@ resulting career state and settled position, not only the rendered door state.
 **How to verify.** The two career arrival regressions must pass; the targeted
 mutation run must catch all eight changed comparisons and coordinate
 subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+
 ## [L-wall-plane-depth-closeups] Review wall contact at object scale
 
 **What happened.** The shipped boundary-wall layout passed a whole-room
@@ -3106,6 +3110,7 @@ not the arithmetic; it was believing an observable existed.
 `Eating` and the released `Reserved` on the tick the command arrives. Its
 `tick_until_interacting` helper is the distinction the outside-in pass
 lacked.
+
 ## [L49] A need nothing advertises is invisible to the suite for the same reason it is inert
 
 **What happened:** `content/needs.toml` declared `social`, `content/tuning.toml`
@@ -3563,6 +3568,7 @@ object "busy", the other "contested" - and the merged result had to pick one.
 Naming is where parallel work diverges first and most visibly, and it is the
 cheapest thing to standardise in advance if a findings list is going to be split
 across sessions.
+
 ## [L57] A hand-mutation restored with `mv` reports the mutant's verdict against the original's source
 
 **What happened.** Verifying two M2d guards by hand-deletion (they are
@@ -3815,6 +3821,7 @@ a simulated day and prove no save bytes are captured or queued. While clear is
 pending, attempt manual Save and prove the only storage operation after the
 initial restore remains clear. In both cases, assert all persistence controls
 are disabled until the owner operation settles.
+
 ## [L65] A validator that models one case of a union rejects the other two silently
 
 **What happened.** `Target` names one of three things - a chain station
@@ -4122,6 +4129,7 @@ that name. Review caught both. A checker written from the failure you
 just had sees that failure and no other; the cheap correction is to ask
 what ELSE satisfies the rule you wrote, before the rule is the thing
 everyone trusts.
+
 ## [L74] A shipped checkbox left open becomes counterfeit backlog
 
 **What happened.** The feature overview correctly described save/load, time
@@ -4739,6 +4747,7 @@ or acceptance record where the owner stated it. If no such source exists,
 classify the text as a project decision rather than owner authority. Confirm
 that the replacement behavior is documented, causally tested, and played at
 the viewport where the old choice failed.
+
 ## [L-a-save-digest-exception-does-not-migrate-the-world] Accepting a fingerprint does not rebuild an old snapshot
 
 **What happened.** The aquarium mock wanted a wider cabinet, and the exercise
@@ -5585,6 +5594,7 @@ simulation.
 **How to verify.** Trace the actual support endpoints and tube radius against
 the complete cloth surface, then inspect the fold and both tails from all four
 rotations. A passing radius test alone is insufficient.
+
 ## [L-boundary-panel-endpoints] A corner post cannot close a gap between panel ends
 
 **What happened:** the back corner had a visible gap and a stray upright;
@@ -5736,6 +5746,7 @@ unchanged.
 **How to verify.** Assert the complete cycling order for every facing and shirt
 colour, assert reading order stays 0,1,2,3, then play the built animation. A
 paused pose or an unordered contact sheet cannot satisfy this check.
+
 ## [L-wall-corner-definition] Closed joins still need a visible change of plane
 
 **What happened:** continuous wall faces blended together at actual corners
@@ -6228,6 +6239,7 @@ counts. The final hidden work sample and first visible return sample must both
 begin at the physical threshold, followed by inward movement. Changing only
 the landing must change compatibility, while the specifically reviewed
 pre-door public save remains loadable.
+
 ## [L-cancelled-mutation-sweeps-are-not-local-test-results] Distinguish verification costs and coverage
 
 **What happened.** PR83 waited on two full eight-shard mutation sweeps after
@@ -6292,6 +6304,7 @@ wall contact and an occupied approach. Each `y - 1` mutation to addition or
 division fails before source restoration; all 27 placement tests then pass.
 An integration check requiring some reachable contact is not proof that the
 helper enumerates every contact the placement policy promises to protect.
+
 ## [L-continuous-wall-rejection-boundaries] Separate the conditions that reject a route
 
 **What happened.** PR84's full mutation sweep found two unconstrained wall
@@ -6498,6 +6511,98 @@ fail the distance assertion. Also sample running source worlds and retain a
 save produced by the previous browser build; freshly encoded fixtures alone
 do not establish that an old runtime's actual bytes load.
 
+## [L-cleanup-removes-only-what-it-owns] A cleanup deleted a component it no longer owned
+
+**What happened.** The first measured run with the larger trait library froze
+Casey on the toilet at tick 1799. She never moved again, she held the only
+toilet's reservation, and within a day every bladder in the house was at zero.
+Every unit test passed and the page looked normal for its first half hour.
+
+**Root cause.** A conversation's initiator carries `Target{partner}`, and
+`tick_social` removed `Target` whenever a talk ended or was disturbed. It never
+checked that the Target it removed was still the one it had put there.
+`start_shift` takes `Target` from every sim whose Target names a departing
+worker, which includes a sim already talking to them. That sim kept
+`Socialising`, chose something new on the same tick, and then lost the NEW
+Target to the talk's cleanup. Beside the object she had already arrived, so she
+was left `Eating` with no `Target`, which `tick_interactions` never counts
+down. Across the room she would have walked her leftover path as a stroll while
+the object stayed reserved for nobody. The bug was on main already; a
+Chatterbox made the timing likely.
+
+**What I got wrong first.** I fixed the caller: I made `start_shift` skip sims
+that were already talking. It worked, and the reviewer pointed out that it left
+the cause in place, that the same pair had already destroyed a target once
+before, and that my whole-household test could not see the across-the-room
+form at all. Both were true.
+
+**Prevention rule.** A system that removes a component on its way out removes
+it only while the component is still the one it owns; check the value, not the
+presence. When a fix lands in a caller, ask what the callee would do for the
+next caller. After any change to who lives in the shipped house, run
+`cargo run --release -p terri-sim --example trace -- 120000` on main and on the
+branch and read the need floors first: a sim whose every need sits at zero is a
+stuck sim. Do not read a 12000-tick run; a one-tick change in timing reshuffles
+it, and [A-trait-library] has two such runs that disagree.
+
+**How to verify.** Make `owns_target` always true in `tick_social`. Then
+`a_talk_that_ends_removes_the_target_it_owns_and_no_other` fails,
+`a_shift_start_ends_a_running_talk_without_stranding_the_talker` fails in both
+its positions, and `the_shipped_household_never_strands_a_sim_or_an_object`
+fails at tick 1799 naming Casey. With the rule in place, 300000 ticks of the
+shipped household never leave anybody using an object with no target.
+Separately, the build replays a household saved by the previous public build
+field for field for 1800 ticks. That proves old saves keep their meaning; it
+does not test this fix, because that household has no conversation running at
+its shift start.
+
+## [L-content-additions-move-the-save-digest] Adding a trait refuses every save
+
+**What happened.** Appending twelve traits to `content/traits.toml` made five
+save-bridge tests fail at once. Without a bridge the build would have refused
+every existing save on load.
+
+**Root cause.** The compatibility digest in `crates/terri-data/src/lib.rs`
+hashes every trait id with its kind, along with object interaction rows, the
+social list, voice clips and chains. It is one global hash, so a pure addition
+moves it as surely as a destructive edit does. The file says so; I read it
+after writing the content.
+
+**Prevention rule.** Before adding any trait, object interaction, social
+interaction, voice clip or chain, read the digest's doc comment and plan the
+bridge in the same change: pin the source by removing the addition and
+requiring the previous public digest, pin the new digest as a golden value,
+add the new digest to every reviewed-destination list that names the old one,
+and check in a real save written by the previous public build.
+
+**How to verify.** `removing_the_appended_traits_reproduces_the_previous_public_digest`
+and `the_trait_library_digest_is_pinned` in terri-data, and
+`actual_pre_trait_library_saves_load_with_exactly_their_saved_traits` in
+terri-wasm. Deleting the bridge clause fails the first crate's bridge test.
+
+## [L-unpushed-work-is-invisible-work] Two sessions built the same feature
+
+**What happened.** I built furniture turning for about two days on a local
+branch and never pushed it. In that time another session merged 85 commits to
+main, ending in PR 85, which moves and rotates furniture in Build mode. It
+also took command wire code 7 and introduced Save V3, both of which my branch
+claimed differently. A trial merge conflicted in 22 files. The owner had to
+interrupt and tell me to fetch. The branch was shelved unpushed.
+
+**Root cause.** I fetched once, at the start of the increment. The rule that a
+push costs a long mutation sweep pushed me to batch everything into one push
+at the end, so for two days nobody could see that the item was taken.
+
+**Prevention rule.** Fetch at the start of every working session and before
+each major step of a long increment, and read what landed. Before picking an
+item, check open pull requests, unmerged remote branches, and the status of
+sibling worktrees whose branch sits at main's tip. Claim the item by pushing
+its design as a draft pull request before writing code; a push with no Rust
+change gives the mutation sweep nothing to do.
+
+**How to verify.** PR 87 was opened as a draft holding only its design, one
+commit after the fetch that found PR 85.
+
 ## [L-first-3d-character-checkpoint] Review the actual silhouette before developing the rig
 
 **What happened.** The first local Blender character render clipped its hair
@@ -6592,11 +6697,16 @@ selection does not waive later four-facing and rigging verification.
 
 **Outcome.** Approximating the selected concept by hand in Blender did not
 succeed; see [L-concept-to-hair-shape]. The hair that shipped came from a
-different source method: one owner-authorised, hair-only Tripo generation,
-fitted to the retained Blender body and approved on 2026-09-09. That was a
-single approved experiment, not a standing method; a paid generation still
-needs the owner's approval each time. The record is in
+different source method: a capped, owner-authorized hair-only Tripo
+experiment, whose one generation was fitted to the retained Blender body and
+approved on 2026-09-09. The record is in
 `docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+
+On 2026-09-21 the owner established paid generation as a standing, approved
+option rather than a one-off. Prefer non-paid methods; when they are of
+insufficient quality, paid generation is a legitimate route and need not be
+treated as exceptional. Each paid run still spends money, so ask the owner to
+approve that specific run and its cost before submitting it.
 
 ## [L-concept-to-hair-shape] A clear concept does not validate the construction method
 
@@ -6631,10 +6741,13 @@ evidence that another long sequence of parameter revisions is justified. Stop
 that track, preserve the failed set, and request the necessary source-method or
 spending decision before expanding the scope.
 
-**Outcome.** That decision was taken. Local modelling stopped after attempt 13
-without reaching the concept, and the owner authorised a single hair-only
-Tripo generation, which cost USD 0.60, was fitted to the Blender body, and
-was approved. Details are in `docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+**Outcome.** That decision was taken. Local modeling stopped after attempt 13
+without reaching the concept, and the owner authorized a capped hair-only
+Tripo experiment. Its one generation cost USD 0.60, was fitted to the Blender
+body, and was approved. Details are in
+`docs/specs/2026-09-07-sim-hairstyle-direction.md`. Paid generation has since
+been established as a standing option; see
+[L-preserve-personality-in-visual-revisions].
 
 ## [L-store-blender-background-proof] Verify the background script, not the launcher exit
 
@@ -6660,3 +6773,440 @@ this summary.
 `bpy.app.background` true and the Blender version. For actual renders, also
 require the script's complete status, every expected output, hashes and visual
 inspection. A launcher process ID or successful shell exit alone is insufficient.
+
+## [L-a-blind-digest-proves-false-equalities] A hash that cannot see something lets tests call two worlds equal
+
+**What happened.** Adding the saved walls to the world hash for the Walls tool
+failed two save tests. Each round-tripped the shipped house through the old V1
+record and asserted the restored world had the same hash. A V1 record carries
+no wall edges, so the restored house had no walls at all. The assertion had
+only ever held because the hash could not see walls.
+
+**Root cause.** A test that compares digests proves equality only of what the
+digest reads. When state lives outside the digest, "same hash" silently means
+"same except that", and a test can pass for years while asserting something
+false.
+
+**Prevention rule.** When a digest gains a field, expect failures and read each
+one as a question about the test, not the digest: was the test's claim ever
+true? When a test compares two worlds through a lossy format, compare what that
+format carries, or use the format the game writes.
+
+**How to verify.** `fridge_art_replacement_restores_authored_and_dynamic_objects_without_save_changes`
+keeps its V1 load and compares V1 records, and adds a V3 round trip that
+compares hashes;
+`load_during_settle_in_reconstructs_the_socketed_render_endpoint_before_another_tick`
+keeps V1 on purpose, because its fixture is only valid there, and compares V1
+records. With the wall hash in place, turning either back into a V1 world-hash
+comparison makes it fail.
+
+**It happened again, the other way round (PR 96).** The world hash never read
+which object a placed entity is, because the lot content fixed that. Buying
+made it a player's choice, and the review bought a radio and a desk chair, same
+price, same tile, in two copies of one household: equal hashes, different
+saves. The rule that would have caught it: **when a feature makes some state a
+player's choice for the first time, check the digest reads that state.**
+`the_world_hash_sees_which_object_was_bought` fails if the object-kinds
+section is removed from `world_hash`.
+
+## [L-an-edit-must-pass-the-loader] A lot edit's own rules accepted walls the loader refused
+
+**What happened.** The first review of the Walls tool found two walls the
+validator accepted that left a save the V3 loader refused: one between where a
+sim's walk ends and the object it is walking to, and one between the front door
+and its landing while another way in stayed open. The player could not resume
+the game. Both came up in ordinary play of the shipped household.
+
+**Root cause.** I built the wall validator from the furniture validator's
+rules and added the ones I could think of. The loader has its own, older rules
+about walls, walks and the front door, and nothing tied the two lists
+together. Any rule only the loader knew was a way to write a save it refuses.
+
+**Prevention rule.** An edit that writes saved state must pass the loader's
+checks on the candidate state, by calling them rather than copying them. Test
+the invariant directly: every edit the validator accepts leaves a save the
+loader accepts, over the real household at more than one moment.
+
+**How to verify.** Remove the `candidate_grid_loads` call from
+`validate_wall_edit`. `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`
+and `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fail;
+the second names the vertical line at x 14, y 6, at tick 180. The front-door
+test does not, because the door rule now refuses that wall first. The
+household test also fails on its own if its ticks stop holding a wall that
+only the loader refuses: the trait library moved the household once already
+and silently emptied the ticks it first used.
+
+## [L-a-list-refreshed-in-silence] The Furniture list missed a bought chair
+
+**What happened.** In the played check of the Buy tool, a chair bought with
+nothing selected in the Furniture tool did not appear in that tool's list. The
+list showed two chairs where the lot had three.
+
+**Root cause.** The furniture builder re-read its object list whenever the lot
+changed, but only told its controls to redraw from inside the preview query,
+which runs only when something is selected. Until buying existed, nothing
+added or removed an object, so a stale list was never visible.
+
+**Prevention rule.** A controller that changes what its view shows tells the
+view in the same branch, not only in the branch that happened to exist first.
+When a feature adds a new way for shared state to change, check every view
+that reads that state for how it hears about the change.
+
+**How to verify.** Remove the `else` branch that calls `hooks.changed()` after
+`refreshObjects()` in `FurnitureBuilder.afterCommands`.
+`tells its controls when a lot change refreshes the object list with nothing
+selected` in `web/tests/builder.test.ts` fails.
+
+## [L-a-test-that-waits-must-be-bounded] A test's clock loop hung two mutants
+
+**What happened.** PR 95's household wall test advanced the game with
+`while tick < stop { sim.tick() }`. The mutation sweep replaced `Sim::tick`
+and `advance_clock` with nothing; the clock never moved, the loop never ended,
+and both mutants burned the 60-second timeout. The shard's hang check failed
+the whole pull request after an hour of CI.
+
+**Root cause.** A loop whose exit depends on the code under test is a loop the
+mutation sweep can break. The test assumed the one thing a mutant exists to
+remove.
+
+**Prevention rule.** A test that waits for the simulation to reach a state
+counts its steps and asserts afterwards: `for _ in from..stop { tick }` then
+`assert_eq!(clock, stop)`. Never `while` or `loop` on simulation state.
+
+**How to verify.** Make `Sim::tick` return at once.
+`every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fails in
+seconds with "one tick per `Sim::tick`" instead of timing out.
+
+## [L-derive-after-the-restore-is-whole] Doors drawn from walls went missing after a Load
+
+**What happened.** Interior doors are drawn from the saved walls. Straight
+after a Load a house showed its doorways doorless for one tick: the portal
+bridge test caught a loaded world with one portal row where the live one had
+four.
+
+**Root cause.** The loader syncs the render buffer while it restores the
+entities, and only afterwards puts the saved walls in. Nothing drawn before
+had depended on the walls, so the order never mattered.
+
+**Prevention rule.** Presentation derived from saved state is rebuilt once the
+restore is whole, not at whatever point the loader happens to sync. When a
+view starts reading a piece of saved state, check where the loader installs
+that state relative to its render sync.
+
+**How to verify.** Remove the `sync_portals` call at the end of `Sim::adopt`
+in `crates/terri-sim/src/lib.rs`, which all three loaders go through.
+`a_loaded_house_shows_its_doors_before_the_first_tick` (the V2 and V3 loaders)
+and `a_migrated_v1_house_shows_its_doors_before_the_first_tick` (the V1 loader)
+fail.
+
+**Second instance, found by review.** The first fix put the rebuild at the end
+of the V2 and V3 restore, and the V1 loader, which moves the cell-wall house to
+edge walls in a later step, still drew its doors late. The rebuild now sits in
+the one place every loader passes through after the restore is whole: a fix
+for an ordering bug belongs after the last step of every path, not after the
+step where the bug was first seen.
+
+## [L-restore-without-counting-up] A Load counted up to a saved number
+
+**What happened.** PR 97's mutation sweep failed on two mutants that time out
+rather than fail: both let a count above the limit through `exceeds_limit`,
+the loader's bound on saved counts. With the bound off, the save test that
+feeds `issued_sim_ids = u32::MAX` took 15.6 seconds on a desktop and over the
+60 second limit on a CI
+runner, because restoring the sim id allocator called `issue` once per issued
+identity. PRs 98 and 99 passed the same shard only because their runners were
+faster.
+
+**Root cause.** The restore did work proportional to a number read from the
+save, and only the validation bound kept that number small. A check that
+guards cost as well as correctness is one the sweep will break.
+
+**Prevention rule.** Restore a saved counter by setting it, never by
+replaying it. When a loader must loop over a saved number, loop over data the
+save actually contains, whose length the decoder has already paid for. The
+one exception is the entity slots in `restore_with_facings`: the ECS hands
+indices out in order, so the loader spawns one per index up to the last saved
+or retired index, bounded by validation's checks that every entity index and
+every retired index is under `MAX_ENTITIES`, and a comment on the loop says
+so.
+
+**How to verify.** With `exceeds_limit` returning false,
+`invalid_snapshots_are_rejected_without_touching_the_running_sim` in
+`crates/terri-sim/src/save.rs` fails in well under a second, and
+`a_resumed_allocator_matches_one_that_issued_as_many` in
+`crates/terri-core/src/components.rs` covers `SimIdAllocator::resumed`.
+
+## [L-sprite-keyed-tables-miss-new-directions] Rotation added sprites that a lighting table never learned
+
+**What happened.** The furniture builder let the player turn objects, and a
+turned object is drawn with its direction's own sprite. The shell's lighting
+knew the floor lamp and the television by one sprite each, the default
+direction, so a turned lamp or television lit nothing around it at night and
+lost its glow. Nothing failed: the lighting tests only placed unturned
+lights, and nobody turned a light and waited for night.
+
+**Root cause.** Rotation changed which sprite an object is drawn with, and
+the change was checked in the simulation and the renderer's draw path, not in
+the shell tables that key on sprite numbers to mean "this object".
+
+**Prevention rule.** When an object gains sprites (a direction, a frame, a
+variant), search the shell for every lookup keyed on a sprite number or name
+(`spriteIndex(` and tables indexed by `sprites[...]`) and decide for each
+whether it means the object or that exact picture. A table that means the
+object must list every sprite the object can be drawn with.
+
+**How to verify.** "lights every direction of a light and nothing else" in
+`web/tests/buy-tool.test.ts` asks the real simulation which picture it draws
+for every catalogue item in every direction, and checks the lighting against
+those. Dropping a turn from `inEveryDirection` in `web/src/render/lighting.ts`
+fails it, as does the per-turn case in `web/tests/lighting.test.ts`.
+
+## [L-probe-a-library-accessor] A library accessor was read by its name, then explained by a guess
+
+**What happened.** The selling design saved where fresh entity indices start,
+read from `Entities::len()`, and had the loader retire every gap in the saved
+numbering. The first test failed: after a sale the next spawn took an index
+well below that bound. I explained it as the ECS freeing indices of its own and
+wrote that into the design, the architecture notes, a test comment and this
+lesson. Review probed it and found the ECS frees nothing of its own here.
+
+**Root cause.** `Entities::len()` is the length of the ECS's internal entity
+record list, which grows in chunks (64 for 37 entities), not the next index. I
+read the accessor by its name and, when the test disagreed, reached for a
+cause that fit instead of probing the one I had.
+
+**Prevention rule.** Before designing around a library accessor, probe what it
+returns in the case that matters. When a test contradicts a design, confirm the
+cause with a direct probe before writing it down anywhere. The shipped design
+saves the retired indices instead, which needs no allocator internals.
+
+**How to verify.** `a_sold_index_is_never_handed_out_again` spawns and drains
+after a sale, and
+`after_two_sales_a_save_and_a_load_the_next_purchase_matches_continuous_play`
+compares a loaded world's next purchase with continuous play, both in
+`crates/terri-sim/src/placement/sale_tests.rs`. Replacing `despawn_no_free` in
+the sale with `despawn` fails both.
+
+## [L-list-every-picture-of-an-object] The colourway design missed the placement ghost
+
+**What happened.** The colourways design listed the pictures an object's
+colourway must reach: its own row, its foreground layer and the furniture
+layer inside a sim using it. It said the placement ghost keeps its tints and
+nothing more. In play, recolouring the chosen sofa changed nothing on screen,
+because while an object is chosen the Furniture tool hides it and draws the
+ghost in its place.
+
+**Root cause.** The list was built from the render buffer's rows, and the
+ghost is not a row: the shell draws it from the builder's preview.
+
+**Prevention rule.** When a change must reach every picture of an object,
+list the pictures from the frame's writers (`writeInstance` callers in
+`web/src/frame.ts` and `web/src/render/`), not from the simulation's rows,
+and play the change with the object chosen as well as not.
+
+The first fix took the colourway from the row the ghost replaced, which the
+frame only has while the ghost is valid and on the object's own tiles; review
+found it, and main now passes the chosen object's colourway to the frame.
+Test the picture where the player sees it, in every state it can be in, not
+the writer alone.
+
+**How to verify.** "draws the ghost in the given colourway, valid or not, on
+its tiles or elsewhere" in `web/tests/footprint-depth.test.ts` drives the
+whole frame; "draws the candidate in the colourway of the chosen object" in
+`web/tests/placement-preview.test.ts` covers the writer. Removing the ghost's
+colourway write fails both.
+
+## [L-build-where-the-tests-read] Web tests passed against a WebAssembly build nobody had made
+
+**What happened:** while building the yard, `wasm-pack` was run with
+`--out-dir ../../web/src/wasm-pkg`, a folder nothing reads. CI, the Pages build
+and the web tests all load `web/src/wasm`, so every `vitest` run in that stretch
+tested the WebAssembly left there by an earlier build. The yard's web tests
+passed while seven of them were wrong against the real 20 by 16 lot; a build
+into `web/src/wasm` showed them failing at once.
+
+**Root cause:** the out-dir was typed from memory rather than copied from
+`.github/workflows/ci.yml`, and a stale build is silent: `vitest` has no idea
+the Rust moved. This is [L8] again, reached by building somewhere else rather
+than by not building.
+
+**Prevention rule:** build with exactly the command CI runs,
+`wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
+from the repository root, before every web test run that follows a Rust
+change.
+
+**How to verify:** after the build, the timestamp of
+`web/src/wasm/terri_wasm_bg.wasm` is newer than the last Rust edit, and a web
+test that reads a boundary value you just changed, such as
+`houseSize()` in `web/tests/bridge.test.ts`, fails before the change and
+passes after.
+
+## [L-a-rule-read-the-picture] A wall rule read the presentation-only portal rows
+
+**What happened:** the yard's rule that the front door's line never becomes a
+wall first found that line through `ActivePortals`, the portal rows the
+renderer draws from. A world built without them, such as `Sim::new()` loading
+the same save, accepted the wall the game refused, and the two worlds' digests
+parted. Review caught it before merge.
+
+**Root cause:** the helper was written for the door's swing, which is
+presentation and rightly reads `ActivePortals`, and was then reused by a
+simulation rule. The `ActivePortals` doc comment in
+`crates/terri-sim/src/portals.rs` already says career routing reads the
+content's portals, not the presentation rows; a new rule did not check which
+side of that line it stood on.
+
+**Prevention rule:** a rule that decides what the simulation does reads only
+simulation state and the content, the way `check_new_walls` finds the front
+door: `content.lot.front_door` matched to its portal in `content.portals`.
+When a helper serves both the picture and a rule, it takes its source from
+the rule's side.
+
+**How to verify:** `the_front_doors_line_is_kept_without_the_doors_art` in
+`crates/terri-sim/src/placement/wall_tests.rs` loads one save into
+`Sim::new()` and into the shipped lot, asks both for the same wall, and
+compares the refusals and the digests; it fails if `front_door_lines` reads
+`ActivePortals` again.
+
+## [L-run-every-gate-ci-runs] The yard passed every local gate and failed CI's asset tests
+
+**What happened:** the yard grew the lot from 16 by 12 to 20 by 16. Every
+local gate passed, and CI's rust job failed: two tests in
+`assets/models/sims/sim-01/test_exercise_wall.py` read `content/lot.toml`
+and the bike art's exporter asserted the lot was 12 tiles tall.
+
+**Root cause:** the local gate list was written from memory, as fmt, clippy,
+the Rust tests, the doc ids, WebAssembly, the typecheck and the web tests.
+CI's rust job also runs every asset folder's Python tests and the sprite
+atlas check, which read content too.
+
+**Prevention rule:** run the gates by reading `.github/workflows/ci.yml`, or
+with a script built from it, never from a list in memory. A content change,
+such as the lot's size, reaches the asset tests as surely as the Rust ones.
+
+**How to verify:** before a push, the `Sprite atlas is reproducible` step's
+seven `unittest discover` commands and `build.py --check` pass locally
+alongside the rest.
+
+## [L-a-new-rule-meets-old-saves] The street's rule would have stranded a house the yard build saved
+
+**What happened:** the street slice made every lot edit keep the street's
+exit open, and sent every commute there. The yard build, which ships first,
+lets furniture stand on that tile. Review loaded such a save: the worker
+missed every shift, and almost every edit anywhere was refused as blocking
+someone's route, with nobody in sight.
+
+**Root cause:** the new rule was written for houses built under it. A save
+made before the rule existed could already break it, and the rule treated
+that as a state it could never be in: the commute had no second way out,
+and the edit check refused anything that did not also mend the break.
+
+**Prevention rule:** a rule about saved state meets worlds saved before it
+existed. It needs a way to carry on when the old world breaks it, such as the
+commute leaving by the door, and an edit is refused only for breaking it now,
+never for leaving an old break as it was.
+
+**How to verify:** `furniture_saved_on_the_exit_sends_the_worker_by_the_door`
+in `crates/terri-sim/src/systems/street_tests.rs` fails if the edit check drops
+its "reaches now" condition, or if the commute stops falling back to the
+door.
+
+## [L-move-markup-by-its-tree] A moved block of markup left its closing tag behind
+
+**What happened:** a review fix moved the Options flyout's markup to the top of the page. The script cut from the block's opening comment to the first `</div>` with four spaces of indent after the panel. That text also matched inside the panel's own six-space closing tag, so the cut ended one tag early. The wrapper's closing tag stayed where the block used to be, and the whole sidebar ended up inside the flyout's wrapper, fixed to the window's right edge. Every test passed, and the branch was pushed. The next played check showed the sidebar at x = 1240 on a 1280-pixel window.
+
+**Root cause:** the script found the end of an element by matching text, and indentation is not structure. The tests checked that ids came in the right order in the file, which a misplaced closing tag does not change.
+
+**Prevention rule:** move markup by its tree, not by a text pattern: find the matching close by counting tags, and check the moved block opens and closes exactly once. A test about where markup sits checks nesting, not just order.
+
+**How to verify:** `holds only the gear and its panel, closing before the sidebar opens` in `web/tests/options-menu.test.ts` walks the div tags from the wrapper to its matching close and fails if the sidebar, the Build dock, the right-click flyout or the debug overlay is inside it.
+## [L-check-preview-worktree-before-copy-review] A familiar port can serve another checkout
+
+**What happened.** The object-copy browser check initially opened port 5174 and found the old labels. That listener belonged to another worktree, while the new content and browser-code tests had passed in this checkout.
+
+**Root cause.** A known project port was treated as proof of which checkout it served.
+
+**Prevention rule.** Check the listener's process command and source path before assessing a local change. Leave another task's server alone. Use an available project-approved preview port for the build under review, with an isolated browser context to preserve household saves.
+
+**How to verify.** Confirm the server process points to the intended checkout, then check the loaded build and a distinguishing visible change. For this slice, port 4173 serves this checkout's production build and the object menu shows Washing machine above the description.
+## [L-generic-skills-still-need-tool-mirrors] Check skill packaging before a documentation merge
+
+**What happened.** The writing-style skill was merged as documentation with CI skipped at the owner's request. The subsequent full browser suite found its missing `.claude` mirror and a mirror test that required cloud-runtime wording in every skill.
+
+**Root cause.** The new skill was validated on its own, without finding the repository's skill-packaging test. That test also generalized a requirement belonging only to the original cloud-run skill.
+
+**Prevention rule.** For a project skill, inspect both discovery directories and run the focused mirror test even when CI is intentionally skipped. Keep tool-neutral skills identical; test runtime-specific wording only on the skill that needs it.
+
+**How to verify.** `npm --prefix web test -- --maxWorkers=1 tests/agent-skill-mirrors.test.ts` must pass. Removing either discovery copy must fail the inventory check; changing either copy's instructions must fail the mirror check.
+
+
+## [L-disclosure-hover-owns-action-surface] Keep actions stationary after hovering a description
+
+**What happened.** The object description opened on hover, but collapsed as the pointer moved toward the action below it. That moved action rows underneath the pointer.
+
+**Root cause.** Hover dismissal belonged to the disclosure alone, although the player was still using the surrounding menu. Reserving viewport placement did not preserve action positions inside the menu.
+
+**Prevention rule.** Keep hover previews open while the pointer traverses their containing action surface. Remove boundary listeners when replacing the disclosure. Check movement from descriptive text to an action, not just whether the text opens.
+
+**How to verify.** The object-identity regression test retains expansion after leaving the disclosure and closes it after leaving the boundary. A real browser traversal must leave the first action's rectangle unchanged and still activate that action.
+
+
+## [L-finish-authorized-delivery] Complete the requested delivery before closing the task
+
+**What happened.** The writing guidance was merged, but the related object implementation was left uncommitted. The owner had to ask twice to finish delivery.
+
+**Root cause.** The documentation-only CI skip was treated as a reason to stop the implementation at local validation, rather than apply normal checks and finish the remaining delivery.
+
+**Prevention rule.** Keep each deliverable and its publication state explicit. When the owner directs the work through merge, continue through commit, push, CI, and merge without introducing another approval request for the same scope.
+
+**How to verify.** Before closing, verify the PR is merged, the remote main contains the implementation, and the task checkout is clean and synchronized. Report any actual remaining blocker directly.
+
+## [L-bounds-belong-to-the-generator] Each importer remembered content bounds for its own sprites only
+
+**What happened:** the empty reading chair was picked from the transparent space above its art, and the placement buttons floated about 36 pixels above it. The furniture importer recorded content bounds for every occupied frame, the ones interaction picking was written for, and none for the four empty facings. Nothing failed, because picking and camera framing quietly fall back to the whole padded canvas. The first kitchen import had missed bounds the same way.
+
+**Root cause:** bounds were a table each importer had to fill for the sprites it knew about, and a missing entry meant "use the canvas" rather than an error. A survey of the shipped atlas found 833 of its 1,225 sprites with transparent space above their art and no bounds, 687 of them Sim frames.
+
+**Prevention rule:** the atlas generator now cuts the transparent band above the art off every sprite that still has no box, after all importers run, and keeps the boxes they did record. It cuts only that band: a sprite draws nothing on the south half of its own tile, and trimming to the art would take the front of the trashcan's tile out of its click target. Sim body frames are left whole, because their animation frames share one envelope and the click target must not move between frames, which the picking tests in `web/tests/input.test.ts` pin.
+
+**How to verify:** `test_every_sprite_whose_art_misses_the_canvas_top_has_bounds` in `assets/sprites/gen/test_content_bounds.py` scans the shipped atlas and fails on the pre-fix table, listing all 833 sprites. 146 sprites gained a box. "an empty reading chair is not picked through the transparent space above its art" in `web/tests/interaction-production.test.ts` fails when `pickSprite` ignores bounds.
+
+## [L-mutant-cap-must-scale] One mutation timeout was timing two different commands
+
+**What happened:** PR 116 reported eight mutants as hangs that had passed for months, among them two `rect_distance` clamps and `SimRng::from_seed`, which `docs/mutation-baseline.md` proves equivalent. Nothing about them loops. The first fix written for it was wrong in a way worth recording: it replaced the fixed cap with a multiple of the unmutated run, which would have set the cap to 20 seconds and timed out nearly everything. Reading the argv in the sweep's own `outcomes.json` is what settled it.
+
+**Root cause:** the cap was timing two different commands. Each mutant is tested with `cargo test --workspace`, which takes about 57 seconds on the CI runner, so a mutant no test kills pays a full suite and one caught by a late test pays most of one. The unmutated baseline is not that command: cargo-mutants runs only the packages it will mutate, 1.2 seconds for `terri-core`, 0.4 for `terri-data`, over 60 for a shard holding a `terri-sim` mutant. The one fixed 60 second cap sat a few seconds above the workspace suite, so three added tests were enough to push eight mutants past it; and it sat below the baseline of any shard with a `terri-sim` mutant, which aborted that sweep before a single mutant ran. An aborted sweep still writes an empty `missed.txt` and `timeout.txt`, so four of PR 116's eight shards and six of PR 117's tested zero mutants and reported green.
+
+**Prevention rule:** the cap is `max(120 seconds, 4 x the unmutated run)`, and both halves are load-bearing. The floor carries the ordinary shard, because the multiplier is measured against the smaller command and four times 1.2 seconds resolves to the tool's 20 second minimum. The multiplier carries the `terri-sim` shards, whose baseline alone is over a minute. A step now fails any shard whose sweep tested zero mutants, because an empty output file is not evidence. And `Timeout` in this tool means "hit the cap", not "looped": read the timings before hunting for a loop.
+
+**How to verify:** locally, `cargo mutants --package terri-core -f crates/terri-core/src/clock.rs --test-workspace true --timeout-multiplier 4 --minimum-test-timeout 120 --build-timeout 600 -j1` prints "Auto-set test timeout to 120s" and catches all 11 mutants; without the floor it prints 20s. On CI, download a shard's `mutants-out-shard-N` artifact: `total_mutants` must be above zero, `timeout.txt` must be empty, and a survivor's test phase should sit near the workspace suite rather than exactly on the cap. The evidence here: PR 116 shard 0 tested 423 mutants with 52 at exactly 60.0 seconds; PR 117 shards 2 to 7 recorded `total_mutants` 0 with a 60.0 second baseline.
+## [L-set-the-exception-aside-not-the-reach] A broad check was narrowed to admit one exception
+
+**What happened.** Moving the person and How they feel toggles' 44-pixel flex rules into the block every compact screen matches tripped the test that the short Build dock panel scrolls whole, which asserted that nothing in that block was `display: flex`. The first fix narrowed that assertion to rules whose selector held `#builder-dock`. Fresh-context review added `.builder-actions { display: flex; }` to the block, a dock descendant with no prefix, and every test stayed green; the original assertion would have caught it.
+
+**Root cause.** A proxy check that guards a whole region was rewritten to name the region's parts, so its reach shrank to whatever convention the parts happened to follow. The legitimate exception was one rule; the narrowing excluded everything that did not look like the dock.
+
+**Prevention rule.** When a broad check blocks a legitimate change, set the one legitimate case aside and keep the check's original reach: strip or mask the exception, then run the old assertion unchanged. Never rewrite the check in terms of what it should catch; it will catch only that.
+
+**How to verify.** After changing any test's matcher, add the thing the old matcher caught somewhere the new one does not name, run the test, and require it to fail; then restore the file and compare its hash. `web/tests/mobile-hud.test.ts`, "leaves the short panel to scroll whole", is the worked example.
+
+## [L-close-audible-browser-tests] Close game instances when browser verification ends
+
+**What happened.** Two isolated object-copy test tabs were left open after verification. The owner heard game audio continuing while the task waited for CI.
+
+**Root cause.** Isolated storage was treated as sufficient cleanup. Reloading a game also resumed its runtime, and the test pages were never closed.
+
+**Prevention rule.** Close each task-owned game page in a finally block when its browser check ends. Shut down task-owned preview servers once no further local checks need them. Never leave an audible game running during CI waits, and never close another task's pages or servers.
+
+**How to verify.** Enumerate browser pages and confirm the task-specific test URLs are absent. Verify the owned preview port has no listener. For this incident, both object-copy test tabs were closed and the verified Vite preview process on port 4173 was stopped.
+
+
+## [L-local-validation-does-not-require-duplicate-ci-wait] Do not block authorized delivery on duplicate remote checks
+
+**What happened.** The object identity implementation passed local Rust and web tests, typechecking, builds, browser checks, and targeted mutation checks. Delivery then stalled waiting for a remote mutation shard, despite the owner's direction to finish.
+
+**Root cause.** Remote CI completion was made an additional approval gate. Local evidence, additional remote mutation coverage, and the owner's merge authority were not kept distinct.
+
+**Prevention rule.** Follow AGENTS.md: do not wait for duplicate remote checks after equivalent local validation passes. When the owner explicitly authorizes merging with a remaining remote check pending, merge and report its pending state accurately. Do not require another confirmation or extend the wait.
+
+**How to verify.** Record the local validation and exact PR head, merge when authorized, verify the merged PR and clean synchronized checkout, and report any still-pending remote checks without claiming they passed.

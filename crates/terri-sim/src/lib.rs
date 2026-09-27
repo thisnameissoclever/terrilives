@@ -2,6 +2,8 @@
 
 #[cfg(test)]
 mod facing_tests;
+pub mod family;
+pub mod household;
 mod mood;
 pub mod placement;
 pub mod portals;
@@ -103,6 +105,12 @@ pub struct Sim {
     /// interpolation history only; it is intentionally absent from Save V1
     /// and the deterministic world digest.
     socket_projected_entities: std::collections::HashSet<Entity>,
+    /// The entity in each render row at the last sync, in row order -
+    /// [SL-render] in `docs/specs/2026-09-22-selling-furniture.md`. A sale and
+    /// a purchase in one drain keep the row count while shifting rows, so the
+    /// interpolation history is reseeded whenever this list changes, not only
+    /// when its length does. Render history only, like the set above.
+    render_rows: Vec<Entity>,
 }
 
 #[derive(Debug)]
@@ -117,6 +125,7 @@ struct RenderRow {
     footprint_depth: u32,
     sprite: u32,
     foreground_sprite: u32,
+    colourway: u32,
     activity: u32,
     visual_action: u32,
     interaction_target: u32,
@@ -604,7 +613,7 @@ fn authored_object_sound(
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v3` for complete persistence of a current world.
+    /// Use `save_snapshot_v4` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -626,16 +635,8 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
-        restored
-            .world
-            .resource_mut::<placement::LotEditState>()
-            .revision = self
-            .world
-            .resource::<placement::LotEditState>()
-            .revision
-            .saturating_add(1);
-        *self = restored;
+        let restored = save::architecture::restore(snapshot, content, active_portals)?;
+        self.adopt(restored);
         Ok(())
     }
 
@@ -668,6 +669,87 @@ impl Sim {
         }
     }
 
+    /// The previous envelope - [SL-save]: V3's, with the indices sales retired.
+    pub fn save_snapshot_v4(&self) -> terri_core::SaveSnapshotV4 {
+        let terri_core::SaveSnapshotV3 {
+            world,
+            layout,
+            object_facings,
+        } = self.save_snapshot_v3();
+        terri_core::SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices: self
+                .world
+                .get_resource::<placement::sale::RetiredIndices>()
+                .map_or_else(Vec::new, |retired| retired.as_slice().to_vec()),
+        }
+    }
+
+    /// The current envelope - [RC-save]: V4's, with each placed object's
+    /// colourway, ascending by entity index, for the objects not as drawn.
+    pub fn save_snapshot_v5(&self) -> terri_core::SaveSnapshotV5 {
+        let terri_core::SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+        } = self.save_snapshot_v4();
+        let content = self.world.resource::<Content>().0;
+        let mut object_colourways = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::Colourway)>() {
+            for (entity, colourway) in query.iter(&self.world) {
+                object_colourways.push((
+                    entity.index_u32(),
+                    content.colourways[colourway.0 as usize].id.clone(),
+                ));
+            }
+        }
+        object_colourways.sort_unstable_by_key(|(index, _)| *index);
+        terri_core::SaveSnapshotV5 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+            object_colourways,
+            floors: self
+                .world
+                .get_resource::<terri_core::layout::SavedFloors>()
+                .cloned()
+                .unwrap_or_default(),
+            family: self
+                .world
+                .get_resource::<terri_core::layout::FamilyTies>()
+                .cloned()
+                .unwrap_or_default(),
+        }
+    }
+
+    /// Validates the complete candidate before replacing the running simulation.
+    pub fn load_snapshot_v5(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV5,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let restored = save::architecture::restore_v5(snapshot, content, active_portals)?;
+        self.adopt(restored);
+        Ok(())
+    }
+
+    /// Validates the complete candidate before replacing the running simulation.
+    pub fn load_snapshot_v4(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV4,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        self.adopt(restored);
+        Ok(())
+    }
+
     /// Validates the complete candidate before replacing the running simulation.
     pub fn load_snapshot_v3(
         &mut self,
@@ -675,7 +757,23 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        let restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        self.adopt(restored);
+        Ok(())
+    }
+
+    /// Replaces the running simulation with a restored one that passed every
+    /// check. The lot's revision moves on so the shell rereads the lot. The
+    /// portal rows are rebuilt last: the restore synced them before it put the
+    /// saved walls in, and the interior doors are drawn from those walls
+    /// ([DR-derived]), so without this a loaded house would show its doorways
+    /// doorless until the next tick.
+    ///
+    /// A house saved before the yard grows into it first ([OS-migrate]), so
+    /// every loader passes through the same growth.
+    fn adopt(&mut self, mut restored: Sim) {
+        let content = restored.world.resource::<Content>().0;
+        save::yard::grow(&mut restored, content);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -685,7 +783,7 @@ impl Sim {
             .revision
             .saturating_add(1);
         *self = restored;
-        Ok(())
+        portals::sync_portals(&mut self.world, &mut self.portals);
     }
 
     /// Loads a historical V1 payload, including reviewed layout migrations.
@@ -693,16 +791,8 @@ impl Sim {
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let mut restored = save::restore(snapshot, content, active_portals)?;
-        restored
-            .world
-            .resource_mut::<placement::LotEditState>()
-            .revision = self
-            .world
-            .resource::<placement::LotEditState>()
-            .revision
-            .saturating_add(1);
-        *self = restored;
+        let restored = save::restore(snapshot, content, active_portals)?;
+        self.adopt(restored);
         Ok(())
     }
 
@@ -973,6 +1063,7 @@ impl Sim {
             render: render_buffer::RenderBuffer::default(),
             portals: portals::PortalBuffer::default(),
             socket_projected_entities: std::collections::HashSet::new(),
+            render_rows: Vec::new(),
         }
     }
 
@@ -1125,6 +1216,33 @@ impl Sim {
         sim
     }
 
+    /// The shipped household in its house as it stood before the yard
+    /// ([OS-grow]): the lot cut back to the house, without the walls on the
+    /// house's outside lines, which were then the lot's edge. Every save made
+    /// before the yard was made on this lot.
+    #[cfg(test)]
+    pub(crate) fn new_from_pre_yard_lot() -> Self {
+        let pack = terri_data::pack();
+        let (width, height) = pack.lot.house;
+        let lot = terri_data::CompiledLot {
+            width,
+            height,
+            wall_edges: pack
+                .lot
+                .wall_edges
+                .iter()
+                .filter(|edge| edge.in_bounds(width, height))
+                .copied()
+                .collect(),
+            ..pack.lot.clone()
+        };
+        let mut sim = Self::new_from_lot(&lot, &pack.objects);
+        sim.world
+            .insert_resource(portals::ActivePortals::from_content(pack));
+        sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
+        sim
+    }
+
     /// Spawns the authored household - [H2] - in declaration order, which
     /// is what fixes each member's [`terri_core::SimId`]: the first sim in
     /// the file is SimId 0, for as long as nobody is born or dies before
@@ -1145,66 +1263,23 @@ impl Sim {
         traits: &[terri_data::CompiledTrait],
     ) {
         for member in household {
-            let sim_id = self
-                .world
-                .resource_mut::<terri_core::SimIdAllocator>()
-                .issue();
-            let compiled = &personalities[member.personality as usize];
-            let personality = terri_core::Personality::with_dispositions(
-                compiled.drain,
-                compiled.satisfaction,
-                compiled.dispositions.clone(),
-            );
-            let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
-            for id in terri_core::NeedId::ALL {
-                needs.set(id, member.needs[id.index()]);
-            }
-            let mut spawned = self.world.spawn((
-                terri_core::Agent,
-                terri_core::Position {
-                    x: member.x,
-                    y: member.y,
+            household::spawn_member(
+                &mut self.world,
+                personalities,
+                traits,
+                household::Member {
+                    name: member.name.clone(),
+                    personality: member.personality,
+                    position: terri_core::Position {
+                        x: member.x,
+                        y: member.y,
+                    },
+                    needs: member.needs,
+                    hobbies: member.hobbies.clone(),
+                    traits: &member.traits,
+                    career: member.career,
                 },
-                needs,
-                sim_id,
-                terri_core::SimName(member.name.clone()),
-                personality,
-                // The second axis starts at zero - a life is judged from
-                // move-in day - and the hobbies ride as spawned content
-                // ([E1]/[E2]). Household sims carry both; bare test
-                // agents carry neither, and every consumer treats the
-                // absences as "no hobbies, no ledger", which is what
-                // keeps the pre-M2e golden vectors still.
-                terri_core::Satisfaction::default(),
-                terri_core::Hobbies(member.hobbies.clone()),
-                // Worn traits open at their content-defined states: a
-                // capability at its start_level, a condition at its
-                // start_severity, a disposition stateless at 0 ([E3]).
-                terri_core::Traits::from_entries(
-                    member
-                        .traits
-                        .iter()
-                        .map(|&index| {
-                            let state = match traits[index as usize].kind {
-                                terri_data::CompiledTraitKind::Capability {
-                                    start_level, ..
-                                } => start_level,
-                                terri_data::CompiledTraitKind::Condition {
-                                    start_severity, ..
-                                } => start_severity,
-                                terri_data::CompiledTraitKind::Disposition { .. } => 0.0,
-                            };
-                            (index, state)
-                        })
-                        .collect(),
-                ),
-            ));
-            // The job rides only on the employed, the SpriteVariant
-            // pattern: every jobless sim - and every fixture - has no
-            // component rather than a sentinel ([E4]).
-            if let Some(career) = member.career {
-                spawned.insert(terri_core::Career(career));
-            }
+            );
         }
     }
 
@@ -1321,6 +1396,7 @@ impl Sim {
         self.render.footprint_depths.clear();
         self.render.sprites.clear();
         self.render.foreground_sprites.clear();
+        self.render.colourways.clear();
         self.render.ids.clear();
         self.render.activities.clear();
         self.render.visual_actions.clear();
@@ -1659,6 +1735,10 @@ impl Sim {
                 sprite,
                 foreground_sprite: foreground_sprite
                     .map_or(render_buffer::NO_FOREGROUND_SPRITE, |sprite| sprite.0),
+                colourway: self
+                    .world
+                    .get::<terri_core::Colourway>(entity)
+                    .map_or(0, |colourway| colourway.0),
                 activity,
                 visual_action,
                 interaction_target: socket_action_visual
@@ -1690,6 +1770,7 @@ impl Sim {
             self.render.footprint_depths.push(row.footprint_depth);
             self.render.sprites.push(row.sprite);
             self.render.foreground_sprites.push(row.foreground_sprite);
+            self.render.colourways.push(row.colourway);
             // The row's occupant, carried across so a click on a row can
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
@@ -1711,23 +1792,16 @@ impl Sim {
         // from the current frame to avoid interpolating from garbage or
         // from another entity's coordinates.
         //
-        // Read the guard as what it is: a length check, not a membership
-        // check. **An unchanged count does not imply an unchanged entity
-        // set.** It catches pure additions and pure removals, because
-        // those move the length. It does NOT catch one addition and one
-        // removal between the same two syncs: `bevy_ecs` reuses freed
-        // entity indices, so the new entity can land on the departed
-        // one's index, keep its sorted slot, and change only the occupant.
-        // Task 12 would then interpolate that slot from the dead entity's
-        // last position to the new entity's first one and draw something
-        // streaking across the lot in a single frame.
-        //
-        // Unreachable in M0 - nothing despawns - which is why this is a
-        // comment and not a fix. The fix, for whoever first adds a
-        // despawn: keep the previous frame's sorted index list alongside
-        // `prev_positions` and reseed whenever the new list differs from
-        // it, rather than whenever the lengths differ.
-        if self.render.prev_positions.len() != self.render.positions.len() {
+        // An unchanged count does not imply an unchanged entity set: one
+        // addition and one removal between the same two syncs, a purchase
+        // and a sale in one drain, keep the length while shifting rows, and
+        // a row would interpolate from another entity's last position. So
+        // the guard compares the rows' entities, which catches every change
+        // the length check caught and that one too ([SL-render]).
+        let entities: Vec<Entity> = rows.iter().map(|row| row.entity).collect();
+        if self.render_rows != entities
+            || self.render.prev_positions.len() != self.render.positions.len()
+        {
             self.render.prev_positions = self.render.positions.clone();
         } else {
             for (slot, row) in rows.iter().enumerate() {
@@ -1740,6 +1814,7 @@ impl Sim {
                 }
             }
         }
+        self.render_rows = entities;
         previous_socket_projection.clear();
         previous_socket_projection.extend(
             rows.iter()
@@ -1851,6 +1926,22 @@ impl Sim {
                     .traits
                     .iter()
                     .map(|def| def.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One plain sentence per pack trait, aligned with [`Self::trait_labels`]
+    /// - what the Traits panel prints under each label ([TL-panel]).
+    pub fn trait_descriptions(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| def.description.as_str())
                     .collect()
             })
             .unwrap_or_default()
@@ -2026,9 +2117,15 @@ impl Sim {
             .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
     }
 
-    /// The authored display name of a smart object, or `None` for sims,
-    /// stale indices and anything that is not player-interactable furniture.
+    /// The primary type, or legacy name, of a smart object. Includes decorative
+    /// objects; returns `None` for sims and stale indices.
     pub fn object_name_of(&self, index: u32) -> Option<&'static str> {
+        self.object_definition_of(index)
+            .map(|definition| definition.display_name())
+    }
+
+    /// Current content for a placed object, independent of its saved presentation.
+    pub fn object_definition_of(&self, index: u32) -> Option<&'static terri_data::CompiledObject> {
         let pack = self.world.get_resource::<Content>()?.0;
         let mut state = self
             .world
@@ -2037,9 +2134,7 @@ impl Sim {
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)?
             .1;
-        pack.objects
-            .get((object.0).0 as usize)
-            .map(|definition| definition.name.as_str())
+        pack.objects.get((object.0).0 as usize)
     }
 
     /// The personality multipliers of the sim carrying `index`: `drain`
@@ -2493,6 +2588,118 @@ impl Sim {
             }
         }
 
+        // Which object each placed entity is - [BM-hash]. Buying makes that a
+        // player's choice, so a radio and a desk chair bought for the same
+        // tile at the same price are different worlds, and a digest blind to
+        // it would call them equal ([L-a-blind-digest-proves-false-equalities]).
+        // By id rather than pack index, as a staged purchase is, and sorted by
+        // entity index independently of archetype order.
+        let mut kinds = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::SmartObject)>() {
+            for (entity, object) in query.iter(&self.world) {
+                kinds.push((entity.index_u32(), id_digest(&content.object(object.0).id)));
+            }
+        }
+        kinds.sort_unstable();
+        if !kinds.is_empty() {
+            hasher.write_bytes(b"object-kinds-v1");
+            hasher.write_u64(kinds.len() as u64);
+            for (entity, id) in kinds {
+                hasher.write_u64(entity as u64);
+                hasher.write_u64(id);
+            }
+        }
+
+        // The walls, now that a player can change them - [WT-hash]. Sorted by
+        // line, so the digest sees what the house IS and not the order it was
+        // built in; the doorway flag is in it because a doorway and a wall
+        // are different houses. Written for every edge-wall world, an empty
+        // one included, because an edge world with no walls and a legacy
+        // world are different saves. Legacy layouts are never edited, so
+        // they add nothing, and the golden worlds, built with legacy cells,
+        // keep their values.
+        //
+        // Every edge layout answers here, whichever variant holds it. Naming
+        // one version dropped the whole block for a house with a window,
+        // which is review finding [F3] on PR 126: twenty walls could then be
+        // built without the digest moving.
+        if let Some(layout) = self
+            .world
+            .get_resource::<terri_core::layout::SavedLayout>()
+            .filter(|layout| layout.has_edges())
+        {
+            let mut lines: Vec<(u8, u32, u32, bool)> = layout
+                .edges()
+                .iter()
+                .map(|edge| (edge.axis.code(), edge.x, edge.y, edge.doorway))
+                .collect();
+            lines.sort_unstable();
+            hasher.write_bytes(b"wall-edges-v1");
+            hasher.write_u64(lines.len() as u64);
+            for (axis, x, y, doorway) in lines {
+                hasher.write_bytes(&[axis]);
+                hasher.write_u64(x as u64);
+                hasher.write_u64(y as u64);
+                hasher.write_bytes(&[u8::from(doorway)]);
+            }
+            // The windows, appended after the walls and only when there are
+            // any ([WN-state]), so an unglazed house digests exactly as it
+            // did before windows existed. Two houses that differ in where
+            // their windows sit are different houses.
+            let mut glazed: Vec<(u8, u32, u32)> = layout
+                .windows()
+                .iter()
+                .map(|line| (line.axis.code(), line.x, line.y))
+                .collect();
+            if !glazed.is_empty() {
+                glazed.sort_unstable();
+                hasher.write_bytes(b"windows-v1");
+                hasher.write_u64(glazed.len() as u64);
+                for (axis, x, y) in glazed {
+                    hasher.write_bytes(&[axis]);
+                    hasher.write_u64(x as u64);
+                    hasher.write_u64(y as u64);
+                }
+            }
+        }
+
+        // [FL-save]: what the player has laid on each floor, written only
+        // when something is laid, so a house nobody has painted digests
+        // exactly as it did before floors existed. A covering changes only
+        // how a tile is drawn, but it is saved state the player chose, and
+        // leaving it out would let a save-and-load round trip drop every
+        // painted tile with the digest still matching.
+        if let Some(floors) = self
+            .world
+            .get_resource::<terri_core::layout::SavedFloors>()
+            .filter(|floors| !floors.tiles().is_empty())
+        {
+            hasher.write_bytes(b"floors-v1");
+            hasher.write_u64(floors.tiles().len() as u64);
+            for &(x, y, covering) in floors.tiles() {
+                hasher.write_u64(x as u64);
+                hasher.write_u64(y as u64);
+                hasher.write_bytes(&[covering]);
+            }
+        }
+
+        // [FM-save]: who the household are to each other, written only when
+        // somebody is related to somebody, so a household of strangers
+        // digests exactly as it did before ties existed.
+        if let Some(family) = self
+            .world
+            .get_resource::<terri_core::layout::FamilyTies>()
+            .filter(|family| !family.ties().is_empty())
+        {
+            hasher.write_bytes(b"family-v1");
+            hasher.write_u64(family.ties().len() as u64);
+            for &(low, high, relation) in family.ties() {
+                hasher.write_u64(low as u64);
+                hasher.write_u64(high as u64);
+                hasher.write_bytes(&[relation]);
+            }
+        }
+
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
@@ -2540,10 +2747,163 @@ impl Sim {
                         *y as u64,
                         facing.code() as u64,
                     ],
+                    SetWallEdge { axis, x, y, state } => vec![
+                        8,
+                        axis.code() as u64,
+                        *x as u64,
+                        *y as u64,
+                        state.code() as u64,
+                    ],
+                    // [FL-command]: a staged floor change is part of the
+                    // world the digest describes, as a staged wall edit is.
+                    SetFloor { x, y, covering } => {
+                        vec![15, *x as u64, *y as u64, *covering as u64]
+                    }
+                    // [FM-tie]: and so is a staged family tie.
+                    SetFamilyTie { who, to, relation } => vec![
+                        16,
+                        *who as u64,
+                        *to as u64,
+                        relation.map_or(u64::MAX, |relation| relation.code() as u64),
+                    ],
+                    // By the id the save stores rather than the index, so a
+                    // save and load cannot move the digest; `u64::MAX` for an
+                    // index that names nothing, which loads as one that still
+                    // names nothing.
+                    BuyObject {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                    } => vec![
+                        9,
+                        self.world
+                            .get_resource::<Content>()
+                            .and_then(|content| content.0.objects.get(*definition as usize))
+                            .map_or(u64::MAX, |object| id_digest(&object.id)),
+                        *x as u64,
+                        *y as u64,
+                        facing.code() as u64,
+                    ],
+                    // A doorway writes a 1 and its line, none writes a 0, so
+                    // every command's fields end where they must: a room's
+                    // words can never run on into the next command's.
+                    BuildRoom {
+                        x0,
+                        y0,
+                        x1,
+                        y1,
+                        doorway,
+                    } => {
+                        let mut fields = vec![10, *x0 as u64, *y0 as u64, *x1 as u64, *y1 as u64];
+                        match doorway {
+                            Some(line) => fields.extend([
+                                1,
+                                line.axis.code() as u64,
+                                line.x as u64,
+                                line.y as u64,
+                            ]),
+                            None => fields.push(0),
+                        }
+                        fields
+                    }
+                    SellObject { object } => vec![11, *object as u64],
+                    // [CS-save]: by the personality's and the traits' ids,
+                    // an index naming nothing as `u64::MAX`; the name is in
+                    // nobody's hash row.
+                    AddHousemate {
+                        personality,
+                        traits,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            14,
+                            content
+                                .and_then(|content| {
+                                    content.0.personalities.get(*personality as usize)
+                                })
+                                .map_or(u64::MAX, |personality| id_digest(&personality.id)),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row
+                    }
+                    // A purchase as `BuyObject` hashes it, then its
+                    // colourway as `SetColourway` hashes one.
+                    BuyObjectInColourway {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                        colourway,
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        vec![
+                            13,
+                            content
+                                .and_then(|content| content.0.objects.get(*definition as usize))
+                                .map_or(u64::MAX, |object| id_digest(&object.id)),
+                            *x as u64,
+                            *y as u64,
+                            facing.code() as u64,
+                            content
+                                .filter(|content| {
+                                    (*colourway as usize) < content.0.colourways.len()
+                                })
+                                .map_or(u64::MAX, |_| *colourway as u64),
+                        ]
+                    }
+                    // As `BuyObject`: an index the pack has no colourway
+                    // for saves as none and restores as `u32::MAX`, so it
+                    // hashes as one value on both sides of a Load.
+                    SetColourway { object, colourway } => vec![
+                        12,
+                        *object as u64,
+                        self.world
+                            .get_resource::<Content>()
+                            .filter(|content| (*colourway as usize) < content.0.colourways.len())
+                            .map_or(u64::MAX, |_| *colourway as u64),
+                    ],
                 };
                 for field in fields {
                     hasher.write_u64(field);
                 }
+            }
+        }
+
+        // [SL-save]: the indices sales have retired. Two worlds with the same
+        // entities but different retired indices hand the next spawn
+        // different indices, so this tells them apart. Appended last.
+        let retired = self
+            .world
+            .get_resource::<placement::sale::RetiredIndices>()
+            .map_or(&[][..], |retired| retired.as_slice());
+        hasher.write_u64(retired.len() as u64);
+        for &index in retired {
+            hasher.write_u64(u64::from(index));
+        }
+
+        // [RC-save]: each placed object's colourway, written only when some
+        // object has one, so a world with every object as drawn hashes as it
+        // did before colourways. Appended last.
+        let mut colourways = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(Entity, &terri_core::Colourway)>() {
+            for (entity, colourway) in query.iter(&self.world) {
+                colourways.push((entity.index_u32(), colourway.0));
+            }
+        }
+        colourways.sort_unstable();
+        if !colourways.is_empty() {
+            hasher.write_bytes(b"object-colourway-v1");
+            hasher.write_u64(colourways.len() as u64);
+            for (entity, colourway) in colourways {
+                hasher.write_u64(u64::from(entity));
+                hasher.write_u64(u64::from(colourway));
             }
         }
 
@@ -2555,6 +2915,14 @@ impl Default for Sim {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// A content id as one digest word, for the world hash: the same id always
+/// gives the same word, whatever position it holds in the pack.
+fn id_digest(id: &str) -> u64 {
+    let mut hasher = terri_core::FnvHasher::default();
+    hasher.write_bytes(id.as_bytes());
+    hasher.finish()
 }
 
 fn advance_clock(mut clock: ResMut<SimClock>) {
@@ -2627,6 +2995,7 @@ mod lot_tests {
             .map(|(index, footprint)| CompiledObject {
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
+                presentation: None,
                 sprite: 0,
                 interactions: Vec::new(),
                 footprint: *footprint,
@@ -2636,6 +3005,7 @@ mod lot_tests {
                 roles: Vec::new(),
                 action_sockets: Vec::new(),
                 foreground_sprite: None,
+                price: None,
             })
             .collect()
     }
@@ -2656,6 +3026,9 @@ mod lot_tests {
         CompiledLot {
             width: 6,
             height: 4,
+            house: (6, 4),
+            yard_look: [0.0, 1.0, 0.0],
+            street_look: [0.0, 1.0, 0.0],
             front_door: None,
             walls: vec![(3, 2), (1, 0)],
             wall_edges: Vec::new(),
@@ -2912,6 +3285,9 @@ mod lot_tests {
         CompiledLot {
             width: 7,
             height: 5,
+            house: (7, 5),
+            yard_look: [0.0, 1.0, 0.0],
+            street_look: [0.0, 1.0, 0.0],
             front_door: None,
             walls: vec![(6, 0)],
             wall_edges: Vec::new(),
@@ -3039,16 +3415,21 @@ mod lot_tests {
             lot.walls.is_empty(),
             "interior walls no longer consume tiles"
         );
-        assert_eq!(lot.wall_edges.len(), 34);
-        assert_eq!(grid.blocked_edges().count(), 29);
+        // The 34 interior walls, 29 of them solid, and the house's 28
+        // outside walls, all solid but the front door's line ([OS-walls]).
+        assert_eq!(lot.wall_edges.len(), 34 + 28);
+        assert_eq!(grid.blocked_edges().count(), 29 + 27);
 
         // Literal boundaries pin the reviewed house, including V(8,5), which
-        // closes a bypass through the reclaimed former wall column.
+        // closes a bypass through the reclaimed former wall column, then the
+        // house's east wall with the front door and its south wall.
         for (axis, fixed, range, doors) in [
             (EdgeAxis::Vertical, 8, 0..6, vec![2]),
             (EdgeAxis::Horizontal, 6, 0..16, vec![3, 13]),
             (EdgeAxis::Vertical, 6, 6..12, vec![9]),
             (EdgeAxis::Vertical, 12, 6..12, vec![8]),
+            (EdgeAxis::Vertical, 16, 0..12, vec![2]),
+            (EdgeAxis::Horizontal, 12, 0..16, vec![]),
         ] {
             for varying in range {
                 let (x, y) = match axis {
@@ -3221,6 +3602,7 @@ mod household_tests {
                 satisfaction: [1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0],
                 dispositions: vec![(terri_core::ObjectDefId(3), 1, 0.25)],
                 chronotype_offset_ticks: 0,
+                description: String::new(),
             },
             terri_data::CompiledPersonality {
                 id: "b".into(),
@@ -3228,6 +3610,7 @@ mod household_tests {
                 satisfaction: [1.0, 1.0, 1.0, 1.125, 1.0, 1.0, 1.0],
                 dispositions: vec![],
                 chronotype_offset_ticks: 0,
+                description: String::new(),
             },
         ];
         let household = vec![
@@ -3366,6 +3749,76 @@ mod household_tests {
                 (5, "Person 6".into()),
             ],
             "stable ids follow declaration order through the full supported capacity"
+        );
+    }
+
+    /// The shipped household, played with nobody at the controls, never
+    /// strands anybody and never strands an object.
+    ///
+    /// Two invariants over the real house, and they are the two faces of
+    /// one bug ([L-cleanup-removes-only-what-it-owns]):
+    ///
+    /// * **Nobody uses an object with no target.** `tick_interactions`
+    ///   counts an interaction down only while its sim still carries the
+    ///   `Target` it walked to. A sim holding `Eating` alone sits where it
+    ///   is for good and never releases what it reserved - and with one
+    ///   toilet in the house that is the whole household's bladder. It
+    ///   happened at tick 1799 the first time the household was given more
+    ///   traits, and nothing failed: the unit tests passed and the page
+    ///   looked fine for its first half hour.
+    /// * **No object is reserved with nobody coming.** The same bug, met
+    ///   across the room instead of beside the object, leaves no `Eating`
+    ///   at all: the sim walks its leftover path as a stroll and the object
+    ///   stays claimed. Checked after every tick with no grace period,
+    ///   because this household never produces even a one-tick gap; a system
+    ///   that introduces one has to decide that on purpose.
+    ///
+    /// This is the net under content changes. It asserts invariants over the
+    /// real household rather than golden values, so rebalancing the house
+    /// does not break it and breaking an invariant does. 2400 ticks is two
+    /// simulated days of shift starts, which is where the race lives.
+    #[test]
+    fn the_shipped_household_never_strands_a_sim_or_an_object() {
+        use std::collections::BTreeSet;
+        use terri_core::{Eating, Reserved, SimName, SmartObject, Target};
+
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut interactions_seen = 0u32;
+        let mut reservations_seen = 0u32;
+        for tick in 0..2400u32 {
+            sim.tick();
+            let world = sim.world_mut();
+
+            let mut claimed: BTreeSet<Entity> = BTreeSet::new();
+            let mut agents = world.query::<(&SimName, Option<&Eating>, Option<&Target>)>();
+            for (name, eating, target) in agents.iter(world) {
+                if let Some(target) = target {
+                    claimed.insert(target.object);
+                }
+                if let Some(eating) = eating {
+                    interactions_seen += 1;
+                    assert!(
+                        target.is_some(),
+                        "tick {tick}: {} is using an object with no target and will never \
+                         stop ({eating:?})",
+                        name.0
+                    );
+                }
+            }
+
+            let mut objects = world.query_filtered::<Entity, (With<SmartObject>, With<Reserved>)>();
+            for object in objects.iter(world) {
+                reservations_seen += 1;
+                assert!(
+                    claimed.contains(&object),
+                    "tick {tick}: {object:?} is reserved and nobody's target names it"
+                );
+            }
+        }
+        assert!(
+            interactions_seen > 1000 && reservations_seen > 1000,
+            "the household must actually be using things for this to mean anything \
+             ({interactions_seen} interaction ticks, {reservations_seen} reservation ticks)"
         );
     }
 
@@ -4369,7 +4822,18 @@ mod determinism_tests {
         // The new native value below was read from this failing assertion;
         // the release-wasm twin in `web/tests/bridge.test.ts` must confirm it
         // independently after rebuilding the module.
-        const GOLDEN: u64 = 0xC7BB_234C_419A_654C;
+        //
+        // **The digest learned which object each placed entity is** ([BM-hash],
+        // buy mode), moving it from 0xC7BB_234C_419A_654C. An ENCODING change:
+        // the scenario's one fridge now writes an object-kinds section. The
+        // simulation computes exactly what it did.
+        //
+        // **The digest learned which indices sales retired** ([SL-save],
+        // selling), moving it from 0xA592_DBD9_C174_B14A. An ENCODING change:
+        // every world now ends with the count of retired indices, zero here,
+        // and the simulation computes exactly what it did. Read from this
+        // failing assertion.
+        const GOLDEN: u64 = 0xDE84_3576_1360_3E8A;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

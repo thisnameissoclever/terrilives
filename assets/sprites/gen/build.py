@@ -816,6 +816,45 @@ def pack(sprites, width=512):
     return placed, width, height
 
 
+LEGACY_SIM_BODY = re.compile(r"sim[23]?(?=[A-Z]|$)")
+
+
+def sim_body_indices(sprites, legacy_count, variants):
+    """Every Sim body frame: the legacy figures and each rigged clip sample."""
+    legacy = {index for index in range(legacy_count)
+              if LEGACY_SIM_BODY.match(sprites[index][0])}
+    rigged = {index for clips in variants.values() for clip in clips.values()
+              for facing in clip["frames"] for index in facing}
+    return legacy | rigged
+
+
+def fill_padded_bounds(sprites, densities, bounds, whole_canvas=frozenset()):
+    """Cut the transparent band above the art off every box-less sprite.
+
+    Picking and camera framing fall back to the whole canvas without a box,
+    so empty space above a sprite acts as part of the object and lifts the
+    camera and the placement buttons off its art. The importers record boxes
+    only for the sprites they were written for; this covers every other one.
+
+    Only the band above the art is cut. The sides and the base stay on the
+    canvas, because a sprite stands on the south half of its tile and draws
+    nothing there: trimming to the art would take the front of the trashcan's
+    own tile out of its click target. Recorded boxes are kept, an occupied
+    body's box deliberately excludes the furniture drawn with it, and sprites
+    in `whole_canvas` keep the whole canvas, because a Sim's animation frames
+    share one envelope and its click target must not move between frames.
+    """
+    for index, (_, image, w, h) in enumerate(sprites):
+        if index in bounds or index in whole_canvas:
+            continue
+        art = image.getchannel("A").getbbox()
+        if art is None or art[1] == 0:
+            continue
+        density = densities.get(index, 1)
+        bounds[index] = [value / density if density != 1 else value
+                         for value in (0, art[1], w, h)]
+
+
 def compose(sprites, placed, width, height):
     sheet = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     for i, (_, crop, w, h) in enumerate(sprites):
@@ -914,7 +953,16 @@ export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>>
 
 /** Actual opaque top and gripping point in logical image coordinates. */
 export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {tops_json};
-/** Visible content bounds. Occupied Sim records exclude the furniture silhouette. */
+/**
+ * The box picking and camera framing use inside a sprite's canvas.
+ *
+ * A sprite whose art reaches its canvas top is absent, and so is a Sim body
+ * frame, which keeps its whole canvas so that a Sim's click target does not
+ * move between animation frames. Every other sprite has a box: the generated
+ * ones are cut to the art top and keep the canvas sides and base, and the
+ * imported ones are the art's own box, an occupied Sim's excluding the
+ * furniture silhouette.
+ */
 export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {bounds_json};
 /** Indices of premultiplied visibility contributions composed in one fragment. */
 export const SPRITE_PAIRS: Readonly<Record<number, {{ readonly furniture: number; readonly outline: number }}>> = {pairs_json};
@@ -990,6 +1038,7 @@ def main():
     args = ap.parse_args()
 
     sprites = render_all()
+    legacy_count = len(sprites)
     exported = load_export(
         os.path.join(ROOT, "assets", "models", "sims", "sim-01", "export", "manifest.json"),
         required_clips={"idle", "walk", "read", "talk", "eat", "stand_read", "watch_fish", "sit", "sleep"},
@@ -1095,6 +1144,9 @@ def main():
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")
+    fill_padded_bounds(sprites, densities, bounds,
+                       sim_body_indices(sprites, legacy_count, variants))
+    bounds = dict(sorted(bounds.items()))
 
     placed, width, height = pack_atlas(sprites)
     if height > 8192:

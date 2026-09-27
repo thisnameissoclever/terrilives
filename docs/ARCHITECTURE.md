@@ -244,7 +244,7 @@ two rendered frames produces the same saved world as draining it in one batch.
     draws x then y from the shared PRNG after useful choices have failed and
     processes sims in entity-index order before those draws.
 8. `follow_path` - move one deterministic step along the chosen path.
-9. `commute_and_work` - clock in at the door, run the shift, pay, and return.
+9. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
 10. `tick_interactions` - advance ordinary object interactions and need deltas.
 11. `tick_chain_steps` - advance station work and terminal-only chain payoff.
 12. `tick_social` - advance conversations and directional relationships.
@@ -430,8 +430,9 @@ An invalid candidate never replaces the running world. V1 and V2 cannot store
 runtime directions and retain their historical authored-direction restoration.
 
 Before replacing an older primary save, the storage worker retains its original
-bytes in `terri-save-1.v1-backup.bin` or `terri-save-1.v2-backup.bin`, according
-to its source version. It never replaces an existing recovery file. A backup
+bytes in `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
+`terri-save-1.v3-backup.bin` or `terri-save-1.v4-backup.bin`, according to its
+source version. It never replaces an existing recovery file. A backup
 with the wrong header or a backup write failure blocks the primary overwrite.
 New game clears only `terri-save-1.bin`. Recovery copies are retained for
 deliberate recovery, not automatically restored over newer progress. Browser
@@ -439,7 +440,10 @@ storage clearing can still erase all copies; this is not an external backup.
 
 The lock does not detect stale progress from another tab. Two supported game
 tabs still use last-writer-wins storage; play a household in one tab. A cached
-V2 writer rejects a primary V3 header instead of overwriting its directions.
+V2 writer rejects a primary V3 header instead of overwriting its directions,
+a cached V3 writer rejects a primary V4 header instead of overwriting its
+retired indices, and a cached V4 writer rejects a primary V5 header instead of
+overwriting its colourways.
 Earlier V1 workers do not have that protection or participate in the lock;
 close stale game tabs before continuing. The worker checks file
 headers, not full payload validity; recoverability is established by loading
@@ -572,6 +576,52 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
+A floor covering is what the player has laid on a tile ([FL-save] in
+`docs/specs/2026-09-22-floors.md`): a sparse, sorted list of painted tiles,
+appended last to the save envelope, so a house nobody has painted costs one
+byte and a save written before floors existed loads through the same one-byte
+pad the sleep-pressure list uses. It is drawing only, in the sense that nobody walks differently on carpet, but it is in the world hash like every other saved lot edit, so a save and load round trip cannot drop a painted tile unnoticed. Each covering's colour
+shift is appended to the shift table the yard and the street already write, so
+a painted tile writes one more row of it: no new instance, no new draw, and
+nothing reaches the simulation but the refusals that keep a covering on the
+lot and in the content.
+
+A window is the third thing a wall line can be ([WN-state] in
+`docs/specs/2026-09-22-windows.md`). It keeps no wall record: the saved
+layout holds the window lines in their own list, in an appended enum variant
+that appears only once a house has a window, so a house without one saves
+exactly as it did before and its world hash does not move. Movement and the
+lamp field treat a window as a wall, the sky flood passes it because it is
+not a wall record, and it draws as a full panel at its own line, in wall art
+with a pale tint until there is window art.
+
+Daylight indoors works the same way ([OS-daylight] in
+`docs/specs/2026-09-22-the-outside.md`). `render/sky.ts` floods sky exposure
+in from every tile outside the house, losing `daylight_reach_per_tile` per
+step, passing doorways and stopping at walls, and is rebuilt with the lamp
+field. Each instance carries its tile's shade (one minus its exposure) in the
+spare fourth float of its colourway attribute, instance slot 15; static rows
+bake it with the camera block, and people, furniture, doors and the placement
+preview sample it per frame. Markers (the selection and footprint rings, the
+tile highlight and activity bubbles) stay unshaded. The sprite
+uniform grows by one vec4, `sky`, whose first float is
+`interior_daylight_shade` times the sun's strength, or 0 in flat light. The
+shader multiplies the ambient by one minus that times the instance's shade
+before a lamp's lift, so a lamp still lights a shaded room. Like the lamp
+field, it adds no draw, persisted state or world-hash input.
+
+The shell recognises a light by any of its four directional sprites, a set it
+builds by appending each turn's suffix to the light's base sprite name. That
+is the rule the content compiler follows for a sprite drawn facing south-east,
+as the lamp and the television are, so a turned lamp or television keeps its
+pool and glow ([B-rotated-lights] in FEATURES.md) while each light is named
+once, by its base sprite. A new kind of light is still added by hand, to
+`lighting.ts` and to the expected lights in `buy-tool.test.ts`. That test, on
+the real simulation, checks that every catalogue item, and any foreground
+layer it has, glows in each facing it supports exactly as in its default
+facing, and that only the lamp and the television glow; `lighting.test.ts`
+checks each turned light's pool.
+
 Walking uses append-only visual action 5 and eight model-rendered limb frames per
 facing. Render sync projects a fallback facing from the next path
 step, while the shell prefers the actual previous-to-current segment during
@@ -625,6 +675,38 @@ Authored and rotated sockets use the same bounds predicate, after resolving
 their coordinates against the appropriate footprint. The authored check stays
 before interaction compilation so invalid content keeps its existing diagnostics.
 
+Save V4 ([SL-save] in `docs/specs/2026-09-22-selling-furniture.md`) is V3 with
+`retired_indices` appended: the entity indices sales have retired. A sale
+despawns without freeing its index (`despawn_no_free`), so no later spawn can
+take it, and records it in `RetiredIndices`. The loader keeps those indices out
+of use and frees every other gap in the saved numbering as before, as older
+saves and test worlds with holes rely on. The retired list is bounded like
+saved entity indices and hashed. V1, V2 and V3 still load, with nothing
+retired.
+
+Save V5 ([RC-save] in `docs/specs/2026-09-22-colourways.md`) is V4 with
+`object_colourways` appended: each placed object not in the first colourway,
+as its entity index and the colourway's content id, ascending. A colourway is
+a `Colourway` component holding an index into the content pack's colourways,
+never stored for the first, so the world hash gains its colourway section only
+when some object has one. The render buffer carries a colourway column, and
+each GPU instance a colourway shift the shader applies before lighting. The
+writer emits V5, and the browser's storage worker keeps a V4 recovery backup
+on the first V5 write; V1 to V4 still load, with every object as drawn. A
+colourway is set by `SetColourway` (wire code 12) or bought with the object by
+`BuyObjectInColourway` (code 13), each a lot edit.
+
+`AddHousemate` (wire code 14) drains with the lot edits too, though it edits
+the household rather than the lot ([CS-command] in
+`docs/specs/2026-09-22-create-a-sim.md`). It is checked whole, and only then
+issues a sim id and spawns the newcomer through `household::spawn_member`, the
+same function that spawns the shipped household from content, so a newcomer
+is made exactly as the others were. Its result is `last_housemate_result` on
+`LotEditState`. A staged move-in saves as `SavedCommand::AddHousemate`, its
+personality and traits by content id, and the world hash reads it by those
+ids and never by the name. The newcomer needs no save change: every field it
+has is one every household member already saves.
+
 Save V3's required `object_facings` list sits outside the frozen V1 world and
 V2 architecture records. Explicit entries preserve direction even when a
 dynamic object shares an authored placement's id and position. Historical V1
@@ -636,6 +718,19 @@ Base directions enter the content digest, so changing their geometry meaning
 closes the old compatibility bridges. The exact new destination digest
 `4dab6950757c1f15` inherits the published D and B shapes; the frozen bathtub
 source `93b0a49525ce6e0c` retains A's distinct migration and legacy row rules.
+
+The trait library moved that destination once more, without touching the wire
+format. Trait ids and kinds are in the digest, so appending twelve traits
+produced `c2cf291984ed61f7`, and the bathtub source rebuilt from it became
+`d396b3f39e3c6685`. Both accept every published digest their three-trait
+predecessors accepted, and a save carrying `4dab6950757c1f15` loads into the
+new shape unchanged. One unpublished value is no longer accepted: the old
+rebuilt source's own exact digest `93b0a49525ce6e0c`, which no public build
+ever wrote into a save. The
+bridge is sound because a save names traits by string id and every old id keeps
+its old kind; tests pin both ends of it, so any other structural edit closes
+it. Adding another trait needs the same bridge again: see [TL-old-saves] in
+`docs/specs/2026-09-21-trait-library-and-traits-panel.md`.
 
 Furniture preview and commit share `validate_placement`. It reconstructs the
 fixed architecture from `SavedLayout`, then proves the live occupancy and wall
@@ -650,6 +745,66 @@ Queue acceptance is not placement success: the shell reads `lastPlacementResult`
 after draining. Nonempty command queues contribute their complete ordered contents
 to the world hash; empty queues retain the historical hash behavior. Save V3
 preserves pending placement commands as well as applied directions.
+
+`SetWallEdge` is the second lot edit, appended after `PlaceObject`
+([WT-command] in `docs/specs/2026-09-21-wall-tool.md`). It makes one boundary
+between two tiles open, a wall or a doorway, and changes only the saved
+`EdgeWallsV1` list and the grid's edge barrier, so the save record does not
+change; the command enums gain an appended variant. `validate_wall_edit` and
+`validate_placement` share `current_layout` and `prove_lot_usable`, so a wall is
+held to every proof a furniture move is. Those proofs flood the floor from the
+front door's tile, or from the first walkable tile on a lot with no front door
+([RD-root] in `docs/specs/2026-09-22-reach-from-the-door.md`), so on a lot
+with a front door, floor that nobody and nothing needs may be sealed off. A
+wall must then pass the V3
+loader's own grid checks on the candidate (`save::candidate_grid_loads`), so an
+accepted wall can never leave a save that refuses to load. A legacy layout is
+refused rather than given a guessed edge list. The world hash includes the
+saved edges of every edge-wall world, sorted by line with their doorway flag.
+
+`BuyObject` is the third lot edit, appended after `SetWallEdge` ([BM-buy] in
+`docs/specs/2026-09-21-buy-mode.md`). It spawns one object at a validated
+rectangle and takes its price from Funds in the same drain. Moves and
+purchases share `plan_rectangle`, which takes the object being moved or none,
+so a bought chair is held to every rule a moved one is, the loader's grid
+checks included. A purchase staged at save time is saved by object id rather
+than pack index, because the save digest does not cover object order, and the
+world hash reads it by the same id. The world hash also reads which object
+every placed entity is, by the same id digest ([BM-hash]), because buying made
+that a player's choice.
+
+`BuildRoom` is the fourth lot edit, appended after `BuyObject` ([RT-command]
+in `docs/specs/2026-09-22-room-tool.md`). It walls the outline of a rectangle
+of tiles in one edit, with an optional doorway, and changes only the saved
+`EdgeWallsV1` list and the grid's edge barriers, as a wall does. The
+single-wall rules live in one function, `check_new_walls`, which a wall calls
+with one pair of tiles and a room with its whole outline; the usability proofs
+and the loader's checks run once, on the finished room.
+
+Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
+are presentation only. `portals::interior_door_lines` derives one from every
+vertical doorway of an edge-wall house when the lot's front door has art for a
+vertical line, and `sync_portals` appends each as a row after the front door's,
+with a state worked out every frame from sims' positions and walks, which are
+already saved. Nothing is added to the save, the save digest or the world
+hash.
+
+The lot has a house and a yard ([OS-grow] in
+`docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
+size from the lot's north-west corner, and every other tile is yard: walkable
+floor to the simulation, drawn by the shell as the floor under the lot's
+`yard_look` colour shift. Neither is saved. The house's east and south walls are
+ordinary wall edges, and the front door stands on the east one, its line a
+doorway that `portals::front_door_lines` names from the content, never from the
+presentation-only portal rows: the front door swings for a sim walking through
+it as an interior door does, no interior door is derived on it, the Walls and
+Room tools never make it a wall, and every lot edit keeps the yard tile beyond
+it open floor the door reaches. A save whose grid is exactly
+the house, with edge walls, grows into the lot as it is adopted
+(`save::yard::grow`, [OS-migrate]): the grid takes the lot's size with every
+saved tile where it was, and the content's walls outside the house follow the
+saved ones. No coordinate moves, and the save digest does not cover the lot's
+size or walls, so every existing save still loads.
 
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
@@ -976,10 +1131,16 @@ connection; ghosts will be strictly additive.
 
 The alpha ships one content-defined rabbit-hole career. `Career(u32)` names a
 pack row containing label, shift start, duration, pay, energy cost, and
-satisfaction. At shift time, `Commuting` sends the sim to the front door;
-`AtWork { remaining_ticks }` keeps the off-lot countdown in deterministic world
-state; completion pays household Funds, applies the authored costs and reward,
-and returns the sim to the lot. The normal HUD exposes the career, activity,
+satisfaction. At shift time, `Commuting` sends the sim to the street's exit,
+the lot's last column across the yard from the front door, or to the front
+door on a lot with no yard beyond it (`portals::street_exit`, [OS-street] in
+`docs/specs/2026-09-22-the-outside.md`); `AtWork { remaining_ticks }` keeps the
+off-lot countdown in deterministic world state; completion pays household
+Funds, applies the authored costs and reward, and returns the sim to the lot,
+walking home along a path to the door's landing. Which way a commuter is going
+is read from where its walk ends, so the street added no save field, and the
+exit is worked out from the content's door and the lot's width, so it added
+nothing to the save digest. The normal HUD exposes the career, activity,
 clock, and Funds.
 
 The alpha does **not** contain workplace lot references, promotion ladders,

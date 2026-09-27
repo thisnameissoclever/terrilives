@@ -194,10 +194,36 @@ pub struct TuningFile {
     /// representable on 32-bit WebAssembly and in the simulation RNG's
     /// `u32` range.
     ///
-    /// Last in this record on purpose. The authored TOML is key-addressed,
-    /// but keeping new schema fields appended mirrors the compiled tuning
-    /// record's wire-format discipline and makes reviews less error-prone.
+    /// The authored TOML is key-addressed, but keeping new schema fields
+    /// appended mirrors the compiled tuning record's wire-format discipline
+    /// and makes reviews less error-prone.
     pub wander_radius_tiles: u32,
+    /// What a sale pays back, as a fraction of the object's price, in
+    /// `[0, 1]` - [SL-pay] in `docs/specs/2026-09-22-selling-furniture.md`.
+    pub resale_fraction: f32,
+    /// The two lines that choose a disposition trait's verb - [TL-affinity]
+    /// in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`. A
+    /// multiplier at or above `affinity_loves_from` reads "Loves", above 1
+    /// "Likes", below 1 "Dislikes", and at or below `affinity_hates_to`
+    /// "Hates". The compiler holds each description to its verb. The
+    /// simulation never reads either line, so neither is copied into the
+    /// compiled pack.
+    pub affinity_loves_from: f32,
+    pub affinity_hates_to: f32,
+    /// The most characters a new housemate's name may have - [CS-command] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. From 1 to 256, so a name
+    /// always fits the loader's limit on saved text.
+    pub housemate_name_max_chars: u32,
+    /// The most traits a new housemate may wear - [CS-command]. At least 1.
+    pub housemate_max_traits: u32,
+    /// How much of the day's light a tile the sky cannot reach loses at
+    /// noon, in `[0, 1)` - [OS-daylight] in
+    /// `docs/specs/2026-09-22-the-outside.md`.
+    pub interior_daylight_shade: f32,
+    /// How much sky exposure is lost for each tile the sky travels indoors,
+    /// in `(0, 1]` - [OS-daylight]. Last in this record on purpose, per the
+    /// appending rule.
+    pub daylight_reach_per_tile: f32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -220,6 +246,24 @@ pub struct NeedDef {
 #[derive(Debug, Deserialize)]
 pub struct ObjectsFile {
     pub object: Vec<ObjectDef>,
+    /// The colourways any placed object can be drawn in - [RC-content] in
+    /// `docs/specs/2026-09-22-colourways.md`. Absent means none.
+    #[serde(default)]
+    pub colourway: Vec<ColourwayDef>,
+}
+
+/// One colourway: a colour shift the shader applies to an object's art.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ColourwayDef {
+    pub id: String,
+    /// What the Colour list shows.
+    pub name: String,
+    /// Degrees the art's hues turn, from -180 to 180.
+    pub hue: f32,
+    /// How strongly the art's colours show, as a factor from 0 to 2.
+    pub strength: f32,
+    /// A shift in lightness, from -0.25 to 0.25.
+    pub lightness: f32,
 }
 
 /// Mirrors `content/social.toml` - the interactions a SIM advertises to
@@ -246,6 +290,9 @@ pub const FACINGS: [&str; 4] = ["NE", "NW", "SE", "SW"];
 pub struct ObjectDef {
     pub id: String,
     pub name: String,
+    /// Type and flavor text, with `name` identifying the model when present.
+    #[serde(default)]
+    pub presentation: Option<crate::pack::ObjectPresentation>,
     /// Which sprite in the atlas draws this object.
     ///
     /// Required rather than defaulted, and it is content rather than a
@@ -266,6 +313,11 @@ pub struct ObjectDef {
     /// Resolved alongside `sprite`; absent preserves every existing object.
     #[serde(default)]
     pub foreground_sprite: Option<String>,
+    /// What the Buy tool charges for one, in Funds - [BM-price]. Absent keeps
+    /// the object out of the catalogue. Zero is refused: a free object is a
+    /// statement nobody made on purpose.
+    #[serde(default)]
+    pub price: Option<u32>,
     /// How many tiles this object occupies, as
     /// `footprint = { width = 2, depth = 1 }`.
     ///
@@ -447,6 +499,51 @@ pub struct LotFile {
     /// Interior boundaries, mutually exclusive with legacy wall tiles.
     #[serde(default)]
     pub wall_edge: Vec<WallEdgeDef>,
+    /// [OS-grow] in `docs/specs/2026-09-22-the-outside.md`: the house's size,
+    /// standing in the lot's north-west corner; every other tile is yard.
+    /// Omitted, the house is the whole lot.
+    #[serde(default)]
+    pub house: Option<HouseDef>,
+    /// [OS-yard]: the colour shift a yard tile's floor art is drawn under.
+    /// Omitted, a yard tile is drawn as the floor is.
+    #[serde(default)]
+    pub yard: Option<LookDef>,
+    /// [OS-street]: the colour shift a street tile's floor art is drawn under.
+    /// Omitted, a street tile is drawn as the floor is.
+    #[serde(default)]
+    pub street: Option<LookDef>,
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`: the coverings the
+    /// Floors tool offers, in order. A covering's id is its place in this
+    /// list counted from 1, so the list grows by appending.
+    #[serde(default)]
+    pub covering: Vec<CoveringDef>,
+}
+
+/// One floor covering the player can choose - [FL-content]: a plain name for
+/// the tool and the colour shift its tiles are drawn under, with a
+/// colourway's three numbers and ranges ([RC-shift]).
+#[derive(Debug, Deserialize)]
+pub struct CoveringDef {
+    pub name: String,
+    pub hue: f32,
+    pub strength: f32,
+    pub lightness: f32,
+}
+
+/// The house's size in tiles, from the lot's north-west corner - [OS-grow].
+#[derive(Debug, Deserialize)]
+pub struct HouseDef {
+    pub width: u32,
+    pub height: u32,
+}
+
+/// How a yard or street tile is drawn - [OS-yard], [OS-street]: a colour
+/// shift with a colourway's three numbers and their ranges ([RC-shift]).
+#[derive(Debug, Deserialize)]
+pub struct LookDef {
+    pub hue: f32,
+    pub strength: f32,
+    pub lightness: f32,
 }
 
 /// One interior boundary. Signed coordinates keep invalid negatives available
@@ -564,6 +661,13 @@ pub struct ArchetypeDef {
     /// those are different numbers read by different systems.
     #[serde(default)]
     pub satisfaction: BTreeMap<String, f32>,
+    /// What this personality is like, in a sentence or two the New
+    /// housemate form prints beside its name - [CS-personality] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. Defaulted so an archetype
+    /// parses from its id alone; the compile step refuses it blank, as it
+    /// refuses a blank trait description.
+    #[serde(default)]
+    pub description: String,
     /// Per-interaction weights - "loves reading", "fears the couch". A
     /// weight of 0 is legal and IS the fear: the interaction scores as
     /// nothing, so the sim never chooses it on its own.
@@ -610,6 +714,10 @@ pub struct TraitDef {
     /// interaction label there is no id-shaped fallback that reads as
     /// anything but a bug in a trait list.
     pub label: String,
+    /// One plain sentence saying what the trait does - [TL-description].
+    /// Required and non-blank for the label's reason: the Traits panel
+    /// prints it, and a blank line there reads as a bug.
+    pub description: String,
     /// `disposition`, `capability` or `condition`. See [`TRAIT_KINDS`].
     pub kind: String,
     /// The activity tag this trait keys on - the same tag space hobbies
@@ -909,7 +1017,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 26] = [
+    const TUNING_LINES: [(&str, &str); 33] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -935,6 +1043,13 @@ mod tests {
         ("day_ticks", "17"),
         ("asleep_decay_scale", "0.6"),
         ("wander_radius_tiles", "29"),
+        ("resale_fraction", "0.40625"),
+        ("affinity_loves_from", "1.46875"),
+        ("affinity_hates_to", "0.28125"),
+        ("housemate_name_max_chars", "23"),
+        ("housemate_max_traits", "5"),
+        ("interior_daylight_shade", "0.15625"),
+        ("daylight_reach_per_tile", "0.21875"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -1006,6 +1121,13 @@ mod tests {
         assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
         assert_eq!(parsed.day_ticks, 17);
         assert_eq!(parsed.wander_radius_tiles, 29);
+        assert_eq!(parsed.resale_fraction, 0.40625);
+        assert_eq!(parsed.affinity_loves_from, 1.46875);
+        assert_eq!(parsed.affinity_hates_to, 0.28125);
+        assert_eq!(parsed.housemate_name_max_chars, 23);
+        assert_eq!(parsed.housemate_max_traits, 5);
+        assert_eq!(parsed.interior_daylight_shade, 0.15625);
+        assert_eq!(parsed.daylight_reach_per_tile, 0.21875);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

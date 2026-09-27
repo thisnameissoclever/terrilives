@@ -34,7 +34,10 @@ hobbies = ["correspondence", "reading"]
 # Low spirits, managed at the desk: the same activity that is her
 # hobby is what lowers the severity, which makes her routine
 # self-treating in a way the trace can measure ([E3]).
-traits = ["low_spirits"]
+# [TL-household]: two more, both pointing the way the archetype already
+# leans. The first entry stays first; order here is cosmetic, because the
+# component sorts by pack index.
+traits = ["low_spirits", "bookworm", "out_of_shape"]
 # The one worker in the house ([E4]), and deliberately the WORST
 # choice of the three: the shift eats the hours her desk would have
 # spent managing the low spirits and earning the hobby payout, so the
@@ -56,7 +59,7 @@ needs = { comfort = 55.0, energy = 83.0 }
 # television, which is two hobbies if you write them down.
 hobbies = ["television", "cooking"]
 # The pull toward the set, over what its need deltas earn.
-traits = ["television_devotee"]
+traits = ["television_devotee", "exercise_averse", "private_person", "fish_watcher"]
 
 # Casey moved in for the company and is still looking for it. Spawns in
 # the kitchen with nobody to talk to, which at this stage of the game is
@@ -76,4 +79,4 @@ hobbies = ["socialising"]
 # Casey may attempt the stove and will mostly fail at first -
 # failure is a scene, not a hidden option - and every attempt
 # teaches her ([S4]).
-traits = ["cannot_cook"]
+traits = ["cannot_cook", "chatterbox", "keen_cyclist", "slow_reader"]

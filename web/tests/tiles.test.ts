@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
+  setCutAwayWalls,
 } from '../src/render/tiles.js';
 import { SPRITES, spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
@@ -9,6 +10,9 @@ import { spriteFramingHeight } from '../src/render/sprite-anchors.js';
 import { lotExtent } from '../src/render/camera.js';
 import {
   FLOATS_PER_INSTANCE,
+  OFFSET_COLOURWAY_HUE,
+  OFFSET_COLOURWAY_LIGHTNESS,
+  OFFSET_COLOURWAY_STRENGTH,
   OFFSET_DEPTH,
   OFFSET_EMISSIVE,
   OFFSET_SCREEN_X,
@@ -693,3 +697,195 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
     }
   });
 });
+
+// [OS-yard] in docs/specs/2026-09-22-the-outside.md: a yard tile is the floor's
+// art under the yard's colour shift, written as a colourway's is; a house tile,
+// and every tile of a lot that is all house, is drawn as it always was.
+describe('the yard', () => {
+  const floorShifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const shifts: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      shifts.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return shifts;
+  };
+  const lot = { width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array() };
+
+  it("draws a yard tile under the yard's look and a house tile as drawn", () => {
+    const built = buildStaticInstances({ ...lot, house: [2, 1], yardLook: [65, 2, -0.22] },
+      ORIGIN_X, ORIGIN_Y, GRID);
+    const yard = [65, 1, -0.22];
+    const drawn = [0, 0, 0];
+    // Row by row: (0, 0) and (1, 0) are house, the rest yard.
+    expect(floorShifts(built)).toEqual([drawn, drawn, yard, yard, yard, yard]);
+  });
+
+  it('draws every tile as drawn when the lot is all house or has no look', () => {
+    const drawn = Array.from({ length: 6 }, () => [0, 0, 0]);
+    expect(floorShifts(buildStaticInstances({ ...lot, yardLook: [65, 2, -0.22] },
+      ORIGIN_X, ORIGIN_Y, GRID))).toEqual(drawn);
+    expect(floorShifts(buildStaticInstances({ ...lot, house: [2, 1] },
+      ORIGIN_X, ORIGIN_Y, GRID))).toEqual(drawn);
+  });
+
+  // [OS-daylight]: each floor tile carries its sky shade, and a wall the
+  // shade of the more open tile beside it on the lot.
+  it('shades the floor and walls by how far the sky reaches in', async () => {
+    const { buildSkyExposure } = await import('../src/render/sky.js');
+    const { OFFSET_SHADE, FLOATS_PER_INSTANCE } = await import('../src/render/instances.js');
+    // The house is the west 2 by 2 of a 3 by 2 lot, closed on the east
+    // (x = 2) but for a doorway on row 0.
+    const edges = Uint32Array.from([0, 2, 0, 1, 0, 2, 1, 0]);
+    const sky = buildSkyExposure(3, 2, edges, [2, 2], 0.25);
+    const built = buildStaticInstances({ ...lot, edges, house: [2, 2] }, ORIGIN_X, ORIGIN_Y, GRID, 1, null, sky);
+    const floor = spriteIndex('floor');
+    const shades: number[] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] === floor) shades.push(built.instances[base + OFFSET_SHADE]);
+    }
+    // Row by row: (0, 0) 0.5, (1, 0) 0.25, (2, 0) yard; (0, 1) 0.75, (1, 1) 0.5, (2, 1) yard.
+    expect(shades).toEqual([0.5, 0.25, 0, 0.75, 0.5, 0]);
+    const wallShadesOf = (geometry: typeof built) => {
+      const shades: number[] = [];
+      for (let i = 0; i < geometry.count; i++) {
+        const base = i * FLOATS_PER_INSTANCE;
+        if (geometry.instances[base + OFFSET_SPRITE] !== floor) shades.push(geometry.instances[base + OFFSET_SHADE]);
+      }
+      return shades;
+    };
+    // The back walls on the north and west lines see only the house's tiles
+    // on the lot, so they are shaded as the room is, never fully lit.
+    const wallShades = wallShadesOf(built);
+    expect(wallShades.length).toBeGreaterThan(0);
+    for (const shade of wallShades) expect(shade).toBeGreaterThan(0);
+    // The wall on the east line at row 1, drawn only while a wall tool shows
+    // the cut-away walls, has the house tile (1, 1) and the yard tile (2, 1)
+    // beside it: it takes the yard's open sky, so it is the one wall at 0.
+    const shown = buildStaticInstances({ ...lot, edges, house: [2, 2], showCutAwayWalls: true },
+      ORIGIN_X, ORIGIN_Y, GRID, 1, null, sky);
+    const shownShades = wallShadesOf(shown);
+    expect(shownShades.length).toBeGreaterThan(wallShades.length);
+    expect(shownShades.filter((shade) => shade === 0).length).toBeGreaterThan(0);
+    // Without a sky, everything is fully exposed, as before.
+    const open = buildStaticInstances({ ...lot, edges, house: [2, 2] }, ORIGIN_X, ORIGIN_Y, GRID);
+    for (let i = 0; i < open.count; i++) expect(open.instances[i * FLOATS_PER_INSTANCE + OFFSET_SHADE]).toBe(0);
+  });
+
+  it('draws the cut-away walls while a wall tool asks, and keeps the yard green', () => {
+    const edges = Uint32Array.from([0, 2, 0, 1]);
+    const shown = buildStaticInstances({ ...lot, edges, house: [2, 1], showCutAwayWalls: true },
+      ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(shown.instances, shown.count), 1.5, 0).map((r) => SPRITES[r.sprite].name))
+      .toEqual(['doorwayJoinedNS']);
+    const hidden = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(floorShifts(shown)).toEqual(floorShifts(hidden));
+  });
+
+  it("leaves the front door's own frame alone when the front walls are shown", () => {
+    const edges = Uint32Array.from([0, 2, 0, 1]);
+    const shown = buildStaticInstances({ ...lot, edges, house: [2, 1], showCutAwayWalls: true,
+      frontDoors: Uint32Array.from([2, 0]) }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(shown.instances, shown.count), 1.5, 0)).toEqual([]);
+  });
+
+  it('rebuilds only when the cut-away walls are turned on or off', () => {
+    const state: { showCutAwayWalls?: boolean } = {};
+    expect([setCutAwayWalls(state, false), setCutAwayWalls(state, true), setCutAwayWalls(state, true),
+      setCutAwayWalls(state, false), setCutAwayWalls(state, false)]).toEqual([false, true, false, true, false]);
+    expect(state.showCutAwayWalls).toBe(false);
+  });
+
+  it("passes the house to the walls, so its front walls are cut away", () => {
+    const edges = Uint32Array.from([0, 2, 0, 1]);
+    const house = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
+    const whole = buildStaticInstances({ ...lot, edges }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(whole.instances, whole.count), 1.5, 0).map((r) => SPRITES[r.sprite].name))
+      .toEqual(['doorwayJoinedNS']);
+    expect(find(rows(house.instances, house.count), 1.5, 0)).toEqual([]);
+  });
+});
+
+// [OS-street] in docs/specs/2026-09-22-the-outside.md: the street's column is
+// the floor under the street's look, whatever else the tile is.
+describe('the street', () => {
+  const shifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const out: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      out.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return out;
+  };
+
+  it("draws the street's column under the street's look, beside the yard", () => {
+    const built = buildStaticInstances({
+      width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array(),
+      house: [1, 1], yardLook: [65, 2, -0.22], street: 2, streetLook: [0, 0.15, -0.22],
+    }, ORIGIN_X, ORIGIN_Y, GRID);
+    const drawn = [0, 0, 0];
+    const yard = [65, 1, -0.22];
+    const street = [0, -0.85, -0.22];
+    // Row by row: (0, 0) house, (1, 0) yard, (2, 0) street, then the yard row.
+    expect(shifts(built)).toEqual([drawn, yard, street, yard, yard, street]);
+  });
+});
+
+// [FL-draw] in docs/specs/2026-09-22-floors.md: a painted tile takes its
+// covering's colour shift; everything else is drawn by where it is.
+describe('floor coverings', () => {
+  const floorShifts = (built: { instances: Float32Array; count: number }): number[][] => {
+    const floor = spriteIndex('floor');
+    const shifts: number[][] = [];
+    for (let i = 0; i < built.count; i++) {
+      const base = i * FLOATS_PER_INSTANCE;
+      if (built.instances[base + OFFSET_SPRITE] !== floor) continue;
+      shifts.push([OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS]
+        .map((offset) => Math.round(built.instances[base + offset] * 100) / 100));
+    }
+    return shifts;
+  };
+  const BOARDS = [18, 1.15, -0.12];
+  const TILES = [-25, 0.55, 0.1];
+  const lot = {
+    width: 3,
+    height: 2,
+    walls: new Uint32Array(),
+    edges: new Uint32Array(),
+    house: [2, 1] as [number, number],
+    yardLook: [65, 2, -0.22] as [number, number, number],
+    coveringLooks: Float32Array.from([...BOARDS, ...TILES]),
+  };
+
+  it('draws a painted tile under its covering, house or yard alike', () => {
+    // (0, 0) is house painted Boards; (2, 1) is yard painted Tiles.
+    const built = buildStaticInstances(
+      { ...lot, floors: Uint32Array.from([0, 0, 1, 2, 1, 2]) }, ORIGIN_X, ORIGIN_Y, GRID,
+    );
+    const yard = [65, 1, -0.22];
+    const drawn = [0, 0, 0];
+    // Written as the yard's is: the strength reaches the instance as its
+    // distance from 1, so 1.15 is 0.15 and 0.55 is -0.45.
+    const boards = [18, 0.15, -0.12];
+    const tiles = [-25, -0.45, 0.1];
+    // Row by row: (0, 0) painted, (1, 0) house, (2, 0) yard;
+    // (0, 1) and (1, 1) yard, (2, 1) painted.
+    expect(floorShifts(built)).toEqual([boards, drawn, yard, yard, yard, tiles]);
+  });
+
+  it('ignores a covering the content does not have, and an empty list', () => {
+    const drawnOrYard = floorShifts(buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID));
+    for (const floors of [Uint32Array.from([0, 0, 3]), Uint32Array.from([0, 0, 0]), new Uint32Array()]) {
+      expect(floorShifts(buildStaticInstances({ ...lot, floors }, ORIGIN_X, ORIGIN_Y, GRID)))
+        .toEqual(drawnOrYard);
+    }
+  });
+});
+

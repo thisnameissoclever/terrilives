@@ -131,6 +131,86 @@ pub enum SimCommand {
         y: u32,
         facing: crate::Facing,
     },
+    /// Make one boundary between two tiles open, a wall, or a doorway -
+    /// [WT-command]. A lot edit, applied by itself in stream order like
+    /// `PlaceObject`. Appended to preserve earlier wire codes.
+    SetWallEdge {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        state: crate::layout::WallState,
+    },
+    /// Buy one of the object named by `definition`, a pack object index,
+    /// and stand it at `x`, `y` facing `facing` - [BM-buy]. A lot edit,
+    /// applied by itself in stream order like `PlaceObject`. Appended to
+    /// preserve earlier wire codes.
+    BuyObject {
+        definition: u32,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+    },
+    /// Wall the outline of the rectangle of tiles between two opposite
+    /// corners, in either order, with `doorway` as the one line left
+    /// passable ([RT-command]). A lot edit, applied by itself in stream order
+    /// and wholly or not at all. Appended to preserve earlier wire codes.
+    BuildRoom {
+        x0: u32,
+        y0: u32,
+        x1: u32,
+        y1: u32,
+        doorway: Option<crate::layout::WallLine>,
+    },
+    /// Sell the placed object carrying entity index `object` - [SL-command]
+    /// in `docs/specs/2026-09-22-selling-furniture.md`. A lot edit, applied
+    /// by itself in stream order like `PlaceObject`. Appended to preserve
+    /// earlier wire codes.
+    SellObject { object: u32 },
+    /// Draw the placed object carrying entity index `object` in content
+    /// colourway `colourway` - [RC-command] in
+    /// `docs/specs/2026-09-22-colourways.md`. A lot edit, applied by itself
+    /// in stream order like `SellObject`. Appended to preserve earlier wire
+    /// codes.
+    SetColourway { object: u32, colourway: u32 },
+    /// Buy object definition `definition` at tile (x, y) facing `facing`, in
+    /// content colourway `colourway` - [RC-slice-buy] in
+    /// `docs/specs/2026-09-22-colourways.md`. One lot edit: every purchase
+    /// check, then the colourway, then the object is bought and drawn in it.
+    /// Appended to preserve earlier wire codes.
+    BuyObjectInColourway {
+        definition: u32,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+        colourway: u32,
+    },
+    /// A new housemate named `name` moves in, with pack personality
+    /// `personality` and pack traits `traits` - [CS-command] in
+    /// `docs/specs/2026-09-22-create-a-sim.md`. One edit, checked whole
+    /// before anything is written. Appended to preserve earlier wire codes.
+    AddHousemate {
+        name: String,
+        personality: u32,
+        traits: Vec<u32>,
+    },
+    /// Lay floor covering `covering` on the tile at (x, y), or take the
+    /// tile's covering away with 0 - [FL-command] in
+    /// `docs/specs/2026-09-22-floors.md`. A covering is 1 upward for the
+    /// content's coverings in order; 0 leaves the tile drawn by where it is
+    /// ([OS-yard]). A lot edit, applied by itself in stream order like
+    /// `SetWallEdge`. Appended to preserve earlier wire codes.
+    SetFloor { x: u32, y: u32, covering: u8 },
+    /// Record that the sim with entity index `who` is `relation` to the sim
+    /// with entity index `to`, or take their tie away with `None`. The index
+    /// is a debt the tie carries, see `FamilyTies` - [FM-tie] in
+    /// `docs/specs/2026-09-22-family.md`. One fact about two people, applied
+    /// by itself in stream order like `SetFloor`. Appended to preserve
+    /// earlier wire codes.
+    SetFamilyTie {
+        who: u32,
+        to: u32,
+        relation: Option<crate::layout::Relation>,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -238,6 +318,92 @@ mod tests {
                     facing: crate::Facing::NorthWest,
                 },
                 &[7, 172, 2, 2, 5, 2],
+            ),
+            (
+                SimCommand::SetWallEdge {
+                    axis: crate::layout::EdgeAxis::Horizontal,
+                    x: 300,
+                    y: 4,
+                    state: crate::layout::WallState::Doorway,
+                },
+                // Read from this assertion's failure: variant 8, axis 1,
+                // x 300 as a two-byte varint, y 4, state 2.
+                &[8, 1, 172, 2, 4, 2],
+            ),
+            (
+                SimCommand::BuyObject {
+                    definition: 300,
+                    x: 2,
+                    y: 5,
+                    facing: crate::Facing::NorthWest,
+                },
+                // Read from this assertion's failure: variant 9, definition
+                // 300 as a two-byte varint, x 2, y 5, facing 2.
+                &[9, 172, 2, 2, 5, 2],
+            ),
+            (
+                SimCommand::BuildRoom {
+                    x0: 300,
+                    y0: 2,
+                    x1: 5,
+                    y1: 6,
+                    doorway: Some(crate::layout::WallLine {
+                        axis: crate::layout::EdgeAxis::Horizontal,
+                        x: 3,
+                        y: 7,
+                    }),
+                },
+                // Read from this assertion's failure: variant 10, x0 300 as a
+                // two-byte varint, y0 2, x1 5, y1 6, then Some, axis 1, x 3, y 7.
+                &[10, 172, 2, 2, 5, 6, 1, 1, 3, 7],
+            ),
+            (
+                SimCommand::BuildRoom {
+                    x0: 1,
+                    y0: 2,
+                    x1: 3,
+                    y1: 4,
+                    doorway: None,
+                },
+                // Read from this assertion's failure: no doorway is one 0.
+                &[10, 1, 2, 3, 4, 0],
+            ),
+            (
+                SimCommand::SellObject { object: 300 },
+                // Read from this assertion's failure: variant 11, then the
+                // object 300 as a two-byte varint.
+                &[11, 172, 2],
+            ),
+            (
+                SimCommand::SetColourway {
+                    object: 300,
+                    colourway: 2,
+                },
+                // Variant 12, the object 300 as a two-byte varint, then the
+                // colourway 2.
+                &[12, 172, 2, 2],
+            ),
+            (
+                SimCommand::BuyObjectInColourway {
+                    definition: 300,
+                    x: 2,
+                    y: 5,
+                    facing: crate::Facing::NorthWest,
+                    colourway: 3,
+                },
+                // Variant 13, then the purchase as `BuyObject` writes it,
+                // then the colourway 3.
+                &[13, 172, 2, 2, 5, 2, 3],
+            ),
+            (
+                SimCommand::AddHousemate {
+                    name: "Ann".to_string(),
+                    personality: 2,
+                    traits: vec![1, 300],
+                },
+                // Variant 14, the name's length then its bytes, the
+                // personality, then the traits' count and each as a varint.
+                &[14, 3, b'A', b'n', b'n', 2, 2, 1, 172, 2],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),

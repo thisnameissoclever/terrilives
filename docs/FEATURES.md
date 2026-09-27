@@ -340,13 +340,18 @@ rather than weighting them, and it is a tuning question, not a code one.
 deliberately presentation-only; a 20-tick real-WASM enabled-versus-disabled
 run ends at the same world hash.
 
-One finding from building it constrains every future content change:
-`ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each
-mutant's WHOLE workspace test run. A shipped content change that materially
-slows the simulation therefore has to be measured against that ceiling
-rather than against the wall clock - the circadian curve's first draft
-pushed one save test from 10 s to 39 s, which would have turned a large
-share of mutants into spurious timeouts.
+One finding from building it still constrains every future content
+change, though the number has moved. `ci.yml` bounds each mutant's WHOLE
+workspace test run. The bound was a fixed 60 seconds until 2026-09-22, when
+the suite reached about 57 seconds on the runner and three added tests were
+enough to turn eight mutants into reported hangs
+([L-mutant-cap-must-scale]). It is now the larger of 120 seconds and four
+times the unmutated run. A shipped
+content change that materially slows the simulation is therefore measured
+against a cap that rises with it, and against the job's 120 minute bound.
+The circadian curve's first draft pushed one save test from 10 s to 39 s,
+which under the old fixed cap would have turned a large share of mutants
+into spurious timeouts.
 
 Three findings from building it constrain future renderer work. The lighting
 rig fits inside the existing single instanced draw call because pools change
@@ -387,7 +392,9 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 
 The compact HUD reuses the existing controls and adds one visibility
 controller. At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, only
-Time, Funds, and Menu remain visible until the player expands the HUD. Phone
+Time, Funds, Menu and the status line remain visible until the player
+expands the HUD; Light, Build, sound and the game actions are in the Options
+flyout on every screen size ([OF3]). Phone
 portrait and ultra-narrow screens use a contiguous top sheet; wider short
 screens use a scrollable edge sheet; desktop keeps the existing sidebar. The
 current contract is [CH1]-[CH4].
@@ -570,11 +577,60 @@ this milestone and is done; what follows is M1b onwards.
   moodlets and a bounded overall label in the normal selected-person HUD.
   Save V1 is unchanged; Load force-refreshes the projection before another
   tick.
-- **Traits:** ~15 to start, affecting utility scoring ([D6])
+- ~~**Traits:** ~15 to start, affecting utility scoring ([D6])~~ - done in
+  PR 87 at merge `7fb0ff5`; main's CI (run 35663402368) and the Pages deploy
+  (run 35663606297) both passed for that commit, and the public page serves
+  the Traits panel. `content/traits.toml` holds fifteen traits in the three kinds [E3]
+  shipped: nine dispositions, three capabilities and three conditions. Each
+  household member wears three or four, and the selected person's panel lists
+  them in plain words with one sentence each and a percentage for a skill or
+  a severity. Every earlier save still loads, with exactly the traits it was
+  saved with. The design is
+  `docs/specs/2026-09-21-trait-library-and-traits-panel.md` and the played
+  check is [A-trait-library]. Choosing traits for a new sim belongs to
+  Create-a-sim below.
 - **Smart object library:** ~40 objects across the core need categories
-- **Build mode:** walls, floors, doors, windows, roofs
-- **Buy mode:** catalog, placement, rotation, palette recolors ([G4])
-- **Create-a-sim:** body type, face, hair, clothing, trait selection
+- **Build mode:** walls, floors, doors, windows, roofs. Walls shipped in
+  PR 95 at merge `1a90a75`, whole rooms in PR 97 at merge `e2f60a9`, and
+  hinged doors in vertical doorways in PR 98 at merge `2534ec5` ([B-builder]);
+  for PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Floors, windows and roofs remain
+  ([B-floors], [B-windows]).
+- **Buy mode:** catalog, placement, rotation, palette recolors ([G4]).
+  Catalogue, placement and rotation shipped in PR 96 at merge `cb2cb9a`;
+  main's CI (run 35699619286) and the Pages deployment (run 35699810650) both
+  passed for that commit, and the public page serves the Buy tool. It lists
+  every object by name with its price, greys out what the household cannot afford,
+  and stands the chosen object on the floor under the rules a move obeys,
+  taking the price from Funds. The design is
+  `docs/specs/2026-09-21-buy-mode.md` and the played check is [A-buy-mode].
+  Palette recolours are [BM-slice-recolour] there, designed in
+  `docs/specs/2026-09-22-colourways.md`. Its first slice, [RC-slice-furniture],
+  shipped in PR 104 at merge `cd62592`: a Colour list in the Furniture tool
+  redraws a placed object in a colourway, saved with the game, and the
+  played check is [A-colourways]. Choosing the colourway when buying,
+  [RC-slice-buy], shipped in PR 105 at merge `90454e7`: a Colour list in
+  the Buy tool, and the played check is [A-buy-in-colour]. The real
+  colourways and their names wait on
+  [T-recolour-palettes].
+  Selling an object back is [BM-slice-sell] there, shipped in PR 101 at
+  merge `a342eb6`: a Sell button in the Furniture tool pays back half an
+  object's price and removes it, refused while a sim uses it, is walking to
+  it or has been told to use it, when it has no price, or when it is the last
+  object that can do a job a chain needs, such as the house's only stove. Its
+  design is
+  `docs/specs/2026-09-22-selling-furniture.md` and its played check is
+  [A-selling-furniture]. For PRs 101, 104 and 105, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Every
+  code slice of this bullet has shipped; what remains is the owner's palettes
+  ([T-recolour-palettes]).
+- **Create-a-sim:** body type, face, hair, clothing, trait selection - in
+  progress. The first slice, [CS-slice-housemate] in
+  `docs/specs/2026-09-22-create-a-sim.md`, shipped in PR 110 at merge
+  `31c4edb`; main's CI (run 35756583023) and the Pages deployment (run
+  35756846314) both passed for that commit. A New housemate button under Household opens a
+  two-page form, a name and a personality, each described, then up to four
+  traits, and the newcomer walks in from the street and joins the household.
+  Choosing a body, face, hair and clothes waits on art ([CS-slice-looks],
+  [T-sim-looks]). Its played check is [A-housemate].
 - ~~**Household** of up to ~6 sims~~ - done. Content preserves declaration
   order, enforces a six-member ceiling, and the normal HUD provides one
   keyboard-operable selection button per live household member. Buttons key
@@ -605,8 +661,11 @@ What makes it a *life* sim rather than a needs sim.
   `docs/specs/2026-07-30-household-and-relationships-design.md` record the detailed
   constraints.
 - **Skills:** learned through interaction, gating better outcomes
-- **Careers:** rabbit-hole model for the beta - the sim leaves the lot and
-  returns with an outcome. **Simulated workplaces are a near-term post-v1
+- ~~**Careers:** rabbit-hole model for the beta - the sim leaves the lot and
+  returns with an outcome~~ - done: the shipped career is a content-defined
+  rabbit hole with a schedule, pay, need costs and a satisfaction reward, and
+  since PR 107 the worker walks out to the street for it ([B-jobs-careers]
+  carries the full system). **Simulated workplaces are a near-term post-v1
   goal with a recorded compatibility target** ([D15]); the shipped rabbit hole
   is deliberately smaller and does not already contain workplace lots,
   promotion ladders, coworker entities, or a shared outcome interface.
@@ -692,6 +751,68 @@ walls and roofs, outdoor lighting and ambience, walkable approaches, outdoor
 objects, and transitions between home, neighborhood, and future lots. This is
 the spatial foundation for visitors, pets, disasters, and neighborhood play.
 
+The design is `docs/specs/2026-09-22-the-outside.md`, in slices. The first,
+[OS-slice-yard], shipped in PR 106 at merge `00e8c81`: the lot grows to 20 by 16
+and the house stands in a yard four tiles deep on its east and south sides,
+drawn as green floor until there is grass art ([T-yard-art]). Sims walk out
+through the front door, which swings for them, and furniture can be bought and
+walls built in the yard. A saved house whose walls are edges, which is every
+save since the Walls tool, grows into the yard on Load. The
+played check is [A-yard]. The second, [OS-slice-street], shipped in PR 107
+at merge `5f7cc73`: a street along the lot's east edge, drawn grey until there
+is street art, where a worker walks out through the front door and across
+the yard to leave for work, and back the same way; its played check is
+[A-street]. For both, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The first part of the
+third slice, [OS-daylight], shipped in PR 116 at merge `6908a94`: the sky lights
+the yard by day while the rooms stay dimmer, lighter by an open doorway and
+darkest at the back of the house, and people, furniture, interior doors and the
+placement preview take their tile's shade. Its played check is
+[A-yard-daylight]. Windows ([B-windows]), the house seen
+from outside and outdoor objects remain.
+
+### [B-floors] The player chooses what each floor is
+
+Found while building the yard. Every tile is one floor, and the yard is that
+floor recoloured. Build now has a Floors tool: choose Boards, Tiles or Carpet
+and click a tile to lay it, or Remove to put the tile back to how the house
+came. The choice is saved per tile, sparsely, so a house nobody has painted
+costs one byte and every save written before floors existed still loads and
+still looks the same, read by the yard rule in [OS-yard]. The coverings are
+authored in `content/lot.toml` and are the one floor sprite under a colour
+shift, as the yard and the street are, until there is floor art
+([T-floor-art]). Done in PR 128 at merge `6d4a661`. The design is
+`docs/specs/2026-09-22-floors.md` and the played check is [A-floors]. Painting a whole room in one gesture, and a floor
+that changes what happens on it, are not part of this.
+
+### [B-windows] Windows let light in and let sims look out
+
+Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
+line that stops sims but not the day. Fitted with Window in the Walls tool: it
+stops people exactly as a wall does, lets the sky in as a doorway does so the
+room behind it brightens by day ([OS-daylight]), and stops a lamp's pool as a
+wall does. The saved layout carries the window lines in an appended variant
+that appears only once a house has one, so a house without windows saves as it
+always did. There is no window art, so a window draws as the wall panel it
+stands in, washed pale blue ([T-window-art]). Done in PR 126 at merge `68459eb`. The design is
+`docs/specs/2026-09-22-windows.md` and the played check is [A-windows]. Sims
+looking out of a window is not part of this and has no interaction yet.
+
+### [B-trait-words] A trait says whether they like, love, dislike or hate it
+
+Asked for by the owner on 2026-09-22 after playing. A disposition trait's sentence used to say "More drawn to" or "Less drawn to", which reads like a statistic. Each now opens with "Likes", "Loves", "Dislikes" or "Hates", chosen by how strongly its number pulls or pushes, and the content compiler refuses a sentence whose verb disagrees with the number ([TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`). The two lines between the verbs are in `content/tuning.toml`. The capability and condition sentences were reworded in the same plain style. Done in PR 109 at merge `2ed0136`; main's CI (run 35755581216) and the Pages deployment (run 35756846314) both passed. The played check is [A-trait-words].
+
+### [B-options-flyout] Game controls live behind one Options button
+
+Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, People and the speed controls. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry. Done in PR 111 at merge `74152ee`; main's CI (run 35757487127) and the Pages deployment (run 35757776137) both passed. The design is `docs/specs/2026-09-22-options-flyout.md` and the played check is [A-options-flyout].
+
+### [B-walls-in-build] The Walls tool shows every wall
+
+Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
+
+### [B-placement-buttons] Confirm and Cancel sit over the moved object
+
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
+
 ### [A-front-door-animation] The front door opens when Sims come and go
 
 Commutes route through the front-door tile. The animated doorway is implemented
@@ -699,7 +820,8 @@ and played locally: authored hinge and facing, open and close frames, body occlu
 and a step into the house on return. Door state follows simulation state,
 pause, speed, save and load. See
 `docs/specs/2026-09-20-front-door-and-builder.md` for the contract and release
-checks. Mutation checks, merge and Pages deployment remain open.
+checks. Done in PR 84 at merge `d26b60e`; main's CI (run 35553958873) and the
+Pages deployment (run 35554122223) both passed for that commit.
 
 ### [B-neighborhood-dynamics] Neighbors and households have a relationship map
 
@@ -718,6 +840,18 @@ kinship graph, family-tree UI, household and non-household relatives, inheritanc
 and bereavement hooks, age-valid relationship creation, and family-specific
 autonomy and social consequences. Save identity and future genetics depend on
 this being authored data rather than inferred from who shares a house.
+
+The first slice ships the tie itself. A newcomer arrives as somebody: the New
+housemate form asks who they are to the household, choosing from partner,
+parent, child and sibling and naming the member it is to, and the
+relationship list then says it beside the feeling, from the row's side:
+"Bill, their parent" means Bill is the parent. A
+tie is one stored fact between two people, read from either end so a parent
+one way is a child the other, saved sparsely and appended, and in the world
+hash. Nothing behaves differently for family yet. Done in PR 131 at merge `2f87db7`. The design is
+`docs/specs/2026-09-22-family.md`, which names the three later slices, and the
+played check is [A-family]. The item stays open: the tree, relatives outside
+the household, and the autonomy and bereavement hooks are still to build.
 
 ### [A-audio-voices] The game has sound and Sim voices
 
@@ -809,9 +943,28 @@ Sims.
 
 ### [B-builder] A builder: rooms, furniture, placement and rotation
 
-The lot starts from `content/lot.toml`. The furniture builder is implemented
-locally; its release checks and public deployment are still pending. Room and
-wall construction remain separate work.
+The lot starts from `content/lot.toml`. The furniture builder shipped in
+PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
+that commit. The Walls tool shipped in PR 95 at merge `1a90a75`; main's CI
+(run 35686858720) and the Pages deployment (run 35687048670) both passed for
+that commit, and the public page serves it. In Build mode the player picks the
+line between two floor tiles and makes it a wall, a doorway or nothing, and the
+house they build is saved. The design is `docs/specs/2026-09-21-wall-tool.md`
+and the played check is [A-wall-tool]. A Room tool builds a whole rectangular
+room in one edit, with a doorway where the player asks for one, shipped in
+PR 97 at merge `e2f60a9`; its design is
+`docs/specs/2026-09-22-room-tool.md` and its played check is [A-room-tool].
+Every vertical doorway now holds a hinged door that swings open as a sim walks
+through it, drawn with the front door's art, shipped in PR 98 at merge
+`2534ec5`; its design is
+`docs/specs/2026-09-22-interior-doors.md` and its played checks are
+[A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
+([T-interior-door-art]). Floors and windows are their own entries,
+[B-floors] and [B-windows]. The larger lot is the yard, the first slice of
+[B-outside]. For PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. With rooms, walls,
+doors, furniture placement and rotation, buy mode and a saved player-edited
+lot all shipped, this entry is done; floors and windows continue in their own
+entries.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand
@@ -834,6 +987,74 @@ temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in
 `docs/specs/2026-09-20-front-door-and-builder.md`.
 
+### [B-reach-from-the-door] The house is judged from its front door
+
+Found in review of the Room tool. Every lot edit proves the house stays usable
+by flooding the floor from one tile and checking that every sim, every object
+and the front door are in that region. The flood started from the first
+walkable tile in reading order, so an empty room sealed around that tile made
+the rest of the house look cut off: in the shipped lot a one-tile room with no
+doorway at (7, 0) was refused as blocking someone's way, while the same room at
+(9, 0) was built. It only ever refused too much, never too little, but the Room
+tool made a sealed room one click.
+
+The fix was to start the flood from the front door's tile, which every usable
+house must reach anyway. That changed which reason some refusals give, for
+moves and walls as well as rooms, where a house cut in two reads "leave
+furniture out of reach" rather than "cut off the front door", so it was its
+own slice, with the wording chosen on purpose.
+
+Done in PR 99 at merge `ed9f5fb`; main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The flood starts at the front
+door's tile, an empty sealed room is built wherever it stands, and a house cut
+off from its door is refused for the sim or furniture the cut leaves out of
+reach. The design is `docs/specs/2026-09-22-reach-from-the-door.md` and the
+played check is [A-reach-from-the-door].
+
+### [B-catalogue-browsing] The catalogue says what each thing is for
+
+Found in the played check [A-buy-mode]. The Buy tool lists thirty objects by
+their joke names, and the names say nothing about what a thing does: "Wall of
+Intent" and "Frequency of Record" could be anything, and a chair bought on its
+own does nothing until it stands at a table. A player needs to see what each
+object is for and to narrow the list.
+
+The code-owned part needs no new words: the simulation already knows which
+needs each object's interactions serve, and the need names exist. The list can
+show them beside each price and filter by them. A one-line description per
+object is copy, and belongs with [T22].
+
+Done in PR 100 at merge `8370e50`; main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. The chosen item says what it is
+good for under its price, counting what it serves through Cook dinner, and a
+Show list narrows the catalogue to one need. The needs show for the chosen item
+rather than beside every price, which would crowd the list, and the build adds
+the words Show, Everything and Good for. The design is
+`docs/specs/2026-09-22-catalogue-browsing.md` and the played check is
+[A-catalogue-browsing]. The first description slice covers the washing machine, armchair, and dining table, with types as primary labels and model names secondary; see `docs/specs/2026-09-22-object-identity.md`. The remaining descriptions and full voice review stay open under [T22].
+
+### [B-phone-build-dock] The Build dock keeps its buttons in view on a phone
+
+Found in review of catalogue browsing. On a phone the Build panel is a dock
+capped at 45% of the screen height, which scrolls. With an item chosen in the
+Buy tool, its rows (the Show and catalogue lists, the facing and Rotate row,
+the price, what it is good for and the status) push Buy and Cancel below the
+dock's fold at 390 by 844, so every purchase takes a scroll inside the panel.
+They were already below the fold before catalogue browsing, whose Show list and
+Good for line moved them further down. The fix is a
+layout for the dock that keeps each tool's confirming buttons in view, such as
+a pinned action row, checked on a phone for every Build tool.
+
+Done in PR 102 at merge `909604a`; main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Each Build tool holds its choices,
+then a footer of its status line and the buttons that act on it. On a compact
+screen at least 481 pixels tall only the choices scroll, so Confirm, Buy,
+Build room and the wall buttons are always in view and nothing sits behind
+them. On every compact screen the heading and paused note leave the view,
+the four tool buttons share one row, each list's label sits beside it, and
+Sell joins Confirm and Cancel. Below 481 pixels of height the panel can be
+144 pixels tall, too short for a footer and a region above it, so it scrolls
+whole as before. Desktop reads as it did. The design is
+`docs/specs/2026-09-22-phone-build-dock.md` and the played check is
+[A-phone-build-dock].
+
 ### [B-facing] Objects know which way they face, and overlap follows
 
 Most objects are still drawn as one sprite at one depth, and depth comes from
@@ -843,14 +1064,14 @@ a socket-projected body. The bunk now uses it for its upper mattress, near
 posts, rail, and ladder. Other furniture still needs authored pieces before it
 can use the same infrastructure.
 
-Two pieces, and they are separable:
+Two pieces, and they are separable.
 
-* **Facing.** The approved bike and reading chair already have real rendered
-  art and matching interaction poses for all four directions. The kitchen also
-  has hand-authored `SW` variants. The builder unit adds persistent runtime
-  direction and player controls; it must expose only directions with matching
-  art, foregrounds and sockets. Available art alone does not make an object
-  player-rotatable.
+* **Facing is shipped.** Every object a player can move or buy turns with R
+  in the Furniture tool and with Rotate in Buy, its direction is saved with
+  the house, and the tool offers only the directions the object has art for.
+  Measured on the shipped catalogue on 2026-09-22: 29 of its 30 objects
+  support all four directions, and the aquarium supports one, which is what
+  its art has. Nothing here is waiting on code.
 * **Sub-object depth.** A tall object needs more than one depth. The bunk is
   the first shipped proof. Television screens, refrigerator doors, and other
   moving or occluding parts still need their own authored split.
@@ -859,6 +1080,27 @@ The second half now has a content, render-buffer, bridge, and depth-layer
 contract. Each additional split still costs an instance and needs visual,
 picking, lighting, and interaction review; it is no longer an unknown renderer
 architecture problem.
+
+### [B-rotated-lights] A lamp or television keeps its light when turned
+
+Found while researching palette recolours. The player can turn a floor lamp or
+a television in the Furniture tool, which draws it with the sprite for its new
+direction. Lighting knew each light by its default sprite only, so a turned
+lamp or television lit nothing around it at night and lost its own glow.
+
+Done in PR 103 at merge `4e6aae1`; main's CI (run 35727098559) and the Pages deployment (run 35727407232) both passed. Lighting knows each light in all four
+directions its art is drawn in, so a turned lamp or television lights the room
+and glows as it did before it was turned. The played check is
+[A-rotated-lights]. A test built on the real simulation checks every
+catalogue item in every direction it can face, and each picture's foreground
+layer: it fails if the floor lamp or the television is drawn with a picture
+the lighting does not know, or if anything else glows. A new kind of light
+still has to be added by hand, to the lighting and to that test's list.
+Review suggested declaring each light in content instead of by picture name,
+which would remove that step. It is not needed yet, since colourways shift
+colours in the shader and add no pictures. Revisit it before work starts on
+outdoor lighting, the room score's lighting or bills for lights left on,
+since each needs lights the simulation can read.
 
 ### [A-art-pass] The furniture does not survive being looked at
 

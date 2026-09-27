@@ -88,6 +88,27 @@ describe('explicit edge lighting', () => {
     }
   });
 
+  // [WN-rules] in docs/specs/2026-09-22-windows.md: a lamp's pool stops at
+  // glass, so a window does not light the yard from the living room.
+  it('stops a lamp at a window, on both axes and from either side', () => {
+    for (const [line, from, to] of [
+      [[0, 1, 0], [0, 0], [1, 0]],
+      [[0, 1, 0], [1, 0], [0, 0]],
+      [[1, 0, 1], [0, 0], [0, 1]],
+      [[1, 0, 1], [0, 1], [0, 0]],
+    ]) {
+      const width = line[0] === 0 ? 2 : 1;
+      const height = line[0] === 0 ? 1 : 2;
+      const source = rows([[from[0], from[1], 1, LAMP]]);
+      const open = buildLightField(source, width, height, NO_WALLS, true, new Uint32Array());
+      expect(sampleLight(open, to[0], to[1])).toBeGreaterThan(0);
+      const glazed = buildLightField(
+        source, width, height, NO_WALLS, true, new Uint32Array(), Uint32Array.from(line),
+      );
+      expect(sampleLight(glazed, to[0], to[1])).toBe(0);
+    }
+  });
+
   it('uses an explicit empty edge layout instead of stale legacy wall tiles', () => {
     const source = rows([[1, 0, 1, LAMP]]);
     const walls = Uint32Array.from([0, 0]);
@@ -130,6 +151,22 @@ describe('tile light profiles', () => {
     expect(emissiveForSprite(LAMP)).toBeCloseTo(0.85);
     expect(emissiveForSprite(TELEVISION)).toBeCloseTo(0.85);
     expect(emissiveForSprite(CHAIR)).toBe(0);
+  });
+
+  // [B-rotated-lights] in docs/FEATURES.md: the player can turn a lamp or a
+  // television, which draws it with another direction's sprite. Each
+  // direction lights the room and glows exactly as the default one does.
+  it.each(['SW', 'NW', 'NE'])('lights the room from a lamp or television turned to %s', (turn) => {
+    const lamp = spriteIndex(`lampRoundFloor${turn}`);
+    const television = spriteIndex(`televisionVintage${turn}`);
+    const lampField = buildLightField(rows([[4, 3, 1, lamp]]), 10, 7, NO_WALLS, true);
+    expect([0, 1, 2, 3, 4].map((step) => sampleLight(lampField, 4 - step, 3)))
+      .toEqual([0.35, 0.22, 0.1, 0.04, 0].map((value) => expect.closeTo(value)));
+    const televisionField = buildLightField(rows([[4, 3, 1, television]]), 10, 7, NO_WALLS, true);
+    expect([0, 1, 2, 3].map((step) => sampleLight(televisionField, 4 - step, 3)))
+      .toEqual([0.25, 0.12, 0.04, 0].map((value) => expect.closeTo(value)));
+    expect(emissiveForSprite(lamp)).toBeCloseTo(0.85);
+    expect(emissiveForSprite(television)).toBeCloseTo(0.85);
   });
 });
 

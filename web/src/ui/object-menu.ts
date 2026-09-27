@@ -1,46 +1,11 @@
 /**
- * The right-click flyout: one row per interaction the object offers, plus
- * a row that hands the sim back to its own judgement.
- *
- * **This menu owns nothing the simulation owns** ([D-5]). It holds which
- * rows are currently on screen and where, and both of those are facts
- * about the DOM rather than projections of the world - a replay would not
- * want them back. The rows themselves are re-read from the simulation on
- * every open, because an object's interaction list is content and
- * `interactionLabels` is where it lives.
- *
- * # Why it exists before any object has a second verb
- *
- * Every shipped object declares exactly one interaction today, so every
- * menu built here has two rows. [I4] in
- * `docs/specs/2026-07-30-selection-and-input-design.md` decided to build
- * it anyway: `Intent::interaction` has always been an index, and a menu is
- * the thing that makes that index reachable. Building it after the first
- * two-verb object exists is how `UseObject`'s hardcoded 0 got there in the
- * first place.
- *
- * **The index now reaches the simulation.** `SimCommand::UseObject` carries
- * an `interaction` field, so picking row `n` runs interaction `n` rather
- * than whatever row 0 would have run. That means nothing here may sort,
- * filter or renumber the rows: a row's POSITION is the index it sends, and
- * the one place that is stated is `menuEntries` below.
- *
- * The consequence for testing is that the shipped game cannot demonstrate
- * this. Every object has one interaction, so row 0 is the only row, and a
- * menu that always sent 0 would look perfectly correct on the whole lot.
- * The tests that can tell the difference are in Rust, against fixtures with
- * a two-verb object.
- *
- * # The DOM split
- *
- * Everything with a decision in it - which rows, which action a row names,
- * when the menu closes - is in [`ObjectMenu`] and the pure functions
- * beside it, over structural interfaces that a plain object satisfies.
- * [`createMenuSurface`] is the half that needs a `Document`, and it is the
- * only untested thing in this file - the same division `buildNeedBars`
- * draws against `NeedsPanel`, and `buildTimeControls` against
- * `FixedStepDriver`. There is no jsdom in this project.
+ * The object flyout reads current interaction labels and identity on each open.
+ * Action order is the simulation's interaction-index order. Identity and its
+ * optional description stay outside that list, so disclosure never sends an order.
+ * Menu position, focus, and expansion are browser presentation state.
  */
+
+import { createObjectIdentity, type ObjectDetails } from './object-identity.js';
 
 /**
  * What a row does when picked.
@@ -106,6 +71,7 @@ export interface MenuEntry {
  */
 export interface Menu {
   readonly title: string;
+  readonly details?: ObjectDetails;
   readonly entries: readonly MenuEntry[];
 }
 
@@ -150,13 +116,14 @@ export function menuEntries(
   title: string,
   labels: readonly string[],
   object: number,
+  details?: ObjectDetails,
 ): Menu {
   const entries: MenuEntry[] = labels.map((label, interaction) => ({
     label,
     action: { kind: 'use', object, interaction },
   }));
   entries.push(NOTHING);
-  return { title, entries };
+  return details ? { title, entries, details } : { title, entries };
 }
 
 /**
@@ -389,14 +356,20 @@ export function createMenuSurface(
   root: HTMLElement,
 ): MenuSurface {
   let returnFocus: HTMLElement | null = null;
+  let disposeIdentity: (() => void) | undefined;
   return {
     show(menu, clientX, clientY, onPick) {
       returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
+      disposeIdentity?.();
+      disposeIdentity = undefined;
       root.replaceChildren();
-      // The heading names what was right-clicked. A `<p>` rather than a
-      // `<button>`: it is not a row, it must not take focus, and the
-      // keyboard walk below has to land on the first real action.
-      if (menu.title !== '') {
+      // Identity stays outside the action rows. Initial focus still goes to
+      // the first action; Shift+Tab reaches an available description.
+      if (menu.details) {
+        const identity = createObjectIdentity(doc, menu.title, menu.details, root);
+        disposeIdentity = identity.dispose;
+        root.appendChild(identity.element);
+      } else if (menu.title !== '') {
         const title = doc.createElement('p');
         title.className = 'menu-title';
         title.textContent = menu.title;
@@ -422,23 +395,38 @@ export function createMenuSurface(
       }
       root.style.left = `${clientX}px`;
       root.style.top = `${clientY}px`;
+      root.style.width = '';
       root.hidden = false;
-      const view = doc.defaultView;
-      if (view) {
+      // Reserve the expanded dimensions before placement. Opening near an
+      // edge must not move the hovered summary out from under the pointer.
+      const disclosure = root.querySelector('details');
+      if (disclosure) disclosure.open = true;
+      const expandedWidth = root.offsetWidth;
+      const expandedHeight = root.offsetHeight;
+      if (disclosure) {
+        disclosure.open = false;
+        root.style.width = `${expandedWidth}px`;
+      }
+      const place = () => {
+        const view = doc.defaultView;
+        if (!view) return;
         const position = clampMenuPosition(
           clientX,
           clientY,
-          root.offsetWidth,
-          root.offsetHeight,
+          expandedWidth,
+          expandedHeight,
           view.innerWidth,
           view.innerHeight,
         );
         root.style.left = `${position.x}px`;
         root.style.top = `${position.y}px`;
-      }
+      };
+      place();
       root.querySelector<HTMLButtonElement>('.menu-entry')?.focus();
     },
     hide() {
+      disposeIdentity?.();
+      disposeIdentity = undefined;
       const restore = root.contains(doc.activeElement);
       root.hidden = true;
       root.replaceChildren();

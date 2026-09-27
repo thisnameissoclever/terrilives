@@ -186,7 +186,6 @@
       }
       #lighting-mode {
         width: 100%;
-        margin-top: 6px;
       }
       #selected-summary {
         display: grid;
@@ -255,6 +254,60 @@
       }
       .mood-track[data-tone='positive'] .mood-marker {
         background: var(--need-fill);
+      }
+      #traits-block {
+        margin-top: 7px;
+        border-top: 1px solid var(--hud-edge);
+      }
+      #traits-block[hidden] { display: none; }
+      #traits-empty[hidden] { display: none; }
+      #traits-block > :not(summary) { margin-top: 4px; }
+      /* The toggle is the row's whole height, so a thumb can hit it. A list
+         item, as a summary is by default, so it keeps its open and closed
+         triangle. */
+      #traits-caption {
+        display: list-item;
+        min-height: 44px;
+        line-height: 44px;
+        margin: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+      #traits-caption:focus-visible {
+        outline: 2px solid var(--need-fill);
+        outline-offset: -2px;
+      }
+      #traits-empty {
+        margin: 0;
+        color: var(--hud-muted);
+      }
+      #trait-list {
+        display: grid;
+        gap: 5px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      #trait-list[hidden] { display: none; }
+      .trait-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .trait-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 600;
+      }
+      .trait-state {
+        flex: 0 0 auto;
+        font-variant-numeric: tabular-nums;
+      }
+      .trait-state[hidden] { display: none; }
+      .trait-description {
+        margin: 0;
+        color: var(--hud-muted);
+        overflow-wrap: anywhere;
       }
       #moodlet-list {
         display: grid;
@@ -437,14 +490,27 @@
       .mobile-hud-toggle {
         display: none;
       }
+      /* No gap: an empty line would still add one. Each line's own height
+         spaces them. */
+      #hud-status {
+        display: grid;
+        gap: 0;
+        margin-top: 6px;
+      }
       #save-status,
       #command-feedback,
       #keyboard-target {
-        grid-column: 1 / -1;
         min-height: 1.4em;
         margin: 0;
         color: var(--hud-muted);
         font-size: 12px;
+      }
+      /* An empty line takes no room, so the compact strip grows by one
+         line, the save status, rather than three. It stays rendered: a live
+         region taken out of the page may not be announced when it fills. */
+      #command-feedback:empty,
+      #keyboard-target:empty {
+        min-height: 0;
       }
       #save-status[data-kind='error'],
       #command-feedback[data-kind='error'] {
@@ -531,7 +597,8 @@
         width: 100%;
       }
       #new-game-dialog,
-      #load-game-dialog {
+      #load-game-dialog,
+      #housemate-dialog {
         max-width: min(360px, calc(100vw - 32px));
         border: 1px solid var(--hud-edge);
         border-radius: 8px;
@@ -540,34 +607,74 @@
         padding: 18px;
       }
       #new-game-dialog::backdrop,
-      #load-game-dialog::backdrop {
+      #load-game-dialog::backdrop,
+      #housemate-dialog::backdrop {
         background: rgba(0, 0, 0, 0.72);
       }
       #new-game-dialog h2,
-      #load-game-dialog h2 {
+      #load-game-dialog h2,
+      #housemate-dialog h2 {
         margin-top: 0;
       }
+      /* Two pages ([CS-pages]): the name and the personalities, then the
+         traits. Each list scrolls on its own so a phone keeps the page's
+         buttons in view. */
+      #housemate-page-personality > label { display: block; margin-top: 10px; }
+      #housemate-dialog input[type="text"] {
+        display: block; width: 100%; box-sizing: border-box;
+        margin-top: 4px; padding: 8px; font: inherit;
+        color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
+        border-radius: 4px;
+      }
+      #housemate-personality, #housemate-traits-field {
+        margin: 10px 0 0; padding: 8px; border: 1px solid var(--hud-edge); border-radius: 4px;
+      }
+      #housemate-personality-list, #housemate-traits { max-height: 42vh; overflow-y: auto; }
+      /* A control beside a name in bold and its sentence below it; the
+         control never stretches. */
+      .housemate-option { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; cursor: pointer; }
+      .housemate-option input { flex: none; margin: 3px 0 0; }
+      .housemate-option > span { flex: 1 1 auto; display: grid; gap: 2px; }
+      .housemate-option-name { font-weight: 600; }
+      .housemate-option-text { color: var(--hud-muted); }
+      #housemate-status:empty { display: none; }
+      #new-housemate { width: 100%; margin-top: 8px; }
       #new-game-dialog menu,
-      #load-game-dialog menu {
+      #load-game-dialog menu,
+      #housemate-dialog menu {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
         margin: 16px 0 0;
         padding: 0;
       }
-      #build-toggle { grid-area: build; width: 100%; margin-top: 6px; }
+      #build-toggle { width: 100%; }
       #builder-desktop:empty { display: none; }
       #builder-controls { display: grid; gap: 8px; }
-      #builder-controls[hidden] { display: none; }
+      /* [B-phone-build-dock]: hidden always wins. The phone layout gives the
+         panel and the tools displays whose selectors could outrank a plain
+         hiding rule, which once showed the panel outside Build. */
+      #builder-controls[hidden], .builder-tool[hidden] { display: none !important; }
       #builder-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
       #builder-controls p { margin: 0; }
-      #builder-object {
+      /* The tool wrappers keep the panel's own spacing for what they hold. */
+      #furniture-tool, #wall-tool, #room-tool, #buy-tool { display: grid; gap: 8px; }
+      #builder-object, #builder-colour, #buy-object, #buy-filter, #buy-colour {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
         border: 1px solid var(--hud-edge); border-radius: 4px;
         font: inherit; font-size: 14px;
       }
       .builder-row { display: flex; align-items: center; gap: 8px; }
+      /* [B-phone-build-dock]: each tool holds its choices, then a footer of
+         its status and buttons. On a desktop the choices join the tool's
+         own grid and the help lines follow the footer, as they always did. */
+      .builder-choices { display: contents; }
+      .builder-help { order: 1; }
+      .builder-actions { display: grid; gap: 8px; }
+      /* Four tools do not fit one row of the side panel, so two by two. */
+      #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #build-tools > * { min-width: 0; }
       .builder-row > * { flex: 1; min-width: 0; }
       #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
       #builder-controls .hud-button:disabled { opacity: 0.5; cursor: default; }
@@ -587,17 +694,36 @@
           bottom: max(8px, env(safe-area-inset-bottom));
           left: max(8px, env(safe-area-inset-left));
           right: max(8px, env(safe-area-inset-right));
-          max-height: 45dvh; overflow-y: auto;
           z-index: 2;
         }
         #builder-dock #builder-controls {
+          /* The whole panel, border and padding included, stays at 45%. */
+          box-sizing: border-box; max-height: 45dvh; overflow-y: auto;
           padding: 10px; border: 1px solid var(--hud-edge);
           border-radius: 6px; background: var(--hud-bg);
         }
-        #hud[data-mobile-open='false'] > :not(#household-summary) {
-          display: none;
+        /* [B-phone-build-dock]: rows the capped panel can spare. The
+           heading and the paused note leave the view, not the page, so
+           the panel keeps its name for screen readers. */
+        #builder-dock #builder-name, #builder-dock #builder-paused {
+          position: absolute; width: 1px; height: 1px; overflow: hidden;
+          clip-path: inset(50%); white-space: nowrap;
         }
-        #hud[data-mobile-open='false'] #lighting-mode {
+        /* The four tools share one row. At 320 wide each is about 65
+           pixels, and "Furniture" fits once the side padding is trimmed. */
+        #builder-dock #build-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        #builder-dock #build-tools .hud-button { padding-inline: 2px; }
+        /* Each list's label sits beside it. */
+        #builder-dock .builder-choices {
+          display: grid; gap: 8px;
+          grid-template-columns: auto minmax(0, 1fr); align-items: center;
+        }
+        #builder-dock .builder-choices > :not(label):not(select) { grid-column: 1 / -1; }
+        /* Sell joins Confirm and Cancel. */
+        #builder-dock #furniture-tool .builder-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        #builder-dock #furniture-tool .builder-actions > .builder-row { display: contents; }
+        #builder-dock #furniture-tool .builder-actions > p { grid-column: 1 / -1; }
+        #hud[data-mobile-open='false'] > :not(#household-summary) {
           display: none;
         }
         #household-summary {
@@ -605,17 +731,10 @@
           grid-template-areas:
             'time menu'
             'funds menu'
-            'lighting lighting'
-            'build build';
+            'status status';
           grid-template-columns: minmax(0, 1fr) auto;
           align-items: stretch;
           gap: 6px;
-        }
-        #hud[data-mobile-open='false'] #household-summary {
-          grid-template-areas:
-            'time menu'
-            'funds menu'
-            'build build';
         }
         #household-summary > .summary-row:first-child {
           grid-area: time;
@@ -623,8 +742,9 @@
         #household-summary > .summary-row:nth-child(2) {
           grid-area: funds;
         }
-        #lighting-mode {
-          grid-area: lighting;
+        #hud-status {
+          grid-area: status;
+          margin-top: 0;
         }
         .mobile-hud-toggle {
           grid-area: menu;
@@ -632,11 +752,45 @@
           min-width: 64px;
           padding-inline: 8px;
         }
+        /* The person's name and "How <name> feels" toggles, on every
+           compact screen: a phone held sideways is wider than 600 pixels,
+           so the rules cannot live in the phone-only block below. A flex
+           box, so a caption that wraps, such as "How Ann feels", stays one
+           44-pixel target with its text centred. A flex summary loses the
+           browser's triangle, so the toggle draws its own: a border shape
+           with no text, pointing right when closed and down when open, as
+           the desktop one does. */
+        .needs-caption {
+          display: flex;
+          min-height: 44px;
+          box-sizing: border-box;
+          align-items: center;
+          margin: 0;
+        }
+        .needs-caption::before {
+          content: '';
+          flex: none;
+          margin-right: 6px;
+          border-block: 5px solid transparent;
+          border-left: 6px solid currentColor;
+        }
+        details[open] > .needs-caption::before { transform: rotate(90deg); }
+        .needs-caption::-webkit-details-marker { display: none; }
+        /* High Contrast paints every border in the system text colour, the
+           transparent ones too, which would turn the triangle into a bar. */
+        @media (forced-colors: active) {
+          .needs-caption::before { forced-color-adjust: none; border-left-color: CanvasText; }
+        }
+        .needs-caption:focus-visible {
+          outline: 2px solid var(--need-fill);
+          outline-offset: -2px;
+        }
       }
       @media (max-width: 600px) {
         #hud {
           top: max(8px, env(safe-area-inset-top));
-          right: max(8px, env(safe-area-inset-right));
+          /* Clear of the Options gear in the top-right corner ([OF1]). */
+          right: calc(max(8px, env(safe-area-inset-right)) + 52px);
           bottom: auto;
           left: max(8px, env(safe-area-inset-left));
           width: auto;
@@ -651,11 +805,9 @@
             'summary summary'
             'roster roster'
             'needs people'
-            'speed speed'
-            'audio audio'
-            'actions actions';
+            'speed speed';
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          grid-template-rows: repeat(6, auto);
+          grid-template-rows: repeat(4, auto);
         }
         #hud[data-mobile-open='false'] {
           grid-template-areas: 'summary summary';
@@ -668,13 +820,9 @@
           grid-area: summary;
           grid-template-areas:
             'time funds menu'
-            'lighting lighting lighting'
-            'build build build';
+            'status status status';
           grid-template-columns:
-            minmax(125px, 2fr) minmax(50px, 1fr) minmax(64px, auto);
-        }
-        #hud[data-mobile-open='false'] #household-summary {
-          grid-template-areas: 'time funds menu' 'build build build';
+            minmax(0, 2fr) minmax(0, 1fr) minmax(64px, auto);
         }
         #household-summary > .summary-row {
           display: grid;
@@ -692,10 +840,6 @@
           text-align: left;
           text-overflow: ellipsis;
           white-space: nowrap;
-        }
-        #lighting-mode {
-          margin-top: 0;
-          padding-inline: 5px;
         }
         #household-roster {
           grid-area: roster;
@@ -718,17 +862,6 @@
           box-sizing: border-box;
           height: auto;
         }
-        .needs-caption {
-          display: flex;
-          min-height: 44px;
-          box-sizing: border-box;
-          align-items: center;
-          margin: 0;
-        }
-        .needs-caption:focus-visible {
-          outline: 2px solid var(--need-fill);
-          outline-offset: -2px;
-        }
         .need-row {
           grid-template-columns: 58px 1fr;
         }
@@ -741,12 +874,31 @@
           width: 100%;
           min-width: 44px;
         }
-        #audio-controls {
-          grid-area: audio;
+      }
+      /* [B-phone-build-dock]: where the panel is tall enough, only a tool's
+         choices scroll, so its status and buttons are always in view and
+         nothing sits behind them. Below 481 pixels of height the panel can
+         be 144 pixels tall, too short for both, and scrolls whole. */
+      @media (max-width: 600px) and (min-height: 481px) {
+        #builder-dock #builder-controls:not([hidden]) {
+          display: flex; flex-direction: column; overflow-y: auto;
         }
-        #game-actions {
-          grid-area: actions;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+        #builder-dock #builder-controls > * { flex: none; }
+        #builder-dock #builder-controls > .builder-tool:not([hidden]) {
+          flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
+        }
+        /* The padding keeps focus outlines inside the scrolling region; the
+           margin keeps the edges where they were. */
+        #builder-dock .builder-choices {
+          box-sizing: border-box; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+          margin: -4px; padding: 4px;
+        }
+        /* Where a tool has a list, its choices keep one whole list row and
+           its outline; where the footer and that floor do not fit, the panel
+           scrolls whole. */
+        #builder-dock #furniture-tool .builder-choices, #builder-dock #buy-tool .builder-choices { min-height: 52px; }
+        #builder-dock .builder-actions {
+          flex: none; padding-top: 8px; border-top: 1px solid var(--hud-edge);
         }
       }
       @media (max-height: 480px) and (min-width: 361px) {
@@ -763,15 +915,8 @@
           grid-template-areas:
             'time menu'
             'funds menu'
-            'lighting lighting'
-            'build build';
+            'status status';
           grid-template-columns: minmax(0, 1fr) auto;
-        }
-        #hud[data-mobile-open='false'] #household-summary {
-          grid-template-areas:
-            'time menu'
-            'funds menu'
-            'build build';
         }
         #needs-panel,
         #people-panel {
@@ -787,6 +932,8 @@
           grid-template-columns:
             minmax(0, 2fr) minmax(0, 1fr) minmax(60px, auto);
         }
+        /* One row of four would be under 60 pixels a tool. */
+        #builder-dock #build-tools { grid-template-columns: 1fr 1fr; }
       }
       /* The right-click flyout. `fixed` rather than `absolute`, because
          the menu is positioned from a MouseEvent's clientX/clientY and
@@ -814,6 +961,75 @@
       #object-menu[hidden] {
         display: none;
       }
+      /* [OF1]: the gear stays in the window's top-right corner on every
+         screen size, in and out of Build. Above the Build dock (2), below
+         the debug overlay (9) and the right-click flyout (10). */
+      #options {
+        position: fixed;
+        top: max(8px, env(safe-area-inset-top));
+        right: max(8px, env(safe-area-inset-right));
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        z-index: 8;
+      }
+      .options-toggle {
+        width: 44px;
+        min-height: 44px;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        background: var(--hud-bg);
+      }
+      .options-toggle svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+      #options-panel {
+        box-sizing: border-box;
+        width: min(240px, calc(100vw - 16px));
+        max-height: calc(
+          100dvh - 52px - max(8px, env(safe-area-inset-top)) -
+            max(8px, env(safe-area-inset-bottom))
+        );
+        overflow-y: auto;
+        display: grid;
+        gap: 8px;
+        padding: 8px 10px;
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-edge);
+        border-radius: 6px;
+      }
+      #options-panel[hidden] {
+        display: none;
+      }
+      /* [PA-place]: above the Build dock (2) so it can sit just over it,
+         below the gear (8) and every menu. */
+      #placement-actions {
+        position: fixed;
+        left: 0;
+        top: 0;
+        display: flex;
+        gap: 6px;
+        pointer-events: none;
+        z-index: 3;
+      }
+      #placement-actions[hidden] {
+        display: none;
+      }
+      #placement-actions .hud-button {
+        pointer-events: auto;
+        min-height: 44px;
+        min-width: 72px;
+        padding-inline: 10px;
+        background: var(--hud-bg);
+      }
+      #options-panel > section {
+        padding-top: 8px;
+        border-top: 1px solid var(--hud-edge);
+      }
       /* What was right-clicked. Not a row: it takes no focus, has no
          hover state, and the keyboard walk lands past it on the first
          real action. Without it the flyout was a list of verbs with no
@@ -829,6 +1045,18 @@
         white-space: normal;
         overflow-wrap: anywhere;
       }
+      .object-identity { padding: 6px 10px; overflow-wrap: anywhere; }
+      .object-identity summary { cursor: pointer; list-style: none; }
+      .object-identity summary::-webkit-details-marker { display: none; }
+      .object-identity summary:focus-visible { outline: 2px solid var(--hud-text); outline-offset: 3px; }
+      .object-model { display: flex; align-items: center; gap: 10px; color: var(--hud-muted); font-size: 12px; }
+      .object-description-arrow { margin-left: auto; font-size: 18px; width: 20px; height: 20px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+      .object-identity[open] .object-description-arrow { transform: rotate(90deg); }
+      .object-type { display: block; font-size: 15px; line-height: 1.4; }
+      .object-description { margin: 8px 0 2px; font-size: 13px; line-height: 1.5; max-width: 28ch; }
+      #object-menu { max-height: calc(100dvh - 16px); overflow-y: auto; }
+      #buy-identity .object-identity { padding: 6px 0; }
+      #buy-identity .object-description { max-width: none; margin: 8px 0 2px; }
       /* Drawn above the one row that is not about the object under the
          pointer. Margin rather than padding so the rule spans the menu's
          full width against the rows' inset text. */
@@ -867,7 +1095,8 @@
          stays visible. Never wider than the viewport either way. */
       #debug-panel {
         position: fixed;
-        top: 8px;
+        /* Below the Options gear, which owns the corner ([OF1]). */
+        top: calc(max(8px, env(safe-area-inset-top)) + 52px);
         right: 8px;
         max-width: min(44em, calc(100vw - 16px));
         max-height: calc(100vh - 16px);
@@ -899,6 +1128,72 @@
       tabindex="0"
       aria-label="Isometric household. Use Help for controls and accessible status."
     ></canvas>
+    <!-- The Options flyout - [OF1] in docs/specs/2026-09-22-options-flyout.md.
+         Outside #hud for #object-menu's reason: it is fixed to the window's
+         top right, not part of the sidebar's column. Before the sidebar, so
+         it is the first stop after the game view, in and out of Build. The panel holds the
+         controls a player reaches for now and then; the sidebar keeps what
+         they read all the time. -->
+    <div id="options">
+      <button
+        id="options-toggle"
+        class="hud-button options-toggle"
+        type="button"
+        aria-label="Options"
+        aria-controls="options-panel"
+        aria-expanded="false"
+      ><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></button>
+      <div id="options-panel" role="group" aria-label="Options" hidden>
+        <button
+          id="lighting-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Light: auto</button>
+        <button id="build-toggle" class="hud-button" type="button"
+          aria-pressed="false" aria-controls="builder-controls">Build</button>
+        <section id="audio-controls" aria-label="Audio controls">
+        <button
+          id="audio-mute"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Sound: on</button>
+        <label class="audio-effects-label" for="effects-volume">
+          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
+        </label>
+        <input
+          id="effects-volume"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value="70"
+          aria-label="Effects volume"
+          aria-valuetext="70%"
+        />
+        </section>
+        <section id="game-actions" aria-label="Game actions">
+        <button id="save-game" class="hud-button" type="button">Save</button>
+        <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
+        <button
+          id="queue-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Queue</button>
+        <button id="new-game" class="hud-button" type="button">New game</button>
+        <button
+          id="show-help"
+          class="hud-button"
+          type="button"
+          aria-controls="help-panel"
+          aria-expanded="false"
+        >Help</button>
+        </section>
+      </div>
+    </div>
     <div id="hud" data-mobile-open="false">
       <!-- Both are filled from the simulation at load: the bars from the
            need names it reports, the buttons from the speeds [D-8] names.
@@ -915,27 +1210,27 @@
           <strong id="funds-value" class="summary-value">0</strong>
         </div>
         <button
-          id="lighting-mode"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Light: auto</button>
-        <button
           id="mobile-hud-toggle"
           class="hud-button mobile-hud-toggle"
           type="button"
-          aria-controls="lighting-mode household-roster needs-panel people-panel time-controls audio-controls game-actions"
+          aria-controls="household-roster needs-panel people-panel time-controls"
           aria-expanded="false"
           aria-label="Open game menu"
           hidden
         >Menu</button>
-        <button id="build-toggle" class="hud-button" type="button"
-          aria-pressed="false" aria-controls="builder-controls">Build</button>
+        <!-- The status lines live here so every compact layout shows them:
+             a live region inside a closed panel is not announced ([OF3]). -->
+        <div id="hud-status">
+          <p id="save-status" role="status" aria-live="polite">Starting</p>
+          <p id="command-feedback" role="status" aria-live="polite"></p>
+          <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
+        </div>
       </section>
       <div id="builder-desktop"></div>
       <section id="household-roster" aria-labelledby="household-roster-title">
         <h2 id="household-roster-title">Household</h2>
         <div id="household-roster-members"></div>
+        <button id="new-housemate" class="hud-button" type="button">New housemate</button>
       </section>
       <details id="needs-panel" aria-label="Needs of the selected sim" open>
         <!-- Whose bars these are. Filled by NeedsPanel from the
@@ -976,6 +1271,16 @@
           </div>
         </div>
         </div>
+        <!-- Below the need bars, which are read far more often. Hidden
+             until somebody is selected: the line above already says to
+             select a person, and saying it twice is noise. -->
+        <!-- Collapsed until opened ([OF3]): the need bars above are read
+             far more often. Each load starts closed. -->
+        <details id="traits-block" aria-label="Traits" hidden>
+          <summary id="traits-caption" class="summary-label">Traits</summary>
+          <p id="traits-empty" hidden></p>
+          <ul id="trait-list" hidden></ul>
+        </details>
       </details>
       <details id="people-panel" aria-label="Relationships of the selected sim" open>
         <summary id="people-caption" class="needs-caption">People</summary>
@@ -983,68 +1288,109 @@
         <div id="people-list" hidden></div>
       </details>
       <section id="time-controls" aria-label="Simulation speed"></section>
-      <section id="audio-controls" aria-label="Audio controls">
-        <button
-          id="audio-mute"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Sound: on</button>
-        <label class="audio-effects-label" for="effects-volume">
-          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
-        </label>
-        <input
-          id="effects-volume"
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          value="70"
-          aria-label="Effects volume"
-          aria-valuetext="70%"
-        />
-      </section>
-      <section id="game-actions" aria-label="Game actions">
-        <button id="save-game" class="hud-button" type="button">Save</button>
-        <button id="load-game" class="hud-button" type="button">Load</button>
-        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
-        <button
-          id="queue-mode"
-          class="hud-button"
-          type="button"
-          aria-pressed="false"
-        >Queue</button>
-        <button id="new-game" class="hud-button" type="button">New game</button>
-        <button
-          id="show-help"
-          class="hud-button"
-          type="button"
-          aria-controls="help-panel"
-          aria-expanded="false"
-        >Help</button>
-        <p id="save-status" role="status" aria-live="polite">Starting</p>
-        <p id="command-feedback" role="status" aria-live="polite"></p>
-        <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
-      </section>
     </div>
     <div id="builder-dock">
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
         <h2 id="builder-name">Build mode</h2>
-        <p class="builder-note">Household paused</p>
-        <label for="builder-object">Furniture</label>
-        <select id="builder-object"><option value="">Choose furniture</option></select>
-        <div class="builder-row">
-          <span id="builder-facing"></span>
-          <button id="builder-rotate" class="hud-button" type="button">Rotate</button>
+        <p id="builder-paused" class="builder-note">Household paused</p>
+        <div id="build-tools" role="group" aria-label="Build tool">
+          <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true">Furniture</button>
+          <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
+          <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false">Room</button>
+          <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false">Buy</button>
+          <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false">Floors</button>
         </div>
-        <p id="builder-rotation-note" class="builder-note" hidden></p>
-        <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
-        <div class="builder-row">
-          <button id="builder-confirm" class="hud-button" type="button">Confirm</button>
-          <button id="builder-cancel" class="hud-button" type="button">Cancel</button>
+        <div id="furniture-tool" class="builder-tool">
+        <div class="builder-choices">
+          <label for="builder-object">Furniture</label>
+          <select id="builder-object"><option value="">Choose furniture</option></select>
+          <div class="builder-row">
+            <span id="builder-facing"></span>
+            <button id="builder-rotate" class="hud-button" type="button">Rotate</button>
+          </div>
+          <p id="builder-rotation-note" class="builder-note" hidden></p>
+          <label for="builder-colour">Colour</label>
+          <select id="builder-colour" disabled></select>
+          <p id="builder-keyboard-help" class="builder-note builder-help">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Delete or Backspace sells; Escape cancels.</p>
+          <p id="builder-touch-help" class="builder-note builder-help" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
         </div>
-        <p id="builder-keyboard-help" class="builder-note">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Escape cancels.</p>
-        <p id="builder-touch-help" class="builder-note" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
+        <div class="builder-actions">
+          <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
+          <div class="builder-row">
+            <button id="builder-confirm" class="hud-button" type="button">Confirm</button>
+            <button id="builder-cancel" class="hud-button" type="button">Cancel</button>
+          </div>
+          <button id="builder-sell" class="hud-button" type="button" disabled>Sell</button>
+          <p id="builder-sale-note" class="builder-note" hidden></p>
+        </div>
+        </div>
+        <div id="wall-tool" class="builder-tool" hidden>
+          <div class="builder-choices">
+            <p id="wall-keyboard-help" class="builder-note builder-help">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; N fits a window; Backspace removes; Escape clears the choice.</p>
+            <p id="wall-touch-help" class="builder-note builder-help" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
+          </div>
+          <div class="builder-actions">
+            <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
+            <div class="builder-row">
+              <button id="wall-build" class="hud-button" type="button">Wall</button>
+              <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
+              <button id="wall-window" class="hud-button" type="button">Window</button>
+              <button id="wall-remove" class="hud-button" type="button">Remove</button>
+            </div>
+          </div>
+        </div>
+        <!-- The Floors tool - [FL-tool] in docs/specs/2026-09-22-floors.md.
+             The covering buttons are built from the content at startup, so
+             this holds only what does not depend on it. -->
+        <div id="floor-tool" class="builder-tool" hidden>
+          <div class="builder-choices">
+            <p id="floor-keyboard-help" class="builder-note builder-help">Choose a floor, then click a tile to lay it. With the game view focused: 1 upward chooses a floor, 0 chooses Remove, Escape clears the choice.</p>
+            <p id="floor-touch-help" class="builder-note builder-help" hidden>Choose a floor, then tap a tile to lay it. Drag to pan; pinch to zoom.</p>
+            <div id="floor-coverings" class="builder-row" role="group" aria-label="Floor"></div>
+          </div>
+          <div class="builder-actions">
+            <p id="floor-status" role="status" aria-live="polite">Choose a tile.</p>
+          </div>
+        </div>
+        <div id="room-tool" class="builder-tool" hidden>
+          <div class="builder-choices">
+            <p id="room-keyboard-help" class="builder-note builder-help">Click one corner tile, then the opposite one; click a line of the outline for a doorway. With the game view focused: arrows move a corner; Enter fixes the first corner, then builds; D steps the doorway along the outline; Escape clears.</p>
+            <p id="room-touch-help" class="builder-note builder-help" hidden>Tap one corner tile, then the opposite one; tap a line of the outline for a doorway. Drag to pan; pinch to zoom.</p>
+          </div>
+          <div class="builder-actions">
+            <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
+            <div class="builder-row">
+              <button id="room-build" class="hud-button" type="button">Build room</button>
+              <button id="room-cancel" class="hud-button" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div id="buy-tool" class="builder-tool" hidden>
+          <div class="builder-choices">
+            <label for="buy-filter">Show</label>
+            <select id="buy-filter"><option value="">Everything</option></select>
+            <label for="buy-object">Buy</label>
+            <select id="buy-object"><option value="">Choose something to buy</option></select>
+            <div id="buy-identity" hidden></div>
+            <label for="buy-colour">Colour</label>
+            <select id="buy-colour"></select>
+            <div class="builder-row">
+              <span id="buy-facing"></span>
+              <button id="buy-rotate" class="hud-button" type="button">Rotate</button>
+            </div>
+            <p id="buy-price"></p>
+            <p id="buy-serves"></p>
+            <p id="buy-keyboard-help" class="builder-note builder-help">Choose something, then click where it goes. With the game view focused: [ and ] choose; arrows move; R rotates; Enter buys; Escape cancels.</p>
+            <p id="buy-touch-help" class="builder-note builder-help" hidden>Choose something, then tap a tile. Drag to pan; pinch to zoom.</p>
+          </div>
+          <div class="builder-actions">
+            <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
+            <div class="builder-row">
+              <button id="buy-confirm" class="hud-button" type="button">Buy</button>
+              <button id="buy-cancel" class="hud-button" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
     <dialog
@@ -1060,13 +1406,16 @@
           <li>Long-press or right-click for more actions, including talking to another person.</li>
           <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
             <li>Build pauses the household. Move or rotate furniture, then Confirm or choose another item. Choosing another item commits a valid move and cancels an invalid one. Cancel leaves it unchanged; Exit build returns to play.</li>
+          <li>In Build, Walls turns the line between two floor tiles into a wall, a doorway, a window or nothing. A window stops people and lets the daylight through. Remove clears the line; the status line says why when a change is not allowed.</li>
+          <li>In Build, Room builds a whole room at once: choose two opposite corner tiles, then a line of the outline for its doorway, and press Build room.</li>
+            <li>In Build, Buy lists everything for sale with its price. Choose something, point at the floor, turn it with Rotate, and press Buy; the price comes out of Funds. Items the household cannot afford are greyed out.</li>
+            <li>In Build, Floors lays a floor: choose Boards, Tiles or Carpet, then click a tile. Remove puts the tile back to how the house came.</li>
           <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
           <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
-          <li>Open the selected person's name to show or hide the needs panel.</li>
+          <li>Open the selected person's name to show or hide the needs panel, and Traits under it to show their traits.</li>
           <li>Open People to see how the selected person feels about everyone else.</li>
-          <li>Use Light: flat for neutral daylight without the automatic lighting cycle.</li>
-          <li>Use Sound to mute everything, and Effects to set cue and footstep volume.</li>
+          <li>Open Options, the gear at the top right, for Light, Build, Sound, Save, Load, Clear orders, Queue, New game and Help. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets cue and footstep volume.</li>
         </ol>
       </div>
       <div id="help-actions">
@@ -1081,6 +1430,49 @@
           <button class="hud-button" value="cancel">Keep playing</button>
           <button id="confirm-new-game" class="hud-button" value="confirm">Start over</button>
         </menu>
+      </form>
+    </dialog>
+    <!-- The New housemate form - [CS-command] in
+         docs/specs/2026-09-22-create-a-sim.md. The lists are filled from
+         content by main.ts, so nothing here names a personality or a trait. -->
+    <dialog id="housemate-dialog" aria-labelledby="housemate-title">
+      <h2 id="housemate-title">New housemate</h2>
+      <p id="housemate-count"></p>
+      <p id="housemate-status" role="status"></p>
+      <form id="housemate-form" method="dialog">
+        <!-- [CS-pages]: every button is type="button", so no press submits
+             the form; the view moves between pages and closes the dialog. -->
+        <div id="housemate-page-personality">
+          <label for="housemate-name">Name</label>
+          <input id="housemate-name" type="text" autocomplete="off">
+          <fieldset id="housemate-personality">
+            <legend>Personality</legend>
+            <div id="housemate-personality-list"></div>
+          </fieldset>
+          <menu>
+            <button id="housemate-cancel" class="hud-button" type="button">Cancel</button>
+            <button id="housemate-next" class="hud-button" type="button">Next</button>
+          </menu>
+        </div>
+        <div id="housemate-page-traits" hidden>
+          <fieldset id="housemate-traits-field">
+            <legend id="housemate-traits-legend">Traits</legend>
+            <div id="housemate-traits"></div>
+          </fieldset>
+          <!-- Who the newcomer is to somebody already here - [FM-choose] in
+               docs/specs/2026-09-22-family.md. Both lists are built from the
+               game at the moment the form opens. -->
+          <div class="builder-choices" id="housemate-family">
+            <label for="housemate-relation">They are the</label>
+            <select id="housemate-relation"></select>
+            <label for="housemate-relative">of</label>
+            <select id="housemate-relative"></select>
+          </div>
+          <menu>
+            <button id="housemate-back" class="hud-button" type="button">Back</button>
+            <button id="housemate-confirm" class="hud-button" type="button">Move in</button>
+          </menu>
+        </div>
       </form>
     </dialog>
     <dialog id="load-game-dialog" aria-labelledby="load-game-title">
@@ -1105,6 +1497,14 @@
         <pre id="debug-report"></pre>
       </details>
     </section>
+    <!-- Confirm and Cancel over the piece being placed - [PA-show] in
+         docs/specs/2026-09-22-placement-buttons.md. Fixed and positioned in
+         client pixels by main.ts, outside #hud and #builder-dock like the
+         right-click flyout. The box lets clicks through; its buttons do not. -->
+    <div id="placement-actions" hidden>
+      <button id="placement-confirm" class="hud-button" type="button">Confirm</button>
+      <button id="placement-cancel" class="hud-button" type="button">Cancel</button>
+    </div>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the
          pointer, so nesting it would inherit a layout it has to fight.

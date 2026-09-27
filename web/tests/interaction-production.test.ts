@@ -102,3 +102,24 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
     }
   },
 );
+
+it('an empty reading chair is not picked through the transparent space above its art', () => {
+  const handle = new SimHandle(16, 16);
+  const source = new SimBridge(handle, memory);
+  try {
+    expect(source.spawnObject(4, 4, 'reading_chair')).toBe(true);
+    const chair = spriteIndex('offlineChair');
+    expect(source.sprites()[0]).toBe(chair);
+    // The canvas top would pick without a recorded box; the art starts lower.
+    const [left, top, right] = SPRITE_CONTENT_BOUNDS[chair];
+    expect(top).toBeGreaterThan(8);
+    const [anchorX, anchorY] = SPRITE_ANCHORS[chair];
+    const [wx, wy] = source.positions();
+    const px = screenX(wx, wy, 0) + (left + right) / 2 - anchorX;
+    const artTop = screenY(wx, wy, 0) + TILE_HALF_HEIGHT + top - anchorY;
+    expect(pickSprite(source, px, artTop - 4, 0, 0)).toBeNull();
+    expect(pickSprite(source, px, artTop + 4, 0, 0)).toEqual({ entity: source.ids()[0], isAgent: false });
+  } finally {
+    handle.free();
+  }
+});

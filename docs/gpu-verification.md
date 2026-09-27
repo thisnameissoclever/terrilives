@@ -4,7 +4,9 @@ Current wall/furniture clipping proof (2026-09-21): see
 [wall clipping correction](assets/review-evidence/wall-clipping.md).
 It records real GPU pixel regressions, mutation failures, doorway samples and
 a bounded timing probe. Older constant-depth and 32-byte instance measurements
-below remain historical. Current rows are 48 bytes. Edge walls use plane depth;
+below remain historical. Current rows are 64 bytes, the last 16 a colourway
+shift ([RC-render] in `docs/specs/2026-09-22-colourways.md`); the larger upload
+and the shader's colour shift have not been re-measured. Edge walls use plane depth;
 elongated furniture, occupied composites and their indicators use footprint
 column depth. Square footprints and ordinary Sims retain flat depth.
 

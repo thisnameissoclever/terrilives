@@ -85,9 +85,12 @@ describe('AudioControls', () => {
     expect(INDEX_HTML).toMatch(
       /<label[^>]+for="effects-volume"[\s\S]*?Effects[\s\S]*?<output[^>]+id="effects-volume-value"/,
     );
-    expect(INDEX_HTML).toMatch(
-      /grid-template-areas:[\s\S]*?'speed speed'[\s\S]*?'audio audio'[\s\S]*?'actions actions'/,
-    );
+    // [OF3]: the sound controls moved into the Options panel, so the phone
+    // sidebar keeps speed and no longer lays out audio or actions rows.
+    expect(INDEX_HTML).toMatch(/grid-template-areas:[\s\S]*?'speed speed'/);
+    expect(INDEX_HTML).not.toMatch(/'audio audio'|'actions actions'/);
+    const panel = INDEX_HTML.indexOf('id="options-panel"');
+    expect(INDEX_HTML.indexOf('id="audio-controls"')).toBeGreaterThan(panel);
   });
 
   it('reflects the controller state in readable button and range values', () => {

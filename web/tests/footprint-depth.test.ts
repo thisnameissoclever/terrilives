@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildInstances, instanceCount, type RenderSource } from '../src/frame.js';
 import { FLOATS_PER_INSTANCE, OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
-  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X } from '../src/render/instances.js';
+  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X, OFFSET_COLOURWAY_HUE } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import { spriteDrawOffsetX } from '../src/render/sprite-anchors.js';
 
@@ -36,7 +36,7 @@ describe('footprint projection at the frame boundary', () => {
   it('uses the occupied furniture footprint, not the one-tile Sim, and clears the suppressed owner', () => {
     const source = fixture(2, 1, true);
     const out = buildInstances(source, 1, 0, 0, 16);
-    expect(Array.from(out.subarray(8, FLOATS_PER_INSTANCE))).toEqual([0, 0, 0, 0]);
+    expect(Array.from(out.subarray(8, 12))).toEqual([0, 0, 0, 0]);
     const body = FLOATS_PER_INSTANCE;
     expect(out[body + OFFSET_WALL_MASK]).toBe(-1);
     expect(out[body + OFFSET_FOOTPRINT_SPAN]).toBe(0.5);
@@ -55,8 +55,74 @@ describe('footprint projection at the frame boundary', () => {
     const source = fixture();
     source.foregroundSprites = () => new Uint32Array([spriteIndex('offlineBunk')]);
     const out = buildInstances(source, 1, 0, 0, 16);
-    expect(Array.from(out.subarray(8, 12))).toEqual(Array.from(out.subarray(FLOATS_PER_INSTANCE + 8, 2 * FLOATS_PER_INSTANCE)));
+    expect(Array.from(out.subarray(8, 12))).toEqual(Array.from(out.subarray(FLOATS_PER_INSTANCE + 8, FLOATS_PER_INSTANCE + 12)));
     const square = buildInstances(fixture(2, 2), 1, 0, 0, 16);
     expect(Array.from(square.subarray(8, 12))).toEqual([0, 0, 0, 0]);
+  });
+});
+
+// [RC-render] in docs/specs/2026-09-22-colourways.md: an object's colourway
+// reaches its own picture, its foreground layer, and the picture of a sim
+// using it, where the shader turns the furniture layer only; a sim using
+// nothing carries no shift.
+describe('colourways at the frame boundary', () => {
+  const shifts = new Float32Array([0, 1, 0, 120, 1.4, -0.04]);
+  const recoloured = [120, expect.closeTo(0.4), expect.closeTo(-0.04), 0];
+  const none = [0, 0, 0, 0];
+  const shiftAt = (out: Float32Array, slot: number) => Array.from(out.subarray(
+    slot * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE, (slot + 1) * FLOATS_PER_INSTANCE));
+
+  it('draws an object, its foreground and a sim using it in the colourway of the object', () => {
+    const alone = fixture();
+    alone.colourways = () => new Uint32Array([1]);
+    alone.colourwayShifts = () => shifts;
+    alone.foregroundSprites = () => new Uint32Array([spriteIndex('offlineBunk')]);
+    const out = buildInstances(alone, 1, 0, 0, 16);
+    expect(shiftAt(out, 0)).toEqual(recoloured);
+    expect(shiftAt(out, 1)).toEqual(recoloured);
+
+    const occupied = fixture(2, 1, true);
+    occupied.colourways = () => new Uint32Array([1, 0]);
+    occupied.colourwayShifts = () => shifts;
+    expect(shiftAt(buildInstances(occupied, 1, 0, 0, 16), 1)).toEqual(recoloured);
+
+    const idle = fixture(2, 1, true);
+    idle.interactionTargets = () => new Uint32Array([0xffffffff, 0xffffffff]);
+    idle.colourways = () => new Uint32Array([1, 0]);
+    idle.colourwayShifts = () => shifts;
+    const still = buildInstances(idle, 1, 0, 0, 16);
+    expect(shiftAt(still, 0)).toEqual(recoloured);
+    expect(shiftAt(still, 1)).toEqual(none);
+  });
+});
+
+// [RC-render]: the ghost takes the colourway main gives it wherever it stands
+// and whether or not it is valid, since it stands in for the chosen object.
+describe('the ghost at the frame boundary', () => {
+  const shifts = new Float32Array([0, 1, 0, 120, 1.4, -0.04]);
+  it('draws the ghost in the given colourway, valid or not, on its tiles or elsewhere', () => {
+    for (const [x, valid] of [[9, true], [9, false], [3, true], [3, false]] as const) {
+      const source = fixture(2, 1);
+      source.colourways = () => new Uint32Array([1]);
+      source.colourwayShifts = () => shifts;
+      const ghost = { valid, reason: valid ? null : 'no', x, y: 6, facing: 0, width: 2, depth: 1,
+        sprite: spriteIndex('offlineBunk'), foreground: null };
+      const count = instanceCount(source, 40, undefined, ghost, null);
+      // The ghost's art is the last slot drawing the bunk; the bunk's own row
+      // comes first.
+      const ghostSlot = (out: Float32Array) => {
+        let slot = -1;
+        for (let i = 0; i < count; i++) {
+          if (out[i * FLOATS_PER_INSTANCE + 3] === spriteIndex('offlineBunk')) slot = i;
+        }
+        return slot;
+      };
+      const out = buildInstances(source, 1, 0, 0, 16, 40, 1, false, 0, null, undefined, ghost, null, 1);
+      const slot = ghostSlot(out);
+      expect(slot, `${x} ${valid}`).toBeGreaterThan(0);
+      expect(out[slot * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE], `${x} ${valid}`).toBe(120);
+      const plain = buildInstances(source, 1, 0, 0, 16, 40, 1, false, 0, null, undefined, ghost, null, 0);
+      expect(plain[ghostSlot(plain) * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE], `${x} ${valid} as drawn`).toBe(0);
+    }
   });
 });

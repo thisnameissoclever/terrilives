@@ -52,6 +52,10 @@ pub struct RenderBuffer {
     /// Optional atlas layer drawn after bodies occupying this object.
     /// [`NO_FOREGROUND_SPRITE`] means the row has no foreground layer.
     pub foreground_sprites: Vec<u32>,
+    /// Each row's colourway, an index into the content pack's colourways -
+    /// [RC-render] in `docs/specs/2026-09-22-colourways.md`. 0, the art as
+    /// drawn, for every sim and for every object not recoloured.
+    pub colourways: Vec<u32>,
     /// The raw entity index occupying each row.
     ///
     /// **A ROW IS NOT AN ENTITY INDEX.** `sync_render_buffer` sorts rows by
@@ -4637,6 +4641,7 @@ mod tests {
             assert_eq!(buf.footprint_depths.len(), expected_count);
             assert_eq!(buf.sprites.len(), expected_count);
             assert_eq!(buf.foreground_sprites.len(), expected_count);
+            assert_eq!(buf.colourways.len(), expected_count);
             assert_eq!(buf.activities.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);
             assert_eq!(buf.interaction_targets.len(), expected_count);

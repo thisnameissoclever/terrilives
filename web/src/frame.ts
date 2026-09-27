@@ -21,6 +21,8 @@ import {
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
+  writeShade,
+  writeColourway,
   type InstanceArray,
 } from './render/instances.js';
 import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
@@ -31,7 +33,14 @@ import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
 import { writeFootprintProjection } from './render/footprint-depth.js';
 import type { PlacementPreview } from './bridge.js';
-import { placementInstanceCount, writePlacementPreview } from './render/placement-preview.js';
+import {
+  placementInstanceCount,
+  tileHighlightCount,
+  writePlacementPreview,
+  writeTileHighlight,
+  type TileHighlight,
+} from './render/placement-preview.js';
+import { OPEN_SKY, sampleShade, type SkyExposure } from './render/sky.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -808,6 +817,10 @@ export interface RenderSource {
   sprites(): Uint32Array;
   /** Optional authored object layer drawn in front of a socket-projected sim. */
   foregroundSprites?(): Uint32Array;
+  /** Each row's colourway, 0 for the art as drawn ([RC-render]). */
+  colourways?(): Uint32Array;
+  /** The colourway shift table, `[hue, strength, lightness]` flattened; static content. */
+  colourwayShifts?(): Float32Array;
   /** Current oriented furniture dimensions, used for depth and preview replacement. */
   footprintWidths?(): Uint32Array;
   footprintDepths?(): Uint32Array;
@@ -937,6 +950,11 @@ export function buildInstances(
   lighting: TileLighting | null = null,
   interactions: InteractionSelection = frameInteractions,
   placement: PlacementPreview | null = null,
+  highlight: TileHighlight | null = null,
+  /** The colourway the ghost is drawn in: a moved object's, or a purchase's ([RC-render]). */
+  placementColourway = 0,
+  /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
+  sky: SkyExposure = OPEN_SKY,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -944,7 +962,8 @@ export function buildInstances(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)) * FLOATS_PER_INSTANCE;
+  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
+    + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -963,6 +982,8 @@ export function buildInstances(
   const facings = source.facings();
   const ids = source.ids();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  const colourways = source.colourways?.() ?? null;
+  const colourwayShifts = source.colourwayShifts?.() ?? null;
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
@@ -1044,6 +1065,15 @@ export function buildInstances(
       TINT_NONE,
       Math.max(emissiveForSprite(sprite), localLight),
     );
+    writeShade(scratch, i, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
+    // [RC-render]: an object takes its own colourway; a sim drawn using an
+    // object takes that object's, which the shader applies to the furniture
+    // layer only.
+    if (colourways !== null && colourwayShifts !== null) {
+      const colourwayRow = interactions.bodies[i] >= 0 ? interactions.targetRows[i]
+        : kinds[i] === KIND_AGENT ? -1 : i;
+      if (colourwayRow >= 0) writeColourway(scratch, i, colourwayShifts, colourways[colourwayRow]);
+    }
     writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
   }
@@ -1054,7 +1084,7 @@ export function buildInstances(
   // owns those pixels.
   let slot = count;
   if (portals !== undefined) {
-    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting);
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
   }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
@@ -1079,6 +1109,10 @@ export function buildInstances(
         TINT_NONE,
         Math.max(emissiveForSprite(sprite), localLight),
       );
+      writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
+      if (colourways !== null && colourwayShifts !== null) {
+        writeColourway(scratch, slot - 1, colourwayShifts, colourways[i]);
+      }
       writeFootprintProjection(scratch, slot - 1, footprintWidths?.[i] ?? 0,
         footprintDepths?.[i] ?? 0, sprite, gridSize);
     }
@@ -1192,6 +1226,7 @@ export function buildInstances(
       TINT_NONE,
       localLight,
     );
+    writeShade(scratch, slot - 1, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
   }
 
   // **The selection ring, last, in the slot past the live entities and
@@ -1224,7 +1259,9 @@ export function buildInstances(
     );
   }
 
-  writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting);
+  slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
+    colourwayShifts, placementColourway, sky);
+  writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   return scratch;
 }
 
@@ -1237,7 +1274,8 @@ export function buildInstances(
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
 export function instanceCount(source: RenderSource, selected: number | null,
-  interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null): number {
+  interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null,
+  highlight: TileHighlight | null = null): number {
   let extras = 0;
   const activities = source.activities();
   const carrying = source.carrying();
@@ -1272,7 +1310,8 @@ export function instanceCount(source: RenderSource, selected: number | null,
     }
   }
   return source.count + extras + (source.portals?.().portalCount ?? 0) * 2
-    + (findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement);
+    + (findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement)
+    + tileHighlightCount(highlight);
 }
 
 /**

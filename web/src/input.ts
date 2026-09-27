@@ -237,11 +237,25 @@ export function clientToTile(
   originY: number,
   scale = 1,
 ): [number, number] | null {
+  const world = clientToWorld(clientX, clientY, rect, canvasWidth, canvasHeight, originX, originY, scale);
+  return world === null ? null : [Math.round(world[0]), Math.round(world[1])];
+}
+
+/** `clientToTile` before rounding: the world point under the pointer, or null. */
+export function clientToWorld(
+  clientX: number,
+  clientY: number,
+  rect: ViewRect,
+  canvasWidth: number,
+  canvasHeight: number,
+  originX: number,
+  originY: number,
+  scale = 1,
+): [number, number] | null {
   if (rect.width <= 0 || rect.height <= 0) return null;
   const bufferX = ((clientX - rect.left) * canvasWidth) / rect.width;
   const bufferY = ((clientY - rect.top) * canvasHeight) / rect.height;
-  const [wx, wy] = screenToWorld(bufferX, bufferY, originX, originY, scale);
-  return [Math.round(wx), Math.round(wy)];
+  return screenToWorld(bufferX, bufferY, originX, originY, scale);
 }
 
 /**
@@ -253,7 +267,7 @@ export function clientToTile(
  * Picking used to invert the projection to a tile and ask what stood on it.
  * That is the right model for "walk to here" and the wrong one for "click that
  * sim", because **sprites are bottom-anchored and much taller than a tile**.
- * A sim is 38 x 78 px standing on a 64 x 32 diamond, so most of its visible
+ * A sim is 38 x 88 px standing on a 64 x 32 diamond, so most of its visible
  * body is drawn 50-plus pixels above the tile it occupies.
  *
  * Measured against the shipped projection, sampling nine points down the sim's
@@ -290,12 +304,20 @@ export function clientToTile(
  *
  * # What this does not do
  *
- * The hit box is the sprite's **rectangle**, not its opaque pixels, so a click
- * in the transparent corner above a bed's headboard still selects the bed. The
- * shader discards those fragments, so the player sees floor there. Reading the
- * atlas's alpha would fix it and needs the decoded image on this side; the
- * rectangle is a large improvement on a 32-pixel-tall diamond and the
- * imprecision is in the player's favour - it makes things easier to hit.
+ * The hit box is a **rectangle**, not the sprite's opaque pixels, so a click
+ * in the transparent corner beside a bed's headboard still selects the bed.
+ * The shader discards those fragments, so the player sees floor there. The
+ * imprecision is in the player's favour: it makes things easier to hit, and a
+ * rectangle is a large improvement on a 32-pixel-tall diamond.
+ *
+ * What the rectangle is comes from `SPRITE_CONTENT_BOUNDS`, which the atlas
+ * generator fills from the art's alpha, because tall empty space above a
+ * sprite is not imprecision in the player's favour: it puts a click on bare
+ * floor well above a chair onto the chair. A sprite the generator filled
+ * keeps the canvas sides and base and is cut only above the art. A sprite an
+ * importer recorded, the fridge among them, carries the art's own box and is
+ * inset on every side. A sprite absent from the table, including every Sim
+ * body frame, is picked on its whole canvas.
  *
  * **Walls and floor tiles are invisible to this.** They are static geometry
  * uploaded once, not render-buffer rows, so nothing here can return one. A
@@ -658,6 +680,7 @@ export interface InteractionSource {
    * rather than as a blank line.
    */
   entityName(entity: number): string;
+  objectDetails?(entity: number): import('./ui/object-identity.js').ObjectDetails | undefined;
   /**
    * The social vocabulary's labels, index-ordered - the rows for a
    * flyout over a fellow SIM, per [A-11]'s "interact with other Sims".
@@ -758,6 +781,28 @@ export function clientToCanvas(
 }
 
 /**
+ * The inverse of `clientToCanvas`: a drawing-buffer point as client pixels,
+ * for HTML placed over the game view ([PA-place] in
+ * `docs/specs/2026-09-22-placement-buttons.md`). The buffer is the canvas's
+ * CSS size times the device pixel ratio, so a buffer point is divided back
+ * down; on a phone at a ratio of 3 a raw buffer point would land three
+ * times too far from the corner. Null for a canvas with no size, as there.
+ */
+export function canvasToClient(
+  bufferX: number,
+  bufferY: number,
+  rect: ViewRect,
+  canvasWidth: number,
+  canvasHeight: number,
+): CanvasPoint | null {
+  if (rect.width <= 0 || rect.height <= 0 || canvasWidth <= 0 || canvasHeight <= 0) return null;
+  return {
+    x: rect.left + (bufferX * rect.width) / canvasWidth,
+    y: rect.top + (bufferY * rect.height) / canvasHeight,
+  };
+}
+
+/**
  * A right click, as much of `MouseEvent` as the handler needs: where it
  * landed on the page, and the ability to suppress the browser's own menu.
  */
@@ -833,6 +878,7 @@ export function resolveRightClick(
     target.entityName(pick.entity),
     target.interactionLabels(pick.entity),
     pick.entity,
+    target.objectDetails?.(pick.entity),
   );
 }
 
@@ -1085,7 +1131,9 @@ export class LongPressGesture {
 
 export interface CanvasEditInput {
   active(): boolean;
-  click(pick: Pick | null, tile: readonly [number, number] | null): void;
+  /** `world` is the unrounded point, for tools that pick a line between tiles. */
+  click(pick: Pick | null, tile: readonly [number, number] | null,
+    world: readonly [number, number] | null): void;
 }
 
 export function attachPointerInput(
@@ -1268,9 +1316,12 @@ export function attachPointerInput(
     if (editing?.active()) {
       canvas.focus();
       const point = canvasPoint(event);
+      const rect = canvas.getBoundingClientRect();
       editing.click(point ? pickSprite(target, point.x, point.y, camera.originX,
         camera.originY, camera.scale, reducedMotion()) : null,
-      clientToTile(event.clientX, event.clientY, canvas.getBoundingClientRect(),
+      clientToTile(event.clientX, event.clientY, rect,
+        canvas.width, canvas.height, camera.originX, camera.originY, camera.scale),
+      clientToWorld(event.clientX, event.clientY, rect,
         canvas.width, canvas.height, camera.originX, camera.originY, camera.scale));
       return;
     }

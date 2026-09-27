@@ -1,3 +1,4 @@
+import { relationWord } from '../bridge.js';
 import {
   householdMembers,
   type HouseholdMember,
@@ -7,9 +8,35 @@ import {
 export interface PeoplePanelSource extends HouseholdRosterSource {
   /** Interleaved [other SimId, feeling] pairs for one live entity. */
   relationshipsOf(entityIndex: number): Float32Array;
+  /**
+   * Three words per family tie: the lower entity index, the higher, and the
+   * relation ([FM-save] in `docs/specs/2026-09-22-family.md`). Optional, so
+   * a source written before ties existed still satisfies this.
+   */
+  familyTies?(): Uint32Array;
 }
 
 export type RelationshipTone = 'negative' | 'neutral' | 'positive';
+
+/** What a tie between two entity indices says, from `who`'s side. */
+export function tieBetween(
+  ties: ArrayLike<number>,
+  who: number,
+  other: number,
+): string | null {
+  const [low, high] = who < other ? [who, other] : [other, who];
+  for (let at = 0; at + 2 < ties.length; at += 3) {
+    if (ties[at] !== low || ties[at + 1] !== high) continue;
+    const stored = ties[at + 2];
+    // Stored from the lower index's side, so the higher reads the mirror:
+    // a parent one way is a child the other ([FM-tie]).
+    const seen = who === low ? stored : MIRRORED[stored] ?? stored;
+    return relationWord(seen);
+  }
+  return null;
+}
+
+const MIRRORED: Readonly<Record<number, number>> = { 1: 2, 2: 1 };
 
 export interface RelationshipDescription {
   /** Bounded simulation value, kept for the meter's accessible value. */
@@ -24,6 +51,11 @@ export interface PersonRelationship extends RelationshipDescription {
   readonly simId: number;
   readonly entity: number;
   readonly name: string;
+  /**
+   * What this person is to the selected one, in a plain word, or null when
+   * they are not related ([FM-show] in `docs/specs/2026-09-22-family.md`).
+   */
+  readonly tie: string | null;
 }
 
 export interface PeoplePanelView {
@@ -96,6 +128,7 @@ export function peoplePanelView(source: PeoplePanelSource): PeoplePanelView | nu
   // Copy before any future bridge call. The current relationship bridge owns
   // its returned array, but preserving this boundary rule prevents a later
   // zero-copy optimisation from reviving detached-WASM-view bugs here.
+  const ties = source.familyTies ? Array.from(source.familyTies()) : [];
   const pairs = Array.from(source.relationshipsOf(selected.entity));
   const feelings = new Map<number, number>();
   for (let index = 0; index + 1 < pairs.length; index += 2) {
@@ -108,15 +141,24 @@ export function peoplePanelView(source: PeoplePanelSource): PeoplePanelView | nu
     selectedName: selected.name,
     people: members
       .filter((member) => member.simId !== selected.simId)
-      .map((member) => relationshipFor(member, feelings.get(member.simId) ?? 0)),
+      .map((member) => relationshipFor(
+        member,
+        feelings.get(member.simId) ?? 0,
+        // What the ROW's person is to the selected one, which is how the
+        // row reads: "Bill, their parent" means Bill is the parent. Review
+        // finding [F2] on PR 131 had these the other way round, and partner
+        // and sibling being their own mirror hid it.
+        tieBetween(ties, member.entity, selected.entity),
+      )),
   };
 }
 
 function relationshipFor(
   member: HouseholdMember,
   feeling: number,
+  tie: string | null,
 ): PersonRelationship {
-  return { ...member, ...describeRelationship(feeling) };
+  return { ...member, ...describeRelationship(feeling), tie };
 }
 
 /** Reads and redraws relationship state at the ordinary HUD cadence. */
@@ -190,7 +232,11 @@ export function createPeoplePanelSurface(
         }
 
         row.root.dataset.tone = person.tone;
-        row.name.textContent = person.name;
+        // [FM-show]: the tie beside the name, so the row reads as who they
+        // are as well as how they are getting on.
+        row.name.textContent = person.tie === null
+          ? person.name
+          : `${person.name}, their ${person.tie}`;
         row.state.textContent = person.label;
         row.meter.setAttribute(
           'aria-label',

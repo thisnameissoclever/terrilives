@@ -3,7 +3,10 @@
 use super::{SaveError, Sim};
 use crate::portals::ActivePortals;
 use std::collections::{BTreeMap, BTreeSet};
-use terri_core::{layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, TileGrid};
+use terri_core::{
+    layout::SavedLayout, Colourway, Facing, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4,
+    SaveSnapshotV5, SmartObject, TileGrid,
+};
 use terri_data::ContentPack;
 
 #[cfg(test)]
@@ -27,7 +30,136 @@ pub(crate) fn restore_v3(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
+    restore_v4(
+        SaveSnapshotV4 {
+            world: snapshot.world,
+            layout: snapshot.layout,
+            object_facings: snapshot.object_facings,
+            retired_indices: Vec::new(),
+        },
+        content,
+        active_portals,
+    )
+}
+
+/// [RC-save] in `docs/specs/2026-09-22-colourways.md`: the V4 envelope's
+/// checks, then each saved colourway ascending by entity index, naming a
+/// placed object in the candidate. An id the content no longer has, or one
+/// that now names the first colourway, loads as drawn, so retiring or
+/// renaming a colourway id keeps every save loading. The
+/// candidate is discarded on any failure, so the running world is untouched.
+pub(crate) fn restore_v5(
+    snapshot: SaveSnapshotV5,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    let SaveSnapshotV5 {
+        world,
+        layout,
+        object_facings,
+        retired_indices,
+        object_colourways,
+        floors,
+        family,
+    } = snapshot;
+    if object_colourways
+        .windows(2)
+        .any(|pair| pair[0].0 >= pair[1].0)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    let mut candidate = restore_v4(
+        SaveSnapshotV4 {
+            world,
+            layout,
+            object_facings,
+            retired_indices,
+        },
+        content,
+        active_portals,
+    )?;
+    for (index, id) in object_colourways {
+        // The first colourway is the art as drawn, which is how an unknown
+        // id loads too, so both simply leave the object as drawn.
+        let colourway = content
+            .colourways
+            .iter()
+            .position(|known| known.id == id)
+            .filter(|&colourway| colourway > 0);
+        let entity = bevy_ecs::entity::EntityIndex::from_raw_u32(index)
+            .map(|index| candidate.world.entities().resolve_from_index(index))
+            .filter(|&entity| {
+                candidate
+                    .world
+                    .get_entity(entity)
+                    .is_ok_and(|object| object.contains::<SmartObject>())
+            })
+            .ok_or(SaveError::InvalidValue)?;
+        if let Some(colourway) = colourway {
+            candidate
+                .world
+                .entity_mut(entity)
+                .insert(Colourway(colourway as u32));
+        }
+    }
+    // [FL-save]: the painted tiles. An entry off the lot, out of order or
+    // repeated is a corrupt save and refuses the whole load. An entry naming
+    // a covering the content no longer has is not corrupt, it is a content
+    // edit, so that tile loses its covering and the rest of the house loads,
+    // exactly as an unknown colourway leaves its object as drawn. Refusing
+    // the save instead would let one line removed from lot.toml make every
+    // save that used it unloadable.
+    let grid = candidate.world.resource::<TileGrid>();
+    let coverings = content.coverings.len();
+    let (width, height) = (grid.width() as u32, grid.height() as u32);
+    let known: Vec<(u32, u32, u8)> = floors
+        .tiles()
+        .iter()
+        .copied()
+        .filter(|&(_, _, covering)| covering as usize <= coverings)
+        .collect();
+    let floors = terri_core::layout::SavedFloors::from_saved(known, width, height, coverings)
+        .ok_or(SaveError::InvalidValue)?;
+    candidate.world.insert_resource(floors);
+    // [FM-save]: the ties, refused whole when one names somebody this world
+    // does not have. A save written before ties existed carries none.
+    let known = |index: u32| crate::family::is_sim(&candidate.world, index);
+    let family = terri_core::layout::FamilyTies::from_saved(family.ties().to_vec(), &known)
+        .ok_or(SaveError::InvalidValue)?;
+    candidate.world.insert_resource(family);
+    Ok(candidate)
+}
+
+/// [SL-save]: the V3 envelope's checks, and the retired indices ascending,
+/// under the bound saved entity indices have, none of them an index a saved
+/// entity holds. The loader spawns a placeholder up to the highest, so an
+/// unbounded one would ask for memory the save has no business naming. The
+/// list's length needs no bound of its own: an ascending list of indices
+/// under the bound has no more entries than the bound.
+pub(crate) fn restore_v4(
+    snapshot: SaveSnapshotV4,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
     super::validate_snapshot(&snapshot.world, content)?;
+    let retired = &snapshot.retired_indices;
+    if retired
+        .iter()
+        .any(|&index| index as usize >= super::MAX_ENTITIES)
+    {
+        return Err(SaveError::InvalidValue);
+    }
+    if retired.windows(2).any(|pair| pair[0] >= pair[1])
+        || retired.iter().any(|index| {
+            snapshot
+                .world
+                .entities
+                .binary_search_by_key(index, |entity| entity.index)
+                .is_ok()
+        })
+    {
+        return Err(SaveError::InvalidValue);
+    }
     let mut facings = BTreeMap::new();
     for (index, code) in snapshot.object_facings {
         let facing = Facing::from_code(code).ok_or(SaveError::InvalidValue)?;
@@ -44,7 +176,13 @@ pub(crate) fn restore_v3(
             return Err(SaveError::InvalidValue);
         }
     }
-    let candidate = super::restore_with_facings(snapshot.world, content, active_portals, &facings)?;
+    let candidate = super::restore_with_facings(
+        snapshot.world,
+        content,
+        active_portals,
+        &facings,
+        &snapshot.retired_indices,
+    )?;
     finish_restore(candidate, snapshot.layout, content)
 }
 
@@ -60,7 +198,7 @@ fn finish_restore(
         candidate.world.resource::<TileGrid>(),
         content,
     )?;
-    if matches!(layout, SavedLayout::EdgeWallsV1 { .. }) {
+    if layout.has_edges() {
         validate_edge_world(
             &candidate.save_snapshot(),
             candidate.world.resource::<TileGrid>(),
@@ -72,7 +210,7 @@ fn finish_restore(
     Ok(candidate)
 }
 
-fn validate_edge_world(
+pub(super) fn validate_edge_world(
     snapshot: &terri_core::SaveSnapshotV1,
     grid: &TileGrid,
     content: &ContentPack,
@@ -220,9 +358,9 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                 }
             }
         }
-        SavedLayout::EdgeWallsV1 { edges } => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
             let mut seen = BTreeSet::new();
-            for &edge in edges {
+            for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
@@ -232,6 +370,23 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                     let [from, to] = edge.cells();
                     grid.set_edge_blocked(from, to, true);
                 }
+            }
+            // [WN-rules]: a saved window blocks movement like a wall, and a
+            // line that is already spoken for is a corrupt save.
+            for &window in layout.windows() {
+                let edge = terri_core::layout::WallEdge {
+                    axis: window.axis,
+                    x: window.x,
+                    y: window.y,
+                    doorway: false,
+                };
+                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                    || !seen.insert((window.axis, window.x, window.y))
+                {
+                    return Err(SaveError::InvalidGrid);
+                }
+                let [from, to] = edge.cells();
+                grid.set_edge_blocked(from, to, true);
             }
         }
     }
@@ -269,7 +424,9 @@ mod tests {
 
         shipped.load_snapshot_v2(saved.clone()).unwrap();
         assert!(shipped.world().contains_resource::<ActivePortals>());
-        assert_eq!(shipped.portal_buffer().states.len(), 1);
+        // The front door, then a door in each of the three vertical
+        // doorways ([DR-derived]).
+        assert_eq!(shipped.portal_buffer().states.len(), 4);
 
         let mut blank = Sim::new();
         blank.load_snapshot_v2(saved).unwrap();
@@ -508,6 +665,49 @@ mod tests {
             edges: vec![edge(2, true)],
         };
         live.load_snapshot_v2(doorway).unwrap();
+    }
+
+    /// Review finding [F2] on PR 126: a save carrying a window is still held
+    /// to every edge-world rule. The same impossible route as the test above,
+    /// with the blocking line saved as a window rather than a wall.
+    #[test]
+    fn edge_world_rejects_a_saved_route_through_a_window() {
+        let mut live = Sim::new_with_lot(5, 4);
+        live.world.spawn((
+            terri_core::Agent,
+            terri_core::Position { x: 1.0, y: 1.0 },
+            terri_core::Path {
+                steps: vec![(2, 1)],
+                cursor: 0,
+            },
+        ));
+        let before = live.save_snapshot_v2();
+        let glazed = terri_core::layout::WallLine {
+            axis: EdgeAxis::Vertical,
+            x: 2,
+            y: 1,
+        };
+        let mut impossible = before.clone();
+        impossible.layout = SavedLayout::from_parts(Vec::new(), vec![glazed]);
+        assert_eq!(
+            live.load_snapshot_v2(impossible),
+            Err(SaveError::InvalidGrid)
+        );
+        assert_eq!(live.save_snapshot_v2(), before);
+
+        // The same window on a line the walk does not cross loads, and it
+        // still blocks its own line once loaded.
+        let mut fine = before;
+        fine.layout = SavedLayout::from_parts(
+            Vec::new(),
+            vec![terri_core::layout::WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 2,
+                y: 3,
+            }],
+        );
+        live.load_snapshot_v2(fine).unwrap();
+        assert!(!live.world.resource::<TileGrid>().can_step((1, 3), (2, 3)));
     }
 
     #[test]

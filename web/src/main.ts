@@ -12,7 +12,17 @@ import { SimBridge } from './bridge.js';
 import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
-import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
+import { WallTool } from './ui/wall-tool.js';
+import { WallToolControls } from './ui/wall-tool-controls.js';
+import { RoomTool } from './ui/room-tool.js';
+import { FloorTool } from './ui/floor-tool.js';
+import { FloorToolControls } from './ui/floor-tool-controls.js';
+import { RoomToolControls } from './ui/room-tool-controls.js';
+import { BuyTool } from './ui/buy-tool.js';
+import { BuyToolControls } from './ui/buy-tool-controls.js';
+import { BuildToolSwitch, routeBuildKey } from './ui/build-tools.js';
+import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
+import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import {
@@ -22,18 +32,22 @@ import {
   instanceCount,
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
-import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
+import { householdMembers } from './ui/household-roster.js';
 import { SPRITES } from './render/atlas.js';
-import { spriteFramingHeight } from './render/sprite-anchors.js';
+import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
 import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
+  setCutAwayWalls,
 } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
+import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
   renderStartupFailure,
@@ -41,9 +55,11 @@ import {
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
+import { PlacementActions, createPlacementActionsSurface, type KeepOut } from './ui/placement-actions.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { GameHud } from './ui/game-hud.js';
+import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
 import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
@@ -470,6 +486,25 @@ async function main(): Promise<void> {
     ),
     sim.needBarRefreshMs(),
   );
+  // [TL-panel]. A missing element throws, for the [L17] reason above.
+  const traitsBlock = document.querySelector<HTMLDetailsElement>('#traits-block');
+  const traitsEmpty = document.querySelector<HTMLElement>('#traits-empty');
+  const traitList = document.querySelector<HTMLElement>('#trait-list');
+  if (!traitsBlock || !traitsEmpty || !traitList) {
+    throw new Error('missing traits markup');
+  }
+  const traitsPanel = new TraitsPanel(
+    sim,
+    {
+      labels: sim.traitLabels(),
+      kinds: sim.traitKinds(),
+      descriptions: sim.traitDescriptions(),
+    },
+    createTraitsPanelSurface(document, traitsBlock, traitsEmpty, traitList),
+    // A level moves only when an activity completes, so the need bars'
+    // interval is already faster than anything this panel can show.
+    sim.needBarRefreshMs(),
+  );
   const peopleRoot = document.querySelector('#people-panel');
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
@@ -521,12 +556,33 @@ async function main(): Promise<void> {
   const mobileHud = new MobileHud(hudRoot, mobileHudButton, [
     needsRoot,
     peopleRoot,
+    traitsBlock,
   ]);
   mobileHud.setCompact(compactHudQuery.matches);
   mobileHudButton.addEventListener('click', () => mobileHud.toggle());
+  // [OF2] in docs/specs/2026-09-22-options-flyout.md. Its Escape is caught
+  // in the capture phase, so an open panel takes it before the game view
+  // and Build do.
+  const optionsRoot = document.querySelector<HTMLElement>('#options');
+  const optionsToggle = document.querySelector<HTMLButtonElement>('#options-toggle');
+  const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
+  if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
+  const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  attachOptionsMenu(
+    document as unknown as OptionsDocument,
+    { contains: (node) => node instanceof Node && optionsRoot.contains(node) },
+    optionsToggle,
+    optionsMenu,
+    // Any open dialog owns Escape, even when focus has fallen to the page.
+    (target) => document.querySelector('dialog[open]') !== null
+      || (target instanceof Element && target.closest('dialog') !== null),
+  );
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
+    wallControls?.setCompact(event.matches);
+    buyControls?.setCompact(event.matches);
+    roomControls?.setCompact(event.matches);
   });
   const gameHud = new GameHud(
     {
@@ -559,6 +615,7 @@ async function main(): Promise<void> {
   householdRoster.update(initialHudMs, true);
   peoplePanel.update(initialHudMs, true);
   moodPanel.update(initialHudMs, true);
+  traitsPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -670,7 +727,9 @@ async function main(): Promise<void> {
     effectsVolume,
     effectsVolumeValue,
   );
+  // Every other fallback may sit in the closed Options panel ([OF2]).
   const persistenceFocusFallbacks = [
+    optionsToggle,
     saveButton,
     stopOrdersButton,
     queueButton,
@@ -715,6 +774,7 @@ async function main(): Promise<void> {
   });
   let loadingGame = false;
   loadButton.addEventListener('click', () => {
+    optionsMenu.close();
     overlayPause.suspend('load-game');
     loadGameDialog.showModal();
   });
@@ -741,6 +801,16 @@ async function main(): Promise<void> {
           lot.height = lotHeight;
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
+          lot.windows = sim.windowLines();
+          // [FL-draw]: the loaded house's own painted tiles. Without this the
+          // previous game's floors stayed on screen, and on a lot of another
+          // height they landed on unrelated tiles, because the renderer keys
+          // the list by height.
+          lot.floors = sim.floorTiles();
+          lot.doors = sim.interiorDoorLines();
+          lot.frontDoors = sim.frontDoorLines();
+          // A world saved before the yard that never grew has no street.
+          lot.street = sim.streetColumn();
           // A restored world may reuse entity indices for different live
           // entities. Discard every transient action that names the old world.
           lightingDirty = true;
@@ -748,11 +818,18 @@ async function main(): Promise<void> {
           menu.close();
           keyboardTargets.clear();
           builder.resetAfterLoad();
+          housemateForm.resetAfterLoad();
+          syncNewHousemateButton();
+          wallTool.resetAfterLoad(lotWidth, lotHeight);
+          buyTool.resetAfterLoad(lotWidth, lotHeight);
+          roomTool.resetAfterLoad(lotWidth, lotHeight);
+          floorTool.resetAfterLoad(lotWidth, lotHeight);
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
           peoplePanel.update(nowMs, true);
           moodPanel.update(nowMs, true);
+          traitsPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -761,14 +838,47 @@ async function main(): Promise<void> {
         restorePersistenceFocus(
           document,
           loadGameDialog,
-          loadButton,
+          optionsToggle,
           persistenceFocusFallbacks,
         );
         overlayPause.resume('load-game');
       });
   });
+  // [CS-command]: the New housemate form. The dialog pauses the game as
+  // Load does; Move in stages one command, and the form closes once the
+  // drain has moved the newcomer in and selected them.
+  const newHousemateButton = document.querySelector<HTMLButtonElement>('#new-housemate');
+  const housemateDialog = document.querySelector<HTMLDialogElement>('#housemate-dialog');
+  if (!newHousemateButton || !housemateDialog) throw new Error('missing the New housemate form');
+  let housemateView: HousemateFormView | undefined;
+  const housemateForm = new HousemateForm(sim, {
+    changed: () => housemateView?.render(),
+    movedIn: () => {
+      housemateDialog.close('confirm');
+      householdRoster.update(performance.now(), true);
+    },
+  });
+  housemateView = new HousemateFormView(document, housemateForm);
+  const syncNewHousemateButton = (): void => {
+    newHousemateButton.disabled = !housemateForm.roomForOne();
+  };
+  syncNewHousemateButton();
+  newHousemateButton.addEventListener('click', () => {
+    optionsMenu.close();
+    housemateForm.reset();
+    // [FM-choose]: the household as it stands right now, since it changes
+    // between one opening of this dialog and the next.
+    housemateView?.setHousehold(householdMembers(sim));
+    overlayPause.suspend('housemate');
+    housemateDialog.showModal();
+  });
+  housemateDialog.addEventListener('close', () => {
+    overlayPause.resume('housemate');
+    syncNewHousemateButton();
+  });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
+    optionsMenu.close();
     overlayPause.suspend('new-game');
     newGameDialog.showModal();
   });
@@ -795,7 +905,7 @@ async function main(): Promise<void> {
         restorePersistenceFocus(
           document,
           newGameDialog,
-          newGameButton,
+          optionsToggle,
           persistenceFocusFallbacks,
         );
       }
@@ -827,7 +937,8 @@ async function main(): Promise<void> {
   if (firstRunHelpOpened) overlayPause.suspend('help');
   helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   helpButton.addEventListener('click', () => {
-    helpReturnTarget = helpButton;
+    optionsMenu.close();
+    helpReturnTarget = optionsToggle;
     if (helpPanel.open()) overlayPause.suspend('help');
     helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   });
@@ -883,11 +994,24 @@ async function main(): Promise<void> {
   const tallestBoundarySprite = Math.max(
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
-  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges() };
+  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
+    windows: sim.windowLines(),
+    // [FL-draw]: what the player has laid, and each covering's shift.
+    floors: sim.floorTiles(),
+    coveringLooks: sim.coveringLooks(),
+    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
+    frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
-  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
+  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
+  // [OS-daylight]: how much open sky each tile sees, rebuilt with the lamp
+  // field whenever the lot's walls change.
+  const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
+  const buildSky = (): SkyExposure =>
+    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile);
+  let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
     lightingMode.toggle();
@@ -929,10 +1053,11 @@ async function main(): Promise<void> {
    * is sharp on a phone instead of upscaled), the clamped origin, and
    * the static floor-and-walls block, which bakes screen positions and
    * local-light values and so must be rebuilt. Camera changes, a restored
-   * world, and a flat-light toggle all enter through the camera-dirty gate;
-   * restore additionally refreshes the light map inside that gate. Ordinary
-   * frames do not upload this block ([V11] is what an ungated rebuild costs;
-   * during a drag this runs once per FRAME, not per event).
+   * world, a lot edit, and a flat-light toggle all enter through the
+   * camera-dirty gate; restore and lot edits additionally refresh the light
+   * map inside that gate. Ordinary frames do not upload this block ([V11]
+   * is what an ungated rebuild costs; during a drag this runs once per
+   * FRAME, not per event).
    *
    * The origin is FREE STATE since pan landed ([V8]): it starts at
    * `cameraOrigin`'s centred answer and belongs to the gestures from
@@ -942,7 +1067,8 @@ async function main(): Promise<void> {
   let cameraInitialised = false;
   function applyCamera(): void {
     if (lightingDirty) {
-      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
+      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
+      sky = buildSky();
       lightingDirty = false;
     }
     const ratio = window.devicePixelRatio || 1;
@@ -957,11 +1083,13 @@ async function main(): Promise<void> {
       camera.originY += dy;
     }
     if (!cameraInitialised) {
+      // [OS-camera]: the view opens framed on the house; pan reaches the yard.
+      const [openWidth, openHeight] = openingExtent(lotWidth, lotHeight, lot.house);
       const origin = cameraOrigin(
         stage.width,
         stage.height,
-        lotWidth,
-        lotHeight,
+        openWidth,
+        openHeight,
         tallestSprite,
         tallestBoundarySprite,
         camera.scale,
@@ -978,14 +1106,17 @@ async function main(): Promise<void> {
       depthScale,
       camera.scale,
       lightingMode.isFlat() ? null : lighting,
+      sky,
     );
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
     cameraDirty = false;
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
   // and the flag coalesces the burst into one rebuild on the next frame.
+  let placementActions: PlacementActions | undefined;
   window.addEventListener('resize', () => {
     cameraDirty = true;
+    placementActions?.invalidate();
   });
 
   // The right-click flyout. It renders simulation state and owns none of
@@ -1021,9 +1152,79 @@ async function main(): Promise<void> {
   const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
   if (!buildToggle) throw new Error('Missing Build button');
   let builderControls: BuilderControls;
+  // [WT-shell]. Build mode's second tool; it is only ever active while the
+  // furniture builder is, because Build is what pauses the household.
+  let wallControls: WallToolControls | undefined;
+  // [BM-shell]. The third tool, beside Furniture and Walls.
+  let buyControls: BuyToolControls | undefined;
+  let toolSwitch: BuildToolSwitch | undefined;
+  const wallTool = new WallTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      wallControls?.render();
+      toolSwitch?.render();
+    },
+  });
+  const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      buyControls?.render();
+      toolSwitch?.render();
+      placementActions?.invalidate();
+    },
+  });
+  // [RT-shell]. A whole room in one edit, beside the one-line Walls tool.
+  let roomControls: RoomToolControls | undefined;
+  const roomTool = new RoomTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      roomControls?.render();
+      toolSwitch?.render();
+    },
+  });
+  // [FL-tool]. A covering laid on one tile, beside the tools that move
+  // walls and furniture.
+  let floorControls: FloorToolControls | undefined;
+  const floorTool = new FloorTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      floorControls?.render();
+      toolSwitch?.render();
+    },
+  });
+  const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
+  // [PA-show]: Confirm and Cancel over the piece being placed. They sit
+  // above the phone's Build dock when it is showing, else anywhere in the
+  // window.
+  const placementRoot = document.querySelector<HTMLElement>('#placement-actions');
+  const placementConfirm = document.querySelector<HTMLButtonElement>('#placement-confirm');
+  const placementCancel = document.querySelector<HTMLButtonElement>('#placement-cancel');
+  const builderDock = document.querySelector<HTMLElement>('#builder-dock');
+  if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
+    throw new Error('missing the placement buttons');
+  }
+  const optionsGear = document.querySelector<HTMLElement>('#options-toggle');
+  if (!optionsGear) throw new Error('missing the Options gear');
+  // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
+  // and of the gear. On a phone the sidebar folds to its strip and the dock
+  // bounds the bottom instead.
+  const placementKeepOut = (): KeepOut => {
+    const gear = optionsGear.getBoundingClientRect();
+    return {
+      left: compactHudQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
+      gearLeft: gear.left,
+      gearBottom: gear.bottom,
+    };
+  };
+  const dockTop = (): number => {
+    const panel = builderDock.querySelector<HTMLElement>('#builder-controls');
+    return compactHudQuery.matches && panel !== null && !panel.hidden
+      ? builderDock.getBoundingClientRect().top
+      : document.documentElement.clientHeight;
+  };
   const builder = new FurnitureBuilder(sim, overlayPause, {
-    changed: () => builderControls?.render(),
+    changed: () => {
+      builderControls?.render();
+      placementActions?.invalidate();
+    },
     enter() {
+      optionsMenu.close();
       canvas.focus();
       menu.close();
       keyboardTargets.clear();
@@ -1031,17 +1232,59 @@ async function main(): Promise<void> {
       cameraDirty = true;
     },
     exit() {
+      wallTool.exit();
+      roomTool.exit();
+      buyTool.exit();
       mobileHud.endEditing();
-      buildToggle.focus();
+      // Exit build is pressed inside the Options panel; closing it returns
+      // focus to the gear, the one control always in view ([OF2]).
+      optionsMenu.close();
+      optionsToggle.focus();
       cameraDirty = true;
     },
   });
+  const placementButtons = new PlacementActions(
+    createPlacementActionsSurface(document, placementRoot, placementConfirm, placementCancel, stage,
+      dockTop, placementKeepOut, () => placementButtons.confirm(), () => placementButtons.cancel()),
+    builder,
+    buyTool,
+    // The visible art: its height from the content bounds, which cover
+    // furniture, and the taller of the body and its foreground layer.
+    (ghost) => ({
+      height: Math.max(spriteFramingHeight(ghost.sprite),
+        ghost.foreground === null ? 0 : spriteFramingHeight(ghost.foreground)),
+      offsetX: spriteDrawOffsetX(ghost.sprite),
+    }),
+  );
+  // The resize listener above was registered before the buttons existed.
+  placementActions = placementButtons;
   builderControls = new BuilderControls(document, builder);
   builderControls.setCompact(compactHudQuery.matches);
+  wallControls = new WallToolControls(document, wallTool);
+  wallControls.setCompact(compactHudQuery.matches);
+  buyControls = new BuyToolControls(document, buyTool, sim.needNames());
+  buyControls.setCompact(compactHudQuery.matches);
+  roomControls = new RoomToolControls(document, roomTool);
+  roomControls.setCompact(compactHudQuery.matches);
+  floorControls = new FloorToolControls(document, floorTool);
+  floorControls.setCompact(compactHudQuery.matches);
+  toolSwitch = new BuildToolSwitch(document, [
+    { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
+    { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
+    { tool: buyTool, button: 'build-tool-buy', panel: 'buy-tool' },
+    { tool: floorTool, button: 'build-tool-floors', panel: 'floor-tool' },
+  ], {
+    leaveFurniture() {
+      builder.cancel();
+      return builder.selected === null && !builder.pending;
+    },
+    focusView: () => canvas.focus(),
+  });
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
-      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey && builder.handleKey(event.key)) {
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && routeBuildKey(event.key, buildTools, builder)) {
         event.preventDefault();
       }
       return;
@@ -1162,7 +1405,23 @@ async function main(): Promise<void> {
     () => audio.emit({ type: 'command.staged' }),
     {
       active: () => builder.active,
-      click(pick, tile) {
+      click(pick, tile, world) {
+        if (wallTool.active) {
+          if (world) wallTool.choosePoint(world[0], world[1]);
+          return;
+        }
+        if (roomTool.active) {
+          if (world) roomTool.choosePoint(world[0], world[1]);
+          return;
+        }
+        if (buyTool.active) {
+          if (tile) buyTool.moveTo(tile[0], tile[1]);
+          return;
+        }
+        if (floorTool.active) {
+          if (world) floorTool.choosePoint(world[0], world[1]);
+          return;
+        }
         if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
         else if (tile) builder.moveTo(tile[0], tile[1]);
       },
@@ -1172,7 +1431,7 @@ async function main(): Promise<void> {
     if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
     const target = event.target;
     if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if (builder.handleKey(event.key)) event.preventDefault();
+    if (routeBuildKey(event.key, buildTools, builder)) event.preventDefault();
   });
 
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -1207,16 +1466,35 @@ async function main(): Promise<void> {
       () => audio.emit({ type: 'command.rejected' }),
     );
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
+    wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
+    wallTool.afterCommands();
+    roomTool.afterCommands();
+    floorTool.afterCommands();
+    buyTool.afterCommands();
+    housemateForm.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
+      lot.windows = sim.windowLines();
+      lot.floors = sim.floorTiles();
+      lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();
     }
+    // [WB-draw]: the walls the view cuts away are drawn while a wall tool
+    // is in use, so the player sees every line they can edit. The static
+    // block is rebuilt only when that changes, not on every click.
+    if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
     if (cameraDirty) applyCamera();
+    // [PA-place]: after the camera settles, so the buttons follow this
+    // frame's pan and zoom.
+    placementButtons.frame(camera, stage.width, stage.height);
     // Editing marks the original furniture; play mode marks the selected Sim.
     const selected = builder.active ? builder.selected : sim.selectedIndex();
     const instances = buildInstances(
@@ -1231,19 +1509,27 @@ async function main(): Promise<void> {
       sim.clockTick(),
       lightingMode.isFlat() ? null : lighting,
       undefined,
-      builder.preview,
+      buyTool.ghost() ?? builder.preview,
+      wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
+      // A purchase in the Buy tool's colourway; a moved object in its own.
+      buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
+      sky,
     );
     // The day/night cycle. `LightingMode` combines the player's saved flat
     // choice with reduced motion's temporary constraint, so one effective
     // state governs ambient light, pools, and the button without rewriting
     // the player's preference.
+    const ambient = lightingMode.isFlat()
+      ? AMBIENT_NEUTRAL
+      : ambientFor(sim.clockTick(), sim.dayTicks());
     renderer.draw(
       instances,
-      instanceCount(sim, selected, undefined, builder.preview),
+      instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
+        wallTool.highlight() ?? roomTool.highlight()),
       camera.scale,
-      lightingMode.isFlat()
-        ? AMBIENT_NEUTRAL
-        : ambientFor(sim.clockTick(), sim.dayTicks()),
+      ambient,
+      // [OS-daylight]: the sky shades the house by day; flat light is even.
+      lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
     );
 
     // Inside the sample below rather than outside it, deliberately: the
@@ -1255,6 +1541,7 @@ async function main(): Promise<void> {
     householdRoster.update(nowMs);
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
+    traitsPanel.update(nowMs);
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
 

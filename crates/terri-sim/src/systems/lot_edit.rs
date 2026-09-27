@@ -15,6 +15,95 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::commit(world, object, (x, y), facing);
             }
+            SimCommand::SetWallEdge { axis, x, y, state } => {
+                flush_ordinary(world);
+                crate::placement::walls::commit(
+                    world,
+                    crate::placement::walls::WallEdit { axis, x, y, state },
+                );
+            }
+            SimCommand::SetFamilyTie { who, to, relation } => {
+                flush_ordinary(world);
+                crate::family::commit(world, who, to, relation);
+            }
+            SimCommand::SetFloor { x, y, covering } => {
+                flush_ordinary(world);
+                crate::placement::floors::commit(
+                    world,
+                    crate::placement::floors::FloorEdit { x, y, covering },
+                );
+            }
+            SimCommand::BuyObject {
+                definition,
+                x,
+                y,
+                facing,
+            } => {
+                flush_ordinary(world);
+                crate::placement::purchase::commit(
+                    world,
+                    crate::placement::purchase::Purchase {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                    },
+                );
+            }
+            SimCommand::SellObject { object } => {
+                flush_ordinary(world);
+                crate::placement::sale::commit(world, object);
+            }
+            SimCommand::AddHousemate {
+                name,
+                personality,
+                traits,
+            } => {
+                flush_ordinary(world);
+                crate::household::commit(world, &name, personality, &traits);
+            }
+            SimCommand::BuyObjectInColourway {
+                definition,
+                x,
+                y,
+                facing,
+                colourway,
+            } => {
+                flush_ordinary(world);
+                crate::placement::purchase::commit_in_colourway(
+                    world,
+                    crate::placement::purchase::Purchase {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                    },
+                    colourway,
+                );
+            }
+            SimCommand::SetColourway { object, colourway } => {
+                flush_ordinary(world);
+                crate::placement::colourway::commit(world, object, colourway);
+            }
+            SimCommand::BuildRoom {
+                x0,
+                y0,
+                x1,
+                y1,
+                doorway,
+            } => {
+                flush_ordinary(world);
+                crate::placement::rooms::commit(
+                    world,
+                    crate::placement::rooms::RoomEdit {
+                        x0,
+                        y0,
+                        x1,
+                        y1,
+                        doorway,
+                    },
+                );
+            }
             ordinary => world.resource_mut::<CommandQueue>().push(ordinary),
         }
     }

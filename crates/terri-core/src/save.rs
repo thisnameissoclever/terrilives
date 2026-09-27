@@ -12,9 +12,53 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 3;
+pub const SAVE_SCHEMA_VERSION: u16 = 5;
 
-/// Current envelope: frozen world and architecture, followed by required directions.
+/// Current envelope - [RC-save] in `docs/specs/2026-09-22-colourways.md`: the
+/// V4 envelope with each placed object's colourway appended, for the objects
+/// not in the first, as drawn. Each entry is a saved entity index, ascending,
+/// and a colourway id, so a save means the same colours when colourways are
+/// added or reordered.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV5 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    pub object_facings: Vec<(u32, u8)>,
+    pub retired_indices: Vec<u32>,
+    pub object_colourways: Vec<(u32, String)>,
+    /// What the player has laid on each floor tile - [FL-save] in
+    /// `docs/specs/2026-09-22-floors.md`.
+    ///
+    /// **Appended last, and sparse, both on purpose**, for the reason
+    /// `sleep_pressure` is: postcard writes a struct's fields back to back,
+    /// so a payload written before this field existed is a prefix of one
+    /// written after it, and the loader reads the prefix and defaults the
+    /// tail. A house nobody has painted costs one byte.
+    #[serde(default)]
+    pub floors: crate::layout::SavedFloors,
+    /// Who the household are to each other - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Appended last, after the floors,
+    /// for the same reason: an older payload is a prefix of a newer one, so
+    /// a save written before ties existed loads with nobody related.
+    #[serde(default)]
+    pub family: crate::layout::FamilyTies,
+}
+
+/// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
+/// the V3 envelope with the entity indices sales have retired appended. A
+/// retired index belongs to no entity and is never handed out again, so the
+/// loader must not free it the way it frees the other gaps in the numbering.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV4 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    pub object_facings: Vec<(u32, u8)>,
+    /// Every entity index a sale has retired, ascending, none of them an index
+    /// a saved entity holds.
+    pub retired_indices: Vec<u32>,
+}
+
+/// Previous envelope: frozen world and architecture, followed by required directions.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV3 {
     pub world: SaveSnapshotV1,
@@ -253,5 +297,77 @@ pub enum SavedCommand {
         x: u32,
         y: u32,
         facing: crate::Facing,
+    },
+    /// [WT-command]. A wall edit staged just before a save.
+    SetWallEdge {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        state: crate::layout::WallState,
+    },
+    /// [BM-buy]. A purchase staged just before a save. It names the object
+    /// by id rather than by pack index: the save digest covers the object
+    /// ids but not their order, so an index could name a different object
+    /// once the content file is reordered. `None` for a command whose index
+    /// named no object at all; it loads as one that still names none, and
+    /// is refused when it drains exactly as it would have been.
+    BuyObject {
+        definition: Option<String>,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+    },
+    /// [RT-command]. A room staged just before a save.
+    BuildRoom {
+        x0: u32,
+        y0: u32,
+        x1: u32,
+        y1: u32,
+        doorway: Option<crate::layout::WallLine>,
+    },
+    /// [SL-command]. A sale staged just before a save, by entity index as
+    /// `PlaceObject` names its object.
+    SellObject {
+        object: u32,
+    },
+    /// [RC-command]. A colourway change staged just before a save. The
+    /// colourway is its id, as `BuyObject` records its object; `None` records
+    /// an index the pack had no colourway for, which restores as one the
+    /// drain refuses.
+    SetColourway {
+        object: u32,
+        colourway: Option<String>,
+    },
+    /// [RC-slice-buy]. A purchase in a colourway staged just before a save,
+    /// both recorded by id as `BuyObject` and `SetColourway` record them.
+    BuyObjectInColourway {
+        definition: Option<String>,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+        colourway: Option<String>,
+    },
+    /// [CS-save]. A move-in staged just before a save, its personality and
+    /// traits recorded by id as a staged purchase records its object.
+    AddHousemate {
+        name: String,
+        personality: Option<String>,
+        traits: Vec<Option<String>>,
+    },
+    /// [FL-command]. A floor laid or lifted just before a save. The covering
+    /// is its id rather than a name, because the ids are the content's own
+    /// order and a covering the pack no longer has restores as one the drain
+    /// refuses, which is what a missing id already does elsewhere.
+    SetFloor {
+        x: u32,
+        y: u32,
+        covering: u8,
+    },
+    /// [FM-tie]. A family tie set or taken away just before a save, by the
+    /// entity indices the sims had, as `PlaceObject` names its object.
+    SetFamilyTie {
+        who: u32,
+        to: u32,
+        relation: Option<crate::layout::Relation>,
     },
 }

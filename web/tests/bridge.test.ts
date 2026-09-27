@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { buildLightField } from '../src/render/lighting.js';
+import { traitsPanelState } from '../src/ui/traits-panel.js';
 import { dispatch, dispatchMenuAction } from '../src/input.js';
 import {
   clearCommandFeedback,
@@ -27,6 +28,28 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('keeps type, model and description aligned across the catalogue, placed objects and load', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const saved = handle.save_bytes();
+    const catalogue = bridge.catalogue();
+    const ids = Array.from(bridge.ids().subarray(0, bridge.count));
+    for (const [type, model] of [['Washing machine', 'Perpetual Cycle'], ['Armchair', 'Staying In'], ['Dining table', 'Visiting Hours']]) {
+      const item = catalogue.find(item => item.name === type)!;
+      expect(item.details?.modelName).toBe(model);
+      expect(item.details?.description.length).toBeGreaterThan(10);
+      const entity = ids.find(id => bridge.objectName(id) === type)!;
+      expect(entity).toBeDefined();
+      expect(bridge.objectDetails(entity)).toEqual(item.details);
+    }
+    expect(bridge.objectDetails(-1)).toBeUndefined();
+    expect(bridge.objectDetails(0.5)).toBeUndefined();
+    expect(bridge.objectDetails(0xffffffff)).toBeUndefined();
+    expect(handle.save_bytes()).toEqual(saved);
+    expect(handle.load_bytes(saved)).toBe(true);
+    expect(bridge.catalogue()).toEqual(catalogue);
+    handle.free();
+  });
   it('keeps enabled and disabled presentation lighting out of the world hash', () => {
     const enabledHandle = SimHandle.from_lot();
     const disabledHandle = SimHandle.from_lot();
@@ -90,6 +113,49 @@ describe('SimBridge', () => {
     const kinds = bridge.kinds();
     expect(kinds[0]).toBe(1);
     expect(kinds[1]).toBe(0);
+  });
+
+  it('reads the trait library through release wasm and words a real person with it', () => {
+    // [TL-panel], end to end: the three startup columns come from the real
+    // module, and the panel's pure state function is fed a real household
+    // member rather than a hand-built Float32Array.
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const library = {
+      labels: bridge.traitLabels(),
+      kinds: bridge.traitKinds(),
+      descriptions: bridge.traitDescriptions(),
+    };
+    expect(library.labels).toHaveLength(15);
+    expect(library.kinds).toHaveLength(15);
+    expect(library.descriptions).toHaveLength(15);
+    expect(library.labels[3]).toBe('Bookworm');
+    expect(library.descriptions[3]).toBe('Likes reading.');
+
+    const ids = Array.from(bridge.ids());
+    const tim = ids.find((id) => bridge.simName(id) === 'Tim');
+    expect(tim).toBeDefined();
+    const state = traitsPanelState(
+      { selectedIndex: () => tim ?? null, traitsOf: (entity) => bridge.traitsOf(entity) },
+      library,
+    );
+    expect(state).toEqual({
+      kind: 'ready',
+      traits: [
+        {
+          key: 2,
+          label: 'Low spirits',
+          description: 'Gets less out of everything; attending to correspondence eases it.',
+          state: 'Severity 60%',
+        },
+        { key: 3, label: 'Bookworm', description: 'Likes reading.', state: '' },
+        {
+          key: 11,
+          label: 'Out of shape',
+          description: 'Gets less from a workout at first, and gets fitter with every attempt.',
+          state: 'Skill 42%',
+        },
+      ],
+    });
   });
 
   it('exposes aligned stable Sim ids with a sentinel for unnamed rows', () => {
@@ -202,18 +268,22 @@ describe('SimBridge', () => {
     expect(sprites[1]).not.toBe(sprites[2]);
   });
 
-  it('reports all 34 shipped wall edges with five explicit doorway flags', () => {
+  it('reports all 62 shipped wall edges with six explicit doorway flags', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
     expect(Array.from(bridge.wallTiles())).toEqual([]);
     const packed = bridge.wallEdges();
     expect(packed).toBeDefined();
-    expect(packed).toHaveLength(34 * 4);
+    expect(packed).toHaveLength((34 + 28) * 4);
     const expected: number[] = [];
     for (let y = 0; y < 6; y++) expected.push(0, 8, y, Number(y === 2));
     for (let x = 0; x < 16; x++) expected.push(1, x, 6, Number(x === 3 || x === 13));
     for (let y = 6; y < 12; y++) expected.push(0, 6, y, Number(y === 9));
     for (let y = 6; y < 12; y++) expected.push(0, 12, y, Number(y === 8));
+    // The house's east wall with the front door's line, then its south wall
+    // ([OS-walls]).
+    for (let y = 0; y < 12; y++) expected.push(0, 16, y, Number(y === 2));
+    for (let x = 0; x < 16; x++) expected.push(1, x, 12, 0);
     expect(Array.from(packed!)).toEqual(expected);
     const doors: string[] = [];
     let solids = 0;
@@ -222,16 +292,32 @@ describe('SimBridge', () => {
       if (doorway === 1) doors.push(`${axis},${x},${y}`);
       else solids++;
     }
-    expect(solids).toBe(29);
-    expect(doors).toEqual(['0,8,2', '1,3,6', '1,13,6', '0,6,9', '0,12,8']);
+    expect(solids).toBe(29 + 27);
+    expect(doors).toEqual(['0,8,2', '1,3,6', '1,13,6', '0,6,9', '0,12,8', '0,16,2']);
+  });
+
+  // [OS-yard]: the house and the yard's look cross the boundary from content.
+  it("reports the house's size and the yard's look", () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(bridge.houseSize()).toEqual([16, 12]);
+    expect(bridge.yardLook().map((value) => Math.round(value * 100) / 100)).toEqual([65, 2, -0.22]);
+  });
+
+  // [OS-street]: the street's column and look, and no street without a yard.
+  it("reports the street's column and look", () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(bridge.streetColumn()).toBe(19);
+    expect(bridge.streetLook().map((value) => Math.round(value * 100) / 100)).toEqual([0, 0.15, -0.22]);
+    expect(new SimBridge(new SimHandle(5, 4), wasmMemory).streetColumn()).toBeNull();
   });
 
   it('keeps edge-layout spawn validation and accepted saves intact in release WASM', () => {
     const edge = new SimBridge(SimHandle.from_lot(), wasmMemory);
-    expect(edge.wallEdges()).toHaveLength(136);
+    expect(edge.wallEdges()).toHaveLength((34 + 28) * 4);
     const before = edge.saveBytes();
     const count = edge.count;
-    for (const [x, y] of [[0, 0], [-100, 1], [16, 12]]) {
+    // (20, 16) is just past the yard's far corner, off the lot.
+    for (const [x, y] of [[0, 0], [-100, 1], [20, 16]]) {
       edge.spawnAgent(x, y, 50);
       expect(edge.count).toBe(count);
       expect(edge.saveBytes()).toEqual(before);
@@ -708,15 +794,16 @@ describe('SimBridge', () => {
     // at all; without this the checks below would pass with them swapped.
     expect(width).not.toBe(height);
 
+    // A chair in the yard sits at an x the lot's HEIGHT would reject, so
+    // the bounds below are genuinely testing x against width rather than
+    // passing under either reading ([OS-grow]).
+    expect(bridge.spawnObject(18, 3, 'chair')).toBe(true);
     const positions = bridge.positions();
     expect(positions.length).toBe(bridge.count * 2);
     for (let i = 0; i < bridge.count; i++) {
       expect(positions[i * 2]).toBeLessThan(width);
       expect(positions[i * 2 + 1]).toBeLessThan(height);
     }
-    // At least one object sits at an x the lot's HEIGHT would reject, so
-    // the bounds above are genuinely testing x against width rather than
-    // passing under either reading.
     const xs = [...positions].filter((_, i) => i % 2 === 0);
     expect(xs.some((x) => x >= height)).toBe(true);
 
@@ -735,9 +822,9 @@ describe('SimBridge', () => {
     for (let tick = 0; tick < 173; tick++) original.tick();
     const before = original.worldHash();
     const bytes = original.saveBytes();
-    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 3, 0]);
+    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 5, 0]);
     const expectedEdges = original.wallEdges()!.slice();
-    expect(expectedEdges).toHaveLength(136);
+    expect(expectedEdges).toHaveLength((34 + 28) * 4);
 
     const resumed = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(resumed.loadBytes(bytes)).toBe(true);
@@ -757,15 +844,20 @@ describe('SimBridge', () => {
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 3, 0]);
-    // V3 ends with SavedLayout then the required empty facing list.
-    // Change only that tag to EdgeWallsV1 (2). This fixture has no entities
-    // or walls; it tests the distinction between undefined and an empty list.
-    expect(Array.from(legacyCells.slice(-3))).toEqual([1, 0, 0]);
+    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 5, 0]);
+    // V5 ends with SavedLayout, the required empty facing list, the empty
+    // retired-index list ([SL-save]) and the empty colourway list
+    // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
+    // no entities or walls; it tests the distinction between undefined and
+    // an empty list.
+    // The tail gained the empty floors and family lists ([FL-save], [FM-save]).
+    expect(Array.from(legacyCells.slice(-7))).toEqual([1, 0, 0, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
-    edgeBytes[edgeBytes.length - 3] = 2;
+    // The layout tag sits two bytes further from the end than it did,
+    // because the floors and family lists were appended after it.
+    edgeBytes[edgeBytes.length - 7] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
-    expect(restored.wallEdges()).toHaveLength(136);
+    expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
     expect(restored.wallEdges()).toEqual(new Uint32Array());
     expect(restored.wallTiles()).toEqual(new Uint32Array());
@@ -776,20 +868,24 @@ describe('SimBridge', () => {
     expect(restored.saveBytes()).toEqual(legacyCells);
   });
 
-  it('rejects V3 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
+  it('rejects V5 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
-    expect(Array.from(valid.slice(8, 10))).toEqual([3, 0]);
-    expect(Array.from(valid.slice(-3))).toEqual([1, 0, 0]);
+    expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
+    // The tail gained two bytes: the empty floors and family lists.
+    expect(Array.from(valid.slice(-7))).toEqual([1, 0, 0, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
-    future[8] = 4;
-    const invalid = [valid.slice(0, -1), valid.slice(0, -2), valid.slice(0, valid.length / 2), trailing, future];
+    future[8] = 6;
+    // Cutting one or two bytes takes off the empty family and floors lists,
+    // which is exactly a save written before they existed, so those load
+    // rather than being refused; every deeper truncation is still malformed.
+    const invalid = [valid.slice(0, -3), valid.slice(0, -4), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
-    expect(edges).toHaveLength(136);
+    expect(edges).toHaveLength((34 + 28) * 4);
     for (const bytes of invalid) {
       expect(live.loadBytes(bytes)).toBe(false);
       expect(live.saveBytes()).toEqual(before);
@@ -1143,7 +1239,11 @@ describe('SimBridge', () => {
     // random choices without changing the digest encoding. This value is
     // intentionally restated rather than imported: the release-wasm run is
     // the cross-target check against the native constant.
-    expect(bridge.worldHash()).toBe(0xc7bb_234c_419a_654cn);
+    // Buy mode taught the digest which object each placed entity is
+    // ([BM-hash]), an encoding change that moved this from
+    // 0xc7bb_234c_419a_654cn. Measured on the rebuilt wasm32 module first,
+    // then found equal to the native value.
+    expect(bridge.worldHash()).toBe(0xde84_3576_1360_3e8an);
   });
 
   // ---- Player commands -------------------------------------------------
@@ -1177,7 +1277,19 @@ describe('SimBridge', () => {
       // `[0x05, 0x00]` when UseObjectFirst became variant 5. The
       // unknown-variant case has to track the enum's edge to keep
       // meaning itself.
-      ['variant index 7, one past the seven that exist', [0x07, 0x00]],
+      // And `[0x07, 0x00]` became a truncated PlaceObject, `[0x08, 0x00]` a
+      // truncated SetWallEdge, `[0x09, 0x00]` a truncated BuyObject and
+      // `[0x0a, 0x00]` a truncated BuildRoom, `[0x0c, 0x00]` a
+      // SetColourway with no colourway, and `[0x0d, 0x00]` a truncated
+      // BuyObjectInColourway.
+      ['variant index 14, one past the fourteen that exist', [0x0e, 0x00]],
+      ['BuyObjectInColourway missing its colourway', [0x0d, 0x01, 0x02, 0x03, 0x00]],
+      ['SellObject missing its object', [0x0b]],
+      ['SetColourway missing its colourway', [0x0c, 0x01]],
+      ['BuyObject missing its facing', [0x09, 0x01, 0x02, 0x03]],
+      ['BuildRoom missing its doorway option', [0x0a, 0x01, 0x02, 0x03, 0x04]],
+      // 3 is Window since [WN-state]; 4 is the first unused code.
+      ['SetWallEdge with a state past the four that exist', [0x08, 0x00, 0x01, 0x02, 0x04]],
       ['variant index 0xFF', [0xff]],
       ['TalkTo missing its interaction field', [0x04, 0x03, 0x05]],
       ['UseObjectFirst missing its interaction field', [0x05, 0x03, 0x09]],

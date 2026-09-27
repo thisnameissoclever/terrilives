@@ -32,17 +32,23 @@
 export type InstanceArray = Float32Array<ArrayBuffer>;
 
 /**
- * Three vec4s per instance:
+ * Four vec4s per instance:
  *
- *   0..3  screenX, screenY, depth, sprite  - `@location(0)`
- *   4..7  tintR, tintG, tintB, emissive    - `@location(1)`
- *   8..11 projection mode, depth per tile, footprint span, anchor X offset
- *                                       - `@location(2)`
+ *   0..3   screenX, screenY, depth, sprite  - `@location(0)`
+ *   4..7   tintR, tintG, tintB, emissive    - `@location(1)`
+ *   8..11  projection mode, depth per tile, footprint span, anchor X offset
+ *                                        - `@location(2)`
+ *   12..15 colourway hue turn in degrees, strength minus one, lightness
+ *          shift, sky shade                - `@location(3)`, [RC-render]
+ *          and [OS-daylight]
+ *
+ * The colourway fields are all zero for the art as drawn, so a slot nobody
+ * recolours draws exactly as before; `writeInstance` resets them.
  *
  * Positive projection modes are wall arm masks; -1 projects a rectangular
  * footprint. Zero retains flat depth. All callers share one buffer and draw.
  */
-export const FLOATS_PER_INSTANCE = 12;
+export const FLOATS_PER_INSTANCE = 16;
 
 /** The vertex buffer `arrayStride`, in bytes. */
 export const BYTES_PER_INSTANCE =
@@ -64,6 +70,18 @@ export const OFFSET_WALL_MASK = 8;
 export const OFFSET_WALL_DEPTH_STEP = 9;
 export const OFFSET_FOOTPRINT_SPAN = 10;
 export const OFFSET_PROJECTION_ANCHOR_X = 11;
+export const OFFSET_COLOURWAY_HUE = 12;
+export const OFFSET_COLOURWAY_STRENGTH = 13;
+export const OFFSET_COLOURWAY_LIGHTNESS = 14;
+/**
+ * How far this instance is from open sky, 0 under it and 1 where the sky
+ * cannot reach - [OS-daylight]. By day the shader takes up to the tuned
+ * interior shade of the day's light off a fully shaded instance.
+ */
+export const OFFSET_SHADE = 15;
+/** Byte offset of the colourway attribute within one instance. */
+export const COLOURWAY_ATTRIBUTE_OFFSET =
+  OFFSET_COLOURWAY_HUE * Float32Array.BYTES_PER_ELEMENT;
 export const FOOTPRINT_PROJECTION = -1;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
@@ -174,6 +192,29 @@ export function writeInstance(
   out[base + OFFSET_WALL_DEPTH_STEP] = wallDepthStep;
   out[base + OFFSET_FOOTPRINT_SPAN] = 0;
   out[base + OFFSET_PROJECTION_ANCHOR_X] = 0;
+  out[base + OFFSET_COLOURWAY_HUE] = 0;
+  out[base + OFFSET_COLOURWAY_STRENGTH] = 0;
+  out[base + OFFSET_COLOURWAY_LIGHTNESS] = 0;
+  out[base + OFFSET_SHADE] = 0;
+}
+
+/**
+ * Gives the slot `index` colourway `colourway`'s shift, from `shifts`, the
+ * flattened `[hue, strength, lightness]` table the content declares
+ * ([RC-shift]). Call after `writeInstance`, which resets the shift to none.
+ * Colourway 0, the art as drawn, and any index past the table leave it so.
+ */
+export function writeColourway(
+  out: Float32Array,
+  index: number,
+  shifts: Float32Array,
+  colourway: number,
+): void {
+  if (colourway === 0 || 3 * colourway + 2 >= shifts.length) return;
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_COLOURWAY_HUE] = shifts[3 * colourway];
+  out[base + OFFSET_COLOURWAY_STRENGTH] = shifts[3 * colourway + 1] - 1;
+  out[base + OFFSET_COLOURWAY_LIGHTNESS] = shifts[3 * colourway + 2];
 }
 
 /**
@@ -191,4 +232,31 @@ export function growCapacity(current: number, needed: number): number {
   let next = Math.max(current, 1);
   while (next < needed) next *= 2;
   return next;
+}
+
+/**
+ * Sets how shaded from the sky an instance is ([OS-daylight]), after
+ * `writeInstance` has reset it to fully exposed.
+ */
+export function writeShade(out: Float32Array, index: number, shade: number): void {
+  out[index * FLOATS_PER_INSTANCE + OFFSET_SHADE] = shade;
+}
+
+/**
+ * The pale wash a window is drawn in until there is window art ([WN-art] in
+ * `docs/specs/2026-09-22-windows.md`). Cool and light rather than a colour
+ * nothing else in the house uses, because it has to read as glass in a wall
+ * rather than as a mistake.
+ */
+export const WINDOW_TINT = [0.72, 0.86, 1] as const;
+
+/**
+ * Tints an instance as a window, after `writeInstance` has written it as the
+ * wall panel it borrows its art from.
+ */
+export function writeWindowTint(out: Float32Array, index: number): void {
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_TINT_R] = WINDOW_TINT[0];
+  out[base + OFFSET_TINT_R + 1] = WINDOW_TINT[1];
+  out[base + OFFSET_TINT_R + 2] = WINDOW_TINT[2];
 }

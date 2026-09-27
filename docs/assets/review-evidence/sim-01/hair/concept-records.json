@@ -1,0 +1,82 @@
+{
+  "status": "owner-selected-concept-01",
+  "owner_selection_date": "2026-09-07",
+  "selected_concept": "01-small-front-curl",
+  "future_hairstyle_options": [
+    "02-soft-front-wave",
+    "03-short-tousled",
+    "04-lifted-quiff"
+  ],
+  "implementation_gate": "Approximate concept 01 in Blender, review all four rotations independently, then pause for owner feedback before rigging or additional Sims.",
+  "provider": "OpenAI",
+  "interface": "built-in ChatGPT image generation",
+  "model_identifier": "not exposed by tool",
+  "date": "2026-09-06",
+  "score_definition": "Subjective 0-100 assessment of concept usefulness and prompt conformity, not a measured accuracy percentage, mesh feasibility proof or production acceptance.",
+  "reference_roles": [
+    "original character identity and render style",
+    "game palette and outline reference only"
+  ],
+  "references": [
+    {
+      "path": "local pre-hair render, not preserved",
+      "sha256": "a97c0b9744c38c7f97afc87af6e873e291c4ed91b0b4b87e8c1e01e20e2059e5"
+    },
+    {
+      "path": "docs/assets/aquarium-exercise-bike/reference-aquarium.png",
+      "sha256": "fdbf08cf214d42d405a346bd027263cd962036590081915ef87aa374259372e3"
+    }
+  ],
+  "reviewer_verdict": "SHOW as concept options. Preferred 1 for curl and 4 for simpler silhouette. Option 1 height is a deliberate owner choice.",
+  "outputs": [
+    {
+      "id": "01-small-front-curl",
+      "file": "docs/assets/sim-hairstyles/01-small-front-curl.png",
+      "sha256": "ebc2cc74e4b598b1d26d1ac5d83b0cb8e05f14f180586f185a676559411bea37",
+      "status": "owner-selected-visual-target",
+      "overall_correctness_score": 91,
+      "concerns": "Hair is taller than the original; owner selected this concept. Curl root and tapered tip are readable. The modeled approximation still requires its own review.",
+      "rejection_reason": null,
+      "prompt_file": "docs/assets/review-evidence/sim-01/hair/concept-prompts.md",
+      "prompt_heading": "01-small-front-curl",
+      "permitted_next_action": "Approximate selected silhouette with actual Blender geometry, then obtain owner feedback on the reviewed four-facing preview."
+    },
+    {
+      "id": "02-soft-front-wave",
+      "file": "docs/assets/sim-hairstyles/02-soft-front-wave.png",
+      "sha256": "8971e6a9f86b6c075eb26488a6ad8c0effd396dacf8d620f5b4897df371d46d2",
+      "status": "retained-future-hairstyle-direction",
+      "overall_correctness_score": 87,
+      "concerns": "Larger rolled wave and more side lobes than option 1. Slight face and collar drift. More surface transitions to model.",
+      "rejection_reason": null,
+      "prompt_file": "docs/assets/review-evidence/sim-01/hair/concept-prompts.md",
+      "prompt_heading": "02-soft-front-wave",
+      "permitted_next_action": "Retain for a future Sim creator; do not model during the current option-1 checkpoint."
+    },
+    {
+      "id": "03-short-tousled",
+      "file": "docs/assets/sim-hairstyles/03-short-tousled.png",
+      "sha256": "6c981c31643152833d74af7ed411decbb112f827aea78346c19d3b66267eda43",
+      "status": "retained-future-hairstyle-direction",
+      "overall_correctness_score": 88,
+      "concerns": "More than three silhouette tufts, but they remain broad solid wedges. No small front curl; this is an intentional alternate hairstyle.",
+      "rejection_reason": null,
+      "prompt_file": "docs/assets/review-evidence/sim-01/hair/concept-prompts.md",
+      "prompt_heading": "03-short-tousled",
+      "permitted_next_action": "Retain for a future Sim creator; do not model during the current option-1 checkpoint."
+    },
+    {
+      "id": "04-lifted-quiff",
+      "file": "docs/assets/sim-hairstyles/04-lifted-quiff.png",
+      "sha256": "82afb9b647c61ebad5a04c18d979707fc282bb5435af8edbb09748baa9db053a",
+      "status": "retained-future-hairstyle-direction",
+      "overall_correctness_score": 90,
+      "concerns": "Strong lifted silhouette; higher quiff than the original. Some small collar and pocket line artifacts are irrelevant to the hair choice and are not approved.",
+      "rejection_reason": null,
+      "prompt_file": "docs/assets/review-evidence/sim-01/hair/concept-prompts.md",
+      "prompt_heading": "04-lifted-quiff",
+      "permitted_next_action": "Retain for a future Sim creator; do not model during the current option-1 checkpoint."
+    }
+  ],
+  "limits": "Single-view generated concepts. Hidden geometry, four-facing agreement, rigging and native-size readability remain unverified. No paid Tripo, Meshy or Gemini API request was made."
+}

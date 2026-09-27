@@ -113,7 +113,16 @@ impl Placement {
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
-            | SimCommand::PlaceObject { .. } => Self::Back,
+            | SimCommand::PlaceObject { .. }
+            | SimCommand::SetWallEdge { .. }
+            | SimCommand::BuyObject { .. }
+            | SimCommand::BuildRoom { .. }
+            | SimCommand::SellObject { .. }
+            | SimCommand::SetColourway { .. }
+            | SimCommand::BuyObjectInColourway { .. }
+            | SimCommand::AddHousemate { .. }
+            | SimCommand::SetFloor { .. }
+            | SimCommand::SetFamilyTie { .. } => Self::Back,
         }
     }
 }
@@ -356,7 +365,18 @@ pub(crate) fn drain_ordinary_commands(
     for command in issued {
         let placement = Placement::of(&command);
         match command {
-            SimCommand::PlaceObject { .. } => unreachable!("lot edit splits ordinary stretches"),
+            SimCommand::PlaceObject { .. }
+            | SimCommand::SetWallEdge { .. }
+            | SimCommand::BuyObject { .. }
+            | SimCommand::BuildRoom { .. }
+            | SimCommand::SellObject { .. }
+            | SimCommand::SetColourway { .. }
+            | SimCommand::BuyObjectInColourway { .. }
+            | SimCommand::AddHousemate { .. }
+            | SimCommand::SetFloor { .. }
+            | SimCommand::SetFamilyTie { .. } => {
+                unreachable!("lot edit splits ordinary stretches")
+            }
             // A stale index leaves the selection ALONE rather than
             // clearing it. Clearing would make a click on a sim that has
             // just gone away deselect the one the player is watching,

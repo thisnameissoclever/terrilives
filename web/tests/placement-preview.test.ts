@@ -4,7 +4,7 @@ import {
   FLOATS_PER_INSTANCE, OFFSET_EMISSIVE, OFFSET_SPRITE,
   OFFSET_TINT_R, OFFSET_TINT_G, OFFSET_TINT_B,
   OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
-  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X,
+  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X, OFFSET_COLOURWAY_HUE, OFFSET_SHADE,
 } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.js';
@@ -54,4 +54,35 @@ it('keeps refused furniture and red footprint visible, and emits nothing without
   expect(data[6]).toBeCloseTo(133 / 255);
   expect(placementInstanceCount(null)).toBe(0);
   expect(writePlacementPreview(data, 3, null, 0, 0, 16, 1, null)).toBe(3);
+});
+
+// [RC-render] in docs/specs/2026-09-22-colourways.md: the candidate stands in
+// for the chosen object, so its art and foreground take the object's
+// colourway, while its footprint rings keep only their tint.
+it('draws the candidate in the colourway of the chosen object', () => {
+  const shifts = new Float32Array([0, 1, 0, 120, 1.4, -0.04]);
+  const data = new Float32Array(4 * FLOATS_PER_INSTANCE).fill(-99);
+  expect(writePlacementPreview(data, 0, preview, 100, 100, 16, 1, null, shifts, 1)).toBe(4);
+  const colourway = (row: number) =>
+    Array.from(data.slice(row * FLOATS_PER_INSTANCE + OFFSET_COLOURWAY_HUE, (row + 1) * FLOATS_PER_INSTANCE));
+  expect(colourway(0)).toEqual([0, 0, 0, 0]);
+  expect(colourway(1)).toEqual([0, 0, 0, 0]);
+  for (const row of [2, 3]) {
+    expect(colourway(row)).toEqual([120, expect.closeTo(0.4), expect.closeTo(-0.04), 0]);
+  }
+  writePlacementPreview(data, 0, preview, 100, 100, 16, 1, null);
+  for (const row of [2, 3]) expect(colourway(row)).toEqual([0, 0, 0, 0]);
+});
+
+// Review finding [F2] on PR 116: the preview took no sky shade, so a piece
+// being placed in a dim room looked brighter than it would once placed.
+it('shades the preview art by the tile it would stand on, and leaves the rings unshaded', () => {
+  // The preview's centre is (2.5, 4), which stands on tile (2, 4).
+  const values = new Float32Array(5 * 6).fill(1);
+  values[4 * 5 + 2] = 0.25;
+  const data = new Float32Array(4 * FLOATS_PER_INSTANCE).fill(-99);
+  writePlacementPreview(data, 0, preview, 100, 100, 16, 1, null, null, 0, { width: 5, height: 6, values });
+  expect([0, 1, 2, 3].map((row) => data[row * FLOATS_PER_INSTANCE + OFFSET_SHADE])).toEqual([0, 0, 0.75, 0.75]);
+  writePlacementPreview(data, 0, preview, 100, 100, 16, 1, null);
+  expect(data[2 * FLOATS_PER_INSTANCE + OFFSET_SHADE]).toBe(0);
 });

@@ -126,6 +126,44 @@ wander_attempts = 8
 # every observed path stayed at or below this cap.
 wander_radius_tiles = 3
 
+# What selling an object pays back, as a fraction of its price, in [0, 1]:
+# a sale pays the price times this, rounded down ([SL-pay] in
+# docs/specs/2026-09-22-selling-furniture.md). A half keeps selling a way
+# to undo a mistake without making buying and selling pay.
+resale_fraction = 0.5
+
+# Which verb a disposition trait's sentence opens with ([TL-affinity] in
+# docs/specs/2026-09-21-trait-library-and-traits-panel.md). A score
+# multiplier at or above affinity_loves_from reads "Loves", above 1
+# "Likes", below 1 "Dislikes", and at or below affinity_hates_to "Hates".
+# The content compiler refuses a sentence with the wrong verb, so the
+# Traits panel never says more or less than the choice tables do. Exactly
+# 1 is refused: it changes no choice. 1.5 is where the library's pulls
+# start to read as more than a preference. 0.5 halves what the activity
+# offers before the soft choice, while its walk still costs in full: a strong
+# push away but not a refusal, so the sim still does it when the need is
+# pressing enough.
+affinity_loves_from = 1.5
+affinity_hates_to = 0.5
+
+# A new housemate ([CS-command] in docs/specs/2026-09-22-create-a-sim.md):
+# the most characters a name may have, and the most traits the newcomer may
+# wear. Four traits matches the most anyone in the shipped household wears.
+housemate_name_max_chars = 24
+housemate_max_traits = 4
+
+# How the sky lights the house ([OS-daylight] in
+# docs/specs/2026-09-22-the-outside.md). Every tile outside the house is under
+# open sky; inside, the sky reaches in through open lines and doorways, losing
+# daylight_reach_per_tile for each tile it travels, and walls stop it. At
+# noon a tile the sky cannot reach loses interior_daylight_shade of the day's
+# light; a lamp lifts what it lights as before, and night is untouched. A
+# quarter is enough to make a closed back room read as indoors without making
+# the house gloomy; a fifth a tile lets a room's light fade over the five
+# tiles in from its doorway.
+interior_daylight_shade = 0.25
+daylight_reach_per_tile = 0.2
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

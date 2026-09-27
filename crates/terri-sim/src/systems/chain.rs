@@ -707,6 +707,7 @@ mod tests {
                     fail_delta_scale: 0.0,
                     learn_per_attempt: 0.015,
                 },
+                description: String::new(),
             }],
             ..pack.clone()
         }));
@@ -896,6 +897,7 @@ mod tests {
                 kind: terri_data::CompiledTraitKind::Disposition {
                     score_multiplier: trait_disposition,
                 },
+                description: String::new(),
             }],
             ..base.clone()
         }));
@@ -1305,6 +1307,7 @@ mod tests {
                     manage_per_completion: 0.0,
                     start_severity: 1.0,
                 },
+                description: String::new(),
             }],
             ..pack.clone()
         }));

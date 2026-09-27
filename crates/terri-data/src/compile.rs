@@ -13,13 +13,14 @@ use crate::pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, ObjectDefId, Tuning,
 };
-use crate::pack::{Facing, FacingSprites};
+use crate::pack::{CompiledColourway, CompiledCovering, Facing, FacingSprites};
 use crate::schema::{
-    AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
-    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef, VoiceFile,
+    AtlasFile, CareersFile, ChainsFile, ColourwayDef, HouseholdFile, InteractionDef, LotFile,
+    NeedsFile, ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef,
+    VoiceFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
-use terri_core::layout::WallEdge;
+use terri_core::layout::{EdgeAxis, WallEdge};
 use terri_core::{Footprint, NeedId, TileGrid, NEED_COUNT, NEED_MAX, NEED_MIN};
 
 /// The atlas sprite every sim is drawn with.
@@ -105,6 +106,9 @@ pub fn compile(
     voice_clip_ticks: Vec<u32>,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
+    // Colourways ride in objects.toml but apply to every object; they are
+    // validated last, on their own.
+    let colourway_defs = objects.colourway.clone();
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
         sprite: SIM_SPRITE.to_string(),
     })? as u32;
@@ -177,6 +181,20 @@ pub fn compile(
     let mut roles: Vec<String> = Vec::new();
 
     for object in &objects.object {
+        if let Some(text) = &object.presentation {
+            for (field, value) in [
+                ("name", &object.name),
+                ("object_type", &text.object_type),
+                ("description", &text.description),
+            ] {
+                if value.trim().is_empty() {
+                    return Err(ContentError::EmptyObjectText {
+                        object: object.id.clone(),
+                        field,
+                    });
+                }
+            }
+        }
         if !seen_objects.insert(object.id.clone()) {
             return Err(ContentError::DuplicateObjectId {
                 id: object.id.clone(),
@@ -409,9 +427,16 @@ pub fn compile(
                 }
             }
         }
+        if object.price == Some(0) {
+            return Err(ContentError::ZeroPrice {
+                object: object.id.clone(),
+            });
+        }
         let definition = CompiledObject {
             id: object.id.clone(),
             name: object.name.clone(),
+            presentation: object.presentation.clone(),
+            price: object.price,
             sprite: sprite as u32,
             interactions,
             footprint: object.footprint,
@@ -440,14 +465,14 @@ pub fn compile(
         .iter()
         .map(|object| object.foreground_sprite.clone())
         .collect();
-    let (lot, portals) = compile_lot(
+    let (lot, portals, coverings) = compile_lot(
         lot,
         &compiled,
         &sprite_names,
         &foreground_sprite_names,
         &sprite_index,
     )?;
-    let (tuning, circadian, sleep_tag) = compile_tuning(tuning)?;
+    let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -518,7 +543,7 @@ pub fn compile(
     // interaction is retired. After the lot (the coverage rule needs
     // the placements) and after tuning (steps obey the clipped rule).
     let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
-    let traits = compile_traits(traits, &compiled, &social, &chains)?;
+    let traits = compile_traits(traits, &compiled, &social, &chains, affinity)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
@@ -538,6 +563,7 @@ pub fn compile(
     // `social` runs the other way and at runtime, where the draw reads both.
     let voice_clips = compile_voice(voice, voice_clip_ticks)?;
     check_voice_floor(&voice_clips, &tuning)?;
+    let colourways = compile_colourways(&colourway_defs)?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
@@ -557,7 +583,129 @@ pub fn compile(
         sleep_tag,
         voice_clips,
         portals,
+        colourways,
+        coverings,
     })
+}
+
+/// The largest hue turn a colourway may ask for, in degrees either way.
+const COLOURWAY_HUE_LIMIT: f32 = 180.0;
+/// The largest factor a colourway may scale the art's colours by.
+const COLOURWAY_STRENGTH_MAX: f32 = 2.0;
+/// The largest lightness shift a colourway may ask for, either way.
+const COLOURWAY_LIGHTNESS_LIMIT: f32 = 0.25;
+
+/// The name of the first of a colour shift's numbers outside its range
+/// ([RC-content]), or `None` when all three are in range. `contains` is false
+/// for NaN, so a missing number is refused too.
+fn shift_out_of_range(hue: f32, strength: f32, lightness: f32) -> Option<&'static str> {
+    [
+        ("hue", hue, -COLOURWAY_HUE_LIMIT, COLOURWAY_HUE_LIMIT),
+        ("strength", strength, 0.0, COLOURWAY_STRENGTH_MAX),
+        (
+            "lightness",
+            lightness,
+            -COLOURWAY_LIGHTNESS_LIMIT,
+            COLOURWAY_LIGHTNESS_LIMIT,
+        ),
+    ]
+    .into_iter()
+    .find(|&(_, value, low, high)| !(low..=high).contains(&value))
+    .map(|(field, ..)| field)
+}
+
+/// A lot tile's look - [OS-yard], [OS-street]: the art as drawn when
+/// omitted, else a colour shift checked against a colourway's ranges.
+fn compile_look(
+    look: &str,
+    def: Option<&crate::schema::LookDef>,
+) -> Result<[f32; 3], ContentError> {
+    let Some(def) = def else {
+        return Ok([0.0, 1.0, 0.0]);
+    };
+    if let Some(field) = shift_out_of_range(def.hue, def.strength, def.lightness) {
+        return Err(ContentError::LookOutOfRange {
+            look: look.to_string(),
+            field: field.to_string(),
+        });
+    }
+    Ok([def.hue, def.strength, def.lightness])
+}
+
+/// Validates the floor coverings declared in `content/lot.toml` -
+/// [FL-content] in `docs/specs/2026-09-22-floors.md`. Each needs a name the
+/// Floors tool can show, names do not repeat, and each shift is a number the
+/// shader is built for, exactly as a yard's or a colourway's is. The order is
+/// the covering ids, counted from 1, so a list grows by appending.
+fn compile_coverings(
+    defs: &[crate::schema::CoveringDef],
+) -> Result<Vec<CompiledCovering>, ContentError> {
+    let mut coverings = Vec::with_capacity(defs.len());
+    let mut names = BTreeSet::new();
+    for def in defs {
+        let name = def.name.trim();
+        if name.is_empty() {
+            return Err(ContentError::EmptyCoveringName);
+        }
+        if !names.insert(name.to_string()) {
+            return Err(ContentError::DuplicateCoveringName {
+                name: name.to_string(),
+            });
+        }
+        if let Some(field) = shift_out_of_range(def.hue, def.strength, def.lightness) {
+            return Err(ContentError::LookOutOfRange {
+                look: format!("covering {name}"),
+                field: field.to_string(),
+            });
+        }
+        coverings.push(CompiledCovering {
+            name: name.to_string(),
+            look: [def.hue, def.strength, def.lightness],
+        });
+    }
+    Ok(coverings)
+}
+
+/// Validates the colourways declared in `content/objects.toml` - [RC-content]
+/// and [RC-shift] in `docs/specs/2026-09-22-colourways.md`. The first must be
+/// the art as drawn; ids are unique and, like names, not empty; each shift
+/// is a number within the range the shader is built for.
+fn compile_colourways(defs: &[ColourwayDef]) -> Result<Vec<CompiledColourway>, ContentError> {
+    let mut seen = BTreeSet::new();
+    for (index, def) in defs.iter().enumerate() {
+        let colourway = || def.id.clone();
+        if def.id.is_empty() || def.name.is_empty() {
+            return Err(ContentError::EmptyColourwayText {
+                colourway: colourway(),
+            });
+        }
+        if !seen.insert(def.id.as_str()) {
+            return Err(ContentError::DuplicateColourway {
+                colourway: colourway(),
+            });
+        }
+        if let Some(field) = shift_out_of_range(def.hue, def.strength, def.lightness) {
+            return Err(ContentError::ColourwayOutOfRange {
+                colourway: colourway(),
+                field: field.to_string(),
+            });
+        }
+        if index == 0 && (def.hue != 0.0 || def.strength != 1.0 || def.lightness != 0.0) {
+            return Err(ContentError::FirstColourwayNotAsDrawn {
+                colourway: colourway(),
+            });
+        }
+    }
+    Ok(defs
+        .iter()
+        .map(|def| CompiledColourway {
+            id: def.id.clone(),
+            name: def.name.clone(),
+            hue: def.hue,
+            strength: def.strength,
+            lightness: def.lightness,
+        })
+        .collect())
 }
 
 /// Validates `content/voice.toml` against the lengths the build script read
@@ -993,11 +1141,62 @@ fn compile_careers(
 /// default nobody chose), and another kind's numbers are REJECTED (a
 /// `score_multiplier` on a condition is a statement the simulation
 /// silently ignores - the [D9] shape, caught at build time).
+/// The lines that choose a disposition trait's verb - [TL-affinity] in
+/// `docs/specs/2026-09-21-trait-library-and-traits-panel.md`.
+#[derive(Debug, Clone, Copy)]
+struct AffinityBands {
+    loves_from: f32,
+    hates_to: f32,
+}
+
+/// Reads and checks the verb lines from `tuning.toml`. Love must sit above
+/// 1 and hate below it, so no multiplier earns two verbs.
+fn affinity_bands(tuning: &TuningFile) -> Result<AffinityBands, ContentError> {
+    check_finite(
+        tuning.affinity_loves_from,
+        "affinity_loves_from in tuning.toml",
+    )?;
+    check_finite(tuning.affinity_hates_to, "affinity_hates_to in tuning.toml")?;
+    if tuning.affinity_loves_from <= 1.0 {
+        return Err(ContentError::AffinityBandOutOfRange {
+            field: "affinity_loves_from",
+            value: tuning.affinity_loves_from,
+        });
+    }
+    if !(0.0..1.0).contains(&tuning.affinity_hates_to) {
+        return Err(ContentError::AffinityBandOutOfRange {
+            field: "affinity_hates_to",
+            value: tuning.affinity_hates_to,
+        });
+    }
+    Ok(AffinityBands {
+        loves_from: tuning.affinity_loves_from,
+        hates_to: tuning.affinity_hates_to,
+    })
+}
+
+/// The verb a disposition's description opens with, from its multiplier -
+/// [TL-affinity]. `None` for exactly 1, which changes nothing.
+fn affinity_verb(multiplier: f32, bands: AffinityBands) -> Option<&'static str> {
+    if multiplier >= bands.loves_from {
+        Some("Loves")
+    } else if multiplier > 1.0 {
+        Some("Likes")
+    } else if multiplier <= bands.hates_to {
+        Some("Hates")
+    } else if multiplier < 1.0 {
+        Some("Dislikes")
+    } else {
+        None
+    }
+}
+
 fn compile_traits(
     traits: TraitsFile,
     objects: &[CompiledObject],
     social: &[CompiledInteraction],
     chains: &[crate::pack::CompiledChain],
+    affinity: AffinityBands,
 ) -> Result<Vec<crate::pack::CompiledTrait>, ContentError> {
     use crate::pack::{CompiledTrait, CompiledTraitKind};
 
@@ -1018,6 +1217,9 @@ fn compile_traits(
         }
         if def.label.trim().is_empty() {
             return Err(ContentError::EmptyTraitLabel { id: def.id.clone() });
+        }
+        if def.description.trim().is_empty() {
+            return Err(ContentError::EmptyTraitDescription { id: def.id.clone() });
         }
         if !known_tags.contains(def.tag.as_str()) {
             return Err(ContentError::TraitAboutNothing {
@@ -1084,6 +1286,19 @@ fn compile_traits(
                 forbid(def.accrual_scale, "accrual_scale")?;
                 forbid(def.manage_per_completion, "manage_per_completion")?;
                 forbid(def.start_severity, "start_severity")?;
+                // [TL-affinity]: the sentence the Traits panel prints opens
+                // with the verb the number earns, so the words cannot say
+                // more or less than the choice tables do.
+                let Some(verb) = affinity_verb(multiplier, affinity) else {
+                    return Err(ContentError::DispositionChangesNothing { id: def.id.clone() });
+                };
+                if !def.description.starts_with(&format!("{verb} ")) {
+                    return Err(ContentError::TraitVerbDisagrees {
+                        id: def.id.clone(),
+                        verb,
+                        multiplier,
+                    });
+                }
                 CompiledTraitKind::Disposition {
                     score_multiplier: multiplier,
                 }
@@ -1130,6 +1345,7 @@ fn compile_traits(
             label: def.label.clone(),
             tag: def.tag.clone(),
             kind,
+            description: def.description.clone(),
         });
     }
 
@@ -1671,6 +1887,11 @@ fn compile_personalities(
                 id: archetype.id.clone(),
             });
         }
+        if archetype.description.trim().is_empty() {
+            return Err(ContentError::EmptyPersonalityDescription {
+                id: archetype.id.clone(),
+            });
+        }
 
         let mut drain = [1.0f32; NEED_COUNT];
         for (need_name, value) in &archetype.drain {
@@ -1775,6 +1996,7 @@ fn compile_personalities(
             // wraps, and "three hours later than everyone" and "twenty-one
             // hours earlier" are the same sim.
             chronotype_offset_ticks: archetype.chronotype_offset_ticks,
+            description: archetype.description.clone(),
         });
     }
 
@@ -2005,9 +2227,15 @@ fn compile_household(
 /// since every control point has to fall inside `day_ticks`, but is stored
 /// beside it on the pack rather than within it: `Tuning` is `Copy` and a
 /// circadian rhythm owns a `String` and a `Vec`.
-type CompiledTuning = (Tuning, Option<Circadian>, String);
+/// The compiled knobs, the circadian table, the sleep tag, and the traits'
+/// verb lines ([TL-affinity]), which the compiler reads and the pack never
+/// holds.
+type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    // Read here, with every other tuning check, so no caller can compile
+    // the knobs and forget the verb lines.
+    let affinity = affinity_bands(&tuning)?;
     // Finiteness first, for the same reason placement coordinates are
     // checked before their bounds: every comparison against NaN is
     // false, so `NaN <= 0.0` would let a NaN temperature through the
@@ -2038,6 +2266,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         tuning.relationship_gain_per_talk,
         "relationship_gain_per_talk in tuning.toml",
     )?;
+    check_finite(tuning.resale_fraction, "resale_fraction in tuning.toml")?;
     check_finite(
         tuning.relationship_decay_per_tick,
         "relationship_decay_per_tick in tuning.toml",
@@ -2057,6 +2286,39 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     }
     if tuning.wander_attempts == 0 {
         return Err(ContentError::ZeroWanderAttempts);
+    }
+    // [CS-command]: a name of at most 256 characters is at most 1,024
+    // bytes, the loader's limit on saved text.
+    if !(1..=256).contains(&tuning.housemate_name_max_chars) {
+        return Err(ContentError::HousemateNameLimitOutOfRange {
+            value: tuning.housemate_name_max_chars,
+        });
+    }
+    if tuning.housemate_max_traits == 0 {
+        return Err(ContentError::HousemateTraitLimitIsZero);
+    }
+    // [OS-daylight]: presentation numbers, checked here like every other
+    // knob so a bad file fails the build rather than the picture.
+    check_finite(
+        tuning.interior_daylight_shade,
+        "interior_daylight_shade in tuning.toml",
+    )?;
+    check_finite(
+        tuning.daylight_reach_per_tile,
+        "daylight_reach_per_tile in tuning.toml",
+    )?;
+    // At most a half, so a room the sky cannot reach keeps half the day's
+    // light at noon, above the 0.42 floor night never goes below
+    // ([ML-a11y], `AMBIENT_FLOOR` in web/src/render/daylight.ts).
+    if !(0.0..=0.5).contains(&tuning.interior_daylight_shade) {
+        return Err(ContentError::DaylightShadeOutOfRange {
+            value: tuning.interior_daylight_shade,
+        });
+    }
+    if !(tuning.daylight_reach_per_tile > 0.0 && tuning.daylight_reach_per_tile <= 1.0) {
+        return Err(ContentError::DaylightReachOutOfRange {
+            value: tuning.daylight_reach_per_tile,
+        });
     }
     if tuning.wander_radius_tiles == 0 {
         return Err(ContentError::ZeroWanderRadius);
@@ -2132,6 +2394,13 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if !(0.0..=1.0).contains(&tuning.relationship_gain_per_talk) {
         return Err(ContentError::RelationshipGainOutOfRange {
             value: tuning.relationship_gain_per_talk,
+        });
+    }
+    // [SL-pay]: a sale that paid more than the price would turn buying and
+    // selling into a money machine, and a negative one would charge for it.
+    if !(0.0..=1.0).contains(&tuning.resale_fraction) {
+        return Err(ContentError::ResaleFractionOutOfRange {
+            value: tuning.resale_fraction,
         });
     }
     if tuning.relationship_decay_per_tick <= 0.0 {
@@ -2330,9 +2599,15 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             day_ticks: tuning.day_ticks,
             asleep_decay_scale: tuning.asleep_decay_scale,
             wander_radius_tiles: tuning.wander_radius_tiles,
+            resale_fraction: tuning.resale_fraction,
+            housemate_name_max_chars: tuning.housemate_name_max_chars,
+            housemate_max_traits: tuning.housemate_max_traits,
+            interior_daylight_shade: tuning.interior_daylight_shade,
+            daylight_reach_per_tile: tuning.daylight_reach_per_tile,
         },
         circadian,
         tuning.sleep_tag,
+        affinity,
     ))
 }
 
@@ -2417,7 +2692,7 @@ fn compile_lot(
     sprite_names: &[String],
     foreground_sprite_names: &[Option<String>],
     sprite_index: &dyn Fn(&str) -> Option<usize>,
-) -> Result<(CompiledLot, Vec<CompiledPortal>), ContentError> {
+) -> Result<(CompiledLot, Vec<CompiledPortal>, Vec<CompiledCovering>), ContentError> {
     // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
     // walkable tile at all, so every agent on it silently never moves.
     // That is the shape of failure [D9] exists to convert into a build
@@ -2428,6 +2703,31 @@ fn compile_lot(
             height: lot.height,
         });
     }
+
+    // [OS-grow]: the house stands in the lot's north-west corner.
+    let house = match &lot.house {
+        None => (lot.width, lot.height),
+        Some(house) => {
+            if house.width == 0
+                || house.height == 0
+                || house.width > lot.width
+                || house.height > lot.height
+            {
+                return Err(ContentError::HouseOutsideLot {
+                    width: house.width,
+                    height: house.height,
+                    lot_width: lot.width,
+                    lot_height: lot.height,
+                });
+            }
+            (house.width, house.height)
+        }
+    };
+    let yard_look = compile_look("yard", lot.yard.as_ref())?;
+    let street_look = compile_look("street", lot.street.as_ref())?;
+    let coverings = compile_coverings(&lot.covering)?;
+    // Carried out of here to the pack's own tail, so the lot's bytes do not
+    // move ([FL-content]).
 
     if !lot.wall.is_empty() && !lot.wall_edge.is_empty() {
         return Err(ContentError::MixedWallArchitecture);
@@ -2462,6 +2762,21 @@ fn compile_lot(
             });
         }
         wall_edges.push(edge);
+    }
+    // [OS-grow]: the house is closed by content rather than by the lot's
+    // edge. Every line between a house tile and a yard tile holds a wall or a
+    // doorway: the east side where the house is narrower than the lot, the
+    // south side where it is shorter.
+    let east = (house.0 < lot.width)
+        .then(|| (0..house.1).map(|y| (EdgeAxis::Vertical, house.0, y)))
+        .into_iter()
+        .flatten();
+    let south = (house.1 < lot.height)
+        .then(|| (0..house.0).map(|x| (EdgeAxis::Horizontal, x, house.1)))
+        .into_iter()
+        .flatten();
+    if let Some((axis, x, y)) = east.chain(south).find(|line| !edge_keys.contains(line)) {
+        return Err(ContentError::HouseNotClosed { axis, x, y });
     }
 
     let mut walls = Vec::with_capacity(lot.wall.len());
@@ -2793,6 +3108,8 @@ fn compile_lot(
                     y,
                     lot.width,
                     lot.height,
+                    house,
+                    &wall_edges,
                     visual,
                     &grid,
                     sprite_index,
@@ -2844,16 +3161,23 @@ fn compile_lot(
             placements,
             front_door,
             wall_edges,
+            house,
+            yard_look,
+            street_look,
         },
         portals,
+        coverings,
     ))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compile_front_door_visual(
     x: u32,
     y: u32,
     width: u32,
     height: u32,
+    house: (u32, u32),
+    wall_edges: &[WallEdge],
     visual: &crate::schema::FrontDoorVisualDef,
     grid: &TileGrid,
     sprite_index: &dyn Fn(&str) -> Option<usize>,
@@ -2878,7 +3202,7 @@ fn compile_front_door_visual(
         .into_iter()
         .filter(|on_edge| *on_edge)
         .count();
-    if edge_count != 1 {
+    if edge_count > 1 {
         return Err(ContentError::FrontDoorNotOnUniqueEdge {
             x,
             y,
@@ -2887,7 +3211,23 @@ fn compile_front_door_visual(
         });
     }
 
-    let (expected, expected_name, default_entry) = if on_positive_x {
+    let (expected, expected_name, default_entry) = if edge_count == 0 {
+        // [OS-door]: on no edge of the lot, the door stands on the house's
+        // outside wall. It faces south-east, the tile across its line is
+        // yard, and the line is a doorway. Only south-east: the house stands
+        // in the lot's north-west corner, so a door facing north-west or
+        // north-east has no yard across it, and one facing south-west would
+        // stand on a horizontal line, which has no door art.
+        let inside = x < house.0 && y < house.1;
+        let across_is_yard = x + 1 >= house.0;
+        let doorway = wall_edges.iter().any(|edge| {
+            edge.axis == EdgeAxis::Vertical && edge.x == x + 1 && edge.y == y && edge.doorway
+        });
+        if facing != CompiledSocketFacing::PositiveX || !inside || !across_is_yard || !doorway {
+            return Err(ContentError::FrontDoorNotOutside { x, y });
+        }
+        (CompiledSocketFacing::PositiveX, "SE", (x - 1, y))
+    } else if on_positive_x {
         (CompiledSocketFacing::PositiveX, "SE", (x - 1, y))
     } else if on_negative_x {
         (CompiledSocketFacing::NegativeX, "NW", (x + 1, y))
@@ -3275,6 +3615,11 @@ mod tests {
         // everything before it kept its offset, which is what the
         // append discipline buys.
         //
+        // **Selling appended one tuning field ([SL-pay]).** The four bytes
+        // `0, 0, 208, 62` after the `29` are the fixture's `resale_fraction`,
+        // 0.40625 in little-endian binary32, read from the failing golden
+        // assertion: the only insertion, at the end of the `Tuning` record.
+        //
         // **Local idle wandering appended one tuning field.** The lone
         // `29` after `asleep_decay_scale`'s four bytes is the fixture's
         // `wander_radius_tiles`. It is at the end of the `Tuning` record,
@@ -3297,6 +3642,11 @@ mod tests {
         // `sound_action`. The following `1, 1` remains the object's 1x1
         // footprint. The value came from the failing golden assertion after
         // reviewing that single insertion.
+        //
+        // **Buy mode appends one object byte.** The zero immediately before
+        // `1, 5, 3, 2` is the fixture object's absent `price`, the last slot
+        // of its record after `base_facing`. Read from the failing golden
+        // assertion after reviewing that one-byte insertion.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -3305,18 +3655,36 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        // Object presentation appends None (0) after price, before the lot's `1, 5, 3, 2`.
+        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
-        // Empty wall_edges follows front_door at the end of the lot record.
-        0,
-        0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
+        // The last `0` above is the empty wall_edges, after front_door.
+        //
+        // **The outside appends the house and the yard look to the lot
+        // ([OS-grow], [OS-yard]).** `5, 3` is the house, the whole 5 by 3
+        // lot since the fixture names none, and the twelve bytes after it
+        // are the as-drawn look, hue 0, strength 1 and lightness 0, as
+        // little-endian floats. Read from the failing golden assertion.
+        5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
+        // **The street's look follows ([OS-street]),** as drawn here too.
+        0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
+        0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0,
+        // **The housemate limits append two tuning bytes ([CS-command]):**
+        // `23, 5`, after `resale_fraction`'s `0, 0, 208, 62`. Read from the
+        // failing golden assertion. **The daylight knobs append eight more
+        // ([OS-daylight]):** 0.15625 and 0.21875, `0, 0, 32, 62, 0, 0, 96, 62`.
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5,
+        0, 0, 32, 62, 0, 0, 96, 62, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
+        // The empty colourway vector, appended after the portals ([RC-content]).
+        0,
+        // The empty floor-covering vector, appended after it ([FL-content]).
+        0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3341,6 +3709,10 @@ mod tests {
     fn bare_lot() -> LotFile {
         LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
+            street: None,
+            covering: Vec::new(),
             width: 1,
             height: 1,
             wall: Vec::new(),
@@ -3369,6 +3741,10 @@ mod tests {
     fn distinct_lot() -> LotFile {
         LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
+            street: None,
+            covering: Vec::new(),
             width: 5,
             height: 3,
             wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
@@ -3395,6 +3771,7 @@ mod tests {
     /// assume it.
     fn three_objects() -> ObjectsFile {
         ObjectsFile {
+            colourway: Vec::new(),
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
@@ -3402,6 +3779,7 @@ mod tests {
                     action_socket: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
+                    presentation: None,
                     sprite: format!("{id}_art"),
                     foreground_sprite: None,
                     base_facing: None,
@@ -3413,6 +3791,7 @@ mod tests {
                     // be an overlap error in a test about index resolution.
                     footprint: Footprint::SINGLE,
                     interaction: vec![snack()],
+                    price: None,
                 })
                 .collect(),
         }
@@ -3476,6 +3855,13 @@ mod tests {
             relationship_delta_scale: 0.8125,
             day_ticks: 19,
             wander_radius_tiles: 29,
+            resale_fraction: 0.40625,
+            affinity_loves_from: 1.46875,
+            affinity_hates_to: 0.28125,
+            housemate_name_max_chars: 23,
+            housemate_max_traits: 5,
+            interior_daylight_shade: 0.15625,
+            daylight_reach_per_tile: 0.21875,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -3538,16 +3924,19 @@ mod tests {
     /// `one_object` with a footprint, for the rules that need a rectangle.
     fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
+            colourway: Vec::new(),
             object: vec![ObjectDef {
                 roles: vec![],
                 action_socket: vec![],
                 id: "fridge".into(),
                 name: "Fridge".into(),
+                presentation: None,
                 sprite: "fridge_art".into(),
                 foreground_sprite: None,
                 base_facing: None,
                 footprint,
                 interaction: vec![interaction],
+                price: None,
             }],
         }
     }
@@ -3606,6 +3995,62 @@ mod tests {
         assert!(pack.objects[0].action_sockets.is_empty());
         assert_eq!(pack.find("fridge"), Some(ObjectDefId(0)));
         assert_eq!(pack.find("nope"), None);
+    }
+
+    #[test]
+    fn object_identity_round_trips_and_rejects_blank_copy() {
+        for field in ["name", "object_type", "description", "valid"] {
+            let mut objects = one_object(snack());
+            let object = &mut objects.object[0];
+            object.name = if field == "name" {
+                "  "
+            } else {
+                "Perpetual Cycle"
+            }
+            .into();
+            object.presentation = Some(crate::pack::ObjectPresentation {
+                object_type: if field == "object_type" {
+                    "\t"
+                } else {
+                    "Washing machine"
+                }
+                .into(),
+                description: if field == "description" {
+                    "\n"
+                } else {
+                    "Decorative appliance."
+                }
+                .into(),
+            });
+            let result = compile_objects(full_needs(), objects);
+            if field == "valid" {
+                let pack = result.expect("nonblank identity compiles");
+                let bytes = postcard::to_allocvec(&pack).unwrap();
+                let restored: ContentPack = postcard::from_bytes(&bytes).unwrap();
+                assert_eq!(restored, pack);
+                assert_eq!(restored.objects[0].display_name(), "Washing machine");
+                assert_eq!(restored.objects[0].name, "Perpetual Cycle");
+                assert_eq!(
+                    restored.objects[0]
+                        .presentation
+                        .as_ref()
+                        .unwrap()
+                        .description,
+                    "Decorative appliance."
+                );
+            } else {
+                assert_eq!(
+                    result.unwrap_err(),
+                    ContentError::EmptyObjectText {
+                        object: "fridge".into(),
+                        field
+                    }
+                );
+            }
+        }
+        let legacy = compile_objects(full_needs(), one_object(snack())).unwrap();
+        assert_eq!(legacy.objects[0].display_name(), "Fridge");
+        assert!(legacy.objects[0].presentation.is_none());
     }
 
     #[test]
@@ -3902,11 +4347,13 @@ mod tests {
             action_socket: vec![],
             id: "fridge".into(),
             name: "Another".into(),
+            presentation: None,
             sprite: "fridge_art".into(),
             foreground_sprite: None,
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
+            price: None,
         });
         let err = compile_objects(full_needs(), objects).unwrap_err();
         assert_eq!(
@@ -3939,13 +4386,37 @@ mod tests {
             action_socket: vec![],
             id: "vending".into(),
             name: "Vending".into(),
+            presentation: None,
             sprite: "fridge_art".into(),
             foreground_sprite: None,
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![snack()],
+            price: None,
         });
         compile_objects(full_needs(), objects).expect("ids are scoped to their object");
+    }
+
+    /// [BM-price]. A price of zero is refused, and the message says how to
+    /// keep an object out of the catalogue instead; no price and a price of
+    /// one both compile, onto the object. Review finding [F3] on PR 96.
+    #[test]
+    fn a_zero_price_is_refused_and_no_price_or_one_compiles() {
+        let priced = |price| {
+            let mut objects = one_object(snack());
+            objects.object[0].price = price;
+            compile_objects(full_needs(), objects)
+        };
+        let err = priced(Some(0)).unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::ZeroPrice {
+                object: "fridge".into()
+            }
+        );
+        assert!(err.to_string().contains("leave price out"), "{err}");
+        assert_eq!(priced(Some(1)).unwrap().objects[0].price, Some(1));
+        assert_eq!(priced(None).unwrap().objects[0].price, None);
     }
 
     #[test]
@@ -4356,16 +4827,19 @@ mod tests {
             !GOLDEN_PACK_BYTES.is_empty(),
             "an emptied vector would assert nothing"
         );
-        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 1;
+        // The portal vector, then the colourway vector, then the floor
+        // coverings ([FL-content]), each empty here, are the three bytes
+        // appended after the established pack.
+        let established_prefix_len = GOLDEN_PACK_BYTES.len() - 3;
         assert_eq!(
             &bytes[..established_prefix_len],
             &GOLDEN_PACK_BYTES[..established_prefix_len],
-            "adding the portal vector must not move an established pack byte"
+            "appending a vector to the pack must not move an established byte"
         );
         assert_eq!(
             &bytes[established_prefix_len..],
-            &[0],
-            "a coordinate-only lot appends one empty portal-vector byte"
+            &[0, 0, 0],
+            "each empty appended vector costs exactly one byte"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
     }
@@ -4410,6 +4884,7 @@ mod tests {
         assert_eq!(tuning.neglect_floor, 23.0);
         assert_eq!(tuning.neglect_bleed_per_tick, 0.0078125);
         assert_eq!(tuning.wander_radius_tiles, 29);
+        assert_eq!(tuning.resale_fraction, 0.40625);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -4558,6 +5033,145 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.wander_attempts = 1))
             .expect("a single attempt is legal, if a stubborn sim it is not");
         assert_eq!(pack.tuning.wander_attempts, 1);
+    }
+
+    /// [SL-pay]: a resale fraction is in `[0, 1]`, both ends included, and
+    /// finite. Each side just past the range is refused, so neither bound can
+    /// quietly move.
+    #[test]
+    fn validates_the_resale_fraction_range() {
+        for value in [-0.001, 1.001] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.resale_fraction = value)).unwrap_err(),
+                ContentError::ResaleFractionOutOfRange { value },
+                "{value}"
+            );
+        }
+        for value in [0.0, 1.0] {
+            let pack = compile_tuned(tuning_where(|t| t.resale_fraction = value))
+                .expect("both ends of the range are legal");
+            assert_eq!(pack.tuning.resale_fraction, value);
+        }
+        assert!(matches!(
+            compile_tuned(tuning_where(|t| t.resale_fraction = f32::NAN)).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
+    }
+
+    /// [CS-command]: a newcomer's name may be 1 to 256 characters long, both
+    /// ends allowed, so it is never empty and always fits the loader's limit
+    /// on saved text; and a newcomer may wear at least one trait.
+    #[test]
+    fn validates_the_housemate_limits() {
+        for value in [0, 257] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.housemate_name_max_chars = value)).unwrap_err(),
+                ContentError::HousemateNameLimitOutOfRange { value },
+                "{value}"
+            );
+        }
+        for value in [1, 256] {
+            let pack = compile_tuned(tuning_where(|t| t.housemate_name_max_chars = value))
+                .expect("both ends of the range are legal");
+            assert_eq!(pack.tuning.housemate_name_max_chars, value);
+        }
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.housemate_max_traits = 0)).unwrap_err(),
+            ContentError::HousemateTraitLimitIsZero
+        );
+        let pack = compile_tuned(tuning_where(|t| t.housemate_max_traits = 1)).unwrap();
+        assert_eq!(pack.tuning.housemate_max_traits, 1);
+    }
+
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`: a covering needs a
+    /// name the tool can show, names do not repeat, and a shift outside the
+    /// range the shader is built for is refused, as a yard's is.
+    #[test]
+    fn validates_the_floor_coverings() {
+        use crate::schema::CoveringDef;
+        let covering = |name: &str, hue: f32| CoveringDef {
+            name: name.to_string(),
+            hue,
+            strength: 1.0,
+            lightness: 0.0,
+        };
+        let compile_with = |coverings: Vec<CoveringDef>| {
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot_where(|lot| lot.covering = coverings),
+                test_atlas(),
+                full_tuning(),
+            )
+        };
+
+        let pack = compile_with(vec![covering("Boards", 18.0), covering("Tiles", -25.0)])
+            .expect("two named coverings compile");
+        assert_eq!(
+            pack.coverings
+                .iter()
+                .map(|c| (c.name.as_str(), c.look[0]))
+                .collect::<Vec<_>>(),
+            [("Boards", 18.0), ("Tiles", -25.0)],
+            "the authored order is the covering ids"
+        );
+        assert!(compile_with(Vec::new())
+            .expect("a lot may offer none")
+            .coverings
+            .is_empty());
+
+        assert_eq!(
+            compile_with(vec![covering("   ", 0.0)]).unwrap_err(),
+            ContentError::EmptyCoveringName
+        );
+        assert_eq!(
+            compile_with(vec![covering("Boards", 0.0), covering("Boards", 10.0)]).unwrap_err(),
+            ContentError::DuplicateCoveringName {
+                name: "Boards".to_string()
+            }
+        );
+        assert_eq!(
+            compile_with(vec![covering("Boards", 181.0)]).unwrap_err(),
+            ContentError::LookOutOfRange {
+                look: "covering Boards".to_string(),
+                field: "hue".to_string()
+            }
+        );
+    }
+
+    /// [OS-daylight]: each daylight knob's range, pinned from both sides of
+    /// each edge, and neither may be a non-number.
+    #[test]
+    fn validates_the_daylight_knobs() {
+        for shade in [0.53125, -0.03125] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.interior_daylight_shade = shade)).unwrap_err(),
+                ContentError::DaylightShadeOutOfRange { value: shade }
+            );
+        }
+        for shade in [0.0, 0.5] {
+            let pack = compile_tuned(tuning_where(|t| t.interior_daylight_shade = shade)).unwrap();
+            assert_eq!(pack.tuning.interior_daylight_shade, shade);
+        }
+        for reach in [0.0, 1.03125] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.daylight_reach_per_tile = reach)).unwrap_err(),
+                ContentError::DaylightReachOutOfRange { value: reach }
+            );
+        }
+        for reach in [0.03125, 1.0] {
+            let pack = compile_tuned(tuning_where(|t| t.daylight_reach_per_tile = reach)).unwrap();
+            assert_eq!(pack.tuning.daylight_reach_per_tile, reach);
+        }
+        for bad in [
+            tuning_where(|t| t.interior_daylight_shade = f32::NAN),
+            tuning_where(|t| t.daylight_reach_per_tile = f32::NAN),
+        ] {
+            assert!(matches!(
+                compile_tuned(bad).unwrap_err(),
+                ContentError::NonFiniteValue { .. }
+            ));
+        }
     }
 
     /// A radius of zero cannot produce a non-empty wander path, while a radius
@@ -5021,6 +5635,10 @@ mod tests {
     fn placements_resolve_to_the_declared_object_index() {
         let lot = LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
+            street: None,
+            covering: Vec::new(),
             front_door: None,
             width: 4,
             height: 4,
@@ -5416,6 +6034,7 @@ mod tests {
     /// holds art for, which is enough: no rule below needs a fourth object.
     fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
         ObjectsFile {
+            colourway: Vec::new(),
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
@@ -5423,6 +6042,7 @@ mod tests {
                     action_socket: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
+                    presentation: None,
                     sprite: format!("{id}_art"),
                     foreground_sprite: None,
                     base_facing: None,
@@ -5431,6 +6051,7 @@ mod tests {
                         depth: *depth,
                     },
                     interaction: vec![snack()],
+                    price: None,
                 })
                 .collect(),
         }
@@ -5444,6 +6065,7 @@ mod tests {
     fn archetype(id: &str) -> ArchetypeDef {
         ArchetypeDef {
             chronotype_offset_ticks: 0,
+            description: format!("The {id} sort."),
             id: id.to_string(),
             drain: [("fun".to_string(), 1.5)].into_iter().collect(),
             satisfaction: [("hunger".to_string(), 0.75)].into_iter().collect(),
@@ -5871,31 +6493,50 @@ mod tests {
 
     #[test]
     fn rejects_visual_front_doors_without_one_unambiguous_outward_edge() {
-        for (x, y, label) in [(2, 2, "interior"), (0, 0, "corner")] {
-            let mut lot = lot_of(5, 5, &[], &[]);
-            lot.front_door = Some(crate::schema::FrontDoorDef {
-                x,
-                y,
-                visual: Some(portal_visual("SE")),
-            });
-            assert_eq!(
-                compile_bare(
-                    full_needs(),
-                    one_object(snack()),
-                    lot,
-                    test_atlas(),
-                    full_tuning(),
-                )
-                .unwrap_err(),
-                ContentError::FrontDoorNotOnUniqueEdge {
-                    x: x as u32,
-                    y: y as u32,
-                    width: 5,
-                    height: 5,
-                },
-                "{label}"
-            );
-        }
+        // A door on no edge must stand on the house's outside wall
+        // ([OS-door]); a lot that is all house has none.
+        let mut lot = lot_of(5, 5, &[], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 2,
+            y: 2,
+            visual: Some(portal_visual("SE")),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorNotOutside { x: 2, y: 2 },
+            "interior"
+        );
+        // A corner is on two edges, so which way it opens is ambiguous.
+        let mut lot = lot_of(5, 5, &[], &[]);
+        lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 0,
+            y: 0,
+            visual: Some(portal_visual("SE")),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorNotOnUniqueEdge {
+                x: 0,
+                y: 0,
+                width: 5,
+                height: 5,
+            },
+            "corner"
+        );
     }
 
     #[test]
@@ -6565,6 +7206,8 @@ mod tests {
         TraitDef {
             id: id.to_string(),
             label: format!("The {id} one"),
+            // "Likes", the verb 1.25 earns between the fixture's lines.
+            description: format!("Likes the {id} snack."),
             kind: "disposition".to_string(),
             tag: "snacking".to_string(),
             score_multiplier: Some(1.25),
@@ -6599,6 +7242,7 @@ mod tests {
         }
         let mut fear = a_trait("terrified");
         fear.score_multiplier = Some(0.0);
+        fear.description = "Hates snacks.".to_string();
         let pack = compile_people_with_traits(vec![], vec![], vec![fear])
             .expect("zero IS the fear and must compile");
         assert_eq!(
@@ -6607,6 +7251,140 @@ mod tests {
                 score_multiplier: 0.0
             }
         );
+    }
+
+    /// [TL-affinity]: each band's own edge earns its verb, one step inside
+    /// the next band earns the next, and a description opening with any
+    /// other verb is refused by name. The fixture's lines are 1.46875 and
+    /// 0.28125, so every multiplier here sits on or beside a line.
+    #[test]
+    fn a_disposition_opens_with_the_verb_its_multiplier_earns() {
+        const VERBS: [&str; 4] = ["Loves", "Likes", "Dislikes", "Hates"];
+        for (multiplier, earned) in [
+            (1.5, "Loves"),
+            (1.46875, "Loves"),
+            (1.4375, "Likes"),
+            (1.03125, "Likes"),
+            (0.96875, "Dislikes"),
+            (0.3125, "Dislikes"),
+            (0.28125, "Hates"),
+            (0.0, "Hates"),
+        ] {
+            for verb in VERBS {
+                let mut worn = a_trait("keen");
+                worn.score_multiplier = Some(multiplier);
+                worn.description = format!("{verb} snacks.");
+                let compiled = compile_people_with_traits(vec![], vec![], vec![worn]);
+                if verb == earned {
+                    compiled.unwrap_or_else(|e| panic!("{multiplier} {verb}: {e}"));
+                } else {
+                    assert_eq!(
+                        compiled.unwrap_err(),
+                        ContentError::TraitVerbDisagrees {
+                            id: "keen".to_string(),
+                            verb: earned,
+                            multiplier,
+                        },
+                        "{multiplier} {verb}"
+                    );
+                }
+            }
+        }
+        // The verb is a word of its own, not a prefix of one.
+        let mut run_on = a_trait("keen");
+        run_on.description = "Likesnacks.".to_string();
+        assert!(matches!(
+            compile_people_with_traits(vec![], vec![], vec![run_on]).unwrap_err(),
+            ContentError::TraitVerbDisagrees { verb: "Likes", .. }
+        ));
+    }
+
+    /// [TL-affinity]: a disposition of exactly 1 changes no choice, and is
+    /// refused rather than given a verb that would say it does.
+    #[test]
+    fn a_disposition_that_changes_nothing_is_refused() {
+        let mut idle = a_trait("idle");
+        idle.score_multiplier = Some(1.0);
+        assert_eq!(
+            compile_people_with_traits(vec![], vec![], vec![idle]).unwrap_err(),
+            ContentError::DispositionChangesNothing {
+                id: "idle".to_string()
+            }
+        );
+    }
+
+    /// [TL-affinity]: love above 1 and hate in `[0, 1)`, each pinned from
+    /// both sides of its edge, and neither may be a non-number.
+    #[test]
+    fn validates_the_affinity_lines() {
+        let compile_banded = |loves: f32, hates: f32| {
+            compile_tuned(tuning_where(|t| {
+                t.affinity_loves_from = loves;
+                t.affinity_hates_to = hates;
+            }))
+        };
+        assert_eq!(
+            compile_banded(1.0, 0.5).unwrap_err(),
+            ContentError::AffinityBandOutOfRange {
+                field: "affinity_loves_from",
+                value: 1.0
+            }
+        );
+        compile_banded(1.03125, 0.5).expect("love just above 1 compiles");
+        for hates in [1.0, -0.03125] {
+            assert_eq!(
+                compile_banded(1.5, hates).unwrap_err(),
+                ContentError::AffinityBandOutOfRange {
+                    field: "affinity_hates_to",
+                    value: hates
+                }
+            );
+        }
+        compile_banded(1.5, 0.0).expect("hate at zero compiles");
+        compile_banded(1.5, 0.96875).expect("hate just below 1 compiles");
+        // Each message names only its own line's rule.
+        let message =
+            |loves: f32, hates: f32| compile_banded(loves, hates).unwrap_err().to_string();
+        assert!(message(1.0, 0.5).contains("affinity_loves_from is 1; it must be above 1,"));
+        assert!(message(1.5, 1.0).contains("affinity_hates_to is 1; it must be in [0, 1),"));
+        assert!(!message(1.5, 1.0).contains("above 1"));
+        assert!(matches!(
+            compile_banded(f32::NAN, 0.5).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
+        assert!(matches!(
+            compile_banded(1.5, f32::NAN).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
+    }
+
+    /// The two strings the Traits panel prints are both required, and each
+    /// has its own error so the author is sent to the right line. One blank
+    /// at a time: with both blank a test could not tell which check fired.
+    #[test]
+    fn rejects_a_trait_with_a_blank_label_or_a_blank_description() {
+        let mut unlabelled = a_trait("mute");
+        unlabelled.label = "  ".to_string();
+        assert_eq!(
+            compile_people_with_traits(vec![], vec![], vec![unlabelled]).unwrap_err(),
+            ContentError::EmptyTraitLabel {
+                id: "mute".to_string()
+            }
+        );
+
+        let mut undescribed = a_trait("vague");
+        undescribed.description = " \t".to_string();
+        assert_eq!(
+            compile_people_with_traits(vec![], vec![], vec![undescribed]).unwrap_err(),
+            ContentError::EmptyTraitDescription {
+                id: "vague".to_string()
+            }
+        );
+
+        let described = compile_people_with_traits(vec![], vec![], vec![a_trait("plain")])
+            .expect("a label and a description compile");
+        assert_eq!(described.traits[0].label, "The plain one");
+        assert_eq!(described.traits[0].description, "Likes the plain snack.");
     }
 
     /// One trait, worn once - the review finding: `Traits` keys state
@@ -6738,6 +7516,7 @@ mod tests {
             action_socket: vec![],
             id: "couch".into(),
             name: "Couch".into(),
+            presentation: None,
             sprite: "couch_art".into(),
             foreground_sprite: None,
             base_facing: None,
@@ -6753,6 +7532,7 @@ mod tests {
                 duration_ticks: 25,
                 slots: 1,
             }],
+            price: None,
         });
         let pack = compile(
             full_needs(),
@@ -6781,6 +7561,20 @@ mod tests {
             pack.personalities[0].dispositions,
             vec![(ObjectDefId(0), 0, 0.25), (ObjectDefId(1), 0, 1.75)]
         );
+    }
+
+    #[test]
+    fn rejects_a_blank_personality_description_and_keeps_a_real_one() {
+        let mut blank = archetype("quiet");
+        blank.description = " \t".to_string();
+        assert_eq!(
+            compile_people(vec![blank], vec![]).unwrap_err(),
+            ContentError::EmptyPersonalityDescription {
+                id: "quiet".to_string()
+            }
+        );
+        let pack = compile_people(vec![archetype("quiet")], vec![]).expect("described");
+        assert_eq!(pack.personalities[0].description, "The quiet sort.");
     }
 
     #[test]
@@ -7134,6 +7928,10 @@ mod tests {
     ) -> LotFile {
         LotFile {
             wall_edge: vec![],
+            house: None,
+            yard: None,
+            street: None,
+            covering: Vec::new(),
             front_door: None,
             width,
             height,
@@ -7164,6 +7962,223 @@ mod tests {
         format!("\n[[wall_edge]]\naxis = '{axis}'\nx = {x}\ny = {y}\ndoorway = {doorway}\n")
     }
 
+    /// A 6 by 4 lot whose house is 4 by 4, so the yard is the two east
+    /// columns. The house's east wall is the vertical line x = 4: a doorway at
+    /// `door_row`, a wall on every other row but `open_row`, then `extra`.
+    fn house_lot(door_row: Option<i32>, open_row: Option<i32>, extra: &str) -> LotFile {
+        let mut authored =
+            String::from("width = 6\nheight = 4\nhouse = { width = 4, height = 4 }\n");
+        for y in (0..4).filter(|&y| Some(y) != open_row) {
+            authored += &wall_edge("vertical", 4, y, Some(y) == door_row);
+        }
+        toml::from_str(&(authored + extra)).unwrap()
+    }
+
+    /// [OS-grow] in `docs/specs/2026-09-22-the-outside.md`: a house smaller
+    /// than its lot is closed by content. Every line between a house tile and
+    /// a yard tile holds a wall or a doorway, on the east side and the south.
+    #[test]
+    fn a_house_smaller_than_its_lot_is_closed_by_its_walls() {
+        let pack = compile_geometry(one_object(snack()), house_lot(Some(1), None, "")).unwrap();
+        assert_eq!(pack.lot.house, (4, 4));
+        for open in 0..4 {
+            assert_eq!(
+                compile_geometry(one_object(snack()), house_lot(None, Some(open), "")).unwrap_err(),
+                ContentError::HouseNotClosed {
+                    axis: EdgeAxis::Vertical,
+                    x: 4,
+                    y: open as u32
+                }
+            );
+        }
+        let short = |edges: &[(i32, bool)]| -> LotFile {
+            let mut authored =
+                String::from("width = 3\nheight = 3\nhouse = { width = 3, height = 2 }\n");
+            for &(x, doorway) in edges {
+                authored += &wall_edge("horizontal", x, 2, doorway);
+            }
+            toml::from_str(&authored).unwrap()
+        };
+        compile_geometry(
+            one_object(snack()),
+            short(&[(0, false), (1, true), (2, false)]),
+        )
+        .expect("the south side closed, one line a doorway");
+        assert_eq!(
+            compile_geometry(one_object(snack()), short(&[(0, false), (1, true)])).unwrap_err(),
+            ContentError::HouseNotClosed {
+                axis: EdgeAxis::Horizontal,
+                x: 2,
+                y: 2
+            }
+        );
+    }
+
+    /// [OS-grow]: the house is at least one tile each way and fits the lot;
+    /// a house the size of the lot needs no walls of its own.
+    #[test]
+    fn a_house_must_fit_its_lot() {
+        for (width, height) in [(0, 4), (4, 0), (7, 4), (6, 5)] {
+            let lot: LotFile = toml::from_str(&format!(
+                "width = 6\nheight = 4\nhouse = {{ width = {width}, height = {height} }}\n"
+            ))
+            .unwrap();
+            assert_eq!(
+                compile_geometry(one_object(snack()), lot).unwrap_err(),
+                ContentError::HouseOutsideLot {
+                    width,
+                    height,
+                    lot_width: 6,
+                    lot_height: 4
+                }
+            );
+        }
+        let whole: LotFile =
+            toml::from_str("width = 6\nheight = 4\nhouse = { width = 6, height = 4 }\n").unwrap();
+        assert_eq!(
+            compile_geometry(one_object(snack()), whole)
+                .unwrap()
+                .lot
+                .house,
+            (6, 4)
+        );
+    }
+
+    /// [OS-grow], [OS-yard]: a lot that names no house is all house, and one
+    /// that names no yard look draws a yard tile as the floor is drawn.
+    #[test]
+    fn a_lot_naming_no_house_is_all_house_and_its_yard_is_drawn_as_the_floor() {
+        let pack = compile_geometry(one_object(snack()), wall_edge_lot("")).unwrap();
+        assert_eq!(
+            (pack.lot.house, pack.lot.yard_look),
+            ((5, 4), [0.0, 1.0, 0.0])
+        );
+    }
+
+    /// [OS-yard], [OS-street]: the yard's and the street's looks each have a
+    /// colourway's three ranges, each limit allowed, and a number past one
+    /// names the look and the number.
+    #[test]
+    fn the_yard_and_street_looks_have_a_colourways_ranges() {
+        for look in ["yard", "street"] {
+            let with = |hue: &str, strength: &str, lightness: &str| {
+                let lot: LotFile = toml::from_str(&format!(
+                    "width = 5\nheight = 4\n{look} = {{ hue = {hue}, strength = {strength}, lightness = {lightness} }}\n"
+                ))
+                .unwrap();
+                compile_geometry(one_object(snack()), lot)
+            };
+            let pack = with("70.0", "1.5", "-0.05").unwrap();
+            let (set, other) = if look == "yard" {
+                (pack.lot.yard_look, pack.lot.street_look)
+            } else {
+                (pack.lot.street_look, pack.lot.yard_look)
+            };
+            assert_eq!(
+                (set, other),
+                ([70.0, 1.5, -0.05], [0.0, 1.0, 0.0]),
+                "{look}"
+            );
+            with("180.0", "2.0", "0.25").expect("the upper limits");
+            with("-180.0", "0.0", "-0.25").expect("the lower limits");
+            for (hue, strength, lightness, field) in [
+                ("180.5", "1.0", "0.0", "hue"),
+                ("-180.5", "1.0", "0.0", "hue"),
+                ("nan", "1.0", "0.0", "hue"),
+                ("0.0", "2.1", "0.0", "strength"),
+                ("0.0", "-0.1", "0.0", "strength"),
+                ("0.0", "1.0", "0.3", "lightness"),
+                ("0.0", "1.0", "-0.3", "lightness"),
+            ] {
+                assert_eq!(
+                    with(hue, strength, lightness).unwrap_err(),
+                    ContentError::LookOutOfRange {
+                        look: look.into(),
+                        field: field.into()
+                    },
+                    "{look} {hue} {strength} {lightness}"
+                );
+            }
+        }
+    }
+
+    /// [OS-door]: a front door on no edge of the lot stands on the house's
+    /// outside wall: inside the house, facing south-east, across a doorway
+    /// onto a yard tile. Each case breaks exactly one of those.
+    #[test]
+    fn a_front_door_may_stand_on_the_houses_outside_wall() {
+        let door = |x: i32, y: i32, facing: &str, mut lot: LotFile| {
+            lot.front_door = Some(crate::schema::FrontDoorDef {
+                x,
+                y,
+                visual: Some(portal_visual(facing)),
+            });
+            compile_geometry(one_object(snack()), lot)
+        };
+        let pack = door(3, 1, "SE", house_lot(Some(1), None, "")).expect("a door onto the yard");
+        let portal = &pack.portals[0];
+        assert_eq!((portal.position, portal.inward), ((3, 1), (2, 1)));
+        assert_eq!(portal.facing, crate::pack::CompiledSocketFacing::PositiveX);
+        // A 6 by 5 lot whose house is 4 by 3, so a south yard lies below it,
+        // with a doorway on the first yard row's line east of (3, 3).
+        let mut south = String::from("width = 6\nheight = 5\nhouse = { width = 4, height = 3 }\n");
+        for y in 0..3 {
+            south += &wall_edge("vertical", 4, y, false);
+        }
+        for x in 0..4 {
+            south += &wall_edge("horizontal", x, 3, false);
+        }
+        south += &wall_edge("vertical", 4, 3, true);
+        let south: LotFile = toml::from_str(&south).unwrap();
+        for (x, y, facing, lot, label) in [
+            (3, 3, "SE", south, "it stands in the yard below the house"),
+            (
+                3,
+                1,
+                "SE",
+                house_lot(Some(2), None, ""),
+                "its line is a wall",
+            ),
+            (
+                3,
+                1,
+                "SE",
+                house_lot(Some(2), None, &wall_edge("horizontal", 4, 1, true)),
+                "the only doorway there runs along the yard",
+            ),
+            (
+                3,
+                1,
+                "SW",
+                house_lot(Some(1), None, ""),
+                "it faces along the wall",
+            ),
+            (
+                2,
+                1,
+                "SE",
+                house_lot(Some(1), None, &wall_edge("vertical", 3, 1, true)),
+                "the tile across is the house",
+            ),
+            (
+                4,
+                1,
+                "SE",
+                house_lot(Some(1), None, &wall_edge("vertical", 5, 1, true)),
+                "it stands in the yard",
+            ),
+        ] {
+            assert_eq!(
+                door(x, y, facing, lot).unwrap_err(),
+                ContentError::FrontDoorNotOutside {
+                    x: x as u32,
+                    y: y as u32
+                },
+                "{label}"
+            );
+        }
+    }
+
     #[test]
     fn wall_edge_compilation_preserves_axis_coordinates_doorways_and_order() {
         use terri_core::layout::EdgeAxis::{Horizontal, Vertical};
@@ -7190,12 +8205,19 @@ mod tests {
         let bytes = postcard::to_allocvec(&pack.lot).unwrap();
         let decoded: CompiledLot = postcard::from_bytes(&bytes).unwrap();
         assert_eq!(decoded, pack.lot);
-        assert_eq!(&bytes[bytes.len() - 9..], &[2, 1, 3, 2, 1, 0, 1, 3, 0]);
+        // The house, then the yard look as three little-endian floats, are
+        // appended after the wall edges ([OS-grow], [OS-yard]).
+        const HOUSE_AND_LOOK: [u8; 26] = [
+            5, 4, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
+        ];
+        let (edges, appended) = bytes.split_at(bytes.len() - HOUSE_AND_LOOK.len());
+        assert_eq!(appended, HOUSE_AND_LOOK);
+        assert_eq!(&edges[edges.len() - 9..], &[2, 1, 3, 2, 1, 0, 1, 3, 0]);
         let legacy = compile_geometry(one_object(snack()), wall_edge_lot("")).unwrap();
         assert!(legacy.lot.wall_edges.is_empty());
         assert_eq!(
             postcard::to_allocvec(&legacy.lot).unwrap(),
-            vec![5, 4, 0, 0, 0, 0]
+            [&[5, 4, 0, 0, 0, 0][..], &HOUSE_AND_LOOK].concat()
         );
     }
 
@@ -7760,8 +8782,14 @@ mod tests {
         let lot = &pack.lot;
 
         assert!(lot.walls.is_empty(), "the shipped house uses edge walls");
-        assert_eq!(lot.wall_edges.len(), 34);
-        assert_eq!(lot.wall_edges.iter().filter(|edge| edge.doorway).count(), 5);
+        // The 34 interior walls and five doorways, then the house's east and
+        // south walls with the front door's doorway ([OS-walls]).
+        assert_eq!(lot.wall_edges.len(), 34 + 28);
+        assert_eq!(
+            lot.wall_edges.iter().filter(|edge| edge.doorway).count(),
+            5 + 1
+        );
+        assert_eq!((lot.width, lot.height, lot.house), (20, 16, (16, 12)));
         for edge in &lot.wall_edges {
             assert!(edge.in_bounds(lot.width, lot.height), "{edge:?}");
         }
@@ -8299,6 +9327,7 @@ mod tests {
         ObjectDef {
             id: "reading_chair".to_string(),
             name: "Reading chair".to_string(),
+            presentation: None,
             sprite: "fridge_art".to_string(),
             foreground_sprite: None,
             base_facing: None,
@@ -8346,6 +9375,7 @@ mod tests {
                     facing: "NE".to_string(),
                 },
             ],
+            price: None,
         }
     }
 
@@ -8354,6 +9384,7 @@ mod tests {
         let pack = compile_objects(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![reading_object()],
             },
         )
@@ -8406,6 +9437,7 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![object],
                 },
             )
@@ -8508,6 +9540,7 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![donor, reader],
                 }
             )
@@ -8642,6 +9675,7 @@ mod tests {
             let pack = compile_bare(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![reading_object()],
                 },
                 lot,
@@ -8702,6 +9736,7 @@ mod tests {
                 compile_bare(
                     full_needs(),
                     ObjectsFile {
+                        colourway: Vec::new(),
                         object: vec![object],
                     },
                     bare_lot(),
@@ -8753,6 +9788,7 @@ mod tests {
             compile_bare(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![object],
                 },
                 lot,
@@ -8790,6 +9826,7 @@ mod tests {
         let pack = compile_bare(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![object],
             },
             lot,
@@ -9128,15 +10165,18 @@ mod tests {
             action_socket: vec![],
             id: "sink".into(),
             name: "Sink".into(),
+            presentation: None,
             sprite: "sink_art".into(),
             foreground_sprite: None,
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
+            price: None,
         };
         compile(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0), ("sink", 3.0, 1.0)]),
@@ -9542,15 +10582,18 @@ mod tests {
             action_socket: vec![],
             id: "sink".into(),
             name: "Sink".into(),
+            presentation: None,
             sprite: "sink_art".into(),
             foreground_sprite: None,
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
+            price: None,
         };
         let err = compile(
             full_needs(),
             ObjectsFile {
+                colourway: Vec::new(),
                 object: vec![fridge, sink],
             },
             lot_of(5, 3, &[], &[("fridge", 1.0, 1.0)]),
@@ -9639,6 +10682,7 @@ mod tests {
             compile_objects(
                 full_needs(),
                 ObjectsFile {
+                    colourway: Vec::new(),
                     object: vec![fridge],
                 },
             )
@@ -9682,5 +10726,139 @@ mod tests {
             VoiceFile { clip: vec![] },
             vec![],
         )
+    }
+
+    fn colourway(id: &str, hue: f32, strength: f32, lightness: f32) -> ColourwayDef {
+        ColourwayDef {
+            id: id.to_string(),
+            name: id.to_uppercase(),
+            hue,
+            strength,
+            lightness,
+        }
+    }
+
+    fn as_drawn() -> ColourwayDef {
+        colourway("as_drawn", 0.0, 1.0, 0.0)
+    }
+
+    fn with_colourways(colourways: Vec<ColourwayDef>) -> Result<ContentPack, ContentError> {
+        let mut objects = three_objects();
+        objects.colourway = colourways;
+        compile_objects(full_needs(), objects)
+    }
+
+    /// [RC-content] in `docs/specs/2026-09-22-colourways.md`: colourways
+    /// compile in content order, and a pack may have none.
+    #[test]
+    fn colourways_compile_in_content_order() {
+        let pack =
+            with_colourways(vec![as_drawn(), colourway("rich", 120.0, 1.3, -0.05)]).expect("valid");
+        assert_eq!(
+            pack.colourways,
+            [
+                CompiledColourway {
+                    id: "as_drawn".into(),
+                    name: "AS_DRAWN".into(),
+                    hue: 0.0,
+                    strength: 1.0,
+                    lightness: 0.0,
+                },
+                CompiledColourway {
+                    id: "rich".into(),
+                    name: "RICH".into(),
+                    hue: 120.0,
+                    strength: 1.3,
+                    lightness: -0.05,
+                },
+            ]
+        );
+        assert!(with_colourways(vec![])
+            .expect("valid")
+            .colourways
+            .is_empty());
+    }
+
+    /// [RC-content]: the first colourway is the art as drawn, so an object
+    /// with no colourway and one in the first look the same.
+    #[test]
+    fn the_first_colourway_is_the_art_as_drawn() {
+        for first in [
+            colourway("warm", 10.0, 1.0, 0.0),
+            colourway("warm", 0.0, 0.9, 0.0),
+            colourway("warm", 0.0, 1.0, 0.1),
+        ] {
+            assert_eq!(
+                with_colourways(vec![first, as_drawn()]).unwrap_err(),
+                ContentError::FirstColourwayNotAsDrawn {
+                    colourway: "warm".into()
+                }
+            );
+        }
+    }
+
+    /// [RC-content]: a save records a colourway by id, so an id names one.
+    #[test]
+    fn a_colourway_id_is_declared_once() {
+        let err = with_colourways(vec![
+            as_drawn(),
+            colourway("muted", 0.0, 0.5, 0.0),
+            colourway("muted", 0.0, 0.6, 0.0),
+        ])
+        .unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::DuplicateColourway {
+                colourway: "muted".into()
+            }
+        );
+    }
+
+    /// [RC-content]: the Colour list shows a name, and a save an id.
+    #[test]
+    fn a_colourway_has_an_id_and_a_name() {
+        let mut nameless = colourway("muted", 0.0, 0.5, 0.0);
+        nameless.name = String::new();
+        for bad in [colourway("", 0.0, 0.5, 0.0), nameless] {
+            let id = bad.id.clone();
+            assert_eq!(
+                with_colourways(vec![as_drawn(), bad]).unwrap_err(),
+                ContentError::EmptyColourwayText { colourway: id }
+            );
+        }
+    }
+
+    /// [RC-shift]: each shift stays in the range the shader is built for, and
+    /// the ends of each range are allowed.
+    #[test]
+    fn colourway_shifts_stay_in_range() {
+        for (hue, strength, lightness, field) in [
+            (180.5, 1.0, 0.0, "hue"),
+            (-180.5, 1.0, 0.0, "hue"),
+            (f32::NAN, 1.0, 0.0, "hue"),
+            (0.0, -0.1, 0.0, "strength"),
+            (0.0, 2.1, 0.0, "strength"),
+            (0.0, f32::INFINITY, 0.0, "strength"),
+            (0.0, 1.0, 0.26, "lightness"),
+            (0.0, 1.0, -0.26, "lightness"),
+            (0.0, 1.0, f32::NAN, "lightness"),
+        ] {
+            assert_eq!(
+                with_colourways(vec![as_drawn(), colourway("odd", hue, strength, lightness)])
+                    .unwrap_err(),
+                ContentError::ColourwayOutOfRange {
+                    colourway: "odd".into(),
+                    field: field.into(),
+                },
+                "{hue} {strength} {lightness}"
+            );
+        }
+        for (hue, strength, lightness) in [(180.0, 2.0, 0.25), (-180.0, 0.0, -0.25)] {
+            assert!(with_colourways(vec![
+                as_drawn(),
+                colourway("edge", hue, strength, lightness)
+            ])
+            .is_ok());
+        }
     }
 }

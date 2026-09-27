@@ -189,6 +189,13 @@ pub struct CompiledInteraction {
     pub sound_action: Option<CompiledSoundAction>,
 }
 
+/// Optional object identity copy. It never changes saved simulation state.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ObjectPresentation {
+    pub object_type: String,
+    pub description: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledObject {
     pub id: String,
@@ -243,9 +250,22 @@ pub struct CompiledObject {
     pub facing_foreground_sprites: FacingSprites,
     /// Authored geometry and default art orientation. Transforms use a relative turn.
     pub base_facing: Facing,
+    /// What the Buy tool charges, or `None` for an object not in the
+    /// catalogue - [BM-price]. Appended after `base_facing`. Not in the save
+    /// compatibility digest: a save stores Funds, never prices.
+    pub price: Option<u32>,
+    /// Appended presentation data; absent retains the existing name-only display.
+    pub presentation: Option<ObjectPresentation>,
 }
 
 impl CompiledObject {
+    /// Primary identification for controls and accessible labels.
+    pub fn display_name(&self) -> &str {
+        self.presentation
+            .as_ref()
+            .map_or(&self.name, |text| &text.object_type)
+    }
+
     pub fn footprint_at(&self, facing: Facing) -> Footprint {
         if self.relative_turn(facing).swaps_footprint_sides() {
             Footprint {
@@ -379,6 +399,23 @@ pub struct CompiledLot {
     pub front_door: Option<(u32, u32)>,
     /// Interior boundaries in declaration order. Appended for postcard stability.
     pub wall_edges: Vec<terri_core::layout::WallEdge>,
+    /// [OS-grow] in `docs/specs/2026-09-22-the-outside.md`: the house's width
+    /// and height from the lot's north-west corner; every other tile is yard.
+    /// The whole lot when `lot.toml` names no house. Appended.
+    pub house: (u32, u32),
+    /// [OS-yard]: the hue, strength and lightness a yard tile's floor art is
+    /// drawn under, as a colourway's ([RC-shift]). Appended.
+    pub yard_look: [f32; 3],
+    /// [OS-street]: the same for a street tile. Appended.
+    pub street_look: [f32; 3],
+}
+
+/// One authored floor covering - [FL-content].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledCovering {
+    pub name: String,
+    /// Hue, strength and lightness, as a colourway's shift ([RC-shift]).
+    pub look: [f32; 3],
 }
 
 /// Structural routing and presentation data for one validated lot-boundary portal.
@@ -597,6 +634,23 @@ pub struct Tuning {
     /// added after `asleep_decay_scale`, which remains in place so existing
     /// tuning bytes retain their offsets.
     pub wander_radius_tiles: u32,
+    /// What a sale pays back, as a fraction of the object's price, in
+    /// `[0, 1]` and finite - [SL-pay] in
+    /// `docs/specs/2026-09-22-selling-furniture.md`. A sale pays
+    /// `floor(price * resale_fraction)`.
+    pub resale_fraction: f32,
+    /// The most characters a new housemate's name may have, from 1 to 256 -
+    /// [CS-command] in `docs/specs/2026-09-22-create-a-sim.md`.
+    pub housemate_name_max_chars: u32,
+    /// The most traits a new housemate may wear, at least 1 - [CS-command].
+    pub housemate_max_traits: u32,
+    /// How much of the day's light a tile the sky cannot reach loses at
+    /// noon, in `[0, 1)` - [OS-daylight] in
+    /// `docs/specs/2026-09-22-the-outside.md`. Read only by the renderer.
+    pub interior_daylight_shade: f32,
+    /// Sky exposure lost per tile travelled indoors, in `(0, 1]` -
+    /// [OS-daylight]. Last in this struct, per the appending rule.
+    pub daylight_reach_per_tile: f32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -646,6 +700,10 @@ pub struct CompiledPersonality {
     /// [ML-chrono]. 0 is "sleeps when everyone else does", which is the
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
+    /// What this personality is like, for the New housemate form -
+    /// [CS-personality]. Last, because it was appended; personalities are
+    /// in no save and not in the save digest.
+    pub description: String,
 }
 
 /// One trait, compiled - [E3]. The kind-specific numbers live in an
@@ -680,6 +738,10 @@ pub struct CompiledTrait {
     pub label: String,
     pub tag: String,
     pub kind: CompiledTraitKind,
+    /// One plain sentence for the Traits panel - [TL-description]. Last,
+    /// because it was appended; it is in no save and not in the
+    /// compatibility digest, so rewording it costs nothing.
+    pub description: String,
 }
 
 /// One member of the authored household - [H2].
@@ -809,6 +871,31 @@ pub struct ContentPack {
     /// identity. Portal coordinates affect routing and the save-content
     /// fingerprint; facing, hinge and sprites remain presentation metadata.
     pub portals: Vec<CompiledPortal>,
+    /// The colourways any placed object can be drawn in, in content order -
+    /// [RC-content] in `docs/specs/2026-09-22-colourways.md`. Empty in most
+    /// test packs; when present, the first is the art as drawn. Appended at
+    /// the pack tail.
+    pub colourways: Vec<CompiledColourway>,
+    /// The floor coverings the player may choose, in content order -
+    /// [FL-content] in `docs/specs/2026-09-22-floors.md`. A covering's id is
+    /// its place here counted from 1, and 0 is "no choice", the tile drawn
+    /// by where it is ([OS-yard]). Appended at the pack tail, so every
+    /// established block keeps its byte offset.
+    pub coverings: Vec<CompiledCovering>,
+}
+
+/// One colourway, validated. Its index is what a command and the render
+/// buffer carry; its id is what a save records.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledColourway {
+    pub id: String,
+    pub name: String,
+    /// Degrees the art's hues turn.
+    pub hue: f32,
+    /// How strongly the art's colours show, as a factor.
+    pub strength: f32,
+    /// A shift in lightness.
+    pub lightness: f32,
 }
 
 /// One recorded clip, compiled.
@@ -895,17 +982,129 @@ impl ContentPack {
         &self.objects[id.0 as usize]
     }
 
+    /// Every object for sale, in pack order, with its price: the catalogue
+    /// the Buy tool lists ([BM-shell]). One filter for every boundary export
+    /// that lists it, so their rows cannot drift apart.
+    pub fn catalogue(&self) -> impl Iterator<Item = (ObjectDefId, &CompiledObject, u32)> + '_ {
+        self.objects
+            .iter()
+            .enumerate()
+            .filter_map(|(index, object)| Some((ObjectDefId(index as u32), object, object.price?)))
+    }
+
     pub fn find(&self, id: &str) -> Option<ObjectDefId> {
         self.objects
             .iter()
             .position(|o| o.id == id)
             .map(|i| ObjectDefId(i as u32))
     }
+
+    /// The needs an object is good for, bit `i` for need index `i` - [CB-serves]
+    /// in `docs/specs/2026-09-22-catalogue-browsing.md`: every need one of its
+    /// own interactions advertises with a positive delta, and every need a
+    /// chain advertises so, when the object offers the chain or one of the
+    /// chain's steps takes a role the object has. The stove feeds nobody by
+    /// itself; it serves hunger through Cook dinner.
+    pub fn needs_served(&self, object: ObjectDefId) -> u32 {
+        let definition = self.object(object);
+        // A list names each need at most once, so its bits are joined with
+        // `bitor` rather than `|`: any join of distinct bits gives the same
+        // mask, and an operator here would be a mutant no input can kill.
+        let served = |advertises: &[(u8, f32)]| {
+            advertises
+                .iter()
+                .filter(|&&(_, delta)| delta > 0.0)
+                .map(|&(need, _)| 1 << need)
+                .fold(0, std::ops::BitOr::bitor)
+        };
+        let own = definition.interactions.iter().fold(0, |mask, interaction| {
+            mask | served(&interaction.advertises)
+        });
+        let chains = self
+            .chains
+            .iter()
+            .filter(|chain| {
+                chain.advertised_by == object
+                    || chain
+                        .steps
+                        .iter()
+                        .any(|step| definition.roles.contains(&step.role))
+            })
+            .fold(0, |mask, chain| mask | served(&chain.advertises));
+        own | chains
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The needs mask with a bit for each named need.
+    fn needs(names: &[&str]) -> u32 {
+        names.iter().fold(0, |mask, name| {
+            mask | 1 << terri_core::NeedId::from_name(name).unwrap().index()
+        })
+    }
+
+    /// [CB-serves] in `docs/specs/2026-09-22-catalogue-browsing.md`.
+    #[test]
+    fn an_object_serves_its_own_needs_and_those_of_every_chain_it_stands_in() {
+        let pack = crate::pack();
+        let serves = |id: &str| pack.needs_served(pack.find(id).unwrap());
+        assert_eq!(serves("bed"), needs(&["energy"]));
+        assert_eq!(serves("television"), needs(&["fun", "social"]));
+        // Cook dinner advertises hunger and comfort, and takes a fridge, a
+        // prep surface, a hob and an eating surface.
+        assert_eq!(serves("stove"), needs(&["hunger", "comfort"]));
+        assert_eq!(serves("counter"), needs(&["hunger", "comfort"]));
+        assert_eq!(serves("fridge"), needs(&["hunger", "comfort"]));
+        // The table's own comfort and the chain's comfort are one need.
+        assert_eq!(
+            serves("dining_table"),
+            needs(&["hunger", "comfort", "social"])
+        );
+        // A chair has no interaction and stands in no chain.
+        assert_eq!(serves("chair"), 0);
+    }
+
+    /// Only a positive delta serves a need: a zero or a cost does not, and a
+    /// need two sources serve is still served.
+    #[test]
+    fn a_need_is_served_only_by_a_positive_delta_from_any_source() {
+        let mut pack = crate::pack().clone();
+        let bed = pack.find("bed").unwrap();
+        let hygiene = terri_core::NeedId::from_name("hygiene").unwrap().index() as u8;
+        let fun = terri_core::NeedId::from_name("fun").unwrap().index() as u8;
+        let interaction = &mut pack.objects[bed.0 as usize].interactions[0];
+        interaction.advertises.push((hygiene, 0.0));
+        interaction.advertises.push((fun, -4.0));
+        assert_eq!(pack.needs_served(bed), needs(&["energy"]));
+        // Two interactions on one object, and two chains, serving the same
+        // needs.
+        let second = pack.objects[bed.0 as usize].interactions[0].clone();
+        pack.objects[bed.0 as usize].interactions.push(second);
+        assert_eq!(pack.needs_served(bed), needs(&["energy"]));
+        pack.chains.push(pack.chains[0].clone());
+        let stove = pack.find("stove").unwrap();
+        assert_eq!(pack.needs_served(stove), needs(&["hunger", "comfort"]));
+    }
+
+    /// Review finding [H4] on the catalogue branch: an object that offers a
+    /// chain serves its needs even when it takes none of the chain's steps,
+    /// as the simulation counts the chain as something its advertiser offers.
+    #[test]
+    fn an_object_serves_the_needs_of_a_chain_it_offers() {
+        let mut pack = crate::pack().clone();
+        let bed = pack.find("bed").unwrap();
+        assert!(pack.object(bed).roles.is_empty(), "the bed takes no step");
+        let mut offered = pack.chains[0].clone();
+        offered.advertised_by = bed;
+        pack.chains.push(offered);
+        assert_eq!(
+            pack.needs_served(bed),
+            needs(&["hunger", "energy", "comfort"])
+        );
+    }
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
@@ -934,6 +1133,11 @@ mod tests {
     fn a_lot() -> CompiledLot {
         CompiledLot {
             wall_edges: vec![],
+            // Neither the lot's size nor the as-drawn look, so a round trip
+            // that dropped either moves the equality below.
+            house: (4, 3),
+            yard_look: [70.0, 1.5, -0.05],
+            street_look: [0.0, 0.2, -0.2],
             width: 6,
             height: 4,
             // Present rather than None, with coordinates distinct from
@@ -1013,6 +1217,11 @@ mod tests {
             neglect_bleed_per_tick: 0.0075,
             day_ticks: 23,
             wander_radius_tiles: 29,
+            resale_fraction: 0.40625,
+            housemate_name_max_chars: 23,
+            housemate_max_traits: 5,
+            interior_daylight_shade: 0.15625,
+            daylight_reach_per_tile: 0.21875,
         }
     }
 
@@ -1047,6 +1256,7 @@ mod tests {
                     CompiledObject {
                         id: (*id).to_string(),
                         name: id.to_uppercase(),
+                        presentation: None,
                         sprite: (i as u32) + 4,
                         interactions: vec![use_it],
                         // A different rectangle per object, none of them square
@@ -1099,6 +1309,7 @@ mod tests {
                         } else {
                             FacingSprites::NONE
                         },
+                        price: None,
                     }
                 })
                 .collect(),
@@ -1115,6 +1326,7 @@ mod tests {
                 satisfaction: [0.5, 1.75, 2.0, 0.625, 1.375, 0.8125, 1.0625],
                 dispositions: vec![(ObjectDefId(1), 0, 1.875), (ObjectDefId(2), 1, 0.25)],
                 chronotype_offset_ticks: 0,
+                description: "Sits down and stays down.".to_string(),
             }],
             household: vec![CompiledHouseholdMember {
                 name: "Terri".to_string(),
@@ -1167,6 +1379,7 @@ mod tests {
                     kind: CompiledTraitKind::Disposition {
                         score_multiplier: 1.375,
                     },
+                    description: String::new(),
                 },
                 CompiledTrait {
                     id: "all_thumbs".to_string(),
@@ -1177,6 +1390,7 @@ mod tests {
                         fail_delta_scale: 0.0625,
                         learn_per_attempt: 0.03125,
                     },
+                    description: String::new(),
                 },
                 CompiledTrait {
                     id: "weary".to_string(),
@@ -1187,6 +1401,7 @@ mod tests {
                         manage_per_completion: 0.015625,
                         start_severity: 0.6875,
                     },
+                    description: String::new(),
                 },
             ],
             // Two careers so the member's Some(1) above means "the
@@ -1285,6 +1500,8 @@ mod tests {
                 },
             ],
             portals: vec![],
+            colourways: vec![],
+            coverings: Vec::new(),
         }
     }
 
@@ -1343,6 +1560,7 @@ mod tests {
         CompiledObject {
             id: "thing".to_string(),
             name: "Thing".to_string(),
+            presentation: None,
             sprite: 4,
             interactions: vec![],
             footprint: Footprint::SINGLE,
@@ -1352,6 +1570,7 @@ mod tests {
             facing_sprites,
             facing_foreground_sprites,
             base_facing: Facing::SouthEast,
+            price: None,
         }
     }
 
@@ -1604,27 +1823,76 @@ mod tests {
 
     /// A new tuning knob belongs at the end of the serialized `Tuning`
     /// record, even when it is conceptually related to fields near the
-    /// beginning. Two one-byte values make the byte that changes unambiguous:
-    /// it must be the final byte and every established field must stay put.
+    /// beginning. The two housemate limits ([CS-command]) are the final two
+    /// one-byte varints; `resale_fraction` ([SL-pay]) is the four bytes
+    /// before them, and `wander_radius_tiles` the byte before that; every
+    /// established field stays put.
     #[test]
-    fn wander_radius_occupies_the_appended_tuning_slot() {
+    fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
-        let after = postcard::to_allocvec(&Tuning {
-            wander_radius_tiles: 31,
-            ..a_tuning()
-        })
-        .expect("tuning must serialise");
-
-        assert_eq!(before.len(), after.len());
-        let changed: Vec<usize> = before
-            .iter()
-            .zip(&after)
-            .enumerate()
-            .filter_map(|(index, (left, right))| (left != right).then_some(index))
-            .collect();
-        assert_eq!(changed, vec![before.len() - 1]);
-        assert_eq!(before.last(), Some(&29));
-        assert_eq!(after.last(), Some(&31));
+        let changed = |after: Tuning| -> Vec<usize> {
+            let after = postcard::to_allocvec(&after).expect("tuning must serialise");
+            assert_eq!(before.len(), after.len());
+            before
+                .iter()
+                .zip(&after)
+                .enumerate()
+                .filter_map(|(index, (left, right))| (left != right).then_some(index))
+                .collect()
+        };
+        // [OS-daylight]: the two daylight floats close the record; 0.21875
+        // and 0.15625 are 0, 0, 96, 62 and 0, 0, 32, 62, and a change of
+        // either to 0.28125 or 0.34375 moves only its third byte.
+        let len = before.len();
+        assert_eq!(before[len - 8..], [0, 0, 32, 62, 0, 0, 96, 62]);
+        assert_eq!(
+            changed(Tuning {
+                daylight_reach_per_tile: 0.34375,
+                ..a_tuning()
+            }),
+            vec![len - 2]
+        );
+        assert_eq!(
+            changed(Tuning {
+                interior_daylight_shade: 0.28125,
+                ..a_tuning()
+            }),
+            vec![len - 6]
+        );
+        let before_daylight = len - 8;
+        assert_eq!(
+            changed(Tuning {
+                housemate_max_traits: 6,
+                ..a_tuning()
+            }),
+            vec![before_daylight - 1]
+        );
+        assert_eq!(
+            changed(Tuning {
+                housemate_name_max_chars: 24,
+                ..a_tuning()
+            }),
+            vec![before_daylight - 2]
+        );
+        assert_eq!(before[before_daylight - 2..before_daylight], [23, 5]);
+        let end = before_daylight - 2;
+        // 0.40625 and 0.46875 differ only in their top two bytes.
+        assert_eq!(
+            changed(Tuning {
+                resale_fraction: 0.46875,
+                ..a_tuning()
+            }),
+            vec![end - 2]
+        );
+        assert_eq!(before[end - 4..end], 0.40625f32.to_le_bytes());
+        assert_eq!(
+            changed(Tuning {
+                wander_radius_tiles: 31,
+                ..a_tuning()
+            }),
+            vec![end - 5]
+        );
+        assert_eq!(before[end - 5], 29);
     }
 
     /// Pins both the appended chain-step field and the append-only enum

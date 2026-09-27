@@ -1,4 +1,5 @@
 import { FACING_NAMES, type FurnitureBuilder } from './builder.js';
+import { formatFunds } from './game-hud.js';
 
 /** One set of controls moves between the desktop HUD and the mobile dock. */
 export class BuilderControls {
@@ -11,6 +12,9 @@ export class BuilderControls {
   private readonly rotate: HTMLButtonElement;
   private readonly confirm: HTMLButtonElement;
   private readonly cancel: HTMLButtonElement;
+  private readonly sell: HTMLButtonElement;
+  private readonly saleNote: HTMLElement;
+  private readonly colour: HTMLSelectElement;
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
   private listed: FurnitureBuilder['objects'] | null = null;
@@ -30,6 +34,18 @@ export class BuilderControls {
     this.rotate = required('builder-rotate');
     this.confirm = required('builder-confirm');
     this.cancel = required('builder-cancel');
+    this.sell = required('builder-sell');
+    this.saleNote = required('builder-sale-note');
+    this.colour = required('builder-colour');
+    // [RC-ui]: the colourways are content, so the list is built once.
+    for (const [index, name] of builder.colourways.entries()) {
+      const option = document.createElement('option');
+      option.value = String(index); option.textContent = name;
+      this.colour.append(option);
+    }
+    this.colour.addEventListener('change', () => {
+      if (this.colour.value !== '') builder.recolour(Number(this.colour.value));
+    });
     this.keyboardHelp = required('builder-keyboard-help');
     this.touchHelp = required('builder-touch-help');
     this.toggle.addEventListener('click', () => builder.active ? builder.exit() : builder.enter());
@@ -39,6 +55,7 @@ export class BuilderControls {
     this.rotate.addEventListener('click', () => builder.rotate());
     this.confirm.addEventListener('click', () => builder.confirm());
     this.cancel.addEventListener('click', () => builder.cancel());
+    this.sell.addEventListener('click', () => builder.sell());
     this.render();
   }
 
@@ -77,6 +94,17 @@ export class BuilderControls {
     this.rotate.title = builder.canRotate ? 'Rotate to the next supported direction' : 'Only one direction is available for this furniture.';
     this.confirm.disabled = !builder.canConfirm;
     this.cancel.disabled = builder.selected === null || builder.pending || builder.blocked;
+    // [SL-shell]: the button names what the sale pays back.
+    this.sell.disabled = !builder.canSell;
+    this.sell.textContent = builder.saleValue === null ? 'Sell' : `Sell for ${formatFunds(builder.saleValue)}`;
+    this.colour.value = String(builder.shownColourway ?? 0);
+    // Not disabled while a change is on its way: disabling the focused list
+    // would drop keyboard focus out of the panel. The builder queues it.
+    this.colour.disabled = builder.colourway === null || builder.blocked
+      || builder.colourways.length < 2;
+    // A chosen object that would not sell says why, as the rotation note does.
+    this.saleNote.hidden = builder.saleRefusal === null;
+    this.saleNote.textContent = builder.saleRefusal === null ? '' : `Cannot sell: ${builder.saleRefusal}`;
     this.status.textContent = builder.status;
     this.status.setAttribute('data-valid', String(builder.preview?.valid ?? true));
     const explanation = this.document.querySelector<HTMLElement>('#builder-rotation-note');

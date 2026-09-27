@@ -25,6 +25,18 @@ pub enum PlacementRefusal {
     InaccessibleInteraction = 11,
     BlockedDoor = 12,
     BlockedLanding = 13,
+    /// The household's Funds are less than the price - [BM-buy].
+    CannotAfford = 14,
+    /// The object has no price, so nothing says what a sale is worth -
+    /// [SL-rules] in `docs/specs/2026-09-22-selling-furniture.md`.
+    NotForSale = 15,
+    /// The object is the last one that can fill a role some chain needs, the
+    /// only hob for Cook dinner, so selling it would strand every sim part
+    /// way through that chain - [SL-rules].
+    LastForAChain = 16,
+    /// The content pack has no colourway with that index - [RC-command] in
+    /// `docs/specs/2026-09-22-colourways.md`.
+    UnknownColourway = 17,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,6 +50,23 @@ pub struct PlacementResult {
 pub struct LotEditState {
     pub revision: u64,
     pub last_result: Option<PlacementResult>,
+    /// The most recent wall edit the drain committed or refused, so the shell
+    /// can report a refusal only the commit could see - [WT-boundary].
+    pub last_wall_result: Option<walls::WallEditResult>,
+    /// The most recent purchase the drain committed or refused - [BM-buy].
+    pub last_purchase_result: Option<purchase::PurchaseResult>,
+    /// The most recent room the drain built or refused - [RT-boundary].
+    pub last_room_result: Option<rooms::RoomEditResult>,
+    /// The most recent sale the drain made or refused - [SL-shell].
+    pub last_sale_result: Option<sale::SaleResult>,
+    /// What the drain did with the most recent colourway change - [RC-command].
+    pub last_colourway_result: Option<colourway::ColourwayResult>,
+    /// What the drain did with the most recent move-in - [CS-command].
+    pub last_housemate_result: Option<crate::household::HousemateResult>,
+    /// What the drain did with the most recent floor change - [FL-command].
+    pub last_floor_result: Option<floors::FloorEditResult>,
+    /// What the drain did with the most recent family tie - [FM-tie].
+    pub last_family_result: Option<crate::family::FamilyTieResult>,
     pub(crate) discontinuities: HashSet<Entity>,
 }
 
@@ -76,7 +105,9 @@ pub fn object_definition(
 
 #[derive(Clone, Copy)]
 struct Rectangle {
-    entity: Entity,
+    /// The object standing here, or `None` for one a purchase is about to
+    /// bring onto the lot.
+    entity: Option<Entity>,
     origin: (u32, u32),
     footprint: Footprint,
 }
@@ -113,12 +144,16 @@ fn approaches(rect: Rectangle, grid: &TileGrid) -> Vec<(i32, i32)> {
         .collect()
 }
 
-/// Every visit inserts a previously unseen tile, bounded by the bitmap size.
-fn reachable(grid: &TileGrid) -> HashSet<(i32, i32)> {
+/// Every tile a sim can walk to from `door`, the lot's front door, or on a lot
+/// with none from the first walkable tile in reading order - [RD-root]. Every
+/// visit inserts a previously unseen tile, bounded by the bitmap size.
+fn reachable(grid: &TileGrid, door: Option<(i32, i32)>) -> HashSet<(i32, i32)> {
     let mut seen = HashSet::new();
-    let root = (0..grid.height() as i32)
-        .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
-        .find(|&(x, y)| grid.is_walkable(x, y));
+    let root = door.or_else(|| {
+        (0..grid.height() as i32)
+            .flat_map(|y| (0..grid.width() as i32).map(move |x| (x, y)))
+            .find(|&(x, y)| grid.is_walkable(x, y))
+    });
     let Some(root) = root else {
         return seen;
     };
@@ -163,9 +198,9 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 grid.set_blocked(x as usize, y as usize, true);
             }
         }
-        SavedLayout::EdgeWallsV1 { edges } => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
             let mut seen = std::collections::BTreeSet::new();
-            for &edge in edges {
+            for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
                     || !seen.insert((edge.axis, edge.x, edge.y))
                 {
@@ -173,6 +208,24 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 }
                 let [a, b] = edge.cells();
                 grid.set_edge_blocked(a, b, !edge.doorway);
+            }
+            // [WN-rules]: a window stops a person exactly as a wall does. A
+            // line that is somehow both keeps the wall's barrier, which the
+            // repeated insert refuses anyway.
+            for &window in layout.windows() {
+                let edge = terri_core::layout::WallEdge {
+                    axis: window.axis,
+                    x: window.x,
+                    y: window.y,
+                    doorway: false,
+                };
+                if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
+                    || !seen.insert((window.axis, window.x, window.y))
+                {
+                    return Err(UnsupportedLayout);
+                }
+                let [a, b] = edge.cells();
+                grid.set_edge_blocked(a, b, true);
             }
         }
     }
@@ -190,19 +243,17 @@ fn crosses_wall(rect: Rectangle, grid: &TileGrid) -> bool {
         .any(|(a, b)| contains(a) && contains(b))
 }
 
-/// Produces a complete owned transaction; no mutation and no random draws.
-pub fn validate_placement(
-    world: &World,
-    object: u32,
-    origin: (u32, u32),
-    facing: Facing,
-) -> Result<PlacementPlan, PlacementRefusal> {
-    use PlacementRefusal::*;
-    let (entity, definition, _) = object_definition(world, object).ok_or(UnknownObject)?;
-    if !definition.supports(facing) {
-        return Err(UnsupportedFacing);
-    }
-    let content = world.resource::<Content>().0;
+/// The fixed architecture and every placed object, proven to account for the
+/// live grid exactly. Every lot edit starts here: an edit validated against a
+/// world whose grid nobody can explain would be validated against a guess.
+struct CurrentLayout {
+    walls: TileGrid,
+    rectangles: Vec<Rectangle>,
+}
+
+fn current_layout(world: &World) -> Result<CurrentLayout, PlacementRefusal> {
+    use PlacementRefusal::UnsupportedLayout;
+    let content = world.get_resource::<Content>().ok_or(UnsupportedLayout)?.0;
     let live = world.resource::<TileGrid>();
     let walls = fixed_architecture(world, live)?;
     let mut current = walls.clone();
@@ -226,7 +277,7 @@ pub fn validate_placement(
             return Err(UnsupportedLayout);
         }
         let rect = Rectangle {
-            entity: row.id(),
+            entity: Some(row.id()),
             origin: (position.x as u32, position.y as u32),
             footprint: def.footprint_at(direction),
         };
@@ -250,44 +301,25 @@ pub fn validate_placement(
     {
         return Err(UnsupportedLayout);
     }
-    let footprint = definition.footprint_at(facing);
-    if !fits(live, origin, footprint) {
-        return Err(OutOfBounds);
-    }
-    if world.get::<Reserved>(entity).is_some()
-        || entities
-            .iter(world)
-            .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))
-    {
-        return Err(InUse);
-    }
-    let candidate = Rectangle {
-        entity,
-        origin,
-        footprint,
-    };
-    if crosses_wall(candidate, &walls)
-        || cells(candidate).any(|(x, y)| !walls.is_walkable(x as i32, y as i32))
-    {
-        return Err(WallOverlap);
-    }
-    let mut grid = walls;
-    for rect in rectangles.iter().filter(|r| r.entity != entity) {
-        for (x, y) in cells(*rect) {
-            grid.set_blocked(x as usize, y as usize, true);
-        }
-    }
-    if cells(candidate).any(|(x, y)| !grid.is_walkable(x as i32, y as i32)) {
-        return Err(FurnitureOverlap);
-    }
-    for (x, y) in cells(candidate) {
-        grid.set_blocked(x as usize, y as usize, true);
-    }
-    for rect in &mut rectangles {
-        if rect.entity == entity {
-            *rect = candidate;
-        }
-    }
+    Ok(CurrentLayout { walls, rectangles })
+}
+
+/// What every lot edit must leave usable, proven on the candidate grid: the
+/// front door and its landing are clear, the yard tile beyond a front door on
+/// the house's wall is open floor the door reaches ([OS-door]), every sim
+/// stands on open floor it can
+/// walk to from the front door and can finish the walk it is on, and every
+/// object keeps a clear approach there too. On a lot with a front door, floor
+/// nobody and nothing needs may be cut off. Shared by furniture moves and wall
+/// edits so the two cannot drift - [WT-rules] and [RD-root].
+fn prove_lot_usable(
+    world: &World,
+    grid: &TileGrid,
+    rectangles: &[Rectangle],
+) -> Result<(), PlacementRefusal> {
+    use PlacementRefusal::*;
+    let content = world.resource::<Content>().0;
+    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
     if content
         .lot
         .front_door
@@ -302,7 +334,28 @@ pub fn validate_placement(
     {
         return Err(BlockedLanding);
     }
-    let reached = reachable(&grid);
+    let door = content.lot.front_door.map(|(x, y)| (x as i32, y as i32));
+    let reached = reachable(grid, door);
+    // A vertical line (x, y) lies between (x - 1, y) and (x, y), so the tile
+    // beyond the door's line shares the line's numbers. Furniture on it, or a
+    // wall across the doorway, would leave the door opening onto nothing.
+    if crate::portals::front_door_lines(world)
+        .into_iter()
+        .any(|(x, y)| !reached.contains(&(x as i32, y as i32)))
+    {
+        return Err(BlockedDoor);
+    }
+    // [OS-street]: the street's exit, where every commute ends, stays open
+    // floor the door reaches. Only an edit that cuts off an exit the door
+    // reaches now is refused, so a house saved with furniture on the exit
+    // can still be changed, and mended.
+    if let Some((x, y)) = crate::portals::street_exit(content, grid.width() as u32) {
+        let exit = (x as i32, y as i32);
+        if !reached.contains(&exit) && reachable(world.resource::<TileGrid>(), door).contains(&exit)
+        {
+            return Err(BlockedRoute);
+        }
+    }
     for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
         let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
         for x in [pos.x.floor() as i32, pos.x.ceil() as i32] {
@@ -337,19 +390,16 @@ pub fn validate_placement(
     }
     // Match F5: every object, including scenery, has a clear approach and
     // every clear approach belongs to the common reachable region.
-    for rect in rectangles {
-        let beside = approaches(rect, &grid);
+    for &rect in rectangles {
+        let beside = approaches(rect, grid);
         if beside.is_empty() || beside.iter().any(|tile| !reached.contains(tile)) {
             return Err(InaccessibleInteraction);
         }
     }
-    if content
-        .lot
-        .front_door
-        .is_some_and(|(x, y)| !reached.contains(&(x as i32, y as i32)))
-    {
-        return Err(BlockedDoor);
-    }
+    // The flood starts at the front door, so a landing is outside the region
+    // only when another portal's landing is cut off, or when a loaded save
+    // already holds a wall between the front door and its own landing: the
+    // wall rules refuse building that wall, and furniture adds no walls.
     if content
         .portals
         .iter()
@@ -357,6 +407,93 @@ pub fn validate_placement(
     {
         return Err(BlockedLanding);
     }
+    Ok(())
+}
+
+/// The rectangle rules a move and a purchase share - [BM-buy]. `moving` is
+/// the object a move lifts off the lot first, or `None` for a purchase, which
+/// lifts nothing. Returns the grid with the rectangle standing in place; no
+/// mutation and no random draws.
+fn plan_rectangle(
+    world: &World,
+    moving: Option<Entity>,
+    footprint: Footprint,
+    origin: (u32, u32),
+) -> Result<TileGrid, PlacementRefusal> {
+    use PlacementRefusal::*;
+    let live = world.resource::<TileGrid>();
+    let CurrentLayout {
+        walls,
+        mut rectangles,
+    } = current_layout(world)?;
+    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
+    if !fits(live, origin, footprint) {
+        return Err(OutOfBounds);
+    }
+    if moving.is_some_and(|entity| {
+        world.get::<Reserved>(entity).is_some()
+            || entities
+                .iter(world)
+                .any(|e| e.get::<Target>().is_some_and(|t| t.object == entity))
+    }) {
+        return Err(InUse);
+    }
+    let candidate = Rectangle {
+        entity: moving,
+        origin,
+        footprint,
+    };
+    if crosses_wall(candidate, &walls)
+        || cells(candidate).any(|(x, y)| !walls.is_walkable(x as i32, y as i32))
+    {
+        return Err(WallOverlap);
+    }
+    // Every placed rectangle has an entity, so for a purchase this keeps them
+    // all and for a move it drops only the object being moved.
+    rectangles.retain(|rect| rect.entity != moving);
+    let mut grid = walls;
+    for rect in &rectangles {
+        for (x, y) in cells(*rect) {
+            grid.set_blocked(x as usize, y as usize, true);
+        }
+    }
+    if cells(candidate).any(|(x, y)| !grid.is_walkable(x as i32, y as i32)) {
+        return Err(FurnitureOverlap);
+    }
+    for (x, y) in cells(candidate) {
+        grid.set_blocked(x as usize, y as usize, true);
+    }
+    rectangles.push(candidate);
+    prove_lot_usable(world, &grid, &rectangles)?;
+    // Last, the loader's own grid checks - [L-an-edit-must-pass-the-loader].
+    // For what a furniture edit adds they are implied today by the proofs
+    // above: a sim's tile and walk must be open floor there too, and blocking
+    // a tile never changes a contact, which the loader reads through walls
+    // alone. They are asked anyway, so a rule the loader gains later is
+    // honoured here without a second edit, and so no edit is accepted in a
+    // world that already fails the loader. The rectangle itself is not in this world yet; the
+    // loader's rule for it, no wall through it, is `WallOverlap` above.
+    crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
+        crate::save::LoadProblem::PortalReturn => BlockedLanding,
+        crate::save::LoadProblem::EdgeWorld => BlockedRoute,
+    })?;
+    Ok(grid)
+}
+
+/// Produces a complete owned transaction; no mutation and no random draws.
+pub fn validate_placement(
+    world: &World,
+    object: u32,
+    origin: (u32, u32),
+    facing: Facing,
+) -> Result<PlacementPlan, PlacementRefusal> {
+    use PlacementRefusal::*;
+    let (entity, definition, _) = object_definition(world, object).ok_or(UnknownObject)?;
+    if !definition.supports(facing) {
+        return Err(UnsupportedFacing);
+    }
+    let footprint = definition.footprint_at(facing);
+    let grid = plan_rectangle(world, Some(entity), footprint, origin)?;
     Ok(PlacementPlan {
         grid,
         entity,
@@ -394,6 +531,13 @@ pub(crate) fn commit(world: &mut World, object: u32, origin: (u32, u32), facing:
     }
     world.resource_mut::<LotEditState>().last_result = Some(PlacementResult { object, reason });
 }
+
+pub mod colourway;
+pub mod floors;
+pub mod purchase;
+pub mod rooms;
+pub mod sale;
+pub mod walls;
 
 #[cfg(test)]
 mod tests;

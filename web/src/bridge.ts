@@ -29,6 +29,30 @@ export interface PlacementPreview {
 }
 
 /** Stable Rust refusal codes; player-facing wording lives only here. */
+/** The drain's answer to a move-in ([CS-command]). */
+export interface HousemateResult {
+  /** Why the newcomer did not move in, or null when they did. */
+  readonly reason: string | null;
+  /** The newcomer's entity index, or null when nobody moved in. */
+  readonly sim: number | null;
+  /** How many move-ins this world has handled, this one included. */
+  readonly handled: number;
+}
+
+const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
+  1: 'The household is full.',
+  2: 'Give them a name that fits.',
+  3: 'That personality is not available.',
+  4: 'Choose fewer traits.',
+  5: 'That trait is not available.',
+  6: 'Each trait once.',
+  7: 'There is no way in for them.',
+};
+
+export function housemateReason(code: number): string | null {
+  return code === 0 ? null : HOUSEMATE_REASONS[code] ?? 'They could not move in.';
+}
+
 const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   1: 'Choose a whole tile and a supported direction.',
   2: 'That furniture is no longer available.',
@@ -43,10 +67,174 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   11: 'Leave every object reachable.',
   12: 'Keep the front door clear and reachable.',
   13: 'Keep the front-door landing clear and reachable.',
+  14: 'The household cannot afford that.',
+  15: 'That furniture is not for sale.',
+  16: 'Nothing else in the house can do its job.',
+  17: 'That colour is not available.',
 };
+
+/** One object for sale - [BM-shell]. */
+export interface CatalogueItem {
+  /** The pack object index a purchase names. */
+  readonly definition: number;
+  readonly name: string;
+  readonly details?: import('./ui/object-identity.js').ObjectDetails;
+  readonly price: number;
+  /** Bit `n` set for each facing code `n` the object has art for. */
+  readonly facings: number;
+  readonly baseFacing: number;
+  /** Bit `n` set for each need index `n` the object is good for ([CB-serves]). */
+  readonly needs: number;
+}
+
+/** Whether a placed object would sell, and for how much - [SL-shell]. */
+export interface SalePreview {
+  readonly reason: string | null;
+  /** What the sale would pay back; zero when it would not sell. */
+  readonly payout: number;
+}
+
+/** What the drain did with the last colourway change ([RC-command]). */
+export interface ColourwayResult {
+  readonly object: number;
+  readonly reason: string | null;
+  readonly colourway: number;
+}
+
+/** What the drain did with the last sale; `payout` is zero when nothing sold. */
+export interface SaleResult {
+  readonly object: number;
+  readonly reason: string | null;
+  readonly payout: number;
+}
+
+/** What the drain did with the last purchase; `object` is null when nothing was bought. */
+export interface PurchaseResult {
+  readonly definition: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: number;
+  readonly reason: string | null;
+  readonly object: number | null;
+}
+
+/** A wall edit's refusal, worded for the Walls tool - [WT-shell]. Same codes. */
+export interface WallEditPreview {
+  readonly valid: boolean;
+  readonly reason: string | null;
+  /** The stable refusal code, zero when valid. */
+  readonly code: number;
+}
+
+/** The refusal code for a line the tool may not change at all: the outside wall. */
+export const WALL_OUT_OF_BOUNDS = 5;
+
+const WALL_REASONS: Readonly<Record<number, string>> = {
+  1: 'Choose a line between two floor tiles.',
+  4: "This house's walls cannot be changed.",
+  5: 'The outside wall cannot be changed here.',
+  6: 'A wall there would cut through furniture.',
+  8: 'Someone is using something across that line.',
+  9: 'Someone is standing on that line.',
+  10: "A wall there would block someone's way.",
+  11: 'A wall there would leave furniture out of reach.',
+  12: 'A wall there would cut off the front door.',
+  13: 'A wall there would cut off the front-door landing.',
+};
+
+export function wallReason(code: number): string | null {
+  return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
+}
+
+/**
+ * Why a floor change was refused ([FL-tool]). The codes live here with the
+ * wall tool's rather than in the tool, so one place knows what a refusal
+ * number means. Both are reachable only through a hostile or stale request:
+ * the tool refuses a point off the lot before asking, and it offers no
+ * covering the content does not have.
+ */
+const FLOOR_REASONS: Readonly<Record<number, string>> = {
+  1: 'That floor is not one of these.',
+  5: 'That tile is not on the lot.',
+};
+
+/**
+ * What one person can be to another ([FM-tie]). The codes are the wire's,
+ * and NO_RELATION is one past them so the list grows by appending.
+ */
+export const RELATION_WORDS = ['partner', 'parent', 'child', 'sibling'] as const;
+export const NO_RELATION = 4;
+
+/** The plain word for a relation code, or null when there is no tie. */
+export function relationWord(code: number): string | null {
+  return RELATION_WORDS[code] ?? null;
+}
+
+export function floorReason(code: number): string {
+  return FLOOR_REASONS[code] ?? 'That change is not possible.';
+}
+
+/**
+ * The refusal codes a room's doorway can mend: a sim's way, furniture, or a
+ * portal's landing cut off by the outline. Not the front door itself: since
+ * [RD-root] a room meets that refusal only while the door's tile is not open
+ * floor, with something on it or off the lot, which no doorway changes.
+ */
+export const DOORWAY_MENDS: ReadonlySet<number> = new Set([10, 11, 13]);
+
+/** A room's refusal, worded for the Room tool - [RT-shell]. Same codes. */
+const ROOM_REASONS: Readonly<Record<number, string>> = {
+  1: "Choose the doorway on the room's outline.",
+  4: "This house's walls cannot be changed.",
+  5: 'Keep the room inside the lot.',
+  6: 'The room would cut through furniture.',
+  8: "Someone is using something across the room's outline.",
+  9: "Someone is standing on the room's outline.",
+  10: "The room would block someone's way.",
+  11: 'The room would leave furniture out of reach.',
+  12: 'The room would cut off the front door.',
+  13: 'The room would cut off the front-door landing.',
+};
+
+export function roomReason(code: number): string | null {
+  return code === 0 ? null : ROOM_REASONS[code] ?? 'That room is not possible.';
+}
+
+/** One line between two tiles, as `wall_edges` numbers it: axis 0 vertical. */
+export interface EdgeLine {
+  readonly axis: 0 | 1;
+  readonly x: number;
+  readonly y: number;
+}
+
+/** A room's preview: a wall edit's, and whether building it changes anything. */
+export interface RoomPreview extends WallEditPreview {
+  readonly changes: boolean;
+}
+
+/** What the drain did with the last room - [RT-boundary]. */
+export interface RoomResult {
+  readonly corners: readonly [number, number, number, number];
+  readonly doorway: EdgeLine | null;
+  readonly reason: string | null;
+  /** The stable refusal code, zero when the room was built. */
+  readonly code: number;
+}
 
 function placementReason(code: number): string | null {
   return code === 0 ? null : PLACEMENT_REASONS[code] ?? 'This placement is unavailable.';
+}
+
+/** A room's doorway as the boundary takes it: three numbers, or none. */
+function roomDoorway(doorway: EdgeLine | null): Float64Array {
+  return new Float64Array(doorway === null ? [] : [doorway.axis, doorway.x, doorway.y]);
+}
+
+/** The eight numbers `placement_preview` and `purchase_preview` both return. */
+function previewOf(values: ArrayLike<number>): PlacementPreview {
+  return { valid: values[0] === 0, reason: placementReason(values[0]),
+    x: values[1], y: values[2], facing: values[3], width: values[4], depth: values[5],
+    sprite: values[6], foreground: values[7] < 0 ? null : values[7] };
 }
 
 /** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
@@ -116,10 +304,122 @@ export class SimBridge {
   ) {}
 
   placementPreview(object: number, x: number, y: number, facing: number): PlacementPreview {
-    const values = this.handle.placement_preview(object, x, y, facing);
-    return { valid: values[0] === 0, reason: placementReason(values[0]),
-      x: values[1], y: values[2], facing: values[3], width: values[4], depth: values[5],
-      sprite: values[6], foreground: values[7] < 0 ? null : values[7] };
+    return previewOf(this.handle.placement_preview(object, x, y, facing));
+  }
+
+  /** Every object for sale, in content order - [BM-shell]. */
+  catalogue(): CatalogueItem[] {
+    const words = this.handle.catalogue();
+    const needs = this.handle.catalogue_needs();
+    const details = this.handle.catalogue_details();
+    return this.handle.catalogue_names().map((name, row) => ({
+      definition: words[row * 4], name, price: words[row * 4 + 1],
+      facings: words[row * 4 + 2], baseFacing: words[row * 4 + 3], needs: needs[row],
+      ...(details[row * 2] ? { details: { modelName: details[row * 2], description: details[row * 2 + 1] } } : {}),
+    }));
+  }
+
+  /** The ghost for an object not yet bought; the same shape as `placementPreview`. Never writes. */
+  purchasePreview(definition: number, x: number, y: number, facing: number): PlacementPreview {
+    return previewOf(this.handle.purchase_preview(definition, x, y, facing));
+  }
+
+  /** Whether the object carrying `object` would sell, and for how much. Never writes. */
+  salePreview(object: number): SalePreview {
+    const values = this.handle.sale_preview(object);
+    return { reason: placementReason(values[0]), payout: values[1] };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastSaleResult`. */
+  sellObject(object: number): boolean {
+    return this.handle.sell_object(object);
+  }
+
+  lastSaleResult(): SaleResult | null {
+    const values = this.handle.last_sale_result();
+    return values.length === 0 ? null
+      : { object: values[0], reason: placementReason(values[1]), payout: values[2] };
+  }
+
+  /** The colourway names, in content order; the first is the art as drawn ([RC-ui]). */
+  colourwayNames(): string[] {
+    return this.handle.colourway_names();
+  }
+
+  /**
+   * The house's `[width, height]` from the lot's north-west corner; every
+   * other tile is yard ([OS-yard] in `docs/specs/2026-09-22-the-outside.md`).
+   */
+  houseSize(): [number, number] {
+    const [width, height] = this.handle.house_size();
+    return [width, height];
+  }
+
+  /** `[hue, strength, lightness]` a yard tile's floor art is drawn under ([OS-yard]). */
+  yardLook(): [number, number, number] {
+    const [hue, strength, lightness] = this.handle.yard_look();
+    return [hue, strength, lightness];
+  }
+
+  /**
+   * The street's column, where commutes end, or null when the front door has
+   * no yard beyond it ([OS-street] in `docs/specs/2026-09-22-the-outside.md`).
+   */
+  streetColumn(): number | null {
+    const column = this.handle.street_column();
+    return column < 0 ? null : column;
+  }
+
+  /** `[hue, strength, lightness]` a street tile's floor art is drawn under ([OS-street]). */
+  streetLook(): [number, number, number] {
+    const [hue, strength, lightness] = this.handle.street_look();
+    return [hue, strength, lightness];
+  }
+
+  /**
+   * `[hue, strength, lightness]` per colourway, flattened, for the shader
+   * ([RC-shift]). Content, so read once and kept: the frame asks every frame
+   * and must not allocate ([D11]).
+   */
+  colourwayShifts(): Float32Array {
+    this.shifts ??= this.handle.colourway_shifts();
+    return this.shifts;
+  }
+  private shifts: Float32Array | undefined;
+
+  /** The colourway a placed object is drawn in, or null when nothing placed carries `object`. */
+  objectColourway(object: number): number | null {
+    const colourway = this.handle.object_colourway(object);
+    return colourway === 0xffffffff ? null : colourway;
+  }
+
+  /** Queue acceptance only; read the outcome from `lastColourwayResult`. */
+  setColourway(object: number, colourway: number): boolean {
+    return this.handle.set_colourway(object, colourway);
+  }
+
+  lastColourwayResult(): ColourwayResult | null {
+    const values = this.handle.last_colourway_result();
+    return values.length === 0 ? null
+      : { object: values[0], reason: placementReason(values[1]), colourway: values[2] };
+  }
+
+  /** A purchase drawn in a colourway ([RC-slice-buy]); read the outcome from `lastPurchaseResult`. */
+  buyObjectInColourway(definition: number, x: number, y: number, facing: number,
+    colourway: number): boolean {
+    return this.handle.buy_object_in_colourway(definition, x, y, facing, colourway);
+  }
+
+  /** Queue acceptance only; read the outcome from `lastPurchaseResult`. */
+  buyObject(definition: number, x: number, y: number, facing: number): boolean {
+    return this.handle.buy_object(definition, x, y, facing);
+  }
+
+  lastPurchaseResult(): PurchaseResult | null {
+    const values = this.handle.last_purchase_result();
+    return values.length === 0 ? null : { definition: values[0], x: values[1], y: values[2],
+      facing: values[3], reason: placementReason(values[4]),
+      object: values[5] === 0xffffffff ? null : values[5] };
   }
 
   placeObject(object: number, x: number, y: number, facing: number): boolean {
@@ -136,6 +436,46 @@ export class SimBridge {
 
   lotRevision(): number {
     return Number(this.handle.lot_revision());
+  }
+
+  /** Axis 0 vertical, 1 horizontal; state 0 open, 1 wall, 2 doorway. Never writes. */
+  wallEditPreview(axis: number, x: number, y: number, state: number): WallEditPreview {
+    const code = this.handle.wall_edit_preview(axis, x, y, state);
+    return { valid: code === 0, reason: wallReason(code), code };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastWallEditResult`. */
+  setWallEdge(axis: number, x: number, y: number, state: number): boolean {
+    return this.handle.set_wall_edge(axis, x, y, state);
+  }
+
+  lastWallEditResult(): { axis: number; x: number; y: number; state: number;
+    reason: string | null } | null {
+    const values = this.handle.last_wall_edit_result();
+    return values.length === 0 ? null : { axis: values[0], x: values[1], y: values[2],
+      state: values[3], reason: wallReason(values[4]) };
+  }
+
+  /** Corners `[x0, y0, x1, y1]`, doorway or null. Never writes. */
+  roomEditPreview(corners: readonly number[], doorway: EdgeLine | null): RoomPreview {
+    const [code, changes] = this.handle.room_edit_preview(new Float64Array(corners), roomDoorway(doorway));
+    return { valid: code === 0, reason: roomReason(code), code, changes: changes === 1 };
+  }
+
+  /** Queue acceptance only; read the outcome from `lastRoomResult`. */
+  buildRoom(corners: readonly number[], doorway: EdgeLine | null): boolean {
+    return this.handle.build_room(new Float64Array(corners), roomDoorway(doorway));
+  }
+
+  lastRoomResult(): RoomResult | null {
+    const values = this.handle.last_room_result();
+    if (values.length === 0) return null;
+    return {
+      corners: [values[0], values[1], values[2], values[3]],
+      reason: roomReason(values[4]),
+      code: values[4],
+      doorway: values.length === 8 ? { axis: values[5] === 1 ? 1 : 0, x: values[6], y: values[7] } : null,
+    };
   }
 
   lastPlacementResult(): { object: number; reason: string | null } | null {
@@ -413,6 +753,15 @@ export class SimBridge {
     );
   }
 
+  /** Each row's colourway, 0 for the art as drawn ([RC-render]). */
+  colourways(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.colourways_ptr(),
+      this.count,
+    );
+  }
+
   /** Optional object layer that must draw in front of a socket-projected sim. */
   foregroundSprites(): Uint32Array {
     return new Uint32Array(
@@ -445,6 +794,11 @@ export class SimBridge {
 
   portalStates(): Uint32Array {
     return new Uint32Array(this.memory.buffer, this.handle.portal_states_ptr(), this.portalCount);
+  }
+
+  /** The tile across each portal row's line, `[x, y]` pairs. */
+  portalFarSides(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.portal_far_sides_ptr(), this.portalCount * 2);
   }
 
   /**
@@ -480,6 +834,75 @@ export class SimBridge {
    */
   wallTiles(): Uint32Array {
     return this.handle.wall_tiles();
+  }
+
+  /**
+   * Vertical doorway lines that hold a door, `[x, y]` pairs, sorted
+   * ([DR-derived]). Empty for a cell-wall house, or a lot with no front door
+   * whose art fits a vertical line.
+   */
+  interiorDoorLines(): Uint32Array {
+    return this.handle.interior_door_lines();
+  }
+
+  /**
+   * The lines that are windows, three words each: axis (0 vertical), x, y
+   * ([WN-state] in `docs/specs/2026-09-22-windows.md`). Separate from
+   * `wallEdges` so a window can never be read as a doorway.
+   */
+  windowLines(): Uint32Array {
+    return this.handle.window_lines();
+  }
+
+  /**
+   * The floor coverings the player may choose, in content order
+   * ([FL-content] in `docs/specs/2026-09-22-floors.md`). A covering's id is
+   * its place here counted from 1; 0 is no covering at all.
+   */
+  coveringNames(): string[] {
+    return this.handle.covering_names();
+  }
+
+  /**
+   * Three words per family tie: the lower entity index, the higher, and the
+   * relation the lower one is to the higher ([FM-save] in
+   * `docs/specs/2026-09-22-family.md`).
+   */
+  familyTies(): Uint32Array {
+    return this.handle.family_ties();
+  }
+
+  /** Records a tie, or takes one away with `NO_RELATION` ([FM-tie]). */
+  setFamilyTie(who: number, to: number, relation: number): boolean {
+    return this.handle.set_family_tie(who, to, relation);
+  }
+
+  /** Each covering's colour shift, three numbers each ([FL-draw]). */
+  coveringLooks(): Float32Array {
+    return this.handle.covering_looks();
+  }
+
+  /** Three words per painted tile: x, y, covering ([FL-save]). */
+  floorTiles(): Uint32Array {
+    return this.handle.floor_tiles();
+  }
+
+  /** The refusal code laying this covering would get, zero when it would apply. */
+  floorEditPreview(x: number, y: number, covering: number): number {
+    return this.handle.floor_edit_preview(x, y, covering);
+  }
+
+  /** Stages laying a covering on a tile, or 0 to take one away ([FL-command]). */
+  setFloor(x: number, y: number, covering: number): boolean {
+    return this.handle.set_floor(x, y, covering);
+  }
+
+  /** The last floor change a drain handled, or null before the first. */
+  lastFloorEditResult(): { x: number; y: number; covering: number; reason: number } | null {
+    const row = this.handle.last_floor_edit_result();
+    return row.length === 4
+      ? { x: row[0], y: row[1], covering: row[2], reason: row[3] }
+      : null;
   }
 
   /** Undefined is legacy architecture; an empty array is an open edge layout. */
@@ -743,10 +1166,16 @@ export class SimBridge {
     return sim === '' ? this.objectName(entityIndex) : sim;
   }
 
-  /** Authored object name, or an empty string when the entity is not furniture. */
+  /** Primary object type or legacy name; empty when the entity is not furniture. */
   objectName(entityIndex: number): string {
     if (!isU32(entityIndex)) return '';
     return this.handle.object_name_of(entityIndex);
+  }
+
+  objectDetails(entityIndex: number): import('./ui/object-identity.js').ObjectDetails | undefined {
+    if (!isU32(entityIndex)) return undefined;
+    const values = this.handle.object_details_of(entityIndex);
+    return values.length === 2 ? { modelName: values[0], description: values[1] } : undefined;
   }
 
   /**
@@ -881,6 +1310,57 @@ export class SimBridge {
   /** "disposition" | "capability" | "condition" per pack trait, aligned with traitLabels. */
   traitKinds(): string[] {
     return this.handle.trait_kinds();
+  }
+
+  /** One plain sentence per pack trait, aligned with traitLabels - [TL-panel]. */
+  traitDescriptions(): string[] {
+    return this.handle.trait_descriptions();
+  }
+
+  /** The front door's line as an `[x, y]` pair, or empty ([WB-draw]). */
+  frontDoorLines(): Uint32Array {
+    return Uint32Array.from(this.handle.front_door_lines());
+  }
+
+  /** `[interior shade at noon, exposure lost per tile]` ([OS-daylight]). */
+  daylightTuning(): [number, number] {
+    const [shade, reach] = this.handle.daylight_tuning();
+    return [shade, reach];
+  }
+
+  /** Each personality's name, in pack order ([CS-command] in `docs/specs/2026-09-22-create-a-sim.md`). */
+  personalityLabels(): string[] {
+    return this.handle.personality_labels();
+  }
+
+  /** What each personality is like, aligned with `personalityLabels` ([CS-personality]). */
+  personalityDescriptions(): string[] {
+    return this.handle.personality_descriptions();
+  }
+
+  /** `[size, most]`: how many live here and the most that may ([CS-command]). */
+  householdSize(): [number, number] {
+    const [size, most] = this.handle.household_size();
+    return [size, most];
+  }
+
+  /** `[nameChars, traits]`: the most characters a newcomer's name may have, and the most traits. */
+  housemateLimits(): [number, number] {
+    const [nameChars, traits] = this.handle.housemate_limits();
+    return [nameChars, traits];
+  }
+
+  /** Stages a move-in ([CS-command]); queue acceptance only, read the outcome from `lastHousemateResult`. */
+  addHousemate(name: string, personality: number, traits: readonly number[]): boolean {
+    return this.handle.add_housemate(name, personality, Float64Array.from(traits));
+  }
+
+  /** The drain's answer to the last move-in, or null before the first. */
+  lastHousemateResult(): HousemateResult | null {
+    const values = this.handle.last_housemate_result();
+    return values.length === 0 ? null
+      : { reason: housemateReason(values[0]), sim: values[1] === 0xffffffff ? null : values[1],
+        handled: values[2] };
   }
 
   /**

@@ -75,6 +75,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | Term | Means |
 | --- | --- |
 | **HUD** | The always-visible controls and status panels over the game: household time and funds, household roster, the selected person's needs and activity, speed, save controls, and Help. |
+| **housemate, new** | A person the player adds to the household during play from the New housemate form: named, given a personality and up to four traits, arriving from the street ([CS-slice-housemate]). Made by the same spawn as the shipped household, so they save and behave like anyone else. |
 | **household roster** | The Household row of named buttons used to select a person. Its order follows stable household identity, and it reconciles those identities after Load rather than trusting replaceable entity indices. |
 | **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
 | **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |
@@ -87,7 +88,9 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **keyboard target** | The world person or object chosen with arrow keys while the game view is focused. Space selects a person; Enter opens that target's action menu. |
 | **Help** | The persistent copy of the first-run control guide. Closing it is remembered in browser preferences, separately from the game save. |
 | **needs panel** | The collapsible panel named for the selected person. On a narrow screen it starts folded so controls do not cover most of the house. |
-| **Light: auto / Light: flat** | Auto follows the simulation clock and shows local lamp and television pools. Flat uses neutral daylight and removes local pools. The choice is a browser preference rather than game state. Reduced motion temporarily forces Flat without overwriting the saved choice. |
+| **Options flyout** | The panel under the gear at the window's top right. It holds Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help ([OF3]). Opening it pauses nothing; Escape or a press outside closes it. |
+| **sky exposure** | How much open sky a tile sees, from 1 in the yard down to 0 deep inside the house ([OS-daylight]). It falls by `daylight_reach_per_tile` for each step in from the yard, passes every doorway, whether or not a door stands in it, and stops at walls. By day the shader dims a tile by `interior_daylight_shade` times what it lacks, scaled by how strong the sun is; at night and in flat light it changes nothing. It is drawing only and never enters the simulation or the save. |
+| **Light: auto / Light: flat** | In the Options flyout. Auto follows the simulation clock and shows local lamp and television pools. Flat uses neutral daylight and removes local pools. The choice is a browser preference rather than game state. Reduced motion temporarily forces Flat without overwriting the saved choice. |
 
 ## Habituation - "not that again"
 
@@ -152,6 +155,10 @@ kinds, each doing exactly one thing:
 | --- | --- |
 | **fumble** | A failed capability roll, live on the current attempt. The meal happens; it just does not feed anybody. |
 | **level** / **severity** | The mutable number the overlay prints beside a capability / condition. |
+| **trait library** | All fifteen traits in `content/traits.toml`. It is append-only: a sim's traits are stored as positions in this list, so a new trait goes at the end. Four of the fifteen are worn by nobody yet and wait for Create-a-sim. |
+| **affinity verb** | The word a disposition trait's sentence opens with: Loves, Likes, Dislikes or Hates, chosen by its score multiplier against the two lines in `tuning.toml` ([TL-affinity]). The compiler refuses a sentence with the wrong one. |
+| **Traits panel** | The list under the need bars for the selected person. Each row is the trait's label, one sentence saying what it does, and for a capability **Skill** or for a condition **Severity** as a whole percentage. A disposition has no number. Hidden while nobody is selected. |
+| **Skill** / **Severity** | What the Traits panel calls a capability's level and a condition's severity, as 0 to 100%. Skill rises each time the person finishes an attempt, pass or fail; an attempt that is interrupted teaches nothing. Severity falls each time the person finishes the activity that manages the condition. |
 
 ## Career
 
@@ -184,11 +191,27 @@ table. Authored in `content/chains.toml`.
 
 | Term | Means |
 | --- | --- |
-| **lot** | The house and everything on it (`content/lot.toml`). Currently 16x12 tiles, five rooms. |
+| **lot** | The house, its yard and everything on them (`content/lot.toml`). Currently 20x16 tiles: a 16x12 house of five rooms in its north-west corner. |
+| **house** | The lot's rectangle of indoor floor, from its north-west corner. Every tile outside it is **yard**. |
+| **yard** | A lot tile outside the house: walkable floor to the simulation, drawn green until there is grass art. The house's walls facing the yard are cut away in the view, as its front sides always were. |
+| **street** | The lot's last column across the yard from the front door, drawn grey until there is street art. Its **exit**, the tile in the door's row, is where a worker leaves for work and comes back; nothing may be built there. |
 | **placement** | One object standing at one position. Several placements can share an object definition (two chairs, one `chair`). |
 | **footprint** | How many tiles an object occupies. A 2x1 bed blocks two tiles, and nothing may overlap it. |
 | **facing** | Which of the kit's four pre-rendered directions a placement is drawn with. Presentation only - the simulation neither knows nor cares which way a counter faces. |
-| **doorway** | A GAP in a wall run. There is no door object; a tile is either passable or it is not. |
+| **doorway** | A passable segment of a wall, recorded as its own line so it draws as a frame. A doorway on a vertical line holds a **door**. |
+| **family tie** | What one household member is to another: partner, parent, child or sibling. Chosen when somebody moves in, saved with the house, and shown beside the feeling in the relationship list. One stored fact per pair, read from either end, so a parent one way is a child the other. Nothing in the simulation behaves differently for it yet. |
+| **floor covering** | What the player has laid on a tile with the Floors tool: Boards, Tiles or Carpet, or nothing, which leaves the tile drawn by where it is. It changes how the tile is drawn and nothing else: nobody walks differently on carpet. Saved per painted tile. |
+| **window** | A wall line nobody walks through and the day comes through: it stops people exactly as a wall does, passes **sky exposure** as a doorway does, and stops a lamp's pool as a wall does. Fitted with Window in the Walls tool. Drawn as the wall panel it stands in, washed pale blue, until there is window art. The front door's line never becomes one. |
+| **line** | In the Walls tool, the boundary between two neighbouring floor tiles. Each line is open, a wall, a doorway or a **window**. The outside edge of the lot is not a line the tool can change, and the front door's line never becomes a wall or a window. |
+| **door** | A hinged door standing in a doorway, which swings open as a sim walks through and closes behind them. Every doorway on a vertical line has one when the lot's front door has art for a vertical line, as the shipped lot's does, and it is drawn with that art; doorways on horizontal lines stay open frames until their art exists. A door blocks nobody and is not saved: it follows from the walls. |
+| **retired index** | An entity index a sale took out of use. The sold object is despawned without freeing its index, so no later spawn can take it; the V4 save lists every retired index so a Load keeps them out of use too. |
+| **colourway** | A colour shift the game can draw a placed object in: its hues turned, its colours made stronger or weaker, its lightness shifted, with the colour of ink, metal and white left alone. Chosen in the Furniture tool's Colour list and saved with the game; the first colourway is the art as drawn. [RC-shift] in `docs/specs/2026-09-22-colourways.md`. |
+| **Room tool** | Build mode's fourth tool. The player chooses two opposite corner tiles and, if they like, a line of the outline as the doorway, and Build room walls the whole outline in one edit. The whole room is refused or built together. |
+| **outline** | In the Room tool, the lines on the edge of the chosen rectangle of tiles that are inside the lot. Lines on the lot's own edge are the outside wall and are left alone. |
+| **price** | What an object costs in the Buy tool, in Funds (`price` in `content/objects.toml`). An object with no price is not for sale. A save stores Funds, never prices. |
+| **catalogue** | Everything with a price, listed by name in the Buy tool. Items the household cannot afford are greyed out. |
+| **Buy tool** | Build mode's third tool. The player chooses from the catalogue, points at the floor, turns the ghost and presses Buy. A purchase is refused where a move would be, and when Funds are short of the price; the status line says which. |
+| **Walls tool** | Build mode's second tool. The player picks a line and presses Wall, Doorway or Remove. A wall is refused if it would cut through furniture, stand on a person, come between a person and what they are using, or cut part of the house off; the status line says which. |
 
 ## Under the hood
 
@@ -258,6 +281,8 @@ meets gets an entry, and a design paper is where you meet these.
 | **OFL** | The SIL Open Font License. Permits embedding and commercial use, including self-hosting a font in the web build. |
 
 ## Naming rules this project follows
+
+For objects using the new identity fields, **type** is the plain primary identification, such as Washing machine; **model name** identifies the particular product, such as Perpetual Cycle; **description** supplies optional context and flavor text. The first slice covers the washing machine, armchair, and dining table. Menu and shop behavior is documented in [object identity](specs/2026-09-22-object-identity.md).
 
 Added the same day the glossary was, after `wears:` and `standing:`
 shipped and neither meant anything to a reader:

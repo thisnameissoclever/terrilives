@@ -34,8 +34,9 @@ error line.
   resets every player's sound, lighting and help settings;
 - the save fingerprint seeds in `terri-data`: renaming them invalidates every
   existing save;
-- the save file `terri-save-1.bin` and its two backups,
-  `terri-save-1.v1-backup.bin` and `terri-save-1.v2-backup.bin`: the game opens
+- the save file `terri-save-1.bin` and its four backups,
+  `terri-save-1.v1-backup.bin`, `terri-save-1.v2-backup.bin`,
+  `terri-save-1.v3-backup.bin` and `terri-save-1.v4-backup.bin`: the game opens
   saves only under these names, so renaming them leaves every existing save
   unfound. At startup the player would see "No save yet" and a new household,
   while the old save stayed on disk unseen;
@@ -91,6 +92,134 @@ for you to veto.
 
 Cheap to start and easy to stop - and until it happens, the alpha is
 complete but voiceless.
+
+### [T-interior-door-art] Hinged doors for the Walls tool `[YOURS]`
+
+The Walls tool (PR 95) makes doorways: gaps in a wall that draw as a frame.
+Doorways on vertical lines now hold a hinged door that opens as a sim walks
+through, drawn with the front door's art as a stand-in, because that art fits
+that direction. Doorways on horizontal lines stay empty frames: there is no
+art for that direction, and mirroring the front door lights it from the wrong
+side. What is needed: a frame and a leaf in open, ajar and closed states for
+the horizontal direction, and, if you want interior doors to look unlike the
+front door, the vertical direction too, matched to the existing wall art.
+Tell me whether to draft them with the generator for you to accept or reject,
+or whether you would rather supply them. Nothing is blocked meanwhile.
+
+### [T-family-simid] Family ties must key on the person, not the slot `[MINE]`
+
+A family tie names the two people by entity index. Every other per-pair state
+keys on the SimId, because an index is reused once its entity is gone and a
+tie that silently transferred to whoever took that slot would be the same
+class of bug as [L47]. It is safe in this build: nobody can move out or die,
+sold indices are retired rather than handed out again, and a load rebuilds
+every index exactly. It stops being safe the moment somebody can leave, and
+relatives outside the household need a tie to outlive the house anyway. So
+this changes before either of those slices, and changing it then means
+migrating any save that carries ties. Mine to do, not yours; it is here so it
+is visible rather than only in a code comment.
+
+### [T-subobject-art] Parts that need their own depth `[YOURS]`
+
+An object drawn as one sprite sits at one depth, so a sim can never stand
+between its front and its back. The bunk bed is the shipped exception: its
+upper mattress, posts, rail and ladder are a second authored piece the
+renderer draws over the body, and the contract for that is done and used.
+What is missing is the art for the next ones. The two worth doing first are
+the television, whose screen should sit in front of a sim watching it, and the
+fridge, whose door should. Each needs its body and its front piece drawn
+separately, in each direction the object supports. This is the whole of what
+is left in [B-facing]; the mechanism needs no further work, and each new split
+costs one instance. Tell me whether to draft them with the generator for you
+to accept or reject, or whether you would rather supply them.
+
+### [T-floor-art] Floors that look like floors `[YOURS]`
+
+The Floors tool lays a covering on a tile, and there is one floor sprite, so
+Boards, Tiles and Carpet are that sprite under three colour shifts: warmer and
+darker, cooler and paler, deeper and softer. They read as three shades of the
+same floor rather than as three materials. What is needed: floor art per
+covering, tiling cleanly across neighbouring tiles at the isometric angle the
+rest of the art uses, and ideally a name apiece that the tool can show. The
+covering list in `content/lot.toml` grows by appending, so new art is a
+content edit rather than a code change. Tell me whether to draft them with the
+generator for you to accept or reject, or whether you would rather supply
+them. Nothing is blocked meanwhile.
+
+### [T-window-art] Glazed wall panels for the Walls tool `[YOURS]`
+
+The Walls tool now fits windows: a line that stops people and lets the
+daylight through, so a back room brightens at noon instead of sitting dim.
+There is no window art, so a window draws as the wall panel it stands in,
+washed pale blue, which is the only thing telling a player which lines are
+glazed. What is needed: a wall panel with a glazed opening for the vertical
+line and one for the horizontal, matched to the existing wall art, and light
+enough that a window reads as a window at a glance rather than as a wall
+somebody tinted. Tell me whether to draft them with the generator for you to
+accept or reject, or whether you would rather supply them. Nothing is blocked
+meanwhile.
+
+### [T-recolour-palettes] Which colourways each object comes in `[YOURS]`
+
+The Buy mode bullet of M1 includes palette recolours. The Buy tool (PR 96)
+sells every object in the one colourway its art has. I will build the
+mechanism ([BM-slice-recolour] in `docs/specs/2026-09-21-buy-mode.md`): a
+colourway per placed object that the renderer applies to the existing art,
+with a few plain placeholder palettes taken from the approved one. Which
+colourways each object should really come in, and what to call them, is
+yours. Nothing is blocked meanwhile.
+
+Built on branch `twcl/colourways`: the art has no palette to map, so a
+colourway turns an object's hues, scales how strongly its colours show and
+shifts its lightness, leaving the colour of ink, metal and white alone. The
+placeholders are declared at the end of `content/objects.toml` and named for
+what they do, since a turn changes each object differently: As drawn, Colour
+2, Colour 3, Muted and Rich. Every object takes every colourway for now. Tell
+me the colourways you want, by name and by eye, and whether some objects
+should offer fewer. Renaming a colourway keeps saves as they are; an object
+saved in a colourway whose id is retired or renamed loads as drawn.
+
+### [T-yard-art] Grass, and the house seen from its yard `[YOURS]`
+
+The house now stands in a yard ([OS-slice-yard] in
+`docs/specs/2026-09-22-the-outside.md`). With no grass art, a yard tile is the
+floor tile turned green by the same colour shift a colourway uses, so it still
+shows the floor's diamond pattern. The house's east and south walls are cut
+away, as its front sides always were, so from the yard the house has no
+outside face. What is needed: a grass tile, and whatever you want the house to
+show where its front walls are cut away (a low wall, or a skirting line). The
+street along the lot's edge ([OS-street]) is the floor tile turned grey, and a
+worker vanishes on it; street art, and a way to show someone walking off along
+it, are wanted too. Later slices will want a path and a fence along the yard's
+edge. One thing to know first: the exercise bike's art assumes nothing is
+drawn on the house's south wall beside it (`bike_wall_panels` in
+`assets/models/sims/sim-01/export_exercise.py`), so low wall art there means
+re-exporting the bike. Tell me
+whether to draft them with the generator for you to accept or reject, or
+whether you would rather supply them. Nothing is blocked meanwhile.
+
+### [T-trait-copy] The twelve new traits need your words `[YOURS]`
+
+The trait library grew from three traits to fifteen (PR 87), and every trait
+now shows a label and one sentence in the selected person's panel. I wrote all
+of it as plain functional copy: "Bookworm", "Likes reading." On 2026-09-22 you
+asked for the dispositions to say likes, loves, dislikes or hates instead of
+"more drawn to", and they now do, with the compiler holding each verb to the
+trait's number ([TL-affinity]); the rest of the voice pass is still yours. The three
+conditions (Low spirits, Isolated, Cooped up) are played straight, as [S4]
+asks. The last two avoid words the game already uses: "Lonely" is what a low
+social need says in the Mood panel, and "Restless" is the engine's own word for
+a sim that found nothing worth doing.
+
+All of it lives in `content/traits.toml` and none of it is in a save, so
+rewording costs nothing. It belongs in the [T22] voice session.
+
+One decision sits beside it. **A household loaded from an older save keeps
+exactly the traits it was saved with**, one each, and only a new game gets the
+fuller household. I chose that because a load that changes what you saved is a
+bigger promise than I should make on my own. If you would rather old
+households gain the new traits on load, say so and I will build it as its own
+change.
 
 ### [T23] Verdict: should the sim with a job out-earn the one without? `[YOURS]`
 
@@ -419,3 +548,18 @@ This removes the missing-residential-pack objection from [T7]. Before any
 purchase, test representative Town and SIMPLE House Interiors FBX assets
 together in the real renderer for style, scale, conversion quality, and the
 interaction and footprint work the raw assets do not provide.
+
+### [T-sim-looks] Newcomers all wear the same shirt `[YOURS]`
+
+A new housemate ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`) looks like everyone else: a person's shirt is picked from their sim id, and only three shirts exist, so every newcomer after the shipped three wears the green one. A real character creator needs faces, hair, bodies and clothes to choose from ([CS-slice-looks]). Tell me whether to draft looks with the generator for you to accept or reject, or whether you would rather supply them. Nothing is blocked meanwhile.
+
+### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
+
+Selling furniture refuses to sell the last object that can fill a role a
+chain needs, such as the shipped house's only stove, the only hob Cook dinner
+can use: "Nothing else in the house can do its job." Without that, sims part
+way through cooking would wait for the stove forever and go hungry. The other
+choice is to let the sale go through and have sims give up the meal and the
+chain stop being offered until a new stove is bought. The refusal is what the
+game does now; tell me if you would rather have the other behaviour. Nothing is
+blocked meanwhile.

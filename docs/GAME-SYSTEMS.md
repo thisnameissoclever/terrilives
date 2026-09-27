@@ -27,10 +27,10 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-skills] | Skills | Foundation only | 5% |
 | [S-pets] | Pets as full characters | Not started | 0% |
 | [S-household-events] | Random household events and messes | Not started | 0% |
-| [S-money] | Money: deep earning and spending | Foundation only | 5% |
+| [S-money] | Money: deep earning and spending | Partial | 10% |
 | [S-catalogue] | Furniture and visual asset volume | Partial | 15% |
 | [S-household-size] | More people in the house | Partial | 35% |
-| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 20% |
+| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 40% |
 
 ### Systems the owner added in a second round on 2026-09-21
 
@@ -49,13 +49,13 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 
 | ID | System | Status | Built |
 |---|---|---|---|
-| [S-traits] | Traits | Partial | 40% |
+| [S-traits] | Traits | Substantial | 85% |
 | [S-moods] | Moods and moodlets | Substantial | 60% |
 | [S-chains] | Multi-step activities | Partial | 50% |
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | 45% |
 | [S-family] | Family relationships and kinship | Not started | 0% |
 | [S-careers] | Jobs and careers, with player-directed career paths | Partial | 15% |
-| [S-create-a-sim] | Create-a-sim and appearance | Not started | 0% |
+| [S-create-a-sim] | Create-a-sim and appearance | Partial | 25% |
 | [S-life-stages] | Life stages and aging | Not started | 0% |
 | [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | 0% |
 | [S-death] | Death and its consequences | Not started | 0% |
@@ -140,7 +140,7 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 **Status: Foundation only, about 5%.**
 
-**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. The normal HUD never shows the number; only the developer debug panel does.
+**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. Three of them exist as of PR 87: cooking, exercise and reading. The selected person's Traits panel shows each one's number as "Skill" and a percentage.
 
 **What is missing.** A list of skills defined in content. A level and progress value per person per skill. Skill gain from doing tagged actions, with a tunable curve. A skills panel in the HUD.
 
@@ -188,11 +188,11 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 ### [S-money] Money: deep earning and spending
 
-**Status: Foundation only, about 5%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
+**Status: Partial, about 10%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it. Since PR 96 the household has something to spend on.
 
-**What exists.** The household has one shared Funds number. It is saved and shown in the HUD. Exactly one thing changes it: Tim's office job pays 120 at the end of each shift. Nothing in the game costs money. A comment in the career content says so directly: the number is a score until there is something to buy.
+**What exists.** The household has one shared Funds number. It is saved and shown in the HUD. Two things change it: Tim's office job pays 120 at the end of each shift, and the Buy tool takes an object's price when the household buys it. Nothing else costs money yet.
 
-**What is missing.** A price on every object. Charging for purchases and refunding for sales, which arrives with buy mode in [S-build]. Costs for walls, floors, and lot expansion.
+**What is missing.** Refunds for sales, which arrive with selling in [S-build]. Costs for walls, floors, and lot expansion. Since PR 96 every object has a price in `content/objects.toml` and the Buy tool charges it.
 
 Recurring costs: rent or a mortgage, utility bills that scale with the house and what runs in it, groceries, and pet food and vet fees. Consequences for not paying, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
 
@@ -232,7 +232,7 @@ Walls, floors, doors, and windows as selectable styles. Recolours of existing ob
 
 **What exists.** The content format accepts up to six household members and rejects a seventh. The roster, the people panel, and the save format all handle six. The shipped household has three people, Tim, Bill, and Casey, and all three share one face, hairstyle, and body and differ only by shirt colour.
 
-**What is missing.** A way to add a person during play: a new housemate, a partner moving in, a baby, or an adopted child. A way for a person to leave. Both need [F-entity-lifecycle].
+**What is missing.** A new housemate can move in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`); a partner moving in, a baby, or an adopted child cannot yet. A way for a person to leave ([CS-slice-move-out]). Both need [F-entity-lifecycle].
 
 A larger household also needs a larger house, so that six people are not queueing for one bathroom. That ties this entry to [S-build]. More people need to look different from each other, which ties it to [S-create-a-sim]. Whether six is the right ceiling is an open design question; performance is not the limit, since the engine has been measured with a thousand characters on screen.
 
@@ -240,17 +240,17 @@ A larger household also needs a larger house, so that six people are not queuein
 
 ### [S-build] Build mode: buying, walls, rooms, and a bigger house
 
-**Status: Partial, about 20%.**
+**Status: Partial, about 40%.**
 
-**What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
+**What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
 
 **What is missing, in a sensible order.**
 
-1. Buy mode: a catalogue panel, placing a new object, deleting or selling an object, and charging Funds for it.
-2. A wall tool: draw and delete walls, place and move doors, with the same checks that every room stays reachable.
+1. ~~Buy mode: a catalogue panel, placing a new object, and charging Funds for it.~~ Done in PR 96. Still open: selling an object back ([BM-slice-sell] in `docs/specs/2026-09-21-buy-mode.md`), and recolours, which need art.
+2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. A whole room outline in one edit is built too, with its doorway ([RT-slice-room]). Still open: hinged doors that need art.
 3. Floor and wall coverings per room or per tile.
 4. Windows, which also affect the lighting already in the game.
-5. A larger lot. The lot is 16 by 12 tiles and cannot change. This needs a lot-resize operation or a set of lot sizes to choose from.
+5. A larger lot. The lot is 20 by 16 tiles on branch `twcl/the-yard`: the 16 by 12 house stands in a yard on its east and south sides, where the player can buy furniture and build ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`). Lots of other sizes remain open.
 6. Multiple floors, with stairs. Pathfinding, rendering, and the camera all assume one floor today, so this is the most expensive item on the list.
 7. Roofs and exterior walls, which belong with [S-outside].
 8. Undo and redo in build mode.
@@ -349,7 +349,7 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-traits] Traits
 
-**Status: Partial, about 40%.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. One trait of each kind exists. The plan calls for about fifteen. The remaining work is mostly content, plus the owner's voice pass on the names.
+**Status: Substantial, about 85%.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. Fifteen traits exist as of PR 87: nine preferences, three competences and three conditions. Each household member has three or four, and the selected person's panel lists them with one sentence each and a percentage for a competence or a severity. Four of the fifteen belong to nobody yet. The remaining work is the owner's voice pass on the names and sentences ([T-trait-copy] in TIM-TODO.md), choosing traits when a person is created ([S-create-a-sim]), and rolling traits for people the game spawns by itself.
 
 ### [S-moods] Moods and moodlets
 
@@ -402,7 +402,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
-**Status: Not started, 0%.** Every person uses one approved face, hairstyle, and body. The household is authored in a content file. There is no screen for making a person, and no body, face, hair, or clothing options to choose from. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
+**Status: Partial, about 25%.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
 
 ### [S-life-stages] Life stages and aging
 
@@ -418,7 +418,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-outside] A playable outside
 
-**Status: Not started, 0%.** The house is an interior with nothing around it. The front door is where a worker disappears. `[B-outside]` in [FEATURES.md](FEATURES.md) plans a yard, a street, exterior walls, roofs, and outdoor lighting. Dog walking, visitors arriving, gardening, and neighbours all need it.
+**Status: Started, about 20%.** On branch `twcl/the-yard` the house stands in a yard that sims walk out into through the front door ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`), and on branch `twcl/the-street` a worker walks out across the yard to a street along the lot's edge to leave for work ([OS-slice-street]). `[B-outside]` in [FEATURES.md](FEATURES.md) plans exterior walls, roofs, and outdoor lighting next. Dog walking, visitors arriving, gardening, and neighbours all need it.
 
 ### [S-emergencies] Fires, emergencies, and disasters
 

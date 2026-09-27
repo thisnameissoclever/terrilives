@@ -183,6 +183,35 @@ mod tests {
     use terri_core::{SmartObject, NEED_MAX};
     use terri_data::{CompiledTrait, ContentPack};
 
+    /// A condition's label is projected as a moodlet, in the same list as
+    /// the need moodlets. A trait called "Lonely" would put two rows reading
+    /// "Lonely" in one person's Mood panel, with different scores and no way
+    /// to tell them apart. Every trait is checked and not only conditions,
+    /// because the Traits panel and the Mood panel sit in the same sheet.
+    #[test]
+    fn no_trait_label_repeats_a_need_moodlet() {
+        let mut taken: Vec<&str> = vec!["Needs met"];
+        for need in NeedId::ALL {
+            let (low, critical) = need_labels(need);
+            taken.extend([low, critical]);
+        }
+        assert_eq!(
+            taken.len(),
+            15,
+            "seven needs, two labels each, and the all-clear"
+        );
+        for trait_def in &terri_data::pack().traits {
+            assert!(
+                !taken
+                    .iter()
+                    .any(|label| label.eq_ignore_ascii_case(trait_def.label.trim())),
+                "trait '{}' is labelled '{}', which the Mood panel already uses for a need",
+                trait_def.id,
+                trait_def.label
+            );
+        }
+    }
+
     fn subject(sim: &mut Sim, needs: Needs) -> Entity {
         sim.world_mut()
             .spawn((Agent, Position { x: 1.0, y: 1.0 }, needs))
@@ -204,6 +233,7 @@ mod tests {
                 manage_per_completion: 0.01,
                 start_severity: 0.5,
             },
+            description: String::new(),
         }
     }
 
@@ -217,6 +247,7 @@ mod tests {
                 fail_delta_scale: 0.0,
                 learn_per_attempt: 0.01,
             },
+            description: String::new(),
         }
     }
 
@@ -228,6 +259,7 @@ mod tests {
             kind: CompiledTraitKind::Disposition {
                 score_multiplier: 1.5,
             },
+            description: String::new(),
         }
     }
 

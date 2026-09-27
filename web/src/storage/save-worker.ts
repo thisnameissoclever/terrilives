@@ -15,6 +15,12 @@ import { saveSchemaVersion } from './save-header.js';
 const SAVE_FILE = 'terri-save-1.bin';
 const V1_BACKUP_FILE = 'terri-save-1.v1-backup.bin';
 const V2_BACKUP_FILE = 'terri-save-1.v2-backup.bin';
+const V3_BACKUP_FILE = 'terri-save-1.v3-backup.bin';
+const V4_BACKUP_FILE = 'terri-save-1.v4-backup.bin';
+/** The recovery file for each older version a V5 write may replace. */
+const HISTORICAL_BACKUP_FILES: Readonly<Record<number, string>> = {
+  1: V1_BACKUP_FILE, 2: V2_BACKUP_FILE, 3: V3_BACKUP_FILE, 4: V4_BACKUP_FILE,
+};
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
@@ -99,22 +105,27 @@ async function read(
   }
 }
 
-/** Guard every V3 write and preserve original historical wire bytes. */
+/**
+ * Guard every V5 write and preserve original historical wire bytes: the first
+ * V5 write over a V1, V2, V3 or V4 slot keeps that slot's bytes in a recovery
+ * backup. The game never loads a backup by itself; it is kept for deliberate
+ * recovery ([RC-save] in docs/specs/2026-09-22-colourways.md).
+ */
 async function preserveHistoricalBackup(
   root: FileSystemDirectoryHandle,
   next: ArrayBuffer,
 ): Promise<void> {
-  if (saveSchemaVersion(new Uint8Array(next)) !== 3) {
-    throw new Error('Only current V3 saves can be written. Saved data has not been changed.');
+  if (saveSchemaVersion(new Uint8Array(next)) !== 5) {
+    throw new Error('Only current V5 saves can be written. Saved data has not been changed.');
   }
   const previous = await read(root);
   if (previous === null) return;
   const previousVersion = saveSchemaVersion(new Uint8Array(previous));
-  if (previousVersion !== 1 && previousVersion !== 2 && previousVersion !== 3) {
+  if (previousVersion === 5) return;
+  const backupFile = previousVersion === null ? undefined : HISTORICAL_BACKUP_FILES[previousVersion];
+  if (backupFile === undefined) {
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');
   }
-  if (previousVersion === 3) return;
-  const backupFile = previousVersion === 1 ? V1_BACKUP_FILE : V2_BACKUP_FILE;
   const existingBackup = await read(root, backupFile);
   if (existingBackup !== null) {
     if (saveSchemaVersion(new Uint8Array(existingBackup)) !== previousVersion) {

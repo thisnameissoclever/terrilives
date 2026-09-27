@@ -276,6 +276,12 @@ impl IntentQueue {
         self.0.contains(&intent)
     }
 
+    /// Whether any queued intent names `object`, whatever it asks of it.
+    /// What a sale asks before it removes the object ([SL-rules]).
+    pub fn names(&self, object: Entity) -> bool {
+        self.0.iter().any(|queued| queued.object == object)
+    }
+
     /// Removes the first queued copy of `intent`, wherever it sits, and
     /// says whether there was one. What a completed directed action pops:
     /// the order it carried out, not whatever happens to be at the front.
@@ -693,6 +699,13 @@ pub struct SpriteVariant(pub u32);
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObjectFacing(pub crate::Facing);
 
+/// The colourway a placed object is drawn in, an index into the content
+/// pack's colourways - [RC-command] in `docs/specs/2026-09-22-colourways.md`.
+/// An absent component is the first, the art as drawn; the component is
+/// never stored holding the first. Saved and in the world hash.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Colourway(pub u32);
+
 /// A sim's stable identity - [H1] in
 /// `docs/specs/2026-07-30-household-and-relationships-design.md`.
 ///
@@ -731,6 +744,13 @@ impl SimIdAllocator {
     /// How many have been issued, for the save file and for tests.
     pub fn issued(&self) -> u32 {
         self.0
+    }
+
+    /// An allocator that has already issued `count` identities, as a Load
+    /// restores it: the next `issue` returns `SimId(count)`. Constant time,
+    /// so restoring a saved count costs nothing whatever its size.
+    pub fn resumed(count: u32) -> Self {
+        Self(count)
     }
 }
 
@@ -1154,6 +1174,23 @@ mod identity_tests {
         assert_eq!(allocator.issue(), SimId(1));
         assert_eq!(allocator.issue(), SimId(2));
         assert_eq!(allocator.issued(), 3);
+    }
+
+    /// A Load restores the allocator from its saved count. Resuming at a
+    /// count is the same allocator as issuing that many, up to `u32::MAX`.
+    /// That it takes constant time is guarded by the mutation sweep's
+    /// timeout, not by this test.
+    #[test]
+    fn a_resumed_allocator_matches_one_that_issued_as_many() {
+        let mut issued = SimIdAllocator::default();
+        for _ in 0..3 {
+            issued.issue();
+        }
+        let mut resumed = SimIdAllocator::resumed(3);
+        assert_eq!(resumed.issued(), 3);
+        assert_eq!(resumed.issue(), issued.issue());
+        assert_eq!(SimIdAllocator::resumed(0).issued(), 0);
+        assert_eq!(SimIdAllocator::resumed(u32::MAX).issued(), u32::MAX);
     }
 
     #[test]

@@ -42,6 +42,12 @@ distance-boundary behavior received regression tests instead.
 1. `sync_portals`, priority `>` to `>=`: the projection returns only the four
    declared states, and each has a distinct priority. Equal priority means
    the same state, so assigning it again cannot change the result.
+   **Removed from the baseline on 2026-09-21** with the interior doors, which
+   added a second copy of the loop. Both loops now take the strongest state
+   with `max_by_key`, which has no comparison to mutate, so the mutant is no
+   longer generated. `max_by_key` puts the weight on `priority` instead: a
+   deleted rank now changes which state wins, so each rank needs a test with
+   two sims asking different things of one door, in both orders.
 2. `sync_portals`, depth `*` to `/`: a cardinal outward normal has one zero
    coordinate and one coordinate equal to `1` or `-1`. Their sum is exactly
    `1` or `-1`; multiplying or dividing `0.5` by either produces the same
@@ -1631,3 +1637,24 @@ at three phases including the point's own tick.
 
 The empty arm stays, and is not equivalent: without it `points[0]`
 panics.
+
+## 2026-09-22: the test cap became a floor plus a multiple
+
+Every sweep recorded above ran with `--timeout 60`, one fixed cap. It is now
+`--timeout-multiplier 4 --minimum-test-timeout 120`, with a 120 minute bound on
+the job and a step that fails a shard whose sweep tested zero mutants. The
+commands above are kept as the records of the sweeps that produced each baseline
+entry rather than as the current invocation.
+
+The reason is in [L-mutant-cap-must-scale] in `docs/lessons-learned.md`. The cap
+was timing two different commands: a mutant is tested with `cargo test --workspace`,
+about 57 seconds on CI, while the unmutated baseline runs only the packages being
+mutated, from 0.4 seconds to over a minute. One number therefore sat just above
+the first and below the second. It turned eight mutants on PR 116 into reported
+hangs, including the two equivalent `rect_distance` clamps and the equivalent
+`from_seed` mutant proved above, and it aborted the sweep entirely on shards
+holding a `terri-sim` mutant, which then tested nothing and passed.
+
+Nothing about which mutants survive changed, and no baseline entry moved. What
+did change is that a shard now has to test something to pass, and that a
+`Timeout` line means the cap was hit rather than that a loop ran away.
