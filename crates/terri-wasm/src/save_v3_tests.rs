@@ -434,8 +434,14 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
     let floors = postcard::to_allocvec(&snapshot.floors).unwrap();
     assert_eq!(floors[..2], [0x80, 0x01], "128 is a two-byte length");
-    // The floors list, then the two empty family lists, end the payload.
-    let floors_start = payload.len() - 2 - floors.len();
+    // The floors list, then the two family lists, end the payload. Their
+    // sizes come from the snapshot, so the cut stays inside the floors
+    // length whatever family the lot ships with (review finding [H1]).
+    let family_bytes = postcard::to_allocvec(&snapshot.family).unwrap().len()
+        + postcard::to_allocvec(&snapshot.family_by_index)
+            .unwrap()
+            .len();
+    let floors_start = payload.len() - family_bytes - floors.len();
     let cut = &payload[..=floors_start];
     assert!(decode_v5(cut).is_none(), "cut inside the floors length");
 
@@ -461,7 +467,8 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     by_index.family_by_index = many;
     let payload = postcard::to_allocvec(&by_index).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
-    let start = payload.len() - 1 - length.len();
+    let after = postcard::to_allocvec(&by_index.family).unwrap().len();
+    let start = payload.len() - after - length.len();
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the entity-index list's length"

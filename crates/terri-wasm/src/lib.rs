@@ -265,6 +265,7 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     None
 }
 
+/// Decodes frozen V1, including only the historical missing sleep-pressure list.
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
     match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
         Ok((snapshot, rest)) => rest.is_empty().then_some(snapshot),
