@@ -437,5 +437,33 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     // The floors list, then the two empty family lists, end the payload.
     let floors_start = payload.len() - 2 - floors.len();
     let cut = &payload[..=floors_start];
-    assert!(decode_v5(cut).is_none());
+    assert!(decode_v5(cut).is_none(), "cut inside the floors length");
+
+    // Review finding [G1] on PR 134: the same cut inside either family
+    // list's length, which one and two pads would otherwise complete.
+    let ties: Vec<(u32, u32, u8)> = (0..128u32).map(|i| (0, i + 1, 0)).collect();
+    let many =
+        terri_core::layout::FamilyTies::from_saved(ties, &|_| true).expect("128 well-formed ties");
+    let length = postcard::to_allocvec(&many).unwrap();
+    assert_eq!(length[..2], [0x80, 0x01], "128 is a two-byte length");
+
+    let mut by_sim = handle.sim.save_snapshot_v5();
+    by_sim.family = many.clone();
+    let payload = postcard::to_allocvec(&by_sim).unwrap();
+    assert!(decode_v5(&payload).is_some(), "the whole save decodes");
+    let start = payload.len() - length.len();
+    assert!(
+        decode_v5(&payload[..=start]).is_none(),
+        "cut inside the SimId list's length"
+    );
+
+    let mut by_index = handle.sim.save_snapshot_v5();
+    by_index.family_by_index = many;
+    let payload = postcard::to_allocvec(&by_index).unwrap();
+    assert!(decode_v5(&payload).is_some(), "the whole save decodes");
+    let start = payload.len() - 1 - length.len();
+    assert!(
+        decode_v5(&payload[..=start]).is_none(),
+        "cut inside the entity-index list's length"
+    );
 }

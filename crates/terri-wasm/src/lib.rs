@@ -204,7 +204,6 @@ fn floor_edit_arguments(
     })
 }
 
-/// Decode frozen V1, including only the historical missing sleep-pressure list.
 /// Decodes a V5 payload, including one written before the lists appended to
 /// it existed - [FL-save] and [FM-save].
 ///
@@ -212,8 +211,10 @@ fn floor_edit_arguments(
 /// for the same reason: postcard writes a struct's fields back to back, so an
 /// older payload is a prefix of a newer one and one zero byte is each empty
 /// list it lacks. One pad per appended list, and a padded decode is accepted
-/// only when every list the padding could have filled comes back empty, so
-/// padding can never invent a floor nobody laid or a family nobody has.
+/// only when every list the padding could have filled comes back empty and
+/// the snapshot re-encodes to exactly the padded bytes, so padding can never
+/// invent a floor nobody laid or a family nobody has, nor complete a cut
+/// length into an empty list.
 ///
 /// Only a payload that ran OUT of bytes is padded. Any other failure means
 /// the bytes decoded into something else and stopped making sense, and
