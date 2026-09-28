@@ -60,6 +60,7 @@ pub(crate) fn restore_v5(
         retired_indices,
         object_colourways,
         floors,
+        family_by_index,
         family,
     } = snapshot;
     if object_colourways
@@ -122,10 +123,20 @@ pub(crate) fn restore_v5(
         .ok_or(SaveError::InvalidValue)?;
     candidate.world.insert_resource(floors);
     // [FM-save]: the ties, refused whole when one names somebody this world
-    // does not have. A save written before ties existed carries none.
-    let known = |index: u32| crate::family::is_sim(&candidate.world, index);
-    let family = terri_core::layout::FamilyTies::from_saved(family.ties().to_vec(), &known)
-        .ok_or(SaveError::InvalidValue)?;
+    // never had. A save written before ties existed carries none. One
+    // written by the first build with ties carries them keyed on entity
+    // index ([FM-identity]), which the rebuilt world turns into SimIds. No
+    // build writes both lists, so a save that has both was not written by
+    // one.
+    let family = match (family_by_index.ties().is_empty(), family.ties().is_empty()) {
+        (false, false) => None,
+        (false, true) => crate::family::from_index_ties(&candidate.world, &family_by_index),
+        (true, _) => {
+            let known = |id: u32| crate::family::was_issued(&candidate.world, id);
+            terri_core::layout::FamilyTies::from_saved(family.ties().to_vec(), &known)
+        }
+    }
+    .ok_or(SaveError::InvalidValue)?;
     candidate.world.insert_resource(family);
     Ok(candidate)
 }

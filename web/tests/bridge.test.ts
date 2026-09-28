@@ -850,12 +850,13 @@ describe('SimBridge', () => {
     // ([RC-save]). Change only that tag to EdgeWallsV1 (2). This fixture has
     // no entities or walls; it tests the distinction between undefined and
     // an empty list.
-    // The tail gained the empty floors and family lists ([FL-save], [FM-save]).
-    expect(Array.from(legacyCells.slice(-7))).toEqual([1, 0, 0, 0, 0, 0, 0]);
+    // The tail gained the empty floors list and the two empty family lists,
+    // by entity index and by SimId ([FL-save], [FM-save], [FM-identity]).
+    expect(Array.from(legacyCells.slice(-8))).toEqual([1, 0, 0, 0, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
-    // The layout tag sits two bytes further from the end than it did,
-    // because the floors and family lists were appended after it.
-    edgeBytes[edgeBytes.length - 7] = 2;
+    // The layout tag sits three bytes further from the end than it did,
+    // because those three lists were appended after it.
+    edgeBytes[edgeBytes.length - 8] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -872,16 +873,17 @@ describe('SimBridge', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
-    // The tail gained two bytes: the empty floors and family lists.
-    expect(Array.from(valid.slice(-7))).toEqual([1, 0, 0, 0, 0, 0, 0]);
+    // The tail gained three bytes: the empty floors and two family lists.
+    expect(Array.from(valid.slice(-8))).toEqual([1, 0, 0, 0, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
-    // Cutting one or two bytes takes off the empty family and floors lists,
-    // which is exactly a save written before they existed, so those load
-    // rather than being refused; every deeper truncation is still malformed.
-    const invalid = [valid.slice(0, -3), valid.slice(0, -4), valid.slice(0, valid.length / 2), trailing, future];
+    // Cutting one, two or three bytes takes off the empty family and floors
+    // lists, which is exactly a save written before they existed, so those
+    // load rather than being refused; every deeper truncation is still
+    // malformed.
+    const invalid = [valid.slice(0, -4), valid.slice(0, -5), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();

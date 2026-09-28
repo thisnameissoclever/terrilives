@@ -3615,3 +3615,13 @@ New housemate, then a name, then Next. The second page asked it plainly under th
 Review afterwards found the row was stating parent and child backwards, which this session's play could not have caught: the tie set here was a sibling, and a sibling reads the same from both sides. That is fixed, and the test that covered it had asserted the wrong answer.
 
 **Not proven here.** The fix was confirmed by setting a tie through the harness on a reloaded page rather than by moving a second person in, because the reload had already cleared the first one. Saving and reloading a household with a tie is covered by tests rather than by hand here. Nothing in the game yet behaves differently for family: a brother is a word on a row, not a reason to do anything.
+
+## [A-family-identity] Dana as Bill's parent, after ties moved to SimIds
+
+Played on 2026-09-28 on the port 5174 dev server serving branch `twcl/family-simid` with its WebAssembly rebuilt, in the desktop app's browser pane at 1024 by 768, on the household loaded from its save, with sound off. The pane was visible, so the page drew its own frames.
+
+New housemate, the name Dana, a personality, Next, then "parent" of Bill, then Move in. Dana arrived selected, and her row for Bill read "Bill, their child". Selecting Bill, his row for her read "Dana, their parent", and the rows with no tie read only a name and a feeling. This household is the one where the two numbering schemes disagree, so a panel still reading ties by entity index would have shown no tie at all. Save, then a reload of the page: "Saved game loaded", and Bill's row for Dana still read "Dana, their parent".
+
+A first attempt stalled: driving the `?stress=0` harness with a clock far ahead of the page's own, while the visible pane was also drawing frames, put the game's clock behind and nothing drained. Reloading and letting the page run its own frames fixed it.
+
+**Not proven here.** Loading a save written by the build that keyed ties on entity index was not done by hand, because this browser had no such save; the Rust tests build one byte for byte and load it. Nothing in the game behaves differently for family yet.
