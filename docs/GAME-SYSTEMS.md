@@ -92,7 +92,7 @@ Several requested systems need the same missing pieces. Building each piece once
 
 ### [F-entity-lifecycle] Adding and removing characters while the game runs
 
-**Status: Not started.** The household is fixed when a new game starts. The only way to add a character at runtime is a debug stress-test tool, and the character it creates has no name, personality, traits, or job.
+**Status: Partial.** A character can be added while the game runs: the New housemate form moves a named person in with a chosen personality and traits ([CS-slice-housemate]), and a debug stress-test tool can add bare characters with no name, personality, traits, or job.
 
 Nothing in the game can remove a character either. The code that handles object reservations records three places that will leak a reservation once removal exists. Pets, new housemates, visitors, babies, and death all depend on this piece.
 
