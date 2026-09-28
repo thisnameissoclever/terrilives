@@ -36,10 +36,20 @@ pub struct SaveSnapshotV5 {
     /// tail. A house nobody has painted costs one byte.
     #[serde(default)]
     pub floors: crate::layout::SavedFloors,
-    /// Who the household are to each other - [FM-save] in
-    /// `docs/specs/2026-09-22-family.md`. Appended last, after the floors,
-    /// for the same reason: an older payload is a prefix of a newer one, so
-    /// a save written before ties existed loads with nobody related.
+    /// Who the household were to each other, keyed on entity index, as the
+    /// first build with ties wrote it ([FM-identity]) - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Appended after the floors, for the
+    /// same reason: an older payload is a prefix of a newer one, so a save
+    /// written before ties existed loads with nobody related.
+    ///
+    /// **Read, never written.** A save now writes this empty and the ties
+    /// in `family` below; the loader turns a non-empty one into SimIds,
+    /// which it can because a load rebuilds every entity index exactly.
+    #[serde(default)]
+    pub family_by_index: crate::layout::FamilyTies,
+    /// Who the household are to each other, keyed on SimId - [FM-save].
+    /// Appended last, so a save written with the entity-index list above is
+    /// a prefix of this one and loads through it.
     #[serde(default)]
     pub family: crate::layout::FamilyTies,
 }

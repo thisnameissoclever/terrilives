@@ -9,7 +9,7 @@ export interface PeoplePanelSource extends HouseholdRosterSource {
   /** Interleaved [other SimId, feeling] pairs for one live entity. */
   relationshipsOf(entityIndex: number): Float32Array;
   /**
-   * Three words per family tie: the lower entity index, the higher, and the
+   * Three words per family tie: the lower SimId, the higher, and the
    * relation ([FM-save] in `docs/specs/2026-09-22-family.md`). Optional, so
    * a source written before ties existed still satisfies this.
    */
@@ -18,7 +18,7 @@ export interface PeoplePanelSource extends HouseholdRosterSource {
 
 export type RelationshipTone = 'negative' | 'neutral' | 'positive';
 
-/** What a tie between two entity indices says, from `who`'s side. */
+/** What a tie between two SimIds says, from `who`'s side. */
 export function tieBetween(
   ties: ArrayLike<number>,
   who: number,
@@ -28,7 +28,7 @@ export function tieBetween(
   for (let at = 0; at + 2 < ties.length; at += 3) {
     if (ties[at] !== low || ties[at + 1] !== high) continue;
     const stored = ties[at + 2];
-    // Stored from the lower index's side, so the higher reads the mirror:
+    // Stored from the lower SimId's side, so the higher reads the mirror:
     // a parent one way is a child the other ([FM-tie]).
     const seen = who === low ? stored : MIRRORED[stored] ?? stored;
     return relationWord(seen);
@@ -148,7 +148,7 @@ export function peoplePanelView(source: PeoplePanelSource): PeoplePanelView | nu
         // row reads: "Bill, their parent" means Bill is the parent. Review
         // finding [F2] on PR 131 had these the other way round, and partner
         // and sibling being their own mirror hid it.
-        tieBetween(ties, member.entity, selected.entity),
+        tieBetween(ties, member.simId, selected.simId),
       )),
   };
 }

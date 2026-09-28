@@ -210,17 +210,14 @@ impl Relation {
 }
 
 /// Who the household are to each other - [FM-save]. One entry per pair,
-/// stored from the lower entity index to the higher with the relation as the
-/// lower one sees it, so a parent and a child are one fact read from either
-/// end.
+/// stored from the lower SimId to the higher with the relation as the lower
+/// one sees it, so a parent and a child are one fact read from either end.
 ///
-/// **Keyed on the entity index today, and that is a debt, not a decision.**
-/// `Relationships` keys on SimId because an index is reused once its entity
-/// is gone ([L47]). No sim can leave or die yet, sold indices are retired
-/// rather than reused, and a load rebuilds every index exactly, so no tie
-/// can transfer to the wrong person in this build. It could the moment
-/// somebody can move out, which is why [T-family-simid] in
-/// `docs/TIM-TODO.md` says this must change before that slice.
+/// **Keyed on SimId, never on an entity index**, for the reason
+/// `Relationships` is: an index is reused once its entity is gone, and a tie
+/// that transferred to whoever took the slot next would be [L47] again. A
+/// SimId is never reused, so a tie also outlives the person being in the
+/// house, which death and relatives outside the household both need.
 #[derive(Resource, Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FamilyTies {
     ties: Vec<(u32, u32, u8)>,
@@ -285,8 +282,8 @@ impl FamilyTies {
         }
     }
 
-    /// The saved list, refused whole when a tie names somebody that is not
-    /// there, ties a sim to itself, repeats a pair, is out of order, or
+    /// The saved list, refused whole when a tie names somebody `known`
+    /// rejects, ties a sim to itself, repeats a pair, is out of order, or
     /// names a relation the game does not have ([FM-save]).
     pub fn from_saved(ties: Vec<(u32, u32, u8)>, known: &dyn Fn(u32) -> bool) -> Option<Self> {
         let mut previous: Option<(u32, u32)> = None;

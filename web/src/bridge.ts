@@ -864,15 +864,19 @@ export class SimBridge {
   }
 
   /**
-   * Three words per family tie: the lower entity index, the higher, and the
+   * Three words per family tie: the lower SimId, the higher, and the
    * relation the lower one is to the higher ([FM-save] in
-   * `docs/specs/2026-09-22-family.md`).
+   * `docs/specs/2026-09-22-family.md`). SimIds, not entity indices, so a
+   * tie never follows a reused slot ([FM-identity]).
    */
   familyTies(): Uint32Array {
     return this.handle.family_ties();
   }
 
-  /** Records a tie, or takes one away with `NO_RELATION` ([FM-tie]). */
+  /**
+   * Records a tie between the sims at two entity indices, or takes one away
+   * with `NO_RELATION` ([FM-tie]). The simulation stores it on their SimIds.
+   */
   setFamilyTie(who: number, to: number, relation: number): boolean {
     return this.handle.set_family_tie(who, to, relation);
   }

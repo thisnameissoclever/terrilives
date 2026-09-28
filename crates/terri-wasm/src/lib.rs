@@ -223,21 +223,27 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 2;
+    const APPENDED_LISTS: usize = 3;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
                 // Only the lists the padding could have filled must come
                 // back empty, and that is the LAST `pad` of them. One pad
-                // fills the family list alone, so a save written before
-                // ties existed keeps the floors its player painted. Asking
-                // every appended list to be empty at every pad level is how
-                // review finding [F1] on PR 131 refused those saves.
+                // fills the SimId family list alone, so a save written by
+                // the first build with ties keeps the ties it keyed on
+                // entity index ([FM-identity]), and two keep the floors a
+                // player painted before
+                // ties existed. Asking every appended list to be empty at
+                // every pad level is how review finding [F1] on PR 131
+                // refused those saves.
+                let family = snapshot.family.ties().len();
+                let by_index = snapshot.family_by_index.ties().len();
                 let invented = match pad {
                     0 => 0,
-                    1 => snapshot.family.ties().len(),
-                    _ => snapshot.family.ties().len() + snapshot.floors.tiles().len(),
+                    1 => family,
+                    2 => family + by_index,
+                    _ => family + by_index + snapshot.floors.tiles().len(),
                 };
                 return (invented == 0).then_some(snapshot);
             }
@@ -564,10 +570,11 @@ impl SimHandle {
             .collect()
     }
 
-    /// Three words per family tie: the lower entity index, the higher, and
-    /// the relation the lower one is to the higher - [FM-save] in
-    /// `docs/specs/2026-09-22-family.md`. Sorted, and empty for a household
-    /// of strangers.
+    /// Three words per family tie: the lower SimId, the higher, and the
+    /// relation the lower one is to the higher - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. SimIds rather than entity indices
+    /// because a tie outlives the slot ([FM-identity]); `sim_id_of` maps
+    /// a row to one. Sorted, and empty for a household of strangers.
     pub fn family_ties(&self) -> Vec<u32> {
         self.sim
             .world()
@@ -5701,15 +5708,21 @@ mod boundary_tests {
         assert!(sims.len() >= 2, "the shipped household has people in it");
         let (first, second) = (sims[0], sims[1]);
 
+        // [FM-identity]: the command names entity indices and the tie
+        // is stored on SimIds, which differ from them in the shipped lot,
+        // so a tie keyed on the index would read back wrong here.
+        let (id_first, id_second) = (handle.sim_id_of(first), handle.sim_id_of(second));
+        assert_ne!((id_first, id_second), (first, second));
+
         // The first is the second's parent: one stored fact, from the lower.
         assert!(handle.set_family_tie(f64::from(first), f64::from(second), 1.0));
         handle.flush_commands();
         assert_eq!(
             handle.family_ties(),
             vec![
-                first.min(second),
-                first.max(second),
-                if first < second { 1 } else { 2 }
+                id_first.min(id_second),
+                id_first.max(id_second),
+                if id_first < id_second { 1 } else { 2 }
             ]
         );
         assert_eq!(handle.last_family_tie_result(), vec![first, second, 1, 0]);

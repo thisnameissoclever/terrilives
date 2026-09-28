@@ -201,9 +201,10 @@ pub enum SimCommand {
     /// `SetWallEdge`. Appended to preserve earlier wire codes.
     SetFloor { x: u32, y: u32, covering: u8 },
     /// Record that the sim with entity index `who` is `relation` to the sim
-    /// with entity index `to`, or take their tie away with `None`. The index
-    /// is a debt the tie carries, see `FamilyTies` - [FM-tie] in
-    /// `docs/specs/2026-09-22-family.md`. One fact about two people, applied
+    /// with entity index `to`, or take their tie away with `None` - [FM-tie]
+    /// in `docs/specs/2026-09-22-family.md`. The indices name two people
+    /// alive now, as every command's do; the drain turns them into SimIds,
+    /// which is what `FamilyTies` stores. One fact about two people, applied
     /// by itself in stream order like `SetFloor`. Appended to preserve
     /// earlier wire codes.
     SetFamilyTie {

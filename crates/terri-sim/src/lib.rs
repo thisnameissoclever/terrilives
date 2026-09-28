@@ -718,6 +718,8 @@ impl Sim {
                 .get_resource::<terri_core::layout::SavedFloors>()
                 .cloned()
                 .unwrap_or_default(),
+            // [FM-identity]: written empty, read only from older saves.
+            family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
                 .get_resource::<terri_core::layout::FamilyTies>()
@@ -2691,7 +2693,8 @@ impl Sim {
             .get_resource::<terri_core::layout::FamilyTies>()
             .filter(|family| !family.ties().is_empty())
         {
-            hasher.write_bytes(b"family-v1");
+            // v2 since the ties name SimIds rather than entity indices.
+            hasher.write_bytes(b"family-v2");
             hasher.write_u64(family.ties().len() as u64);
             for &(low, high, relation) in family.ties() {
                 hasher.write_u64(low as u64);
