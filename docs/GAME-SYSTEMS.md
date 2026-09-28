@@ -53,7 +53,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-moods] | Moods and moodlets | Substantial | 60% |
 | [S-chains] | Multi-step activities | Partial | 50% |
 | [S-relationship-dynamics] | Relationship causes and consequences | Partial | 45% |
-| [S-family] | Family relationships and kinship | Not started | 0% |
+| [S-family] | Family relationships and kinship | Partial | 10% |
 | [S-careers] | Jobs and careers, with player-directed career paths | Partial | 15% |
 | [S-create-a-sim] | Create-a-sim and appearance | Partial | 25% |
 | [S-life-stages] | Life stages and aging | Not started | 0% |
@@ -372,7 +372,7 @@ Also missing: more social actions than chat, group conversations (the content al
 
 ### [S-family] Family relationships and kinship
 
-**Status: Not started, 0%.** The game does not know who is whose parent, sibling, or partner. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) plans a kinship graph and a family tree view. Genetics, inheritance, and bereavement depend on it.
+**Status: Partial, about 10%.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Nothing in the simulation behaves differently for family yet, and there is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Genetics, inheritance, and bereavement depend on it.
 
 ### [S-careers] Jobs and careers, with player-directed career paths
 

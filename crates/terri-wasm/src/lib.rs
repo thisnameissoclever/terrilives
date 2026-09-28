@@ -233,10 +233,20 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 // fills the SimId family list alone, so a save written by
                 // the first build with ties keeps the ties it keyed on
                 // entity index ([FM-identity]), and two keep the floors a
-                // player painted before
-                // ties existed. Asking every appended list to be empty at
-                // every pad level is how review finding [F1] on PR 131
-                // refused those saves.
+                // player painted before ties existed. Asking every
+                // appended list to be empty at every pad level is how
+                // review finding [F1] on PR 131 refused those saves.
+                //
+                // And a padded payload must be exactly what this snapshot
+                // encodes to. Postcard writes every length in its shortest
+                // form but reads the long form too, so a save cut inside a
+                // two-byte length such as 128 would otherwise be padded
+                // into a length of zero and load with that whole list
+                // gone. Review finding [F1] on PR 134.
+                if pad > 0 && postcard::to_allocvec(&snapshot).ok().as_deref() != Some(&padded[..])
+                {
+                    return None;
+                }
                 let family = snapshot.family.ties().len();
                 let by_index = snapshot.family_by_index.ties().len();
                 let invented = match pad {
@@ -573,8 +583,9 @@ impl SimHandle {
     /// Three words per family tie: the lower SimId, the higher, and the
     /// relation the lower one is to the higher - [FM-save] in
     /// `docs/specs/2026-09-22-family.md`. SimIds rather than entity indices
-    /// because a tie outlives the slot ([FM-identity]); `sim_id_of` maps
-    /// a row to one. Sorted, and empty for a household of strangers.
+    /// because a tie outlives the slot ([FM-identity]); `sim_id_of` gives
+    /// the SimId at an entity index. Sorted, and empty for a household of
+    /// strangers.
     pub fn family_ties(&self) -> Vec<u32> {
         self.sim
             .world()

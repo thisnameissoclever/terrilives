@@ -125,9 +125,9 @@ pub(crate) fn restore_v5(
     // [FM-save]: the ties, refused whole when one names somebody this world
     // never had. A save written before ties existed carries none. One
     // written by the first build with ties carries them keyed on entity
-    // index ([FM-identity]),
-    // which the rebuilt world turns into SimIds. No build writes both
-    // lists, so a save that has both was not written by one.
+    // index ([FM-identity]), which the rebuilt world turns into SimIds. No
+    // build writes both lists, so a save that has both was not written by
+    // one.
     let family = match (family_by_index.ties().is_empty(), family.ties().is_empty()) {
         (false, false) => None,
         (false, true) => crate::family::from_index_ties(&candidate.world, &family_by_index),

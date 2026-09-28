@@ -352,7 +352,7 @@ fn a_save_whose_ties_cannot_be_true_is_refused() {
     );
 
     // The last id issued is somebody, so it may be named.
-    let mut last = base;
+    let mut last = base.clone();
     last.family = terri_core::layout::FamilyTies::default();
     assert!(last
         .family
@@ -360,6 +360,29 @@ fn a_save_whose_ties_cannot_be_true_is_refused() {
     assert!(
         restored.load_bytes(&v5_bytes(&last)),
         "the last SimId issued"
+    );
+
+    // Review finding [F2] on PR 134: a SimId that was issued but that no
+    // sim in the house holds now is still somebody, because a tie outlives
+    // the person being here ([FM-identity]). Issuing more ids than there
+    // are sims makes one.
+    let mut absent = base;
+    absent.world.issued_sim_ids = issued + 1;
+    absent.family = terri_core::layout::FamilyTies::default();
+    assert!(absent
+        .family
+        .set(0, issued, Some(terri_core::layout::Relation::Sibling)));
+    assert!(
+        restored.load_bytes(&v5_bytes(&absent)),
+        "an issued SimId nobody holds"
+    );
+    assert_eq!(
+        restored.family_ties(),
+        vec![
+            0,
+            issued,
+            u32::from(terri_core::layout::Relation::Sibling.code())
+        ]
     );
 }
 
@@ -393,4 +416,26 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
         decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none(),
         "a covering nobody laid"
     );
+}
+
+/// Review finding [F1] on PR 134: postcard reads a length written in two
+/// bytes where one would do, so a save of exactly 128 painted tiles cut
+/// just after the first byte of that length would pad into an empty floors
+/// list and load with every floor gone. A padded payload has to be what its
+/// snapshot re-encodes to, and that one is not.
+#[test]
+fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
+    let handle = SimHandle::from_lot();
+    let mut snapshot = handle.sim.save_snapshot_v5();
+    let tiles: Vec<(u32, u32, u8)> = (0..128u32).map(|i| (i / 16, i % 16, 1)).collect();
+    snapshot.floors = terri_core::layout::SavedFloors::from_saved(tiles, 16, 16, 1)
+        .expect("128 tiles on a 16 by 16 grid");
+    let payload = postcard::to_allocvec(&snapshot).unwrap();
+    assert!(decode_v5(&payload).is_some(), "the whole save decodes");
+    let floors = postcard::to_allocvec(&snapshot.floors).unwrap();
+    assert_eq!(floors[..2], [0x80, 0x01], "128 is a two-byte length");
+    // The floors list, then the two empty family lists, end the payload.
+    let floors_start = payload.len() - 2 - floors.len();
+    let cut = &payload[..=floors_start];
+    assert!(decode_v5(cut).is_none());
 }
