@@ -332,7 +332,7 @@ describe('createPeoplePanelSurface', () => {
 // says what it is, from the selected person's side.
 describe('family ties in the relationship list', () => {
   it('reads one stored fact from either end, and none for the unrelated', () => {
-    // Stored from the lower entity index: 10 is 12's parent.
+    // Stored from the lower SimId: 10 is 12's parent.
     const ties = [10, 12, 1];
     expect(tieBetween(ties, 10, 12)).toBe('parent');
     expect(tieBetween(ties, 12, 10)).toBe('child');
@@ -347,17 +347,19 @@ describe('family ties in the relationship list', () => {
 
   it('puts the tie on the row, and leaves it null without one', () => {
     const source = new MutableSource();
-    // Terri is entity 3 and Doug entity 2. The triple is stored from the
-    // lower index with the relation as that person sees it, so (2, 3, 1)
-    // says Doug is Terri's parent. Selected as Terri, her row for Doug must
-    // therefore read "parent": what HE is to HER.
-    source.ties = Uint32Array.from([2, 3, 1]);
+    // [FM-identity]: ties name SimIds. Terri is entity 3 with SimId 0
+    // and Doug entity 2 with SimId 1, so the two orders disagree and a
+    // panel reading ties by entity index finds nothing. The triple is
+    // stored from the lower SimId with the relation as that person sees
+    // it, so (0, 1, 2) says Terri is Doug's child: selected as Terri, her
+    // row for Doug must read "parent", what HE is to HER.
+    source.ties = Uint32Array.from([0, 1, 2]);
     const view = peoplePanelView(source)!;
     expect(view.people.map((row) => [row.name, row.tie]))
       .toEqual([['Doug', 'parent'], ['Nadia', null]]);
 
-    // And the other way round: (2, 3, 2) says Doug is Terri's child.
-    source.ties = Uint32Array.from([2, 3, 2]);
+    // And the other way round: (0, 1, 1) says Terri is Doug's parent.
+    source.ties = Uint32Array.from([0, 1, 1]);
     expect(peoplePanelView(source)!.people.map((row) => row.tie))
       .toEqual(['child', null]);
   });
