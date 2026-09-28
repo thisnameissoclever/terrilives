@@ -146,6 +146,17 @@ somebody tinted. Tell me whether to draft them with the generator for you to
 accept or reject, or whether you would rather supply them. Nothing is blocked
 meanwhile.
 
+### [T-death-art] What a death looks like `[YOURS]`
+
+The death design (`docs/specs/2026-09-22-death.md`) has a sim who dies simply
+stop being drawn: no body, no ghost, no memorial, because each of those needs
+art and none exists. When the first death slice ships, that is what a player
+will see. What is needed later, for the ghost slice: a body or marker left
+where the sim died, a ghost sprite, and a memorial object such as a gravestone
+or urn, matched to the existing sprite style. Tell me whether to draft them
+with the generator for you to accept or reject, or whether you would rather
+supply them. Nothing is blocked meanwhile.
+
 ### [T-recolour-palettes] Which colourways each object comes in `[YOURS]`
 
 The Buy mode bullet of M1 includes palette recolours. The Buy tool (PR 96)

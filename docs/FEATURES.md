@@ -848,7 +848,9 @@ relationship list then says it beside the feeling, from the row's side:
 "Bill, their parent" means Bill is the parent. A
 tie is one stored fact between two people, read from either end so a parent
 one way is a child the other, saved sparsely and appended, and in the world
-hash. Nothing behaves differently for family yet. Done in PR 131 at merge `2f87db7`. The design is
+hash. Nothing behaves differently for family yet. Done in PR 131 at merge `2f87db7`. Since PR 134 at
+merge `e1ce54e`, a tie names each person by SimId rather than entity index, so
+it stays with them once somebody can leave or die. The design is
 `docs/specs/2026-09-22-family.md`, which names the three later slices, and the
 played check is [A-family]. The item stays open: the tree, relatives outside
 the household, and the autonomy and bereavement hooks are still to build.
@@ -920,6 +922,11 @@ the current game. The complete slice needs aging and non-aging causes, warnings,
 preventable and unavoidable outcomes, a body-to-ghost transition, household and
 relationship consequences, inheritance, memorial state, save compatibility,
 and content controls for players who do not want sudden or disaster deaths.
+
+The working design is `docs/specs/2026-09-22-death.md`. It splits the item into
+four slices and defines the first: one preventable cause, a warning, grief for
+the household, a dead sim saved rather than deleted, and a setting that keeps
+death off until the player turns it on. None of it is built yet.
 
 ### [B-emergencies-disasters] Fires, smoke, warnings, news, and disasters
 
