@@ -551,6 +551,10 @@ interaction and footprint work the raw assets do not provide.
 
 A new housemate ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`) looks like everyone else: a person's shirt is picked from their sim id, and only three shirts exist, so every newcomer after the shipped three wears the green one. A real character creator needs faces, hair, bodies and clothes to choose from ([CS-slice-looks]). Tell me whether to draft looks with the generator for you to accept or reject, or whether you would rather supply them. Nothing is blocked meanwhile.
 
+### [T-sim-bodies-and-clothes] Women's bodies and a wider wardrobe `[YOURS]`
+
+You asked on 2026-09-29 for sims who can be women ([B-gender] in `docs/FEATURES.md`). Every sim today is drawn from one body model, `assets/models/sims/sim-01`. What is needed: women's body models with faces and hairstyles, and more clothing, including more feminine clothing such as dresses and skirts. Every outfit has to fit every body, because no clothing is locked to a gender. Tell me whether to draft them with the generator for you to accept or reject, or whether you would rather supply them. The gender choice and outfit mechanism can be built with the existing art meanwhile.
+
 ### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
 
 Selling furniture refuses to sell the last object that can fill a role a

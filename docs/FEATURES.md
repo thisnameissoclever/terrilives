@@ -928,6 +928,22 @@ four slices and defines the first: one preventable cause, a warning, grief for
 the household, a dead sim saved rather than deleted, and a setting that keeps
 death off until the player turns it on. None of it is built yet.
 
+### [B-edit-sims] Change a person after they move in
+
+Once somebody lives in the house, the player cannot change anything about them. Their name, personality, traits and family ties are fixed the moment they move in, and the shipped household cannot be changed at all. The owner asked on 2026-09-29 for this to come soon.
+
+The first slice is an Edit button for the selected person. It opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with who they are now: name, personality, traits, and their family ties to the rest of the household. Confirming sends one command the simulation applies, like every other player action, and the change is saved. Looks join the editor once people have looks to choose ([CS-slice-looks]), and gender once [B-gender] exists.
+
+The design has to settle one rule before building: what happens to a trait whose state has moved during play, such as a condition that has eased or a capability that has improved, when the player keeps it, removes it, or adds it back.
+
+### [B-gender] A sim can be a woman
+
+Every sim uses one body, face and hairstyle today (`assets/models/sims/sim-01`), and the game has no notion of gender. The owner asked on 2026-09-29 for the player to be able to make a woman: a gender choice in the New housemate form and in [B-edit-sims], women's bodies, faces and hairstyles, and more feminine clothing.
+
+No clothing is locked to a gender. Any sim can wear any outfit: men can wear dresses and women can wear trousers. Gender chooses the body and which clothes the creator suggests first, never what a sim is allowed to wear.
+
+Once gender exists, the relationship list can say "sister" or "brother" instead of "sibling", as [FM-show] in `docs/specs/2026-09-22-family.md` anticipates. The mechanism (a saved appearance per sim, the gender choice, and choosing an outfit) can be built with the existing art first. The new bodies and clothes are art, logged as [T-sim-bodies-and-clothes] in `docs/TIM-TODO.md`. This overlaps [CS-slice-looks] and should be built with it or straight after it.
+
 ### [B-emergencies-disasters] Fires, smoke, warnings, news, and disasters
 
 The game needs a general incident system rather than one-off spectacle. The
