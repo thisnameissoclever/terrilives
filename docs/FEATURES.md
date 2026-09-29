@@ -921,7 +921,7 @@ The first playable slice, [DE-slice-neglect], implements deprivation: hunger or 
 
 A death retires the entity index and records the permanent SimId, name, cause, tick and identity boundary. Family ties and survivors' affinity stay. Grief is derived from affinity at death: close friends grieve more and longer, neutral acquaintances briefly, and hated people cause neither grief nor joy. Later newcomers do not grieve earlier deaths. No body, ghost or new art is included.
 
-The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies, ghosts, memorials and inheritance remain future slices. Delivery and played evidence will be recorded with the merge.
+The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies, ghosts, memorials and inheritance remain future slices. Shipped in [PR 139](https://github.com/thisnameissoclever/terrilives/pull/139), merge commit `9f843457a45887cde3f6af041ac4373f91a43716`. Played evidence and limits are recorded in `docs/alpha-feel-notes.md` under [A-death].
 
 ### [B-edit-sims] Change a person after they move in
 
