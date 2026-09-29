@@ -22,7 +22,76 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Whether this change can affect the game. A change to documentation only
+  # (Markdown outside the agent skill folders, which a web test reads) skips
+  # the Rust, web and mutation jobs, which cost up to two hours of runners,
+  # and runs the `docs` job instead. The rules and their tests are in
+  # .github/scripts/changes.py; anything they are unsure of runs everything.
+  # Skipped jobs report as skipped, not failed, and main has no required
+  # checks, so a skipped pull request can merge.
+  #
+  # A push to main is compared with the newest push to main whose `web` job
+  # passed, not with the previous push: the previous push may have had its
+  # run cancelled in the queue or failed, and comparing with it would let a
+  # documentation push skip code that nothing tested. The Pages deployment
+  # record will not do either, because a deploy run that skips a stale
+  # revision still records a successful deployment of main's tip.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      code: ${{ steps.classify.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Test the classifier
+        working-directory: .github/scripts
+        run: python3 -B -m unittest test_changes
+      - name: Find the newest main revision whose game CI passed
+        id: tested
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -u
+          sha=""
+          runs=$(gh api "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?branch=main&event=push&status=success&per_page=30" \
+            --jq '.workflow_runs[] | "\(.id) \(.head_sha)"' || true)
+          while read -r id head; do
+            [ -n "$id" ] || continue
+            web=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" \
+              --jq '[.jobs[] | select(.name == "web") | .conclusion][0] // ""' || true)
+            if [ "$web" = "success" ]; then
+              sha=$head
+              break
+            fi
+          done <<< "$runs"
+          echo "Newest tested revision: ${sha:-none found}"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Decide whether anything but documentation changed
+        id: classify
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 -B .github/scripts/changes.py "$EVENT" "$BASE" "$HEAD"
+
+  # The one check a documentation change can fail: ids it adds or moves.
+  docs:
+    needs: changes
+    if: needs.changes.outputs.code != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Documentation ids are unique
+        run: python3 check-doc-ids.py
+
   rust:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -162,7 +231,10 @@ jobs:
     # far below the default, so a pathological one fails by name in two
     # hours rather than burning a runner all afternoon.
     timeout-minutes: 120
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    needs: changes
+    if: >-
+      needs.changes.outputs.code == 'true' &&
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
       matrix:
@@ -353,6 +425,8 @@ jobs:
           path: mutants.out/
 
   web:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
