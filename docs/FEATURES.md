@@ -944,6 +944,37 @@ No clothing is locked to a gender. Any sim can wear any outfit: men can wear dre
 
 Once gender exists, the relationship list can say "sister" or "brother" instead of "sibling", as [FM-show] in `docs/specs/2026-09-22-family.md` anticipates. The mechanism (a saved appearance per sim, the gender choice, and choosing an outfit) can be built with the existing art first. The new bodies and clothes are art, logged as [T-sim-bodies-and-clothes] in `docs/TIM-TODO.md`. This overlaps [CS-slice-looks] and should be built with it or straight after it.
 
+### [B-object-affinities] Things one housemate loves can bother another
+
+The owner asked on 2026-09-29 that objects stop being good for everybody alike. Every item should have at least the possibility of being a net good for some members of the household and a net bad for others.
+
+**What the owner asked for.**
+- Each sim starts with a random affinity toward each kind of item it makes sense to like or dislike, such as plants, and pets once they exist. Kinds nobody reasonably hates, such as a sofa, carry none.
+- Every plant in any room a sim is in can potentially raise their mood if they love plants, and the same plants lower the mood of a sim who hates them.
+- A sim who hates television is bothered when somebody else watches it in the same room: their mood drops, and their feeling toward the person watching may drop too.
+
+**Design notes, not yet decided.**
+- For a kind of item with no affinity, such as a sofa or a fridge, colour ([B-colour-preferences]) is one way it can still be good for one sim and bad for another.
+- The random starting values can come from the seeded generator, so a replay draws the same, and which kinds carry an affinity can be listed in content.
+- The disposition traits that already exist, such as "Hates television", can become strong starting values for the same affinity. One of them, "Avoids the couch" (`couch_averse` in `content/traits.toml`, "Hates sofas and armchairs"), is about a kind this entry says carries no affinity, so the design must either keep it as a trait about using a sofa rather than being near one, or retire it.
+- Several systems already describe these values and should share one model with this entry: item and colour affinities in [S-acclimation], species affinity in [S-pets], and the rule in [S-deep-traits] (all in `docs/GAME-SYSTEMS.md`) that such values live in one place. The owner's earlier direction in [S-acclimation] is that a possession stops bringing joy but does not cause unhappiness, in most cases. A hated kind of item is one of the cases that does.
+- Being bothered by somebody else's use is the same shape as the nuisance mechanism [P-nuisance] proposes for a barking dog or a loud television, and should share it. [S-sensitivities] is the neighbouring value for how strongly a sim reacts.
+
+### [B-colour-preferences] Every sim has colours they love or hate
+
+The owner asked on 2026-09-29 for colour to matter to people in the same way.
+
+**What the owner asked for.**
+- Every sim has a favourite colour, and every piece of furniture in that colour increases their satisfaction.
+- Shades count as their colour: red and merlot both count as red.
+- A sim can hold an affinity or a dislike toward any colour. Not every sim needs a colour they hate.
+- A very strong hatred of a colour can make it uncomfortable to live with a housemate who deeply loves it, for example one who decorates the house entirely in that colour.
+
+**Design notes, not yet decided.**
+- "Satisfaction" here is the owner's word. The game has both mood, which moves from moment to moment, and life satisfaction, the long-term score; the design must say which one colour moves, or both.
+- The shipped colourways are placeholders named for what they do (`content/objects.toml`), and which colours each object comes in is [T-recolour-palettes] in `docs/TIM-TODO.md`. Each real colourway then needs a colour family, so shades group correctly.
+- Starting preferences can be drawn like those in [B-object-affinities], and a colour in the room can work like a loved or hated kind of item there.
+
 ### [B-emergencies-disasters] Fires, smoke, warnings, news, and disasters
 
 The game needs a general incident system rather than one-off spectacle. The
