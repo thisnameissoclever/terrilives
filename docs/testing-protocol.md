@@ -69,6 +69,21 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   over such a line is true and is simultaneously no evidence. Delete those by
   hand. See [L11], where deleting one `std::mem::swap` left all 31 tests green
   under a "0 survivors" report.
+- **A documentation-only change skips it, and the rest of CI.** The `changes`
+  job in `ci.yml` runs the tests for `.github/scripts/changes.py` and then asks
+  it whether anything but documentation changed. Documentation means files
+  ending `.md` in any letter case, outside `.agents/` and `.claude/`, because a
+  web test reads the skill files there. Everything else counts as code,
+  including `docs/mutants-baseline.txt`, which the mutation gate reads. A pull
+  request is compared from where it branched; a push to main is compared with
+  the newest main push whose `web` job passed, so a documentation push cannot
+  skip code whose own run was cancelled or failed. When only documentation
+  changed, the Rust, web and mutation jobs skip and the `docs` job checks
+  document ids. Pages then does not redeploy, though it still publishes a
+  tested revision whose only difference from main's tip is documentation.
+  Anything the script cannot decide runs everything. Local gates are
+  unchanged: a change that touches code still runs every step before it is
+  pushed.
 
 ## 3. Prefer causal assertions to equality assertions
 
