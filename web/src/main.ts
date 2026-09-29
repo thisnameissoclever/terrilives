@@ -1539,6 +1539,7 @@ async function main(): Promise<void> {
     gameHud.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
+    syncNewHousemateButton();
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);

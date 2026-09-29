@@ -390,5 +390,13 @@
     "caught": true,
     "output": "\n RUN  v4.1.10 D:/VIBES/terrilives/web\n\n \u276f tests/needs-panel.test.ts (14 tests | 1 failed) 7ms\n   \u00d7 clears a departed selected person from the visible caption 3ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 13 passed (14)\n   Start at  11:45:37\n   Duration  128ms (transform 22ms, setup 0ms, import 30ms, tests 7ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/needs-panel.test.ts > clears a departed selected person from the visible caption\nAssertionError: expected 'Casey' to be 'Select a person' // Object.is equality\n\nExpected: \"Select a person\"\nReceived: \"Casey\"\n\n \u276f tests/needs-panel.test.ts:312:29\n    310|   source.selected = null;\n    311|   panel.update(1, source);\n    312|   expect(title.textContent).toBe('Select a person');\n       |                             ^\n    313| });\n    314|\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
     "restored_sha256": "be9235a98621f9bff269ae65a5ce4653049c9087d58e1591b4d30fa66ed97a1f"
+  },
+  {
+    "mutation": "refresh capacity after death",
+    "command": "npx --no-install vitest run tests/housemate-form.test.ts (web)",
+    "exit": 1,
+    "caught": true,
+    "output": "\n RUN  v4.1.10 D:/VIBES/terrilives/web\n\n \u276f tests/housemate-form.test.ts (26 tests | 1 failed) 41ms\n   \u00d7 refreshes move-in availability each frame when death frees a full household slot 4ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 25 passed (26)\n   Start at  11:50:42\n   Duration  204ms (transform 55ms, setup 0ms, import 69ms, tests 41ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/housemate-form.test.ts > refreshes move-in availability each frame when death frees a full household slot\nAssertionError: expected false to be true // Object.is equality\n\n- Expected\n+ Received\n\n- true\n+ false\n\n \u276f tests/housemate-form.test.ts:569:55\n    567|   expect(housemate.roomForOne()).toBe(true);\n    568|   const frame = MAIN_TS.slice(MAIN_TS.indexOf('function frame('));\n    569|   expect(frame.includes('syncNewHousemateButton();')).toBe(true);\n       |                                                       ^\n    570| });\n    571|\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "d6d6e3c1acdbe36672eef25b090918388cce035983ee8eb82fcbbd7c690797f6"
   }
 ]

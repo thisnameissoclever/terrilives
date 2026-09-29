@@ -556,3 +556,15 @@ function fakeFormDocument(elements: Map<string, FakeFormElement>): unknown {
   return document;
 }
 
+
+it('refreshes move-in availability each frame when death frees a full household slot', () => {
+  const { housemate, source } = form();
+  source.size = source.most;
+  expect(housemate.roomForOne()).toBe(false);
+  source.size -= 1;
+  expect(housemate.roomForOne()).toBe(true);
+  source.size = 0;
+  expect(housemate.roomForOne()).toBe(true);
+  const frame = MAIN_TS.slice(MAIN_TS.indexOf('function frame('));
+  expect(frame.includes('syncNewHousemateButton();')).toBe(true);
+});
