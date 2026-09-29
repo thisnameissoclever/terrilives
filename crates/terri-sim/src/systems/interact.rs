@@ -278,18 +278,9 @@ pub fn tick_interactions(
             // which keeps the failure a no-op rather than something
             // whose severity depends on the configured handler.
             //
-            // Nothing in M0 despawns entities, so this is unreachable
-            // today. Reservation leaks that remain UNHANDLED, and must
-            // be revisited when despawning or component removal arrives:
-            //   - the agent is despawned mid-interaction, so this system
-            //     never runs for it and `Reserved` is never removed;
-            //   - the target loses its `SmartObject` mid-walk, so
-            //     `follow_path` drops `Path` and `Target` without
-            //     releasing the reservation;
-            //   - `Needs` is removed from an eating agent, dropping it
-            //     out of this query with `Eating` and `Target` intact.
-            // Reclaiming those needs a dedicated system, which is a
-            // later milestone, not a patch here.
+            // Death releases the owner's reservation before despawn.
+            // mortality::cleanup also releases actions when their agent loses
+            // Needs or their target loses SmartObject before movement.
             commands.entity(target.object).try_remove::<Reserved>();
         }
     }

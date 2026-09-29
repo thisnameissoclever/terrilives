@@ -1,0 +1,402 @@
+[
+  {
+    "mutation": "death opt in",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 17 tests\n.......... 10/17\nmortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis --- FAILED\n......\nfailures:\n\n---- mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis stdout ----\n\nthread 'mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis' (56200) panicked at crates\\terri-sim\\src\\mortality.rs:578:9:\nassertion `left == right` failed\n  left: 0\n right: 4\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis\n\ntest result: FAILED. 16 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "05d11851f13a56a702fc2127ae717b66bbe7331c814b3864b256e101b8410e6a"
+  },
+  {
+    "mutation": "death threshold",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 17 tests\n......... 9/17\nmortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero --- FAILED\nmortality::tests::death_happens_at_the_threshold_and_retires_the_index --- FAILED\nmortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal --- FAILED\n.....\nfailures:\n\n---- mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero stdout ----\n\nthread 'mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero' (59016) panicked at crates\\terri-sim\\src\\mortality.rs:419:9:\nassertion failed: sim.world().get_entity(dead).is_err()\n\n---- mortality::tests::death_happens_at_the_threshold_and_retires_the_index stdout ----\n\nthread 'mortality::tests::death_happens_at_the_threshold_and_retires_the_index' (40796) panicked at crates\\terri-sim\\src\\mortality.rs:306:9:\nassertion failed: sim.world().get_entity(person).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal stdout ----\n\nthread 'mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal' (2684) panicked at crates\\terri-sim\\src\\mortality.rs:627:9:\nassertion failed: sim.mood_of(dead.index_u32()).is_none()\n\n\nfailures:\n    mortality::tests::death_happens_at_the_threshold_and_retires_the_index\n    mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal\n    mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero\n\ntest result: FAILED. 14 passed; 3 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "05d11851f13a56a702fc2127ae717b66bbe7331c814b3864b256e101b8410e6a"
+  },
+  {
+    "mutation": "counter reset",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 17 tests\n......... 9/17\nmortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero --- FAILED\n.. 12/17\nmortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal --- FAILED\n....\nfailures:\n\n---- mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero stdout ----\n\nthread 'mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero' (23344) panicked at crates\\terri-sim\\src\\mortality.rs:422:18:\ncalled `Option::unwrap()` on a `None` value\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal stdout ----\n\nthread 'mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal' (28720) panicked at crates\\terri-sim\\src\\mortality.rs:630:9:\nassertion `left == right` failed\n  left: 3\n right: 1\n\n\nfailures:\n    mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal\n    mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero\n\ntest result: FAILED. 15 passed; 2 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nwarning: unused variable: `empty`\n  --> crates\\terri-sim\\src\\mortality.rs:75:18\n   |\n75 |     for (entity, empty, id, name) in people {\n   |                  ^^^^^ help: if this is intentional, prefix it with an underscore: `_empty`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "05d11851f13a56a702fc2127ae717b66bbe7331c814b3864b256e101b8410e6a"
+  },
+  {
+    "mutation": "counter increments",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 17 tests\n...... 6/17\nmortality::tests::death_happens_at_the_threshold_and_retires_the_index --- FAILED\nmortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis --- FAILED\nmortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled --- FAILED\nmortality::tests::count_rows_are_in_entity_order_not_archetype_order --- FAILED\nmortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero --- FAILED\nmortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal --- FAILED\n.. 14/17\nmortality::tests::count_setting_and_records_are_saved_and_hashed --- FAILED\n..\nfailures:\n\n---- mortality::tests::death_happens_at_the_threshold_and_retires_the_index stdout ----\n\nthread 'mortality::tests::death_happens_at_the_threshold_and_retires_the_index' (13280) panicked at crates\\terri-sim\\src\\mortality.rs:306:9:\nassertion failed: sim.world().get_entity(person).is_err()\n\n---- mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis stdout ----\n\nthread 'mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis' (58452) panicked at crates\\terri-sim\\src\\mortality.rs:578:9:\nassertion `left == right` failed\n  left: 0\n right: 4\n\n---- mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled stdout ----\n\nthread 'mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled' (16248) panicked at crates\\terri-sim\\src\\mortality.rs:275:9:\nassertion `left == right` failed\n  left: 0\n right: 2\n\n---- mortality::tests::count_rows_are_in_entity_order_not_archetype_order stdout ----\n\nthread 'mortality::tests::count_rows_are_in_entity_order_not_archetype_order' (18076) panicked at crates\\terri-sim\\src\\mortality.rs:834:9:\nassertion `left == right` failed\n  left: [(0, 0), (1, 0)]\n right: [(0, 1), (1, 1)]\n\n---- mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero stdout ----\n\nthread 'mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero' (58036) panicked at crates\\terri-sim\\src\\mortality.rs:419:9:\nassertion failed: sim.world().get_entity(dead).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal stdout ----\n\nthread 'mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal' (56548) panicked at crates\\terri-sim\\src\\mortality.rs:627:9:\nassertion failed: sim.mood_of(dead.index_u32()).is_none()\n\n---- mortality::tests::count_setting_and_records_are_saved_and_hashed stdout ----\n\nthread 'mortality::tests::count_setting_and_records_are_saved_and_hashed' (54608) panicked at crates\\terri-sim\\src\\mortality.rs:459:57:\ncalled `Result::unwrap()` on an `Err` value: InvalidValue\n\n\nfailures:\n    mortality::tests::count_rows_are_in_entity_order_not_archetype_order\n    mortality::tests::count_setting_and_records_are_saved_and_hashed\n    mortality::tests::death_happens_at_the_threshold_and_retires_the_index\n    mortality::tests::death_round_trip_keeps_identity_family_grief_and_render_removal\n    mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled\n    mortality::tests::energy_alone_and_alternating_empty_needs_count_as_one_crisis\n    mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero\n\ntest result: FAILED. 10 passed; 7 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "05d11851f13a56a702fc2127ae717b66bbe7331c814b3864b256e101b8410e6a"
+  },
+  {
+    "mutation": "count ordering",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n.......... 10/18\nmortality::tests::count_rows_are_in_entity_order_not_archetype_order --- FAILED\n.......\nfailures:\n\n---- mortality::tests::count_rows_are_in_entity_order_not_archetype_order stdout ----\n\nthread 'mortality::tests::count_rows_are_in_entity_order_not_archetype_order' (55436) panicked at crates\\terri-sim\\src\\mortality.rs:836:9:\nassertion `left == right` failed\n  left: [(1, 1), (0, 1)]\n right: [(0, 1), (1, 1)]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::count_rows_are_in_entity_order_not_archetype_order\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nwarning: variable does not need to be mutable\n  --> crates\\terri-sim\\src\\mortality.rs:56:9\n   |\n56 |     let mut people: Vec<_> = world\n   |         ----^^^^^^\n   |         |\n   |         help: remove this `mut`\n   |\n   = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "warning opt in",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n........... 11/18\nmortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled --- FAILED\n......\nfailures:\n\n---- mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled stdout ----\n\nthread 'mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled' (9852) panicked at crates\\terri-sim\\src\\mortality.rs:277:9:\nassertion failed: sim.death_warning(person.index_u32()).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "warning boundary",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n........... 11/18\nmortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled --- FAILED\n......\nfailures:\n\n---- mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled stdout ----\n\nthread 'mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled' (3316) panicked at crates\\terri-sim\\src\\mortality.rs:282:9:\nassertion `left == right` failed\n  left: None\n right: Some(\"Alex's hunger is empty. They will die if it stays empty.\")\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::deprivation_counts_while_disabled_resets_and_warns_only_when_enabled\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "owned reservation",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n........ 8/18\nmortality::tests::reservation_is_reclaimed_when_an_interacting_agent_is_despawned --- FAILED\n.... 13/18\nmortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead --- FAILED\n....\nfailures:\n\n---- mortality::tests::reservation_is_reclaimed_when_an_interacting_agent_is_despawned stdout ----\n\nthread 'mortality::tests::reservation_is_reclaimed_when_an_interacting_agent_is_despawned' (15112) panicked at crates\\terri-sim\\src\\mortality.rs:345:9:\nassertion failed: sim.world().get::<terri_core::Reserved>(object).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead stdout ----\n\nthread 'mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead' (52188) panicked at crates\\terri-sim\\src\\mortality.rs:524:13:\nassertion failed: sim.world().get::<Reserved>(survivor).is_none()\n\n\nfailures:\n    mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead\n    mortality::tests::reservation_is_reclaimed_when_an_interacting_agent_is_despawned\n\ntest result: FAILED. 16 passed; 2 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "queued dead orders",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n......... 9/18\nmortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead --- FAILED\n........\nfailures:\n\n---- mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead stdout ----\n\nthread 'mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead' (12564) panicked at crates\\terri-sim\\src\\mortality.rs:527:13:\nassertion `left == right` failed\n  left: [Intent { object: 1v0, interaction: 0 }, Intent { object: 2v0, interaction: 0 }, Intent { object: 1v0, interaction: 1 }]\n right: [Intent { object: 2v0, interaction: 0 }]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "retirement",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n............ 12/18\nmortality::tests::death_happens_at_the_threshold_and_retires_the_index --- FAILED\n.....\nfailures:\n\n---- mortality::tests::death_happens_at_the_threshold_and_retires_the_index stdout ----\n\nthread 'mortality::tests::death_happens_at_the_threshold_and_retires_the_index' (27468) panicked at crates\\terri-sim\\src\\mortality.rs:310:9:\nassertion `left == right` failed\n  left: []\n right: [0]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::death_happens_at_the_threshold_and_retires_the_index\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "missing needs cleanup",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n...... 6/18\nmortality::tests::losing_needs_mid_interaction_releases_reservation_and_action --- FAILED\n...........\nfailures:\n\n---- mortality::tests::losing_needs_mid_interaction_releases_reservation_and_action stdout ----\n\nthread 'mortality::tests::losing_needs_mid_interaction_releases_reservation_and_action' (26492) panicked at crates\\terri-sim\\src\\mortality.rs:393:9:\nassertion failed: sim.world().get::<terri_core::Eating>(person).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::losing_needs_mid_interaction_releases_reservation_and_action\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nwarning: unused variable: `e`\n   --> crates\\terri-sim\\src\\mortality.rs:164:19\n    |\n164 |         .filter(|(e, t)| {\n    |                   ^ help: if this is intentional, prefix it with an underscore: `_e`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "missing object cleanup",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n........ 8/18\nmortality::tests::losing_smart_object_mid_walk_releases_reservation_and_action --- FAILED\n.........\nfailures:\n\n---- mortality::tests::losing_smart_object_mid_walk_releases_reservation_and_action stdout ----\n\nthread 'mortality::tests::losing_smart_object_mid_walk_releases_reservation_and_action' (57740) panicked at crates\\terri-sim\\src\\mortality.rs:363:9:\nassertion failed: sim.world().get::<terri_core::Path>(person).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::losing_smart_object_mid_walk_releases_reservation_and_action\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "hash counts",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n............ 12/18\nmortality::tests::hash_observes_each_mortality_field --- FAILED\n.....\nfailures:\n\n---- mortality::tests::hash_observes_each_mortality_field stdout ----\n\nthread 'mortality::tests::hash_observes_each_mortality_field' (43168) panicked at crates\\terri-sim\\src\\mortality.rs:872:13:\nassertion `left != right` failed: hash ignores field 2\n  left: 4650972525137296692\n right: 4650972525137296692\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::hash_observes_each_mortality_field\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nwarning: unused variable: `count`\n   --> crates\\terri-sim\\src\\mortality.rs:184:21\n    |\n184 |         for (index, count) in state.counts {\n    |                     ^^^^^ help: if this is intentional, prefix it with an underscore: `_count`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "hash records",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n............ 12/18\nmortality::tests::hash_observes_each_mortality_field --- FAILED\n.....\nfailures:\n\n---- mortality::tests::hash_observes_each_mortality_field stdout ----\n\nthread 'mortality::tests::hash_observes_each_mortality_field' (23884) panicked at crates\\terri-sim\\src\\mortality.rs:872:13:\nassertion `left != right` failed: hash ignores field 4\n  left: 6391040606732436702\n right: 6391040606732436702\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::hash_observes_each_mortality_field\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "record future bound",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n................ 16/18\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\n.\nfailures:\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (13920) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 2\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nwarning: unused variable: `now`\n   --> crates\\terri-sim\\src\\mortality.rs:204:9\n    |\n204 |     let now = world.resource::<SimClock>().tick;\n    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "record empty name",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n................ 16/18\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\n.\nfailures:\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (9340) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 3\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "record name limit",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n................ 16/18\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\n.\nfailures:\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (11528) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 4\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "record issued bound",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n............... 15/18\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\n..\nfailures:\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (53524) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nwarning: unused variable: `issued`\n   --> crates\\terri-sim\\src\\mortality.rs:205:9\n    |\n205 |     let issued = world.resource::<terri_core::SimIdAllocator>().issued();\n    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_issued`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "record identity bound",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n................ 16/18\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\nmortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world --- FAILED\n\nfailures:\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (58288) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 1\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world stdout ----\n\nthread 'mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world' (39804) panicked at crates\\terri-sim\\src\\mortality.rs:693:13:\nassertion failed: sim.load_snapshot_v5(saved).is_err()\n\n\nfailures:\n    mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 16 passed; 2 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.02s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "dead cannot live",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n................ 16/18\nmortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world --- FAILED\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\n\nfailures:\n\n---- mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world stdout ----\n\nthread 'mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world' (12932) panicked at crates\\terri-sim\\src\\mortality.rs:693:13:\nassertion failed: sim.load_snapshot_v5(saved).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (8592) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 5\n\n\nfailures:\n    mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 16 passed; 2 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.03s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "record unique identity",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n................ 16/18\nmortality::tests::save_validation_isolates_each_death_record_guard --- FAILED\n.\nfailures:\n\n---- mortality::tests::save_validation_isolates_each_death_record_guard stdout ----\n\nthread 'mortality::tests::save_validation_isolates_each_death_record_guard' (50044) panicked at crates\\terri-sim\\src\\mortality.rs:807:13:\naccepted bad death field 6\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::save_validation_isolates_each_death_record_guard\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "b7f199a479b13f5bff7ce3300ee0a229ad1435656cbbb320a67dbdee67689039"
+  },
+  {
+    "mutation": "grief expiry",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n.......... 10/18\nmortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence --- FAILED\nmortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero --- FAILED\n......\nfailures:\n\n---- mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence stdout ----\n\nthread 'mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence' (23764) panicked at crates\\terri-sim\\src\\mortality.rs:925:17:\nassertion `left == right` failed: expired affinity -0.25\n  left: Some(-0.0)\n right: None\n\n---- mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero stdout ----\n\nthread 'mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero' (42660) panicked at crates\\terri-sim\\src\\mortality.rs:433:9:\nassertion `left == right` failed\n  left: Some(-0.0)\n right: None\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence\n    mortality::tests::grief_uses_the_survivors_relationship_and_fades_to_zero\n\ntest result: FAILED. 16 passed; 2 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "d2dc2e740006d51c3c0a38742ba084d2c715a7bf8633f1eb5ef4dfee1ef75858"
+  },
+  {
+    "mutation": "newcomer grief",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 18 tests\n.......... 10/18\nmortality::tests::newcomers_do_not_grieve_a_person_who_died_before_they_existed --- FAILED\n.......\nfailures:\n\n---- mortality::tests::newcomers_do_not_grieve_a_person_who_died_before_they_existed stdout ----\n\nthread 'mortality::tests::newcomers_do_not_grieve_a_person_who_died_before_they_existed' (16856) panicked at crates\\terri-sim\\src\\mortality.rs:748:9:\nassertion failed: sim.mood_of(newcomer.index_u32()).unwrap().moodlets.iter().all(|m|\n        !m.label.starts_with(\"Grieving\"))\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::newcomers_do_not_grieve_a_person_who_died_before_they_existed\n\ntest result: FAILED. 17 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nwarning: unused variable: `subject_id`\n   --> crates\\terri-sim\\src\\mood.rs:141:13\n    |\n141 |         let subject_id = self.world.get::<SimId>(subject);\n    |             ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_subject_id`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "d2dc2e740006d51c3c0a38742ba084d2c715a7bf8633f1eb5ef4dfee1ef75858"
+  },
+  {
+    "mutation": "preserved dead feeling",
+    "command": "cargo test -p terri-sim dead_relationships --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::dead_relationships_do_not_decay_while_living_relationships_do --- FAILED\n\nfailures:\n\n---- mortality::tests::dead_relationships_do_not_decay_while_living_relationships_do stdout ----\n\nthread 'mortality::tests::dead_relationships_do_not_decay_while_living_relationships_do' (27628) panicked at crates\\terri-sim\\src\\mortality.rs:569:9:\nassertion `left == right` failed\n  left: 0.49999\n right: 0.5\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::dead_relationships_do_not_decay_while_living_relationships_do\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 623 filtered out; finished in 0.00s\n\nwarning: unused variable: `preserved`\n   --> crates\\terri-core\\src\\components.rs:470:49\n    |\n470 |     pub fn decay_except(&mut self, amount: f32, preserved: &[SimId]) {\n    |                                                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_preserved`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "ac0d64a67858a30b30ba3270540f545988fd96036c181df386fd14ca9012726d"
+  },
+  {
+    "mutation": "timing validation",
+    "command": "cargo test -p terri-data mortality_timing --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning --- FAILED\n\nfailures:\n\n---- compile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning stdout ----\n\nthread 'compile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning' (57588) panicked at crates\\terri-data\\src\\compile.rs:5174:13:\nassertion failed: compile_tuned(tuning_where(|t|\n                {\n                    t.death_after_ticks = after;\n                    t.death_warning_ticks = warning;\n                })).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "zero warning validation",
+    "command": "cargo test -p terri-data mortality_timing --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning --- FAILED\n\nfailures:\n\n---- compile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning stdout ----\n\nthread 'compile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning' (3276) panicked at crates\\terri-data\\src\\compile.rs:5174:13:\nassertion failed: compile_tuned(tuning_where(|t|\n                {\n                    t.death_after_ticks = after;\n                    t.death_warning_ticks = warning;\n                })).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::mortality_timing_requires_time_to_die_and_an_earlier_warning\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "conversation reservation",
+    "command": "cargo test -p terri-sim removing_a_redirected --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::removing_a_redirected_conversation_initiator_releases_both_reservations --- FAILED\n\nfailures:\n\n---- mortality::tests::removing_a_redirected_conversation_initiator_releases_both_reservations stdout ----\n\nthread 'mortality::tests::removing_a_redirected_conversation_initiator_releases_both_reservations' (41196) panicked at crates\\terri-sim\\src\\mortality.rs:954:9:\nassertion failed: sim.world().get::<terri_core::Reserved>(partner).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::removing_a_redirected_conversation_initiator_releases_both_reservations\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 624 filtered out; finished in 0.00s\n\nwarning: unused variable: `partner`\n   --> crates\\terri-sim\\src\\mortality.rs:119:9\n    |\n119 |     let partner = world.get::<Socialising>(dead).map(|talk| talk.partner);\n    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_partner`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "449be0da1060f2f157460744a3c9b4943cb81bf768405a402372166062bb451e"
+  },
+  {
+    "mutation": "live target cleanup",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 19 tests\n............ 12/19\nmortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead --- FAILED\n......\nfailures:\n\n---- mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead stdout ----\n\nthread 'mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead' (54792) panicked at crates\\terri-sim\\src\\mortality.rs:526:13:\nassertion failed: sim.world().get::<Target>(survivor).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::death_clears_selection_conversation_and_only_orders_naming_the_dead\n\ntest result: FAILED. 18 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "449be0da1060f2f157460744a3c9b4943cb81bf768405a402372166062bb451e"
+  },
+  {
+    "mutation": "conversation cleanup",
+    "command": "cargo test -p terri-sim mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 19 tests\n........... 11/19\nmortality::tests::a_dead_conversation_partner_does_not_cancel_a_new_object_action --- FAILED\n.......\nfailures:\n\n---- mortality::tests::a_dead_conversation_partner_does_not_cancel_a_new_object_action stdout ----\n\nthread 'mortality::tests::a_dead_conversation_partner_does_not_cancel_a_new_object_action' (50420) panicked at crates\\terri-sim\\src\\mortality.rs:728:9:\nassertion failed: sim.world().get::<Socialising>(person).is_none()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::a_dead_conversation_partner_does_not_cancel_a_new_object_action\n\ntest result: FAILED. 18 passed; 1 failed; 0 ignored; 0 measured; 606 filtered out; finished in 0.04s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "449be0da1060f2f157460744a3c9b4943cb81bf768405a402372166062bb451e"
+  },
+  {
+    "mutation": "count save order",
+    "command": "cargo test -p terri-sim corrupt_mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world --- FAILED\n\nfailures:\n\n---- mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world stdout ----\n\nthread 'mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world' (55384) panicked at crates\\terri-sim\\src\\mortality.rs:672:13:\nassertion failed: sim.load_snapshot_v5(saved).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 624 filtered out; finished in 0.01s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "449be0da1060f2f157460744a3c9b4943cb81bf768405a402372166062bb451e"
+  },
+  {
+    "mutation": "count positive",
+    "command": "cargo test -p terri-sim corrupt_mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world --- FAILED\n\nfailures:\n\n---- mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world stdout ----\n\nthread 'mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world' (11352) panicked at crates\\terri-sim\\src\\mortality.rs:672:13:\nassertion failed: sim.load_snapshot_v5(saved).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 624 filtered out; finished in 0.01s\n\nwarning: unused variable: `count`\n   --> crates\\terri-sim\\src\\mortality.rs:216:27\n    |\n216 |             .any(|(index, count)| false || !live.iter().any(|row| row.0 == *index))\n    |                           ^^^^^ help: if this is intentional, prefix it with an underscore: `_count`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "449be0da1060f2f157460744a3c9b4943cb81bf768405a402372166062bb451e"
+  },
+  {
+    "mutation": "count living identity",
+    "command": "cargo test -p terri-sim corrupt_mortality --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world --- FAILED\n\nfailures:\n\n---- mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world stdout ----\n\nthread 'mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world' (59056) panicked at crates\\terri-sim\\src\\mortality.rs:672:13:\nassertion failed: sim.load_snapshot_v5(saved).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::corrupt_mortality_is_rejected_without_replacing_the_world\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 624 filtered out; finished in 0.01s\n\nwarning: unused variable: `index`\n   --> crates\\terri-sim\\src\\mortality.rs:216:20\n    |\n216 |             .any(|(index, count)| *count == 0 || false)\n    |                    ^^^^^ help: if this is intentional, prefix it with an underscore: `_index`\n    |\n    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "449be0da1060f2f157460744a3c9b4943cb81bf768405a402372166062bb451e"
+  },
+  {
+    "mutation": "death record save order",
+    "command": "cargo test -p terri-sim death_record_order_is_validated --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::death_record_order_is_validated_independently_of_identity --- FAILED\n\nfailures:\n\n---- mortality::tests::death_record_order_is_validated_independently_of_identity stdout ----\n\nthread 'mortality::tests::death_record_order_is_validated_independently_of_identity' (17848) panicked at crates\\terri-sim\\src\\mortality.rs:978:9:\nassertion failed: sim.load_snapshot_v5(bad).is_err()\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::death_record_order_is_validated_independently_of_identity\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 625 filtered out; finished in 0.01s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "e3c96eeb7965f684ee51bcf0c642b192e398c0976f21a77282e4072f07a075e9"
+  },
+  {
+    "mutation": "hate cutoff",
+    "command": "cargo test -p terri-sim affinity_at_death --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence --- FAILED\n\nfailures:\n\n---- mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence stdout ----\n\nthread 'mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence' (53208) panicked at crates\\terri-sim\\src\\mortality.rs:927:13:\nassertion `left == right` failed: affinity -1\n  left: Some(5.0)\n right: None\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 625 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "d2dc2e740006d51c3c0a38742ba084d2c715a7bf8633f1eb5ef4dfee1ef75858"
+  },
+  {
+    "mutation": "negative affinity strength",
+    "command": "cargo test -p terri-sim affinity_at_death --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence --- FAILED\n\nfailures:\n\n---- mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence stdout ----\n\nthread 'mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence' (31408) panicked at crates\\terri-sim\\src\\mortality.rs:927:13:\nassertion `left == right` failed: affinity -0.25\n  left: Some(-5.0)\n right: Some(-2.5)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 625 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "d2dc2e740006d51c3c0a38742ba084d2c715a7bf8633f1eb5ef4dfee1ef75858"
+  },
+  {
+    "mutation": "grief duration affinity",
+    "command": "cargo test -p terri-sim affinity_at_death --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence --- FAILED\n\nfailures:\n\n---- mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence stdout ----\n\nthread 'mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence' (24016) panicked at crates\\terri-sim\\src\\mortality.rs:932:17:\nassertion `left == right` failed: expired affinity -0.25\n  left: Some(-2.0)\n right: None\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::affinity_at_death_controls_grief_strength_duration_and_absence\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 625 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "d2dc2e740006d51c3c0a38742ba084d2c715a7bf8633f1eb5ef4dfee1ef75858"
+  },
+  {
+    "mutation": "tuning.grief_min_ticks == 0",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (4468) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 7\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "tuning.grief_min_ticks > tuning.grief_ticks",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (54828) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "!(-1.0..0.0).contains(&tuning.grief_hated_affinity)",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (38688) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 9\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "!tuning.grief_min_score.is_finite()",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (16940) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 1\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "!tuning.grief_max_score.is_finite()",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (55180) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 2\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "tuning.grief_min_score <= 0.0",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (50928) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 3\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "tuning.grief_max_score < tuning.grief_min_score",
+    "command": "cargo test -p terri-data grief_tuning --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\ncompile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration --- FAILED\n\nfailures:\n\n---- compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration stdout ----\n\nthread 'compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration' (55792) panicked at crates\\terri-data\\src\\compile.rs:5206:13:\naccepted grief tuning field 5\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    compile::tests::grief_tuning_requires_finite_positive_ordered_scores_and_duration\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 263 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-data --lib`\n",
+    "restored_sha256": "208f1dde2fff95a499064c7e00dfa107979663efafbb4a4329ce92ebbed35efa"
+  },
+  {
+    "mutation": "death identity order",
+    "command": "cargo test -p terri-sim simultaneous_death_records --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::simultaneous_death_records_use_identity_order_even_when_entities_disagree --- FAILED\n\nfailures:\n\n---- mortality::tests::simultaneous_death_records_use_identity_order_even_when_entities_disagree stdout ----\n\nthread 'mortality::tests::simultaneous_death_records_use_identity_order_even_when_entities_disagree' (54000) panicked at crates\\terri-sim\\src\\mortality.rs:1024:9:\nassertion `left == right` failed\n  left: [1, 0]\n right: [0, 1]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::simultaneous_death_records_use_identity_order_even_when_entities_disagree\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 627 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "47831e1f861f793fb3b71e00cea101b75ce07c4cbe0d1471634c7d7356f999cd"
+  },
+  {
+    "mutation": "death after recovery",
+    "command": "cargo test -p terri-sim recovery_on_the_threshold --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 1 test\nmortality::tests::recovery_on_the_threshold_tick_prevents_death_in_the_full_schedule --- FAILED\n\nfailures:\n\n---- mortality::tests::recovery_on_the_threshold_tick_prevents_death_in_the_full_schedule stdout ----\n\nthread 'mortality::tests::recovery_on_the_threshold_tick_prevents_death_in_the_full_schedule' (40252) panicked at crates\\terri-sim\\src\\mortality.rs:1010:50:\ncalled `Option::unwrap()` on a `None` value\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    mortality::tests::recovery_on_the_threshold_tick_prevents_death_in_the_full_schedule\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 627 filtered out; finished in 0.01s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`\n",
+    "restored_sha256": "c2ccd2c64199d3d5e6a0be444e95032fb82034414a2f626796340f9c4b7d8e63"
+  },
+  {
+    "mutation": "optional save padding",
+    "command": "cargo test -p terri-wasm save_v3_tests --quiet",
+    "exit": 101,
+    "caught": true,
+    "output": "\nrunning 11 tests\n.......... 10/11\nsave_v3_tests::mortality_length_truncation_cannot_invent_an_empty_count_list --- FAILED\n\nfailures:\n\n---- save_v3_tests::mortality_length_truncation_cannot_invent_an_empty_count_list stdout ----\n\nthread 'save_v3_tests::mortality_length_truncation_cannot_invent_an_empty_count_list' (59048) panicked at crates\\terri-wasm\\src\\save_v3_tests.rs:511:9:\naccepted mortality cut 3377\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    save_v3_tests::mortality_length_truncation_cannot_invent_an_empty_count_list\n\ntest result: FAILED. 10 passed; 1 failed; 0 ignored; 0 measured; 120 filtered out; finished in 0.13s\n\nerror: test failed, to rerun pass `-p terri-wasm --lib`\n",
+    "restored_sha256": "f5b75faf32e6b065895a85de036562956e7cc8293097d69484fa8bf9df265325"
+  },
+  {
+    "mutation": "warning roster rendering",
+    "command": "npx --no-install vitest run tests/household-roster.test.ts (web)",
+    "exit": 1,
+    "caught": true,
+    "output": "\n RUN  v4.1.10 D:/VIBES/terrilives/web\n\n \u276f tests/household-roster.test.ts (11 tests | 1 failed) 7ms\n   \u00d7 shows and then clears the sim-derived death warning without losing the row 3ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 10 passed (11)\n   Start at  11:45:35\n   Duration  130ms (transform 23ms, setup 0ms, import 30ms, tests 7ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/household-roster.test.ts > shows and then clears the sim-derived death warning without losing the row\nAssertionError: expected 'Alex' to be 'Alex\\'s hunger is empty. They will di\u2026' // Object.is equality\n\nExpected: \"Alex's hunger is empty. They will die if it stays empty.\"\nReceived: \"Alex\"\n\n \u276f tests/household-roster.test.ts:396:37\n    394|   const surface = createHouseholdRosterSurface(doc as unknown as Docum\u2026\n    395|   surface.render([{ simId: 0, entity: 1, name: 'Alex', warning: \"Alex'\u2026\n    396|   expect(root.items[0].textContent).toBe(\"Alex's hunger is empty. They\u2026\n       |                                     ^\n    397|   expect(root.items[0].getAttribute('data-death-warning')).toBe('true'\u2026\n    398|   const button = root.items[0];\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "a2bced73e2d10a5d69036ab746f214e32cec4c912c8ee37f3ff9300f713454c0"
+  },
+  {
+    "mutation": "warning row layout state",
+    "command": "npx --no-install vitest run tests/household-roster.test.ts (web)",
+    "exit": 1,
+    "caught": true,
+    "output": "\n RUN  v4.1.10 D:/VIBES/terrilives/web\n\n \u276f tests/household-roster.test.ts (11 tests | 1 failed) 8ms\n   \u00d7 shows and then clears the sim-derived death warning without losing the row 3ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 10 passed (11)\n   Start at  11:45:35\n   Duration  227ms (transform 23ms, setup 0ms, import 32ms, tests 8ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/household-roster.test.ts > shows and then clears the sim-derived death warning without losing the row\nAssertionError: expected 'false' to be 'true' // Object.is equality\n\nExpected: \"true\"\nReceived: \"false\"\n\n \u276f tests/household-roster.test.ts:397:60\n    395|   surface.render([{ simId: 0, entity: 1, name: 'Alex', warning: \"Alex'\u2026\n    396|   expect(root.items[0].textContent).toBe(\"Alex's hunger is empty. They\u2026\n    397|   expect(root.items[0].getAttribute('data-death-warning')).toBe('true'\u2026\n       |                                                            ^\n    398|   const button = root.items[0];\n    399|   surface.render([{ simId: 0, entity: 1, name: 'Alex' }], null, () => \u2026\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "a2bced73e2d10a5d69036ab746f214e32cec4c912c8ee37f3ff9300f713454c0"
+  },
+  {
+    "mutation": "empty selection caption",
+    "command": "npx --no-install vitest run tests/needs-panel.test.ts (web)",
+    "exit": 1,
+    "caught": true,
+    "output": "\n RUN  v4.1.10 D:/VIBES/terrilives/web\n\n \u276f tests/needs-panel.test.ts (14 tests | 1 failed) 7ms\n   \u00d7 clears a departed selected person from the visible caption 3ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 13 passed (14)\n   Start at  11:45:37\n   Duration  128ms (transform 22ms, setup 0ms, import 30ms, tests 7ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/needs-panel.test.ts > clears a departed selected person from the visible caption\nAssertionError: expected 'Casey' to be 'Select a person' // Object.is equality\n\nExpected: \"Select a person\"\nReceived: \"Casey\"\n\n \u276f tests/needs-panel.test.ts:312:29\n    310|   source.selected = null;\n    311|   panel.update(1, source);\n    312|   expect(title.textContent).toBe('Select a person');\n       |                             ^\n    313| });\n    314|\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "be9235a98621f9bff269ae65a5ce4653049c9087d58e1591b4d30fa66ed97a1f"
+  },
+  {
+    "mutation": "refresh capacity after death",
+    "command": "npx --no-install vitest run tests/housemate-form.test.ts (web)",
+    "exit": 1,
+    "caught": true,
+    "output": "\n RUN  v4.1.10 D:/VIBES/terrilives/web\n\n \u276f tests/housemate-form.test.ts (26 tests | 1 failed) 41ms\n   \u00d7 refreshes move-in availability each frame when death frees a full household slot 4ms\n\n Test Files  1 failed (1)\n      Tests  1 failed | 25 passed (26)\n   Start at  11:50:42\n   Duration  204ms (transform 55ms, setup 0ms, import 69ms, tests 41ms, environment 0ms)\n\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  tests/housemate-form.test.ts > refreshes move-in availability each frame when death frees a full household slot\nAssertionError: expected false to be true // Object.is equality\n\n- Expected\n+ Received\n\n- true\n+ false\n\n \u276f tests/housemate-form.test.ts:569:55\n    567|   expect(housemate.roomForOne()).toBe(true);\n    568|   const frame = MAIN_TS.slice(MAIN_TS.indexOf('function frame('));\n    569|   expect(frame.includes('syncNewHousemateButton();')).toBe(true);\n       |                                                       ^\n    570| });\n    571|\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n",
+    "restored_sha256": "d6d6e3c1acdbe36672eef25b090918388cce035983ee8eb82fcbbd7c690797f6"
+  }
+]

@@ -210,7 +210,7 @@ fn floor_edit_arguments(
 /// The same trick `decode_save_payload` uses for the sleep-pressure list, and
 /// for the same reason: postcard writes a struct's fields back to back, so an
 /// older payload is a prefix of a newer one and one zero byte is each empty
-/// list it lacks. One pad per appended list, and a padded decode is accepted
+/// list or absent optional record it lacks. One pad per appended field, and a padded decode is accepted
 /// only when every list the padding could have filled comes back empty and
 /// the snapshot re-encodes to exactly the padded bytes, so padding can never
 /// invent a floor nobody laid or a family nobody has, nor complete a cut
@@ -224,17 +224,16 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 3;
+    const APPENDED_LISTS: usize = 4;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
                 // Only the lists the padding could have filled must come
                 // back empty, and that is the LAST `pad` of them. One pad
-                // fills the SimId family list alone, so a save written by
-                // the first build with ties keeps the ties it keyed on
-                // entity index ([FM-identity]), and two keep the floors a
-                // player painted before ties existed. Asking every
+                // fills mortality alone. Two fill mortality and SimId ties;
+                // three also fill legacy ties, preserving painted floors.
+                // Asking every
                 // appended list to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
                 //
@@ -250,11 +249,13 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 }
                 let family = snapshot.family.ties().len();
                 let by_index = snapshot.family_by_index.ties().len();
+                let mortality = usize::from(snapshot.mortality.is_some());
                 let invented = match pad {
                     0 => 0,
-                    1 => family,
-                    2 => family + by_index,
-                    _ => family + by_index + snapshot.floors.tiles().len(),
+                    1 => mortality,
+                    2 => mortality + family,
+                    3 => mortality + family + by_index,
+                    _ => mortality + family + by_index + snapshot.floors.tiles().len(),
                 };
                 return (invented == 0).then_some(snapshot);
             }
@@ -599,6 +600,21 @@ impl SimHandle {
                     .flat_map(|&(low, high, relation)| [low, high, u32::from(relation)])
                     .collect()
             })
+    }
+
+    /// Whether deprivation can currently cause death.
+    pub fn death_enabled(&self) -> bool {
+        self.sim.death_enabled()
+    }
+
+    pub fn set_death_enabled(&mut self, enabled: bool) -> bool {
+        let bytes = postcard::to_allocvec(&SimCommand::SetDeathEnabled(enabled))
+            .expect("death setting serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    pub fn death_warning(&self, index: u32) -> String {
+        self.sim.death_warning(index).unwrap_or_default()
     }
 
     /// Stages recording that the sim at entity index `who` is `relation` to

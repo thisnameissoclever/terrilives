@@ -5,6 +5,7 @@ mod facing_tests;
 pub mod family;
 pub mod household;
 mod mood;
+pub mod mortality;
 pub mod placement;
 pub mod portals;
 pub mod render_buffer;
@@ -719,6 +720,7 @@ impl Sim {
                 .cloned()
                 .unwrap_or_default(),
             // [FM-identity]: written empty, read only from older saves.
+            mortality: mortality::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -812,6 +814,7 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+        world.insert_resource(terri_core::save::SavedMortality::default());
         // A placeholder lot so Res<TileGrid> never panics. Callers that
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
@@ -969,6 +972,7 @@ impl Sim {
                 // `a_use_object_command_is_served_on_the_tick_it_arrives`
                 // is what fails if this line moves.
                 systems::command::drain_commands,
+                mortality::cleanup,
                 advance_clock,
                 systems::needs::decay_needs,
                 // Immediately after decay, because it reads the energy
@@ -1045,6 +1049,7 @@ impl Sim {
                 // tick_social, where the completion-only rule already
                 // lives.
                 systems::satisfaction::bleed_neglect,
+                mortality::tick,
             )
                 .chain(),
         );
@@ -2715,6 +2720,7 @@ impl Sim {
             for command in commands.as_slice() {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
+                    SetDeathEnabled(enabled) => vec![17, u64::from(*enabled)],
                     Select(id) => vec![0, id.map_or(u64::MAX, |id| id as u64)],
                     UseObject {
                         agent,
@@ -2910,6 +2916,7 @@ impl Sim {
             }
         }
 
+        mortality::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }

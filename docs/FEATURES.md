@@ -917,16 +917,11 @@ categories alongside the current master and effects controls. The detailed contr
 
 ### [B-death] Sims can die and leave consequences
 
-Death is planned because the ghost system depends on it, but no Sim can die in
-the current game. The complete slice needs aging and non-aging causes, warnings,
-preventable and unavoidable outcomes, a body-to-ghost transition, household and
-relationship consequences, inheritance, memorial state, save compatibility,
-and content controls for players who do not want sudden or disaster deaths.
+The first playable slice, [DE-slice-neglect], implements deprivation: hunger or energy held at zero. Death is off by default behind the saved Options setting "Sims can die if hunger or energy stays empty". The counter runs while death is off. With death on, the household row warns before removal.
 
-The working design is `docs/specs/2026-09-22-death.md`. It splits the item into
-four slices and defines the first: one preventable cause, a warning, grief for
-the household, a dead sim saved rather than deleted, and a setting that keeps
-death off until the player turns it on. None of it is built yet.
+A death retires the entity index and records the permanent SimId, name, cause, tick and identity boundary. Family ties and survivors' affinity stay. Grief is derived from affinity at death: close friends grieve more and longer, neutral acquaintances briefly, and hated people cause neither grief nor joy. Later newcomers do not grieve earlier deaths. No body, ghost or new art is included.
+
+The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies, ghosts, memorials and inheritance remain future slices. Delivery and played evidence will be recorded with the merge.
 
 ### [B-edit-sims] Change a person after they move in
 

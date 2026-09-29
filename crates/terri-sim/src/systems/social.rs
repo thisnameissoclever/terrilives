@@ -248,10 +248,15 @@ fn other_sim_id(sim_ids: &Query<&SimId>, entity: Entity) -> Option<SimId> {
 /// like `decay_habituation`, and for the same one-way-ratchet reason:
 /// a friendship that needs no maintenance only ever rises, and a grudge
 /// that never fades makes the first bad day permanent.
-pub fn decay_relationships(content: Res<Content>, mut relationships: Query<&mut Relationships>) {
+pub fn decay_relationships(
+    content: Res<Content>,
+    mortality: Res<terri_core::save::SavedMortality>,
+    mut relationships: Query<&mut Relationships>,
+) {
+    let preserved: Vec<_> = mortality.deaths.iter().map(|d| SimId(d.sim_id)).collect();
     let rate = content.0.tuning.relationship_decay_per_tick;
     for mut feelings in &mut relationships {
-        feelings.decay(rate);
+        feelings.decay_except(rate, &preserved);
     }
 }
 

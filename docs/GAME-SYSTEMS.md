@@ -58,7 +58,7 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-create-a-sim] | Create-a-sim and appearance | Partial | 25% |
 | [S-life-stages] | Life stages and aging | Not started | 0% |
 | [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | 0% |
-| [S-death] | Death and its consequences | Not started | 0% |
+| [S-death] | Death and its consequences | Partial | First slice |
 | [S-outside] | A playable outside | Not started | 0% |
 | [S-emergencies] | Fires, emergencies, and disasters | Not started | 0% |
 | [S-town] | Town, neighbours, and other households | Not started | 0% |
@@ -94,7 +94,7 @@ Several requested systems need the same missing pieces. Building each piece once
 
 **Status: Partial.** A character can be added while the game runs: the New housemate form moves a named person in with a chosen personality and traits ([CS-slice-housemate]), and a debug stress-test tool can add bare characters with no name, personality, traits, or job.
 
-Nothing in the game can remove a character either. The code that handles object reservations records three places that will leak a reservation once removal exists. Pets, new housemates, visitors, babies, and death all depend on this piece.
+Death now removes a character without freeing its entity index. The index is retired, and a saved death record preserves the person's identity. Removal releases the person's reservation, conversations, incoming queued orders and selection. Cleanup also releases an action if its owner loses Needs or its target loses SmartObject. Moving out, visitors and babies still need their own lifecycle rules.
 
 ### [F-creature] A character model that is not only human
 
@@ -414,7 +414,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-death] Death and its consequences
 
-**Status: Not started, 0%.** Nobody can die. The plan treats death as a required system, not a fail state, because the ghost feature depends on it. `[B-death]` in [FEATURES.md](FEATURES.md) lists causes, warnings, grief, inheritance, and player controls for sudden deaths. Depends on [F-entity-lifecycle].
+**Status: Partial.** [DE-slice-neglect] implements deprivation deaths, off by default, with an Options command, row warnings, saved death records, retired entity indices and affinity-based grief. Stronger affinity at death produces stronger, longer grief; hatred produces none. Aging, ghosts, bodies, memorials and inheritance remain unbuilt. See [B-death] in [FEATURES.md](FEATURES.md).
 
 ### [S-outside] A playable outside
 

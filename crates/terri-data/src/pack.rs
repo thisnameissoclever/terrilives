@@ -649,8 +649,15 @@ pub struct Tuning {
     /// `docs/specs/2026-09-22-the-outside.md`. Read only by the renderer.
     pub interior_daylight_shade: f32,
     /// Sky exposure lost per tile travelled indoors, in `(0, 1]` -
-    /// [OS-daylight]. Last in this struct, per the appending rule.
+    /// [OS-daylight]. Mortality fields follow under the appending rule.
     pub daylight_reach_per_tile: f32,
+    pub death_after_ticks: u32,
+    pub death_warning_ticks: u32,
+    pub grief_ticks: u32,
+    pub grief_min_score: f32,
+    pub grief_max_score: f32,
+    pub grief_min_ticks: u32,
+    pub grief_hated_affinity: f32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -1222,6 +1229,13 @@ mod tests {
             housemate_max_traits: 5,
             interior_daylight_shade: 0.15625,
             daylight_reach_per_tile: 0.21875,
+            death_after_ticks: 3600,
+            death_warning_ticks: 600,
+            grief_ticks: 12000,
+            grief_min_score: 5.0,
+            grief_max_score: 30.0,
+            grief_min_ticks: 600,
+            grief_hated_affinity: -0.5,
         }
     }
 
@@ -1840,11 +1854,15 @@ mod tests {
                 .filter_map(|(index, (left, right))| (left != right).then_some(index))
                 .collect()
         };
-        // [OS-daylight]: the two daylight floats close the record; 0.21875
+        // [OS-daylight]: the two daylight floats precede mortality; 0.21875
         // and 0.15625 are 0, 0, 96, 62 and 0, 0, 32, 62, and a change of
         // either to 0.28125 or 0.34375 moves only its third byte.
-        let len = before.len();
-        assert_eq!(before[len - 8..], [0, 0, 32, 62, 0, 0, 96, 62]);
+        let len = before.len() - 20;
+        assert_eq!(
+            before[len..],
+            [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]
+        );
+        assert_eq!(before[len - 8..len], [0, 0, 32, 62, 0, 0, 96, 62]);
         assert_eq!(
             changed(Tuning {
                 daylight_reach_per_tile: 0.34375,

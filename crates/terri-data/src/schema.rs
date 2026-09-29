@@ -221,9 +221,16 @@ pub struct TuningFile {
     /// `docs/specs/2026-09-22-the-outside.md`.
     pub interior_daylight_shade: f32,
     /// How much sky exposure is lost for each tile the sky travels indoors,
-    /// in `(0, 1]` - [OS-daylight]. Last in this record on purpose, per the
+    /// in `(0, 1]` - [OS-daylight]. Mortality fields follow, per the
     /// appending rule.
     pub daylight_reach_per_tile: f32,
+    pub death_after_ticks: u32,
+    pub death_warning_ticks: u32,
+    pub grief_ticks: u32,
+    pub grief_min_score: f32,
+    pub grief_max_score: f32,
+    pub grief_min_ticks: u32,
+    pub grief_hated_affinity: f32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1017,7 +1024,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 33] = [
+    const TUNING_LINES: [(&str, &str); 40] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -1050,6 +1057,13 @@ mod tests {
         ("housemate_max_traits", "5"),
         ("interior_daylight_shade", "0.15625"),
         ("daylight_reach_per_tile", "0.21875"),
+        ("death_after_ticks", "3600"),
+        ("death_warning_ticks", "600"),
+        ("grief_ticks", "12000"),
+        ("grief_min_score", "5.0"),
+        ("grief_max_score", "30.0"),
+        ("grief_min_ticks", "600"),
+        ("grief_hated_affinity", "-0.5"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.

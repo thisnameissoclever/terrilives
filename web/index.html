@@ -366,6 +366,11 @@
         font: inherit;
         cursor: pointer;
       }
+      .household-member[data-death-warning='true'] {
+        grid-column: 1 / -1;
+        text-align: left;
+        padding: 8px;
+      }
       .household-member:hover {
         border-color: var(--need-fill);
         background: #29313a;
@@ -1152,6 +1157,7 @@
         >Light: auto</button>
         <button id="build-toggle" class="hud-button" type="button"
           aria-pressed="false" aria-controls="builder-controls">Build</button>
+        <label><input id="death-enabled" type="checkbox" /> Sims can die if hunger or energy stays empty</label>
         <section id="audio-controls" aria-label="Audio controls">
         <button
           id="audio-mute"

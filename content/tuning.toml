@@ -1,3 +1,18 @@
+# Six real minutes at normal speed leaves time to recover from an empty need.
+death_after_ticks = 3600
+# The final minute gives a visible chance to intervene.
+death_warning_ticks = 600
+# Twenty normal-speed minutes lets grief outlast the immediate crisis.
+grief_ticks = 12000
+# A neutral acquaintance leaves a small loss.
+grief_min_score = 5.0
+# A close relationship contributes a substantial but not all-consuming loss.
+grief_max_score = 30.0
+# A neutral acquaintance fades after one normal-speed minute.
+grief_min_ticks = 600
+# Strong dislike is no grief, never a positive mood bonus.
+grief_hated_affinity = -0.5
+
 
 # Every knob that governs the SYSTEM lives here. Values describing a
 # specific piece of content - a fridge's hunger delta - stay in

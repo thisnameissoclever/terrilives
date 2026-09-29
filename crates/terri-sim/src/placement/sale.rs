@@ -28,7 +28,7 @@ impl RetiredIndices {
         &self.0
     }
 
-    fn retire(&mut self, index: u32) {
+    pub(crate) fn retire(&mut self, index: u32) {
         if let Err(at) = self.0.binary_search(&index) {
             self.0.insert(at, index);
         }

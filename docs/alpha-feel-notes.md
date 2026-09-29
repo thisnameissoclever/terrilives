@@ -3625,3 +3625,19 @@ New housemate, the name Dana, a personality, Next, then "parent" of Bill, then M
 A first attempt stalled: driving the `?stress=0` harness with a clock far ahead of the page's own, while the visible pane was also drawing frames, put the game's clock behind and nothing drained. Reloading and letting the page run its own frames fixed it.
 
 **Not proven here.** Loading a save written by the build that keyed ties on entity index was not done by hand, because this browser had no such save; the Rust tests build one byte for byte and load it. Nothing in the game behaves differently for family yet.
+
+## [A-death] Deprivation, a warning, and an empty place in the household
+
+Played on 2026-09-29 on `twcx/death-slice`, with rebuilt WebAssembly, at `https://localhost:5174/?stress=0` in the built-in browser pane at 1280 by 720. Sound was turned off before advancing play. The pane visibility control reported hidden; accelerated portions used its frame harness, starting from `performance.now()` after each reload. Ordinary UI controlled pause, speed, death, selection and saves. Furniture sales used the same serialized commands the player interface sends. Need values and affinities were never edited.
+
+The browser initially reported "No save yet". Sale previews refused the fridge and stove because the meal chain needs them. Selling the two beds and the energy-restoring sofa succeeded, paying 465 total. At tick 3614 all three people had reached zero energy through ordinary need decay. Death was still off, and nobody had a death warning.
+
+Turning on "Sims can die if hunger or energy stays empty" and advancing produced Casey's warning at tick 4652: "Casey's energy is empty. They will die if it stays empty." The first layout crammed that sentence into one of three narrow columns. Warning rows now span the full roster width. The [warning capture](evidence/death/warning.png) shows the corrected layout after saving and reloading.
+
+Casey was selected when the count reached death at tick 5252. Their roster row disappeared and selection became empty. Tim remained selectable and showed "Grieving Casey: -15" in his mood list. The [grief capture](evidence/death/grief.png) shows the surviving roster and moodlet. The empty selection initially left Casey's name on the needs-panel caption. A failing regression test reproduced it; the caption now reads "Select a person".
+
+The death and grief survived Save and a page reload. Tim also died after the reload while death remained enabled. Disabling death left Bill alive at zero energy, with grief for Casey and Tim at different strengths. Advancing to tick 17683 removed both grief moodlets; only Exhausted remained. No browser errors or warnings were recorded. The task-owned tab was closed and its server stopped. The browser's new test save remains; the final state is described below.
+
+**Not proven here.** The accelerated play is evidence of the ordinary simulation path, not a real-time pacing assessment. Casey was not clearly visible on the floor at the instant of death, so sprite disappearance at that exact frame is covered by render-buffer tests rather than this screenshot. Hatred, retained family ties, reservation cleanup, and old-format save compatibility were tested in code, not separately acted out in this browser. Phone layout was not played.
+
+A follow-up killed the final original member, Bill, and saved. Restoring the old startup guard reproduced "The game failed to start: the compiled household has nobody in it". Removing that obsolete guard allowed the empty household to load with New housemate available. Morgan moved in through the form and had only "Needs met: +20", with no grief for the earlier deaths. Bill's death was recent enough to have caused grief without the identity boundary. The final test save has Morgan alive and death off; the tab and server were closed again. [Newcomer capture](evidence/death/newcomer.png).

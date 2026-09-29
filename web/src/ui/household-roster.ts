@@ -3,6 +3,7 @@ export interface HouseholdRosterSource {
   ids(): Uint32Array;
   simIds(): Uint32Array;
   simName(entityIndex: number): string;
+  deathWarning?(entityIndex: number): string;
   selectedIndex(): number | null;
   select(entityIndex: number): boolean;
 }
@@ -13,6 +14,7 @@ export interface HouseholdMember {
   /** Current ECS entity index used only when a selection command is sent. */
   readonly entity: number;
   readonly name: string;
+  readonly warning?: string;
 }
 
 export interface HouseholdRosterSurface {
@@ -43,7 +45,8 @@ export function householdMembers(source: HouseholdRosterSource): HouseholdMember
     if (simId === 0xffff_ffff) continue;
     const name = source.simName(entity);
     if (name === '') continue;
-    members.push({ simId, entity, name });
+    const warning = source.deathWarning?.(entity);
+    members.push(warning ? { simId, entity, name, warning } : { simId, entity, name });
   }
 
   members.sort((left, right) => left.simId - right.simId);
@@ -130,7 +133,8 @@ export function createHouseholdRosterSurface(
           button.addEventListener('click', () => select?.(member.simId));
           buttons.set(member.simId, button);
         }
-        button.textContent = member.name;
+        button.textContent = member.warning ?? member.name;
+        button.setAttribute('data-death-warning', String(Boolean(member.warning)));
         button.setAttribute(
           'aria-pressed',
           String(member.simId === selectedSimId),
