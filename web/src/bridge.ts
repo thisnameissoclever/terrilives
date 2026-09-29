@@ -869,6 +869,12 @@ export class SimBridge {
    * `docs/specs/2026-09-22-family.md`). SimIds, not entity indices, so a
    * tie never follows a reused slot ([FM-identity]).
    */
+  deathEnabled(): boolean { return this.handle.death_enabled(); }
+
+  setDeathEnabled(enabled: boolean): boolean { return this.handle.set_death_enabled(enabled); }
+
+  deathWarning(index: number): string { return this.handle.death_warning(index); }
+
   familyTies(): Uint32Array {
     return this.handle.family_ties();
   }

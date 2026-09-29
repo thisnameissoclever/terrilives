@@ -387,3 +387,19 @@ describe('createHouseholdRosterSurface', () => {
     expect(source.selections).toEqual([42]);
   });
 });
+
+it('shows and then clears the sim-derived death warning without losing the row', () => {
+  const doc = new FakeDocument();
+  const root = new FakeRoot(doc);
+  const surface = createHouseholdRosterSurface(doc as unknown as Document, root as unknown as HTMLElement);
+  surface.render([{ simId: 0, entity: 1, name: 'Alex', warning: "Alex's hunger is empty. They will die if it stays empty." }], null, () => {});
+  expect(root.items[0].textContent).toBe("Alex's hunger is empty. They will die if it stays empty.");
+  expect(root.items[0].getAttribute('data-death-warning')).toBe('true');
+  const button = root.items[0];
+  surface.render([{ simId: 0, entity: 1, name: 'Alex' }], null, () => {});
+  expect(root.items[0]).toBe(button);
+  expect(root.items[0].textContent).toBe('Alex');
+  expect(root.items[0].getAttribute('data-death-warning')).toBe('false');
+  surface.render([], null, () => {});
+  expect(root.items).toHaveLength(0);
+});

@@ -320,6 +320,7 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             y: *y,
             covering: *covering,
         },
+        SimCommand::SetDeathEnabled(enabled) => SavedCommand::SetDeathEnabled(*enabled),
         SimCommand::SetFamilyTie { who, to, relation } => SavedCommand::SetFamilyTie {
             who: *who,
             to: *to,
@@ -842,6 +843,7 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
         SavedCommand::SetFloor { x, y, covering } => SimCommand::SetFloor { x, y, covering },
+        SavedCommand::SetDeathEnabled(enabled) => SimCommand::SetDeathEnabled(enabled),
         SavedCommand::SetFamilyTie { who, to, relation } => {
             SimCommand::SetFamilyTie { who, to, relation }
         }
@@ -1133,7 +1135,8 @@ fn validate_command(
         | SavedCommand::SetColourway { .. }
         | SavedCommand::BuyObjectInColourway { .. }
         | SavedCommand::SetFloor { .. }
-        | SavedCommand::SetFamilyTie { .. } => Ok(()),
+        | SavedCommand::SetFamilyTie { .. }
+        | SavedCommand::SetDeathEnabled(_) => Ok(()),
         // [CS-save]: held to the limits every saved name and list is held
         // to; the drain checks the rest.
         SavedCommand::AddHousemate { name, traits, .. } => {

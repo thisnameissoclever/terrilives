@@ -1115,6 +1115,7 @@ pub enum ContentError {
     /// [OS-daylight]: `daylight_reach_per_tile` outside `(0, 1]`: at 0 the
     /// sky would reach every room undimmed, and past 1 it would not get
     /// past the doorway.
+    InvalidMortalityTuning,
     DaylightReachOutOfRange {
         value: f32,
     },
@@ -2214,6 +2215,7 @@ impl fmt::Display for ContentError {
                 f,
                 "two floor coverings are both named {name}; a player choosing                  one could not tell which floor they were choosing"
             ),
+            ContentError::InvalidMortalityTuning => write!(f, "death requires a positive duration and an earlier warning; grief requires positive ordered durations and finite ordered scores, with a hatred cutoff from -1 up to but excluding 0"),
             ContentError::DaylightReachOutOfRange { value } => write!(
                 f,
                 "daylight_reach_per_tile is {value}; must be in (0, 1], so the \

@@ -300,3 +300,14 @@ describe('NeedsPanel', () => {
     expect(title.textContent).toBe('');
   });
 });
+
+it('clears a departed selected person from the visible caption', () => {
+  const title = caption();
+  const panel = new NeedsPanel({ hidden: false }, title, bars(1), 0, 100, {hidden: true}, {hidden: false});
+  const source = new CountingSource(4, SEVEN, 'Casey');
+  panel.update(0, source);
+  expect(title.textContent).toBe('Casey');
+  source.selected = null;
+  panel.update(1, source);
+  expect(title.textContent).toBe('Select a person');
+});

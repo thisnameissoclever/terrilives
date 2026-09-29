@@ -6,6 +6,12 @@ pub fn drain_commands(world: &mut World) {
     let issued: Vec<_> = world.resource_mut::<CommandQueue>().drain().collect();
     for command in issued {
         match command {
+            SimCommand::SetDeathEnabled(enabled) => {
+                flush_ordinary(world);
+                world
+                    .resource_mut::<terri_core::save::SavedMortality>()
+                    .enabled = enabled;
+            }
             SimCommand::PlaceObject {
                 object,
                 x,

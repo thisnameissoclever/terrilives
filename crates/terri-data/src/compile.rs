@@ -2297,6 +2297,18 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.housemate_max_traits == 0 {
         return Err(ContentError::HousemateTraitLimitIsZero);
     }
+    if tuning.death_warning_ticks == 0
+        || tuning.death_warning_ticks >= tuning.death_after_ticks
+        || tuning.grief_min_ticks == 0
+        || tuning.grief_min_ticks > tuning.grief_ticks
+        || !(-1.0..0.0).contains(&tuning.grief_hated_affinity)
+        || !tuning.grief_min_score.is_finite()
+        || !tuning.grief_max_score.is_finite()
+        || tuning.grief_min_score <= 0.0
+        || tuning.grief_max_score < tuning.grief_min_score
+    {
+        return Err(ContentError::InvalidMortalityTuning);
+    }
     // [OS-daylight]: presentation numbers, checked here like every other
     // knob so a bad file fails the build rather than the picture.
     check_finite(
@@ -2604,6 +2616,13 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             housemate_max_traits: tuning.housemate_max_traits,
             interior_daylight_shade: tuning.interior_daylight_shade,
             daylight_reach_per_tile: tuning.daylight_reach_per_tile,
+            death_after_ticks: tuning.death_after_ticks,
+            death_warning_ticks: tuning.death_warning_ticks,
+            grief_ticks: tuning.grief_ticks,
+            grief_min_score: tuning.grief_min_score,
+            grief_max_score: tuning.grief_max_score,
+            grief_min_ticks: tuning.grief_min_ticks,
+            grief_hated_affinity: tuning.grief_hated_affinity,
         },
         circadian,
         tuning.sleep_tag,
@@ -3678,7 +3697,9 @@ mod tests {
         // failing golden assertion. **The daylight knobs append eight more
         // ([OS-daylight]):** 0.15625 and 0.21875, `0, 0, 32, 62, 0, 0, 96, 62`.
         25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5,
-        0, 0, 32, 62, 0, 0, 96, 62, 0,
+        0, 0, 32, 62, 0, 0, 96, 62,
+        // Mortality tuning, read from the failing golden assertion.
+        144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112, 0, 0,
         // The empty colourway vector, appended after the portals ([RC-content]).
@@ -3862,6 +3883,14 @@ mod tests {
             housemate_max_traits: 5,
             interior_daylight_shade: 0.15625,
             daylight_reach_per_tile: 0.21875,
+            death_after_ticks: 3600,
+            death_warning_ticks: 600,
+            grief_ticks: 12000,
+            grief_min_score: 5.0,
+            grief_max_score: 30.0,
+            grief_min_ticks: 600,
+            grief_hated_affinity: -0.5,
+
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -5137,6 +5166,57 @@ mod tests {
                 field: "hue".to_string()
             }
         );
+    }
+
+    #[test]
+    fn mortality_timing_requires_time_to_die_and_an_earlier_warning() {
+        for (after, warning) in [(0, 0), (10, 0), (10, 10), (10, 11)] {
+            assert!(compile_tuned(tuning_where(|t| {
+                t.death_after_ticks = after;
+                t.death_warning_ticks = warning;
+            }))
+            .is_err());
+        }
+        let pack = compile_tuned(tuning_where(|t| {
+            t.death_after_ticks = 10;
+            t.death_warning_ticks = 9;
+        }))
+        .unwrap();
+        assert_eq!(pack.tuning.death_after_ticks, 10);
+        assert_eq!(pack.tuning.death_warning_ticks, 9);
+    }
+
+    #[test]
+    fn grief_tuning_requires_finite_positive_ordered_scores_and_duration() {
+        for field in 0..12 {
+            let bad = tuning_where(|t| match field {
+                0 => t.grief_ticks = 0,
+                1 => t.grief_min_score = f32::NAN,
+                2 => t.grief_max_score = f32::NAN,
+                3 => t.grief_min_score = 0.0,
+                4 => t.grief_min_score = -1.0,
+                5 => t.grief_max_score = t.grief_min_score - 1.0,
+                6 => t.grief_max_score = f32::INFINITY,
+                7 => t.grief_min_ticks = 0,
+                8 => t.grief_min_ticks = t.grief_ticks + 1,
+                9 => t.grief_hated_affinity = 0.0,
+                10 => t.grief_hated_affinity = -1.01,
+                _ => t.grief_hated_affinity = f32::NAN,
+            });
+            assert!(
+                compile_tuned(bad).is_err(),
+                "accepted grief tuning field {field}"
+            );
+        }
+        let valid = compile_tuned(tuning_where(|t| {
+            t.grief_ticks = 1;
+            t.grief_min_ticks = 1;
+            t.grief_min_score = 1.0;
+            t.grief_max_score = 1.0;
+        }))
+        .unwrap();
+        assert_eq!(valid.tuning.grief_ticks, 1);
+        assert_eq!(valid.tuning.grief_max_score, 1.0);
     }
 
     /// [OS-daylight]: each daylight knob's range, pinned from both sides of

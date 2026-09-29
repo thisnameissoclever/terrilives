@@ -251,6 +251,13 @@ two rendered frames produces the same saved world as draining it in one batch.
 13. `decay_habituation` - cool repeated-object memory.
 14. `decay_relationships` - apply directional relationship decay.
 15. `bleed_neglect` - reduce satisfaction when needs remain neglected.
+16. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
+
+After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index.
+
+Death state is a sparse `SavedMortality` resource: a setting, positive counts ordered by living entity index, and permanent death records ordered by tick then SimId. It is hashed and appended to SaveSnapshotV5 as `Option<SavedMortality>`. None costs one zero byte, so the historical decoder can pad that field without changing earlier lists. A padded decode must re-encode exactly, and only the fields filled by padding may be empty.
+
+Death records include the issued-identity boundary, excluding later newcomers from grief. Survivors keep their affinity toward dead SimIds without decay. Grief strength and duration derive from that affinity and elapsed ticks; moodlets are never stored.
 
 Mood is currently derived when the HUD asks rather than stored or scheduled,
 so Save V1 cannot restore a stale display value. Parallel advertisement scans,

@@ -28,6 +28,22 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('keeps death off by default and saves an ordered setting command', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    expect(bridge.deathEnabled()).toBe(false);
+    expect(bridge.setDeathEnabled(true)).toBe(true);
+    expect(bridge.deathEnabled()).toBe(false);
+    bridge.flushCommands();
+    expect(bridge.deathEnabled()).toBe(true);
+    const saved = handle.save_bytes();
+    bridge.setDeathEnabled(false);
+    bridge.flushCommands();
+    expect(bridge.deathEnabled()).toBe(false);
+    expect(handle.load_bytes(saved)).toBe(true);
+    expect(bridge.deathEnabled()).toBe(true);
+  });
+
   it('keeps type, model and description aligned across the catalogue, placed objects and load', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
@@ -852,11 +868,11 @@ describe('SimBridge', () => {
     // an empty list.
     // The tail gained the empty floors list and the two empty family lists,
     // by entity index and by SimId ([FL-save], [FM-save], [FM-identity]).
-    expect(Array.from(legacyCells.slice(-8))).toEqual([1, 0, 0, 0, 0, 0, 0, 0]);
+    expect(Array.from(legacyCells.slice(-9))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag sits three bytes further from the end than it did,
     // because those three lists were appended after it.
-    edgeBytes[edgeBytes.length - 8] = 2;
+    edgeBytes[edgeBytes.length - 9] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -874,7 +890,7 @@ describe('SimBridge', () => {
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // The tail gained three bytes: the empty floors and two family lists.
-    expect(Array.from(valid.slice(-8))).toEqual([1, 0, 0, 0, 0, 0, 0, 0]);
+    expect(Array.from(valid.slice(-9))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
@@ -883,7 +899,7 @@ describe('SimBridge', () => {
     // lists, which is exactly a save written before they existed, so those
     // load rather than being refused; every deeper truncation is still
     // malformed.
-    const invalid = [valid.slice(0, -4), valid.slice(0, -5), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -5), valid.slice(0, -6), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();

@@ -7210,3 +7210,19 @@ door.
 **Prevention rule.** Follow AGENTS.md: do not wait for duplicate remote checks after equivalent local validation passes. When the owner explicitly authorizes merging with a remaining remote check pending, merge and report its pending state accurately. Do not require another confirmation or extend the wait.
 
 **How to verify.** Record the local validation and exact PR head, merge when authorized, verify the merged PR and clean synchronized checkout, and report any still-pending remote checks without claiming they passed.
+
+## [L-death-test-fixtures-and-runner] Prove the fixture crosses the boundary
+
+**What happened.** The initial count-order test stayed green with sorting removed. Moving a fixture to another archetype still happened to enumerate it in index order. An early test command also ran at the repository root, causing npx to fetch a runner into its cache.
+
+**Root cause.** The ordering test did not first prove its input order differed, and the web command used the wrong working directory.
+
+**Prevention.** Perturb table order by moving an entity out and back, assert the raw order is unsorted, then test canonical count order. Run the project's installed web tools from `web/` with package downloads disabled.
+
+**Verification.** The death mutation record documents removal of the ordering mechanism and the failing assertion. The project manifest and lockfile remain unchanged; the final web checks use its installed Vitest.
+
+### [L-death-selection-and-warning-layout] Removal must clear the visible identity
+
+The first death play check removed selection correctly but left the dead person's name on the empty needs panel. The panel hid its content without resetting its caption. Reset every visible part of an empty selection, and test a transition from a named person to no selection rather than only starting empty. Verify the literal caption after death in the browser. The same check found warnings squeezed into the three-column roster: long functional warnings need the full row, verified at the actual HUD width.
+
+The old startup check also rejected saves after the last person died. An empty household is now a valid world with a New housemate action. Restoring the old guard reproduced the browser failure; removing it allowed reload and a new move-in. Removal work must trace startup assumptions as well as live queries.

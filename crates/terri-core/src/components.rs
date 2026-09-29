@@ -463,7 +463,15 @@ impl Relationships {
     /// smaller than `amount` snaps to zero rather than oscillating
     /// across it forever at one `amount` per tick.
     pub fn decay(&mut self, amount: f32) {
+        self.decay_except(amount, &[]);
+    }
+
+    /// Relationships toward dead people retain their value for grief.
+    pub fn decay_except(&mut self, amount: f32, preserved: &[SimId]) {
         for entry in self.0.iter_mut() {
+            if preserved.contains(&entry.0) {
+                continue;
+            }
             if entry.1 > 0.0 {
                 entry.1 = (entry.1 - amount).max(0.0);
             } else {

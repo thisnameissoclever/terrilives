@@ -137,6 +137,37 @@ impl Sim {
             });
         }
 
+        let now = self.world.resource::<terri_core::SimClock>().tick;
+        let subject_id = self.world.get::<SimId>(subject);
+        for death in self.death_records() {
+            if subject_id.is_none_or(|id| id.0 >= death.issued_sim_ids) {
+                continue;
+            }
+            let feeling = relationships.map_or(0.0, |r| r.feeling(SimId(death.sim_id)));
+            if feeling <= pack.tuning.grief_hated_affinity {
+                continue;
+            }
+            let closeness = feeling.max(0.0);
+            let duration = (f64::from(pack.tuning.grief_min_ticks)
+                + f64::from(pack.tuning.grief_ticks - pack.tuning.grief_min_ticks)
+                    * f64::from(closeness))
+            .round() as u64;
+            let elapsed = now.saturating_sub(death.tick);
+            if elapsed >= duration {
+                continue;
+            }
+            let strength = if feeling < 0.0 {
+                pack.tuning.grief_min_score * (1.0 - feeling / pack.tuning.grief_hated_affinity)
+            } else {
+                pack.tuning.grief_min_score
+                    + (pack.tuning.grief_max_score - pack.tuning.grief_min_score) * closeness
+            };
+            moodlets.push(Moodlet {
+                label: format!("Grieving {}", death.name),
+                score: -strength * (1.0 - elapsed as f32 / duration as f32),
+            });
+        }
+
         let overall_score = moodlets
             .iter()
             .map(|moodlet| moodlet.score)

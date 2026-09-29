@@ -1,3 +1,4 @@
+import { DeathControls } from './ui/death-controls.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
 // crosses into JavaScript through the zero-copy bridge, and the renderer
 // draws every entity in one instanced call at display refresh rate,
@@ -339,27 +340,19 @@ async function main(): Promise<void> {
   // row-to-entity mapping and `kinds()` says which rows are agents. Rows
   // are entity-index order, so the first agent row IS the lowest index.
   // This runs BEFORE any stress filler is spawned below.
-  let selectedSomebody = sim.selectedIndex() !== null;
+  const selectedSomebody = sim.selectedIndex() !== null;
   if (!selectedSomebody) {
     const ids = sim.ids();
     const kinds = sim.kinds();
     for (let row = 0; row < sim.count; row++) {
       if (kinds[row] === KIND_AGENT) {
         sim.select(ids[row]);
-        selectedSomebody = true;
         break;
       }
     }
   }
-  // Thrown for the same reason the zero-objects case above is: an empty
-  // household is legal CONTENT - the schema says so - but a shipped page
-  // with nobody home renders furniture, selects nothing, and leaves the
-  // needs panel permanently hidden with no error anywhere, which is
-  // verbatim the "it does not show the need bars" failure this selection
-  // exists to prevent. main()'s catch surfaces it instead.
-  if (!selectedSomebody) {
-    throw new Error('the compiled household has nobody in it');
-  }
+  // An empty household is valid after its last member dies. Keep the
+  // selection prompt and New housemate available when that save loads.
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit
   // criterion: p95 frame time at or under 16.6 ms with 1,000 entities.
@@ -568,6 +561,12 @@ async function main(): Promise<void> {
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  const deathInput = document.querySelector<HTMLInputElement>('#death-enabled');
+  if (!deathInput) throw new Error('missing death setting');
+  const deathControls = new DeathControls(sim, deathInput);
+  deathControls.update();
+  deathInput.addEventListener('change', () => { deathControls.change(); });
+
   attachOptionsMenu(
     document as unknown as OptionsDocument,
     { contains: (node) => node instanceof Node && optionsRoot.contains(node) },
@@ -1539,6 +1538,7 @@ async function main(): Promise<void> {
     needsPanel.update(nowMs, sim);
     gameHud.update(nowMs, sim);
     householdRoster.update(nowMs);
+    deathControls.update();
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);

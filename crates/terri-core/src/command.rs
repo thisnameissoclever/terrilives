@@ -212,6 +212,8 @@ pub enum SimCommand {
         to: u32,
         relation: Option<crate::layout::Relation>,
     },
+    /// Opt into preventable deprivation deaths. Appended wire code.
+    SetDeathEnabled(bool),
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -311,6 +313,8 @@ mod tests {
         // the thing that says so, and the fix is a save-format decision
         // rather than a version bump.
         let cases: Vec<(SimCommand, &[u8])> = vec![
+            (SimCommand::SetDeathEnabled(false), &[17, 0]),
+            (SimCommand::SetDeathEnabled(true), &[17, 1]),
             (
                 SimCommand::PlaceObject {
                     object: 300,

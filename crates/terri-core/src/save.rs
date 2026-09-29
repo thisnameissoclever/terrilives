@@ -52,6 +52,8 @@ pub struct SaveSnapshotV5 {
     /// a prefix of this one and loads through it.
     #[serde(default)]
     pub family: crate::layout::FamilyTies,
+    /// Appended optional death state. Old saves supply one zero byte.
+    pub mortality: Option<SavedMortality>,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
@@ -380,4 +382,31 @@ pub enum SavedCommand {
         to: u32,
         relation: Option<crate::layout::Relation>,
     },
+    SetDeathEnabled(bool),
+}
+
+/// One permanent record, ordered by death tick then SimId.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DeathRecord {
+    pub sim_id: u32,
+    pub name: String,
+    pub tick: u64,
+    pub cause: DeathCause,
+    /// Ids below this bound existed at death; later newcomers do not grieve.
+    pub issued_sim_ids: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DeathCause {
+    Deprivation,
+}
+
+/// Counts are sparse, positive and ordered by living entity index.
+#[derive(
+    bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize,
+)]
+pub struct SavedMortality {
+    pub enabled: bool,
+    pub counts: Vec<(u32, u32)>,
+    pub deaths: Vec<DeathRecord>,
 }

@@ -62,6 +62,7 @@ pub(crate) fn restore_v5(
         floors,
         family_by_index,
         family,
+        mortality,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -138,6 +139,7 @@ pub(crate) fn restore_v5(
     }
     .ok_or(SaveError::InvalidValue)?;
     candidate.world.insert_resource(family);
+    crate::mortality::restore(&mut candidate.world, mortality)?;
     Ok(candidate)
 }
 
