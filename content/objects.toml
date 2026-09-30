@@ -502,10 +502,9 @@ id = "dining_table"
 name = "Visiting Hours"
 presentation = { object_type = "Dining table", description = "A table for meals and whatever everyone promises to put away." }
 price = 120
-sprite = "table"
+sprite = "offlineDiningTable"
 footprint = { width = 2, depth = 1 }
-# The chain's terminal station: the table finally gets somebody to
-# sit at it.
+# The chain's terminal station; the current dinner animation is standing.
 roles = ["eating_surface"]
 
   # 37 comfort over 62 ticks is 0.597 per tick standing beside it, against the
