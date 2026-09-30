@@ -93,7 +93,7 @@ These work in normal play today. They appear here because every new system must 
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
 | Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
-| Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting and accumulated life satisfaction persist. |
+| Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting, instinct and accumulated life satisfaction persist. |
 | Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges; lot edits validate reachability from the front door. |
 | HUD | Substantial | Roster, needs, mood, relationships, career, action cards, audio, saves, help and compact controls. Speed sits below Time and Funds; Build and Exit build sit at the sidebar's bottom. |
 | Tuning file | Complete | Every system-wide tunable number lives in `content/tuning.toml`. Numbers that belong to one piece of content, such as a job's pay or an object's benefit, live in that content file. The build rejects invalid values in both. New systems follow the same split. |
@@ -603,3 +603,19 @@ Deprivation death and its grief follow-ups are complete, not future build steps.
 [S-catalogue], [S-action-animation] and [S-audio] continue alongside these systems.
 Art and owner acceptance are separate from completed code slices. No art, policy
 or proposal is approved merely by appearing in this order.
+
+
+## [VA-status] Varied autonomy and self-preservation
+
+Each new game starts with fresh browser cryptographic entropy. Saved games retain
+their RNG state and subsequent choices. Each person has a saved integer
+Self-preservation instinct from 0 through 100, displayed in Traits without taking
+an optional slot. New housemate defaults to Random and offers a manual slider.
+The authored starter people also draw independently across the full range.
+
+All physically eligible actions retain positive selection probability. Needs,
+personality, traits, relationships, habituation, travel and duration weight those
+choices. Comfortable people vary their decisions more and retain appeal for Fun
+and Social even at full meters. Very low instinct can neglect critical needs;
+higher values increase urgency and penalize delays toward hunger or energy death.
+This does not change need decay, restoration or death timing. See [VA-choice].

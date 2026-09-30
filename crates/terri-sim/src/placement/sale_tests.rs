@@ -273,7 +273,7 @@ fn after_two_sales_a_save_and_a_load_the_next_purchase_matches_continuous_play()
         assert_eq!(last(&playing).unwrap().reason, None);
     }
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v4(playing.save_snapshot_v4()).unwrap();
+    loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
     assert_eq!(
         loaded.world().resource::<RetiredIndices>(),

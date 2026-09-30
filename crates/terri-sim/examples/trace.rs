@@ -85,6 +85,7 @@ struct Motion {
     /// still on purpose - without this state every conversation's lead-up
     /// would land in `frozen` and read as a dead band.
     waiting: u64,
+    blocked: u64,
     paused: u64,
     frozen: u64,
 }
@@ -103,7 +104,26 @@ fn main() {
     }
 
     let pack = terri_data::pack();
-    let mut sim = Sim::new_from_shipped_lot();
+    let seed: u64 = std::env::args()
+        .nth(2)
+        .and_then(|arg| arg.parse().ok())
+        .unwrap_or(pack.tuning.rng_seed);
+    let override_instinct: Option<u8> = std::env::args().nth(3).and_then(|arg| arg.parse().ok());
+    let mut sim = Sim::new_from_shipped_lot_with_seed(seed);
+    if let Some(instinct) = override_instinct {
+        assert!(instinct <= 100, "instinct must be in 0..=100");
+        let entities: Vec<_> = sim
+            .world_mut()
+            .query_filtered::<Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+            .iter(sim.world())
+            .collect();
+        for entity in entities {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(terri_core::SelfPreservation(instinct));
+        }
+    }
+    println!("seed {seed}, instinct override {override_instinct:?}");
 
     // The household, in SimId order - which is declaration order in
     // content/household.toml, so this trace's "sim 0" is the page's Tim.
@@ -156,8 +176,15 @@ fn main() {
     let mut low = vec![[f32::INFINITY; NEED_COUNT]; sims.len()];
     let mut high = vec![[f32::NEG_INFINITY; NEED_COUNT]; sims.len()];
     let mut motion = vec![Motion::default(); sims.len()];
+    let mut quiet_ticks = vec![0u32; sims.len()];
+    let mut longest_quiet = vec![0u32; sims.len()];
     let mut targetless_path_prev = vec![false; sims.len()];
     let mut wander_lengths: Vec<usize> = Vec::new();
+    let mut wander_pauses = Vec::new();
+    let mut decision_count = 0usize;
+    let mut risky_choices = 0usize;
+    let mut decision_bands = [0u64; 4];
+    let mut probability_sums: BTreeMap<(u32, u32, u32), (f64, usize)> = BTreeMap::new();
 
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
@@ -167,9 +194,40 @@ fn main() {
         sim.tick();
 
         let world = sim.world();
+        if let Some(telemetry) =
+            world.get_resource::<terri_sim::systems::autonomy::DecisionTelemetry>()
+        {
+            for decision in &telemetry.0 {
+                decision_count += 1;
+                let band = if decision.lowest_need <= pack.tuning.mood_critical_need_level {
+                    0
+                } else if decision.lowest_need <= pack.tuning.mood_low_need_level {
+                    1
+                } else if decision.lowest_need < pack.tuning.mood_needs_met_level {
+                    2
+                } else {
+                    3
+                };
+                decision_bands[band] += 1;
+                risky_choices += usize::from(decision.choices[decision.chosen].3 > 0.0);
+                let mut per_decision = BTreeMap::<(u32, u32), f64>::new();
+                for (target, row, _, _, probability) in &decision.choices {
+                    *per_decision.entry((*target, *row)).or_default() += probability;
+                }
+                for ((target, row), probability) in per_decision {
+                    let total = probability_sums
+                        .entry((decision.agent, target, row))
+                        .or_default();
+                    total.0 += probability;
+                    total.1 += 1;
+                }
+            }
+        }
         for (index, (agent, _)) in sims.iter().enumerate() {
             let agent = *agent;
-            let needs = world.get::<Needs>(agent).expect("a sim keeps its needs");
+            let Some(needs) = world.get::<Needs>(agent) else {
+                continue;
+            };
             for (need, id) in NeedId::ALL.iter().enumerate() {
                 let level = needs.get(*id);
                 low[index][need] = low[index][need].min(level);
@@ -197,6 +255,9 @@ fn main() {
             });
             let has_targetless_path = targetless_path.is_some();
             if has_targetless_path && !targetless_path_prev[index] {
+                if let Some(wander) = world.get::<Wander>(agent) {
+                    wander_pauses.push(wander.pause_ticks);
+                }
                 wander_lengths.push(
                     targetless_path
                         .expect("the branch just established this path exists")
@@ -232,6 +293,7 @@ fn main() {
             // commuter's walk belongs to the job rather than to the
             // errand tally. The chain next, for the same whole-errand
             // reason: its walks and waits belong to the dinner.
+            let previous_unclassified = motion[index].frozen;
             if world.get::<terri_core::AtWork>(agent).is_some()
                 || world.get::<terri_core::Commuting>(agent).is_some()
             {
@@ -246,10 +308,17 @@ fn main() {
                 motion[index].waiting += 1;
             } else if world.get::<Path>(agent).is_some() {
                 motion[index].walking += 1;
+            } else if world.get::<terri_core::Blocked>(agent).is_some() {
+                motion[index].blocked += 1;
             } else if world.get::<Wander>(agent).is_some() {
                 motion[index].paused += 1;
             } else {
                 motion[index].frozen += 1;
+                quiet_ticks[index] += 1;
+                longest_quiet[index] = longest_quiet[index].max(quiet_ticks[index]);
+            }
+            if motion[index].frozen == previous_unclassified {
+                quiet_ticks[index] = 0;
             }
 
             // The chain lifecycle, by transition against last tick.
@@ -509,14 +578,18 @@ fn main() {
         for (agent, name) in &sims {
             let agent = *agent;
             let world = sim.world();
-            let agent_pos = *world.get::<Position>(agent).expect("a sim has a position");
+            let Some(agent_pos) = world.get::<Position>(agent).copied() else {
+                continue;
+            };
             let hab = world.get::<Habituation>(agent).cloned().unwrap_or_default();
             let personality = world.get::<Personality>(agent).cloned().unwrap_or_default();
             let worn_traits = world.get::<terri_core::Traits>(agent).cloned();
-            let needs = *world.get::<Needs>(agent).expect("a sim has needs");
+            let Some(needs) = world.get::<Needs>(agent).copied() else {
+                continue;
+            };
             let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
 
-            println!("\nCANDIDATE TABLE at tick {ticks}: {name} at {from:?}");
+            println!("\nRAW ADVERTISEMENT AUDIT (before instinct, risk and leisure) at tick {ticks}: {name} at {from:?}");
             println!(
                 "{:<14} {:>5} {:>6} {:>6} {:>6} {:>6} {:>9}  contributions",
                 "object", "dist", "hab", "disp", "trait", "scale", "score"
@@ -591,8 +664,11 @@ fn main() {
                     || world.get::<Socialising>(*other).is_some()
                     || world.get::<Path>(*other).is_some()
                     || world.get::<Reserved>(*other).is_some();
-                let other_pos = world.get::<Position>(*other).expect("a sim has a position");
-                let other_id = world.get::<SimId>(*other).expect("a sim has an id");
+                let (Some(other_pos), Some(other_id)) =
+                    (world.get::<Position>(*other), world.get::<SimId>(*other))
+                else {
+                    continue;
+                };
                 let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
                 let Some(steps) = grid.find_path_adjacent_to_tile(from, to) else {
                     println!("{:<14} unreachable (person)", other_name);
@@ -670,8 +746,10 @@ fn main() {
                     if other == agent {
                         format!("{:>8}", "-")
                     } else {
-                        let id = world.get::<SimId>(*other).expect("a sim has an id");
-                        format!("{:>8.3}", feelings.feeling(*id))
+                        world.get::<SimId>(*other).map_or_else(
+                            || format!("{:>8}", "dead"),
+                            |id| format!("{:>8.3}", feelings.feeling(*id)),
+                        )
                     }
                 })
                 .collect::<Vec<_>>()
@@ -833,6 +911,7 @@ fn main() {
         chaining: sum.chaining + m.chaining,
         talking: sum.talking + m.talking,
         waiting: sum.waiting + m.waiting,
+        blocked: sum.blocked + m.blocked,
         paused: sum.paused + m.paused,
         frozen: sum.frozen + m.frozen,
     });
@@ -864,10 +943,16 @@ fn main() {
         100.0 * total.paused as f64 / sim_ticks as f64
     );
     println!(
-        "frozen      {:>6}  {:>5.1}%   <-- dead band plus anything unexplained",
+        "blocked     {:>6}  {:>5.1}%   <-- waiting for an occupied target",
+        total.blocked,
+        100.0 * total.blocked as f64 / sim_ticks as f64
+    );
+    println!(
+        "unclassified{:>6}  {:>5.1}%   <-- includes completion and decision transitions",
         total.frozen,
         100.0 * total.frozen as f64 / sim_ticks as f64
     );
+    println!("longest unclassified interval per Sim: {longest_quiet:?} ticks");
     println!(
         "at work     {:>6}  {:>5.1}%   <-- the rabbit hole, commute included",
         total.at_work,
@@ -968,6 +1053,37 @@ fn main() {
     // The household's money - [E4]. One number; what earned it is
     // readable off the "at work" share above and the career line per
     // worker.
+    println!(
+        "\nAUTONOMOUS CHOICES {decision_count}; survival-risk choices {risky_choices}; deaths {}",
+        sim.death_records().len()
+    );
+    for (entity, name) in &sims {
+        println!(
+            "  {name} instinct {:?}",
+            sim.world()
+                .get::<terri_core::SelfPreservation>(*entity)
+                .map(|v| v.0)
+        );
+    }
+    if !wander_pauses.is_empty() {
+        println!(
+            "wander pause ticks min {} max {} mean {:.2}",
+            wander_pauses.iter().min().unwrap(),
+            wander_pauses.iter().max().unwrap(),
+            wander_pauses.iter().sum::<u32>() as f64 / wander_pauses.len() as f64
+        );
+    }
+    println!(
+        "decision need bands critical {} low {} recovering {} comfortable {}",
+        decision_bands[0], decision_bands[1], decision_bands[2], decision_bands[3]
+    );
+    println!("ACTUAL CHOICE PROBABILITIES (mean while candidate available)");
+    for ((agent, target, row), (sum, count)) in probability_sums {
+        println!(
+            "  Sim {agent} target {target} row {row}: {:.6} ({count} decisions)",
+            sum / count as f64
+        );
+    }
     println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());

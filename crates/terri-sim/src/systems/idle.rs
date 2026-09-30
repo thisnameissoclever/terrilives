@@ -79,49 +79,10 @@ pub fn roll_wander_path(
     None
 }
 
-/// Sends idle sims for a stroll - [D-5].
-///
-/// A sim with nothing worth doing used to stand perfectly still, which
-/// reads as frozen rather than as content. This gives it somewhere to go
-/// and a pause between goings.
-///
-/// # It reuses the intent path rather than moving anything itself
-///
-/// The whole system does one thing: insert a `Path`. `follow_path` walks
-/// it exactly as it walks a path to the fridge, which is what makes a
-/// wander overridable - `select_action` overwrites `Path` the moment
-/// something becomes worth doing, and a player-issued command will do the
-/// same. A wander-specific mover would be a second copy of speed, arrival
-/// and interpolation, and the two would drift.
-///
-/// # Which sims
-///
-/// `Restless` is the filter, and it is set by `select_action` rather than
-/// re-derived here. It means "nothing this agent can reach scored above
-/// `idle_threshold`", which is strictly stronger than "took no action":
-/// an agent whose best option sits between `idle_threshold` and
-/// `action_threshold` stays put instead of strolling away from it. That
-/// band is the reason the two knobs are separate at all, and re-deriving
-/// the condition here would mean a second copy of the scoring sweep -
-/// one A* per candidate, run twice a tick - that could disagree with the
-/// first.
-///
-/// `Without<Path>` is what stops a sim re-rolling its destination every
-/// tick mid-stroll, and it is also why the pause counts only while the
-/// sim is standing still.
-///
-/// # The order is load-bearing
-///
-/// Agents are visited in entity-index order, not query order. This system
-/// draws from the shared `SimRng`, and query iteration is archetype
-/// order, which shifts whenever any agent gains or loses a component. Two
-/// restless sims would otherwise be dealt their destinations according to
-/// which of them had most recently eaten. Same rule, same reason, as the
-/// sort in `select_action` - see [D-3].
-///
-/// The type_complexity allow is unavoidable for the same reason it is in
-/// `select_action`: the filter tuple that isolates genuinely idle agents
-/// is what pushes the query past clippy's threshold.
+/// Starts a sampled local stroll and samples its pause using the shared RNG.
+/// Active strolls and pauses keep ownership until finished or interrupted by
+/// critical needs or player intent. Conversations, chains and commutes retain
+/// their existing ownership. Stable entity order preserves replay.
 #[allow(clippy::type_complexity)]
 pub fn wander(
     mut commands: Commands,
@@ -185,9 +146,16 @@ pub fn wander(
             continue;
         };
 
-        commands
-            .entity(agent)
-            .insert((Path { steps, cursor: 0 }, Wander { pause_ticks }));
+        let variance = content.0.tuning.wander_pause_variance;
+        let low = (pause_ticks as f32 * (1.0 - variance)).round() as u32;
+        let high = (pause_ticks as f32 * (1.0 + variance)).round() as u32;
+        let sampled = low + rng.range((high - low + 1) as usize) as u32;
+        commands.entity(agent).insert((
+            Path { steps, cursor: 0 },
+            Wander {
+                pause_ticks: sampled,
+            },
+        ));
     }
 }
 
@@ -233,19 +201,19 @@ mod tests {
     const AGENT_TILE: (f32, f32) = (6.0, 8.0);
     /// What `select_action` divides by for this fixture: the walk to the tile
     /// BESIDE the object, which is one less than the four tiles between them.
-    const WALKED_TILES: f32 = 3.0;
-
     /// A 16x16 sim with that object a short walk from one agent whose needs
     /// are all at `hunger`, ready to be ticked.
     fn scenario(content: &'static ContentPack, hunger: f32) -> (Sim, Entity) {
         let mut sim = test_content::sim_with(16, 16, content);
-        sim.world_mut().spawn((
-            Position {
-                x: OBJECT_TILE.0,
-                y: OBJECT_TILE.1,
-            },
-            SmartObject(content.find("fridge_ish").expect("the fixture declares it")),
-        ));
+        if let Some(object) = content.find("fridge_ish") {
+            sim.world_mut().spawn((
+                Position {
+                    x: OBJECT_TILE.0,
+                    y: OBJECT_TILE.1,
+                },
+                SmartObject(object),
+            ));
+        }
         let mut needs = Needs::all_at(NEED_MAX);
         needs.set(NeedId::Hunger, hunger);
         let agent = sim
@@ -370,9 +338,13 @@ mod tests {
         let seed = (0..10_000)
             .find(|seed| {
                 let mut authored_rng = SimRng::from_seed(*seed);
+                authored_rng.next_u32();
+                authored_rng.next_u32();
                 let authored =
                     roll_wander_path(&grid, START, AUTHORED_RADIUS, 1, &mut authored_rng);
                 let mut hardcoded_rng = SimRng::from_seed(*seed);
+                hardcoded_rng.next_u32();
+                hardcoded_rng.next_u32();
                 let hardcoded =
                     roll_wander_path(&grid, START, WRONG_HARDCODED_RADIUS, 1, &mut hardcoded_rng);
                 matches!(authored, Some(ref steps) if steps.len() == 1)
@@ -511,7 +483,7 @@ mod tests {
         // assertions below require the sim to move WITHOUT ever acquiring
         // a target, so "it walked" cannot be satisfied by it going for a
         // snack after all.
-        let (mut sim, agent) = scenario(furnished(), NEED_MAX);
+        let (mut sim, agent) = scenario(test_content::pack(vec![]), NEED_MAX);
         let walk = observe(&mut sim, agent, 40);
 
         assert!(
@@ -552,7 +524,7 @@ mod tests {
              pause at all; got {pause}"
         );
 
-        let (mut sim, agent) = scenario(furnished(), NEED_MAX);
+        let (mut sim, agent) = scenario(test_content::pack(vec![]), NEED_MAX);
         let walk = observe(&mut sim, agent, 260);
 
         assert!(
@@ -591,10 +563,23 @@ mod tests {
             "at least two completed pauses are needed before 'it pauses \
              BETWEEN wanders' means anything; saw {stalls:?}"
         );
+        assert!(
+            stalls
+                .iter()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+                > 1,
+            "pause sampling must produce more than one duration: {stalls:?}"
+        );
         for observed in &stalls {
-            assert_eq!(
-                *observed,
-                pause as usize + 1,
+            assert!(
+                ((pause as f32 * (1.0 - test_content::tuning().wander_pause_variance)).round()
+                    as usize
+                    + 1
+                    ..=(pause as f32 * (1.0 + test_content::tuning().wander_pause_variance)).round()
+                        as usize
+                        + 1)
+                    .contains(observed),
                 "a pause between wanders lasted {observed} ticks rather \
                  than the tuned {pause} (plus the one tick on which the \
                  finished path is removed); every pause seen was {stalls:?}"
@@ -885,82 +870,34 @@ mod tests {
     }
 
     #[test]
-    fn an_option_between_the_two_thresholds_stops_a_sim_wandering_without_making_it_act() {
-        // **This is the test that keeps `idle_threshold` a separate knob.**
-        // Replace it with `action_threshold` in `select_action` and this
-        // is the only thing in the workspace that notices: the sim would
-        // become restless and stroll away from something it had just
-        // decided was mildly interesting.
-        //
-        // The fixture opens the band wide - a very low idle threshold and
-        // a very high action one - so the target score has somewhere
-        // unambiguous to sit, and both bounds are asserted below against
-        // the score the simulation actually computes rather than
-        // described.
-        const IDLE: f32 = 0.001;
-        const ACTION: f32 = 1.0;
-        const DELTA: f32 = 40.0;
-        const DURATION: u32 = 15;
-        const HUNGER: f32 = 63.0;
-        const TICKS: usize = 30;
-
+    fn an_option_below_the_old_action_threshold_remains_available() {
         let content = test_content::pack_tuned(
             vec![test_content::object(
                 "fridge_ish",
-                &[(NeedId::Hunger, DELTA)],
-                DURATION,
+                &[(NeedId::Hunger, 40.0)],
+                15,
             )],
             Tuning {
-                idle_threshold: IDLE,
-                action_threshold: ACTION,
+                idle_threshold: 0.001,
+                action_threshold: 1.0,
                 ..test_content::tuning()
             },
         );
-        let (mut sim, agent) = scenario(content, HUNGER);
-        let walk = observe(&mut sim, agent, TICKS);
-
-        // The score selection saw, restated here rather than read out of
-        // the system, and taken at the END of the run where the deficit
-        // is largest: if even the largest score in the window stays
-        // inside the band, every earlier one did too.
-        let deficit = sim
+        let (mut sim, agent) = scenario(content, 63.0);
+        sim.tick();
+        let decisions = &sim
             .world()
-            .get::<Needs>(agent)
-            .expect("the agent must still have Needs")
-            .deficit(NeedId::Hunger);
-        // WALKED_TILES, not the four tiles between the two positions: the
-        // agent stops beside the object, and this restatement has to divide by
-        // the same distance the system did or the band it checks is not the
-        // band the sim saw.
-        let score =
-            crate::systems::advertise::score_advertisement(deficit, DELTA, DURATION, WALKED_TILES);
-        assert!(
-            score > IDLE,
-            "the option must clear the idle threshold, or the sim is \
-             right to wander and this test proves nothing; {score} vs {IDLE}"
-        );
-        assert!(
-            score < ACTION,
-            "the option must stay below the action threshold, or the sim \
-             is right to act; {score} vs {ACTION}"
-        );
-
-        assert!(
-            !walk.ever_targeted,
-            "the option scored below the action threshold, so the sim \
-             must not act on it"
-        );
-        assert!(
-            !walk.path_without_target,
-            "the option scored ABOVE the idle threshold, so the sim must \
-             not wander away from it; collapsing idle_threshold into \
-             action_threshold is what makes this fail"
-        );
-        assert!(
-            !moved(&walk),
-            "the sim moved without either acting or wandering, which \
-             leaves nothing that could have moved it: {:?}",
-            walk.positions
-        );
+            .resource::<crate::systems::autonomy::DecisionTelemetry>()
+            .0;
+        let decision = decisions
+            .iter()
+            .find(|d| d.agent == agent.index_u32())
+            .unwrap();
+        assert!(decision
+            .choices
+            .iter()
+            .any(|(_, row, score, _, probability)| *row == 0
+                && *score < 1.0
+                && *probability > 0.0));
     }
 }

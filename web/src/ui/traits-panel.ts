@@ -10,6 +10,7 @@ export interface TraitsPanelSource {
   selectedIndex(): number | null;
   /** Interleaved [pack trait index, state, ...] pairs, or empty. */
   traitsOf(entity: number): Float32Array;
+  selfPreservationOf?(entity: number): number | null;
 }
 
 /** Three columns of one table, read once at startup and aligned by index. */
@@ -103,6 +104,12 @@ export function traitsPanelState(
       description: library.descriptions[index],
       state: text,
     });
+  }
+  if (source.selfPreservationOf) {
+    const instinct = source.selfPreservationOf(selected);
+    if (instinct === null || !Number.isInteger(instinct) || instinct < 0 || instinct > 100) return UNAVAILABLE;
+    traits.unshift({ key: -1, label: 'Self-preservation instinct', state: `${instinct}/100`,
+      description: 'Higher values favor meeting low needs. Very low values can lead to dangerous neglect.' });
   }
   return { kind: 'ready', traits };
 }

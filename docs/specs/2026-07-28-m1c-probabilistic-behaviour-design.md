@@ -1,6 +1,6 @@
 # M1c Probabilistic Behaviour - Design
 
-Status: agreed. Section IDs are stable; do not renumber.
+Status: implemented; the 2026-09-30 update [VA-choice] supersedes threshold eligibility and constant new-game seeds. Section IDs are stable; do not renumber.
 
 ## Why
 
@@ -35,7 +35,7 @@ inexplicable behaviour.
 
 ## [D-2] Weighted selection by softmax
 
-Candidates scoring above the threshold are sampled with probability
+Historically, candidates scoring above the threshold were sampled with probability
 
 ```
 p_i = exp(score_i / T) / sum_j exp(score_j / T)
@@ -82,8 +82,7 @@ sampling, iteration order sets the cumulative-probability bucket boundaries, so
 the same draw would select differently depending on archetype layout - a silent
 determinism break of exactly the class this project has hit repeatedly.
 
-The seed is a constant for now. It becomes part of the save file at M1d, which
-is what makes a saved game replayable.
+New games now draw a fresh 64-bit browser cryptographic seed before household creation. Saved generator state preserves continuation; fixed-seed constructors remain available for tests.
 
 ## [D-4] Varied interaction duration
 
@@ -114,8 +113,7 @@ tops out at 11 ticks, so no floor a player can see leaves it free.
 
 ## [D-5] Idle wandering
 
-When no candidate scores above `idle_threshold`, a sim currently stands
-perfectly still, which reads as frozen rather than content.
+Wandering now competes as a weighted choice; `idle_threshold` supplies its baseline utility rather than an eligibility gate. See [VA-wandering].
 
 Instead it picks a random reachable tile and walks there, pausing between
 wanders. `idle_threshold` is separate from `ACTION_THRESHOLD` deliberately: one
@@ -141,7 +139,8 @@ player *watches and intervenes*. They are independent.
 - Action choice is softmax-weighted with a temperature read from tuning
 - The PRNG is in-repo, seeded, and held as a world resource
 - **Objects are sorted before sampling**, with a test that fails if they are not
-- **The determinism test still passes**: same seed replays to the same hash
+- **The determinism test still passes**: within the same content and simulation
+  version, the same seed and commands replay to the same hash
 - **A distribution test**: over many seeded runs, a higher-scoring option is
   chosen more often, and a lower-scoring one is still chosen sometimes. Both
   halves matter - the second is what distinguishes this from argmax

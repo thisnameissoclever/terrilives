@@ -7255,6 +7255,55 @@ Review also found New housemate availability cached after a full household lost 
 
 Adding occupied-item mood exposed two cancellation cases: an autonomous wait has no player order to cancel, and an order staged earlier in the same paused command batch is not yet in the live queue. Clearing every waiting marker discarded autonomous frustration; checking only the live queue made batched and separately flushed commands disagree. Cancel only waiting owned by a current or staged order, or an active chain. Verify all three sources, an autonomous wait that survives Clear orders, and equivalent batched and split command sequences. The mood projection must also stop penalizing a freed or sold item without requiring a clock tick.
 
+
+## [L-autonomy-positive-choices] Random seeds do not fix deterministic eligibility
+
+**What happened.** New games repeated because startup used a constant seed, while
+threshold gates and per-target argmax choices also excluded alternatives.
+
+**Root cause.** Weighted selection happened after irreversible deterministic
+filtering. A random generator cannot select a choice that never enters its pool.
+
+**Prevention.** Keep physical eligibility separate from utility. Normalize targets
+and their interactions separately, retain positive exploration, and reserve an RNG
+bucket for microscopic probabilities so rounding cannot exclude them.
+
+**Verification.** Compare traces across seeds and after save/load; sample both
+interactions on one object; measure survival and comfortable choice diversity.
+
+## [L-mutation-compile-baseline] A compiler error is not a caught mutation
+
+**What happened.** A mutation harness attempted three deletions while newly added
+fixtures failed to compile, producing no executed assertion evidence.
+
+**Root cause.** A nonzero cargo exit was treated as sufficient detection.
+
+**Prevention.** Require a compiling, passing baseline; abort on compilation errors.
+Accept detection only when the named test actually fails with an assertion.
+Restore original bytes in a finally block and verify them after each deletion.
+
+**Verification.** Record the failing test and assertion, plus byte restoration,
+for every mutation. Compilation failure remains unverified evidence.
+
+
+## [L-autonomy-causal-fixtures] Saved state and traces must survive varied decisions
+
+**What happened.** Wider autonomous sampling invalidated fixtures that relied on
+an incidental selected action. Appended save data moved hard-coded tail offsets;
+legacy migration intentionally consumed restored RNG draws. A low-instinct trace
+also crashed while auditing a person who had already died.
+
+**Root cause.** Tests treated one old random sequence as a state guarantee, and
+trace diagnostics assumed every initially recorded person remained alive.
+
+**Prevention.** Explicitly command the action a persistence fixture needs. Derive
+serialized suffix boundaries where possible, distinguish current-save continuation
+from legacy migration, and query live components before auditing an original ID.
+Use probability assertions for eligibility and record the seed for exact choices.
+
+**Verification.** Run replay and save/load tests, including zero and failed loads;
+complete traces through a death. Count short completion transitions separately
+from occupied-target waits when diagnosing apparent stillness.
 ## [L-roadmap-status-reconciliation] A shipped slice must leave the future-work lists
 
 **What happened.** The roadmap audit on 2026-09-30 found floors, windows, sales,
@@ -7376,3 +7425,16 @@ mutation build without copying the large target directory. Do not increase test
 timeouts to conceal an overloaded verification run.
 **How to verify.** Complete the ordinary web suite before starting mutation
 compilation, and retain both the failure and the quiet-run result.
+
+## [L-autonomy-tests-cover-order-and-startup-wiring] Test the path that can actually regress
+
+**What happened.** Fresh-context review found two coverage gaps despite passing
+unit tests: migration fixtures already used sorted storage, and fresh-game tests
+bypassed the production constructor call.
+**Root cause.** Fixtures made the sorting mechanism unnecessary, while separate
+helper and constructor tests left their connection untested.
+**Prevention rule.** Deliberately scramble storage when ordering matters. Exercise
+the production connection as well as each endpoint when randomness crosses layers.
+**How to verify.** Removing the migration sort and replacing startup seeds with
+constants each produce the intended assertion failure. Restore exact source bytes
+and rerun both tests; evidence is in `docs/autonomy-mutation-evidence.md`.

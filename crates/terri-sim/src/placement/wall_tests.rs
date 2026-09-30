@@ -848,10 +848,8 @@ fn a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works()
 ///
 /// The test also proves it met the case it guards. Content changes move the
 /// household, and after the trait library the ticks this first used no longer
-/// held a wall that passes every other rule and fails the loader, so the test
-/// passed with the loader check deleted. It now counts such walls, which the
-/// loader check alone refuses, and fails if it finds none: a household change
-/// that empties it fails loudly, and the fix is to choose ticks that hold one.
+/// The loader-only refusal is exercised separately with a pending route,
+/// so changing household choices cannot make that guard coverage vacuous.
 #[test]
 fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -860,7 +858,6 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
         (grid.width() as u32, grid.height() as u32)
     };
     let mut checked = 0;
-    let mut only_the_loader_refused = 0;
     let mut reloaded = Sim::new_from_shipped_lot();
     for stop in [180u64, 620] {
         // Bounded, so a clock that stops advancing fails here instead of
@@ -893,7 +890,10 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
                     if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
                         && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
                     {
-                        only_the_loader_refused += 1;
+                        assert_eq!(
+                            validate_wall_edit(sim.world(), request).unwrap_err(),
+                            PlacementRefusal::BlockedRoute
+                        );
                     }
                     continue;
                 }
@@ -916,10 +916,36 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
         }
     }
     assert!(checked > 100, "only {checked} walls were accepted to check");
-    assert!(
-        only_the_loader_refused > 0,
-        "no wall at these ticks passes every other rule and fails the loader; the test \
-         no longer covers the case it guards, so choose other ticks"
+    assert_wall_loader_guard_on_pending_route();
+}
+
+fn assert_wall_loader_guard_on_pending_route() {
+    let (mut sim, fridge) = house(vec![]);
+    let request = edit(Vertical, 1, 0, Wall);
+    assert!(validate_wall_edit(sim.world(), request).unwrap().changed);
+    sim.world_mut().spawn((
+        Agent,
+        Position { x: 3.0, y: 0.0 },
+        terri_core::Path {
+            steps: vec![(2, 0), (1, 0)],
+            cursor: 0,
+        },
+        Target {
+            object: fridge,
+            interaction: 0,
+        },
+        terri_core::SelfPreservation(50),
+    ));
+    let mut grid = sim.world().resource::<TileGrid>().clone();
+    grid.set_edge_blocked((0, 0), (1, 0), true);
+    let rectangles = super::super::current_layout(sim.world())
+        .unwrap()
+        .rectangles;
+    assert!(super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok());
+    assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_err());
+    assert_eq!(
+        validate_wall_edit(sim.world(), request).unwrap_err(),
+        PlacementRefusal::BlockedRoute
     );
 }
 

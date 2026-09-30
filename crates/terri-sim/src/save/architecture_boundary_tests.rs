@@ -43,7 +43,9 @@ fn furniture_rejects_internal_edges_and_accepts_its_outer_perimeter() {
             assert_eq!(live.save_snapshot_v2(), before);
         } else {
             assert_eq!(outcome, Ok(()), "perimeter edge {from:?} -> {to:?}");
-            assert_eq!(live.save_snapshot_v2(), saved);
+            let mut expected = saved.clone();
+            expected.world = super::super::tests::after_legacy_instinct_migration(expected.world);
+            assert_eq!(live.save_snapshot_v2(), expected);
         }
     }
 }
@@ -70,7 +72,9 @@ fn repeated_path_tiles_are_valid_and_a_walking_target_need_not_be_in_contact_yet
     saved.layout = SavedLayout::EdgeWallsV1 { edges: vec![] };
     let mut live = Sim::new();
     live.load_snapshot_v2(saved.clone()).unwrap();
-    assert_eq!(live.save_snapshot_v2(), saved);
+    let mut expected = saved.clone();
+    expected.world = super::super::tests::after_legacy_instinct_migration(expected.world);
+    assert_eq!(live.save_snapshot_v2(), expected);
 
     saved
         .world
@@ -80,9 +84,11 @@ fn repeated_path_tiles_are_valid_and_a_walking_target_need_not_be_in_contact_yet
         .unwrap()
         .path = None;
     live.load_snapshot_v2(saved.clone()).unwrap();
+    let mut expected = saved;
+    expected.world = super::super::tests::after_legacy_instinct_migration(expected.world);
     assert_eq!(
         live.save_snapshot_v2(),
-        saved,
+        expected,
         "an idle target is not an active contact"
     );
 }

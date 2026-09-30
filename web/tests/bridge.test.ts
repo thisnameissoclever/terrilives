@@ -865,11 +865,11 @@ describe('SimBridge', () => {
     // no entities or walls; it tests the distinction between undefined and
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
-    // the applied migration flag and an empty waiting list.
-    expect(Array.from(legacyCells.slice(-14))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]);
+    // the applied migration flag, waiting and the empty instinct list.
+    expect(Array.from(legacyCells.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - 14] = 2;
+    edgeBytes[edgeBytes.length - 15] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -886,15 +886,16 @@ describe('SimBridge', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
-    // Current tail: layout and appended lists, mortality, migration, waiting.
-    expect(Array.from(valid.slice(-14))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]);
+    // Current tail: layout and appended lists, mortality, migration,
+    // waiting, and instincts. This empty world has one byte per empty list.
+    expect(Array.from(valid.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -3), valid.slice(0, -10), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -4), valid.slice(0, -11), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
@@ -1256,7 +1257,9 @@ describe('SimBridge', () => {
     // ([BM-hash]), an encoding change that moved this from
     // 0xc7bb_234c_419a_654cn. Measured on the rebuilt wasm32 module first,
     // then found equal to the native value.
-    expect(bridge.worldHash()).toBe(0xd52d52487bf9267en);
+    // Varied autonomy changes selection draws and hashes each person's instinct.
+    // Independently measured on native and rebuilt release WASM: identical.
+    expect(bridge.worldHash()).toBe(0xa1a1f123206ce493n);
   });
 
   // ---- Player commands -------------------------------------------------

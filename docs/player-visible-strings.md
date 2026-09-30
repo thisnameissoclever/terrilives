@@ -19,7 +19,7 @@ itself on having personality.
 | Options flyout | Options, the gear's accessible name; it holds Light, Sound, Effects and the game actions | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Build sidebar controls | Build; Exit build, at the bottom of the sidebar; compact screens expose them through Menu | `web/index.html`, `web/src/ui/builder-controls.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
-| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the seven refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
+| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the eight refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
@@ -85,3 +85,13 @@ authorize unrelated replacement copy.
 Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
 Not enough beds. Action cards combine existing interaction labels with object
 or person names. Build and Exit build moved from Options into the sidebar.
+
+
+## Self-preservation controls (2026-09-30)
+
+The new Traits row and housemate control use `Self-preservation instinct`,
+`Random`, `Choose a whole instinct value from 0 to 100.`, and a numeric `{value}/100`. Their explanation is: "Higher values favor
+meeting low needs. Very low values can lead to dangerous neglect." These strings
+are functional descriptions of implemented mechanics. The owner authorized
+deployment after fresh-context review on 2026-09-30. The broader voice-session
+acceptance above remains separate.

@@ -691,12 +691,8 @@ fn a_stream_with_rooms_drains_the_same_joined_or_split() {
 /// sweep reruns it for every mutant, under a 60-second limit. The two ticks
 /// run on their own threads for the same reason.
 ///
-/// It also counts rooms that only the loader's own checks refuse: the finished
-/// outline passes the usability proofs, fails the loader, and is refused as
-/// `BlockedRoute`, which with the proofs passing only the loader can give. It
-/// fails if it finds none, so a household change that moves the case away from
-/// these ticks fails loudly rather than emptying the test, as its wall twin
-/// does.
+/// A pending route ending across a new room wall exercises the loader-only
+/// refusal explicitly, independently of the household's choices at these ticks.
 #[test]
 fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
     let counts: Vec<(u32, u32)> = std::thread::scope(|scope| {
@@ -712,9 +708,38 @@ fn every_small_room_the_shipped_household_accepts_leaves_a_save_that_loads() {
     for (accepted, _) in &counts {
         assert!(*accepted > 20, "a tick accepted only {accepted}");
     }
-    assert!(
-        counts.iter().map(|(_, loader)| loader).sum::<u32>() > 0,
-        "no room here is refused by the loader's checks alone; choose ticks that hold one"
+    assert_room_loader_guard_on_pending_route();
+}
+
+fn assert_room_loader_guard_on_pending_route() {
+    let (mut sim, fridge) = house(vec![]);
+    // The fridge retains a southern doorway, while this pending walk ends
+    // at its eastern approach. The route remains traversable; its endpoint
+    // cannot reach the target through the new room wall.
+    let request = room(0, 0, 0, 0, Some(line(Horizontal, 0, 1)));
+    assert!(validate_room(sim.world(), request).unwrap().changed);
+    sim.world_mut().spawn((
+        Agent,
+        Position { x: 3.0, y: 0.0 },
+        terri_core::Path {
+            steps: vec![(2, 0), (1, 0)],
+            cursor: 0,
+        },
+        Target {
+            object: fridge,
+            interaction: 0,
+        },
+        terri_core::SelfPreservation(50),
+    ));
+    let grid = finished(&sim, request);
+    let rectangles = super::super::current_layout(sim.world())
+        .unwrap()
+        .rectangles;
+    assert!(super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok());
+    assert!(crate::save::candidate_grid_loads(sim.world(), &grid).is_err());
+    assert_eq!(
+        validate_room(sim.world(), request).unwrap_err(),
+        PlacementRefusal::BlockedRoute
     );
 }
 

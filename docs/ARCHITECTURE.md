@@ -234,14 +234,14 @@ two rendered frames produces the same saved world as draining it in one batch.
 5. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
 6. `advance_chains` - resume or begin the next station in a multi-step action.
-7. `wander` - a sim whose best option scores below `idle_threshold`
+7. `wander` - a sim who samples wandering among the eligible weighted choices
     walks to a random reachable LOCAL tile instead of standing still ([D-5] of
     the M1c design and [LW2] of the local-wandering spec). Both the endpoint's
     Manhattan distance and the actual A* path are capped by
     `wander_radius_tiles`, so a nearby tile behind a wall cannot become a
     cross-house detour. Failed candidates consume one of the bounded
     `wander_attempts`; the system never widens the search to the whole lot. It
-    draws x then y from the shared PRNG after useful choices have failed and
+    draws x then y and a pause length from the shared PRNG and
     processes sims in entity-index order before those draws.
 8. `follow_path` - move one deterministic step along the chosen path.
 9. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
@@ -306,9 +306,12 @@ advert is a sparse list of (need, delta) pairs and each pair is scored
 separately before summing, so an object satisfying two needs modestly can beat
 one satisfying a single need slightly better. Trait modifiers and weighted
 selection are now shipped: `select_action` samples the sorted candidates with
-softmax weights derived from `exp(score / choice_temperature)`. A low content
-temperature approaches argmax while a higher temperature permits plausible
-variation, and the simulation RNG makes the draw deterministic for a fixed seed.
+utility weights mixed with positive exploration. Eligibility depends on physical
+requirements, reachability and occupancy, not a score threshold. Targets are
+normalized separately from their eligible interactions. Temperature and exploration
+increase smoothly as the lowest need rises from 40 to 70; Fun and Social retain
+baseline appeal even at full meters. Self-preservation scales low-need urgency and
+penalties for delaying survival recovery. See [VA-choice] and [VA-instinct].
 
 Two properties matter. Adding content means adding a data file rather than
 touching AI code, so a modder's new object is used correctly on day one. And
@@ -408,7 +411,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 3; the version 1 decoder and its historical optional sleep-pressure
+use version 5; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -520,8 +523,8 @@ nonsense**, with the message naming the offending id:
   of zero or below (selection divides by it), a `min_interaction_ticks` of
   zero, a `wander_radius_tiles` outside `1..=i32::MAX`, a
   `duration_variance` outside `[0, 1)`, or an `idle_threshold` above
-  `action_threshold`, which would have a sim wander off while something is
-  worth doing
+  `action_threshold` (a retained historical tuning-validation contract; these
+  thresholds no longer exclude ordinary autonomous candidates)
 
 **`content/tuning.toml` is the single home for every value that governs the
 system**, as opposed to values describing one piece of content, and that is a
@@ -1247,3 +1250,15 @@ deliberately minimal content sync, not a real-time or authoritative game server.
 | **[R7]** | Player-authored text crossing between players ([D13]) | Report-driven retroactive banning, plus purge of a banned player's distributed records. Bad content reaching some players first is an accepted tradeoff |
 | **[R8]** | Backend cost scaling with player count | Ghost Records are KB-scale; storage-only design keeps cost near-linear and low |
 | **[R9]** | Anonymous player IDs are trivially reset, weakening retroactive bans | Reading stays anonymous; **uploading** requires a lightweight durable identity |
+
+
+## [VA-seeds] Fresh new games and saved autonomy
+
+The browser draws two words through `crypto.getRandomValues` and supplies the
+64-bit seed to `SimHandle.from_lot_with_seed` before household creation. Fixed-seed
+constructors remain for tests. Save V5 appends living-person self-preservation rows
+outside the frozen V1 snapshot. Loading validates before adopting the world;
+missing values draw from 30 through 70, inclusive, in stable entity order using
+the restored RNG. Explicit zero is preserved. Both values and generator state
+participate in the world hash. Details and tunables are in
+`docs/specs/2026-09-30-varied-autonomy.md`.

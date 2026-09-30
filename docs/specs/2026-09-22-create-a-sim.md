@@ -5,7 +5,7 @@ Status: [CS-slice-housemate] shipped in PR 110 at merge `31c4edb`; its played ch
 This is the Create-a-sim bullet of M1 in `docs/FEATURES.md`, and the start of
 [S-create-a-sim], [S-household-size] and [F-entity-lifecycle] in
 `docs/GAME-SYSTEMS.md`. The household is fixed when a new game starts: three
-people from `content/household.toml`, and nobody can join or leave. Every
+people from `content/household.toml`; New housemate can add a person during play, and death can remove one. Every
 system that wants people to come and go (visitors, a partner, a baby, a pet,
 a death) needs the household to change during play first.
 
@@ -101,3 +101,15 @@ so every newcomer wears the green one until there are more looks
 
 Ages, babies, partners, visitors and pets. Each builds on people arriving and
 leaving.
+
+
+## [VA-creation] Self-preservation on the traits page
+
+The traits page includes Self-preservation instinct, Random selected by default,
+and a manual integer slider from 0 through 100. This numeric value occupies no
+optional trait slot. The original `AddHousemate` command keeps its encoding and
+draws uniformly from 0 through 100 only after arrival validation succeeds.
+`AddHousemateWithInstinct` appends wire code 18 with an explicit validated integer;
+zero is a valid override. The boundary rejects invalid values before staging.
+Starter household and accepted random arrivals use the simulation generator, so
+a saved command and restored RNG reproduce the same value.

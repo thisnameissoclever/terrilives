@@ -47,6 +47,7 @@ const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
   5: 'That trait is not available.',
   6: 'Each trait once.',
   7: 'There is no way in for them.',
+  8: 'Choose a whole instinct value from 0 to 100.',
 };
 
 export function housemateReason(code: number): string | null {
@@ -1367,8 +1368,16 @@ export class SimBridge {
   }
 
   /** Stages a move-in ([CS-command]); queue acceptance only, read the outcome from `lastHousemateResult`. */
-  addHousemate(name: string, personality: number, traits: readonly number[]): boolean {
-    return this.handle.add_housemate(name, personality, Float64Array.from(traits));
+  addHousemate(name: string, personality: number, traits: readonly number[], instinct: number | null = null): boolean {
+    if (instinct === null) return this.handle.add_housemate(name, personality, Float64Array.from(traits));
+    if (!Number.isInteger(instinct) || instinct < 0 || instinct > 100) return false;
+    return this.handle.add_housemate_with_instinct(name, personality, Float64Array.from(traits), instinct);
+  }
+
+  selfPreservationOf(entity: number): number | null {
+    if (!isU32(entity)) return null;
+    const value = this.handle.self_preservation_of(entity);
+    return Number.isInteger(value) && value >= 0 && value <= 100 ? value : null;
   }
 
   /** The drain's answer to the last move-in, or null before the first. */
