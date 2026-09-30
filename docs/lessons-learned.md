@@ -23,6 +23,39 @@ zero. Test the same evening curve point at clock ticks 1230, 1320 and 1500 for
 offsets -90, 0 and +180. Removing propagation, persistence, hash input, ordering
 validation or correct phase direction must fail a focused regression. See
 `docs/specs/2026-09-30-sleep-schedules.md` for the evidence contract.
+## [L-sprite-label-not-direction] Saved facing codes do not prove an asset's physical front
+
+**What happened.** Replacement chair art kept the NW code, passed four-view
+mapping tests and left the saved world unchanged, but faced sideways to its desk.
+
+**Root cause.** The old base sprite faced game +Y; the new model's standard SE
+export faced +X. Review checked distinct rotations and labels without tracing
+the physical front through the Blender camera and the existing game convention.
+
+**Prevention rule.** Preserve the existing physical meaning of every saved
+facing. Fix the individual model's authoring basis, not the lot placement or
+shared exporter. Derive its front from visible geometry, not a metadata label.
+
+**How to verify.** The chair's seat-to-back vector test fails on the sideways
+source, then passes after its baked -90 degree turn. Check the saved model's
+front vector under all four export rotations and inspect it beside the desk.
+An unchanged save hash proves no state change, not a correct rendered direction.
+
+## [L-hidden-support-envelope] Attached supports can still break through a visible surface
+
+**What happened.** The office chair passed every attachment test, but close
+review found a faint mark on its rear shell. The hidden spine protruded about
+0.005 model units through that face.
+
+**Root cause.** Positive overlap proves a joint exists, not that a support stays
+inside the part meant to conceal it.
+
+**Prevention rule.** Check both contact and the hidden support's outer envelope.
+Keep a deliberate clearance from the visible rear surface, including bevels.
+
+**How to verify.** The original source fails the spine-clearance test. The saved
+scene checker also rejects a rearward displacement. Inspect the rear-facing
+original images after rerendering; a passing bound is not visual acceptance.
 
 ## [L-short-wall-transparency] Test the bound pipeline, not just its descriptor
 

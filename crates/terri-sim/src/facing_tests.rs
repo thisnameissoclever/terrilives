@@ -2,9 +2,9 @@ use super::*;
 use terri_core::{Facing, ObjectFacing, Position};
 
 #[test]
-fn authored_objects_keep_render_geometry_except_the_wall_aligned_bookcase_art() {
-    // Captured from the preceding release WASM, with the corrected bookcase
-    // deliberately using appended art. Positions and footprints remain unchanged.
+fn authored_objects_keep_positions_and_footprints_with_reviewed_sprite_replacements() {
+    // Captured from preceding release WASM; the reviewed bookcase and desk
+    // chair use appended art. Positions and footprints remain unchanged.
     let expected: &[(u32, f32, f32, u32, u32, u32, u32)] = &[
         (0, 0.0, 0.0, 1, 1, 1091, 4294967295),
         (1, 1.0, 0.0, 1, 1, 1099, 4294967295),
@@ -30,7 +30,7 @@ fn authored_objects_keep_render_geometry_except_the_wall_aligned_bookcase_art() 
         (21, 0.0, 10.0, 1, 1, 1129, 4294967295),
         (22, 4.0, 11.0, 1, 1, 849, 4294967295),
         (23, 6.5, 6.0, 2, 1, 1215, 4294967295),
-        (24, 6.0, 7.0, 1, 1, 299, 4294967295),
+        (24, 6.0, 7.0, 1, 1, 1247, 4294967295),
         (25, 9.5, 6.0, 2, 1, 1137, 4294967295),
         (26, 9.0, 9.0, 1, 1, 853, 4294967295),
         (27, 6.0, 10.0, 1, 1, 32, 4294967295),

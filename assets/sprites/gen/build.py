@@ -35,6 +35,7 @@ from iso import canvas, emit                                    # noqa: E402
 from offline_sims import load_export, runtime_tables             # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
+from offline_props import load_props                           # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -1151,6 +1152,18 @@ def main():
         sprites.append((name, crop, width, height))
     import cutaway_walls
     sprites.extend(render_sprites(cutaway_walls.SPRITES, exact=cutaway_walls.EXACT))
+    # Earlier static catalogs precede published procedural walls. This tail
+    # catalog follows them so adding furniture cannot shift those wall indices.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-03.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "name": "offlineDeskChair",
+      "directory": "office/owner-review-pending/office-chair/candidate-03",
+      "proof_sha256": "b4e8e051a0f7285c5bd2a22dade3849be9dced40158d6574d54d134976167a22",
+      "review_status": "accepted-independent-review"
+    }
+  ]
+}

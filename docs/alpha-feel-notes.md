@@ -63,6 +63,20 @@ Exact checkpoints and images are in
 `docs/assets/review-evidence/furniture-builder/README.md`.
 
 
+## [A-desk-chair-rounded] Registered desk chair beside the working surface
+
+2026-09-30, local production build, neutral lighting, 1600x1050. The rounded
+slate chair now has a five-spoke wheeled base rather than the old square seat
+and cross-shaped support. Its back faces the camera while the seat points
+toward the desk. The low divider behind it leaves the chair and desk visible.
+The four actual renderer views agree on upholstery, shell and attached casters.
+
+The ordinary Build controls cycled all four previews and confirmed the original
+position without changing the saved world hash. This observation establishes
+static placement and appearance, not a seated Work animation. Screenshots,
+the rejected rear-shell defect and exact checks are in
+`docs/assets/review-evidence/office/chair.md`.
+
 ## [A-household-rig-shirts] Approved character and household shirt colors
 
 2026-09-10, dedicated headed Chrome, 1920 by 993. The owner separately

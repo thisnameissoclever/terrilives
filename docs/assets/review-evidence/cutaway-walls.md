@@ -89,3 +89,12 @@ Independent read-only review accepted the integrated source and screenshot.
 This is local production-build evidence, not a claim that Pages has deployed.
 The full remote mutation sweep is separate evidence and was not run locally;
 the three renderer mutations above are targeted checks, not that sweep.
+
+## Publication
+
+PR #145 merged as `4e92ce5fbe79e40136d6279039aef544fdbf484e` on
+2026-09-30. Main CI 36783129587 and Pages run 36783589270 succeeded. The actual
+`actions/deploy-pages@v4` step completed successfully for that revision.
+Public HTML returned HTTP 200 with bundle `index-Cr18uvem.js`; fetched atlas
+bytes matched `927727501d5976e291a82ad50ffac9b32f656c7d3cbd293f8691e0ae6b93707a`.
+The screenshots above are local played evidence, not a second public play session.

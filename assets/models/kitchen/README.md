@@ -55,9 +55,12 @@ to avoid breaking source paths and review links; it is not a blocking gate.
 
 `../atlas-batches.json` defines the append order across static and animated
 batches. `../static-props.json` is the frozen first static batch, followed by
-the bunk export, then `../static-props-02.json`. Append new static objects only
-to the last static batch; after another animated batch, start a new static
-catalog. Never regroup entries by room or insert into a frozen batch: adding a
+the bunk export, then `../static-props-02.json`. That second catalog is now frozen
+because bookcase and cutaway-wall records follow it. `../static-props-03.json`
+is loaded at the end of the atlas builder, after those wall records. Append only
+after every published record, including procedural sprites, not merely after
+the last animated batch. Start a new tail catalog when necessary.
+Never regroup entries by room or insert into a frozen batch: adding a
 kitchen object later must not renumber an accepted bathroom or bunk sprite. The atlas builder
 dispatches them through `assets/sprites/gen/offline_batches.py` to
 `offline_props.py` for static objects or `offline_bunk.py` for reviewed bunk
