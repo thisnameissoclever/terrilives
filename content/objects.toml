@@ -564,7 +564,7 @@ sprite = "trashcan"
 id = "long_sofa"
 name = "The Sectional Compromise"
 price = 280
-sprite = "loungeSofaLong"
+sprite = "offlineLongSofa"
 footprint = { width = 2, depth = 1 }
 
   # **Three slots, which is the highest in the house, and the reason this

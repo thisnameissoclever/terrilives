@@ -18,6 +18,12 @@
       "directory": "dining/owner-review-pending/dining-table/candidate-01",
       "proof_sha256": "aebd743ba6415a60ad04948d1a6d1ebd07b9cba39ad73d8dc6221d51fc986b33",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineLongSofa",
+      "directory": "living/owner-review-pending/long-sofa/candidate-01",
+      "proof_sha256": "b596582f7e72d3be24fcccba671e62435046aca2b527dde23728027029368abf",
+      "review_status": "accepted-independent-review"
     }
   ]
 }
