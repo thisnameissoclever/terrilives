@@ -2,11 +2,11 @@
 
 Status: shipped in PR 112 at merge `c88ca76`; its played check is [A-walls-in-build].
 
-This is [B-walls-in-build] in `docs/FEATURES.md`, asked for by the owner on 2026-09-22. During play the house's east and south walls, and any wall or doorway on a line with house on its north or west side and yard on its south or east side, are cut away so the rooms can be seen ([OS-walls] in `docs/specs/2026-09-22-the-outside.md`). In the Walls tool that hid exactly the lines the player might want to edit.
+This is [B-walls-in-build] in `docs/FEATURES.md`, asked for by the owner on 2026-09-22. The original play view omitted the front walls entirely. The current play view uses short walls and local fading, described in `2026-09-30-cutaway-walls.md`. The tools still need to expose the complete editable shell.
 
 ## [WB-draw] What is drawn, and when
 
-While the Walls tool or the Room tool is in use, every wall and doorway on the lot's edge list is drawn, the cut-away ones included. Leaving the tool, or leaving Build, cuts them away again. The back walls still run along the house's north and west sides only, so the yard's edge gains no wall. The Furniture and Buy tools keep the cut-away view, since furniture is placed inside the rooms.
+While the Walls or Room tool is in use, every wall and doorway on the lot's edge list is drawn at full height and opacity. Leaving those tools restores one-third-height interior and front walls, with local fading behind Sims. The two rear walls stay tall. The Furniture and Buy tools keep the short view, since furniture is placed inside the rooms. The yard's edge gains no implied wall.
 
 The front door draws its own frame on its line, so that line's empty doorway panel is left out, as a hinged interior door's is; the shell reads the line from the boundary's `front_door_lines`.
 

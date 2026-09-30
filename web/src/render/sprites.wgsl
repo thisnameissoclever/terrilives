@@ -33,10 +33,8 @@
 // scaling alpha would move the discard threshold and erode every sprite
 // edge as the light changed.
 //
-// One atlas is what keeps [D10]'s single instanced draw call: every
-// sprite in the game is the same texture and the same pipeline, so the
-// whole frame is one `draw`. Splitting the art across two textures would
-// cost a second draw and a second submit.
+// One atlas serves both layers: opaque sprites first, translucent short
+// walls second. Both draws share a bind group, render pass and submission.
 
 struct Uniforms {
   viewport: vec2<f32>,
@@ -208,10 +206,11 @@ struct FragmentOut {
   @builtin(frag_depth) depth: f32,
 };
 
-// Raster contract: objects.py uses WALL_H=2 and style.py uses Z_UNIT=38.
+// Raster contract: full walls are 76px tall; short walls pass their raster
+// height in wall.w. For short walls only, wall.z is the current opacity.
 // North/east project right; south/west project left. A join can expose a
 // far arm ABOVE its near arm, so horizontal position alone is insufficient.
-fn wallSumOffset(pixel: vec2<f32>, mask: u32) -> f32 {
+fn wallSumOffset(pixel: vec2<f32>, mask: u32, height: f32) -> f32 {
   // emit() includes the final anchor row. Recover source raster coordinates,
   // not the centre of the filtered screen pixel, before choosing its face.
   let raster = vec2f(floor(pixel.x), floor(pixel.y) + 1.0);
@@ -220,7 +219,7 @@ fn wallSumOffset(pixel: vec2<f32>, mask: u32) -> f32 {
   let farBit = select(8u, 1u, raster.x >= 0.0);
   // The half-panel endpoint rasterizes 21/2 to 10 pixels of rise over 16
   // columns. Match that inclusive line, including its rounded outline.
-  let nearTop = floor(distance * 2.0 * floor(21.0 / 2.0) + 0.5) - 76.0;
+  let nearTop = floor(distance * 2.0 * floor(21.0 / 2.0) + 0.5) - height;
   let nearPresent = (mask & nearBit) != 0u;
   let farPresent = (mask & farBit) != 0u;
   if (nearPresent && (!farPresent || raster.y >= nearTop)) {
@@ -298,7 +297,12 @@ fn fs(in: VertexOut) -> FragmentOut {
   out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
   out.depth = in.clip.z;
   if (in.wall.x > 0.0) {
-    out.depth = clamp(in.clip.z - wallSumOffset(in.localPixel, u32(in.wall.x)) * in.wall.y, 0.0, 1.0);
+    let short = in.wall.w > 0.0;
+    let height = select(76.0, in.wall.w, short);
+    out.depth = clamp(in.clip.z - wallSumOffset(in.localPixel, u32(in.wall.x), height) * in.wall.y, 0.0, 1.0);
+    // Coverage was tested above. Short walls blend after opaque geometry
+    // without claiming depth, including when their current opacity is one.
+    if (short) { out.colour.a *= in.wall.z; }
   } else if (in.wall.x < 0.0) {
     // Intersect the view column x-y=t with the centered rectangular
     // footprint. Its interval midpoint in x+y is this clamped slope.

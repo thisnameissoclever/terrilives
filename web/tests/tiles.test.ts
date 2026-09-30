@@ -42,6 +42,7 @@ describe('explicit edge instances', () => {
   it('draws endpoint-owned halves on exact half-tile planes without legacy panels', () => {
     const built = buildStaticInstances({
       width: 3, height: 2, walls: Uint32Array.from([1, 1]),
+      showCutAwayWalls: true,
       edges: Uint32Array.from([0, 1, 0, 0, 0, 1, 1, 1]),
     }, ORIGIN_X, ORIGIN_Y, GRID);
     const all = rows(built.instances, built.count);
@@ -56,6 +57,7 @@ describe('explicit edge instances', () => {
   it('samples the cells beside each edge, including door frames and junctions', () => {
     const built = buildStaticInstances({
       width: 3, height: 2, walls: new Uint32Array(),
+      showCutAwayWalls: true,
       edges: Uint32Array.from([0, 1, 0, 0, 0, 1, 1, 1]),
     }, ORIGIN_X, ORIGIN_Y, GRID, 1, tileLighting(3, 2, [[1, 0, 0.7], [0, 1, 0.4]]));
     const all = rows(built.instances, built.count);
@@ -643,7 +645,7 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
   const drawnOutside = (): Set<number> => {
     const outside = new Set<number>();
     for (const lot of [LOT, {
-      ...LOT, edges: Uint32Array.from([0, 2, 0, 0, 1, 0, 2, 0]),
+      ...LOT, edges: Uint32Array.from([0, 2, 0, 0, 1, 0, 2, 0]), showCutAwayWalls: true,
     }]) {
       const built = buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID);
       for (const row of rows(built.instances, built.count)) {
@@ -800,13 +802,15 @@ describe('the yard', () => {
     expect(state.showCutAwayWalls).toBe(false);
   });
 
-  it("passes the house to the walls, so its front walls are cut away", () => {
+  it('puts front and interior passages in the short batch, never the opaque batch', () => {
     const edges = Uint32Array.from([0, 2, 0, 1]);
     const house = buildStaticInstances({ ...lot, edges, house: [2, 1] }, ORIGIN_X, ORIGIN_Y, GRID);
     const whole = buildStaticInstances({ ...lot, edges }, ORIGIN_X, ORIGIN_Y, GRID);
-    expect(find(rows(whole.instances, whole.count), 1.5, 0).map((r) => SPRITES[r.sprite].name))
-      .toEqual(['doorwayJoinedNS']);
+    expect(find(rows(whole.lowInstances, whole.lowPanels.length), 1.5, 0).map((r) => SPRITES[r.sprite].name))
+      .toEqual(['doorwayLowNS']);
+    expect(find(rows(whole.instances, whole.count), 1.5, 0)).toEqual([]);
     expect(find(rows(house.instances, house.count), 1.5, 0)).toEqual([]);
+    expect(house.lowPanels.map(p => p.spriteName)).toEqual(['doorwayLowNS']);
   });
 });
 

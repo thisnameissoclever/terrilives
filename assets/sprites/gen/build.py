@@ -1149,6 +1149,8 @@ def main():
         bookcase.draw(drawing, facing)
         crop, width, height = emit(image)
         sprites.append((name, crop, width, height))
+    import cutaway_walls
+    sprites.extend(render_sprites(cutaway_walls.SPRITES, exact=cutaway_walls.EXACT))
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

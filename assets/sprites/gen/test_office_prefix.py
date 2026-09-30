@@ -12,9 +12,9 @@ ROOT = Path(__file__).resolve().parents[3]
 class OfficePrefixTests(unittest.TestCase):
     def test_preserves_all_1141_non_bunk_names_indices_dimensions_density_and_pixels(self):
         atlas = tomllib.loads((ROOT/'assets/sprites/atlas.toml').read_text())['sprite']
-        self.assertEqual(len(atlas), 1229)
+        self.assertGreaterEqual(len(atlas), 1229)
         self.assertEqual(
-            [row['name'] for row in atlas[1217:]],
+            [row['name'] for row in atlas[1217:1229]],
             [
                 'wallHalf1',
                 'wallHalf2',

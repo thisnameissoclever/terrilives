@@ -171,7 +171,7 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
 }
 
 /**
- * Draws every sprite on screen in a single instanced draw call. Depth
+ * Draws opaque sprites, then short walls in a second instanced draw. Depth
  * starts at the instance's z; edge walls project along their authored plane,
  * and elongated furniture uses its footprint's column midpoint. See
  * [D10]: at 100k objects, not sorting beats sorting well.
@@ -183,6 +183,7 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
  */
 export class SpriteRenderer {
   private readonly pipeline: GPURenderPipeline;
+  private readonly lowWallPipeline: GPURenderPipeline;
   private readonly uniformBuffer: GPUBuffer;
   /** The atlas rect table, uploaded once; the atlas cannot change. */
   private readonly spriteBuffer: GPUBuffer;
@@ -192,11 +193,11 @@ export class SpriteRenderer {
   private depthTexture: GPUTexture | null = null;
 
   /**
-   * The floor and the walls, uploaded once and then left alone.
+   * The floor and opaque walls, uploaded once and then left alone.
    *
    * They live at the FRONT of the instance buffer and the per-frame
-   * entities are written after them, so the whole frame is still one
-   * `draw` of `staticCount + count` instances.
+   * entities are written after them. The opaque draw uses
+   * `staticCount + count` instances; short walls follow in their own draw.
    *
    * Kept as a field rather than written and forgotten because growing
    * the instance buffer destroys and reallocates it, which loses
@@ -204,6 +205,8 @@ export class SpriteRenderer {
    */
   private staticInstances: InstanceArray = new Float32Array(0);
   private staticCount = 0;
+  private lowWalls: InstanceArray = new Float32Array();
+  private lowWallCount = 0;
 
   /**
    * Scratch for the per-frame uniform upload, allocated once and mutated
@@ -269,9 +272,16 @@ export class SpriteRenderer {
     atlasTexture: GPUTexture,
   ) {
     const module = gpu.device.createShaderModule({ code: shaderSource });
+    const bindGroupLayout = gpu.device.createBindGroupLayout({ entries: [
+      { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
+      { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
+      { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+    ] });
+    const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
-    this.pipeline = gpu.device.createRenderPipeline({
-      layout: 'auto',
+    const descriptor: GPURenderPipelineDescriptor = {
+      layout,
       vertex: {
         module,
         entryPoint: 'vs',
@@ -332,6 +342,10 @@ export class SpriteRenderer {
         depthWriteEnabled: true,
         depthCompare: 'less',
       },
+    };
+    this.pipeline = gpu.device.createRenderPipeline(descriptor);
+    this.lowWallPipeline = gpu.device.createRenderPipeline({ ...descriptor,
+      depthStencil: { format: 'depth24plus', depthWriteEnabled: false, depthCompare: 'less' },
     });
 
     this.instanceBuffer = gpu.device.createBuffer({
@@ -398,9 +412,11 @@ export class SpriteRenderer {
    * `ensureCapacity` therefore re-sends current data, never a stale
    * snapshot.
    */
-  setStaticGeometry(instances: InstanceArray, count: number): void {
+  setStaticGeometry(instances: InstanceArray, count: number, lowWalls: InstanceArray = new Float32Array()): void {
     this.staticInstances = instances;
     this.staticCount = count;
+    this.lowWalls = lowWalls;
+    this.lowWallCount = lowWalls.length / FLOATS_PER_INSTANCE;
     this.ensureCapacity(count);
     this.uploadStatic();
   }
@@ -464,8 +480,8 @@ export class SpriteRenderer {
     skyShade = 0,
   ): void {
     const total = this.staticCount + count;
-    if (total === 0) return;
-    this.ensureCapacity(total);
+    if (total + this.lowWallCount === 0) return;
+    this.ensureCapacity(total + this.lowWallCount);
 
     const canvas = this.gpu.context.canvas as HTMLCanvasElement;
     this.uniformData[0] = canvas.width;
@@ -488,6 +504,9 @@ export class SpriteRenderer {
         0,
         count * FLOATS_PER_INSTANCE,
       );
+    }
+    if (this.lowWallCount > 0) {
+      this.gpu.device.queue.writeBuffer(this.instanceBuffer, total * BYTES_PER_INSTANCE, this.lowWalls);
     }
 
     const depth = this.ensureDepth(canvas.width, canvas.height);
@@ -512,8 +531,12 @@ export class SpriteRenderer {
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.bindGroup);
     pass.setVertexBuffer(0, this.instanceBuffer);
-    // One draw call for the whole room: floor, walls, objects and sims.
+    // Opaque floor, rear walls, objects and Sims establish depth first.
     pass.draw(VERTICES_PER_QUAD, total);
+    if (this.lowWallCount > 0) {
+      pass.setPipeline(this.lowWallPipeline);
+      pass.draw(VERTICES_PER_QUAD, this.lowWallCount, 0, total);
+    }
     pass.end();
 
     this.gpu.device.queue.submit([encoder.finish()]);

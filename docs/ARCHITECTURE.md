@@ -564,6 +564,12 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
+Short walls form a second atlas draw after opaque geometry, in the same render
+pass and submission. This small batch is sorted at geometry rebuild, tests the
+opaque depth buffer without writing it, and updates only its local fade opacity
+each frame. The entity buffer is never sorted. See
+`docs/specs/2026-09-30-cutaway-walls.md` for adjacency and build-mode rules.
+
 Edge-wall pixels use depth from the authored wall plane. Rectangular furniture
 uses the midpoint of the viewing column's intersection with its oriented
 collision footprint. Its occupied composite, foreground and indicator share

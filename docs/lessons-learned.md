@@ -1,5 +1,27 @@
 # Lessons Learned
 
+## [L-short-wall-transparency] Test the bound pipeline, not just its descriptor
+
+**What happened.** Short walls needed local transparency without reviving the
+furniture clipping problem. Review also found that a renderer early return
+ignored wall-only frames and that Load inherited the previous world's fades.
+
+**Root cause.** Opaque rendering assumptions survived the addition of a second
+layer. A single transparent wall drawn last cannot prove depth writes are off,
+and camera rebuilds are not the same lifecycle event as replacing a save.
+
+**Prevention rule.** Share an explicit pipeline layout. Draw short walls after
+opaque geometry, with depth testing but no depth writes; apply opacity after
+coverage testing. Keep the wall raster height in its depth projection. Retain
+fades through camera changes, but reset them after successful world replacement.
+
+**How to verify.** Two equal-depth 25% surfaces must yield 43.75% combined
+coverage, including with no opaque instances. Mutating the bound pipeline to
+write depth fails that GPU check. Separate actor/socket proximity tests cover
+multiple panels, interpolation, reduced motion and Load. Use the isolated
+`web/proofs/index.html` harness rather than booting another game underneath
+GPU probes, and close disposable contexts in `finally`.
+
 ## [L-release-monitor-missing-checks] A pushed PR is not a running release
 
 **What happened.** The selection fix was pushed, but its CI never appeared and
@@ -7033,7 +7055,10 @@ than by not building.
 **Prevention rule:** build with exactly the command CI runs,
 `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
 from the repository root, before every web test run that follows a Rust
-change.
+change. Wait for that command to finish successfully before starting Vitest,
+type checking or Vite. Starting them concurrently still reads the previous
+binary: the cutaway-wall integration hit six stale-binding/save-tail failures
+after merging newer autonomy code because its web suite ran before WASM finished.
 
 **How to verify:** after the build, the timestamp of
 `web/src/wasm/terri_wasm_bg.wasm` is newer than the last Rust edit, and a web

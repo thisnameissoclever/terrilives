@@ -7,7 +7,7 @@ import { SPRITES } from '../src/render/atlas.js';
 describe('edge wall projection', () => {
     it('packs each wall axis and join, with a world-space depth step independent of zoom', () => {
         for (const scale of [1, 1.75, 3]) {
-            const result = buildStaticInstances({ width: 16, height: 12, walls: new Uint32Array(),
+            const result = buildStaticInstances({ width: 16, height: 12, walls: new Uint32Array(), showCutAwayWalls: true,
                 edges: Uint32Array.from([0, 12, 6, 0, 0, 12, 7, 1, 1, 12, 6, 0, 1, 13, 6, 1]) }, 0, 0, 16, scale);
             let joins = 0, doors = 0;
             for (let n = 0; n < result.count; n++) {
@@ -44,6 +44,7 @@ describe('edge wall projection', () => {
         expect(style).toMatch(/Z_UNIT = 38/);
         expect(objects).toMatch(/WALL_H = 2\.0/);
         expect(shader).toContain('abs(raster.x) / 32.0');
-        expect(shader).toContain('floor(21.0 / 2.0) + 0.5) - 76.0');
+        expect(shader).toContain('floor(21.0 / 2.0) + 0.5) - height');
+        expect(shader).toContain('select(76.0, in.wall.w, short)');
     });
 });

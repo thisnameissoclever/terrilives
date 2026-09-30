@@ -3713,3 +3713,20 @@ Proof is `desktop-controls-final.png`, `phone-controls-final.png`,
 `phone-exit-build-final.png` and `landscape-controls-final.png` in
 `docs/assets/review-evidence/gameplay-ui/`. The task tab closed in a finally
 block, its preview server stopped, and the viewport override was reset.
+
+## [A-short-walls] One-third walls and local fading, 2026-09-30
+
+Interior and front walls now leave the kitchen, bathroom and office visible.
+The two rear walls stay tall. Walls and Room tools restore the full shell;
+Furniture restores the short view. Switching those tools left the integrated
+simulation hash unchanged. A directed walk toward the shower crossed the
+short-wall area; a separate two-actor fixture checked fading on both axes.
+Reduced motion, multiple actors and load-reset behavior have focused tests.
+
+Primary and independent reviewers inspected the retained screenshots. No new
+visual blocker was found. Full-height door leaves and frames remain deliberate;
+this pass did not redesign them. It did not watch a complete need cycle or
+conversation, and it does not establish public deployment. Detailed scope,
+GPU evidence and production-build images are in
+`docs/assets/review-evidence/cutaway-walls.md`. All owned pages and both local
+servers were closed after verification.

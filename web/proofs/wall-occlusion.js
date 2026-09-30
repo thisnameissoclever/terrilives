@@ -60,7 +60,7 @@ export async function wallOcclusionProof({ show = false, flatWalls = false, wide
                 const edges = [];
                 for (let row = 6; row < 12; row++)
                     edges.push(axis, axis === 0 ? wallX : row, axis === 0 ? row : wallX, 0);
-                const geometry = buildStaticInstances({ width: 16, height: 12, walls: new Uint32Array(), edges: Uint32Array.from(edges) }, ox, oy, 16, scale);
+                const geometry = buildStaticInstances({ width: 16, height: 12, walls: new Uint32Array(), showCutAwayWalls: true, edges: Uint32Array.from(edges) }, ox, oy, 16, scale);
                 const all = geometry.instances.slice(0, geometry.count * FLOATS_PER_INSTANCE);
                 if (flatWalls)
                     for (let n = geometry.floorCount; n < geometry.count; n++)
@@ -227,7 +227,7 @@ export async function doorTraversalProof({ show = false } = {}) {
                     const edges = [];
                     for (let row = 6; row < 11; row++)
                         edges.push(axis, axis === 0 ? 12 : row, axis === 0 ? row : 12, row === 8 ? door : 0);
-                    const geometry = buildStaticInstances({ width: 16, height: 16, walls: new Uint32Array(), edges: Uint32Array.from(edges) }, ox, oy, 16, scale);
+                    const geometry = buildStaticInstances({ width: 16, height: 16, walls: new Uint32Array(), showCutAwayWalls: true, edges: Uint32Array.from(edges) }, ox, oy, 16, scale);
                     renderer.setStaticGeometry(geometry.instances, geometry.count);
                     renderer.draw(prop, 1, scale);
                     await gpu.device.queue.onSubmittedWorkDone();
