@@ -1564,10 +1564,8 @@ impl SimHandle {
     /// The voice clip each row's conversation plays first, or `u32::MAX`
     /// when the row is not in one. Resolves against `voice_clip_ids()`.
     ///
-    /// Both participants carry the pair, so whichever row the audio layer
-    /// picks to speak for a conversation finds the clips on it. Zero-copy per
-    /// frame; re-read after every sync or memory growth like every other
-    /// column pointer.
+    /// Both participants carry the pair and one shared instance identity.
+    /// Re-read after every sync or memory growth like every zero-copy column.
     pub fn voice_firsts_ptr(&self) -> *const u32 {
         self.sim.render_buffer().voice_firsts.as_ptr()
     }
@@ -1576,6 +1574,21 @@ impl SimHandle {
     /// caching hazard and the same resolution as `voice_firsts_ptr`.
     pub fn voice_seconds_ptr(&self) -> *const u32 {
         self.sim.render_buffer().voice_seconds.as_ptr()
+    }
+
+    /// Initiator's stable Sim ID on both participants, or `u32::MAX`.
+    pub fn conversation_owners_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_owners.as_ptr()
+    }
+
+    /// Low word of the conversation completion token, aligned with every row.
+    pub fn conversation_end_lows_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_end_lows.as_ptr()
+    }
+
+    /// High word of the completion token. Re-read after sync or memory growth.
+    pub fn conversation_end_highs_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_end_highs.as_ptr()
     }
 
     /// One id per voice clip, in the index order the voice columns use.
@@ -3881,6 +3894,113 @@ mod boundary_tests {
             firsts, seconds,
             "both columns are sentinel while nobody talks"
         );
+    }
+
+    #[test]
+    fn conversation_identity_columns_survive_load_and_render_growth() {
+        use terri_core::{
+            Agent, ConversationVoice, Entity, Reserved, SimClock, SimId, Socialising, Target,
+        };
+        let mut handle = SimHandle::from_lot();
+        let mut people: Vec<_> = handle
+            .sim
+            .world_mut()
+            .query::<(Entity, &SimId)>()
+            .iter(handle.sim.world())
+            .map(|(entity, id)| (entity, id.0))
+            .collect();
+        people.sort_by_key(|(_, id)| *id);
+        let (partner, _) = people[0];
+        let (initiator, owner) = people[1];
+        assert_eq!(owner, 1);
+        // Save validation requires a real unobstructed conversation contact.
+        let (x, y) = {
+            let grid = handle.sim.world().resource::<TileGrid>();
+            (0..grid.height() as i32)
+                .flat_map(|y| (0..grid.width() as i32 - 1).map(move |x| (x, y)))
+                .find(|&(x, y)| grid.can_step((x, y), (x + 1, y)))
+                .unwrap()
+        };
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(initiator)
+            .insert(terri_core::Position {
+                x: x as f32,
+                y: y as f32,
+            });
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(partner)
+            .insert(terri_core::Position {
+                x: (x + 1) as f32,
+                y: y as f32,
+            });
+        handle.sim.world_mut().resource_mut::<SimClock>().tick = 0x0020_0001_ffff_fffc;
+        handle.sim.world_mut().entity_mut(initiator).insert((
+            Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 10,
+            },
+            ConversationVoice {
+                first: 0,
+                second: 1,
+            },
+            Target {
+                object: partner,
+                interaction: 0,
+            },
+        ));
+        handle.sim.world_mut().entity_mut(partner).insert(Reserved);
+        handle.sim.sync_render_buffer();
+        let snapshot = handle.sim.save_snapshot_v5();
+        handle
+            .sim
+            .load_snapshot_v5(snapshot)
+            .expect("the projection fixture must be loadable");
+        let bytes = handle.save_bytes();
+        assert!(
+            handle.load_bytes(&bytes),
+            "voice identity must derive from an unchanged save"
+        );
+        assert_eq!(handle.save_bytes(), bytes);
+        let before = handle.entity_count();
+        for _ in 0..48 {
+            handle
+                .sim
+                .world_mut()
+                .spawn((Agent, terri_core::Position { x: 0.0, y: 1.0 }));
+        }
+        handle.sim.sync_render_buffer();
+        assert_eq!(handle.entity_count(), before + 48);
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let owners = addressed(
+            handle.conversation_owners_ptr(),
+            rows,
+            "conversation_owners_ptr",
+        );
+        let lows = addressed(
+            handle.conversation_end_lows_ptr(),
+            rows,
+            "conversation_end_lows_ptr",
+        );
+        let highs = addressed(
+            handle.conversation_end_highs_ptr(),
+            rows,
+            "conversation_end_highs_ptr",
+        );
+        for (row, id) in ids.iter().enumerate() {
+            let expected = if *id == initiator.index_u32() || *id == partner.index_u32() {
+                (1, 6, 0x0020_0002)
+            } else {
+                (u32::MAX, 0, 0)
+            };
+            assert_eq!((owners[row], lows[row], highs[row]), expected, "row {row}");
+        }
     }
 
     #[test]

@@ -1591,6 +1591,47 @@ describe('SimBridge', () => {
     expect(viaMethod.worldHash()).not.toBe(control.worldHash());
   });
 
+  it('keeps conversation identity stable across ticks, load and real memory growth', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    try {
+      const rows = () => [0, 1].map((id) => Array.from(bridge.simIds()).indexOf(id));
+      const values = (column: Uint32Array) => rows().map((row) => column[row]);
+      const entities = values(bridge.ids());
+      expect(bridge.talkTo(entities[0], entities[1], 0)).toBe(true);
+      for (let tick = 0; tick < 240; tick += 1) {
+        bridge.tick();
+        if (values(bridge.voiceFirsts()).every((clip) => clip !== 0xffff_ffff)) break;
+      }
+      expect(values(bridge.activities())).toEqual([4, 4]);
+      expect(values(bridge.voiceFirsts()).every((clip) => clip !== 0xffff_ffff)).toBe(true);
+      const owners = bridge.conversationOwners();
+      const lows = bridge.conversationEndLows();
+      const highs = bridge.conversationEndHighs();
+      expect(values(owners)).toEqual([0, 0]);
+      const deadline = values(lows);
+      expect(deadline[0]).toBeGreaterThan(0);
+      expect(deadline[1]).toBe(deadline[0]);
+      expect(values(highs)).toEqual([0, 0]);
+      bridge.tick();
+      expect(values(bridge.conversationEndLows())).toEqual(deadline);
+      const saved = handle.save_bytes();
+      bridge.tick();
+      expect(handle.load_bytes(saved)).toBe(true);
+      expect(values(bridge.conversationOwners())).toEqual([0, 0]);
+      expect(values(bridge.conversationEndLows())).toEqual(deadline);
+      const held = [bridge.conversationOwners(), bridge.conversationEndLows(), bridge.conversationEndHighs()];
+      wasmMemory.grow(1);
+      expect(held.map((view) => view.length)).toEqual([0, 0, 0]);
+      expect(values(bridge.conversationOwners())).toEqual([0, 0]);
+      expect(values(bridge.conversationEndLows())).toEqual(deadline);
+      expect(values(bridge.conversationEndHighs())).toEqual([0, 0]);
+      expect(bridge.conversationOwners().buffer).toBe(wasmMemory.buffer);
+      expect(bridge.conversationEndLows().buffer).toBe(wasmMemory.buffer);
+      expect(bridge.conversationEndHighs().buffer).toBe(wasmMemory.buffer);
+    } finally { handle.free(); }
+  });
+
   it('places a plain order first, with method bytes matching the hand-written wire bytes', () => {
     // [I-plain-order-goes-first] through the RELEASE wasm, both halves per
     // [L33]. `[0x05, 2, 0, 0]` and `[0x06, 0, 1, 0]` restate the

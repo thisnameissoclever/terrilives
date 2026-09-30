@@ -88,8 +88,8 @@ The current semantic events are:
 4. `sim.footstep { simId, stepIndex }`: a stable Sim crossed one stride
    threshold.
 5. `sim.conversation-started { simId, voice }` and
-   `sim.conversation-ended`: start the simulation-selected recorded pair, or
-   fade the pair when the observed conversation ends.
+   `sim.conversation-ended { voice }`: start the simulation-selected recorded
+   pair, or fade only that instance when the observed conversation ends.
 6. `sim.sleep-breath { simId, breathIndex }`: sleep began or reached its next
    slow breathing interval.
 7. `sim.eating { simId, biteIndex }`: one Sim began eating or reached its next
@@ -140,20 +140,20 @@ out of alignment.
 
 The same fixed-tick sample maps authored visual actions into `conversation`,
 `sleep`, or no sustained audio activity. Two participants do not emit two
-conversation cues. The scheduler selects the lowest stable `SimId` as the
-representative and plays the two clips selected by the simulation. Their
+conversation cues. Each pair uses the initiator's stable `SimId`, an exact
+two-word completion token and its two simulation-selected clip indices. Their
 compiled durations determine conversation length. Playback schedules the second
 clip directly against the audio clock; it does not repeat a tone every eight
 ticks. Fast-forward modestly raises playback rate, then fades any remaining
 audio when the simulation ends the conversation. Simulation duration and rewards
 are not changed by the player.
 
-The current household-wide identity includes every talking Sim. With two
-conversations at once, a second pair joining or leaving can restart the selected
-pair. New housemates make that reachable; per-conversation ownership remains
-separate follow-up work, not an accepted behavior.
+Both participant rows carry the same identity. Starting or ending another pair
+does not restart this one. Pending decoded-library playback is keyed the same
+way, so ending one pair cannot cancel another or revive itself after loading.
+See `2026-09-30-conversation-audio-ownership.md` for projection and verification.
 
-Sleep follows the same household-level rule. One quiet breath plays on entry,
+Sleep remains household-level. One quiet breath plays on entry,
 then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery

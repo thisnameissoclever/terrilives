@@ -124,6 +124,33 @@ function player(context = new FakeContext()): {
 }
 
 describe('VoiceClipPlayer', () => {
+  it('does not stop a newer instance when an older instance has naturally ended', () => {
+    const { context, player: voices } = player();
+    voices.play(0, 1, 1, 'old');
+    context.sources[1].onended?.();
+    voices.play(0, 1, 1, 'new');
+    voices.stopConversation('old');
+    expect(voices.activeConversationCount()).toBe(1);
+    expect(context.sources.slice(2).map((source) => source.stops.length)).toEqual([1, 1]);
+    voices.stopConversation('new');
+    expect(voices.activeConversationCount()).toBe(0);
+  });
+
+  it('keeps keyed ownership after capacity eviction and late source callbacks', () => {
+    const { context, player: voices } = player();
+    for (const key of ['a', 'b', 'c', 'd']) voices.play(0, 1, 1, key);
+    expect(voices.activeConversationCount()).toBe(3);
+    voices.stopConversation('a');
+    context.sources[1].onended?.();
+    expect(voices.activeConversationCount()).toBe(3);
+    voices.stopConversation('c');
+    expect(voices.activeConversationCount()).toBe(2);
+    expect(context.sources.slice(6).map((source) => source.stops.length)).toEqual([1, 1]);
+    voices.stopAll();
+    for (const source of context.sources) source.onended?.();
+    expect(voices.retainedConversationCount()).toBe(0);
+  });
+
   it('plays the second clip the instant the first ends', () => {
     const { context, player: voices } = player();
 

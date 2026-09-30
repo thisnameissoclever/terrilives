@@ -20,6 +20,9 @@ export interface SimAudioFrameSource {
   soundSources(): Uint32Array;
   voiceFirsts(): Uint32Array;
   voiceSeconds(): Uint32Array;
+  conversationOwners(): Uint32Array;
+  conversationEndLows(): Uint32Array;
+  conversationEndHighs(): Uint32Array;
 }
 
 export interface SimAudioFrameSink {
@@ -46,8 +49,8 @@ const NO_VOICE_CLIP = 0xffff_ffff;
  * Samples stable Sim identity, travel, and authored activity after one fixed
  * tick.
  *
- * This is deliberately columnar. It creates no per-Sim object or array, and it
- * re-reads every WASM-backed view after the tick that may have grown memory.
+ * This re-reads every columnar WASM view after ticks that may grow memory.
+ * Only talking rows allocate their small conversation observation object.
  * Stable ids come from the render buffer's aligned identity column; using an
  * entity id or row as identity would swap footsteps between people after Load.
  */
@@ -63,6 +66,9 @@ export function sampleSimAudioAfterTick(
   const soundSources = source.soundSources();
   const voiceFirsts = source.voiceFirsts();
   const voiceSeconds = source.voiceSeconds();
+  const conversationOwners = source.conversationOwners();
+  const conversationEndLows = source.conversationEndLows();
+  const conversationEndHighs = source.conversationEndHighs();
 
   sink.beginFootstepFrame();
   try {
@@ -87,17 +93,17 @@ export function sampleSimAudioAfterTick(
           );
           const activity = activityForVisualAction(visualAction);
           if (activity !== 'other') {
-            // Both talkers carry the pair, so whichever row the scheduler
-            // picks to speak for the conversation finds it. A row that is
-            // talking but carries no pair is a pack with no recordings,
-            // which is silent rather than broken.
+            // Both participants carry the same authoritative instance. A
+            // talk with no recordings or no owner stays silent.
             const first = voiceFirsts[row];
             const second = voiceSeconds[row];
+            const owner = conversationOwners[row];
             const voice =
               activity === 'conversation' &&
+              owner !== NO_SIM_ID &&
               first !== NO_VOICE_CLIP &&
               second !== NO_VOICE_CLIP
-                ? { first, second }
+                ? { owner, endLow: conversationEndLows[row], endHigh: conversationEndHighs[row], first, second }
                 : undefined;
             sink.observeActivity(simId, activity, voice);
           }

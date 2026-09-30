@@ -38,6 +38,9 @@ function source(): SimAudioFrameSource {
     soundSources: () => new Uint32Array(4).fill(0xffff_ffff),
     voiceFirsts: () => new Uint32Array(4).fill(0xffff_ffff),
     voiceSeconds: () => new Uint32Array(4).fill(0xffff_ffff),
+    conversationOwners: () => new Uint32Array(4).fill(0xffff_ffff),
+    conversationEndLows: () => new Uint32Array(4),
+    conversationEndHighs: () => new Uint32Array(4),
   };
 }
 
@@ -123,6 +126,9 @@ describe('sampleSimAudioAfterTick', () => {
       soundSources: () => new Uint32Array(5).fill(0xffff_ffff),
       voiceFirsts: () => new Uint32Array(5).fill(0xffff_ffff),
       voiceSeconds: () => new Uint32Array(5).fill(0xffff_ffff),
+      conversationOwners: () => new Uint32Array(5).fill(0xffff_ffff),
+      conversationEndLows: () => new Uint32Array(5),
+      conversationEndHighs: () => new Uint32Array(5),
     };
 
     sampleSimAudioAfterTick(input, sink(calls));
@@ -383,6 +389,9 @@ describe('sampleSimAudioAfterTick', () => {
       soundSources: () => new Uint32Array(2).fill(0xffff_ffff),
       voiceFirsts: () => new Uint32Array([7, 7]),
       voiceSeconds: () => new Uint32Array([2, 2]),
+      conversationOwners: () => new Uint32Array([11, 11]),
+      conversationEndLows: () => new Uint32Array([123, 123]),
+      conversationEndHighs: () => new Uint32Array([7, 7]),
     };
     const sink: SimAudioFrameSink = {
       beginFootstepFrame: () => {},
@@ -400,12 +409,15 @@ describe('sampleSimAudioAfterTick', () => {
     sampleSimAudioAfterTick(source, sink);
 
     expect(observed).toEqual([
-      { simId: 11, activity: 'conversation', voice: { first: 7, second: 2 } },
-      { simId: 4, activity: 'conversation', voice: { first: 7, second: 2 } },
+      { simId: 11, activity: 'conversation', voice: { owner: 11, endLow: 123, endHigh: 7, first: 7, second: 2 } },
+      { simId: 4, activity: 'conversation', voice: { owner: 11, endLow: 123, endHigh: 7, first: 7, second: 2 } },
     ]);
   });
 
-  it('passes no pair for a talking row from a pack with no recordings', () => {
+  it.each([
+    { first: 0xffff_ffff, second: 0xffff_ffff, owner: 3 },
+    { first: 7, second: 2, owner: 0xffff_ffff },
+  ])('passes no pair when recordings or authoritative owner are absent: %j', ({ first, second, owner }) => {
     // Legal and common: every simulation test fixture is in this state, and
     // the game was too before the recordings existed.
     const observed: unknown[] = [];
@@ -416,8 +428,11 @@ describe('sampleSimAudioAfterTick', () => {
       visualActions: () => new Uint32Array([VISUAL_ACTION_TALK]),
       soundActions: () => new Uint32Array(1),
       soundSources: () => new Uint32Array(1).fill(0xffff_ffff),
-      voiceFirsts: () => new Uint32Array([0xffff_ffff]),
-      voiceSeconds: () => new Uint32Array([0xffff_ffff]),
+      voiceFirsts: () => new Uint32Array([first]),
+      voiceSeconds: () => new Uint32Array([second]),
+      conversationOwners: () => new Uint32Array([owner]),
+      conversationEndLows: () => new Uint32Array(1),
+      conversationEndHighs: () => new Uint32Array(1),
     };
     const sink: SimAudioFrameSink = {
       beginFootstepFrame: () => {},

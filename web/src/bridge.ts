@@ -682,9 +682,8 @@ export class SimBridge {
 
   /**
    * The voice clip each row's conversation plays first, or u32::MAX when the
-   * row is not in one. Both talkers carry the pair, so whichever row the
-   * audio scheduler speaks for finds it. Re-create this view after every
-   * fixed tick and memory growth.
+   * row is not in one. Both talkers carry the pair and the same instance
+   * identity. Re-create this view after every fixed tick and memory growth.
    */
   voiceFirsts(): Uint32Array {
     return new Uint32Array(
@@ -699,6 +698,33 @@ export class SimBridge {
     return new Uint32Array(
       this.memory.buffer,
       this.handle.voice_seconds_ptr(),
+      this.count,
+    );
+  }
+
+  /** Initiator's stable Sim ID on both participants, or u32::MAX when absent. */
+  conversationOwners(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.conversation_owners_ptr(),
+      this.count,
+    );
+  }
+
+  /** Low word of the exact completion token; re-read after every fixed tick. */
+  conversationEndLows(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.conversation_end_lows_ptr(),
+      this.count,
+    );
+  }
+
+  /** High word kept separate to avoid JavaScript number rounding. */
+  conversationEndHighs(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.conversation_end_highs_ptr(),
       this.count,
     );
   }

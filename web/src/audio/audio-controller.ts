@@ -6,6 +6,7 @@ import {
 } from './procedural-cues.js';
 import {
   ActivityCueScheduler,
+  conversationVoiceKey,
   type ActivityCueEvent,
   type ConversationVoicePair,
   type SimActivityAudioState,
@@ -116,14 +117,14 @@ export class AudioController implements GameAudioEventSink {
   /** The player's chosen speed, so conversations can follow it. */
   private gameSpeed = 1;
   /**
-   * A conversation that asked to be played before it could be.
+   * Conversations waiting for their recordings to decode.
    *
    * The recordings are fetched after a gesture and decoded asynchronously,
    * so the first conversation of a session can easily begin while the
    * library is still arriving. Without this it would be recorded as playing,
    * never retried, and stay silent for its whole length.
    */
-  private pendingVoice: ConversationVoicePair | null = null;
+  private readonly pendingVoices = new Map<string, ConversationVoicePair>();
   /** The in-flight library fetch, so two callers cannot both download it. */
   private voiceFetch: Promise<(AudioBufferPort | undefined)[]> | null = null;
   private hasUnlocked = false;
@@ -221,11 +222,12 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
     if (event.type === 'sim.conversation-ended') {
-      this.pendingVoice = null;
+      const key = conversationVoiceKey(event.voice);
+      this.pendingVoices.delete(key);
       // Only reached when the world outran its own audio, which is what
       // fast-forward makes routine. At normal speed the recordings finish on
       // the tick the talking does and have already torn themselves down.
-      this.voices?.stopAll();
+      this.voices?.stopConversation(key);
       return;
     }
 
@@ -370,7 +372,7 @@ export class AudioController implements GameAudioEventSink {
     // held, and the library landing a moment later would start a conversation
     // the player has already silenced: against a muted master gain, or
     // against a suspended clock that plays it on return to the tab.
-    this.pendingVoice = null;
+    this.pendingVoices.clear();
     this.player?.stopAll();
     this.voices?.stopAll();
   }
@@ -475,9 +477,8 @@ export class AudioController implements GameAudioEventSink {
    * conversation whose audio runs a moment past it.
    */
   private retryPendingVoice(): void {
-    const voice = this.pendingVoice;
-    if (voice === null) return;
-    this.pendingVoice = null;
+    const voices = [...this.pendingVoices.values()];
+    this.pendingVoices.clear();
     // The same gate `emit` applies. Reaching the player directly from the
     // library's load would otherwise bypass every reason the game has for
     // being silent right now.
@@ -493,7 +494,7 @@ export class AudioController implements GameAudioEventSink {
     ) {
       return;
     }
-    this.startConversationVoice(voice);
+    for (const voice of voices) this.startConversationVoice(voice);
   }
 
   /** Ids the shell last handed over, so a rebuilt context can reload them. */
@@ -520,29 +521,28 @@ export class AudioController implements GameAudioEventSink {
   }
 
   private startConversationVoice(voice: ConversationVoicePair): void {
+    const key = conversationVoiceKey(voice);
     const voices = this.voices;
     if (voices === null) {
-      this.pendingVoice = voice;
+      this.pendingVoices.set(key, voice);
       return;
     }
     try {
-      // One conversation at a time from this scheduler: it tracks a single
-      // household-wide conversation, so a new pair replaces the old rather
-      // than layering on top of it.
-      voices.stopAll();
       const played = voices.play(
         voice.first,
         voice.second,
         voiceRateForSpeed(this.gameSpeed),
+        key,
       );
       // Held rather than dropped. The usual reason a play fails is that the
       // library has not finished decoding, and that resolves on its own
       // moments later while this conversation is still going.
-      this.pendingVoice = played ? null : voice;
+      if (played) this.pendingVoices.delete(key);
+      else this.pendingVoices.set(key, voice);
     } catch {
       // Sound is presentation. A node failure may drop one conversation but
       // may never terminate the simulation frame that observed it.
-      this.pendingVoice = voice;
+      this.pendingVoices.set(key, voice);
     }
   }
 
@@ -664,6 +664,7 @@ export class AudioController implements GameAudioEventSink {
       this.hasUnlocked = true;
       this.resetSchedulers();
     } else if (running && resumedContext) {
+      this.stopEveryPlayer();
       this.resetSchedulers();
     }
     return running;
