@@ -837,8 +837,8 @@ mod tests {
         // These chair sprites face +Y in their base SE artwork.
         // NE points +X, SW points -X, and NW points -Y.
         for (id, x, y, sprite) in [
-            ("chair", 1.0, 3.0, 258),
-            ("chair", 4.0, 3.0, 256),
+            ("chair", 1.0, 3.0, 1253),
+            ("chair", 4.0, 3.0, 1252),
             ("desk_chair", 6.0, 7.0, 1247),
         ] {
             let object = p.find(id).expect("existing decorative chair");

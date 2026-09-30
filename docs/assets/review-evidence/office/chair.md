@@ -110,3 +110,13 @@ These are local checks, not a claim that remote CI or Pages has completed.
 The local mutations are targeted model and mapping checks, not the full remote
 Rust mutation sweep. Per the owner's delivery rule, duplicate remote checks
 do not delay merge after the relevant local checks pass.
+
+## Publication
+
+PR 146 merged as `29d128f3d11da8c8a2d6126ef7c6e0f53f4db34f`.
+Main CI 36786216044 succeeded. Pages run 36786646468 also succeeded, including
+the actual `actions/deploy-pages@v4` step. A public fetch returned HTTP 200 for
+the game entrypoint `index-DJXFPdZQ.js` and the atlas; the fetched atlas bytes
+matched `88e5d3803df947e81c383515277cf7ebcce5de5ac30cb2321519f2b2108b8593`.
+This establishes the published resources. The played screenshots above are
+local production-build evidence, not a second live-browser play session.
