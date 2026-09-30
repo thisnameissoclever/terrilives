@@ -54,6 +54,10 @@ pub struct SaveSnapshotV5 {
     pub family: crate::layout::FamilyTies,
     /// Appended optional death state. Old saves supply one zero byte.
     pub mortality: Option<SavedMortality>,
+    /// Older worlds adopt the enabled default once. Later saved choices win.
+    pub death_default_applied: bool,
+    /// Person index, occupied item index, and the activity's relevant need bits.
+    pub waiting_needs: Vec<(u32, u32, u8)>,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:

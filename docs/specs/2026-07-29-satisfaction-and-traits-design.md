@@ -39,7 +39,12 @@ and not a summary of the first**.
 | who cares | the sim | the **player** |
 | source | objects that advertise | hobbies, career, relationships |
 
-**DECIDED, 2026-07-29: needs can only ever COST satisfaction, never earn it.**
+**Historical decision, superseded 2026-09-30 by [MW-satisfaction]:** sustained
+positive and negative mood now add to and subtract from satisfaction. Meeting
+needs can therefore earn satisfaction through mood. Activity payouts and
+direct neglect costs remain. The rationale below records the earlier design.
+
+**Original decision, 2026-07-29: needs can only ever COST satisfaction, never earn it.**
 A well-fed, rested, clean sim earns nothing for it - competence is the baseline,
 not an achievement. A chronically starving or filthy one bleeds satisfaction
 steadily.

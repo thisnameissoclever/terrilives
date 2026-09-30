@@ -7228,3 +7228,7 @@ The first death play check removed selection correctly but left the dead person'
 The old startup check also rejected saves after the last person died. An empty household is now a valid world with a New housemate action. Restoring the old guard reproduced the browser failure; removing it allowed reload and a new move-in. Removal work must trace startup assumptions as well as live queries.
 
 Review also found New housemate availability cached after a full household lost someone. Refresh it from the living count during frame updates; exercise full, one-free and empty states, and remove the frame wiring to prove the regression detects it.
+
+## [L-mood-command-batching] Waiting state must follow the order it describes
+
+Adding occupied-item mood exposed two cancellation cases: an autonomous wait has no player order to cancel, and an order staged earlier in the same paused command batch is not yet in the live queue. Clearing every waiting marker discarded autonomous frustration; checking only the live queue made batched and separately flushed commands disagree. Cancel only waiting owned by a current or staged order, or an active chain. Verify all three sources, an autonomous wait that survives Clear orders, and equivalent batched and split command sequences. The mood projection must also stop penalizing a freed or sold item without requiring a clock tick.

@@ -6,18 +6,21 @@ and records what lost. IDs continue as [E*]. Goal items 4, 5 and 6 of
 docs/alpha-goals.md are the deliverable: satisfaction and hobbies
 consume idle time, the three trait mechanisms act, and a career exists.
 
-## [E1] Satisfaction is one f32 per sim, and only three things write it
+## [E1] Satisfaction is one f32 per sim
 
 `Satisfaction(f32)`, non-negative, unbounded upward, in the world hash.
 Writers, exhaustively:
 
-1. **Hobby completions add** - the only upward path ([S1] DECIDED:
-   needs never earn it).
+1. **Activity completions add**, with a multiplier for hobbies.
 2. **Neglect bleeds**: any need below `neglect_floor` (tuning) costs
    `neglect_bleed_per_tick` while it stays there. Keeping a sim alive
    is table stakes; failing to is a life quietly not worth living.
 3. **Conditions scale** the accrual (never the bleed - a depressed sim
    who is also starving hurts twice, which is the honest reading).
+4. **Career shifts pay** their authored satisfaction yield.
+5. **Sustained mood contributes in either direction**, once per tick under
+   [MW-satisfaction]. The owner's 2026-09-30 revision supersedes the earlier
+   rule that healthy needs could never earn satisfaction.
 
 **Rejected: a 0-100 bar.** A bar invites reading satisfaction as an
 eighth need, which is exactly the blur [S1] forbids; an accumulator

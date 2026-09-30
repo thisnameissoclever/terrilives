@@ -210,8 +210,9 @@ fn floor_edit_arguments(
 /// The same trick `decode_save_payload` uses for the sleep-pressure list, and
 /// for the same reason: postcard writes a struct's fields back to back, so an
 /// older payload is a prefix of a newer one and one zero byte is each empty
-/// list or absent optional record it lacks. One pad per appended field, and a padded decode is accepted
-/// only when every list the padding could have filled comes back empty and
+/// list, absent optional record or false flag it lacks. One pad per appended
+/// field, and a padded decode is accepted
+/// only when every field the padding could have filled comes back zero-valued and
 /// the snapshot re-encodes to exactly the padded bytes, so padding can never
 /// invent a floor nobody laid or a family nobody has, nor complete a cut
 /// length into an empty list.
@@ -224,17 +225,15 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 4;
+    const APPENDED_LISTS: usize = 6;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                // Only the lists the padding could have filled must come
-                // back empty, and that is the LAST `pad` of them. One pad
-                // fills mortality alone. Two fill mortality and SimId ties;
-                // three also fill legacy ties, preserving painted floors.
-                // Asking every
-                // appended list to be empty at every pad level is how
+                // Only the LAST `pad` appended fields must be zero-valued.
+                // From the tail: waiting, migration flag, mortality, SimId
+                // ties, legacy ties, floors. Asking every appended field
+                // to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
                 //
                 // And a padded payload must be exactly what this snapshot
@@ -250,12 +249,23 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let family = snapshot.family.ties().len();
                 let by_index = snapshot.family_by_index.ties().len();
                 let mortality = usize::from(snapshot.mortality.is_some());
+                let waiting = snapshot.waiting_needs.len();
+                let migrated = usize::from(snapshot.death_default_applied);
                 let invented = match pad {
                     0 => 0,
-                    1 => mortality,
-                    2 => mortality + family,
-                    3 => mortality + family + by_index,
-                    _ => mortality + family + by_index + snapshot.floors.tiles().len(),
+                    1 => waiting,
+                    2 => waiting + migrated,
+                    3 => waiting + migrated + mortality,
+                    4 => waiting + migrated + mortality + family,
+                    5 => waiting + migrated + mortality + family + by_index,
+                    _ => {
+                        waiting
+                            + migrated
+                            + mortality
+                            + family
+                            + by_index
+                            + snapshot.floors.tiles().len()
+                    }
                 };
                 return (invented == 0).then_some(snapshot);
             }

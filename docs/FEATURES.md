@@ -917,7 +917,7 @@ categories alongside the current master and effects controls. The detailed contr
 
 ### [B-death] Sims can die and leave consequences
 
-The first playable slice, [DE-slice-neglect], implements deprivation: hunger or energy held at zero. Death is off by default behind the saved Options setting "Sims can die if hunger or energy stays empty". The counter runs while death is off. With death on, the household row warns before removal.
+The first playable slice, [DE-slice-neglect], implements deprivation: hunger or energy held at zero. Death is on by default for new and migrated worlds, with the saved Options setting "Sims can die if hunger or energy stays empty". The counter runs while death is off. With death on, the household row warns before removal.
 
 A death retires the entity index and records the permanent SimId, name, cause, tick and identity boundary. Family ties and survivors' affinity stay. Grief is derived from affinity at death: close friends grieve more and longer, neutral acquaintances briefly, and hated people cause neither grief nor joy. Later newcomers do not grieve earlier deaths. No body, ghost or new art is included.
 

@@ -2309,6 +2309,38 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     {
         return Err(ContentError::InvalidMortalityTuning);
     }
+    for value in [
+        tuning.mood_critical_need_level,
+        tuning.mood_low_need_level,
+        tuning.mood_needs_met_level,
+        tuning.mood_critical_need_penalty,
+        tuning.mood_low_need_penalty,
+        tuning.mood_needs_met_bonus,
+        tuning.mood_condition_penalty,
+        tuning.mood_relationship_strength,
+        tuning.mood_relationship_radius,
+        tuning.mood_relationship_min_affinity,
+        tuning.mood_condition_min_severity,
+        tuning.waiting_mood_min_penalty,
+        tuning.waiting_mood_max_penalty,
+        tuning.satisfaction_mood_neutral_band,
+        tuning.satisfaction_mood_per_tick,
+    ] {
+        if !value.is_finite() || value < 0.0 {
+            return Err(ContentError::InvalidMoodTuning);
+        }
+    }
+    if tuning.mood_critical_need_level > tuning.mood_low_need_level
+        || tuning.mood_low_need_level > tuning.mood_needs_met_level
+        || tuning.mood_needs_met_level > 100.0
+        || tuning.mood_relationship_radius == 0.0
+        || tuning.mood_relationship_min_affinity > 1.0
+        || tuning.mood_condition_min_severity > 1.0
+        || tuning.waiting_mood_min_penalty > tuning.waiting_mood_max_penalty
+        || tuning.satisfaction_mood_neutral_band >= 100.0
+    {
+        return Err(ContentError::InvalidMoodTuning);
+    }
     // [OS-daylight]: presentation numbers, checked here like every other
     // knob so a bad file fails the build rather than the picture.
     check_finite(
@@ -2623,6 +2655,21 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             grief_max_score: tuning.grief_max_score,
             grief_min_ticks: tuning.grief_min_ticks,
             grief_hated_affinity: tuning.grief_hated_affinity,
+            mood_critical_need_level: tuning.mood_critical_need_level,
+            mood_low_need_level: tuning.mood_low_need_level,
+            mood_needs_met_level: tuning.mood_needs_met_level,
+            mood_critical_need_penalty: tuning.mood_critical_need_penalty,
+            mood_low_need_penalty: tuning.mood_low_need_penalty,
+            mood_needs_met_bonus: tuning.mood_needs_met_bonus,
+            mood_condition_penalty: tuning.mood_condition_penalty,
+            mood_relationship_strength: tuning.mood_relationship_strength,
+            mood_relationship_radius: tuning.mood_relationship_radius,
+            mood_relationship_min_affinity: tuning.mood_relationship_min_affinity,
+            mood_condition_min_severity: tuning.mood_condition_min_severity,
+            waiting_mood_min_penalty: tuning.waiting_mood_min_penalty,
+            waiting_mood_max_penalty: tuning.waiting_mood_max_penalty,
+            satisfaction_mood_neutral_band: tuning.satisfaction_mood_neutral_band,
+            satisfaction_mood_per_tick: tuning.satisfaction_mood_per_tick,
         },
         circadian,
         tuning.sleep_tag,
@@ -3557,6 +3604,7 @@ mod tests {
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
+    // Measured after appending the mood tuning fields.
     const GOLDEN_PACK_BYTES: &[u8] = &[
         // **Portal presentation appended one final field.** This fixture's
         // coordinate-only lot compiles no portal rows, so the last byte is the
@@ -3666,46 +3714,24 @@ mod tests {
         // `1, 5, 3, 2` is the fixture object's absent `price`, the last slot
         // of its record after `base_facing`. Read from the failing golden
         // assertion after reviewing that one-byte insertion.
-        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
-        205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
-        51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
-        6, 70, 114, 105, 100, 103, 101, 2, 1, 10, 103, 114,
-        97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
-        12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
-        15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
-        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        // Object presentation appends None (0) after price, before the lot's `1, 5, 3, 2`.
-        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
-        0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
-        // The last `0` above is the empty wall_edges, after front_door.
-        //
-        // **The outside appends the house and the yard look to the lot
-        // ([OS-grow], [OS-yard]).** `5, 3` is the house, the whole 5 by 3
-        // lot since the fixture names none, and the twelve bytes after it
-        // are the as-drawn look, hue 0, strength 1 and lightness 0, as
-        // little-endian floats. Read from the failing golden assertion.
-        5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
-        // **The street's look follows ([OS-street]),** as drawn here too.
-        0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0,
-        0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
-        0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
-        0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
-        192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
-        80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        // **The housemate limits append two tuning bytes ([CS-command]):**
-        // `23, 5`, after `resale_fraction`'s `0, 0, 208, 62`. Read from the
-        // failing golden assertion. **The daylight knobs append eight more
-        // ([OS-daylight]):** 0.15625 and 0.21875, `0, 0, 32, 62, 0, 0, 96, 62`.
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5,
-        0, 0, 32, 62, 0, 0, 96, 62,
-        // Mortality tuning, read from the failing golden assertion.
-        144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
-        101, 112, 0, 0,
-        // The empty colourway vector, appended after the portals ([RC-content]).
-        0,
-        // The empty floor-covering vector, appended after it ([FL-content]).
-        0,
+        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
+        154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
+        100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
+        12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
+        116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
+        0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5,
+        3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
+        0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62,
+        9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172,
+        2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
+        0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0, 0, 192,
+        62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28, 216, 4,
+        224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160, 65,
+        0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160, 65,
+        0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76, 61,
+        0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3890,6 +3916,21 @@ mod tests {
             grief_max_score: 30.0,
             grief_min_ticks: 600,
             grief_hated_affinity: -0.5,
+            mood_critical_need_level: 20.0,
+            mood_low_need_level: 40.0,
+            mood_needs_met_level: 70.0,
+            mood_critical_need_penalty: 25.0,
+            mood_low_need_penalty: 12.0,
+            mood_needs_met_bonus: 20.0,
+            mood_condition_penalty: 30.0,
+            mood_relationship_strength: 15.0,
+            mood_relationship_radius: 4.0,
+            mood_relationship_min_affinity: 0.1,
+            mood_condition_min_severity: 0.05,
+            waiting_mood_min_penalty: 2.0,
+            waiting_mood_max_penalty: 30.0,
+            satisfaction_mood_neutral_band: 15.0,
+            satisfaction_mood_per_tick: 0.025,
 
             decay_per_tick: NeedId::ALL
                 .iter()
@@ -5166,6 +5207,123 @@ mod tests {
                 field: "hue".to_string()
             }
         );
+    }
+
+    #[test]
+    fn every_mood_knob_is_copied_to_its_own_compiled_field() {
+        type SetFile = fn(&mut TuningFile);
+        type SetPack = fn(&mut Tuning);
+        let setters: &[(SetFile, SetPack)] = &[
+            (
+                |t| t.mood_critical_need_level *= 0.875,
+                |t| t.mood_critical_need_level *= 0.875,
+            ),
+            (
+                |t| t.mood_low_need_level *= 0.875,
+                |t| t.mood_low_need_level *= 0.875,
+            ),
+            (
+                |t| t.mood_needs_met_level *= 0.875,
+                |t| t.mood_needs_met_level *= 0.875,
+            ),
+            (
+                |t| t.mood_critical_need_penalty *= 0.875,
+                |t| t.mood_critical_need_penalty *= 0.875,
+            ),
+            (
+                |t| t.mood_low_need_penalty *= 0.875,
+                |t| t.mood_low_need_penalty *= 0.875,
+            ),
+            (
+                |t| t.mood_needs_met_bonus *= 0.875,
+                |t| t.mood_needs_met_bonus *= 0.875,
+            ),
+            (
+                |t| t.mood_condition_penalty *= 0.875,
+                |t| t.mood_condition_penalty *= 0.875,
+            ),
+            (
+                |t| t.mood_relationship_strength *= 0.875,
+                |t| t.mood_relationship_strength *= 0.875,
+            ),
+            (
+                |t| t.mood_relationship_radius *= 0.875,
+                |t| t.mood_relationship_radius *= 0.875,
+            ),
+            (
+                |t| t.mood_relationship_min_affinity *= 0.875,
+                |t| t.mood_relationship_min_affinity *= 0.875,
+            ),
+            (
+                |t| t.mood_condition_min_severity *= 0.875,
+                |t| t.mood_condition_min_severity *= 0.875,
+            ),
+            (
+                |t| t.waiting_mood_min_penalty *= 0.875,
+                |t| t.waiting_mood_min_penalty *= 0.875,
+            ),
+            (
+                |t| t.waiting_mood_max_penalty *= 0.875,
+                |t| t.waiting_mood_max_penalty *= 0.875,
+            ),
+            (
+                |t| t.satisfaction_mood_neutral_band *= 0.875,
+                |t| t.satisfaction_mood_neutral_band *= 0.875,
+            ),
+            (
+                |t| t.satisfaction_mood_per_tick *= 0.875,
+                |t| t.satisfaction_mood_per_tick *= 0.875,
+            ),
+        ];
+        let baseline = compile_tuned(tuning_where(|_| {})).unwrap().tuning;
+        for (set_file, set_pack) in setters {
+            let actual = compile_tuned(tuning_where(set_file)).unwrap().tuning;
+            let mut expected = baseline;
+            set_pack(&mut expected);
+            assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn mood_tuning_rejects_nonfinite_negative_and_reversed_ranges() {
+        let setters: &[fn(&mut TuningFile, f32)] = &[
+            |t, v| t.mood_critical_need_level = v,
+            |t, v| t.mood_low_need_level = v,
+            |t, v| t.mood_needs_met_level = v,
+            |t, v| t.mood_critical_need_penalty = v,
+            |t, v| t.mood_low_need_penalty = v,
+            |t, v| t.mood_needs_met_bonus = v,
+            |t, v| t.mood_condition_penalty = v,
+            |t, v| t.mood_relationship_strength = v,
+            |t, v| t.mood_relationship_radius = v,
+            |t, v| t.mood_relationship_min_affinity = v,
+            |t, v| t.mood_condition_min_severity = v,
+            |t, v| t.waiting_mood_min_penalty = v,
+            |t, v| t.waiting_mood_max_penalty = v,
+            |t, v| t.satisfaction_mood_neutral_band = v,
+            |t, v| t.satisfaction_mood_per_tick = v,
+        ];
+        for (index, set) in setters.iter().enumerate() {
+            for value in [f32::NAN, f32::INFINITY, -0.01] {
+                assert!(
+                    compile_tuned(tuning_where(|t| set(t, value))).is_err(),
+                    "accepted field {index}: {value}"
+                );
+            }
+        }
+        for bad in [
+            tuning_where(|t| t.mood_critical_need_level = t.mood_low_need_level + 1.0),
+            tuning_where(|t| t.mood_low_need_level = t.mood_needs_met_level + 1.0),
+            tuning_where(|t| t.mood_needs_met_level = 100.1),
+            tuning_where(|t| t.mood_relationship_radius = 0.0),
+            tuning_where(|t| t.mood_relationship_min_affinity = 1.1),
+            tuning_where(|t| t.mood_condition_min_severity = 1.1),
+            tuning_where(|t| t.waiting_mood_min_penalty = t.waiting_mood_max_penalty + 1.0),
+            tuning_where(|t| t.satisfaction_mood_neutral_band = 100.0),
+        ] {
+            assert!(compile_tuned(bad).is_err());
+        }
+        assert!(compile_tuned(tuning_where(|t| t.satisfaction_mood_per_tick = 0.0)).is_ok());
     }
 
     #[test]

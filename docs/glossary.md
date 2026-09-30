@@ -48,9 +48,10 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 
 | Term | Means |
 | --- | --- |
-| **mood** | The selected sim's current overall feeling, scored from -100 to 100 and labelled Miserable, Low, Okay, Good, or Great. It is derived from the live world rather than saved separately. |
+| **mood** | The selected sim's current overall feeling, scored from -100 to 100 and labelled Miserable, Low, Okay, Good, or Great. It is derived from the live world rather than saved separately. Sustained high or low mood changes life satisfaction each simulation tick, outside a neutral band. |
 | **moodlet** | One active reason contributing to mood, such as Hungry, Low spirits, or Comforted by Bill. The signed number beside it is its contribution to the overall score. |
 | **need moodlet** | A low or critical need, or the single Needs met summary when every need is healthy. |
+| **waiting moodlet** | Waiting for an occupied item lowers mood. Its penalty increases with the greatest deficit among the needs that activity benefits. Walking, working, talking and wandering do not count as waiting. |
 | **condition moodlet** | The content label of any worn condition trait with material severity. Capability and disposition traits do not claim an emotional effect they do not define. |
 | **environment moodlet** | The selected sim's directional feeling about a nearby named sim, weakened by distance. The other sim's reciprocal feeling is a separate fact. |
 
@@ -127,21 +128,22 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 
 ## Life satisfaction - the second axis
 
-This is the score the PLAYER is playing for; it is not a need and it
-never derives from one.
+This is the long-term life score. Activity rewards, work, neglect and sustained
+mood change it. It has no need bar to refill.
 
 | Term | Means |
 | --- | --- |
-| `life satisfaction` | An accumulator per sim, starting at 0 on move-in day and growing for the rest of that life. There is no maximum - lives do not fill up. |
+| `life satisfaction` | An accumulator per sim, starting at 0 on move-in day. It can rise or fall but never below zero. Sustained positive and negative mood contribute each tick; activities, careers and neglect also contribute. There is no maximum. |
 | **hobby** | An activity tag a sim loves (`content/household.toml`). Completing a loved activity pays **3x** its base satisfaction. Tim loves correspondence and reading; Bill television and cooking; Casey socialising. |
 | **tag** | A label on an activity (`cooking`, `reading`, `socialising`) - the vocabulary hobbies and traits both key on, so one word covers every activity that counts as that thing. |
-| **deprivation** | Hunger or energy held at zero on consecutive simulation ticks. The counter resets when both recover. Death is optional and off by default; neglect remains a separate satisfaction penalty. |
+| **deprivation** | Hunger or energy held at zero on consecutive simulation ticks. The counter resets when both recover. Death is enabled for new worlds and enabled once when older saves migrate; neglect remains a separate satisfaction penalty. |
 | **grief** | A derived negative moodlet after a household death. Its strength and duration use the survivor's preserved affinity at death. It fades to zero; hatred produces neither grief nor a happiness bonus. Later newcomers do not grieve earlier deaths. |
 | **death record** | Saved permanent SimId, name, cause, simulation tick and the identity boundary at death. It preserves a person after their entity is removed; family ties and survivors' affinities stay. |
 | **neglect** | Any need below 15 bleeds 0.002 life satisfaction per tick, per crisis. Keeping a sim alive is table stakes; failing to is a life quietly not worth living. |
 
-**Only completions pay.** An interrupted activity pays nothing, which
-is the same rule habituation and relationships follow.
+**Activity rewards pay on completion.** An interrupted activity pays no reward,
+which is the same rule habituation and relationships follow. Mood contributes
+separately while time passes, including during an activity.
 
 ## Traits - `traits:` in the overlay
 

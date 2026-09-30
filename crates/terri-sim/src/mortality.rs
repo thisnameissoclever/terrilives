@@ -200,6 +200,7 @@ pub(crate) fn hash(world: &World, hasher: &mut terri_core::FnvHasher) {
 
 pub(crate) fn restore(world: &mut World, saved: Option<SavedMortality>) -> Result<(), SaveError> {
     let Some(state) = saved else {
+        world.insert_resource(SavedMortality::default());
         return Ok(());
     };
     let now = world.resource::<SimClock>().tick;
@@ -240,11 +241,42 @@ pub(crate) fn restore(world: &mut World, saved: Option<SavedMortality>) -> Resul
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn new_worlds_enable_death() {
+        assert!(crate::Sim::new().death_enabled());
+    }
+
+    #[test]
+    fn old_saves_enable_death_once_and_later_off_choices_survive() {
+        let mut source = crate::Sim::new_from_shipped_lot();
+        source
+            .world_mut()
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .enabled = false;
+        let mut old = source.save_snapshot_v5();
+        old.death_default_applied = false;
+        let mut loaded = crate::Sim::new();
+        loaded.load_snapshot_v5(old).unwrap();
+        assert!(loaded.death_enabled());
+        loaded
+            .world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(terri_core::SimCommand::SetDeathEnabled(false));
+        loaded.flush_commands();
+        let current = loaded.save_snapshot_v5();
+        assert!(current.death_default_applied);
+        source.load_snapshot_v5(current).unwrap();
+        assert!(!source.death_enabled());
+    }
+
     use crate::{Content, Sim};
     use terri_core::{Agent, NeedId, Needs, Position, SimCommand, SimId, SimName};
 
     fn fixture() -> (Sim, terri_core::Entity) {
         let mut sim = Sim::new();
+        sim.world_mut()
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .enabled = false;
         sim.world_mut()
             .insert_resource(terri_core::SimIdAllocator::resumed(2));
         let mut pack = terri_data::pack().clone();
@@ -444,6 +476,9 @@ mod tests {
     #[test]
     fn count_setting_and_records_are_saved_and_hashed() {
         let mut sim = Sim::new_from_shipped_lot();
+        sim.world_mut()
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .enabled = false;
         let person = sim
             .world_mut()
             .query_filtered::<terri_core::Entity, bevy_ecs::prelude::With<Agent>>()

@@ -469,6 +469,7 @@ mod tests {
             .id();
 
         for _ in 0..80 {
+            crate::test_content::disable_mood_satisfaction(&mut sim);
             sim.tick();
             let paid = sim
                 .world()
@@ -553,6 +554,7 @@ mod tests {
                 .value()
         };
         for _ in 0..200 {
+            crate::test_content::disable_mood_satisfaction(&mut sim);
             sim.tick();
             if paid(&sim, lonely) > 0.0 {
                 assert_eq!(paid(&sim, lonely), 3.0, "loved 6, halved by the burden");

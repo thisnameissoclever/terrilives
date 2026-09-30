@@ -633,6 +633,7 @@ mod tests {
             if sim.world().get::<AtWork>(worker).is_some() {
                 scaled_ticks += 1.0;
             }
+            crate::test_content::disable_mood_satisfaction(&mut sim);
             sim.tick();
             let at_work = sim.world().get::<AtWork>(worker).is_some();
             if at_work && clocked_in_at.is_none() {

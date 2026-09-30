@@ -13,6 +13,7 @@ mod save;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
+mod waiting;
 
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
@@ -721,6 +722,8 @@ impl Sim {
                 .unwrap_or_default(),
             // [FM-identity]: written empty, read only from older saves.
             mortality: mortality::snapshot(&self.world),
+            death_default_applied: true,
+            waiting_needs: waiting::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -814,7 +817,10 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
-        world.insert_resource(terri_core::save::SavedMortality::default());
+        world.insert_resource(terri_core::save::SavedMortality {
+            enabled: true,
+            ..Default::default()
+        });
         // A placeholder lot so Res<TileGrid> never panics. Callers that
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
@@ -972,7 +978,7 @@ impl Sim {
                 // `a_use_object_command_is_served_on_the_tick_it_arrives`
                 // is what fails if this line moves.
                 systems::command::drain_commands,
-                mortality::cleanup,
+                (mortality::cleanup, waiting::clear).chain(),
                 advance_clock,
                 systems::needs::decay_needs,
                 // Immediately after decay, because it reads the energy
@@ -1050,6 +1056,7 @@ impl Sim {
                 // lives.
                 systems::satisfaction::bleed_neglect,
                 mortality::tick,
+                mood::accrue_satisfaction,
             )
                 .chain(),
         );
@@ -2917,6 +2924,7 @@ impl Sim {
         }
 
         mortality::hash(&self.world, &mut hasher);
+        waiting::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -4843,7 +4851,9 @@ mod determinism_tests {
         // every world now ends with the count of retired indices, zero here,
         // and the simulation computes exactly what it did. Read from this
         // failing assertion.
-        const GOLDEN: u64 = 0xDE84_3576_1360_3E8A;
+        // Death defaults on and waiting records now contribute to the digest.
+        // Measured from the native assertion after these state additions.
+        const GOLDEN: u64 = 0xd52d52487bf9267e;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

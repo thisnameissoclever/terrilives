@@ -252,15 +252,18 @@ two rendered frames produces the same saved world as draining it in one batch.
 14. `decay_relationships` - apply directional relationship decay.
 15. `bleed_neglect` - reduce satisfaction when needs remain neglected.
 16. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
+17. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
 
-After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index.
+After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index. `waiting::clear` removes the previous item-wait decision before selection and chain scheduling publish the next one.
 
-Death state is a sparse `SavedMortality` resource: a setting, positive counts ordered by living entity index, and permanent death records ordered by tick then SimId. It is hashed and appended to SaveSnapshotV5 as `Option<SavedMortality>`. None costs one zero byte, so the historical decoder can pad that field without changing earlier lists. A padded decode must re-encode exactly, and only the fields filled by padding may be empty.
+Death state is a sparse `SavedMortality` resource: a setting, positive counts ordered by living entity index, and permanent death records ordered by tick then SimId. It is hashed and appended to SaveSnapshotV5 as `Option<SavedMortality>`. None costs one zero byte, so the historical decoder can pad that field without changing earlier lists. A padded decode must re-encode exactly, and every field filled by padding must be zero-valued. Later V5 fields append a one-time death-default migration flag and sparse waiting rows containing person index, item index and relevant need bits. Older worlds enable death on load once; later saved off choices survive.
 
 Death records include the issued-identity boundary, excluding later newcomers from grief. Survivors keep their affinity toward dead SimIds without decay. Grief strength and duration derive from that affinity and elapsed ticks; moodlets are never stored.
 
-Mood is currently derived when the HUD asks rather than stored or scheduled,
-so Save V1 cannot restore a stale display value. Parallel advertisement scans,
+Mood is derived for the HUD and for the once-per-tick satisfaction contribution.
+Moodlets remain unstored; the satisfaction ledger integrates their effects.
+Occupied-item waiting contributes more strongly as the relevant need falls.
+All balance inputs live in the validated tuning pack. Parallel advertisement scans,
 a fixed per-tick path budget with an overflow queue, ghost injection, an event
 dispatch phase, and Tier 2 story progression remain future scale work. The path
 budget still matters when population grows: bounded work produces a harmless

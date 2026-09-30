@@ -63,6 +63,8 @@ pub(crate) fn restore_v5(
         family_by_index,
         family,
         mortality,
+        death_default_applied,
+        waiting_needs,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -140,6 +142,13 @@ pub(crate) fn restore_v5(
     .ok_or(SaveError::InvalidValue)?;
     candidate.world.insert_resource(family);
     crate::mortality::restore(&mut candidate.world, mortality)?;
+    crate::waiting::restore(&mut candidate.world, waiting_needs)?;
+    if !death_default_applied {
+        candidate
+            .world
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .enabled = true;
+    }
     Ok(candidate)
 }
 
