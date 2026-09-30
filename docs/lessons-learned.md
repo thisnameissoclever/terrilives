@@ -1,5 +1,26 @@
 # Lessons Learned
 
+## [L-conversation-identity-is-not-a-household-mask] Track the actual interaction instance
+
+**What happened.** A second conversation starting or ending could restart an
+unrelated recorded pair. The household-wide talker mask also collapsed IDs
+above 30, despite the allocator issuing new IDs throughout the household's life.
+
+**Root cause.** Playback inferred conversation identity from aggregate activity
+and selected clips instead of the simulation's initiator/partner relationship.
+A small maximum household size was mistaken for a bound on stable identifiers.
+
+**Prevention rule.** Project authoritative interaction identity onto both
+participants and retain it through scheduling, pending loads and playback.
+Keep wide identity integers exact across the Rust/JavaScript boundary. An
+individual end event must not invoke household-wide cleanup.
+
+**How to verify.** Run two simultaneous pairs with the same clips and end either
+without restarting the other. Repeat clips in a later instance, reorder rows,
+use IDs above 30 and completion tokens above `2^53`, then test load cancellation.
+Render real audio samples while one pair ends and the other remains active.
+See `docs/specs/2026-09-30-conversation-audio-ownership.md` for evidence.
+
 ## [L-audio-envelope-needs-rendered-proof] A scheduled fade may still produce a hard cut
 
 **What happened.** Conversation stops scheduled a fade but cancelled the ramp

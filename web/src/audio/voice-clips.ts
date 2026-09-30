@@ -83,6 +83,7 @@ const EDGE_FADE_SECONDS = 0.012;
 export const MAX_ACTIVE_VOICE_CONVERSATIONS = 3;
 
 interface ActiveConversation {
+  readonly key: string | undefined;
   readonly gain: GainNodePort;
   readonly sources: AudioBufferSourcePort[];
   readonly startedAt: number;
@@ -138,12 +139,12 @@ export class VoiceClipPlayer {
    * the clips play faster and a little higher, which is what fast-forward
    * uses; the pitch rise is deliberately far smaller than the speed-up,
    * because nothing here has to fit a deadline - a conversation that outlasts
-   * its fast-forwarded slot is cut by `stopAll`.
+   * its fast-forwarded slot is cut by `stopConversation`.
    *
    * Returns false when the clips are missing or the audio hardware refuses,
    * and never throws: a sound failing is not a reason for the frame to fail.
    */
-  play(first: number, second: number, rate = 1): boolean {
+  play(first: number, second: number, rate = 1, key?: string): boolean {
     const firstClip = this.clips[first];
     const secondClip = this.clips[second];
     if (firstClip === undefined || secondClip === undefined) return false;
@@ -183,6 +184,7 @@ export class VoiceClipPlayer {
       gain.gain.linearRampToValueAtTime(0, now + totalSeconds);
 
       const record: ActiveConversation = {
+        key,
         gain,
         sources: [],
         startedAt: now,
@@ -237,13 +239,13 @@ export class VoiceClipPlayer {
     }
   }
 
-  /**
-   * Stops everything, fading rather than cutting.
-   *
-   * Called when a conversation ends before its audio does, which is what
-   * fast-forward makes routine: the world runs two or three times real time
-   * while the recordings do not, so the talking finishes first.
-   */
+  /** Stops only this instance when the simulation outruns its recording. */
+  stopConversation(key: string): void {
+    const conversation = this.active.find((record) => record.key === key);
+    if (conversation !== undefined) this.finish(conversation, true);
+  }
+
+  /** Lifecycle silence: stop every pair, fading rather than cutting. */
   stopAll(): void {
     for (const conversation of [...this.active]) this.finish(conversation, true);
   }

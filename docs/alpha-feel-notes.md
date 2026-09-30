@@ -1,5 +1,26 @@
 # Alpha Feel Notes
 
+## [A-independent-conversation-audio] Directed Chat on the rebuilt audio bridge
+
+2026-09-30, 1280x720, a fresh household on the isolated local port 5198. Bill
+walked to Casey for a directed Chat. Both participants visibly faced one another
+beside the desk, with conversation indicators and the dock's Talking state.
+Pause held them in place; after resuming, they finished and returned to separate
+activities. The scene and compact needs dock remained readable in daylight.
+
+Evidence: `docs/assets/review-evidence/audio-independent-conversation.jpg`.
+This was the development shell with rebuilt release WASM. A separate production
+bundle smoke check also loaded and advanced the household. Both pages reported
+no browser warnings/errors, then were paused and closed with their servers.
+
+Visual findings remain separate from audio acceptance: the aquarium obscured
+Casey's lower body and intercepted the first right-click, while the visible
+head correctly opened Casey's menu. This is depth-consistent but makes small
+targets harder to select. A standing-looking sleeper beside the bed remained
+visible earlier in the run. Neither issue is changed by audio ownership.
+Concurrent recordings were verified with real offline audio samples and
+integration tests, not a displayed four-person scene or subjective listening.
+
 ## [A-conversation-audio-fades] Audio repair on the integrated household build
 
 2026-09-30, production build after main `5e9335a8`, 1280x720. The saved four-person

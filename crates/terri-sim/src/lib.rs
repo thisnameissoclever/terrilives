@@ -139,6 +139,18 @@ struct RenderRow {
     carrying: u32,
     voice_first: u32,
     voice_second: u32,
+    conversation_owner: u32,
+    conversation_end_low: u32,
+    conversation_end_high: u32,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ConversationAudioProjection {
+    first: u32,
+    second: u32,
+    owner: u32,
+    end_low: u32,
+    end_high: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1434,6 +1446,9 @@ impl Sim {
         self.render.carrying.clear();
         self.render.voice_firsts.clear();
         self.render.voice_seconds.clear();
+        self.render.conversation_owners.clear();
+        self.render.conversation_end_lows.clear();
+        self.render.conversation_end_highs.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
@@ -1446,10 +1461,11 @@ impl Sim {
         // pass before the per-row loop can answer it.
         let mut partners: HashSet<Entity> = HashSet::new();
         let mut conversation_visuals: HashMap<Entity, (u32, u32)> = HashMap::new();
-        // Filled for BOTH participants in the same pass, for the reason
-        // `RenderBuffer::voice_firsts` documents: the shell chooses which
-        // row speaks for a conversation and may well choose the partner.
-        let mut conversation_voices: HashMap<Entity, (u32, u32)> = HashMap::new();
+        // Filled for both participants from the one authoritative record.
+        // Their identical instance identity lets the shell deduplicate rows
+        // without merging separate conversations or choosing a representative.
+        let mut conversation_voices: HashMap<Entity, ConversationAudioProjection> = HashMap::new();
+        let tick = self.world.resource::<SimClock>().tick;
         {
             let mut talks = self.world.query::<(Entity, &terri_core::Socialising)>();
             for (initiator, talk) in talks.iter(&self.world) {
@@ -1460,8 +1476,27 @@ impl Sim {
                 // it is drawn, so gating it on the pose would silence a
                 // talk that is perfectly real and merely invisible.
                 if let Some(voice) = self.world.get::<terri_core::ConversationVoice>(initiator) {
-                    conversation_voices.insert(initiator, (voice.first, voice.second));
-                    conversation_voices.insert(talk.partner, (voice.first, voice.second));
+                    let owner = self
+                        .world
+                        .get::<terri_core::SimId>(initiator)
+                        .map_or(render_buffer::NO_SIM_ID, |id| id.0);
+                    // The clock rises as remaining ticks fall. Their wrapping
+                    // sum stays fixed for this instance without saved state or
+                    // another random draw; two words preserve all 64 bits in JS.
+                    let end = if owner == render_buffer::NO_SIM_ID {
+                        0
+                    } else {
+                        tick.wrapping_add(u64::from(talk.remaining_ticks))
+                    };
+                    let projection = ConversationAudioProjection {
+                        first: voice.first,
+                        second: voice.second,
+                        owner,
+                        end_low: end as u32,
+                        end_high: (end >> 32) as u32,
+                    };
+                    conversation_voices.insert(initiator, projection);
+                    conversation_voices.insert(talk.partner, projection);
                 }
                 let Some(interaction) = content.social.get(talk.interaction as usize) else {
                     continue;
@@ -1780,10 +1815,19 @@ impl Sim {
                 carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
                 voice_first: conversation_voices
                     .get(&entity)
-                    .map_or(render_buffer::NO_VOICE_CLIP, |(first, _)| *first),
+                    .map_or(render_buffer::NO_VOICE_CLIP, |voice| voice.first),
                 voice_second: conversation_voices
                     .get(&entity)
-                    .map_or(render_buffer::NO_VOICE_CLIP, |(_, second)| *second),
+                    .map_or(render_buffer::NO_VOICE_CLIP, |voice| voice.second),
+                conversation_owner: conversation_voices
+                    .get(&entity)
+                    .map_or(render_buffer::NO_SIM_ID, |voice| voice.owner),
+                conversation_end_low: conversation_voices
+                    .get(&entity)
+                    .map_or(0, |voice| voice.end_low),
+                conversation_end_high: conversation_voices
+                    .get(&entity)
+                    .map_or(0, |voice| voice.end_high),
             });
         }
         rows.sort_by_key(|row| row.index);
@@ -1811,6 +1855,13 @@ impl Sim {
             self.render.carrying.push(row.carrying);
             self.render.voice_firsts.push(row.voice_first);
             self.render.voice_seconds.push(row.voice_second);
+            self.render.conversation_owners.push(row.conversation_owner);
+            self.render
+                .conversation_end_lows
+                .push(row.conversation_end_low);
+            self.render
+                .conversation_end_highs
+                .push(row.conversation_end_high);
         }
         self.render.count = rows.len();
 

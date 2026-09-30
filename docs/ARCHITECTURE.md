@@ -1030,6 +1030,11 @@ gesture. Ordinary event emission never creates, resumes, or queues audio. The
 master gain is mute-only and the effects gain owns both procedural cues and
 recorded conversation volume. The simulation chooses two clip indices and
 derives their duration from compiled voice metadata; the shell owns playback.
+Each conversation has independent ownership: initiator ID, both words of its
+derived completion token, and clip indices. Both participant rows project the
+same identity. Ending one pair cancels only its playback and pending library
+start, while global lifecycle boundaries still clear all pairs. See
+`docs/specs/2026-09-30-conversation-audio-ownership.md`.
 Interrupted voice envelopes retain their current level before fading, bounded
 by natural sample completion. Failed construction disconnects every created
 node immediately, even if that node never started. See

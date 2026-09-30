@@ -17,10 +17,17 @@ const PERSONAL_ACTIVITY_EATING = 1;
 const PERSONAL_ACTIVITY_READING = 2;
 const PERSONAL_ACTIVITY_EXERCISE = 3;
 
-/** The two clips a conversation plays, in order. */
+/** Authoritative conversation instance and its ordered recording pair. */
 export interface ConversationVoicePair {
+  readonly owner: number;
+  readonly endLow: number;
+  readonly endHigh: number;
   readonly first: number;
   readonly second: number;
+}
+
+export function conversationVoiceKey(voice: ConversationVoicePair): string {
+  return `${voice.owner}:${voice.endHigh}:${voice.endLow}:${voice.first}:${voice.second}`;
 }
 
 export type ActivityCueEvent =
@@ -39,13 +46,14 @@ export type ActivityCueEvent =
     }
   | {
       /**
-       * No conversation is running any more.
+       * This conversation is no longer running.
        *
        * Needed because the world can outrun its own audio: at double and
        * triple speed the talking finishes while the recordings are still
        * playing, and something has to say so.
        */
       readonly type: 'sim.conversation-ended';
+      readonly voice: ConversationVoicePair;
     }
   | {
       readonly type: 'sim.sleep-breath';
@@ -73,25 +81,12 @@ export interface ActivityCueEventSink {
 }
 
 /**
- * One bit per talking Sim, for identifying WHICH Sims a conversation is
- * between.
- *
- * Ids at or beyond the mask's width fold onto the top bit rather than being
- * dropped: the game caps a household well below that, and losing a talker
- * entirely would be worse than sharing a bit with another.
- */
-function talkerBit(simId: number): number {
-  return 1 << Math.min(simId, 30);
-}
-
-/**
  * Converts fixed-tick activity state into sparse audio cues at the correct
  * ownership scope.
  *
- * Conversation and sleep are shared scenes. Emitting once per participant
- * would double a conversation and turn a bedroom into a pile of synchronized
- * breathing loops. The lowest stable Sim ID identifies each active scene, and
- * retained counters keep the cues audible without firing on every 10 Hz tick.
+ * Each conversation owns one recording pair, deduplicated by the simulation's
+ * instance identity. Sleep remains one shared scene represented by its lowest
+ * stable Sim ID, preventing synchronized breathing loops for every sleeper.
  * Eating, reading, and exercise belong to individual Sims, so each Sim retains
  * an independent cadence until the authored action changes or disappears.
  */
@@ -106,28 +101,9 @@ export class ActivityCueScheduler {
   private personalTrackCount = 0;
   private personalGeneration = 0;
   private frameOpen = false;
-  private conversationSimId = Number.MAX_SAFE_INTEGER;
   private sleepingSimId = Number.MAX_SAFE_INTEGER;
-  /** This frame's representative pair, and what is currently sounding. */
-  private frameVoice: ConversationVoicePair | null = null;
-  private activeVoice: ConversationVoicePair | null = null;
-  /**
-   * Which Sims are talking, as one bit per stable Sim ID.
-   *
-   * Part of a conversation's identity, because the clip pair alone is not
-   * one: two consecutive conversations can draw the same pair, and the second
-   * would then be mistaken for the first still running and play nothing.
-   *
-   * **A bitmask rather than a count and a sum.** Those two numbers collide as
-   * soon as a fourth Sim can talk: talkers 0 and 3 give the same count and
-   * sum as talkers 1 and 2, so the very case this check exists for would slip
-   * through it. A mask identifies the set exactly, costs one integer, and
-   * allocates nothing. Ids at or past the mask's width fold onto a shared bit
-   * rather than being dropped, which degrades to the old ambiguity only for
-   * households far larger than the game allows.
-   */
-  private frameTalkerMask = 0;
-  private activeTalkerMask = 0;
+  private readonly frameVoices = new Map<string, ConversationVoicePair>();
+  private readonly activeVoices = new Map<string, ConversationVoicePair>();
   private sleepActive = false;
   private sleepTicksRemaining = 0;
   private breathIndex = 0;
@@ -144,10 +120,8 @@ export class ActivityCueScheduler {
     } else {
       this.personalGeneration += 1;
     }
-    this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
-    this.frameVoice = null;
-    this.frameTalkerMask = 0;
+    this.frameVoices.clear();
   }
 
   observe(
@@ -163,15 +137,7 @@ export class ActivityCueScheduler {
     this.seenSimIds.add(simId);
 
     if (activity === 'conversation') {
-      // The representative is the lowest stable Sim ID that is talking, and
-      // its pair is the one that sounds. Taking the pair from whichever row
-      // wins rather than from the first seen keeps the choice independent of
-      // row order, which shifts whenever any Sim gains or loses a component.
-      this.frameTalkerMask |= talkerBit(simId);
-      if (simId <= this.conversationSimId) {
-        this.conversationSimId = simId;
-        this.frameVoice = voice ?? null;
-      }
+      if (voice !== undefined) this.frameVoices.set(conversationVoiceKey(voice), voice);
     } else if (activity === 'sleep') {
       this.sleepingSimId = Math.min(this.sleepingSimId, simId);
     }
@@ -205,16 +171,13 @@ export class ActivityCueScheduler {
     this.personalTrackCount = 0;
     this.personalGeneration = 0;
     this.frameOpen = false;
-    this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
     // Cleared without emitting an end. `reset` is what every route back to
     // silence calls - mute, backgrounding, Load, recovery - and each of those
     // stops the voices itself. Emitting here would make the next audible
     // conversation the SECOND thing to stop them.
-    this.frameVoice = null;
-    this.activeVoice = null;
-    this.frameTalkerMask = 0;
-    this.activeTalkerMask = 0;
+    this.frameVoices.clear();
+    this.activeVoices.clear();
     this.sleepActive = false;
     this.sleepTicksRemaining = 0;
     this.breathIndex = 0;
@@ -230,53 +193,21 @@ export class ActivityCueScheduler {
     return this.personalSimIds.length;
   }
 
-  /**
-   * Starts a conversation's clips, or stops them, by comparing what is
-   * sounding against what the frame observed.
-   *
-   * **Identity is the clip pair AND who is talking.** Asking only "is anybody
-   * talking" would see one unbroken conversation where two ran back to back,
-   * and the second pair would never be heard. The pair alone is not identity
-   * either: two conversations can draw the same pair, and the second would be
-   * mistaken for the first still running. The talker count and id sum settle
-   * both cases without allocating.
-   *
-   * **Known limitation with more than one conversation at a time.** This
-   * scheduler speaks for the whole household through the lowest talking Sim
-   * id, so when a lower-numbered conversation ends beside a running one, the
-   * representative reverts and the surviving conversation's clips start again
-   * from their first sample partway through it. Reaching that needs four
-   * talking Sims; the shipped household is three, so it is latent rather than
-   * live. Fixing it properly means per-conversation audio rather than one
-   * household voice, which is a larger change than this one.
-   */
+  /** End vanished instances before starting new ones, in stable owner order. */
   private finishConversationFrame(): void {
-    const voice = this.conversationSimId === Number.MAX_SAFE_INTEGER ? null : this.frameVoice;
-
-    if (voice === null) {
-      if (this.activeVoice !== null) {
-        this.activeVoice = null;
-        this.activeTalkerMask = 0;
-        this.sink.emit({ type: 'sim.conversation-ended' });
-      }
-      return;
+    for (const [key, voice] of this.activeVoices) {
+      if (this.frameVoices.has(key)) continue;
+      this.activeVoices.delete(key);
+      this.sink.emit({ type: 'sim.conversation-ended', voice });
     }
-
-    const active = this.activeVoice;
-    const sameConversation =
-      active !== null &&
-      active.first === voice.first &&
-      active.second === voice.second &&
-      this.frameTalkerMask === this.activeTalkerMask;
-    if (sameConversation) return;
-
-    this.activeVoice = voice;
-    this.activeTalkerMask = this.frameTalkerMask;
-    this.sink.emit({
-      type: 'sim.conversation-started',
-      simId: this.conversationSimId,
-      voice,
-    });
+    const ordered = [...this.frameVoices.entries()].sort(([, a], [, b]) =>
+      a.owner - b.owner || a.endHigh - b.endHigh || a.endLow - b.endLow ||
+      a.first - b.first || a.second - b.second);
+    for (const [key, voice] of ordered) {
+      if (this.activeVoices.has(key)) continue;
+      this.activeVoices.set(key, voice);
+      this.sink.emit({ type: 'sim.conversation-started', simId: voice.owner, voice });
+    }
   }
 
   private finishSleepFrame(): void {

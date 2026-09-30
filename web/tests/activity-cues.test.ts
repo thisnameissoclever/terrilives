@@ -46,8 +46,8 @@ function frame(
 }
 
 /** A distinct pair per test, so a mixed-up one is visible in the failure. */
-const PAIR_A = { first: 3, second: 8 } as const;
-const PAIR_B = { first: 5, second: 1 } as const;
+const PAIR_A = { owner: 7, endLow: 90, endHigh: 0, first: 3, second: 8 } as const;
+const PAIR_B = { owner: 7, endLow: 120, endHigh: 0, first: 5, second: 1 } as const;
 
 describe('ActivityCueScheduler', () => {
   it('represents one conversation once instead of sounding once per participant', () => {
@@ -56,12 +56,12 @@ describe('ActivityCueScheduler', () => {
 
     frame(scheduler, [
       [12, 'conversation', PAIR_A],
-      [4, 'conversation', PAIR_A],
+      [7, 'conversation', PAIR_A],
       [9, 'other'],
     ]);
 
     expect(sink.events).toEqual([
-      { type: 'sim.conversation-started', simId: 4, voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
     ]);
   });
 
@@ -95,6 +95,7 @@ describe('ActivityCueScheduler', () => {
 
     expect(sink.events).toEqual([
       { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
+      { type: 'sim.conversation-ended', voice: PAIR_A },
       { type: 'sim.conversation-started', simId: 7, voice: PAIR_B },
     ]);
   });
@@ -102,6 +103,8 @@ describe('ActivityCueScheduler', () => {
   it('restarts for a different pair of Sims drawing the same clips', () => {
     const sink = recordingSink();
     const scheduler = new ActivityCueScheduler(sink);
+    const first = { ...PAIR_A, owner: 0 };
+    const second = { ...PAIR_A, owner: 1 };
 
     // The case the whole identity check exists for, and the one a clip-pair
     // comparison alone cannot see: one conversation ends and a DIFFERENT pair
@@ -110,17 +113,18 @@ describe('ActivityCueScheduler', () => {
     // talker count and a sum of ids: anything weaker than a set would call
     // them one conversation and play the second in silence.
     frame(scheduler, [
-      [0, 'conversation', PAIR_A],
-      [3, 'conversation', PAIR_A],
+      [0, 'conversation', first],
+      [3, 'conversation', first],
     ]);
     frame(scheduler, [
-      [1, 'conversation', PAIR_A],
-      [2, 'conversation', PAIR_A],
+      [1, 'conversation', second],
+      [2, 'conversation', second],
     ]);
 
     expect(sink.events).toEqual([
-      { type: 'sim.conversation-started', simId: 0, voice: PAIR_A },
-      { type: 'sim.conversation-started', simId: 1, voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 0, voice: first },
+      { type: 'sim.conversation-ended', voice: first },
+      { type: 'sim.conversation-started', simId: 1, voice: second },
     ]);
   });
 
@@ -132,16 +136,16 @@ describe('ActivityCueScheduler', () => {
     // frames because render rows move whenever any Sim gains or loses a
     // component, and that must not read as a new conversation.
     frame(scheduler, [
-      [5, 'conversation', PAIR_A],
+      [7, 'conversation', PAIR_A],
       [2, 'conversation', PAIR_A],
     ]);
     frame(scheduler, [
       [2, 'conversation', PAIR_A],
-      [5, 'conversation', PAIR_A],
+      [7, 'conversation', PAIR_A],
     ]);
 
     expect(sink.events).toEqual([
-      { type: 'sim.conversation-started', simId: 2, voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
     ]);
   });
 
@@ -156,7 +160,7 @@ describe('ActivityCueScheduler', () => {
 
     expect(sink.events).toEqual([
       { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
-      { type: 'sim.conversation-ended' },
+      { type: 'sim.conversation-ended', voice: PAIR_A },
     ]);
   });
 
@@ -203,9 +207,9 @@ describe('ActivityCueScheduler', () => {
   it('restarts the clips after silence and emits nothing on reset', () => {
     const sink = recordingSink();
     const scheduler = new ActivityCueScheduler(sink);
-    frame(scheduler, [[2, 'conversation', PAIR_A]]);
+    frame(scheduler, [[7, 'conversation', PAIR_A]]);
     frame(scheduler, [[2, 'other']]);
-    frame(scheduler, [[2, 'conversation', PAIR_A]]);
+    frame(scheduler, [[7, 'conversation', PAIR_A]]);
 
     // `reset` is what mute, backgrounding, Load and recovery all call, and
     // each of those stops the voices itself. An end event here would make the
@@ -214,9 +218,9 @@ describe('ActivityCueScheduler', () => {
     frame(scheduler, [[2, 'sleep']]);
 
     expect(sink.events).toEqual([
-      { type: 'sim.conversation-started', simId: 2, voice: PAIR_A },
-      { type: 'sim.conversation-ended' },
-      { type: 'sim.conversation-started', simId: 2, voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
+      { type: 'sim.conversation-ended', voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
       { type: 'sim.sleep-breath', simId: 2, breathIndex: 0 },
     ]);
   });

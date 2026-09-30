@@ -90,9 +90,7 @@ closed. See `[A-conversation-audio-fades]` for the visual findings.
 
 ## Remaining audio work
 
-The household scheduler still represents all conversations with one selected
-pair. A second conversation joining or leaving can restart that pair. New
-housemates make this reachable; it needs per-conversation ownership, not more
-volume tuning. Appliance recordings, broader sound content and device listening
-remain separate work. This repair does not claim acoustic acceptance of the
-whole game.
+The follow-up in `2026-09-30-conversation-audio-ownership.md` replaces the
+household-wide selection with independent conversation identities. Appliance
+recordings, broader sound content and device listening remain separate work.
+This repair does not claim acoustic acceptance of the whole game.

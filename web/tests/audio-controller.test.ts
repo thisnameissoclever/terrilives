@@ -433,7 +433,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     await controller.unlockFromGesture();
 
     // No library yet, so the conversation cannot play and is held.
-    activityFrame(controller, [[4, 'conversation', { first: 1, second: 0 }]]);
+    activityFrame(controller, [[4, 'conversation', { owner: 4, endLow: 80, endHigh: 0, first: 1, second: 0 }]]);
     expect(context.bufferSources).toHaveLength(0);
 
     controller.setMuted(true);
@@ -503,13 +503,105 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.decodedByteLengths).toHaveLength(2);
     expect(context.bufferSources).toHaveLength(0);
 
-    activityFrame(controller, [[4, 'conversation', { first: 1, second: 0 }]]);
+    activityFrame(controller, [[4, 'conversation', { owner: 4, endLow: 80, endHigh: 0, first: 1, second: 0 }]]);
 
     // Two recordings, one conversation: the pair plays back to back.
     expect(context.bufferSources).toHaveLength(2);
     expect(controller.activeConversationVoiceCount()).toBe(1);
 
     activityFrame(controller, [[4, 'other']]);
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+  });
+
+  it('starts and stops only the matching conversation recording pair', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try { await controller.loadVoiceLibrary(['a', 'b']); }
+    finally { globalThis.fetch = originalFetch; }
+    const a = { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 1 };
+    const b = { ...a, owner: 2 };
+    activityFrame(controller, [[0, 'conversation', a], [1, 'conversation', a]]);
+    const firstSources = context.bufferSources.slice();
+    activityFrame(controller, [[0, 'conversation', a], [1, 'conversation', a], [2, 'conversation', b], [3, 'conversation', b]]);
+    expect(controller.activeConversationVoiceCount()).toBe(2);
+    expect(firstSources.map((source) => source.stops.length)).toEqual([1, 1]);
+    activityFrame(controller, [[2, 'conversation', b], [3, 'conversation', b]]);
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    expect(context.bufferSources).toHaveLength(4);
+    expect(context.bufferSources.slice(2).map((source) => source.stops.length)).toEqual([1, 1]);
+    expect(firstSources.map((source) => source.stops.length)).toEqual([2, 2]);
+  });
+
+  it.each([false, true])('holds each pair independently while decoding, ended first=%s', async (endFirst) => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    const a = { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 1 };
+    const b = { ...a, owner: 2 };
+    activityFrame(controller, [[0, 'conversation', a], [2, 'conversation', b]]);
+    if (endFirst) activityFrame(controller, [[2, 'conversation', b]]);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try { await controller.loadVoiceLibrary(['a', 'b']); }
+    finally { globalThis.fetch = originalFetch; }
+    expect(controller.activeConversationVoiceCount()).toBe(endFirst ? 1 : 2);
+    expect(context.bufferSources).toHaveLength(endFirst ? 2 : 4);
+    activityFrame(controller, []);
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+  });
+
+  it.each(['mute', 'effects', 'load', 'background', 'recovery'] as const)(
+    'clears all held conversations at the %s boundary', async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      const a = { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 1 };
+      const b = { ...a, owner: 2 };
+      activityFrame(controller, [[0, 'conversation', a], [2, 'conversation', b]]);
+      if (boundary === 'mute') {
+        controller.setMuted(true);
+        controller.setMuted(false);
+      } else if (boundary === 'effects') {
+        controller.setEffectsLevel(0);
+        controller.setEffectsLevel(1);
+      } else if (boundary === 'background') {
+        await controller.setBackgrounded(true);
+        await controller.setBackgrounded(false);
+      } else if (boundary === 'recovery') {
+        context.state = 'suspended';
+        await controller.unlockFromGesture();
+      } else controller.reset(boundary);
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+      try { await controller.loadVoiceLibrary(['a', 'b']); }
+      finally { globalThis.fetch = originalFetch; }
+      expect(context.bufferSources).toHaveLength(0);
+      activityFrame(controller, [[0, 'conversation', a], [2, 'conversation', b]]);
+      expect(controller.activeConversationVoiceCount()).toBe(2);
+    },
+  );
+
+  it('drops pre-suspension voice nodes before observing recovered conversations', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try { await controller.loadVoiceLibrary(['a', 'b']); }
+    finally { globalThis.fetch = originalFetch; }
+    const a = { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 1 };
+    const b = { ...a, owner: 2 };
+    activityFrame(controller, [[0, 'conversation', a], [2, 'conversation', b]]);
+    expect(controller.activeConversationVoiceCount()).toBe(2);
+    context.state = 'suspended';
+    await controller.unlockFromGesture();
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+    activityFrame(controller, [[2, 'conversation', b]]);
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    activityFrame(controller, []);
     expect(controller.activeConversationVoiceCount()).toBe(0);
   });
 
