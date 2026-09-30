@@ -429,6 +429,63 @@ mod tests {
     }
 
     #[test]
+    fn shipped_grief_fades_over_ten_to_sixty_game_days() {
+        let mut sim = Sim::new();
+        let death_tick = 123;
+        sim.world_mut()
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .deaths
+            .push(terri_core::save::DeathRecord {
+                sim_id: 0,
+                name: "Alex".into(),
+                tick: death_tick,
+                cause: terri_core::save::DeathCause::Deprivation,
+                issued_sim_ids: 2,
+            });
+        let survivor = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(1),
+                SimName("Jo".into()),
+                Position { x: 0.0, y: 0.0 },
+                Needs::all_at(100.0),
+            ))
+            .id();
+        let day = u64::from(terri_data::pack().tuning.day_ticks);
+        let grief = |sim: &Sim| {
+            sim.mood_of(survivor.index_u32())
+                .unwrap()
+                .moodlets
+                .into_iter()
+                .find(|m| m.label == "Grieving Alex")
+                .map(|m| m.score)
+        };
+        for (affinity, days, initial) in [(0.0, 10, -5.0), (0.5, 35, -17.5), (1.0, 60, -30.0)] {
+            let mut feelings = terri_core::Relationships::default();
+            feelings.bump(SimId(0), affinity);
+            sim.world_mut().entity_mut(survivor).insert(feelings);
+            sim.world_mut().resource_mut::<terri_core::SimClock>().tick = death_tick;
+            assert_eq!(grief(&sim), Some(initial));
+            sim.world_mut().resource_mut::<terri_core::SimClock>().tick =
+                death_tick + days * day / 2;
+            assert_eq!(
+                grief(&sim),
+                Some(initial / 2.0),
+                "affinity {affinity}: halfway"
+            );
+            sim.world_mut().resource_mut::<terri_core::SimClock>().tick =
+                death_tick + days * day - 1;
+            assert!(
+                grief(&sim).unwrap() < 0.0,
+                "affinity {affinity}: final tick"
+            );
+            sim.world_mut().resource_mut::<terri_core::SimClock>().tick = death_tick + days * day;
+            assert_eq!(grief(&sim), None, "affinity {affinity}: expired");
+        }
+    }
+
+    #[test]
     fn grief_uses_the_survivors_relationship_and_fades_to_zero() {
         let (mut sim, dead) = fixture();
         let mut love = terri_core::Relationships::default();
