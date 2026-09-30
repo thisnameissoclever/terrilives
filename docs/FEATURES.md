@@ -923,6 +923,8 @@ The owner's follow-up shipped in [PR 140](https://github.com/thisnameissoclever/
 
 A death retires the entity index and records the permanent SimId, name, cause, tick and identity boundary. Family ties and survivors' affinity stay. Grief is derived from affinity at death: neutral acquaintances grieve for 10 game days, the closest relationships for 60, and hated people cause neither grief nor joy. Stronger affinity also produces stronger initial grief. Later newcomers do not grieve earlier deaths. No body, ghost or new art is included.
 
+The longer grief durations shipped in [PR 141](https://github.com/thisnameissoclever/terrilives/pull/141), merge `cff8c864ffe13bc08fdb4ea8e91489ab5f6a6f45`. Initial strength is unchanged; the same linear fade now lasts 10 to 60 game days according to affinity. Existing death records use their original timestamps with the longer duration.
+
 The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies, ghosts, memorials and inheritance remain future slices. Shipped in [PR 139](https://github.com/thisnameissoclever/terrilives/pull/139), merge commit `9f843457a45887cde3f6af041ac4373f91a43716`. Played evidence and limits are recorded in `docs/alpha-feel-notes.md` under [A-death].
 
 ### [B-edit-sims] Change a person after they move in
