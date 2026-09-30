@@ -214,6 +214,13 @@ pub enum SimCommand {
     },
     /// Opt into preventable deprivation deaths. Appended wire code.
     SetDeathEnabled(bool),
+    /// A move-in with a chosen integer instinct. Earlier wire variants stay fixed.
+    AddHousemateWithInstinct {
+        name: String,
+        personality: u32,
+        traits: Vec<u32>,
+        instinct: u8,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -578,5 +585,47 @@ mod tests {
             vec![SimCommand::Select(Some(1)), SimCommand::SetSpeed(3)]
         );
         assert!(q.is_empty(), "drain must leave the queue empty");
+    }
+}
+
+#[cfg(test)]
+mod instinct_wire_tests {
+    use super::*;
+    #[test]
+    fn self_preservation_extended_move_in_appends_wire_code_18() {
+        let old = SimCommand::AddHousemate {
+            name: "Ann".into(),
+            personality: 1,
+            traits: vec![2],
+        };
+        let new = SimCommand::AddHousemateWithInstinct {
+            name: "Ann".into(),
+            personality: 1,
+            traits: vec![2],
+            instinct: 100,
+        };
+        let old_bytes = postcard::to_allocvec(&old).unwrap();
+        let new_bytes = postcard::to_allocvec(&new).unwrap();
+        assert_eq!(old_bytes[0], 14);
+        assert_eq!(new_bytes[0], 18);
+        assert_eq!(&new_bytes[1..new_bytes.len() - 1], &old_bytes[1..]);
+        assert_eq!(new_bytes.last(), Some(&100));
+        let saved_old = crate::SavedCommand::AddHousemate {
+            name: "Ann".into(),
+            personality: Some("settled".into()),
+            traits: vec![Some("active".into())],
+        };
+        let saved_new = crate::SavedCommand::AddHousemateWithInstinct {
+            name: "Ann".into(),
+            personality: Some("settled".into()),
+            traits: vec![Some("active".into())],
+            instinct: 100,
+        };
+        let old_bytes = postcard::to_allocvec(&saved_old).unwrap();
+        let new_bytes = postcard::to_allocvec(&saved_new).unwrap();
+        assert_eq!(old_bytes[0], 14);
+        assert_eq!(new_bytes[0], 18);
+        assert_eq!(&new_bytes[1..new_bytes.len() - 1], &old_bytes[1..]);
+        assert_eq!(new_bytes.last(), Some(&100));
     }
 }

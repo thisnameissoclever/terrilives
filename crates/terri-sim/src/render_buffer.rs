@@ -239,6 +239,22 @@ pub mod facing {
 
 #[cfg(test)]
 mod tests {
+    fn neutral_instincts(sim: &mut Sim) {
+        let people: Vec<_> = sim
+            .world_mut()
+            .query_filtered::<Entity, (
+                bevy_ecs::query::With<Agent>,
+                bevy_ecs::query::Without<terri_core::SelfPreservation>,
+            )>()
+            .iter(sim.world())
+            .collect();
+        for person in people {
+            sim.world_mut()
+                .entity_mut(person)
+                .insert(terri_core::SelfPreservation(50));
+        }
+    }
+
     use super::NO_FOREGROUND_SPRITE;
     use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
@@ -1136,7 +1152,8 @@ mod tests {
             ))
             .id();
         sim.sync_render_buffer();
-        let snapshot = sim.save_snapshot();
+        neutral_instincts(&mut sim);
+        let snapshot = sim.save_snapshot_v5();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer_after_commands();
@@ -1149,13 +1166,13 @@ mod tests {
             ((position.x, position.y), (position.x, position.y)),
             "a paused metadata refresh has no position delta from which Web could infer facing"
         );
-        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.save_snapshot_v5(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot(snapshot.clone())
-            .expect("walking Save V1 state is valid");
+            .load_snapshot_v5(snapshot.clone())
+            .expect("walking current save state is valid");
         assert_eq!(
             projection_of(restored.render_buffer(), agent),
             (visual_action::WALK, facing::POSITIVE_X, activity::WALKING)
@@ -1165,7 +1182,7 @@ mod tests {
             ((position.x, position.y), (position.x, position.y)),
             "Load reseeds both samples, so the path-derived facing is the only directional signal"
         );
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(restored.save_snapshot_v5(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 
@@ -1617,8 +1634,9 @@ mod tests {
                 spawn_shipped_fish_watcher(&mut sim, aquarium_position, position);
             watchers.push((watcher, position, expected_facing));
         }
+        neutral_instincts(&mut sim);
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot();
+        let before_save = sim.save_snapshot_v5();
 
         sim.sync_render_buffer();
 
@@ -1679,14 +1697,14 @@ mod tests {
                 "watching fish must face the aquarium without entering it"
             );
         }
-        assert_eq!(sim.save_snapshot(), before_save);
+        assert_eq!(sim.save_snapshot_v5(), before_save);
         assert_eq!(sim.world_hash(), before_hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot(before_save.clone())
+            .load_snapshot_v5(before_save.clone())
             .expect("the active aquarium and bike state must load");
-        assert_eq!(restored.save_snapshot(), before_save);
+        assert_eq!(restored.save_snapshot_v5(), before_save);
         assert_eq!(restored.world_hash(), before_hash);
         assert_eq!(
             projection_of(restored.render_buffer(), exerciser),
@@ -2540,7 +2558,8 @@ mod tests {
                 },
             ))
             .id();
-        let snapshot = sim.save_snapshot();
+        neutral_instincts(&mut sim);
+        let snapshot = sim.save_snapshot_v5();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer();
@@ -2557,13 +2576,13 @@ mod tests {
             displayed_position_of(sim.render_buffer(), agent).0,
             (18.0, 12.0)
         );
-        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.save_snapshot_v5(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot(snapshot.clone())
-            .expect("the active bookshelf interaction is valid Save V1 state");
+            .load_snapshot_v5(snapshot.clone())
+            .expect("the active bookshelf interaction is valid current save state");
         restored.sync_render_buffer();
         assert_eq!(
             projection_of(restored.render_buffer(), agent),
@@ -2578,7 +2597,7 @@ mod tests {
             ((18.0, 12.0), (18.0, 12.0)),
             "Load reconstructs standing reading from saved simulation state at the ordinary tile"
         );
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(restored.save_snapshot_v5(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 

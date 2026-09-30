@@ -68,6 +68,21 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::household::commit(world, &name, personality, &traits);
             }
+            SimCommand::AddHousemateWithInstinct {
+                name,
+                personality,
+                traits,
+                instinct,
+            } => {
+                flush_ordinary(world);
+                crate::household::commit_with_instinct(
+                    world,
+                    &name,
+                    personality,
+                    &traits,
+                    Some(instinct),
+                );
+            }
             SimCommand::BuyObjectInColourway {
                 definition,
                 x,

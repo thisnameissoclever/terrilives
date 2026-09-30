@@ -384,3 +384,158 @@ fn a_staged_move_in_is_held_to_the_saved_size_limits() {
     );
     assert_eq!(staged("a".repeat(1_024), 100_000), Ok(()));
 }
+
+#[test]
+fn self_preservation_seed_precedes_household_draws_and_legacy_move_in() {
+    let mut sim = Sim::new_from_shipped_lot_with_seed(0x1234_5678_9abc_def0);
+    let mut reference = terri_core::SimRng::from_seed(0x1234_5678_9abc_def0);
+    let values = sim.save_snapshot_v5().self_preservation;
+    assert_eq!(values.len(), 3);
+    for (_, value) in values {
+        assert_eq!(usize::from(value), reference.range(101));
+    }
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
+    let ann = move_in(&mut sim, "Ann", 0, &[]).sim.unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<terri_core::SelfPreservation>(entity(&sim, ann))
+            .unwrap()
+            .0 as usize,
+        reference.range(101)
+    );
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &reference);
+}
+
+#[test]
+fn self_preservation_creation_covers_every_integer_including_endpoints() {
+    let mut counts = [0usize; 101];
+    for seed in 0..1000 {
+        let sim = Sim::new_from_shipped_lot_with_seed(seed);
+        for (_, value) in sim.save_snapshot_v5().self_preservation {
+            counts[usize::from(value)] += 1;
+        }
+    }
+    assert_eq!(counts.iter().sum::<usize>(), 3000);
+    assert!(
+        counts.iter().all(|count| *count >= 8 && *count <= 55),
+        "{counts:?}"
+    );
+}
+
+fn move_in_with_instinct(sim: &mut Sim, instinct: u8) -> HousemateResult {
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::AddHousemateWithInstinct {
+            name: "Ann".into(),
+            personality: 0,
+            traits: vec![],
+            instinct,
+        });
+    sim.flush_commands();
+    sim.world()
+        .resource::<LotEditState>()
+        .last_housemate_result
+        .unwrap()
+}
+
+#[test]
+fn self_preservation_override_preserves_zero_and_refuses_invalid_before_draws() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let rng = sim.world().resource::<terri_core::SimRng>().clone();
+    let ids = sim
+        .world()
+        .resource::<terri_core::SimIdAllocator>()
+        .issued();
+    assert_eq!(
+        move_in_with_instinct(&mut sim, 101).reason,
+        Some(HousemateRefusal::BadInstinct)
+    );
+    assert_eq!(household_size(sim.world()), 3);
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
+    assert_eq!(
+        sim.world()
+            .resource::<terri_core::SimIdAllocator>()
+            .issued(),
+        ids
+    );
+    let ann = move_in_with_instinct(&mut sim, 0).sim.unwrap();
+    assert_eq!(
+        sim.world()
+            .get::<terri_core::SelfPreservation>(entity(&sim, ann)),
+        Some(&terri_core::SelfPreservation(0))
+    );
+    assert_eq!(sim.world().resource::<terri_core::SimRng>(), &rng);
+}
+
+#[test]
+fn self_preservation_component_and_staged_command_cause_hash_changes() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let index = sim.save_snapshot_v5().self_preservation[0].0;
+    let person = entity(&sim, index);
+    let original = *sim
+        .world()
+        .get::<terri_core::SelfPreservation>(person)
+        .unwrap();
+    let baseline = sim.world_hash();
+    sim.world_mut()
+        .entity_mut(person)
+        .insert(terri_core::SelfPreservation((original.0 + 1) % 101));
+    assert_ne!(baseline, sim.world_hash());
+    sim.world_mut().entity_mut(person).insert(original);
+    assert_eq!(baseline, sim.world_hash());
+    for instinct in [0, 100] {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::AddHousemateWithInstinct {
+                name: "Ann".into(),
+                personality: 0,
+                traits: vec![],
+                instinct,
+            });
+        let hash = sim.world_hash();
+        assert_ne!(baseline, hash);
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .drain()
+            .for_each(drop);
+        if instinct == 0 {
+            sim.world_mut().resource_mut::<CommandQueue>().push(
+                SimCommand::AddHousemateWithInstinct {
+                    name: "Ann".into(),
+                    personality: 0,
+                    traits: vec![],
+                    instinct: 100,
+                },
+            );
+            assert_ne!(hash, sim.world_hash());
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .drain()
+                .for_each(drop);
+        }
+    }
+}
+
+#[test]
+fn self_preservation_current_save_replays_staged_override_and_future_rng() {
+    let mut live = Sim::new_from_shipped_lot_with_seed(8128);
+    live.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::AddHousemateWithInstinct {
+            name: "Ann".into(),
+            personality: 0,
+            traits: vec![0],
+            instinct: 100,
+        });
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(live.save_snapshot_v5()).unwrap();
+    assert_eq!(live.world_hash(), loaded.world_hash());
+    live.flush_commands();
+    loaded.flush_commands();
+    assert_eq!(live.world_hash(), loaded.world_hash());
+    for _ in 0..50 {
+        live.tick();
+        loaded.tick();
+    }
+    assert_eq!(live.world_hash(), loaded.world_hash());
+}

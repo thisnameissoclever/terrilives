@@ -1,3 +1,4 @@
+import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
 // crosses into JavaScript through the zero-copy bridge, and the renderer
@@ -283,7 +284,8 @@ async function main(): Promise<void> {
   // `handle` is kept alongside the bridge because the lot's dimensions
   // are simulation state rather than a memory view, and the bridge's job
   // is the zero-copy views.
-  const handle = SimHandle.from_lot();
+  const [seedLow, seedHigh] = newGameSeed();
+  const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
   // The names of the conversation recordings come from the compiled content
   // pack, so this is the first moment they exist. The controller decides WHEN

@@ -1,5 +1,6 @@
 pub mod action;
 pub mod advertise;
+pub mod autonomy;
 // Declared in the same commit that creates `career.rs`, per [L2]: rustc
 // does not compile a `.rs` file no `mod` declaration references, so a
 // file added without this line has its tests reported as `0 filtered

@@ -255,7 +255,7 @@ describe('the Options flyout wired into main.ts', () => {
   });
 
   it('closes Options when Build starts and restores focus to Build when it ends', () => {
-    expect(MAIN_TS).toContain('    enter() {\n      optionsMenu.close();');
+    expect(MAIN_TS).toMatch(/enter\(\) \{\r?\n\s*optionsMenu\.close\(\);/);
     expect(MAIN_TS).toMatch(/mobileHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*document\.querySelector<HTMLButtonElement>\('#build-toggle'\)\?\.focus\(\);/);
   });
 

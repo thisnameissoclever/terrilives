@@ -348,9 +348,21 @@ mod tests {
              a fridge"
         );
 
+        let mut began = false;
+        let mut completed = false;
         for _ in 0..SESSION {
             sim.tick();
+            let active = sim.world().get::<Socialising>(lonely).is_some();
+            if began && !active {
+                completed = true;
+                break;
+            }
+            began |= active;
         }
+        assert!(
+            completed,
+            "a conversation must complete within the bounded session"
+        );
 
         assert!(
             sim.world().get::<Socialising>(lonely).is_none(),
@@ -391,7 +403,7 @@ mod tests {
                 .unwrap_or_else(|| panic!("the {label} must have a Relationships component"))
                 .feeling(SimId(other));
             assert!(
-                feeling > gain * 0.9 && feeling <= 2.0 * gain,
+                feeling > gain * 0.9 && feeling <= gain,
                 "the {label}'s feeling must be one or two completed talks' \
                  worth; got {feeling} against a gain of {gain}"
             );
@@ -434,12 +446,15 @@ mod tests {
             ))
             .id();
 
+        talk(&mut sim, lonely, target);
         // Twelve ticks covers the three-tile walk but the talk has not
         // started; every one of them is a tick a restless, unguarded
         // partner would use to stroll.
         for _ in 0..12 {
             sim.tick();
         }
+        sim.world_mut().entity_mut(target).insert(Restless);
+        sim.tick();
         assert!(
             sim.world().get::<Restless>(target).is_some(),
             "precondition: the partner carries the stale Restless marker \
@@ -659,8 +674,8 @@ mod tests {
     /// amplifier - and each sends the sim over. The control pins that
     /// only the satisfaction stands between this sim and the chat.
     #[test]
-    fn a_sim_that_barely_enjoys_company_stays_put() {
-        let run = |satisfaction: f32| -> Option<Entity> {
+    fn social_satisfaction_weights_company_without_excluding_it() {
+        let run = |satisfaction: f32| -> f64 {
             let mut sim = test_content::sim_with(8, 8, chat_pack());
             let mut personality = terri_core::Personality::neutral();
             personality.satisfaction[NeedId::Social.index()] = satisfaction;
@@ -684,20 +699,22 @@ mod tests {
                 ))
                 .id();
             sim.tick();
-            sim.world().get::<Target>(chooser).map(|t| t.object)
+            sim.world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .find(|d| d.agent == chooser.index_u32())
+                .unwrap()
+                .choices
+                .iter()
+                .filter(|(_, row, _, _, _)| *row == 0)
+                .map(|(_, _, _, _, p)| *p)
+                .sum()
         };
 
-        assert!(
-            run(0.1).is_none(),
-            "at satisfaction 0.1 the chat scores 0.03 against a threshold \
-             of 0.05; choosing it means the multiplier ran as something \
-             other than a product"
-        );
-        assert!(
-            run(1.0).is_some(),
-            "the control: at neutral satisfaction the same sim must chat, \
-             or the assertion above says nothing about the multiplier"
-        );
+        let disliked = run(0.1);
+        let neutral = run(1.0);
+        assert!(disliked > 0.0 && disliked < neutral && neutral < 1.0);
     }
 
     /// The within-vocabulary winner rule, both boundaries - the social
@@ -758,11 +775,9 @@ mod tests {
         );
     }
 
-    /// The social threshold comparison is `score > action_threshold`,
-    /// and the only input that can tell `>` from `>=` is a score landing
-    /// exactly on the tuned value. The same bit-exact construction as
-    /// `a_score_exactly_at_the_action_threshold_selects_nothing` in
-    /// action.rs, with a PERSON where the object stood: hunger decays to
+    /// Social scores remain eligible around the historical action threshold.
+    /// This bit-exact fixture uses a person where the object stood in the
+    /// corresponding action regression: hunger decays to
     /// exactly 50.0, urgency 0.125; the person is three tiles away so
     /// the walk is two tiles (eight ticks), duration 7 plus 1 makes the
     /// denominator exactly 16; 0.125 * 6.4 / 16 is 0.05f32 with no
@@ -771,7 +786,7 @@ mod tests {
     /// social need, and hunger is the one need whose decay lands on an
     /// exact binary32 level.
     #[test]
-    fn a_social_score_exactly_at_the_threshold_selects_nothing() {
+    fn social_choices_survive_below_at_and_above_the_old_threshold() {
         let run = |delta: f32| -> bool {
             let pack = test_content::pack_with_social(
                 vec![],
@@ -821,16 +836,18 @@ mod tests {
                 "the fixture must land hunger on exactly 50.0 or the \
                  score is not exactly the threshold; got {hunger}"
             );
-            sim.world().get::<Target>(chooser).is_some()
+            sim.world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .find(|d| d.agent == chooser.index_u32())
+                .unwrap()
+                .choices
+                .iter()
+                .any(|(_, row, _, _, p)| *row == 0 && *p > 0.0)
         };
 
-        assert!(
-            !run(6.4),
-            "a chat scoring exactly action_threshold must not be chosen: \
-             the comparison is strictly greater"
-        );
-        assert!(run(6.5), "just above the threshold must be chosen");
-        assert!(!run(6.3), "just below must not");
+        assert!(run(6.3) && run(6.4) && run(6.5));
     }
 
     /// The [F1]-shaped regression: a player command issued to a sim
@@ -1033,12 +1050,12 @@ mod tests {
     /// with any need below threshold; social exactly full is the case
     /// the decision names.
     #[test]
-    fn a_sim_with_a_full_social_bar_does_not_choose_to_talk() {
+    fn full_social_retains_company_appeal_while_loneliness_increases_it() {
         // Runs its own control, per the intent_tests convention: the
         // same fixture with the bar LOW must produce a Target, or the
         // negative half cannot distinguish "the filled need brakes
         // chatting" from "sims never chat at all".
-        let run = |social: f32| -> Option<Entity> {
+        let run = |social: f32| -> f64 {
             let mut sim = test_content::sim_with(8, 8, chat_pack());
             let chooser = sim
                 .world_mut()
@@ -1059,19 +1076,22 @@ mod tests {
                 ))
                 .id();
             sim.tick();
-            sim.world().get::<Target>(chooser).map(|t| t.object)
+            sim.world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .find(|d| d.agent == chooser.index_u32())
+                .unwrap()
+                .choices
+                .iter()
+                .filter(|(_, row, _, _, _)| *row == 0)
+                .map(|(_, _, _, _, p)| *p)
+                .sum()
         };
 
-        assert!(
-            run(NEED_MAX).is_none(),
-            "a full social bar must score every chat at zero, and zero \
-             does not clear action_threshold"
-        );
-        assert!(
-            run(20.0).is_some(),
-            "the control: the identical sim with a low bar must chat, or \
-             the assertion above is green because sims never chat at all"
-        );
+        let full = run(NEED_MAX);
+        let low = run(20.0);
+        assert!(full > 0.0 && low > full && low < 1.0);
     }
 
     /// The initiator is claimed the moment it chooses, so a later-indexed
@@ -1435,7 +1455,7 @@ mod tests {
         // Self: an intent for oneself would wait forever on "partner
         // busy: me", so the drain drops it.
         talk(&mut sim, a, a);
-        sim.tick();
+        sim.flush_commands();
         assert!(
             sim.world().get::<Target>(a).is_none() && queue_is_empty(&sim, a),
             "self-talk must be dropped at the drain"
@@ -1450,7 +1470,7 @@ mod tests {
                 interaction: 0,
             },
         );
-        sim.tick();
+        sim.flush_commands();
         assert!(
             sim.world().get::<Target>(a).is_none() && queue_is_empty(&sim, a),
             "a stale target index must be dropped at the drain"
@@ -1459,7 +1479,7 @@ mod tests {
         // An object: TalkTo resolves its target against AGENTS, the
         // mirror of UseObject refusing an agent index.
         talk(&mut sim, a, fridge);
-        sim.tick();
+        sim.flush_commands();
         assert!(
             sim.world().get::<Target>(a).is_none() && queue_is_empty(&sim, a),
             "a talk aimed at an object must be refused at the drain"
@@ -1476,7 +1496,11 @@ mod tests {
                 interaction: 99,
             },
         );
-        sim.tick();
+        sim.flush_commands();
+        use bevy_ecs::system::RunSystemOnce;
+        sim.world_mut()
+            .run_system_once(crate::systems::action::serve_intents)
+            .unwrap();
         assert!(
             sim.world().get::<Target>(a).is_none(),
             "an out-of-range social index must never become a target"
@@ -1522,9 +1546,17 @@ mod tests {
     /// `Eating` inserted by hand has no `Target` and so never ends.
     #[test]
     fn a_talk_command_waits_for_a_busy_partner_instead_of_dropping() {
-        let (mut sim, a, b, _fridge) =
+        let (mut sim, a, b, fridge) =
             command_household(Needs::all_at(NEED_MAX), Needs::with(NeedId::Hunger, 20.0));
 
+        push_command(
+            &mut sim,
+            terri_core::SimCommand::UseObject {
+                agent: b.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            },
+        );
         let mut eating = false;
         for _ in 0..40 {
             sim.tick();
@@ -1542,7 +1574,7 @@ mod tests {
         talk(&mut sim, a, b);
         sim.tick();
         assert!(
-            sim.world().get::<Target>(a).is_none(),
+            sim.world().get::<Target>(a).is_none_or(|t| t.object != b),
             "the order must not be served while the partner eats"
         );
         assert!(
@@ -1616,9 +1648,8 @@ mod tests {
         for _ in 0..30 {
             sim.tick();
             assert!(
-                sim.world().get::<Target>(a).is_none()
-                    && sim.world().get::<Socialising>(a).is_none(),
-                "a completed order must not restart; a re-served intent is a conversation loop"
+                queue_is_empty(&sim, a),
+                "a completed player order must stay consumed while autonomy resumes"
             );
         }
     }
@@ -1837,7 +1868,7 @@ mod tests {
                 agent: a.index_u32(),
             },
         );
-        sim.tick();
+        sim.flush_commands();
 
         assert!(
             sim.world().get::<Socialising>(a).is_none(),
@@ -1944,7 +1975,7 @@ mod tests {
         talk(&mut sim, c, b);
         sim.tick();
         assert!(
-            sim.world().get::<Target>(c).is_none(),
+            sim.world().get::<Target>(c).is_none_or(|t| t.object != b),
             "the latecomer must not grab a partner mid-sentence"
         );
         assert!(

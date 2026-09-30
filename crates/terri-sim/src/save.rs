@@ -33,6 +33,7 @@ pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+pub(super) mod self_preservation;
 #[cfg(test)]
 mod v3_tests;
 mod wall_migration;
@@ -266,6 +267,23 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             traits,
         } => SavedCommand::AddHousemate {
             name: name.clone(),
+            personality: pack
+                .personalities
+                .get(*personality as usize)
+                .map(|personality| personality.id.clone()),
+            traits: traits
+                .iter()
+                .map(|&index| pack.traits.get(index as usize).map(|worn| worn.id.clone()))
+                .collect(),
+        },
+        SimCommand::AddHousemateWithInstinct {
+            name,
+            personality,
+            traits,
+            instinct,
+        } => SavedCommand::AddHousemateWithInstinct {
+            name: name.clone(),
+            instinct: *instinct,
             personality: pack
                 .personalities
                 .get(*personality as usize)
@@ -886,6 +904,25 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
                 })
                 .collect(),
         },
+        SavedCommand::AddHousemateWithInstinct {
+            name,
+            personality,
+            traits,
+            instinct,
+        } => SimCommand::AddHousemateWithInstinct {
+            name,
+            instinct,
+            personality: personality
+                .and_then(|id| pack.personalities.iter().position(|known| known.id == id))
+                .map_or(u32::MAX, |index| index as u32),
+            traits: traits
+                .into_iter()
+                .map(|id| {
+                    id.and_then(|id| pack.traits.iter().position(|known| known.id == id))
+                        .map_or(u32::MAX, |index| index as u32)
+                })
+                .collect(),
+        },
         // An id this pack lacks restores as an index past every colourway,
         // which the drain refuses, as a staged purchase of an unknown object.
         SavedCommand::SetColourway { object, colourway } => SimCommand::SetColourway {
@@ -1139,7 +1176,11 @@ fn validate_command(
         | SavedCommand::SetDeathEnabled(_) => Ok(()),
         // [CS-save]: held to the limits every saved name and list is held
         // to; the drain checks the rest.
-        SavedCommand::AddHousemate { name, traits, .. } => {
+        SavedCommand::AddHousemateWithInstinct { instinct, .. } if *instinct > 100 => {
+            Err(SaveError::InvalidValue)
+        }
+        SavedCommand::AddHousemateWithInstinct { name, traits, .. }
+        | SavedCommand::AddHousemate { name, traits, .. } => {
             if exceeds_limit(name.len(), MAX_TEXT_BYTES)
                 || exceeds_limit(traits.len(), MAX_LIST_ENTRIES)
             {
@@ -1636,6 +1677,7 @@ fn exceeds_limit(value: usize, inclusive_maximum: usize) -> bool {
 mod tests {
     use super::*;
     use bevy_ecs::prelude::With;
+    use terri_core::NeedId;
 
     fn blank_entity(index: u32) -> SavedEntity {
         SavedEntity {
@@ -1813,6 +1855,15 @@ mod tests {
         assert_validation(&snapshot, Err(expected), label);
     }
 
+    pub(super) fn after_legacy_instinct_migration(mut snapshot: SaveSnapshotV1) -> SaveSnapshotV1 {
+        for entity in &snapshot.entities {
+            if entity.agent {
+                snapshot.rng.range(41);
+            }
+        }
+        snapshot
+    }
+
     #[test]
     fn a_rich_snapshot_restores_every_saved_field_exactly() {
         let snapshot = rich_snapshot();
@@ -1820,7 +1871,10 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("valid rich snapshot restores");
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(
+            restored.save_snapshot(),
+            after_legacy_instinct_migration(snapshot)
+        );
     }
 
     /// **Sparse means sparse**, and the capture side had no test at all.
@@ -1893,12 +1947,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot_v2();
+        let state = uninterrupted.save_snapshot_v5();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot_v2(state.clone())
+            .load_snapshot_v5(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot_v2(), state);
+        assert_eq!(resumed.save_snapshot_v5(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -1950,6 +2004,35 @@ mod tests {
         // run at 2 000 ticks, which matters: `ci.yml` bounds each mutant's
         // whole workspace test run at 60 s, and this test is one of the
         // slowest in it.
+        // Request a real dinner through its flyout row. This save fixture
+        // covers the resulting chain states without depending on which
+        // recovery option the autonomy policy currently prefers.
+        let (diner, fridge, dinner_row) = {
+            let world = sim.world_mut();
+            let pack = world.resource::<Content>().0;
+            let chain = pack.chains.first().expect("a shipped chain");
+            let fridge_def = chain.advertised_by;
+            let dinner_row = pack.object(fridge_def).interactions.len() as u32;
+            let diner = world
+                .query_filtered::<Entity, bevy_ecs::query::With<Agent>>()
+                .iter(world)
+                .min_by_key(|entity| entity.index_u32())
+                .unwrap();
+            let fridge = world
+                .query::<(Entity, &SmartObject)>()
+                .iter(world)
+                .find(|(_, object)| object.0 == fridge_def)
+                .unwrap()
+                .0;
+            (diner, fridge, dinner_row)
+        };
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObject {
+                agent: diner.index_u32(),
+                object: fridge.index_u32(),
+                interaction: dinner_row,
+            });
         let mut saw_walk_to_talk = false;
         let mut saw_chain_row_habituation = false;
 
@@ -2003,6 +2086,14 @@ mod tests {
                         needs.set(terri_core::NeedId::Energy, 100.0);
                     }
                 }
+            }
+            if tick == 1 {
+                // Give the requested dinner enough time to finish before
+                // urgent deprivation interrupts it; the other Sims retain
+                // the staggered pressure that exercises walk-to-talk.
+                let mut needs = sim.world_mut().get_mut::<Needs>(diner).unwrap();
+                *needs = Needs::all_at(100.0);
+                needs.set(NeedId::Hunger, 40.0);
             }
             sim.tick();
             let snapshot = sim.save_snapshot();
@@ -2397,7 +2488,10 @@ mod tests {
         restored
             .load_snapshot(snapshot.clone())
             .expect("a sparse live-entity index space restores");
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(
+            restored.save_snapshot(),
+            after_legacy_instinct_migration(snapshot)
+        );
     }
 
     #[test]
@@ -2622,10 +2716,13 @@ mod tests {
         historical
             .load_snapshot(source.save_snapshot())
             .expect("old fridge art saves load");
-        assert_eq!(historical.save_snapshot(), before);
+        assert_eq!(
+            historical.save_snapshot(),
+            after_legacy_instinct_migration(before.clone())
+        );
         let mut restored = Sim::new_from_shipped_lot();
         restored
-            .load_snapshot_v3(source.save_snapshot_v3())
+            .load_snapshot_v5(source.save_snapshot_v5())
             .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
@@ -2867,15 +2964,32 @@ mod tests {
         // chair to prove the render endpoint comes from the socket, and only
         // the V1 loader accepts that. A V1 record carries no wall edges, so
         // the restored house has none and the world hash, which sees walls
-        // since [WT-hash], differs by exactly that. Everything V1 does carry
-        // is compared instead.
+        // since [WT-hash], differs by that layout. Legacy instinct migration
+        // also advances RNG, so the reference explicitly adopts those draws
+        // before comparing continuation. Everything V1 carries is compared.
         let snapshot = source.save_snapshot();
+        let mut migrated_rng = snapshot.rng.clone();
+        for person in snapshot.entities.iter().filter(|entity| entity.agent) {
+            let instinct = 30 + migrated_rng.range(41) as u8;
+            let entity = source
+                .world()
+                .entities()
+                .resolve_from_index(EntityIndex::from_raw_u32(person.index).unwrap());
+            source
+                .world_mut()
+                .entity_mut(entity)
+                .insert(terri_core::SelfPreservation(instinct));
+        }
+        source.world_mut().insert_resource(migrated_rng);
 
         let mut restored = Sim::new_from_shipped_lot();
         restored
             .load_snapshot(snapshot.clone())
             .expect("active reading save restores");
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(
+            restored.save_snapshot(),
+            after_legacy_instinct_migration(snapshot)
+        );
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );
@@ -4044,7 +4158,7 @@ mod tests {
             );
             assert_eq!(
                 restored.save_snapshot(),
-                snapshot,
+                after_legacy_instinct_migration(snapshot),
                 "current {object} action must retain its row and remaining duration"
             );
         }

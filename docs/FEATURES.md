@@ -28,6 +28,19 @@ not depend on new appearance art, gender, or the advanced-controls system.
 Completed slices are complete even when their larger system remains partial.
 The system inventory and remaining dependencies are in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
 
+### Varied autonomy delivery (2026-09-30)
+
+New games take fresh browser randomness. Autonomous targets and their interactions
+use weighted sampling, with more variety and baseline Fun/Social appeal as needs
+improve. Stroll destinations and pauses also vary. Every Sim has a saved
+Self-preservation instinct from 0 through 100; New housemate defaults to Random
+and offers a manual override. Older saves receive stable values from 30 through 70
+once, while current saves preserve their values and subsequent random choices.
+The low-instinct range can neglect critical needs. This completes that behavior
+slice without changing the next Edit Sims priority. Mechanics and verification:
+[varied autonomy spec](specs/2026-09-30-varied-autonomy.md) and
+[validation record](autonomy-validation.md).
+
 ### Shipped alpha history
 
 Status: M0 through M1c shipped; the alpha visual pass (A1-A5) shipped;
