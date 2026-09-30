@@ -137,7 +137,7 @@ mood change it. It has no need bar to refill.
 | **hobby** | An activity tag a sim loves (`content/household.toml`). Completing a loved activity pays **3x** its base satisfaction. Tim loves correspondence and reading; Bill television and cooking; Casey socialising. |
 | **tag** | A label on an activity (`cooking`, `reading`, `socialising`) - the vocabulary hobbies and traits both key on, so one word covers every activity that counts as that thing. |
 | **deprivation** | Hunger or energy held at zero on consecutive simulation ticks. The counter resets when both recover. Death is enabled for new worlds and enabled once when older saves migrate; neglect remains a separate satisfaction penalty. |
-| **grief** | A derived negative moodlet after a household death. Its strength and duration use the survivor's preserved affinity at death. It fades to zero; hatred produces neither grief nor a happiness bonus. Later newcomers do not grieve earlier deaths. |
+| **grief** | A derived negative moodlet after a household death. Its strength and duration use the survivor's preserved affinity at death. It fades linearly to zero over 10 game days for a neutral acquaintance through 60 for the closest relationship; hatred produces neither grief nor a happiness bonus. Later newcomers do not grieve earlier deaths. |
 | **death record** | Saved permanent SimId, name, cause, simulation tick and the identity boundary at death. It preserves a person after their entity is removed; family ties and survivors' affinities stay. |
 | **neglect** | Any need below 15 bleeds 0.002 life satisfaction per tick, per crisis. Keeping a sim alive is table stakes; failing to is a life quietly not worth living. |
 

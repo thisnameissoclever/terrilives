@@ -33,14 +33,14 @@ satisfaction_mood_per_tick = 0.025
 death_after_ticks = 3600
 # The final minute gives a visible chance to intervene.
 death_warning_ticks = 600
-# Twenty normal-speed minutes lets grief outlast the immediate crisis.
-grief_ticks = 12000
+# Sixty game days lets the closest loss fade gradually across household life.
+grief_ticks = 86400
 # A neutral acquaintance leaves a small loss.
 grief_min_score = 5.0
 # A close relationship contributes a substantial but not all-consuming loss.
 grief_max_score = 30.0
-# A neutral acquaintance fades after one normal-speed minute.
-grief_min_ticks = 600
+# Ten game days keeps a neutral acquaintance's small loss from vanishing overnight.
+grief_min_ticks = 14400
 # Strong dislike is no grief, never a positive mood bonus.
 grief_hated_affinity = -0.5
 
