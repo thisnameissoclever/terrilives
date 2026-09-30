@@ -91,11 +91,11 @@ These work in normal play today. They appear here because every new system must 
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
 | Habituation | Substantial | Repeating the same action on the same object pays less each time and recovers with time. This is what makes people rotate between objects. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
-| Player orders | Substantial | A ten-order queue per person, orders that go to the front or the back, and clear feedback when an order is rejected. |
+| Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
 | Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting and accumulated life satisfaction persist. |
 | Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges; lot edits validate reachability from the front door. |
-| HUD | Substantial | Roster, needs, mood, relationships, career, activity, orders, time, audio, save controls, help, a build dock, and a phone layout. |
+| HUD | Substantial | Roster, needs, mood, relationships, career, action cards, audio, saves, help and compact controls. Speed sits below Time and Funds; Build and Exit build sit at the sidebar's bottom. |
 | Tuning file | Complete | Every system-wide tunable number lives in `content/tuning.toml`. Numbers that belong to one piece of content, such as a job's pay or an object's benefit, live in that content file. The build rejects invalid values in both. New systems follow the same split. |
 | Content compiler | Substantial | The build refuses content with a broken reference, an unreachable interaction point, or inconsistent tuning. |
 
@@ -261,6 +261,12 @@ The shipped yard and room tools already let the player build more house and buy 
 
 **Completed slices.** Buy mode (PR 96), walls (95), whole rooms (97), vertical hinged doors (98), front-door reachability (99), catalogue need filtering (100), sales (101), compact build controls (102), rotated lighting (103), placed and purchased colourways (104, 105), the larger yard lot (106), street (107), visible build walls (112), floating placement controls (113), daylight (116), windows (126) and floor painting (128). These are merged features, not branch-only work. FEATURES.md records the individual merge and play evidence.
 
+The 2026-09-30 corrections show furniture only at its preview position. Successful
+Confirm and Cancel both clear selection. Sales allow removal of the last appliance;
+impossible unfinished recipes abandon without payout. Active commitments still
+prevent sales. Bookcase backs meet a tile edge in each supported rotation. Scope
+and local evidence are in `docs/specs/2026-09-30-gameplay-ui.md`.
+
 **What remains.**
 
 1. Wall coverings, more floor art and room-wide floor painting.
@@ -354,6 +360,12 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 **Status: Not started.** Any Sim sleeps in any free bed. The starting house has a bunk and a double bed.
 
+Bed assignment remains unbuilt. A separate household capacity rule now gives
+every living member a -20 Not enough beds moodlet when sleep places are fewer
+than people. The double bed counts as two places and the supported lower bunk
+as one. This affects the shared sustained-mood satisfaction mechanism, without
+assigning ownership or adding a separate drain.
+
 **Owner direction.** The player can assign a Sim to a bed. The Sim then prefers that bed when tired, and other Sims leave it alone when they have a choice.
 
 **Design notes.** This is the first slice of [P-ownership], and it should be built as that system's general rule applied to beds. A double bed has two places, so the assignment is to a sleeping place within the bed. An assigned Sim whose bed is unreachable or taken still sleeps somewhere else; exhaustion always wins.
@@ -368,7 +380,7 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting and death records. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages and death records. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 ### [S-chains] Multi-step activities
 

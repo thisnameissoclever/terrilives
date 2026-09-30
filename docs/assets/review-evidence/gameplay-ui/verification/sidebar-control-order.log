@@ -1,0 +1,39 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/gameplay-ui/terrilives/web
+
+ ❯ tests/mobile-hud.test.ts (29 tests | 1 failed) 171ms
+     × puts speed below the summary and Build after the person panels 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/mobile-hud.test.ts > MobileHud > puts speed below the summary and Build after the person panels
+AssertionError: expected [ 43439, 44819, 44894, 45186, …(2) ] to deeply equal [ 43439, 44623, 44819, 44894, …(2) ]
+
+- Expected
++ Received
+
+  [
+    43439,
+-   44623,
+    44819,
+    44894,
+    45186,
+    47738,
++   44623,
+  ]
+
+ ❯ tests/mobile-hud.test.ts:84:23
+     82|     const positions = ids.map(id => INDEX_HTML.indexOf(`id="${id}"`));
+     83|     expect(positions.every(position => position >= 0)).toBe(true);
+     84|     expect(positions).toEqual([...positions].sort((a, b) => a - b));
+       |                       ^
+     85|   });
+     86|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 28 passed (29)
+   Start at  10:14:25
+   Duration  313ms (transform 26ms, setup 0ms, import 35ms, tests 171ms, environment 0ms)

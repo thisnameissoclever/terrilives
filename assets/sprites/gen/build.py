@@ -1141,6 +1141,14 @@ def main():
     # Endpoint endcaps append after every imported asset; all prior indices stay fixed.
     sprites.extend(render_sprites(objects.WALL_HALF_SPRITES))
     append_front_door_sprites(sprites)
+    # Corrections append new records so historical atlas indices and pixels stay fixed.
+    import bookcase
+    for facing in ("se", "sw", "nw", "ne"):
+        name = "wallBookcase" + ("" if facing == "se" else facing.upper())
+        image, drawing = canvas()
+        bookcase.draw(drawing, facing)
+        crop, width, height = emit(image)
+        sprites.append((name, crop, width, height))
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

@@ -424,7 +424,7 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 The compact HUD reuses the existing controls and adds one visibility
 controller. At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, only
 Time, Funds, Menu and the status line remain visible until the player
-expands the HUD; Light, Build, sound and the game actions are in the Options
+expands the HUD; Light, sound and the game actions are in the Options
 flyout on every screen size ([OF3]). Phone
 portrait and ultra-narrow screens use a contiguous top sheet; wider short
 screens use a scrollable edge sheet; desktop keeps the existing sidebar. The
@@ -1335,3 +1335,18 @@ Neither rule is about being timid. Subtle and structural is a sharper knife
 than explicit and topical, and it keeps the audience twice as large.
 
 Tone should be locked before serious content authoring begins in M1.
+
+## Gameplay UI corrections (2026-09-30)
+
+Simulation speed now sits below the clock and funds; Build sits at the bottom of
+the sidebar. Moving furniture displays one preview;
+Confirm commits and deselects, and Cancel restores and deselects. Selected-person
+action cards descend from the top right and fade between 33% and 55% of viewport
+height. Bed shortages apply a shared household mood penalty. Bookcases rotate
+against their tile edges, and scrolling sidebars retain their content width.
+See `docs/specs/2026-09-30-gameplay-ui.md` for scope and verification.
+
+The follow-up makes action cards about 20% smaller, allows unlimited waiting
+orders and lets the player sell the last appliance. Build's left control becomes
+Exit build during editing. Historical saves predating per-entity conversation
+voices load through their frozen wire shape and normal simulation validation.

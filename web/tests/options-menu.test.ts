@@ -169,7 +169,7 @@ describe('the Options flyout in the page', () => {
     expect(INDEX_HTML.indexOf('id="object-menu"')).toBeGreaterThan(options);
   });
 
-  it.each(['lighting-mode', 'build-toggle', 'audio-controls', 'audio-mute', 'effects-volume',
+  it.each(['lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
     'game-actions', 'save-game', 'load-game', 'stop-orders', 'queue-mode', 'new-game', 'show-help'])(
     'holds #%s in the panel',
     (id) => {
@@ -181,7 +181,7 @@ describe('the Options flyout in the page', () => {
   it.each(['save-status', 'command-feedback', 'keyboard-target'])(
     'keeps the live region #%s in the always-shown household status',
     (id) => {
-      expect(between('household-summary', 'builder-desktop')).toContain(`id="${id}"`);
+      expect(between('household-summary', 'time-controls')).toContain(`id="${id}"`);
     },
   );
 
@@ -254,9 +254,9 @@ describe('the Options flyout wired into main.ts', () => {
     expect(handler(opening)).toMatch(/^[^\n]*\n\s*optionsMenu\.close\(\);/);
   });
 
-  it('closes the panel when Build starts and when it ends, then focuses the gear', () => {
+  it('closes Options when Build starts and restores focus to Build when it ends', () => {
     expect(MAIN_TS).toContain('    enter() {\n      optionsMenu.close();');
-    expect(MAIN_TS).toMatch(/mobileHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*optionsToggle\.focus\(\);/);
+    expect(MAIN_TS).toMatch(/mobileHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*document\.querySelector<HTMLButtonElement>\('#build-toggle'\)\?\.focus\(\);/);
   });
 
   it('returns focus to the gear, which leads the fallbacks, after Load, New game and Help', () => {

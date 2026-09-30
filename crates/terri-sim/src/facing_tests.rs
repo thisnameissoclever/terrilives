@@ -2,8 +2,9 @@ use super::*;
 use terri_core::{Facing, ObjectFacing, Position};
 
 #[test]
-fn every_authored_object_keeps_the_pre_builder_release_render_geometry() {
-    // Captured from the preceding release WASM, before this implementation.
+fn authored_objects_keep_render_geometry_except_the_wall_aligned_bookcase_art() {
+    // Captured from the preceding release WASM, with the corrected bookcase
+    // deliberately using appended art. Positions and footprints remain unchanged.
     let expected: &[(u32, f32, f32, u32, u32, u32, u32)] = &[
         (0, 0.0, 0.0, 1, 1, 1091, 4294967295),
         (1, 1.0, 0.0, 1, 1, 1099, 4294967295),
@@ -15,7 +16,7 @@ fn every_authored_object_keeps_the_pre_builder_release_render_geometry() {
         (7, 2.5, 3.0, 2, 1, 16, 4294967295),
         (8, 1.0, 3.0, 1, 1, 258, 4294967295),
         (9, 4.0, 3.0, 1, 1, 256, 4294967295),
-        (10, 8.0, 0.0, 1, 1, 8, 4294967295),
+        (10, 8.0, 0.0, 1, 1, 1225, 4294967295),
         (11, 10.5, 0.0, 2, 1, 19, 4294967295),
         (12, 13.0, 0.0, 1, 1, 20, 360),
         (13, 15.0, 0.0, 1, 1, 23, 4294967295),

@@ -1,0 +1,17 @@
+{
+  "total_mutants": 66,
+  "missed": 0,
+  "caught": 57,
+  "timeout": 0,
+  "unviable": 9,
+  "success": 0,
+  "start_time": "2026-09-30T17:59:39.7123515Z",
+  "end_time": "2026-09-30T18:38:09.6655408Z",
+  "cargo_mutants_version": "27.1.0",
+  "gate": "PASS",
+  "new_survivors": [],
+  "native_source_base": "5ac34ca21f154be721ebddb9225748d40209bdaf",
+  "documentation_only_integration": "f19f00b893aa52e7b8e7133ebd574dae9bf9d71e",
+  "tested_diff_sha256": "faf2cbad6a5cc517056ec87575d9daa88dee7ff5b8c41daf8b5c51ab46e8f057",
+  "scope": "Changed Rust code, full workspace tests; not a full-repository sweep."
+}

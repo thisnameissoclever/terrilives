@@ -555,13 +555,9 @@ A new housemate ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`
 
 You asked on 2026-09-29 for sims who can be women ([B-gender] in `docs/FEATURES.md`). Every sim today is drawn from one body model, `assets/models/sims/sim-01`. What is needed: women's body models with faces and hairstyles, and more clothing, including more feminine clothing such as dresses and skirts. Every outfit has to fit every body, because no clothing is locked to a gender. Tell me whether to draft them with the generator for you to accept or reject, or whether you would rather supply them. The gender choice and outfit mechanism can be built with the existing art meanwhile.
 
-### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
+### [T-selling-the-last-stove] Selling the last appliance `[RESOLVED]`
 
-Selling furniture refuses to sell the last object that can fill a role a
-chain needs, such as the shipped house's only stove, the only hob Cook dinner
-can use: "Nothing else in the house can do its job." Without that, sims part
-way through cooking would wait for the stove forever and go hungry. The other
-choice is to let the sale go through and have sims give up the meal and the
-chain stop being offered until a new stove is bought. The refusal is what the
-game does now; tell me if you would rather have the other behaviour. Nothing is
-blocked meanwhile.
+The owner requested unrestricted removal of the last appliance on 2026-09-30.
+The local gameplay-ui change allows selling it. Sims abandon unfinished recipes
+whose remaining stations are absent, and autonomy skips incomplete recipes.
+Active use and queued orders still prevent a sale until that commitment ends.

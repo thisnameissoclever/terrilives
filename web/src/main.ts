@@ -59,6 +59,8 @@ import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { PlacementActions, createPlacementActionsSurface, type KeepOut } from './ui/placement-actions.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
+import { ActionQueue } from './ui/action-queue.js';
+import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
 import { HelpPanel } from './ui/help-panel.js';
@@ -527,6 +529,7 @@ async function main(): Promise<void> {
     '#household-roster-members',
   );
   const hudRoot = document.querySelector<HTMLElement>('#hud');
+  const actionQueueRoot = document.querySelector<HTMLElement>('#action-queue');
   const mobileHudButton = document.querySelector<HTMLButtonElement>(
     '#mobile-hud-toggle',
   );
@@ -541,6 +544,7 @@ async function main(): Promise<void> {
     !ordersValue ||
     !householdRosterRoot ||
     !hudRoot ||
+    !actionQueueRoot ||
     !mobileHudButton
   ) {
     throw new Error('missing player status markup');
@@ -583,6 +587,8 @@ async function main(): Promise<void> {
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
   });
+  observeHudScrollbar(hudRoot);
+  const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
   const gameHud = new GameHud(
     {
       clock: clockValue,
@@ -1235,10 +1241,8 @@ async function main(): Promise<void> {
       roomTool.exit();
       buyTool.exit();
       mobileHud.endEditing();
-      // Exit build is pressed inside the Options panel; closing it returns
-      // focus to the gear, the one control always in view ([OF2]).
       optionsMenu.close();
-      optionsToggle.focus();
+      document.querySelector<HTMLButtonElement>('#build-toggle')?.focus();
       cameraDirty = true;
     },
   });
@@ -1537,6 +1541,7 @@ async function main(): Promise<void> {
     // On five frames in six this is two comparisons and a return.
     needsPanel.update(nowMs, sim);
     gameHud.update(nowMs, sim);
+    actionQueue.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
     syncNewHousemateButton();

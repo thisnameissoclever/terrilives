@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 class EdgeWallPrefixTests(unittest.TestCase):
     def test_preserves_main_1221_record_prefix_before_front_door_append(self):
         rows = tomllib.loads((ROOT / 'assets/sprites/atlas.toml').read_text())['sprite']
-        self.assertEqual(len(rows), 1225)
+        self.assertEqual(len(rows), 1229)
         self.assertEqual([r['name'] for r in rows[1217:1221]],
                          ['wallHalf1', 'wallHalf2', 'wallHalf4', 'wallHalf8'])
         self.assertEqual(
@@ -22,6 +22,10 @@ class EdgeWallPrefixTests(unittest.TestCase):
                 'frontDoorClosedSELeft',
                 'frontDoorAjarSELeft',
                 'frontDoorOpenSELeft',
+                'wallBookcase',
+                'wallBookcaseSW',
+                'wallBookcaseNW',
+                'wallBookcaseNE',
             ],
         )
         digest = hashlib.sha256()

@@ -507,22 +507,7 @@ pub struct Tuning {
     /// Seed for a new simulation's PRNG. Save V1 persists the complete
     /// live PRNG state, which makes continuation after Load replayable.
     pub rng_seed: u64,
-    /// The most player-issued intents one sim may hold at once. At least
-    /// 1.
-    ///
-    /// This is the only thing rate-limiting a click. `drain_commands`
-    /// pushes one intent per `UseObject` command and nothing trims the
-    /// queue, so without it a JavaScript loop grows one agent's queue
-    /// without bound and every entry is a stretch of time that sim is
-    /// not choosing for itself. `content/tuning.toml` carries the time
-    /// budget the number is derived from and why the overflow drops the
-    /// newest intent rather than the oldest.
-    ///
-    /// The pack's byte encoding grows by appending, so a knob added
-    /// here keeps every earlier block's offset and the golden vector in
-    /// `compile.rs` stays reviewable against the annotations it already
-    /// has. `max_queued_intents` was last until `max_queued_commands`
-    /// arrived; that one is last now.
+    /// Maximum waiting player orders per sim; zero means unlimited.
     pub max_queued_intents: u32,
     /// The most commands the WASM boundary will hold between two drains.
     /// At least 1.

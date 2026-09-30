@@ -8,12 +8,18 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+mod save_before_voice;
+
 #[cfg(test)]
 mod placement_tests;
+#[cfg(test)]
+mod save_before_voice_tests;
 #[cfg(test)]
 mod save_v3_tests;
 #[cfg(test)]
 mod spawn_boundary_tests;
+#[cfg(test)]
+mod unlimited_queue_tests;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
 /// the range would do; what matters is that it is finite and in range.
@@ -276,9 +282,9 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     None
 }
 
-/// Decodes frozen V1, including only the historical missing sleep-pressure list.
+/// Decodes V1 with its historical entity-row and empty-tail migrations.
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
-    match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
+    let current = match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
         Ok((snapshot, rest)) => rest.is_empty().then_some(snapshot),
         Err(_) => {
             let mut padded = payload.to_vec();
@@ -288,7 +294,8 @@ fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
                 _ => None,
             }
         }
-    }
+    };
+    current.or_else(|| save_before_voice::decode(payload))
 }
 
 #[wasm_bindgen]
@@ -1869,6 +1876,17 @@ impl SimHandle {
     /// contract.
     pub fn stall_reason_of(&self, entity_index: u32) -> String {
         self.sim.stall_reason_of(entity_index).unwrap_or_default()
+    }
+
+    /// Current action followed by every waiting order, in display order.
+    pub fn action_queue_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim.action_queue_of(entity_index)
+    }
+
+    /// A bounded display prefix; unseen orders are not formatted or transferred.
+    pub fn action_queue_window_of(&self, entity_index: u32, max_rows: u32) -> Vec<String> {
+        self.sim
+            .action_queue_window_of(entity_index, max_rows as usize)
     }
 
     /// How many player orders the sim still has waiting.
@@ -5246,6 +5264,20 @@ mod boundary_tests {
     }
 
     /// The per-sim order cap enforced by the simulation drain.
+    fn use_finite_intent_cap(handle: &mut SimHandle) {
+        let mut pack = handle
+            .sim
+            .world()
+            .resource::<terri_sim::Content>()
+            .0
+            .clone();
+        pack.tuning.max_queued_intents = 10;
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_sim::Content(Box::leak(Box::new(pack))));
+    }
+
     fn intent_cap(handle: &SimHandle) -> usize {
         handle
             .sim
@@ -5345,10 +5377,10 @@ mod boundary_tests {
     #[test]
     fn paused_flush_reports_exactly_the_order_past_the_cap_rejected_by_the_simulation() {
         let mut handle = SimHandle::new(8, 8);
+        use_finite_intent_cap(&mut handle);
         assert!(handle.spawn_object(4.0, 4.0, "fridge"));
         let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
-        // Read from content rather than restated, so the fixture tracks
-        // the shipped value whatever it is tuned to.
+        // Exercise an explicitly finite fixture rather than the unlimited shipped queue.
         let cap = intent_cap(&handle);
 
         for click in 1..=cap + 1 {
@@ -5455,6 +5487,7 @@ mod boundary_tests {
     #[test]
     fn a_front_placement_onto_a_full_queue_reports_a_displacement_not_a_rejection() {
         let mut handle = SimHandle::new(8, 8);
+        use_finite_intent_cap(&mut handle);
         assert!(handle.spawn_object(4.0, 4.0, "fridge"));
         let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
         let cap = intent_cap(&handle);
@@ -6818,10 +6851,11 @@ mod boundary_tests {
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
+                "Not enough beds",
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");
-        let expected = [-53.5, -25.0, -12.0, -18.0, -6.0, 7.5];
+        let expected = [-73.5, -25.0, -12.0, -18.0, -6.0, 7.5, -20.0];
         for (index, (actual, expected)) in scores.iter().zip(expected).enumerate() {
             assert!(
                 (*actual - expected).abs() < 1e-5,

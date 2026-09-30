@@ -317,19 +317,14 @@ pub enum ContentError {
         idle: f32,
         action: f32,
     },
-    /// A cap of zero is not "no queueing"; it is a game in which clicking
-    /// an object never does anything at all, because `drain_commands`
-    /// refuses every intent that would take a queue past this. That is
-    /// the silent-nothing case [D9] exists to convert into a build
-    /// failure - the game would run, the sim would behave, and directing
-    /// it would simply have no effect.
+    /// Retained for source compatibility; zero now means unlimited.
+    #[allow(dead_code)]
     ZeroQueuedIntents,
     /// A cap of zero on the staging queue is a game that accepts no
     /// player input at all: `SimHandle::enqueue_command` refuses every
     /// command that would take the queue past this, so at zero it
-    /// refuses the first one. Same silent-nothing shape as
-    /// `ZeroQueuedIntents` and the same reason for being a build
-    /// failure - the page would load, the sim would behave, and nothing
+    /// refuses the first one. This is a build failure because the page
+    /// would load, the sim would behave, and nothing
     /// the player did would reach it.
     ZeroQueuedCommands,
     /// Two archetypes with one id: the household resolves by name, so the
