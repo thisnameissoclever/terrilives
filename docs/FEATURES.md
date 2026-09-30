@@ -1002,6 +1002,11 @@ The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies
 
 **Status: Not started. Next build, selected by the owner on 2026-09-30.**
 
+The draft implementation contract is `docs/specs/2026-09-30-edit-sims.md`.
+It records atomic family edits, legacy personality preservation and required
+verification. Removed-trait history remains an explicit owner decision; the
+draft is not implementation or approval of either policy.
+
 Once somebody lives in the house, the player cannot change anything about them. Their name, personality, traits and family ties are fixed the moment they move in, and the shipped household cannot be changed at all. The owner asked on 2026-09-29 for this to come soon.
 
 The first slice is an Edit button for the selected person. It opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with who they are now: name, personality, traits, and their family ties to the rest of the household. Confirming sends one command the simulation applies, like every other player action, and the change is saved. Looks join the editor once people have looks to choose ([CS-slice-looks]), and gender once [B-gender] exists.

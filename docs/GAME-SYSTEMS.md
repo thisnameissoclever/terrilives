@@ -562,6 +562,8 @@ infrastructure. FEATURES.md owns the same current priority.
 1. **Edit Sims [B-edit-sims].** Reuse New housemate for existing names,
    personalities, traits and family ties. Settle progressed-trait removal and
    re-addition before implementation. No new art is required.
+   The draft contract is `docs/specs/2026-09-30-edit-sims.md`; its proposed
+   removed-trait history policy awaits the owner's answer.
 2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
    Recommended follow-up: connect different people's preferences to the shared
    room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
