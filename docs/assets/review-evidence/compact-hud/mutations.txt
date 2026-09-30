@@ -1,0 +1,63 @@
+build-hidden-state-guard: mutation caught (exit 1).
+Tests  1 failed | 18 passed (19)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/mobile-hud.test.ts > the phone Build dock > never shows the panel or a tool the game has hidden
+AssertionError: expected [ …(3) ] to deeply equal [ …(2) ]
+Original bytes restored in finally; SHA-256 equality asserted.
+
+build-snapshot: mutation caught (exit 1).
+Tests  2 failed | 13 passed (15)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/compact-hud.test.ts > compact HUD access and presentation > restores the chosen panel after Build while retaining a resize during editing
+AssertionError: expected { panel: null, collapsed: false, …(2) } to deeply equal { panel: 'traits', …(3) }
+FAIL  tests/compact-hud.test.ts > compact HUD access and presentation > preserves collapsed state through Build and closes the sheet when folding
+Original bytes restored in finally; SHA-256 equality asserted.
+
+collapsed-needs-access: mutation caught (exit 1).
+Tests  1 failed | 14 passed (15)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/compact-hud.test.ts > keeps all meters reachable after collapse and moves the original nodes across resize
+AssertionError: expected 'dock-needs' to be 'overview-needs' // Object.is equality
+Original bytes restored in finally; SHA-256 equality asserted.
+
+household-warning-connection: mutation caught (exit 1).
+Tests  1 failed | 14 passed (15)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/compact-hud.test.ts > wires household warnings into the frame refresh outside the selected-person projection
+AssertionError: expected 'import { newGameSeed } from \'./new-g…' to contain 'dockAlert.textContent = warning'
+Original bytes restored in finally; SHA-256 equality asserted.
+
+keyboard-options-coordination: mutation caught (exit 1).
+Tests  1 failed | 14 passed (15)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/compact-hud.test.ts > closes Options on Sim activation without relying on pointerdown
+AssertionError: expected false to be true // Object.is equality
+Original bytes restored in finally; SHA-256 equality asserted.
+
+left-controls-placement-escape: mutation caught (exit 1).
+Tests  1 failed | 24 passed (25)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/placement-actions.test.ts > escapes to the right of world controls when a short Build dock leaves no room below
+AssertionError: expected { x: 8, y: 128 } to deeply equal { x: 160, y: 8 }
+Original bytes restored in finally; SHA-256 equality asserted.
+
+object-menu-escape-priority: mutation caught (exit 1).
+Tests  1 failed | 14 passed (15)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/compact-hud.test.ts > gives dialogs, Options and object menus Escape priority and returns focus to a visible opener
+AssertionError: expected true to be false // Object.is equality
+Original bytes restored in finally; SHA-256 equality asserted.
+
+queue-reopen-capacity: mutation caught (exit 1).
+Tests  1 failed | 4 passed (5)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/action-queue.test.ts > recomputes the bounded preview immediately when its hidden panel opens
+AssertionError: expected 2 to be 8 // Object.is equality
+Original bytes restored in finally; SHA-256 equality asserted.
+
+short-build-whole-panel-guard: mutation caught (exit 1).
+Tests  1 failed | 18 passed (19)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+FAIL  tests/mobile-hud.test.ts > the phone Build dock > leaves the short panel to scroll whole
+AssertionError: expected '@media (max-width: 600px), (max-heigh…' not to match /display:\s*flex/
+Original bytes restored in finally; SHA-256 equality asserted.

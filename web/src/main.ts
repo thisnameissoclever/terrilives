@@ -92,8 +92,9 @@ import {
 import { OverlayPauseController } from './ui/overlay-pause.js';
 import {
   COMPACT_HUD_MEDIA_QUERY,
-  MobileHud,
-} from './ui/mobile-hud.js';
+  createCompactHud,
+  householdWarningText,
+} from './ui/compact-hud.js';
 import {
   AudioController,
   type AudioCuePlayCounts,
@@ -441,7 +442,7 @@ async function main(): Promise<void> {
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
   const menuRoot = document.querySelector<HTMLElement>('#object-menu');
   if (
-    !(needsRoot instanceof HTMLDetailsElement) ||
+    !needsRoot ||
     !needsEmpty ||
     !needsContent ||
     !moodEmpty ||
@@ -533,9 +534,6 @@ async function main(): Promise<void> {
   );
   const hudRoot = document.querySelector<HTMLElement>('#hud');
   const actionQueueRoot = document.querySelector<HTMLElement>('#action-queue');
-  const mobileHudButton = document.querySelector<HTMLButtonElement>(
-    '#mobile-hud-toggle',
-  );
   if (
     !clockValue ||
     !fundsValue ||
@@ -547,19 +545,34 @@ async function main(): Promise<void> {
     !ordersValue ||
     !householdRosterRoot ||
     !hudRoot ||
-    !actionQueueRoot ||
-    !mobileHudButton
+    !actionQueueRoot
   ) {
     throw new Error('missing player status markup');
   }
   const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
-  const mobileHud = new MobileHud(hudRoot, mobileHudButton, [
-    needsRoot,
-    peopleRoot,
-    traitsBlock,
-  ]);
-  mobileHud.setCompact(compactHudQuery.matches);
-  mobileHudButton.addEventListener('click', () => mobileHud.toggle());
+  const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
+  const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close());
+  compactHud.setCompact(compactHudQuery.matches);
+  const dockActivity = document.getElementById('dock-activity');
+  const dockTraitsEmpty = document.getElementById('dock-traits-empty');
+  const queueEmpty = document.getElementById('queue-empty');
+  const dockAlert = document.getElementById('dock-alert');
+  if (!dockActivity || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
+  const needMeters = Array.from(needsContent.querySelectorAll<HTMLElement>('[role="meter"]'));
+  const syncDockSummary = () => {
+    const critical = needsContent.hidden ? [] : needMeters
+      .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
+      .map(meter => meter.getAttribute('aria-label'));
+    const activity = critical.length ? `Critical: ${critical.join(', ')}`
+      : [activityValue.textContent, moodContent.hidden ? '' : moodLabel.textContent].filter(Boolean).join(' / ');
+    dockActivity.dataset.urgent = String(critical.length > 0);
+    if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
+    dockTraitsEmpty.hidden = !traitsBlock.hidden;
+    queueEmpty.hidden = !actionQueueRoot.hidden;
+    const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
+    if (dockAlert.textContent !== warning) dockAlert.textContent = warning;
+    if (needsCaption.title !== needsCaption.textContent) needsCaption.title = needsCaption.textContent ?? '';
+  };
   // [OF2] in docs/specs/2026-09-22-options-flyout.md. Its Escape is caught
   // in the capture phase, so an open panel takes it before the game view
   // and Build do.
@@ -568,6 +581,10 @@ async function main(): Promise<void> {
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  optionsToggle.addEventListener('click', () => compactHud.close());
+  const optionsClose = document.getElementById('options-close');
+  if (!optionsClose) throw new Error('missing Options close button');
+  optionsClose.addEventListener('click', () => { optionsMenu.close(); optionsToggle.focus(); });
   const deathInput = document.querySelector<HTMLInputElement>('#death-enabled');
   if (!deathInput) throw new Error('missing death setting');
   const deathControls = new DeathControls(sim, deathInput);
@@ -584,14 +601,13 @@ async function main(): Promise<void> {
       || (target instanceof Element && target.closest('dialog') !== null),
   );
   compactHudQuery.addEventListener('change', (event) => {
-    mobileHud.setCompact(event.matches);
+    compactHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
   });
   observeHudScrollbar(hudRoot);
-  const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
   const gameHud = new GameHud(
     {
       clock: clockValue,
@@ -1210,17 +1226,15 @@ async function main(): Promise<void> {
   if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
     throw new Error('missing the placement buttons');
   }
-  const optionsGear = document.querySelector<HTMLElement>('#options-toggle');
-  if (!optionsGear) throw new Error('missing the Options gear');
   // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
-  // and of the gear. On a phone the sidebar folds to its strip and the dock
-  // bounds the bottom instead.
+  // and of the compact world controls. The Build dock bounds the bottom.
   const placementKeepOut = (): KeepOut => {
-    const gear = optionsGear.getBoundingClientRect();
+    const gear = hudRoot.getBoundingClientRect();
     return {
       left: compactHudQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
       gearLeft: gear.left,
       gearBottom: gear.bottom,
+      gearRight: gear.right,
     };
   };
   const dockTop = (): number => {
@@ -1239,14 +1253,14 @@ async function main(): Promise<void> {
       canvas.focus();
       menu.close();
       keyboardTargets.clear();
-      mobileHud.beginEditing();
+      compactHud.beginEditing();
       cameraDirty = true;
     },
     exit() {
       wallTool.exit();
       roomTool.exit();
       buyTool.exit();
-      mobileHud.endEditing();
+      compactHud.endEditing();
       optionsMenu.close();
       document.querySelector<HTMLButtonElement>('#build-toggle')?.focus();
       cameraDirty = true;
@@ -1546,7 +1560,7 @@ async function main(): Promise<void> {
     // panel is work the frame does, and a periodic cost measured outside
     // the budget is a budget that does not describe the frame ([L19]).
     // On five frames in six this is two comparisons and a return.
-    needsPanel.update(nowMs, sim);
+    const needsUpdated = needsPanel.update(nowMs, sim);
     gameHud.update(nowMs, sim);
     actionQueue.update(nowMs, sim);
     householdRoster.update(nowMs);
@@ -1555,6 +1569,7 @@ async function main(): Promise<void> {
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
+    if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
 

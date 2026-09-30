@@ -127,21 +127,17 @@ it cannot paint above or keep the terminal explanation unfocusable. The failed
 canvas and HUD therefore cannot remain a second keyboard interface behind the
 only useful surface.
 
-At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, the shell starts
-with a safe-area-aware status strip containing Time, Funds, and Menu. The
-roster, details, speed, and game actions are removed from layout until Menu is
-opened. `MobileHud` owns only that responsive visibility state and closes the
-two detail elements when the viewport first becomes compact. Existing DOM
-nodes and controllers continue to own every game action, projection, label,
-and focus target.
-
-Phone portrait expands into a contiguous top sheet. Needs and People
-independently cap and scroll their content, and the outer sheet scrolls if its
-children exceed the viewport. Short screens wider than 360 pixels use the
-established 220-pixel edge column, leaving the rest of the viewport as a direct
-hit surface for the WebGPU canvas. Narrower short screens keep the horizontal
-top strip. Desktop keeps the normal sidebar and does not render the Menu
-button. See [CH1]-[CH4].
+The compact HUD separates the upper-left world controls from a bottom Sim
+dock. `CompactHud` owns only the chosen detail panel, collapse state, responsive
+mode and Build presentation snapshot. Existing panel controllers retain their
+simulation reads and commands. At 600 CSS pixels or narrower, or 480 CSS pixels
+or shorter, the same needs DOM moves into the expandable Overview panel.
+Desktop collapse uses that same route. Traits starts closed; one detail panel
+opens at a time. Critical needs stay visible in the compact identity row.
+Build suspends the dock and restores its presentation on exit. The current
+contract is [CUI-world]-[CUI-build] in
+`docs/specs/2026-09-30-control-layout-studies.md`; [CH1]-[CH4] describe the
+superseded layout.
 
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing

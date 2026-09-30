@@ -16,6 +16,8 @@ export class ActionQueue {
 
   constructor(private readonly root: HTMLElement, private readonly refreshMs: number) {}
 
+  invalidate(): void { this.lastRead = -Infinity; }
+
   update(now: number, source: ActionQueueSource): void {
     const selected = source.selectedIndex();
     if (selected === this.selected && now - this.lastRead < this.refreshMs) return;

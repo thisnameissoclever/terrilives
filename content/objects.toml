@@ -540,7 +540,7 @@ roles = ["eating_surface"]
 id = "chair"
 name = "Chair, Standard Issue"
 price = 40
-sprite = "chair"
+sprite = "offlineDiningChair"
 
   # No interactions. A chair at a table is where a sim sits when it uses the
   # TABLE; it is not a separate thing to sit on. Modelling it as one would put

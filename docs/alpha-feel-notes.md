@@ -85,6 +85,20 @@ static placement and appearance, not a seated Work animation. Screenshots,
 the rejected rear-shell defect and exact checks are in
 `docs/assets/review-evidence/office/chair.md`.
 
+## [A-dining-chair-wood] Rounded wooden dining chairs keep their table-facing positions
+
+2026-09-30, local production build, neutral lighting, 1600x1050. Both replacement
+chairs face the table's ends. Rounded seats, even horizontal back rails and
+supported legs fit the kitchen's existing scale. The far chair is partly hidden
+by the tabletop, while its exposed back remains selectable. The table itself
+still uses older art and is the next visual improvement, not part of this pass.
+
+The actual renderer shows four consistent rotations. Build controls selected
+the exposed chair back, cycled all facings and restored its original placement
+without changing the world hash. No seated meal animation was added; that
+remaining gap is not resolved by these empty-chair screenshots. Evidence and
+check boundaries are in `docs/assets/review-evidence/dining/chair.md`.
+
 ## [A-household-rig-shirts] Approved character and household shirt colors
 
 2026-09-10, dedicated headed Chrome, 1920 by 993. The owner separately

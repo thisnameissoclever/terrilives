@@ -6,6 +6,12 @@
       "directory": "office/owner-review-pending/office-chair/candidate-03",
       "proof_sha256": "b4e8e051a0f7285c5bd2a22dade3849be9dced40158d6574d54d134976167a22",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineDiningChair",
+      "directory": "dining/owner-review-pending/dining-chair/candidate-01",
+      "proof_sha256": "221e791a4a1c2372a607a4141b33a232540e93440397aa41f5bc176375bba132",
+      "review_status": "accepted-independent-review"
     }
   ]
 }
