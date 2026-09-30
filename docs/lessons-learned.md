@@ -7608,3 +7608,20 @@ padding inside that image. The corrected point is within the registered canvas
 but above the visible art. Deliberately extending only the top content bound
 must now make the test fail in every facing. Test the claimed boundary, not a
 point the outer rectangle would reject anyway.
+
+## Sofa rotation and supported-part positions (2026-09-30)
+
+The old long sofa reused one front for SE/NW and another for SW/NE. Replacing
+it with a real rotating model cannot preserve those incorrect opposing views.
+Trace the shipped default's physical front and game coordinate transform;
+preserve facing values, footprint and origin, then document which old pictures
+were wrong. Verify all four actual placements and saved rotations, not merely
+four differently named PNGs.
+
+Independent review also found that dimension and contact checks would allow a
+cushion to slide into its neighbor while remaining supported. Pin the saved
+part centers as well. `check_sofa_scene.py` must reject an overlapping-cushion
+copy, alongside disconnected, oversized, rotated and missing parts. Keep the
+clean source byte-identical. Interaction labels are not animation evidence:
+execute the actual action and inspect the body's visual code before claiming
+that a sofa provides a reclining pose.
