@@ -345,7 +345,10 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
 /// leave the test green while silently no longer testing the real
 /// threshold, from the first time anybody tunes it.
 pub fn tuning() -> terri_data::Tuning {
-    terri_data::pack().tuning
+    let mut tuning = terri_data::pack().tuning;
+    // Finite-cap fixtures continue to exercise refusal and displacement.
+    tuning.max_queued_intents = 10;
+    tuning
 }
 
 /// A sim reading `content` instead of the shipped pack.

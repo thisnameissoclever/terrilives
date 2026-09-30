@@ -3653,3 +3653,63 @@ A second bed queue produced the [visible waiting capture](evidence/mood-waiting/
 **Not proven here.** These accelerated checks do not establish long-term balance or the feel of a crowded six-person household. The positive mood contribution, old-save migration and paused cancellation are covered by causal tests; ordinary play also includes activity payouts, so its rising satisfaction cannot isolate the positive mood contribution. The attempted paused cancellation check missed the Options control after the wait had already ended and is not counted as play evidence. No new death, phone layout or grief-duration check was performed in this follow-up; [A-death] records the earlier death slice.
 
 The follow-up's 60 manual mutation checks each produced a failing test, then restored the changed source byte for byte. They cover death defaults and one-time migration, occupied-item and active-action guards, relevant need bits, save ordering and validation, command batching, autonomous ranking, directed and chain reachability, mood timing after death, signed accumulation, tuning validation and copying, and truncated-save padding. These targeted checks are separate from the full mutation sweep run by GitHub.
+
+## [A-gameplay-ui-corrections] Furniture previews and selected-person action cards
+
+Checked the production preview on 2026-09-30 at 1280 by 720, 390 by 844 and
+800 by 400. Build appeared below Time and Funds. Moving and rotating the bookcase
+showed one preview; successful Confirm removed the selection and disabled its
+placement controls. The bookcase's back met the wall after rotation. All four
+current atlas facings were also inspected in the contact sheet.
+
+With Bill selected and repeated reading orders queued, the larger Now card led
+seven waiting cards. At 720 pixels tall, fading began at 237.6 pixels and the
+card region ended at 396 pixels. On the phone, the queue began at 133 pixels,
+below the summary's 124.4-pixel bottom; it disappeared when Menu opened. Exit
+build remained reachable above the compact editing dock. At 800 by 400, the
+scrolling sidebar measured 235 pixels outside and 220 usable pixels inside.
+
+Two layout defects found during this pass were fixed: cards initially overlapped
+the taller phone status summary, and compact Build needed an explicit grid row
+for Exit build. Screenshots in `docs/assets/review-evidence/gameplay-ui/` show the
+final desktop queue, phone controls, phone card, short-screen HUD and current
+bookcase facings. The test page was closed and its preview server stopped.
+
+The preview reported that loading its existing save failed and kept saving
+paused. Checks used its default household without clearing saved data. This pass
+does not verify browser persistence, a full need cycle or a complete conversation;
+those are outside the observations above. Bed shortage and recovery were checked
+through simulation tests, not a watched household play cycle. Visual approval
+by the owner remains open.
+
+
+Follow-up on 2026-09-30 fixed that load error. The captured browser file used
+pre-voice V1 entity rows. The rebuilt preview reported Saved game loaded, and
+the original file retained its exact length and SHA-256. The load regression
+preserves all 37 entities and compares 300 ticks after resaving through V5.
+
+A fresh local origin started with No save yet. The controls queued 51 reading
+orders, and all 51 survived Save and reload. Both the only fridge and only stove
+sold, paying 150 and 130 Funds. The resulting household loaded without them.
+Exit build returned to play through the left button. Desktop cards now measure
+192 pixels rather than 240; on the phone they measure 118.55 pixels and start
+below the summary. Updated proof is `desktop-queue-smaller.png`,
+`phone-queue-smaller.png`, `phone-exit-build.png`, `sell-only-fridge.png` and
+`save-loaded.png` in the same evidence folder. All task-owned pages and preview
+servers were closed. Owner visual approval remains open.
+
+The final control-order check put simulation speed immediately below Time and
+Funds, and Build after the household and person panels. At 1280 by 720, the
+collapsed person panels left Build visible at 403 pixels from the top. The
+192-pixel cards showed a 77.4-pixel current card and 50.4-pixel waiting cards.
+At 390 by 844, the expanded menu kept the same order and hid the cards; Build
+opened the editing dock, and Exit build returned to play. The same round trip
+worked at 812 by 375, where the scrolling menu measured 235 pixels outside and
+220 usable pixels inside, including a 15-pixel scrollbar. The game was muted
+and paused for these checks. The separate test origin reported No save yet;
+these captures do not repeat the earlier persistence verification.
+
+Proof is `desktop-controls-final.png`, `phone-controls-final.png`,
+`phone-exit-build-final.png` and `landscape-controls-final.png` in
+`docs/assets/review-evidence/gameplay-ui/`. The task tab closed in a finally
+block, its preview server stopped, and the viewport override was reset.

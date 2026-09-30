@@ -1258,7 +1258,9 @@ fn validate_entity(
         return Err(SaveError::InvalidValue);
     }
     if let Some(intents) = &entity.intents {
-        if exceeds_limit(intents.len(), pack.tuning.max_queued_intents as usize) {
+        if pack.tuning.max_queued_intents != 0
+            && exceeds_limit(intents.len(), pack.tuning.max_queued_intents as usize)
+        {
             return Err(SaveError::InvalidValue);
         }
         for intent in intents {
@@ -3148,7 +3150,6 @@ mod tests {
 
     #[test]
     fn collection_caps_ranges_and_ordering_are_enforced() {
-        let pack = terri_data::pack();
         let mut intents = rich_snapshot();
         let target = rich_agent_mut(&mut intents).target.expect("target");
         rich_agent_mut(&mut intents).intents = Some(vec![
@@ -3156,21 +3157,20 @@ mod tests {
                 object: target.object,
                 interaction: target.interaction,
             };
-            pack.tuning.max_queued_intents as usize
+            513
         ]);
-        assert_validation(&intents, Ok(()), "intent cap is inclusive");
-        rich_agent_mut(&mut intents)
-            .intents
-            .as_mut()
-            .expect("intents")
-            .push(SavedIntent {
-                object: target.object,
-                interaction: target.interaction,
-            });
         assert_validation(
             &intents,
-            Err(SaveError::InvalidValue),
-            "intent count above cap",
+            Ok(()),
+            "unlimited waiting orders survive validation",
+        );
+        let mut finite = terri_data::pack().clone();
+        finite.tuning.max_queued_intents = 513;
+        assert_eq!(validate_snapshot(&intents, &finite), Ok(()));
+        finite.tuning.max_queued_intents = 512;
+        assert_eq!(
+            validate_snapshot(&intents, &finite),
+            Err(SaveError::InvalidValue)
         );
 
         let mut relationships = rich_snapshot();

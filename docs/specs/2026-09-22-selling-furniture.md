@@ -45,13 +45,12 @@ so every earlier code keeps its meaning. `object` is the raw entity index, as
 4. `InUse`: reserved, targeted, or named by a queued intent.
 5. `NotForSale`, a new code 15 appended after `CannotAfford`: the object has no
    price, so the catalogue does not list it and nothing says what it is worth.
-6. `LastForAChain`, code 16: the object is the last placed one that can fill a
-   role some chain needs, such as the shipped house's only stove, its only
-   hob for Cook dinner. Without it a sim part way through the chain would wait
-   for a station that no longer exists, and the chain would still be offered,
-   so a household could be left unable to eat. Refusing keeps the build rule
-   that a lot where eating is impossible cannot be made. "Nothing else in the
-   house can do its job." Buying a second stove first lets the first one go.
+
+The owner removed the last-provider restriction on 2026-09-30. Selling the only
+fridge, stove or preparation surface is allowed. Code 16 remains reserved but
+is never emitted. An idle recipe abandons its unfinished work when a required
+remaining station is absent, without paying its benefits. Autonomy skips recipes
+whose stations are missing; reserved existing stations still cause a wait.
 
 A sale only opens tiles, so it cannot cut anyone off or leave furniture out of
 reach, and the usability proofs are not run. The loader's grid checks
@@ -149,15 +148,14 @@ and the status says "{name} sold.", or the refusal. Delete or Backspace sells
 from the keyboard, since a Mac laptop's delete key sends Backspace, and the
 keyboard help says so. A sale the drain refuses keeps the choice and asks again
 what it would sell for. While the chosen object would not sell, a note under
-the button says why: "Cannot sell: " and the refusal, such as "Cannot sell:
-Nothing else in the house can do its job." for the only stove.
+the button says why: "Cannot sell: " and the refusal, such as "Cannot sell: Wait until nobody is using or approaching this object."
 
-## Review record
+## Historical review record (before the 2026-09-30 change)
 
 A fresh-context review of this slice found three must-fix problems, all fixed
 with tests. The browser's storage worker still wrote only V3, so every Save
 would have failed. Selling the only stove stranded sims part way through Cook
-dinner, which step 6 of [SL-rules] now refuses. And the loader did not bound
+dinner, which the original step 6 refused. And the loader did not bound
 retired indices.
 
 It also found that the first account of why a saved bound failed was wrong,
@@ -165,7 +163,7 @@ some statements were stale, a refused sale left Sell enabled, and Backspace
 did not sell. Two notes are recorded above rather than changed: the loader's
 rule on queued orders naming a sold object, and index use over many buy and
 sell cycles. Whether a sold stove should instead make sims give up the meal is
-left for the owner as [T-selling-the-last-stove] in `docs/TIM-TODO.md`.
+resolved by the owner on 2026-09-30 as [T-selling-the-last-stove] in `docs/TIM-TODO.md`. The earlier observations above describe the superseded restriction.
 
 A second round found no test for an object whose role no chain uses, which now
 sells; Sell turning off with nothing to say why, which the note under it now

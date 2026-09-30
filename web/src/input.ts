@@ -518,7 +518,7 @@ export function pickAt(
  * - An object with a sim selected: direct that sim to use it **ahead of
  *   whatever it was doing and whatever is waiting**. With `additive` -
  *   ctrl or cmd held - the instruction waits its turn at the back
- *   instead, up to `max_queued_intents`.
+ *   instead, without a limit on the number of waiting orders.
  * - An object with nothing selected: nothing. There is no sim to direct,
  *   and selecting furniture is not a thing the game has a meaning for.
  * - Bare floor or a wall: clear the selection.

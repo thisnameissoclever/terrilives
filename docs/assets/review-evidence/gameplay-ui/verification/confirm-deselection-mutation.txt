@@ -1,0 +1,132 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/gameplay-ui/terrilives/web
+
+ ❯ tests/builder.test.ts (23 tests | 6 failed) 121ms
+   × switches immediately after manual Confirm without queuing a duplicate placement 6ms
+   × clears an automatic selection handoff on Load before subsequent placement 12ms
+   × waits for the drained result and refreshes a moved object on lot revision 2ms
+   × deselects an unchanged placement after Confirm without changing its position 1ms
+   × sells with Delete and will not sell what a sim has been told to use 2ms
+   × sells with Backspace 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/builder.test.ts > switches immediately after manual Confirm without queuing a duplicate placement
+AssertionError: expected 15 to be 22 // Object.is equality
+
+- Expected
++ Received
+
+- 22
++ 15
+
+ ❯ tests/builder.test.ts:41:28
+     39|   builder.confirm(); source.flushCommands(); builder.afterCommands();
+     40|   builder.select(22);
+     41|   expect(builder.selected).toBe(22);
+       |                            ^
+     42|   expect(builder.pending).toBe(false);
+     43|   source.flushCommands(); builder.afterCommands();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/builder.test.ts > clears an automatic selection handoff on Load before subsequent placement
+AssertionError: expected 15 to be null
+
+- Expected:
+null
+
++ Received:
+15
+
+ ❯ tests/builder.test.ts:57:28
+     55|   builder.select(15); builder.moveTo(7, 0); builder.confirm();
+     56|   source.flushCommands(); builder.afterCommands();
+     57|   expect(builder.selected).toBeNull();
+       |                            ^
+     58|   expect(builder.pending).toBe(false);
+     59|   handle.free();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/builder.test.ts > waits for the drained result and refreshes a moved object on lot revision
+AssertionError: expected 15 to be null
+
+- Expected:
+null
+
++ Received:
+15
+
+ ❯ tests/builder.test.ts:168:28
+    166|   expect(source.lotRevision()).toBe(before + 1);
+    167|   expect(builder.afterCommands()).toBe(false);
+    168|   expect(builder.selected).toBeNull();
+       |                            ^
+    169|   expect(builder.preview).toBeNull();
+    170|   const movedRow = Array.from(source.ids()).indexOf(15);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/builder.test.ts > deselects an unchanged placement after Confirm without changing its position
+AssertionError: expected 15 to be null
+
+- Expected:
+null
+
++ Received:
+15
+
+ ❯ tests/builder.test.ts:185:30
+    183|     expect(builder.confirm()).toBe(true);
+    184|     source.flushCommands(); builder.afterCommands();
+    185|     expect(builder.selected).toBeNull();
+       |                              ^
+    186|     expect(builder.preview).toBeNull();
+    187|     expect(Array.from(source.positions().slice(row * 2, row * 2 + 2)))…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/builder.test.ts > sells with Delete and will not sell what a sim has been told to use
+AssertionError: expected 15 to be null
+
+- Expected:
+null
+
++ Received:
+15
+
+ ❯ tests/builder.test.ts:364:28
+    362|   source.flushCommands(); builder.afterCommands();
+    363|   expect(source.funds()).toBe(funds + payout);
+    364|   expect(builder.selected).toBeNull();
+       |                            ^
+    365|   handle.free();
+    366| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/builder.test.ts > sells with Backspace
+AssertionError: expected 15 to be null
+
+- Expected:
+null
+
++ Received:
+15
+
+ ❯ tests/builder.test.ts:416:28
+    414|   expect(builder.pending).toBe(true);
+    415|   source.flushCommands(); builder.afterCommands();
+    416|   expect(builder.selected).toBeNull();
+       |                            ^
+    417|   handle.free();
+    418| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 17 passed (23)
+   Start at  07:55:20
+   Duration  399ms (transform 151ms, setup 0ms, import 181ms, tests 121ms, environment 0ms)

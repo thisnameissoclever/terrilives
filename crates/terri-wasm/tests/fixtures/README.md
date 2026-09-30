@@ -83,3 +83,16 @@ the front door, and saved with `save_bytes()`. It is 3,003 bytes with SHA-256
 (walking home), it shows every saved stage of a shift finishing as it started
 on the street build, paid once, with the next shift going out to the street
 ([OS-street] in `docs/specs/2026-09-22-the-outside.md`).
+
+
+`pre-voice-157.hex` preserves the V1 save found in the task's local preview
+origin when its screenshot displayed Load failed on 2026-09-30. It contains
+37 entities and three people at tick 157. The 2,607 decoded bytes have SHA-256
+`0a3419f23fb524354e6f21cacd5b9d99538e303430ab1dbeb45a6ccada196523` and
+fingerprint `26d5982c9af83de8`. The exact source WASM is unknown. Its entity
+encoding matches the source before commit `90fd598`, which appended the
+conversation-voice option to each row without changing the V1 envelope.
+It also lacks the later empty sleep-pressure tail. Tests reproduce the failed
+public load, decode the frozen historical shape, preserve all saved entities,
+resave through V5, and compare 300 ticks of replay. The browser file was read
+without clearing or replacing its saved bytes.

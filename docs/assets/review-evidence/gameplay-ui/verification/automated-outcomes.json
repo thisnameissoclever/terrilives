@@ -1,0 +1,4241 @@
+{
+  "outcomes": [
+    {
+      "scenario": "Baseline",
+      "summary": "Success",
+      "log_path": "log/baseline.log",
+      "diff_path": null,
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 39.0167704,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--package=terri-data@0.1.0",
+            "--package=terri-sim@0.1.0",
+            "--package=terri-wasm@0.1.0"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.619553,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--package=terri-core@0.1.0",
+            "--package=terri-data@0.1.0",
+            "--package=terri-sim@0.1.0",
+            "--package=terri-wasm@0.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/save_before_voice.rs:62:9: replace SaveSnapshotV1BeforeVoice::into_current -> SaveSnapshotV1 with Default::default()",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/save_before_voice.rs",
+          "function": {
+            "function_name": "SaveSnapshotV1BeforeVoice::into_current",
+            "return_type": "-> SaveSnapshotV1",
+            "span": {
+              "start": {
+                "line": 61,
+                "column": 5
+              },
+              "end": {
+                "line": 79,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 62,
+              "column": 9
+            },
+            "end": {
+              "line": 78,
+              "column": 10
+            }
+          },
+          "replacement": "Default::default()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-core__src__save_before_voice.rs_line_62_col_9.log",
+      "diff_path": "diff/crates__terri-core__src__save_before_voice.rs_line_62_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.6586592,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-core/src/save_before_voice.rs:84:9: replace SavedEntityBeforeVoice::into_current -> SavedEntity with Default::default()",
+          "package": "terri-core",
+          "file": "crates/terri-core/src/save_before_voice.rs",
+          "function": {
+            "function_name": "SavedEntityBeforeVoice::into_current",
+            "return_type": "-> SavedEntity",
+            "span": {
+              "start": {
+                "line": 83,
+                "column": 5
+              },
+              "end": {
+                "line": 117,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 84,
+              "column": 9
+            },
+            "end": {
+              "line": 116,
+              "column": 10
+            }
+          },
+          "replacement": "Default::default()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-core__src__save_before_voice.rs_line_84_col_9.log",
+      "diff_path": "diff/crates__terri-core__src__save_before_voice.rs_line_84_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.6572576,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-data/src/compile.rs:2238:5: replace compile_tuning -> Result<CompiledTuning, ContentError> with Ok(Default::default())",
+          "package": "terri-data",
+          "file": "crates/terri-data/src/compile.rs",
+          "function": {
+            "function_name": "compile_tuning",
+            "return_type": "-> Result<CompiledTuning, ContentError>",
+            "span": {
+              "start": {
+                "line": 2235,
+                "column": 1
+              },
+              "end": {
+                "line": 2675,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2238,
+              "column": 5
+            },
+            "end": {
+              "line": 2674,
+              "column": 7
+            }
+          },
+          "replacement": "Ok(Default::default())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-data__src__compile.rs_line_2238_col_5.log",
+      "diff_path": "diff/crates__terri-data__src__compile.rs_line_2238_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.9136437,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-data/src/compile.rs:2375:35: replace == with != in compile_tuning",
+          "package": "terri-data",
+          "file": "crates/terri-data/src/compile.rs",
+          "function": {
+            "function_name": "compile_tuning",
+            "return_type": "-> Result<CompiledTuning, ContentError>",
+            "span": {
+              "start": {
+                "line": 2235,
+                "column": 1
+              },
+              "end": {
+                "line": 2675,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2375,
+              "column": 35
+            },
+            "end": {
+              "line": 2375,
+              "column": 37
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-data__src__compile.rs_line_2375_col_35.log",
+      "diff_path": "diff/crates__terri-data__src__compile.rs_line_2375_col_35.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.5130107000000002,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:13:9: replace Sim::action_queue_of -> Vec<String> with vec![]",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 10,
+                "column": 5
+              },
+              "end": {
+                "line": 14,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 13,
+              "column": 9
+            },
+            "end": {
+              "line": 13,
+              "column": 55
+            }
+          },
+          "replacement": "vec![]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_13_col_9.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_13_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.291104,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.9802869,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:13:9: replace Sim::action_queue_of -> Vec<String> with vec![String::new()]",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 10,
+                "column": 5
+              },
+              "end": {
+                "line": 14,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 13,
+              "column": 9
+            },
+            "end": {
+              "line": 13,
+              "column": 55
+            }
+          },
+          "replacement": "vec![String::new()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_13_col_9_001.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_13_col_9_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.7271777,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.1698734,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:13:9: replace Sim::action_queue_of -> Vec<String> with vec![\"xyzzy\".into()]",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 10,
+                "column": 5
+              },
+              "end": {
+                "line": 14,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 13,
+              "column": 9
+            },
+            "end": {
+              "line": 13,
+              "column": 55
+            }
+          },
+          "replacement": "vec![\"xyzzy\".into()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_13_col_9_002.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_13_col_9_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.8722141,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.8984203,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:18:9: replace Sim::action_queue_window_of -> Vec<String> with vec![]",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 18,
+              "column": 9
+            },
+            "end": {
+              "line": 125,
+              "column": 15
+            }
+          },
+          "replacement": "vec![]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_18_col_9.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_18_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.2879876,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.9017519,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:18:9: replace Sim::action_queue_window_of -> Vec<String> with vec![String::new()]",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 18,
+              "column": 9
+            },
+            "end": {
+              "line": 125,
+              "column": 15
+            }
+          },
+          "replacement": "vec![String::new()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_18_col_9_001.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_18_col_9_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.5263214,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.5991021,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:18:9: replace Sim::action_queue_window_of -> Vec<String> with vec![\"xyzzy\".into()]",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 18,
+              "column": 9
+            },
+            "end": {
+              "line": 125,
+              "column": 15
+            }
+          },
+          "replacement": "vec![\"xyzzy\".into()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_18_col_9_002.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_18_col_9_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.795118,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.8392529,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:18:21: replace == with != in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 18,
+              "column": 21
+            },
+            "end": {
+              "line": 18,
+              "column": 23
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_18_col_21.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_18_col_21.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.6388497,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.7435146,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:24:76: replace == with != in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 24,
+              "column": 76
+            },
+            "end": {
+              "line": 24,
+              "column": 78
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_24_col_76.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_24_col_76.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.7816638,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.6710159,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:35:37: replace < with == in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 35,
+              "column": 37
+            },
+            "end": {
+              "line": 35,
+              "column": 38
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_35_col_37.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_35_col_37.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.3258755,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.3163033,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:35:37: replace < with > in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 35,
+              "column": 37
+            },
+            "end": {
+              "line": 35,
+              "column": 38
+            }
+          },
+          "replacement": ">",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_35_col_37_001.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_35_col_37_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.9219156,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 34.8807752,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:35:37: replace < with <= in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 35,
+              "column": 37
+            },
+            "end": {
+              "line": 35,
+              "column": 38
+            }
+          },
+          "replacement": "<=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_35_col_37_002.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_35_col_37_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.8719476,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.089008,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:41:61: replace == with != in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 41,
+              "column": 61
+            },
+            "end": {
+              "line": 41,
+              "column": 63
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_41_col_61.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_41_col_61.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.973537,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.7652893,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:42:34: replace - with + in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 42,
+              "column": 34
+            },
+            "end": {
+              "line": 42,
+              "column": 35
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_42_col_34.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_42_col_34.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.7693992,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.9234697,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:42:34: replace - with / in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 42,
+              "column": 34
+            },
+            "end": {
+              "line": 42,
+              "column": 35
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_42_col_34_001.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_42_col_34_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.173705,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 35.2225132,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:65:50: replace == with != in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 65,
+              "column": 50
+            },
+            "end": {
+              "line": 65,
+              "column": 52
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_65_col_50.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_65_col_50.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.0746823,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 34.2620765,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:92:35: replace == with != in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 92,
+              "column": 35
+            },
+            "end": {
+              "line": 92,
+              "column": 37
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_92_col_35.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_92_col_35.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.0225677,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 34.9419827,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:115:33: replace >= with < in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 115,
+              "column": 33
+            },
+            "end": {
+              "line": 115,
+              "column": 35
+            }
+          },
+          "replacement": "<",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_115_col_33.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_115_col_33.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.9723014,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 34.8588179,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:118:29: replace && with || in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 118,
+              "column": 29
+            },
+            "end": {
+              "line": 118,
+              "column": 31
+            }
+          },
+          "replacement": "||",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_118_col_29.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_118_col_29.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.9205321,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.7069998,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:118:20: delete ! in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 118,
+              "column": 20
+            },
+            "end": {
+              "line": 118,
+              "column": 21
+            }
+          },
+          "replacement": "",
+          "genre": "UnaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_118_col_20.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_118_col_20.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.9257225,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 35.67854,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/action_queue.rs:118:45: replace == with != in Sim::action_queue_window_of",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/action_queue.rs",
+          "function": {
+            "function_name": "Sim::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 16,
+                "column": 5
+              },
+              "end": {
+                "line": 126,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 118,
+              "column": 45
+            },
+            "end": {
+              "line": 118,
+              "column": 47
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__action_queue.rs_line_118_col_45.log",
+      "diff_path": "diff/crates__terri-sim__src__action_queue.rs_line_118_col_45.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.2751239,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 35.9034612,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:43:5: replace derive_mood -> Option<MoodSnapshot> with None",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "derive_mood",
+            "return_type": "-> Option<MoodSnapshot>",
+            "span": {
+              "start": {
+                "line": 42,
+                "column": 1
+              },
+              "end": {
+                "line": 203,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 43,
+              "column": 5
+            },
+            "end": {
+              "line": 202,
+              "column": 7
+            }
+          },
+          "replacement": "None",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_43_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_43_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 6.1438516,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.1761923,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:43:5: replace derive_mood -> Option<MoodSnapshot> with Some(Default::default())",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "derive_mood",
+            "return_type": "-> Option<MoodSnapshot>",
+            "span": {
+              "start": {
+                "line": 42,
+                "column": 1
+              },
+              "end": {
+                "line": 203,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 43,
+              "column": 5
+            },
+            "end": {
+              "line": 202,
+              "column": 7
+            }
+          },
+          "replacement": "Some(Default::default())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_43_col_5_001.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_43_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.111494,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:144:46: replace && with || in derive_mood",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "derive_mood",
+            "return_type": "-> Option<MoodSnapshot>",
+            "span": {
+              "start": {
+                "line": 42,
+                "column": 1
+              },
+              "end": {
+                "line": 203,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 144,
+              "column": 46
+            },
+            "end": {
+              "line": 144,
+              "column": 48
+            }
+          },
+          "replacement": "||",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_144_col_46.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_144_col_46.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 5.7918388,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.1739533,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:147:20: delete - in derive_mood",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "derive_mood",
+            "return_type": "-> Option<MoodSnapshot>",
+            "span": {
+              "start": {
+                "line": 42,
+                "column": 1
+              },
+              "end": {
+                "line": 203,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 147,
+              "column": 20
+            },
+            "end": {
+              "line": 147,
+              "column": 21
+            }
+          },
+          "replacement": "",
+          "genre": "UnaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_147_col_20.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_147_col_20.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 6.8523998,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.2625729,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:237:5: replace has_bed_shortage -> bool with true",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "has_bed_shortage",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 235,
+                "column": 1
+              },
+              "end": {
+                "line": 262,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 237,
+              "column": 5
+            },
+            "end": {
+              "line": 261,
+              "column": 18
+            }
+          },
+          "replacement": "true",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_237_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_237_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.9849955,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 31.8899495,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:237:5: replace has_bed_shortage -> bool with false",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "has_bed_shortage",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 235,
+                "column": 1
+              },
+              "end": {
+                "line": 262,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 237,
+              "column": 5
+            },
+            "end": {
+              "line": 261,
+              "column": 18
+            }
+          },
+          "replacement": "false",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_237_col_5_001.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_237_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.0253437,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 31.685793,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:261:12: replace > with == in has_bed_shortage",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "has_bed_shortage",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 235,
+                "column": 1
+              },
+              "end": {
+                "line": 262,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 261,
+              "column": 12
+            },
+            "end": {
+              "line": 261,
+              "column": 13
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_261_col_12.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_261_col_12.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.8840671,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.4161377,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:261:12: replace > with < in has_bed_shortage",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "has_bed_shortage",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 235,
+                "column": 1
+              },
+              "end": {
+                "line": 262,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 261,
+              "column": 12
+            },
+            "end": {
+              "line": 261,
+              "column": 13
+            }
+          },
+          "replacement": "<",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_261_col_12_001.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_261_col_12_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.8207349,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.6387856,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/mood.rs:261:12: replace > with >= in has_bed_shortage",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/mood.rs",
+          "function": {
+            "function_name": "has_bed_shortage",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 235,
+                "column": 1
+              },
+              "end": {
+                "line": 262,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 261,
+              "column": 12
+            },
+            "end": {
+              "line": 261,
+              "column": 13
+            }
+          },
+          "replacement": ">=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__mood.rs_line_261_col_12_002.log",
+      "diff_path": "diff/crates__terri-sim__src__mood.rs_line_261_col_12_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.6195952,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.0398487,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/save.rs:1209:5: replace validate_entity -> Result<(), SaveError> with Ok(())",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/save.rs",
+          "function": {
+            "function_name": "validate_entity",
+            "return_type": "-> Result<(), SaveError>",
+            "span": {
+              "start": {
+                "line": 1202,
+                "column": 1
+              },
+              "end": {
+                "line": 1422,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1209,
+              "column": 5
+            },
+            "end": {
+              "line": 1421,
+              "column": 11
+            }
+          },
+          "replacement": "Ok(())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__save.rs_line_1209_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__save.rs_line_1209_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.7833603,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 34.5262538,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/save.rs:1262:13: replace && with || in validate_entity",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/save.rs",
+          "function": {
+            "function_name": "validate_entity",
+            "return_type": "-> Result<(), SaveError>",
+            "span": {
+              "start": {
+                "line": 1202,
+                "column": 1
+              },
+              "end": {
+                "line": 1422,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1262,
+              "column": 13
+            },
+            "end": {
+              "line": 1262,
+              "column": 15
+            }
+          },
+          "replacement": "||",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__save.rs_line_1262_col_13.log",
+      "diff_path": "diff/crates__terri-sim__src__save.rs_line_1262_col_13.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.7368635999999995,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.697676799999996,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/save.rs:1261:43: replace != with == in validate_entity",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/save.rs",
+          "function": {
+            "function_name": "validate_entity",
+            "return_type": "-> Result<(), SaveError>",
+            "span": {
+              "start": {
+                "line": 1202,
+                "column": 1
+              },
+              "end": {
+                "line": 1422,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1261,
+              "column": 43
+            },
+            "end": {
+              "line": 1261,
+              "column": 45
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__save.rs_line_1261_col_43.log",
+      "diff_path": "diff/crates__terri-sim__src__save.rs_line_1261_col_43.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.6700865,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.572872,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/placement/sale.rs:65:5: replace validate_sale -> Result<SalePlan, PlacementRefusal> with Ok(Default::default())",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/placement/sale.rs",
+          "function": {
+            "function_name": "validate_sale",
+            "return_type": "-> Result<SalePlan, PlacementRefusal>",
+            "span": {
+              "start": {
+                "line": 61,
+                "column": 1
+              },
+              "end": {
+                "line": 95,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 65,
+              "column": 5
+            },
+            "end": {
+              "line": 94,
+              "column": 7
+            }
+          },
+          "replacement": "Ok(Default::default())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-sim__src__placement__sale.rs_line_65_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__placement__sale.rs_line_65_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.1103009,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/action.rs:871:5: replace select_action with ()",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/action.rs",
+          "function": {
+            "function_name": "select_action",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 742,
+                "column": 1
+              },
+              "end": {
+                "line": 1674,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 871,
+              "column": 5
+            },
+            "end": {
+              "line": 1673,
+              "column": 6
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__action.rs_line_871_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__action.rs_line_871_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 6.0553159,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 30.5416211,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/chain.rs:78:5: replace advance_chains with ()",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/chain.rs",
+          "function": {
+            "function_name": "advance_chains",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 35,
+                "column": 1
+              },
+              "end": {
+                "line": 189,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 78,
+              "column": 5
+            },
+            "end": {
+              "line": 188,
+              "column": 6
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__chain.rs_line_78_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__chain.rs_line_78_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 7.2707748,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 37.1723278,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/chain.rs:99:13: delete ! in advance_chains",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/chain.rs",
+          "function": {
+            "function_name": "advance_chains",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 35,
+                "column": 1
+              },
+              "end": {
+                "line": 189,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 99,
+              "column": 13
+            },
+            "end": {
+              "line": 99,
+              "column": 14
+            }
+          },
+          "replacement": "",
+          "genre": "UnaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__chain.rs_line_99_col_13.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__chain.rs_line_99_col_13.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 6.7497571,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 29.6305967,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:141:5: replace place_in -> Option<Intent> with None",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 141,
+              "column": 5
+            },
+            "end": {
+              "line": 160,
+              "column": 6
+            }
+          },
+          "replacement": "None",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_141_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_141_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.8695278,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.4457345,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:141:5: replace place_in -> Option<Intent> with Some(Default::default())",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 141,
+              "column": 5
+            },
+            "end": {
+              "line": 160,
+              "column": 6
+            }
+          },
+          "replacement": "Some(Default::default())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_141_col_5_001.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_141_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.2102974,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:143:25: replace || with && in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 143,
+              "column": 25
+            },
+            "end": {
+              "line": 143,
+              "column": 27
+            }
+          },
+          "replacement": "&&",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_143_col_25.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_143_col_25.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 3.1759352,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.8227453,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:143:20: replace == with != in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 143,
+              "column": 20
+            },
+            "end": {
+              "line": 143,
+              "column": 22
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_143_col_20.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_143_col_20.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.6186262,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.0593775,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:143:40: replace < with == in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 143,
+              "column": 40
+            },
+            "end": {
+              "line": 143,
+              "column": 41
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_143_col_40.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_143_col_40.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.6340073999999998,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 32.6547489,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:143:40: replace < with > in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 143,
+              "column": 40
+            },
+            "end": {
+              "line": 143,
+              "column": 41
+            }
+          },
+          "replacement": ">",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_143_col_40_001.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_143_col_40_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.8210691,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.1870928,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:143:40: replace < with <= in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 143,
+              "column": 40
+            },
+            "end": {
+              "line": 143,
+              "column": 41
+            }
+          },
+          "replacement": "<=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_143_col_40_002.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_143_col_40_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.7701862999999998,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.834133800000004,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:151:41: replace && with || in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 151,
+              "column": 41
+            },
+            "end": {
+              "line": 151,
+              "column": 43
+            }
+          },
+          "replacement": "||",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_151_col_41.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_151_col_41.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.7206982,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.200986,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:151:36: replace != with == in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 151,
+              "column": 36
+            },
+            "end": {
+              "line": 151,
+              "column": 38
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_151_col_36.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_151_col_36.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.8194141,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 31.092893,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:151:56: replace >= with < in place_in",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_in",
+            "return_type": "-> Option<Intent>",
+            "span": {
+              "start": {
+                "line": 131,
+                "column": 1
+              },
+              "end": {
+                "line": 161,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 151,
+              "column": 56
+            },
+            "end": {
+              "line": 151,
+              "column": 58
+            }
+          },
+          "replacement": "<",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_151_col_56.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_151_col_56.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.6714989,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 30.6747126,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-sim/src/systems/command.rs:241:5: replace place_intent with ()",
+          "package": "terri-sim",
+          "file": "crates/terri-sim/src/systems/command.rs",
+          "function": {
+            "function_name": "place_intent",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 200,
+                "column": 1
+              },
+              "end": {
+                "line": 269,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 241,
+              "column": 5
+            },
+            "end": {
+              "line": 268,
+              "column": 6
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-sim__src__systems__command.rs_line_241_col_5.log",
+      "diff_path": "diff/crates__terri-sim__src__systems__command.rs_line_241_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.1797487,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 31.6114464,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:287:5: replace decode_save_payload -> Option<terri_core::SaveSnapshotV1> with None",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "decode_save_payload",
+            "return_type": "-> Option<terri_core::SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 285,
+                "column": 1
+              },
+              "end": {
+                "line": 299,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 287,
+              "column": 5
+            },
+            "end": {
+              "line": 298,
+              "column": 59
+            }
+          },
+          "replacement": "None",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_287_col_5.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_287_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 4.2287895,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.057172,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:287:5: replace decode_save_payload -> Option<terri_core::SaveSnapshotV1> with Some(Default::default())",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "decode_save_payload",
+            "return_type": "-> Option<terri_core::SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 285,
+                "column": 1
+              },
+              "end": {
+                "line": 299,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 287,
+              "column": 5
+            },
+            "end": {
+              "line": 298,
+              "column": 59
+            }
+          },
+          "replacement": "Some(Default::default())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_287_col_5_001.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_287_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.9581583,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:1883:9: replace SimHandle::action_queue_of -> Vec<String> with vec![]",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "SimHandle::action_queue_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 1881,
+                "column": 5
+              },
+              "end": {
+                "line": 1884,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1883,
+              "column": 9
+            },
+            "end": {
+              "line": 1883,
+              "column": 47
+            }
+          },
+          "replacement": "vec![]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_1883_col_9.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_1883_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.5725937,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 35.0477306,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:1883:9: replace SimHandle::action_queue_of -> Vec<String> with vec![String::new()]",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "SimHandle::action_queue_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 1881,
+                "column": 5
+              },
+              "end": {
+                "line": 1884,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1883,
+              "column": 9
+            },
+            "end": {
+              "line": 1883,
+              "column": 47
+            }
+          },
+          "replacement": "vec![String::new()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_1883_col_9_001.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_1883_col_9_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.8163032000000001,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 39.3334508,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:1883:9: replace SimHandle::action_queue_of -> Vec<String> with vec![\"xyzzy\".into()]",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "SimHandle::action_queue_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 1881,
+                "column": 5
+              },
+              "end": {
+                "line": 1884,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1883,
+              "column": 9
+            },
+            "end": {
+              "line": 1883,
+              "column": 47
+            }
+          },
+          "replacement": "vec![\"xyzzy\".into()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_1883_col_9_002.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_1883_col_9_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.866349,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.996538,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:1888:9: replace SimHandle::action_queue_window_of -> Vec<String> with vec![]",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "SimHandle::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 1886,
+                "column": 5
+              },
+              "end": {
+                "line": 1890,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1888,
+              "column": 9
+            },
+            "end": {
+              "line": 1889,
+              "column": 69
+            }
+          },
+          "replacement": "vec![]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_1888_col_9.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_1888_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.1808204,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.046427,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:1888:9: replace SimHandle::action_queue_window_of -> Vec<String> with vec![String::new()]",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "SimHandle::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 1886,
+                "column": 5
+              },
+              "end": {
+                "line": 1890,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1888,
+              "column": 9
+            },
+            "end": {
+              "line": 1889,
+              "column": 69
+            }
+          },
+          "replacement": "vec![String::new()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_1888_col_9_001.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_1888_col_9_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7132059,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.0906833,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/lib.rs:1888:9: replace SimHandle::action_queue_window_of -> Vec<String> with vec![\"xyzzy\".into()]",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/lib.rs",
+          "function": {
+            "function_name": "SimHandle::action_queue_window_of",
+            "return_type": "-> Vec<String>",
+            "span": {
+              "start": {
+                "line": 1886,
+                "column": 5
+              },
+              "end": {
+                "line": 1890,
+                "column": 6
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 1888,
+              "column": 9
+            },
+            "end": {
+              "line": 1889,
+              "column": 69
+            }
+          },
+          "replacement": "vec![\"xyzzy\".into()]",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__lib.rs_line_1888_col_9_002.log",
+      "diff_path": "diff/crates__terri-wasm__src__lib.rs_line_1888_col_9_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7143688,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 35.9167076,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:6:5: replace decode -> Option<SaveSnapshotV1> with None",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 5
+            },
+            "end": {
+              "line": 35,
+              "column": 6
+            }
+          },
+          "replacement": "None",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_6_col_5.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_6_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.2173196,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.6704176,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:6:5: replace decode -> Option<SaveSnapshotV1> with Some(Default::default())",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 5
+            },
+            "end": {
+              "line": 35,
+              "column": 6
+            }
+          },
+          "replacement": "Some(Default::default())",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "Unviable",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_6_col_5_001.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_6_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.7077513,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:10:8: delete ! in decode",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 10,
+              "column": 8
+            },
+            "end": {
+              "line": 10,
+              "column": 9
+            }
+          },
+          "replacement": "",
+          "genre": "UnaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_10_col_8.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_10_col_8.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.7158600000000002,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 33.1576077,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:21:9: delete match arm Ok((snapshot, [])) in decode",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 21,
+              "column": 9
+            },
+            "end": {
+              "line": 21,
+              "column": 61
+            }
+          },
+          "replacement": "",
+          "genre": "MatchArm"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_21_col_9.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_21_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 1.6134153,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 34.4946249,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:24:9: delete match arm Err(postcard::Error::DeserializeUnexpectedEnd) in decode",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 24,
+              "column": 9
+            },
+            "end": {
+              "line": 33,
+              "column": 10
+            }
+          },
+          "replacement": "",
+          "genre": "MatchArm"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_24_col_9.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_24_col_9.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.0175763,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 39.4415041,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:28:39: replace match guard snapshot.sleep_pressure.is_empty() with true in decode",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 28,
+              "column": 39
+            },
+            "end": {
+              "line": 28,
+              "column": 73
+            }
+          },
+          "replacement": "true",
+          "genre": "MatchArmGuard"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_28_col_39.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_28_col_39.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.2195859000000002,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 41.2095422,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "crates/terri-wasm/src/save_before_voice.rs:28:39: replace match guard snapshot.sleep_pressure.is_empty() with false in decode",
+          "package": "terri-wasm",
+          "file": "crates/terri-wasm/src/save_before_voice.rs",
+          "function": {
+            "function_name": "decode",
+            "return_type": "-> Option<SaveSnapshotV1>",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 36,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 28,
+              "column": 39
+            },
+            "end": {
+              "line": 28,
+              "column": 73
+            }
+          },
+          "replacement": "false",
+          "genre": "MatchArmGuard"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/crates__terri-wasm__src__save_before_voice.rs_line_28_col_39_001.log",
+      "diff_path": "diff/crates__terri-wasm__src__save_before_voice.rs_line_28_col_39_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 2.4274531,
+          "process_status": "Success",
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--workspace"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 36.7586598,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "C:\\Users\\myema\\.rustup\\toolchains\\1.94.1-x86_64-pc-windows-msvc\\bin\\cargo.exe",
+            "test",
+            "--verbose",
+            "--workspace"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 66,
+  "missed": 0,
+  "caught": 57,
+  "timeout": 0,
+  "unviable": 9,
+  "success": 0,
+  "start_time": "2026-09-30T17:59:39.7123515Z",
+  "end_time": "2026-09-30T18:38:09.6655408Z",
+  "cargo_mutants_version": "27.1.0"
+}

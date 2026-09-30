@@ -30,9 +30,7 @@ pub enum PlacementRefusal {
     /// The object has no price, so nothing says what a sale is worth -
     /// [SL-rules] in `docs/specs/2026-09-22-selling-furniture.md`.
     NotForSale = 15,
-    /// The object is the last one that can fill a role some chain needs, the
-    /// only hob for Cook dinner, so selling it would strand every sim part
-    /// way through that chain - [SL-rules].
+    /// Retired last-provider refusal. Keep numbering for boundary compatibility.
     LastForAChain = 16,
     /// The content pack has no colourway with that index - [RC-command] in
     /// `docs/specs/2026-09-22-colourways.md`.

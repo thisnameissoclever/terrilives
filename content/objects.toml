@@ -344,7 +344,7 @@ sprite = "offlineBathroomSink"
 id = "bookshelf"
 name = "Wall of Intent"
 price = 120
-sprite = "bookcaseClosedDoors"
+sprite = "wallBookcase"
 
   # The low end of the fun range, so the three fun objects span a real spread
   # instead of clustering and making the choice between them arbitrary.

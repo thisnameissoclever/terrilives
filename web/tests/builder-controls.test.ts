@@ -167,25 +167,26 @@ it('sells the chosen furniture for part of its price and clears the choice', () 
   handle.free();
 });
 
-// [SL-shell]: a chosen object that would not sell says why under Sell. The
-// shipped house's only stove is the last hob Cook dinner can use, so it is
-// refused as the last for a chain, code 16 at the boundary.
-it('says why Sell is off for the last furniture a chain needs', () => {
-  const { handle, builder, node } = fixture();
-  node('build-toggle').fire('click');
-  expect(node('builder-sale-note').hidden).toBe(true);
-  const stove = builder.objects.find((object) => object.name === 'The Combustible Optimist');
-  expect(stove).toBeDefined();
-  const selector = node('builder-object');
-  selector.value = String(stove!.id); selector.fire('change');
-  expect(node('builder-sell').disabled).toBe(true);
-  expect([node('builder-sale-note').hidden, node('builder-sale-note').textContent])
-    .toEqual([false, 'Cannot sell: Nothing else in the house can do its job.']);
-  node('builder-cancel').fire('click');
-  expect(node('builder-sale-note').hidden).toBe(true);
-  selector.value = '15'; selector.fire('change');
-  expect([node('builder-sell').disabled, node('builder-sale-note').hidden]).toEqual([false, true]);
-  handle.free();
+it('lets the player sell the only stove and refrigerator', () => {
+  const { handle, source, builder, node } = fixture();
+  try {
+    node('build-toggle').fire('click');
+    for (const name of ['The Combustible Optimist', 'Chill-o-Matic 3000']) {
+      const object = builder.objects.find((object) => object.name === name);
+      expect(object).toBeDefined();
+      const selector = node('builder-object');
+      selector.value = String(object!.id); selector.fire('change');
+      expect(node('builder-sell').disabled).toBe(false);
+      expect(node('builder-sale-note').hidden).toBe(true);
+      node('builder-sell').fire('click');
+      source.flushCommands(); builder.afterCommands();
+      expect(source.lastSaleResult()?.reason).toBeNull();
+      expect(builder.selected).toBeNull();
+      expect(builder.objects.some((candidate) => candidate.id === object!.id)).toBe(false);
+    }
+  } finally {
+    handle.free();
+  }
 });
 
 // [RC-ui] in docs/specs/2026-09-22-colourways.md: the Colour list names every

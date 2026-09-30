@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.10s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test mood::tests::bed_shortage_counts_sleep_slots_and_clears_when_capacity_returns ... FAILED
+
+failures:
+
+---- mood::tests::bed_shortage_counts_sleep_slots_and_clears_when_capacity_returns stdout ----
+
+thread 'mood::tests::bed_shortage_counts_sleep_slots_and_clears_when_capacity_returns' (57012) panicked at crates\terri-sim\src\mood.rs:324:13:
+assertion failed: mood.moodlets.iter().any(|m| m.label == "Not enough beds" && m.score == -20.0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    mood::tests::bed_shortage_counts_sleep_slots_and_clears_when_capacity_returns
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 630 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -1,0 +1,24 @@
+
+running 1 test
+test save_before_voice_tests::actual_pre_voice_save_loads_all_people_and_resaves_with_replay_preserved ... FAILED
+
+failures:
+
+---- save_before_voice_tests::actual_pre_voice_save_loads_all_people_and_resaves_with_replay_preserved stdout ----
+
+thread 'save_before_voice_tests::actual_pre_voice_save_loads_all_people_and_resaves_with_replay_preserved' (53184) panicked at crates\terri-wasm\src\save_before_voice_tests.rs:17:5:
+the screenshot's old save must load
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    save_before_voice_tests::actual_pre_voice_save_loads_all_people_and_resaves_with_replay_preserved
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 134 filtered out; finished in 0.00s
+
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.68s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-dd3bb79986d069a6.exe)
+error: test failed, to rerun pass `-p terri-wasm --lib`

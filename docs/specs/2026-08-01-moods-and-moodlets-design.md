@@ -113,3 +113,11 @@ not a blank box.
    works.
 6. The full workspace, web, build, release-WASM, mutation, exact-head review,
    CI, merge, Pages, and public smoke gates pass.
+
+## Bed capacity addition (2026-09-30)
+
+Mood now also reads live household size and usable sleep capacity. When living
+members outnumber sleeping places, each receives a -20 Not enough beds moodlet.
+The moodlet lasts only while the shortage exists and has no saved state of its
+own. It contributes to the existing sustained-mood effect on life satisfaction.
+See `2026-09-30-gameplay-ui.md` for capacity counting and tests.
