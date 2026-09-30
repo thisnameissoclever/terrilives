@@ -23,6 +23,14 @@ notifications` warnings during the session. No broken layout or stopped game
 was observed. Keep that as an unresolved UI diagnostic, not a clean-console
 claim. The isolated test page was muted and closed; its server was stopped.
 
+After integrating the office-chair update, a production-bundle check loaded the
+same four-person save and continued activities. `production-loaded.jpg` records
+the rounded wheeled desk chair, nighttime room lighting and working pause
+control. A sleep indicator can still appear beside a standing-looking figure;
+sleep pose quality is not accepted by this timing fix. The brief production
+console query was empty, not proof that the development warning is resolved.
+This second owned page and server were also closed.
+
 M1c set out to stop the sims reading as robots. This is the record of
 watching one for twenty minutes of simulated time and writing down what it
 actually did, plus the three knobs that were turned as a result and the

@@ -108,3 +108,12 @@ unchanged. The owned tab and server were closed.
 
 See `[A-sleep-schedule-lifecycle]` in `docs/alpha-feel-notes.md` for the visual
 findings and a development-server warning requiring separate follow-up.
+
+After integrating main `29d128f3` (the office-chair update), formatting, lint,
+all 1,208 Rust tests, rebuilt WASM, typechecking, all 1,252 web tests and the
+production build passed. The changed sprite suites passed again (89 generator
+tests and 8 office tests); together with the unchanged suites, 188 asset tests
+are covered. Atlas reproducibility passed for 1,250 sprites. The production
+bundle loaded the previous test save with four people and continued running.
+`production-loaded.jpg` records that integrated build. Its brief browser error
+query was empty; this does not resolve the earlier development-server warning.
