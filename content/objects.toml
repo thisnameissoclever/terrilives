@@ -821,7 +821,7 @@ roles = ["eating_surface"]
 id = "desk_chair"
 name = "Ergonomic, Allegedly"
 price = 60
-sprite = "chairDesk"
+sprite = "offlineDeskChair"
 
   # No interactions, for the same reason as the dining chairs.
 
