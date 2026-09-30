@@ -7232,3 +7232,25 @@ Review also found New housemate availability cached after a full household lost 
 ## [L-mood-command-batching] Waiting state must follow the order it describes
 
 Adding occupied-item mood exposed two cancellation cases: an autonomous wait has no player order to cancel, and an order staged earlier in the same paused command batch is not yet in the live queue. Clearing every waiting marker discarded autonomous frustration; checking only the live queue made batched and separately flushed commands disagree. Cancel only waiting owned by a current or staged order, or an active chain. Verify all three sources, an autonomous wait that survives Clear orders, and equivalent batched and split command sequences. The mood projection must also stop penalizing a freed or sold item without requiring a clock tick.
+
+## [L-roadmap-status-reconciliation] A shipped slice must leave the future-work lists
+
+**What happened.** The roadmap audit on 2026-09-30 found floors, windows, sales,
+colourways, the yard and street still listed as future work in parts of
+FEATURES.md and GAME-SYSTEMS.md, despite their individual entries recording merges.
+The restart list still prioritised older acceptance work, and the systems summary
+still called the save format V3 when the writer was V5.
+
+**Root cause.** Delivery updated individual feature paragraphs without reconciling
+the overview tables, milestone bullets, remaining-work lists and suggested order.
+Subjective completion percentages concealed which slices had actually shipped.
+
+**Prevention.** After a merge, update the feature entry and every current status or
+dependency claim that names it. Mark the delivered slice complete while keeping
+the larger system partial when extensions remain. Keep historical evidence dated
+and separate from current priorities; keep owner acceptance separate from code status.
+
+**Verification.** Compare the roadmap with merged PRs, the live command enum,
+save-version constant and content. Search both roadmap files for the feature's
+name and ID, stale branch references and future-tense claims. Ensure summary and
+detail agree, and run `python check-doc-ids.py` after the documentation update.
