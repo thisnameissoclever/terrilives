@@ -66,6 +66,7 @@ pub(crate) fn restore_v5(
         death_default_applied,
         waiting_needs,
         self_preservation,
+        chronotype_offsets,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -145,6 +146,7 @@ pub(crate) fn restore_v5(
     crate::mortality::restore(&mut candidate.world, mortality)?;
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
     super::self_preservation::restore(&mut candidate.world, self_preservation)?;
+    super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
     if !death_default_applied {
         candidate
             .world

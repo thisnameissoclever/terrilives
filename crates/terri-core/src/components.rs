@@ -756,7 +756,7 @@ pub struct Personality {
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
     dispositions: Vec<(ObjectDefId, u32, f32)>,
-    /// Where on the circadian curve this sim samples, in ticks -
+    /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     /// [ML-chrono]. Public because selection reads it directly, and 0 -
     /// "sleeps when everyone else does" - is what every sim had before
     /// the rhythm existed.
@@ -781,8 +781,8 @@ impl Personality {
     /// A personality with the given dispositions, sorted here so no caller
     /// can construct an unsorted one: `disposition` binary-searches, and
     /// the list's iteration order must be deterministic for anything that
-    /// ever walks it - including `world_hash`, IF personality ever enters
-    /// it. It does not today; see the exclusion note on `Sim::world_hash`.
+    /// ever walks it. The world hash currently includes only the separate
+    /// chronotype field, not these static multipliers or dispositions.
     pub fn with_dispositions(
         drain: [f32; NEED_COUNT],
         satisfaction: [f32; NEED_COUNT],

@@ -31,11 +31,12 @@ pub(crate) fn spawn_member(
 ) -> Entity {
     let sim_id = world.resource_mut::<terri_core::SimIdAllocator>().issue();
     let compiled = &personalities[member.personality as usize];
-    let personality = terri_core::Personality::with_dispositions(
+    let mut personality = terri_core::Personality::with_dispositions(
         compiled.drain,
         compiled.satisfaction,
         compiled.dispositions.clone(),
     );
+    personality.chronotype_offset_ticks = compiled.chronotype_offset_ticks;
     let mut needs = terri_core::Needs::all_at(NEED_MAX);
     for id in terri_core::NeedId::ALL {
         needs.set(id, member.needs[id.index()]);

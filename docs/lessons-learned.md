@@ -1,5 +1,29 @@
 # Lessons Learned
 
+## [L-chronotype-lifecycle-and-sign] Test the schedule's meaning and its full lifecycle
+
+**What happened.** Content declared early-riser and night-owl offsets, but
+household creation left both at zero and saves omitted the field. Independent
+review also found that the phase calculation reversed the intended timing.
+
+**Root cause.** The compiler and curve helper had tests, but the compiled field
+was not traced through spawning, saving, loading and hashing. Arithmetic tests
+copied the implementation's plus sign instead of specifying when an early or
+late schedule should reach a known point on the curve. Old docs still called
+the enabled curve disabled.
+
+**Prevention rule.** For each behavior-bearing field, test authored input through
+the runtime lifecycle. Define the sign in player terms before testing arithmetic.
+Preserve historical defaults explicitly; do not infer missing saved state from
+current content. Recheck current configuration when updating old status notes.
+
+**How to verify.** Starters and newcomers receive exact authored offsets; V5
+retains arbitrary signed offsets and their owners, while older saves retain
+zero. Test the same evening curve point at clock ticks 1230, 1320 and 1500 for
+offsets -90, 0 and +180. Removing propagation, persistence, hash input, ordering
+validation or correct phase direction must fail a focused regression. See
+`docs/specs/2026-09-30-sleep-schedules.md` for the evidence contract.
+
 ## [L-short-wall-transparency] Test the bound pipeline, not just its descriptor
 
 **What happened.** Short walls needed local transparency without reviving the

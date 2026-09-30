@@ -341,6 +341,12 @@ moving. Objects already declare tags; the answer was authored all along.
 
 **The circadian rhythm is ON**, with an exhaustion ramp behind it.
 
+New people now receive their authored early-riser or night-owl offset, and V5
+saves preserve it. Negative offsets advance the daily drive, positive offsets
+delay it; the earlier calculation had reversed these meanings. Older saves
+without offsets keep their historical zero. This repairs timing and persistence,
+not the remaining sleep-balance tuning. See `docs/specs/2026-09-30-sleep-schedules.md`.
+
 The curve alone could never promise that a tired sim eventually sleeps: it
 multiplies a candidate's benefits, so a deep enough daytime trough vetoes
 bed no matter how long somebody has been upright. `SleepPressure` counts

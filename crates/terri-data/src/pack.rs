@@ -712,7 +712,7 @@ pub struct CompiledPersonality {
     /// interaction that does not exist has no representation once a pack
     /// exists.
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
-    /// Where on the circadian curve this archetype samples, in ticks -
+    /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     /// [ML-chrono]. 0 is "sleeps when everyone else does", which is the
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,

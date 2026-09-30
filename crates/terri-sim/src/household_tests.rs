@@ -25,6 +25,110 @@ fn entity(sim: &Sim, index: u32) -> Entity {
     sim.world().entities().resolve_from_index(index)
 }
 
+#[test]
+fn chronotype_starters_and_newcomers_receive_authored_offsets() {
+    let sim = Sim::new_from_shipped_lot();
+    let content = sim.world().resource::<Content>().0;
+    let mut seen = Vec::new();
+    for member in &content.household {
+        let mut people = sim
+            .world()
+            .try_query::<(&SimName, &terri_core::Personality)>()
+            .unwrap();
+        let (_, personality) = people
+            .iter(sim.world())
+            .find(|(name, _)| name.0 == member.name)
+            .unwrap();
+        let expected = content.personalities[member.personality as usize].chronotype_offset_ticks;
+        assert_eq!(
+            personality.chronotype_offset_ticks, expected,
+            "{}",
+            member.name
+        );
+        seen.push(expected);
+    }
+    assert!(seen.iter().any(|&offset| offset != 0));
+    for (index, authored) in content.personalities.iter().enumerate() {
+        let mut fresh = Sim::new_from_shipped_lot();
+        let result = move_in(&mut fresh, "Newcomer", index as u32, &[]);
+        let person = entity(&fresh, result.sim.unwrap());
+        assert_eq!(
+            fresh
+                .world()
+                .get::<terri_core::Personality>(person)
+                .unwrap()
+                .chronotype_offset_ticks,
+            authored.chronotype_offset_ticks
+        );
+    }
+}
+
+#[test]
+fn chronotype_current_save_preserves_exact_offset_and_continuation() {
+    let mut live = Sim::new_from_shipped_lot();
+    let person = entity(&live, live.save_snapshot_v5().self_preservation[0].0);
+    live.world_mut()
+        .get_mut::<terri_core::Personality>(person)
+        .unwrap()
+        .chronotype_offset_ticks = -731;
+    let mut loaded = Sim::new_from_shipped_lot();
+    loaded.load_snapshot_v5(live.save_snapshot_v5()).unwrap();
+    assert_eq!(
+        loaded
+            .world()
+            .get::<terri_core::Personality>(person)
+            .unwrap()
+            .chronotype_offset_ticks,
+        -731
+    );
+    assert_eq!(loaded.save_snapshot_v5(), live.save_snapshot_v5());
+    for _ in 0..1800 {
+        live.tick();
+        loaded.tick();
+        assert_eq!(loaded.world_hash(), live.world_hash());
+    }
+    assert_eq!(loaded.save_snapshot_v5(), live.save_snapshot_v5());
+}
+
+#[test]
+fn chronotype_hash_observes_offset_and_its_owner_without_ticking() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let people: Vec<_> = sim
+        .save_snapshot_v5()
+        .self_preservation
+        .iter()
+        .map(|row| entity(&sim, row.0))
+        .collect();
+    for &person in &people {
+        sim.world_mut()
+            .get_mut::<terri_core::Personality>(person)
+            .unwrap()
+            .chronotype_offset_ticks = 0;
+    }
+    let zero = sim.world_hash();
+    sim.world_mut()
+        .get_mut::<terri_core::Personality>(people[0])
+        .unwrap()
+        .chronotype_offset_ticks = -90;
+    let early = sim.world_hash();
+    assert_ne!(early, zero);
+    sim.world_mut()
+        .get_mut::<terri_core::Personality>(people[0])
+        .unwrap()
+        .chronotype_offset_ticks = 180;
+    assert_ne!(early, sim.world_hash());
+    sim.world_mut()
+        .get_mut::<terri_core::Personality>(people[0])
+        .unwrap()
+        .chronotype_offset_ticks = 0;
+    assert_eq!(zero, sim.world_hash());
+    sim.world_mut()
+        .get_mut::<terri_core::Personality>(people[1])
+        .unwrap()
+        .chronotype_offset_ticks = -90;
+    assert_ne!(early, sim.world_hash());
+}
+
 /// The newcomer arrives on the street's exit, walking to the landing, and is
 /// a household member made as the shipped ones are: the next sim id, the
 /// trimmed name, the personality's numbers, full needs, no job or hobbies,

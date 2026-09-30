@@ -33,6 +33,7 @@ pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+pub(super) mod chronotype;
 pub(super) mod self_preservation;
 #[cfg(test)]
 mod v3_tests;

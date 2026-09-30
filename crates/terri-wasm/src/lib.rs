@@ -231,13 +231,13 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 7;
+    const APPENDED_LISTS: usize = 8;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: instincts, waiting, migration flag, mortality, SimId
+                // From the tail: chronotypes, instincts, waiting, migration flag, mortality, SimId
                 // ties, legacy ties, floors. Asking every appended field
                 // to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
@@ -258,16 +258,19 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let instinct = snapshot.self_preservation.len();
+                let chronotype = snapshot.chronotype_offsets.len();
                 let invented = match pad {
                     0 => 0,
-                    1 => instinct,
-                    2 => instinct + waiting,
-                    3 => instinct + waiting + migrated,
-                    4 => instinct + waiting + migrated + mortality,
-                    5 => instinct + waiting + migrated + mortality + family,
-                    6 => instinct + waiting + migrated + mortality + family + by_index,
+                    1 => chronotype,
+                    2 => chronotype + instinct,
+                    3 => chronotype + instinct + waiting,
+                    4 => chronotype + instinct + waiting + migrated,
+                    5 => chronotype + instinct + waiting + migrated + mortality,
+                    6 => chronotype + instinct + waiting + migrated + mortality + family,
+                    7 => chronotype + instinct + waiting + migrated + mortality + family + by_index,
                     _ => {
-                        instinct
+                        chronotype
+                            + instinct
                             + waiting
                             + migrated
                             + mortality
@@ -7686,7 +7689,9 @@ mod instinct_boundary_tests {
         let source = SimHandle::from_lot();
         let mut snapshot = source.sim.save_snapshot_v5();
         snapshot.self_preservation.clear();
+        snapshot.chronotype_offsets.clear();
         let mut payload = postcard::to_allocvec(&snapshot).unwrap();
+        assert_eq!(payload.pop(), Some(0));
         assert_eq!(payload.pop(), Some(0));
         let decoded = decode_v5(&payload).unwrap();
         assert!(decoded.self_preservation.is_empty());
@@ -7700,7 +7705,11 @@ mod instinct_boundary_tests {
             .self_preservation
             .iter()
             .all(|(_, instinct)| (30..=70).contains(instinct)));
-        let mut truncated = source.save_bytes();
+        let mut current = source.sim.save_snapshot_v5();
+        current.chronotype_offsets.clear();
+        let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        truncated.extend(postcard::to_allocvec(&current).unwrap());
+        truncated.pop();
         truncated.pop();
         let before = loaded.save_bytes();
         assert!(!loaded.load_bytes(&truncated));
