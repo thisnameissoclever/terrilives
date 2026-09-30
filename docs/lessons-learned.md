@@ -7565,3 +7565,19 @@ keyboard activation from Options into Sim details; and deliberate illegal flex
 and hidden-state rules injected into the additional stylesheet. Each guard must
 fail, then the exact original bytes must be restored. The compact HUD evidence
 records those failures and the final passing suite.
+
+## Dining table support and picking checks (2026-09-30)
+
+Adversarial in-memory mutations showed that a grounded leg could still extend
+through the tabletop while passing contact tests. Positive contact alone does
+not establish a part's correct dimensions. The table checks now pin every
+leg's evaluated dimensions and reject widened and taller saved-scene copies,
+as well as detached parts and a wrong authored basis. Verify by running the
+dining layout suite and `check_table_scene.py`; the latter must catch eight
+damaged copies and reload the byte-identical clean model.
+
+A picking test clicked above the entire wide image, so it did not test blank
+padding inside that image. The corrected point is within the registered canvas
+but above the visible art. Deliberately extending only the top content bound
+must now make the test fail in every facing. Test the claimed boundary, not a
+point the outer rectangle would reject anyway.

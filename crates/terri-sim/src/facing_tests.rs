@@ -4,7 +4,7 @@ use terri_core::{Facing, ObjectFacing, Position};
 #[test]
 fn authored_objects_keep_positions_and_footprints_with_reviewed_sprite_replacements() {
     // Captured from preceding release WASM; the reviewed bookcase, desk chair
-    // and dining chairs use appended art. Positions and footprints remain unchanged.
+    // and dining furniture use appended art. Positions and footprints remain unchanged.
     let expected: &[(u32, f32, f32, u32, u32, u32, u32)] = &[
         (0, 0.0, 0.0, 1, 1, 1091, 4294967295),
         (1, 1.0, 0.0, 1, 1, 1099, 4294967295),
@@ -13,7 +13,7 @@ fn authored_objects_keep_positions_and_footprints_with_reviewed_sprite_replaceme
         (4, 4.0, 0.0, 1, 1, 1103, 4294967295),
         (5, 5.0, 0.0, 1, 1, 1099, 4294967295),
         (6, 6.0, 0.0, 1, 1, 18, 4294967295),
-        (7, 2.5, 3.0, 2, 1, 16, 4294967295),
+        (7, 2.5, 3.0, 2, 1, 1254, 4294967295),
         (8, 1.0, 3.0, 1, 1, 1253, 4294967295),
         (9, 4.0, 3.0, 1, 1, 1252, 4294967295),
         (10, 8.0, 0.0, 1, 1, 1225, 4294967295),

@@ -2,8 +2,8 @@
 
 Continue the accepted offline-model-to-sprite process without changing the
 existing furniture's prices, footprints, positions, actions or save identities.
-The first replacement is the one-tile wooden dining chair. The table and seated
-meal animation are separate work; an empty chair does not establish body fit.
+The replacements are the one-tile wooden dining chair and two-tile oak table.
+Seated meal animation is separate work; empty furniture does not establish body fit.
 
 `chair_layout.py` defines four feet, continuous rear posts, equal back rails,
 seat, aprons and stretchers. Its physical front is local -X. The unchanged
@@ -31,3 +31,26 @@ table between them. Do not move the lot to conceal a rotated authoring basis.
 This is deterministic Blender authoring, not an image-model request. The
 accepted Sim supplies toon materials, light and camera registration. No paid
 provider, new dependency, image prompt or pixel repair is involved.
+
+## Dining table
+
+`table_layout.py` defines four equal grounded legs, four ordinary aprons and
+one rounded top. Its long axis is local Y, unlike the desk's local X. The shared
+90-degree SE export makes it span game X, preserving the table's existing SE
+base and 2x1 footprint. SW/NE use 1x2. Keep the model centered at (0,0); the
+runtime already centers the object within its rotated footprint.
+
+Use `render_table.py` with a new absolute candidate directory. It reuses the
+unchanged wide exporter: 1280x1408 source images, 320x352 textures and a
+160x176 logical canvas. Run `check_table_scene.py` against the saved model and
+a new absolute result path. Require 16 evaluated-solid joins, four floor
+contacts, equal leg dimensions, correct rotated spans and eight rejected
+damaged copies. `assets/models/bathroom/review_wide_static.py` produces the
+four-facing board without repairing pixels.
+
+`web/proofs/dining-table.js` exercises actual WASM placements through the real
+frame builder and GPU, then captures a terminal dinner. The meal stays attached
+to the Sim's hand anchors. This table replacement adds neither seated eating
+nor table-resting dishes. Test both default placement and save/load after all
+four rotations. Preserve all earlier atlas records and decoded pixels even
+when the existing packer selects a wider atlas.

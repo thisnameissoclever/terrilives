@@ -12,6 +12,12 @@
       "directory": "dining/owner-review-pending/dining-chair/candidate-01",
       "proof_sha256": "221e791a4a1c2372a607a4141b33a232540e93440397aa41f5bc176375bba132",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineDiningTable",
+      "directory": "dining/owner-review-pending/dining-table/candidate-01",
+      "proof_sha256": "aebd743ba6415a60ad04948d1a6d1ebd07b9cba39ad73d8dc6221d51fc986b33",
+      "review_status": "accepted-independent-review"
     }
   ]
 }
