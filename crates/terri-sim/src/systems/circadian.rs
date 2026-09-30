@@ -192,10 +192,11 @@ pub fn phase(tick: u64, offset_ticks: i32, day_ticks: u32) -> u32 {
         return 0;
     }
     let day = i64::from(day_ticks);
-    // The offset is signed and the tick is not, so this happens in i64.
+    // Positive offsets delay the schedule; negative offsets advance it.
+    // Widen before subtracting so even i32::MIN remains valid.
     // Rust's `%` keeps the sign of the dividend, like JavaScript's, hence
     // the double modulo rather than one.
-    let raw = (tick % u64::from(day_ticks)) as i64 + i64::from(offset_ticks);
+    let raw = (tick % u64::from(day_ticks)) as i64 - i64::from(offset_ticks);
     (((raw % day) + day) % day) as u32
 }
 
@@ -426,11 +427,27 @@ mod tests {
     fn the_phase_never_leaves_the_day_whatever_the_chronotype() {
         // A negative phase would index off the front of the curve and pin
         // that sim to the first control point forever.
-        for offset in [-2000, -180, -1, 0, 1, 180, 5000] {
+        for offset in [i32::MIN, -2000, -180, -1, 0, 1, 180, 5000, i32::MAX] {
             for tick in [0u64, 1, 719, 1439, 1440, 100_000] {
                 let p = phase(tick, offset, DAY);
                 assert!(p < DAY, "phase {p} outside the day for offset {offset}");
             }
+        }
+    }
+
+    #[test]
+    fn chronotype_negative_is_earlier_and_positive_is_later_on_actual_curve() {
+        let pack = terri_data::pack();
+        let curve = &pack.circadian.as_ref().unwrap().sleep_drive;
+        let day = pack.tuning.day_ticks;
+        let at = |tick, offset| curve_at(curve, day, phase(tick, offset, day));
+        assert!(at(1200, -90) > at(1200, 0));
+        assert!(at(1200, 0) > at(1200, 180));
+        assert!(at(360, -90) < at(360, 0));
+        assert!(at(360, 0) < at(360, 180));
+        for tick in [360, 1200] {
+            assert_eq!(at(tick - 90, -90), at(tick, 0));
+            assert_eq!(at(tick + 180, 180), at(tick, 0));
         }
     }
 
@@ -442,14 +459,16 @@ mod tests {
         let early = phase(600, -180, DAY);
         let owl = phase(600, 180, DAY);
         assert_ne!(early, owl);
-        assert_eq!(early, 420);
-        assert_eq!(owl, 780);
+        assert_eq!(early, 780);
+        assert_eq!(owl, 420);
     }
 
     #[test]
-    fn the_offset_wraps_a_night_owl_past_midnight() {
-        // 23:00 plus three hours is 02:00 the next day, not 26:00.
-        assert_eq!(phase(1380, 180, DAY), 120);
+    fn the_offset_wraps_a_delayed_schedule_before_midnight() {
+        // At 02:00 a three-hour-late schedule samples yesterday's 23:00.
+        assert_eq!(phase(120, 180, DAY), 1380);
+        assert_eq!(phase(0, i32::MIN, DAY), 128);
+        assert_eq!(phase(0, i32::MAX, DAY), 1313);
     }
 
     #[test]
@@ -532,9 +551,8 @@ mod tests {
             let p = phase(0, offset, DAY);
             assert!(p < DAY, "phase {p} outside the day for offset {offset}");
         }
-        // 3000 ticks early from midnight is 2 days and 120 ticks early,
-        // which is 22:00 the previous evening.
-        assert_eq!(phase(0, -3000, DAY), 1320);
+        // A schedule 3000 ticks early samples 120 ticks ahead after wrapping.
+        assert_eq!(phase(0, -3000, DAY), 120);
     }
 
     #[test]

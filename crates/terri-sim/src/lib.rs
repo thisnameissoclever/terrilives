@@ -726,6 +726,7 @@ impl Sim {
             death_default_applied: true,
             waiting_needs: waiting::snapshot(&self.world),
             self_preservation: save::self_preservation::capture(&self.world),
+            chronotype_offsets: save::chronotype::capture(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -2378,17 +2379,12 @@ impl Sim {
         // carrying which sim IS SimId 3 would let two differently-labelled
         // worlds hash identically.
         //
-        // **`Personality` and `SimName` are deliberately NOT in the
-        // digest, each for its own reason.** `SimName` is presentation: a
-        // rename must not diverge a replay. `Personality` DOES change what
-        // a sim chooses and is excluded anyway because today it is static:
-        // derived from content at spawn and never written afterwards, so
-        // two replays from one pack cannot disagree about it, and
-        // digesting it would only restate the content. That argument
-        // EXPIRES the moment anything mutates a personality at runtime -
-        // M2e's traits are the scheduled arrival - and whoever writes the
-        // first mutation owns adding it to this digest and re-measuring
-        // both golden vectors.
+        // `SimName` is presentation: a rename must not diverge a replay.
+        // Personality multipliers and dispositions retain their historical
+        // exclusion while they are immutable during play. Runtime editing
+        // must add them to the digest. Chronotype is hashed in a sparse
+        // suffix below: historical people can have zero while new people
+        // receive authored offsets, even when both came from the same pack.
         //
         // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
         // wraps a u32 allocated monotonically from 0, so u64::MAX is
@@ -2968,6 +2964,15 @@ impl Sim {
             for (index, instinct) in instincts {
                 hasher.write_u64(u64::from(index));
                 hasher.write_u64(u64::from(instinct));
+            }
+        }
+        let offsets = save::chronotype::capture(&self.world);
+        if !offsets.is_empty() {
+            hasher.write_bytes(b"chronotype-offsets-v1");
+            hasher.write_u64(offsets.len() as u64);
+            for (index, offset) in offsets {
+                hasher.write_u64(u64::from(index));
+                hasher.write_u64(offset as i64 as u64);
             }
         }
         hasher.finish()

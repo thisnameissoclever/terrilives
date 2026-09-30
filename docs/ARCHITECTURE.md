@@ -1262,3 +1262,18 @@ missing values draw from 30 through 70, inclusive, in stable entity order using
 the restored RNG. Explicit zero is preserved. Both values and generator state
 participate in the world hash. Details and tunables are in
 `docs/specs/2026-09-30-varied-autonomy.md`.
+
+## [Sleep-schedule-state] Per-person sleep timing
+
+Household creation copies the selected personality's signed chronotype offset
+into runtime state. Sleep scoring samples the daily curve at `clock - offset`:
+negative values bring the schedule forward, positive values delay it. This is
+a preference weight, not a forced bedtime.
+
+V5 appends sparse `chronotype_offsets` rows after self-preservation. Each row
+contains a living person's entity index and exact nonzero signed offset. The
+loader validates ordering, uniqueness and ownership before adopting the candidate
+world. Older saves omit the field and retain zero offsets. Frozen entity records
+remain unchanged. The world hash includes nonzero offsets and their owners in
+entity order; zero-only historical worlds retain their previous hash layout.
+See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.

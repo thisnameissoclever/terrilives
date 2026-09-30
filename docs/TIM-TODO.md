@@ -297,12 +297,10 @@ still uses one draw and one submit per frame. The remaining device boundary is
 to look at the darkest floor on a physical phone in daylight; desktop contrast
 measurement does not answer that question.
 
-**One tuning decision needs you, and it is small.** The circadian rhythm is
-built and switched off: `content/tuning.toml` carries the `[circadian]` block
-commented out because the CURVE is not tuned, and tuning it wants a watched
-run rather than another guess from me. Uncommenting it turns on sims
-sleeping at night; the numbers beside it are a first draft, not a
-recommendation.
+The circadian rhythm is enabled in `content/tuning.toml`, with an exhaustion
+ramp that keeps daytime tiredness from indefinitely losing to the clock.
+Further tuning needs a watched run. The earlier instruction to uncomment the
+curve was obsolete; enabling it again is not a remaining task.
 
 The first paper's five options were rejected whole, and correctly: each one
 restyled the existing sprites, and a grade over borrowed art is still

@@ -60,6 +60,9 @@ pub struct SaveSnapshotV5 {
     pub waiting_needs: Vec<(u32, u32, u8)>,
     /// Living person index and instinct, in ascending entity order.
     pub self_preservation: Vec<(u32, u8)>,
+    /// Person index and exact nonzero sleep-schedule offset, ascending by index.
+    /// Missing entries retain the historical zero; never infer them from content.
+    pub chronotype_offsets: Vec<(u32, i32)>,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:

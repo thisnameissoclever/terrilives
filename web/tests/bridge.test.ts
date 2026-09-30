@@ -865,11 +865,11 @@ describe('SimBridge', () => {
     // no entities or walls; it tests the distinction between undefined and
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
-    // the applied migration flag, waiting and the empty instinct list.
-    expect(Array.from(legacyCells.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
+    // the applied migration flag, waiting, instincts and chronotype offsets.
+    expect(Array.from(legacyCells.slice(-16))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - 15] = 2;
+    edgeBytes[edgeBytes.length - 16] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -887,15 +887,15 @@ describe('SimBridge', () => {
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration,
-    // waiting, and instincts. This empty world has one byte per empty list.
-    expect(Array.from(valid.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
+    // waiting, instincts and chronotypes. Each empty list costs one byte.
+    expect(Array.from(valid.slice(-16))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -4), valid.slice(0, -11), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -5), valid.slice(0, -12), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();

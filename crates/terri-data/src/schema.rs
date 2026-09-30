@@ -658,7 +658,7 @@ pub struct PersonalitiesFile {
 #[derive(Debug, Deserialize)]
 pub struct ArchetypeDef {
     pub id: String,
-    /// Where on the circadian curve this sim samples, in ticks.
+    /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     ///
     /// [ML-chrono], and the highest-value number in the feature. ONE
     /// curve for everyone puts the whole household in bed on the same

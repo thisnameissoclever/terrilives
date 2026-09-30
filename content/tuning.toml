@@ -603,8 +603,8 @@ asleep_decay_scale = 0.4
 # One tag, read by three separate things: the circadian drive that makes
 # a bed attractive at night, the decay scale above, and the Zzz bubble
 # the shell draws. It lives out here rather than inside `[circadian]`
-# because that table is optional and currently commented out, and two of
-# those three readers are not.
+# because that table is optional, while two of those three readers still
+# need the tag when a content pack omits the curve.
 #
 # It has to name a tag some interaction in `objects.toml` actually
 # declares - the compile step checks, because a misspelling here is the

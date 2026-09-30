@@ -1,5 +1,36 @@
 # Alpha Feel Notes
 
+## [A-sleep-schedule-lifecycle] Authored timing survives a played save, 2026-09-30
+
+The displayed local build created a night-owl housemate, saved, reloaded, and
+continued into the next day. The roster, action card and needs remained readable
+at 1280 by 720. A sleeping Sim and its Z indicator were visible in the loaded
+household capture. The newcomer's later sleep status and subsequent restored
+energy were observed through the HUD; the later capture shows cooking, not sleep.
+Exact offset timing and continued-state equality are covered by automated tests,
+not inferred from the screenshots.
+
+The short walls made the kitchen, living area and bathroom readable. The left
+HUD still overlays part of the far-left room at this framing, and most household
+members share a similar silhouette; neither is introduced or fixed by this
+sleep-state change. No complete conversation was watched in this pass, so this
+is not a full visual or animation acceptance of the game.
+
+Evidence: `docs/assets/review-evidence/sleep-schedules/loaded-household.jpg`
+and `next-day-cooking.jpg`. The browser error-log query returned empty, but the
+Vite server reported two `ResizeObserver loop completed with undelivered
+notifications` warnings during the session. No broken layout or stopped game
+was observed. Keep that as an unresolved UI diagnostic, not a clean-console
+claim. The isolated test page was muted and closed; its server was stopped.
+
+After integrating the office-chair update, a production-bundle check loaded the
+same four-person save and continued activities. `production-loaded.jpg` records
+the rounded wheeled desk chair, nighttime room lighting and working pause
+control. A sleep indicator can still appear beside a standing-looking figure;
+sleep pose quality is not accepted by this timing fix. The brief production
+console query was empty, not proof that the development warning is resolved.
+This second owned page and server were also closed.
+
 M1c set out to stop the sims reading as robots. This is the record of
 watching one for twenty minutes of simulated time and writing down what it
 actually did, plus the three knobs that were turned as a result and the
