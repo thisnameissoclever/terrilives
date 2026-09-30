@@ -1,5 +1,11 @@
 # Gameplay UI and furniture corrections
 
+Current layout: [CUI-world]-[CUI-build] in
+[the compact control layout](2026-09-30-control-layout-studies.md) supersedes
+this document's control positions. The record below describes the earlier
+shipped layout. Options is now at the upper left; Sim information is in the
+bottom dock, and Queue mode/Clear orders are inside Queue.
+
 Status: implemented and verified in the gameplay-ui worktree. Played evidence
 and remaining owner visual approval are recorded below.
 

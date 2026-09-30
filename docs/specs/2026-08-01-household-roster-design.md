@@ -29,6 +29,11 @@ Each member is a native button with the authored name as visible text and an
 `aria-pressed` selected state. Native buttons provide Tab, Enter, Space, focus,
 and touch behavior without manufacturing a second keyboard protocol.
 
+Household names use bold 15-pixel type. The selected person's needs heading
+uses bold 20-pixel type, above the smaller status labels. Names wrap when
+space is limited; the roster buttons use a 44-pixel minimum height on compact/touch screens
+and 34 pixels on desktop.
+
 Pausing stops simulation time, not household controls. The shell drains staged
 commands through the simulation's command-only schedule once per paused frame,
 so selection applies without advancing the clock, needs, or autonomous work.
@@ -63,7 +68,8 @@ page after clearing storage, so it rebuilds from the fresh simulation.
    select a stale or different entity.
 7. Removed members disappear on forced reconciliation.
 8. Desktop and narrow-screen checks leave all member buttons readable,
-   keyboard-operable, and at least 44 CSS pixels tall.
+   keyboard-operable, and at least 44 CSS pixels tall on compact screens.
+   Desktop roster buttons use 34px in the compact dock ([CUI-dock]).
 9. Paused selection applies on the next rendered frame without advancing the
    simulation clock.
 10. A rejected Select command produces visible failure feedback.

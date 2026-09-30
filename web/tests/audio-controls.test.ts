@@ -87,7 +87,7 @@ describe('AudioControls', () => {
     );
     // [OF3]: the sound controls moved into the Options panel, so the phone
     // sidebar keeps speed and no longer lays out audio or actions rows.
-    expect(INDEX_HTML).toMatch(/grid-template-areas:[\s\S]*?'speed speed'/);
+    expect(INDEX_HTML.indexOf('id="time-controls"')).toBeLessThan(INDEX_HTML.indexOf('id="options-panel"'));
     expect(INDEX_HTML).not.toMatch(/'audio audio'|'actions actions'/);
     const panel = INDEX_HTML.indexOf('id="options-panel"');
     expect(INDEX_HTML.indexOf('id="audio-controls"')).toBeGreaterThan(panel);

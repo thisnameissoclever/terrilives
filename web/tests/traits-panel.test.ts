@@ -345,30 +345,19 @@ describe('the Traits block in the page', () => {
     expect(MAIN_TS).toContain(`'#${id}'`);
   });
 
-  it('starts hidden and collapsed, is named for assistive technology, and sits below the need bars', () => {
-    // [OF3]: a details element with no `open`, so every load starts closed.
+  it('starts hidden and collapsed inside its own initially closed sheet panel', () => {
     expect(INDEX_HTML).toContain('<details id="traits-block" aria-label="Traits" hidden>');
     expect(INDEX_HTML).toContain('<summary id="traits-caption" class="summary-label">Traits</summary>');
-    const needs = INDEX_HTML.indexOf('id="needs-content"');
-    const traits = INDEX_HTML.indexOf('id="traits-block"');
-    const people = INDEX_HTML.indexOf('id="people-panel"');
-    expect(needs).toBeGreaterThan(-1);
-    expect(traits).toBeGreaterThan(needs);
-    expect(people).toBeGreaterThan(traits);
-
-    // The need bars are appended to the END of #needs-content at runtime, so
-    // "below the bars" means OUTSIDE that div and after it. Between the two
-    // ids every div that opens must close, plus one more: #needs-content's.
-    const between = INDEX_HTML.slice(needs, traits);
-    const opened = between.split('<div').length - 1;
-    const closed = between.split('</div>').length - 1;
-    expect(closed - opened).toBe(1);
+    const pane = INDEX_HTML.slice(INDEX_HTML.indexOf('id="sim-traits"'), INDEX_HTML.indexOf('id="sim-household"'));
+    expect(pane).toContain('data-sim-panel="traits" aria-label="Traits" hidden');
+    expect(pane).toContain('id="traits-block"');
+    expect(pane).not.toContain('id="needs-content"');
   });
 
   it('is not a heading, so it does not file itself under the household roster', () => {
     const block = INDEX_HTML.slice(
       INDEX_HTML.indexOf('id="traits-block"'),
-      INDEX_HTML.indexOf('id="people-panel"'),
+      INDEX_HTML.indexOf('id="sim-household"'),
     );
     expect(block).not.toMatch(/<h[1-6]/);
   });

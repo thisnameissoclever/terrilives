@@ -7498,3 +7498,47 @@ the production connection as well as each endpoint when randomness crosses layer
 **How to verify.** Removing the migration sort and replacing startup seeds with
 constants each produce the intended assertion failure. Restore exact source bytes
 and rerun both tests; evidence is in `docs/autonomy-mutation-evidence.md`.
+
+## [L-control-mockups-need-a-space-budget] Size the controls before polishing the mock-up
+
+**What happened.** The first desktop and mobile control mock-ups devoted too
+much screen space to panels. The owner preferred the household console's
+organization but rejected its bulk and unused space.
+
+**Root cause.** The review prioritized grouping and visual polish without
+holding the result to a measured share of the game viewport. Stating pixel
+targets in an image prompt did not ensure the resulting geometry met them.
+
+**Prevention rule.** Define the default panel footprint before drawing it.
+Keep frequent readouts visible and put secondary detail behind explicit
+disclosures. Remove duplicate content and excess padding first; use separate
+desktop control sizes and mobile touch targets. Treat pixel labels in a
+concept as intentions until the rendered geometry is checked.
+
+**How to verify.** Measure the bottom strip, world controls and uninterrupted
+canvas at each target viewport. Compare collapsed and expanded states, check
+44px mobile hit areas, and verify that world selection still reaches the
+canvas outside the controls. The compact console revision targets a 96px
+desktop strip at 1440 by 900; its image is not implementation evidence.
+
+
+## [L-compact-hud-collapse-and-css-coverage] Folding UI must preserve warnings and test coverage
+
+The compact HUD's first pass hid the household roster on Collapse and retained
+only the selected Sim's critical-needs summary. That lost another household
+member's death warning. Moving responsive rules into a new stylesheet also
+left the existing Build guards reading only index.html. Adversarial review
+caught both before delivery.
+
+Root cause: presentation boundaries moved without moving every dependent
+warning and test boundary. Preserve household-wide warnings outside the
+collapsible body, independent of selection. Scan every shipped stylesheet when
+a guard claims to protect a CSS invariant; keep exceptions limited to exact
+legitimate selectors. Opening panels must coordinate on activation, not depend
+on an incidental pointerdown that keyboard activation never sends.
+
+Verify with a non-selected endangered member and no selection while collapsed;
+keyboard activation from Options into Sim details; and deliberate illegal flex
+and hidden-state rules injected into the additional stylesheet. Each guard must
+fail, then the exact original bytes must be restored. The compact HUD evidence
+records those failures and the final passing suite.
