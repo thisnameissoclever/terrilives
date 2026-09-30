@@ -94,13 +94,13 @@ After an approved fetch:
 ## Architecture boundary
 
 The current authored actions safely identify footsteps, conversation, sleep,
-eating, reading, and exercise. They do not identify which appliance or fixture
-caused a generic interaction. Refrigerator, stove, sink, toilet, shower,
-aquarium, television, and door audio must wait for an authored semantic sound
-action plus stable source-object identity. File availability is not permission
-to infer object state from animation labels.
+eating, reading, and exercise. Shower and stove now also have an authored sound
+action plus exact source-object identity; they remain silent pending recording
+intake and acceptance. Other appliances still need explicit semantic state.
+File availability is not permission to infer object state from animation labels.
 
 The likely first use of these packs is therefore replacement material for
 already semantic personal cues, followed by kitchen and bathroom sounds after
 the source-object contract exists. Nonverbal Sim voices remain a separate
-recording problem; the compact packs are not expected to solve them.
+recording problem; twelve first-party conversation clips now ship, while the
+compact packs are not expected to provide additional character voices.

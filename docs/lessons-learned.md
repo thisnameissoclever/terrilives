@@ -1,5 +1,28 @@
 # Lessons Learned
 
+## [L-audio-envelope-needs-rendered-proof] A scheduled fade may still produce a hard cut
+
+**What happened.** Conversation stops scheduled a fade but cancelled the ramp
+that supplied its starting level. A real offline audio render exposed an
+immediate 0.149-to-zero jump. Construction failures also abandoned source nodes
+created before their registration in the cleanup list.
+
+**Root cause.** Tests inspected ramp calls rather than rendered samples, and
+the failure fixture covered gain creation but not partial source construction.
+Very short buffers also let natural attack and release endpoints overlap.
+
+**Prevention rule.** Preserve the exact envelope value and trajectory when
+cancelling automation; finish the fade before the samples end. Register nodes
+at creation, before any later operation can fail. Bound envelope edges for
+short buffers instead of assuming every input is a full-length recording.
+
+**How to verify.** Run the real `OfflineAudioContext` proof in
+`web/proofs/voice-fades.js` at attack, plateau, release and natural completion.
+Inject failures into each source-construction stage and require immediate
+disconnection. Delete the anchor, ownership, teardown, end clamp and short-edge
+bound independently; each regression must fail. Evidence and restoration hashes
+are in `docs/specs/2026-09-30-conversation-audio.md`.
+
 ## [L-chronotype-lifecycle-and-sign] Test the schedule's meaning and its full lifecycle
 
 **What happened.** Content declared early-riser and night-owl offsets, but

@@ -211,6 +211,26 @@ describe('VoiceClipPlayer', () => {
     expect(gain?.disconnected).toBe(true);
   });
 
+  it.each([
+    [10, 0, 10.012],
+    [10.006, 0.112, 10.018],
+    [11, 0.224, 11.012],
+    [15.594, 0.112, 15.6],
+    [15.6, 0, 15.6],
+    [16, 0, 16],
+  ])('anchors an interrupted envelope at time %s before fading', (time, level, end) => {
+    const { context, player: voices } = player();
+    voices.play(0, 1);
+    context.currentTime = time;
+    voices.stopAll();
+
+    const ramps = context.gains[0].gain.ramps;
+    expect(ramps.at(-2)?.endTime).toBe(time);
+    expect(ramps.at(-2)?.value).toBeCloseTo(level, 8);
+    expect(ramps.at(-1)?.value).toBe(0);
+    expect(ramps.at(-1)?.endTime).toBeCloseTo(end, 8);
+  });
+
   it('reclaims a conversation whose every source refused to stop', () => {
     // The ordering that produced the original leak: teardown running inside
     // the stop loop, before the conversation had been listed as draining, so
@@ -223,6 +243,20 @@ describe('VoiceClipPlayer', () => {
 
     expect(voices.retainedConversationCount()).toBe(0);
     for (const source of context.sources) expect(source.disconnected).toBe(true);
+  });
+
+  it.each([
+    [0.004, 10.004, 0.224],
+    [0.006, 10.004, 0.149333333333],
+    [0.01, 10.016, 0.0896],
+  ])('preserves the envelope of two %s second clips', (duration, time, level) => {
+    const { context, player: voices } = player();
+    voices.setClips([{ duration }, { duration }]);
+    expect(voices.play(0, 1)).toBe(true);
+    context.currentTime = time;
+    voices.stopAll();
+    expect(context.gains[0].gain.ramps.at(-2)?.value).toBeCloseTo(level, 8);
+    expect(context.gains[0].gain.ramps.at(-1)?.endTime).toBeCloseTo(10 + duration * 2, 8);
   });
 
   it('counts a fading conversation as retained until it is reclaimed', () => {
@@ -324,6 +358,50 @@ describe('VoiceClipPlayer', () => {
 
     expect(voices.play(0, 1)).toBe(false);
     expect(voices.activeConversationCount()).toBe(0);
+  });
+
+  it.each([1, 2].flatMap((index) =>
+    ['buffer', 'rate', 'connect', 'start', 'stop'].map((operation) => ({ index, operation })),
+  ))('cleans every node when source $index fails at $operation', ({ index, operation }) => {
+    const { context, player: voices } = player();
+    const create = context.createBufferSource.bind(context);
+    context.createBufferSource = () => {
+      const source = create();
+      if (context.sources.length === index) {
+        const fail = () => { throw new Error('audio operation refused'); };
+        if (operation === 'buffer') Object.defineProperty(source, 'buffer', { set: fail });
+        if (operation === 'rate') source.playbackRate.setValueAtTime = fail;
+        if (operation === 'connect') source.connect = fail;
+        if (operation === 'start') source.start = fail;
+        if (operation === 'stop') source.stop = fail;
+      }
+      return source;
+    };
+
+    expect(voices.play(0, 1)).toBe(false);
+    expect(context.sources).toHaveLength(index);
+    expect(voices.retainedConversationCount()).toBe(0);
+    for (const source of context.sources) {
+      expect(source.disconnected).toBe(true);
+      expect(source.onended).toBeNull();
+    }
+    expect(context.gains[0].disconnected).toBe(true);
+  });
+
+  it('cleans a complete pair when connecting its output fails', () => {
+    const { context, player: voices } = player();
+    const create = context.createGain.bind(context);
+    context.createGain = () => {
+      const gain = create();
+      gain.connect = () => { throw new Error('output refused'); };
+      return gain;
+    };
+
+    expect(voices.play(0, 1)).toBe(false);
+    expect(context.sources).toHaveLength(2);
+    expect(voices.retainedConversationCount()).toBe(0);
+    for (const source of context.sources) expect(source.disconnected).toBe(true);
+    expect(context.gains[0].disconnected).toBe(true);
   });
 });
 
