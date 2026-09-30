@@ -77,7 +77,9 @@ personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
 lasts 420 ms. At most eight voices remain active. A ninth event stops and
 disconnects the oldest voice instead of building an invisible backlog. Recorded
 conversations use two buffer sources sharing one gain, with a separate cap of
-three pairs. The household scheduler currently selects one pair at a time.
+three pairs. The scheduler tracks each conversation independently and collapses
+its two participant rows into one pair, rather than selecting one household-wide
+conversation. Starting or ending another pair does not restart an existing one.
 
 The current semantic events are:
 

@@ -7420,6 +7420,11 @@ still called the save format V3 when the writer was V5.
 the overview tables, milestone bullets, remaining-work lists and suggested order.
 Subjective completion percentages concealed which slices had actually shipped.
 
+The same omission affected audio: TIM-TODO.md still called recorded voices
+unbuilt and described merged source identity as a candidate branch. After PR152,
+the audio foundation's graph section and FEATURES.md also retained the former
+household-wide conversation limit despite their more detailed ownership contract.
+
 **Prevention.** After a merge, update the feature entry and every current status or
 dependency claim that names it. Mark the delivered slice complete while keeping
 the larger system partial when extensions remain. Keep historical evidence dated
@@ -7427,7 +7432,8 @@ and separate from current priorities; keep owner acceptance separate from code s
 
 **Verification.** Compare the roadmap with merged PRs, the live command enum,
 save-version constant and content. Search both roadmap files for the feature's
-name and ID, stale branch references and future-tense claims. Ensure summary and
+name and ID, stale branch references and future-tense claims, including TIM-TODO.md
+and the current specification's overview sections. Ensure summary and
 detail agree, and run `python check-doc-ids.py` after the documentation update.
 ## [L-furniture-preview-replacement] Furniture previews must replace their source at every destination
 

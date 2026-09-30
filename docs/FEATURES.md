@@ -939,8 +939,9 @@ rejection sound is a quiet 90 ms triangle cue rather than the earlier harsher
 low square pulse. The second sound pass raises isolated steps out of the
 bass-thud range and adds sparse sleep cues from authored fixed-tick activity
 state. Conversations now play pairs from twelve first-party recordings, with
-their lengths compiled into the simulation. One conversation sounds for the scene rather
-than once per participant; sleep breathing is capped at one household cue every
+their lengths compiled into the simulation. Each conversation sounds once rather
+than once per participant, with independent start/stop ownership and a playback
+cap of three pairs. Sleep breathing is capped at one household cue every
 three seconds. Eating, seated or standing reading, and exercise now emit
 low-gain candidate cues on independent per-Sim cadences. These cues use the
 existing authored visual-action contract; they do not guess which appliance or
