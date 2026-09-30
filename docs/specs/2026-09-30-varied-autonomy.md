@@ -97,6 +97,6 @@ need bands, actual selection probabilities, dangerous choices, deaths, instinct
 and wandering pauses. Omitting INSTINCT uses each person's random value. Compare
 multiple seeds and ordinary-instinct overrides before changing balance controls.
 Detailed local results are in [the validation record](../autonomy-validation.md);
-rendered desktop and mobile checks passed. Owner copy review still requires a
-running game. The new player description remains listed
-for owner release review in `docs/player-visible-strings.md`.
+rendered desktop and mobile checks passed. The owner authorized deployment after
+fresh-context review on 2026-09-30. The reviewed functional description is listed
+in `docs/player-visible-strings.md`; the broader game voice session remains open.

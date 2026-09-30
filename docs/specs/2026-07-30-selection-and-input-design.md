@@ -1,5 +1,13 @@
 # Depth, Selection and the Input Model - Decisions
 
+Current behavior, updated 2026-09-30: the shipped player-action queue has no
+count limit. Appending and placing a new order first retain all previous orders.
+`max_queued_intents = 0` means unlimited in runtime and save validation. Positive
+caps still support finite test configurations; the cap and displacement details
+below describe that optional configuration and earlier releases. The separate
+command staging limit remains a per-drain transport limit, not a planning limit.
+
+
 Status: **all five are built.** The first four came out of one play session's
 reports, and all of it is goal item 10 - "at a glance: which sim is selected,
 what it is doing, what it is about to do, and why". The fifth,

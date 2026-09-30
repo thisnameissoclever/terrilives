@@ -2373,9 +2373,6 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             value: tuning.wander_radius_tiles,
         });
     }
-    if tuning.max_queued_intents == 0 {
-        return Err(ContentError::ZeroQueuedIntents);
-    }
     if tuning.max_queued_commands == 0 {
         return Err(ContentError::ZeroQueuedCommands);
     }
@@ -5392,25 +5389,15 @@ mod tests {
         );
     }
 
-    /// A queue cap of zero is not "no queueing"; `drain_commands` refuses
-    /// any intent that would take the queue past this, so at zero every
-    /// `UseObject` command is refused and directing a sim never succeeds.
-    /// The shell now reports that capacity rejection, but the game would
-    /// still run while every object order failed, which is the shape [D9]
-    /// exists to convert into a build failure rather than a puzzled hour.
-    ///
-    /// One is asserted legal on the other side of the boundary, so the
-    /// rule cannot be "at least 2" and pass this test.
+    /// Both unlimited and finite queue configurations compile.
     #[test]
-    fn rejects_zero_max_queued_intents() {
-        assert_eq!(
-            compile_tuned(tuning_where(|t| t.max_queued_intents = 0)).unwrap_err(),
-            ContentError::ZeroQueuedIntents
-        );
-
-        let pack = compile_tuned(tuning_where(|t| t.max_queued_intents = 1))
-            .expect("a single queued intent is legal, if an impatient sim it is not");
-        assert_eq!(pack.tuning.max_queued_intents, 1);
+    fn zero_max_queued_intents_means_unlimited() {
+        let unlimited = compile_tuned(tuning_where(|t| t.max_queued_intents = 0))
+            .expect("zero permits an unlimited player queue");
+        assert_eq!(unlimited.tuning.max_queued_intents, 0);
+        let finite = compile_tuned(tuning_where(|t| t.max_queued_intents = 1))
+            .expect("positive finite caps remain legal");
+        assert_eq!(finite.tuning.max_queued_intents, 1);
     }
 
     /// The staging queue's cap, which bounds a different failure from
@@ -5775,10 +5762,6 @@ mod tests {
             (
                 tuning_where(|t| t.idle_threshold = 0.5),
                 "tuning.toml has idle_threshold 0.5 above action_threshold 0.25; a sim would wander off while something is worth doing",
-            ),
-            (
-                tuning_where(|t| t.max_queued_intents = 0),
-                "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1",
             ),
             (
                 tuning_where(|t| t.max_queued_commands = 0),

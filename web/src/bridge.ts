@@ -70,7 +70,6 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   13: 'Keep the front-door landing clear and reachable.',
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
-  16: 'Nothing else in the house can do its job.',
   17: 'That colour is not available.',
 };
 
@@ -1290,6 +1289,13 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const reason = this.handle.stall_reason_of(entityIndex);
     return reason === '' ? null : reason;
+  }
+
+  /** Current action (or an empty first entry), then unserved orders in order. */
+  actionQueueOf(entityIndex: number, maxRows?: number): string[] {
+    if (!isU32(entityIndex) || (maxRows !== undefined && !isU32(maxRows))) return [];
+    return maxRows === undefined ? this.handle.action_queue_of(entityIndex)
+      : this.handle.action_queue_window_of(entityIndex, maxRows);
   }
 
   /** How many player orders the sim still has waiting; 0 for none. */

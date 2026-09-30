@@ -1,5 +1,48 @@
 # Features
 
+## Current roadmap, reviewed 2026-09-30
+
+Checked against main at `5ac34ca`, the shipped content and commands, and merged
+PRs through #141. This section and **Next engineering slices** own the current
+build priority. Older milestone narratives below preserve their release evidence;
+their original save versions, sprite counts and measurements describe those releases.
+
+**Next to build: Edit Sims [B-edit-sims].** The owner selected it on 2026-09-30.
+It is not implemented yet. Reuse the New housemate form to edit a living person's
+name, personality, traits and family ties, including the starting household.
+The trait-progress rule must be designed before implementation. This slice does
+not depend on new appearance art, gender, or the advanced-controls system.
+
+| Area | Completed and shipped | Still open |
+|---|---|---|
+| Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
+| Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie | Edit Sims next; appearance and gender choices, random generation and deeper traits later |
+| Building and buying | Furniture movement and supported rotation, walls, rooms, vertical hinged doors, purchases, sales, recolour controls, floor painting, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
+| Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
+| Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
+| Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
+| Grief duration | 10 game days for neutral acquaintances to 60 for closest affinity, with a linear fade; PR #141 | Longer-term play balance remains subject to feedback |
+| Careers and money | One scheduled office job, wages, purchase costs and sale proceeds | Player-directed career paths, skills, bills, recurring costs and a ledger |
+| Art and audio | Shared rigged Sim with shirt variants, reviewed furniture replacements, action-specific animation and the audio foundation | Appearance variety, remaining action poses, sound content and recorded owner/device acceptance checks |
+
+Completed slices are complete even when their larger system remains partial.
+The system inventory and remaining dependencies are in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
+
+### Varied autonomy delivery (2026-09-30)
+
+New games take fresh browser randomness. Autonomous targets and their interactions
+use weighted sampling, with more variety and baseline Fun/Social appeal as needs
+improve. Stroll destinations and pauses also vary. Every Sim has a saved
+Self-preservation instinct from 0 through 100; New housemate defaults to Random
+and offers a manual override. Older saves receive stable values from 30 through 70
+once, while current saves preserve their values and subsequent random choices.
+The low-instinct range can neglect critical needs. This completes that behavior
+slice without changing the next Edit Sims priority. Mechanics and verification:
+[varied autonomy spec](specs/2026-09-30-varied-autonomy.md) and
+[validation record](autonomy-validation.md).
+
+### Shipped alpha history
+
 Status: M0 through M1c shipped; the alpha visual pass (A1-A5) shipped;
 M2a footprints, M2a2 selection and input, M2b the five-room house, M2c
 personalities and the household, and M2d relationships all shipped. Of
@@ -71,7 +114,11 @@ Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.
 
-### Current priority guidance
+### Presentation history and remaining acceptance
+
+This records shipped presentation work and its evidence, not the next engineering
+priority. Edit Sims is next. Unrecorded owner or physical-device acceptance remains
+open; later replacement art supersedes the earlier art it replaced.
 
 The 2026-09-10 implementation replaces the ordinary Sim presentation with the
 approved small-front-curl model, baked into 156 sprites per shirt palette: four idle views, eight
@@ -82,9 +129,9 @@ for Tim, red for Casey and the existing green for Bill on 2026-09-10. These
 material-only variants use persistent household IDs,
 so save/load and entity reordering cannot exchange their colors. Hair, shirt
 and trousers retain separate source materials. Cycling adds two approved-model
-poses per facing and uses the same palette assignment. Its shipped SE bike
-placement passed rider-contact review after a bar/console fit adjustment;
-the mirrored bike art still fails contact in other facings. Local played
+poses per facing and uses the same palette assignment. The later reviewed bike
+replacement supplies eight cycling samples in all four directions, as recorded
+under [A-animations]; the earlier mirrored-bike failures are historical. Local played
 checks and deployment status are recorded in the verification report. See
 [the rigged animation contract](specs/2026-09-09-rigged-sim-animation.md).
 
@@ -335,8 +382,9 @@ draft's curve had the household asleep enough to starve an unrelated test
 fixture of kitchen activity. That is the drive overpowering the needs
 rather than weighting them, and it is a tuning question, not a code one.
 
-**Still unbuilt:** the measured tuning run the circadian curve needs
-([ML-feel]) and walls on tile edges ([B7]). The lighting field remains
+**Current status:** the circadian curve is enabled in content, and walls on tile
+edges are shipped. The earlier tuning probe above is recorded evidence, not an
+unbuilt mechanism; further sleep-balance tuning remains open. The lighting field remains
 deliberately presentation-only; a 20-tick real-WASM enabled-versus-disabled
 run ends at the same world hash.
 
@@ -366,24 +414,20 @@ an unchanged design target is not an unchanged measurement.
 
 ### Next engineering slices
 
-This is the current restart point, separate from the historical milestone
-checklists below:
+1. **Edit Sims [B-edit-sims]: next, owner-selected.** Design the keep/remove/re-add
+   rule for progressed traits, then implement editing through a validated simulation
+   command, save/load, and the existing two-page form. Preserving progress for
+   retained traits is the recommendation, pending that design decision.
+2. **Later priorities remain proposals.** Object affinities [B-object-affinities]
+   are the recommended follow-up, alongside the colour-preference design
+   [B-colour-preferences]. Aging [DE-slice-age] is the next death slice, but needs
+   an age and lifespan design. Neither is selected ahead of Edit Sims.
 
-1. Review the merged public character art at 1x. PR 50 and its Pages deployment
-   are complete; local production acceptance verifies the real walk cycle,
-   snack and dinner hand props, corrected seated-reading neck, and unchanged
-   accepted Chat through their normal player routes. The public replay repeats
-   the walk, snack, and seated-reading repairs. Final owner approval of those
-   repairs and `bookshelf.read` at its 24-tick hold remains open.
-2. Run the remaining physical-device check on the merged revision: verify the
-   new portrait HUD reflow, inspect the darkest floor in daylight, then
-   long-press an object and confirm its action menu remains reachable. The 390
-   by 844 and 320 by 568 browser layouts are watched evidence in
-   [A-mobile-hud-reflow], and reduced motion and lighting are watched in
-   [A-local-idle-wandering] and [A-night-light-pools]; none substitutes for
-   touch hardware, sunlight, or a safe-area check on the actual phone.
-3. Hold criterion 11 open for the owner-authored dark-comedy voice session
-   tracked by [T22]. Functional UI copy is intentionally plain until then.
+Remaining acceptance work runs separately from this build priority: owner art and
+sound review where still recorded as open, physical-phone touch/safe-area/daylight
+checks, and the voice session [T22]. Browser evidence does not complete hardware
+or owner-listening checks. Earlier art acceptance notes apply to their recorded
+versions; current rigged-art evidence is under [A-animations].
 
 Local idle wandering is now shipped rather than a restart item. Its radius is
 compiled content, the endpoint and actual walked path are both capped at three
@@ -393,7 +437,7 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 The compact HUD reuses the existing controls and adds one visibility
 controller. At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, only
 Time, Funds, Menu and the status line remain visible until the player
-expands the HUD; Light, Build, sound and the game actions are in the Options
+expands the HUD; Light, sound and the game actions are in the Options
 flyout on every screen size ([OF3]). Phone
 portrait and ultra-narrow screens use a contiguous top sheet; wider short
 screens use a scrollable edge sheet; desktop keeps the existing sidebar. The
@@ -593,8 +637,8 @@ this milestone and is done; what follows is M1b onwards.
 - **Build mode:** walls, floors, doors, windows, roofs. Walls shipped in
   PR 95 at merge `1a90a75`, whole rooms in PR 97 at merge `e2f60a9`, and
   hinged doors in vertical doorways in PR 98 at merge `2534ec5` ([B-builder]);
-  for PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Floors, windows and roofs remain
-  ([B-floors], [B-windows]).
+  for PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. Floors shipped in PR 128
+  ([B-floors]) and windows in PR 126 ([B-windows]). Roofs remain unbuilt.
 - **Buy mode:** catalog, placement, rotation, palette recolors ([G4]).
   Catalogue, placement and rotation shipped in PR 96 at merge `cb2cb9a`;
   main's CI (run 35699619286) and the Pages deployment (run 35699810650) both
@@ -670,7 +714,8 @@ What makes it a *life* sim rather than a needs sim.
   is deliberately smaller and does not already contain workplace lots,
   promotion ladders, coworker entities, or a shared outcome interface.
 - **Pregnancy, birth, genetics** for inherited appearance and traits
-- **Death** from several causes, each with distinct fiction and consequence
+- **Death:** deprivation, warnings, removal, saved records and fading grief are
+  shipped in PRs 139 to 141 ([B-death]). Aging and other causes remain unbuilt.
 
 Death is load-bearing here rather than a fail state, because M4 depends on it.
 
@@ -713,7 +758,7 @@ M4 also has non-code prerequisites that take longer than expected and block
 launch rather than development: a privacy policy [T14], published moderation
 rules [T15], and storage plus upload identity [T16]. See TIM-TODO.md.
 
-## Named and not yet built
+## Named features: completed slices and remaining work
 
 Reported from the running game rather than derived from a plan, which is
 why they are here rather than in ARCHITECTURE.md: somebody looked at the
@@ -721,6 +766,8 @@ screen and said what was wrong with it. Named so the boundary between
 "known" and "nobody has noticed" stays a decision.
 
 ### [B-game-systems] Build every system in the systems document
+
+**Status: Ongoing umbrella backlog; see the system inventory.**
 
 [GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the single inventory of gameplay systems: the ones the owner requested on 2026-09-21, the ones this file already plans, the shared foundations they need, and the additional systems proposed alongside them. Building all of them is backlog work. Each requested, planned, and foundation entry there carries a build status checked against the code. The document also names the main dependencies and suggests a build order for the owner's requests.
 
@@ -731,6 +778,8 @@ The owner's 2026-09-21 requests are skills, pets as full characters, random hous
 A second round the same day added per-Sim sensory and social sensitivities, negative returns from overdoing an action, a fading happiness boost from new purchases, mood that affects nearly everything and can end in despondency, behaviour traits with hidden sub-traits, an expandable details panel for each Sim, an advanced controls toggle, bed assignment, a health and medical system, and a notification feed with channels and mutes. The owner also called a character creator important and asked for far more animations and sounds.
 
 ### [B-jobs-careers] Jobs and careers become a full life system
+
+**Status: Partial: office job complete; career paths and management unbuilt.**
 
 The shipped career is one content-defined rabbit hole with a schedule, pay,
 need costs, and a satisfaction reward. The full system still needs job search,
@@ -745,10 +794,11 @@ On 2026-09-21 the owner added two requirements: the player directs each Sim's ca
 
 ### [B-outside] The house has an actual outside
 
-The current lot is an interior composition whose front door acts as a career
-boundary. The game needs a playable exterior: yard and street tiles, exterior
-walls and roofs, outdoor lighting and ambience, walkable approaches, outdoor
-objects, and transitions between home, neighborhood, and future lots. This is
+**Status: Partial: yard, street and daylight complete; exterior extensions remain.**
+
+The lot now has a walkable yard, a street used for commutes, and outdoor daylight.
+The remaining exterior work includes roofs, exterior presentation, outdoor
+ambience and objects, and transitions between home, neighborhood, and future lots. This is
 the spatial foundation for visitors, pets, disasters, and neighborhood play.
 
 The design is `docs/specs/2026-09-22-the-outside.md`, in slices. The first,
@@ -767,10 +817,12 @@ third slice, [OS-daylight], shipped in PR 116 at merge `6908a94`: the sky lights
 the yard by day while the rooms stay dimmer, lighter by an open doorway and
 darkest at the back of the house, and people, furniture, interior doors and the
 placement preview take their tile's shade. Its played check is
-[A-yard-daylight]. Windows ([B-windows]), the house seen
+[A-yard-daylight]. Windows also shipped in PR 126 ([B-windows]); the house seen
 from outside and outdoor objects remain.
 
 ### [B-floors] The player chooses what each floor is
+
+**Status: Complete for the per-tile painting slice; room painting and floor effects remain extensions.**
 
 Found while building the yard. Every tile is one floor, and the yard is that
 floor recoloured. Build now has a Floors tool: choose Boards, Tiles or Carpet
@@ -786,6 +838,8 @@ that changes what happens on it, are not part of this.
 
 ### [B-windows] Windows let light in and let sims look out
 
+**Status: Complete for placement, collision and daylight; art and looking-out interactions remain.**
+
 Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
 line that stops sims but not the day. Fitted with Window in the Walls tool: it
 stops people exactly as a wall does, lets the sky in as a doorway does so the
@@ -799,21 +853,31 @@ looking out of a window is not part of this and has no interaction yet.
 
 ### [B-trait-words] A trait says whether they like, love, dislike or hate it
 
+**Status: Complete.**
+
 Asked for by the owner on 2026-09-22 after playing. A disposition trait's sentence used to say "More drawn to" or "Less drawn to", which reads like a statistic. Each now opens with "Likes", "Loves", "Dislikes" or "Hates", chosen by how strongly its number pulls or pushes, and the content compiler refuses a sentence whose verb disagrees with the number ([TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`). The two lines between the verbs are in `content/tuning.toml`. The capability and condition sentences were reworded in the same plain style. Done in PR 109 at merge `2ed0136`; main's CI (run 35755581216) and the Pages deployment (run 35756846314) both passed. The played check is [A-trait-words].
 
 ### [B-options-flyout] Game controls live behind one Options button
+
+**Status: Complete.**
 
 Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save, Load, Clear orders, Queue, New game and Help leave the sidebar and the phone Menu for one panel opened from a gear at the window's top right, on every screen size. The sidebar keeps Time, Funds, the household, the selected person's needs, mood and traits, People and the speed controls. The same notes asked for the Traits panel to be collapsible and closed by default; that is part of this entry. Done in PR 111 at merge `74152ee`; main's CI (run 35757487127) and the Pages deployment (run 35757776137) both passed. The design is `docs/specs/2026-09-22-options-flyout.md` and the played check is [A-options-flyout].
 
 ### [B-walls-in-build] The Walls tool shows every wall
 
+**Status: Complete.**
+
 Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
 
 ### [B-placement-buttons] Confirm and Cancel sit over the moved object
 
+**Status: Complete.**
+
 Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
+
+**Status: Complete.**
 
 Commutes route through the front-door tile. The animated doorway is implemented
 and played locally: authored hinge and facing, open and close frames, body occlusion,
@@ -825,6 +889,8 @@ Pages deployment (run 35554122223) both passed for that commit.
 
 ### [B-neighborhood-dynamics] Neighbors and households have a relationship map
 
+**Status: Not started.**
+
 M3 already names multiple lots and autonomous NPC households. The player-facing
 system still needs named neighbors, household-to-household relationships, visits,
 invitations, favors, grudges, gossip, disputes, support, shared events, and
@@ -834,14 +900,15 @@ does not mean both households are allies.
 
 ### [B-family-relationships] Family relationships are explicit
 
-The current relationship scalar does not know parent, child, sibling, spouse,
-partner, ex-partner, grandparent, or extended family. The game needs a stable
-kinship graph, family-tree UI, household and non-household relatives, inheritance
-and bereavement hooks, age-valid relationship creation, and family-specific
-autonomy and social consequences. Save identity and future genetics depend on
-this being authored data rather than inferred from who shares a house.
+**Status: Partial: SimId ties and labels complete; tree and family-specific behaviour remain.**
 
-The first slice ships the tie itself. A newcomer arrives as somebody: the New
+Saved family ties now distinguish partner, parent, child and sibling independently
+of affinity. Family-tree UI, extended and non-household relatives, inheritance,
+age-valid relationship creation, and family-specific autonomy and social
+consequences remain. Bereavement already reads affinity at death, while family
+ties survive the loss; no separate family-specific grief effect has shipped.
+
+The completed first slice ships the tie itself. A newcomer arrives as somebody: the New
 housemate form asks who they are to the household, choosing from partner,
 parent, child and sibling and naming the member it is to, and the
 relationship list then says it beside the feeling, from the row's side:
@@ -853,9 +920,11 @@ merge `e1ce54e`, a tie names each person by SimId rather than entity index, so
 it stays with them once somebody can leave or die. The design is
 `docs/specs/2026-09-22-family.md`, which names the three later slices, and the
 played check is [A-family]. The item stays open: the tree, relatives outside
-the household, and the autonomy and bereavement hooks are still to build.
+the household, inheritance and family-specific consequences are still to build.
 
 ### [A-audio-voices] The game has sound and Sim voices
+
+**Status: Partial: audio foundation shipped; sound content and owner listening remain.**
 
 The first audio foundation is implemented in the TypeScript shell with native
 Web Audio. A trusted pointer or keyboard gesture activates it; events before
@@ -917,6 +986,8 @@ categories alongside the current master and effects controls. The detailed contr
 
 ### [B-death] Sims can die and leave consequences
 
+**Status: Partial: deprivation, consequences and grief tuning complete; later death slices remain.**
+
 The first playable slice, [DE-slice-neglect], implements deprivation: hunger or energy held at zero. Death is on by default for new and migrated worlds, with the saved Options setting "Sims can die if hunger or energy stays empty". The counter runs while death is off. With death on, the household row warns before removal.
 
 The owner's follow-up shipped in [PR 140](https://github.com/thisnameissoclever/terrilives/pull/140), merge `cbad6199d8940f7c5f325e8fc3715edd474bb02c`. Death now starts enabled and older saves enable it once; later explicit off choices remain saved. Waiting for an occupied item lowers mood more strongly as the relevant need falls. Sustained mood contributes to life satisfaction in both directions, including grief and waiting, with all balance inputs in content tuning. The design is [MW-satisfaction] and the played evidence and limits are [A-mood-waiting].
@@ -929,6 +1000,8 @@ The design is `docs/specs/2026-09-22-death.md`. Aging, additional causes, bodies
 
 ### [B-edit-sims] Change a person after they move in
 
+**Status: Not started. Next build, selected by the owner on 2026-09-30.**
+
 Once somebody lives in the house, the player cannot change anything about them. Their name, personality, traits and family ties are fixed the moment they move in, and the shipped household cannot be changed at all. The owner asked on 2026-09-29 for this to come soon.
 
 The first slice is an Edit button for the selected person. It opens the same two pages the New housemate form uses ([CS-pages] in `docs/specs/2026-09-22-create-a-sim.md`), filled with who they are now: name, personality, traits, and their family ties to the rest of the household. Confirming sends one command the simulation applies, like every other player action, and the change is saved. Looks join the editor once people have looks to choose ([CS-slice-looks]), and gender once [B-gender] exists.
@@ -937,6 +1010,8 @@ The design has to settle one rule before building: what happens to a trait whose
 
 ### [B-gender] A sim can be a woman
 
+**Status: Not started.**
+
 Every sim uses one body, face and hairstyle today (`assets/models/sims/sim-01`), and the game has no notion of gender. The owner asked on 2026-09-29 for the player to be able to make a woman: a gender choice in the New housemate form and in [B-edit-sims], women's bodies, faces and hairstyles, and more feminine clothing.
 
 No clothing is locked to a gender. Any sim can wear any outfit: men can wear dresses and women can wear trousers. Gender chooses the body and which clothes the creator suggests first, never what a sim is allowed to wear.
@@ -944,6 +1019,8 @@ No clothing is locked to a gender. Any sim can wear any outfit: men can wear dre
 Once gender exists, the relationship list can say "sister" or "brother" instead of "sibling", as [FM-show] in `docs/specs/2026-09-22-family.md` anticipates. The mechanism (a saved appearance per sim, the gender choice, and choosing an outfit) can be built with the existing art first. The new bodies and clothes are art, logged as [T-sim-bodies-and-clothes] in `docs/TIM-TODO.md`. This overlaps [CS-slice-looks] and should be built with it or straight after it.
 
 ### [B-object-affinities] Things one housemate loves can bother another
+
+**Status: Not started.**
 
 The owner asked on 2026-09-29 that objects stop being good for everybody alike. Every item should have at least the possibility of being a net good for some members of the household and a net bad for others.
 
@@ -961,6 +1038,8 @@ The owner asked on 2026-09-29 that objects stop being good for everybody alike. 
 
 ### [B-colour-preferences] Every sim has colours they love or hate
 
+**Status: Not started.**
+
 The owner asked on 2026-09-29 for colour to matter to people in the same way.
 
 **What the owner asked for.**
@@ -976,6 +1055,8 @@ The owner asked on 2026-09-29 for colour to matter to people in the same way.
 
 ### [B-emergencies-disasters] Fires, smoke, warnings, news, and disasters
 
+**Status: Not started.**
+
 The game needs a general incident system rather than one-off spectacle. The
 first playable case is fire and smoke with ignition, spread, alarms, panic,
 escape, injury or death, emergency response, damage, and recovery. The same
@@ -986,6 +1067,8 @@ or sirens, and player controls for frequency and intensity.
 
 ### [B-pets] Pets have lives rather than acting as furniture
 
+**Status: Not started.**
+
 Pets are now a tracked feature rather than an unnamed expansion possibility.
 They need species and breed presentation, needs, personalities, learned behavior,
 life stages, health, death, relationships with Sims and other pets, and per-Sim
@@ -995,6 +1078,8 @@ to participate in the same deterministic save and relationship architecture as
 Sims.
 
 ### [B-builder] A builder: rooms, furniture, placement and rotation
+
+**Status: Complete for the room and furniture builder slice; wider build scope remains under [S-build].**
 
 The lot starts from `content/lot.toml`. The furniture builder shipped in
 PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
@@ -1025,22 +1110,24 @@ fixing those coordinates is work that a builder throws away: the moment a
 player can drag a chair, the shipped lot is a starting suggestion rather
 than a layout anybody has to get right.
 
-Placement wants rotation, and rotation is what [B-facing] is about, so
-that lands first or alongside.
+Placement and supported rotation are both shipped; [B-facing] tracks the
+remaining sub-object depth work.
 
-The next release after the front door adds furniture movement and supported
-rotation, as requested on 2026-09-20. Build pauses the household, selects any
+PR 85 added furniture movement and supported rotation after the front door,
+as requested on 2026-09-20. Build pauses the household, selects any
 placed furniture, and previews its destination and supported direction.
 Confirm applies a validated command; Cancel leaves the world unchanged.
 Collision, walls, interaction approaches, active reservations, remaining
-walking routes and the front-door landing are protected. Save V3 preserves
-positions, directions and room architecture. Keyboard controls and compact
+walking routes and the front-door landing are protected. The current Save V5 preserves
+positions, directions and room architecture, retaining older-save support. Keyboard controls and compact
 touch controls share the same placement rules. Valid overlapping previews
 temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in
 `docs/specs/2026-09-20-front-door-and-builder.md`.
 
 ### [B-reach-from-the-door] The house is judged from its front door
+
+**Status: Complete.**
 
 Found in review of the Room tool. Every lot edit proves the house stays usable
 by flooding the floor from one tile and checking that every sim, every object
@@ -1065,6 +1152,8 @@ played check is [A-reach-from-the-door].
 
 ### [B-catalogue-browsing] The catalogue says what each thing is for
 
+**Status: Complete for need filtering and the first object-description slice; remaining copy stays open.**
+
 Found in the played check [A-buy-mode]. The Buy tool lists thirty objects by
 their joke names, and the names say nothing about what a thing does: "Wall of
 Intent" and "Frequency of Record" could be anything, and a chair bought on its
@@ -1085,6 +1174,8 @@ the words Show, Everything and Good for. The design is
 [A-catalogue-browsing]. The first description slice covers the washing machine, armchair, and dining table, with types as primary labels and model names secondary; see `docs/specs/2026-09-22-object-identity.md`. The remaining descriptions and full voice review stay open under [T22].
 
 ### [B-phone-build-dock] The Build dock keeps its buttons in view on a phone
+
+**Status: Complete.**
 
 Found in review of catalogue browsing. On a phone the Build panel is a dock
 capped at 45% of the screen height, which scrolls. With an item chosen in the
@@ -1109,6 +1200,8 @@ whole as before. Desktop reads as it did. The design is
 [A-phone-build-dock].
 
 ### [B-facing] Objects know which way they face, and overlap follows
+
+**Status: Partial: supported rotation complete; further sub-object depth remains.**
 
 Most objects are still drawn as one sprite at one depth, and depth comes from
 their tile. The lower-bunk sleep slice proves one general exception: compiled
@@ -1136,6 +1229,8 @@ architecture problem.
 
 ### [B-rotated-lights] A lamp or television keeps its light when turned
 
+**Status: Complete.**
+
 Found while researching palette recolours. The player can turn a floor lamp or
 a television in the Furniture tool, which draws it with the sprite for its new
 direction. Lighting knew each light by its default sprite only, so a turned
@@ -1157,9 +1252,12 @@ since each needs lights the simulation can read.
 
 ### [A-art-pass] The furniture does not survive being looked at
 
-The generator replaced every borrowed sprite, which was the point, and
-the result is a coherent style drawn by somebody who has never seen the
-objects. The owner's list, verbatim in substance: toilets do not look
+**Status: Partial: reviewed replacement furniture shipped; remaining art and review are tracked separately.**
+
+The original generator pass replaced the borrowed sprites but left furniture
+the owner rejected. Reviewed replacements subsequently shipped for the kitchen,
+bathroom, bedroom, office, bike and reading chair. The paragraphs below record
+the original complaint, not a claim that those replacements are still unbuilt. The owner's list, verbatim in substance: toilets do not look
 like that, the chairs are messed up, and a lot of the interactable things
 just do not make sense visually.
 
@@ -1173,6 +1271,8 @@ itself is a rounded rectangle, so skin showed at both top corners of
 every sim. `hair_cap` in `objects.py` traces the head instead.
 
 ### [A-animations] Several ordinary actions are still static poses
+
+**Status: Partial: listed rigged actions shipped; remaining action categories are unbuilt.**
 
 The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
@@ -1248,3 +1348,18 @@ Neither rule is about being timid. Subtle and structural is a sharper knife
 than explicit and topical, and it keeps the audience twice as large.
 
 Tone should be locked before serious content authoring begins in M1.
+
+## Gameplay UI corrections (2026-09-30)
+
+Simulation speed now sits below the clock and funds; Build sits at the bottom of
+the sidebar. Moving furniture displays one preview;
+Confirm commits and deselects, and Cancel restores and deselects. Selected-person
+action cards descend from the top right and fade between 33% and 55% of viewport
+height. Bed shortages apply a shared household mood penalty. Bookcases rotate
+against their tile edges, and scrolling sidebars retain their content width.
+See `docs/specs/2026-09-30-gameplay-ui.md` for scope and verification.
+
+The follow-up makes action cards about 20% smaller, allows unlimited waiting
+orders and lets the player sell the last appliance. Build's left control becomes
+Exit build during editing. Historical saves predating per-entity conversation
+voices load through their frozen wire shape and normal simulation validation.

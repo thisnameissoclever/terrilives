@@ -1,0 +1,9 @@
+crates/terri-core/src/save_before_voice.rs:62:9: replace SaveSnapshotV1BeforeVoice::into_current -> SaveSnapshotV1 with Default::default()
+crates/terri-core/src/save_before_voice.rs:84:9: replace SavedEntityBeforeVoice::into_current -> SavedEntity with Default::default()
+crates/terri-data/src/compile.rs:2238:5: replace compile_tuning -> Result<CompiledTuning, ContentError> with Ok(Default::default())
+crates/terri-data/src/compile.rs:2375:35: replace == with != in compile_tuning
+crates/terri-sim/src/mood.rs:43:5: replace derive_mood -> Option<MoodSnapshot> with Some(Default::default())
+crates/terri-sim/src/placement/sale.rs:65:5: replace validate_sale -> Result<SalePlan, PlacementRefusal> with Ok(Default::default())
+crates/terri-sim/src/systems/command.rs:141:5: replace place_in -> Option<Intent> with Some(Default::default())
+crates/terri-wasm/src/lib.rs:287:5: replace decode_save_payload -> Option<terri_core::SaveSnapshotV1> with Some(Default::default())
+crates/terri-wasm/src/save_before_voice.rs:6:5: replace decode -> Option<SaveSnapshotV1> with Some(Default::default())

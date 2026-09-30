@@ -214,3 +214,46 @@ test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 671 filtered out
 ```
 
 Restored source matched the frozen byte backup; SHA-256 aa2750d7abf1972e8aefc661e5989865822867bf40003d6d034eeaa829153fb0. The rebuilt exact test passed: 1 passed; 0 failed, exit 0.
+
+## Fresh-review mutation 1: stable legacy migration order
+
+The review found that naturally ordered fixtures did not constrain the migration
+sort. The new fixture moves an entity between ECS tables, verifies that query
+order differs from Sim order, and compares assignments with sorted reference draws.
+
+Command: `cargo test -p terri-sim self_preservation_migration_sorts_reordered_storage_before_drawing -- --test-threads=1`.
+
+Removing only `people.sort_unstable_by_key(|entity| entity.index_u32());` compiled
+successfully and exited 101 with the intended assertion:
+
+```text
+assertion `left == right` failed
+  left: [(0, 49), (1, 51), (2, 47)]
+ right: [(0, 47), (1, 51), (2, 49)]
+test result: FAILED. 0 passed; 1 failed
+```
+
+Restoration matched SHA-256
+`57448982e06c60e6eabcef79ccc4d98c4cec839cccef17c7fd40dca1091f0a60`.
+The rebuilt original test passed, exit 0.
+
+## Fresh-review mutation 2: browser entropy reaches the real constructor
+
+The review found that the helper and seeded simulation tests bypassed the
+production startup call. The new test executes the actual construction statements
+from `main.ts` with controlled browser entropy and observes constructor arguments.
+
+Command in `web/`: `npm test -- --maxWorkers=1 tests/new-game-seed.test.ts`.
+
+Replacing the production call's two seed arguments with `0, 0` exited 1:
+
+```text
+FAIL forwards fresh browser entropy through the production startup constructor
+AssertionError: expected [ +0, +0 ] to deeply equal [ 1, 4275878552 ]
+Tests 1 failed | 1 passed (2)
+```
+
+Restoration matched SHA-256
+`1e10681338bb4d02136f5d5a62c9e5e3ca907fa6ddef720ab6a787ff81253908`.
+Both original tests passed after restoration, exit 0. All mutations in this
+record were temporary; none is retained in the delivered source.

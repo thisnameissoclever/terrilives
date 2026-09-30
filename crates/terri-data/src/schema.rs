@@ -134,8 +134,7 @@ pub struct TuningFile {
     pub habituation_floor: f32,
     /// Seed for the simulation PRNG.
     pub rng_seed: u64,
-    /// The most player-issued intents one sim may hold at once. At least
-    /// 1; it is what bounds a click.
+    /// Maximum waiting player orders per sim; zero means unlimited.
     pub max_queued_intents: u32,
     /// The most commands the boundary will hold between two drains. At
     /// least 1; it is what bounds the QUEUE rather than one sim's share

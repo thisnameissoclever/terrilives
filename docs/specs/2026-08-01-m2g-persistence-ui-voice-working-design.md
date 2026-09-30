@@ -42,6 +42,15 @@ lot placement's object id and position. This decision expires when build mode
 can move or rotate objects. That save schema must carry facing by a stable
 authored name.
 
+Historical compatibility correction (2026-09-30): published V1 entity rows from
+before conversation voices are decoded through `SaveSnapshotV1BeforeVoice`.
+That frozen shape adds no bytes inside repeated rows. Only known historical
+fingerprints qualify; missing empty sleep-pressure tails receive the existing
+single-byte tail migration. The upgraded world still runs normal transactional
+validation. Current and unknown fingerprints cannot claim this older row shape.
+The captured preview save is tested without replacing its fingerprint, then
+resaved through V5 and checked for equal continuation.
+
 ## [G2] Postcard behind a raw magic and version prefix, stored in OPFS
 
 The WebAssembly boundary exposes `save_bytes() -> Vec<u8>` and transactional

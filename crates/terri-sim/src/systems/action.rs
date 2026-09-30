@@ -1022,6 +1022,13 @@ pub fn select_action(
                 }
                 let row = interactions_len + chain_row;
                 chain_row += 1;
+                if chain
+                    .steps
+                    .iter()
+                    .any(|step| role_positions[step.role as usize].is_empty())
+                {
+                    continue;
+                }
 
                 let total_duration: u32 = chain.steps.iter().map(|s| s.duration_ticks).sum();
                 let mut legs = 0.0f32;

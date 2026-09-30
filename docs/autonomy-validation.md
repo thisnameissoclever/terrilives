@@ -1,7 +1,8 @@
 # Varied autonomy: local validation
 
 Measured 2026-09-30 in the active worktree. These results cover the implemented
-source and rebuilt release WASM. Nothing was committed, published or deployed.
+source and rebuilt release WASM. The original local pass below preceded delivery;
+the integrated review and delivery checks are recorded at the end.
 
 ## Checks
 
@@ -108,6 +109,38 @@ warnings and errors were empty at the final check.
 
 Captured desktop, mobile housemate and mobile play screenshots in the task's
 visualization output folder. The temporary viewport was reset and the task-owned
-page closed in a finally block; the preview server was stopped. The new instinct
-description remains pending owner review before release, as recorded in
-[player-visible-strings.md](player-visible-strings.md).
+page closed in a finally block; the preview server was stopped. The owner then
+authorized deployment after fresh-context review. The functional instinct text
+is recorded in [player-visible-strings.md](player-visible-strings.md).
+
+## Fresh-context review and integration
+
+Two independent reviewers examined the implementation in fresh contexts against
+the requested mechanics, save compatibility, verification requirements and code
+standards. The standards review found two valid coverage gaps: migration ordering
+was not tested with deliberately reordered storage, and new-game tests bypassed
+the production seed wiring. Both now have causal regression tests, with intended
+assertion failures under temporary mutations and passing byte-identical restored
+source. This raises the targeted mechanism mutation count from eight to ten.
+
+Both reviewers also checked the integration with main at `dac2f4de`, including
+missing-station chains, unlimited queues, pre-voice save decoding and the revised
+HUD. They reported no remaining actionable findings. Review did not substitute
+for the combined-build checks below.
+
+| Integrated command | Result | Exit |
+| --- | --- | --- |
+| `cargo test --workspace -- --test-threads=1` | PASS: 106 core, 267 data, 1 CLI, 680 simulation, 143 WASM; 1,197 total | 0 |
+| `cargo clippy --workspace --all-targets -- -D warnings` | PASS | 0 |
+| `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS | 0 |
+| `npm test -- --maxWorkers=1` in `web/` | PASS: 86 files, 1,239 tests | 0 |
+| `npm run typecheck` and `npm run build` in `web/` | PASS | 0 |
+| Nine `trace.exe 12000 SEED INSTINCT` runs | PASS: exact prior hashes and counts for seeds 17/42/88, instinct 30/50/70 | 0 |
+
+The integrated production preview passed at 1280 by 900 and 390 by 844.
+The saved manual-zero person loaded with 0/100 in Traits, the household advanced,
+New housemate still defaulted to Random, and manual zero fit the phone form.
+Action cards coexisted with the controls. No browser warnings or errors appeared.
+The page closed and the temporary viewport reset in a finally block; the owned
+preview server was stopped. The ordinary-instinct balance rerun again recorded
+zero deaths over 108,000 world ticks, with the same hashes as the table above.

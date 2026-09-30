@@ -11,6 +11,7 @@ pub mod layout;
 pub mod needs;
 pub mod rng;
 pub mod save;
+mod save_before_voice;
 
 /// Re-exported because it appears in this crate's own public API -
 /// `Target::object`, `Intent::object` - so a consumer that names those
@@ -40,3 +41,5 @@ pub use save::{
     SavedHabituation, SavedIntent, SavedPath, SavedPersonality, SavedPosition, SavedSocialising,
     SavedTarget, SavedTraitState, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
 };
+
+pub use save_before_voice::SaveSnapshotV1BeforeVoice;

@@ -1,0 +1,22 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.33s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test action_queue::tests::a_suspended_recipe_does_not_hide_the_active_target_or_commute ... FAILED
+
+failures:
+
+---- action_queue::tests::a_suspended_recipe_does_not_hide_the_active_target_or_commute stdout ----
+
+thread 'action_queue::tests::a_suspended_recipe_does_not_hide_the_active_target_or_commute' (39504) panicked at crates\terri-sim\src\action_queue.rs:285:9:
+assertion failed: sim.action_queue_of(person.index_u32())[0].starts_with("Read a book: ")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    action_queue::tests::a_suspended_recipe_does_not_hide_the_active_target_or_commute
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 656 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -95,6 +95,21 @@ pub fn advance_chains(
             continue;
         };
         let chain = &content.0.chains[chain_state.chain as usize];
+        if chain.steps[chain_state.step as usize..].iter().any(|step| {
+            !stations
+                .iter()
+                .any(|(_, _, object, _, _)| content.0.object(object.0).roles.contains(&step.role))
+        }) {
+            // Sold stations cannot become free. Abandon the unfinished recipe.
+            commands
+                .entity(sim)
+                .remove::<ChainState>()
+                .remove::<Carrying>()
+                .remove::<terri_core::Fumbled>()
+                .remove::<Blocked>()
+                .remove::<Restless>();
+            continue;
+        }
         let step = &chain.steps[chain_state.step as usize];
         let from = (pos.x.round() as i32, pos.y.round() as i32);
 
@@ -465,6 +480,48 @@ mod tests {
             .insert(ChainState::begin(0));
     }
 
+    #[test]
+    fn a_missing_future_station_abandons_the_recipe_without_payout() {
+        let (mut sim, agent, _, table) = chain_world();
+        start_chain(&mut sim, agent);
+        sim.world_mut().entity_mut(agent).insert((
+            Carrying(0),
+            terri_core::Fumbled { delta_scale: 0.2 },
+            Blocked,
+        ));
+        let before = *sim.world().get::<Satisfaction>(agent).unwrap();
+        sim.world_mut().despawn(table);
+        let mut schedule = Schedule::default();
+        schedule.add_systems(advance_chains);
+        schedule.run(sim.world_mut());
+        let person = sim.world().entity(agent);
+        assert!(person.get::<ChainState>().is_none());
+        assert!(person.get::<Carrying>().is_none());
+        assert!(person.get::<terri_core::Fumbled>().is_none());
+        assert!(person.get::<Blocked>().is_none());
+        assert!(person.get::<Target>().is_none());
+        assert_eq!(person.get::<Satisfaction>(), Some(&before));
+    }
+
+    #[test]
+    fn autonomy_skips_recipes_with_a_missing_station() {
+        let (mut sim, agent, _, table) = chain_world();
+        sim.world_mut().despawn(table);
+        let mut schedule = Schedule::default();
+        schedule.add_systems(super::super::action::select_action);
+        schedule.run(sim.world_mut());
+        assert!(sim.world().get::<ChainState>(agent).is_none());
+        let target = sim
+            .world()
+            .get::<Target>(agent)
+            .expect("the available snack");
+        assert_eq!(target.interaction, 0);
+        assert_eq!(
+            sim.world().get::<SmartObject>(target.object).unwrap().0,
+            chain_pack().find("fridge").unwrap()
+        );
+    }
+
     /// A turned station is approached at its live footprint, not its base shape.
     ///
     /// The 2 by 1 pantry at origin (2, 1) faces south-west, covering (2, 1)
@@ -499,6 +556,10 @@ mod tests {
                 terri_core::ObjectFacing(terri_core::Facing::SouthWest),
             ))
             .id();
+        sim.world_mut().spawn((
+            Position { x: 4.0, y: 1.0 },
+            SmartObject(pack.find("table").unwrap()),
+        ));
         let agent = sim
             .world_mut()
             .spawn((Agent, Position { x: 2.0, y: 5.0 }, Needs::all_at(NEED_MAX)))
@@ -1135,6 +1196,10 @@ mod tests {
     fn the_nearest_free_station_is_picked_over_an_earlier_far_one() {
         let pack = chain_pack();
         let mut sim = test_content::sim_with(12, 8, pack);
+        sim.world_mut().spawn((
+            Position { x: 8.0, y: 1.0 },
+            SmartObject(pack.find("table").unwrap()),
+        ));
         let def = pack.find("pantry").expect("fixture");
         let far = sim
             .world_mut()
@@ -1166,6 +1231,10 @@ mod tests {
         // of two equidistant counters a sim claims is a function of
         // world state rather than of comparison slack.
         let mut sim = test_content::sim_with(12, 8, pack);
+        sim.world_mut().spawn((
+            Position { x: 8.0, y: 1.0 },
+            SmartObject(pack.find("table").unwrap()),
+        ));
         let first = sim
             .world_mut()
             .spawn((Position { x: 1.0, y: 4.0 }, SmartObject(def)))
@@ -1192,12 +1261,9 @@ mod tests {
         assert!(sim.world().get::<Reserved>(second).is_none());
     }
 
-    /// A role with NO stations at all (a hand-built world the compile
-    /// gate would refuse) does nothing - no Blocked, because there is
-    /// nothing to wait FOR; Blocked is for a booked kitchen, not a
-    /// missing one.
+    /// Missing stations abandon the recipe without a spurious wait marker.
     #[test]
-    fn a_roleless_world_neither_proceeds_nor_claims_to_wait() {
+    fn a_roleless_world_abandons_instead_of_waiting() {
         let pack = chain_pack();
         let mut sim = test_content::sim_with(12, 8, pack);
         let agent = sim
@@ -1215,8 +1281,8 @@ mod tests {
         }
         let world = sim.world();
         assert!(
-            world.get::<ChainState>(agent).is_some(),
-            "the counter holds"
+            world.get::<ChainState>(agent).is_none(),
+            "the impossible recipe is abandoned"
         );
         assert!(
             world.get::<terri_core::Blocked>(agent).is_none(),

@@ -76,6 +76,23 @@ function attributeValue(tag: string, name: string): string {
 }
 
 describe('MobileHud', () => {
+  it('puts speed below the summary and Build after the person panels', () => {
+    const ids = ['household-summary', 'time-controls', 'household-roster',
+      'needs-panel', 'people-panel', 'builder-desktop'];
+    const positions = ids.map(id => INDEX_HTML.indexOf(`id="${id}"`));
+    expect(positions.every(position => position >= 0)).toBe(true);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
+  });
+
+  it('hides action cards for expanded compact menus at any width', () => {
+    const rule = "body:has(#hud[data-mobile-open='true']) #action-queue { display: none; }";
+    expect(INDEX_HTML).toContain(rule);
+    const prefix = INDEX_HTML.slice(INDEX_HTML.indexOf('<style>') + 7, INDEX_HTML.indexOf(rule))
+      .replace(/\/\*[\s\S]*?\*\//g, '');
+    const depth = [...prefix].reduce((value, char) => value + (char === '{' ? 1 : char === '}' ? -1 : 0), 0);
+    expect(depth, 'menu visibility rule must be outside every media block').toBe(0);
+  });
+
   it('collapses editing details and restores desktop state without reopening compact panels', () => {
     const panels = [details(true), details(false)];
     const hud = new MobileHud(root(), button(), panels);
@@ -109,7 +126,7 @@ describe('MobileHud', () => {
     expect(controlledIds).toEqual(
       // Light, sound and the game actions live in the Options flyout
       // ([OF3]), which has its own gear.
-      ['household-roster', 'needs-panel', 'people-panel', 'time-controls'].sort(),
+      ['builder-desktop', 'household-roster', 'needs-panel', 'people-panel', 'time-controls'].sort(),
     );
   });
 

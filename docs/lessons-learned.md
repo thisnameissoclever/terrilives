@@ -7282,3 +7282,137 @@ Use probability assertions for eligibility and record the seed for exact choices
 **Verification.** Run replay and save/load tests, including zero and failed loads;
 complete traces through a death. Count short completion transitions separately
 from occupied-target waits when diagnosing apparent stillness.
+## [L-roadmap-status-reconciliation] A shipped slice must leave the future-work lists
+
+**What happened.** The roadmap audit on 2026-09-30 found floors, windows, sales,
+colourways, the yard and street still listed as future work in parts of
+FEATURES.md and GAME-SYSTEMS.md, despite their individual entries recording merges.
+The restart list still prioritised older acceptance work, and the systems summary
+still called the save format V3 when the writer was V5.
+
+**Root cause.** Delivery updated individual feature paragraphs without reconciling
+the overview tables, milestone bullets, remaining-work lists and suggested order.
+Subjective completion percentages concealed which slices had actually shipped.
+
+**Prevention.** After a merge, update the feature entry and every current status or
+dependency claim that names it. Mark the delivered slice complete while keeping
+the larger system partial when extensions remain. Keep historical evidence dated
+and separate from current priorities; keep owner acceptance separate from code status.
+
+**Verification.** Compare the roadmap with merged PRs, the live command enum,
+save-version constant and content. Search both roadmap files for the feature's
+name and ID, stale branch references and future-tense claims. Ensure summary and
+detail agree, and run `python check-doc-ids.py` after the documentation update.
+## [L-furniture-preview-replacement] Furniture previews must replace their source at every destination
+
+**What happened.** Moving furniture to a separate tile left the original visible,
+so the piece appeared duplicated. Confirm also kept the piece selected.
+
+**Root cause.** Replacement was conditional on a valid overlapping footprint.
+The successful placement path refreshed selection instead of clearing it.
+
+**Prevention rule.** Any drawable move preview owns the piece's presentation.
+Hide its old base, foreground and marker until the preview ends. Keep simulation
+state unchanged until Confirm succeeds, then clear selection.
+
+**How to verify.** Builder tests cover non-overlapping and refused previews,
+foreground layers, unchanged saved bytes on Cancel, successful deselection, and
+selection handoff. Inspect a moved piece in the running game before confirming.
+
+## [L-powershell-source-search-correction] PowerShell source-search correction (2026-09-30)
+
+**What happened.** Three searches passed wildcard paths to ripgrep and failed.
+**Root cause.** PowerShell left the wildcard in the literal path argument.
+**Prevention rule.** Apply the existing lesson at the first failure: pass a real
+folder and use ripgrep's `-g` filter. The fresh-context review confirmed this.
+**How to verify.** `rg --files web/tests -g '*frame*'` returns the matching files.
+
+## [L-append-corrected-bookcase-art] Preserve historical atlas records when replacing live furniture art
+
+**What happened.** Replacing four bookcase records broke historical prefix checks.
+**Root cause.** Those tests preserve old atlas identities and decoded pixels, not
+just the objects currently using them. Replacing records after one validation
+pass still changed the final atlas that other historical tests inspect.
+**Prevention rule.** Append corrected art under new sprite names, and point the
+object's presentation at them. Keep old records unchanged and retain the existing
+fingerprint and save compatibility checks.
+**How to verify.** Run the complete sprite generator suite, the atlas freshness
+check, content compilation, and save compatibility tests. Check all four facings.
+
+
+## [L-screenshot-errors-are-unfinished-verification] Resolve visible errors before presenting proof
+
+**What happened.** A UI screenshot contained Load failed, but the result treated
+that visible failure as an incidental limitation. The owner had to point it out.
+**Root cause.** A previous voice change appended an option inside every saved
+entity without versioning that row. The old V1 bytes no longer decoded.
+**Prevention rule.** Investigate visible runtime errors before presenting a
+screenshot as proof. Freeze historical row types; appending inside repeated rows
+requires explicit migration rather than a default on the new field.
+**How to verify.** Load the captured bytes through the public loader, compare all
+saved entities and replay after resaving, reject malformed and unknown formats,
+and reload the browser origin without clearing its saved file.
+
+## [L-last-provider-sales-respect-owner-choice] Handle missing stations instead of denying sales
+
+**What happened.** A last-provider sale restriction blocked removal of the only
+fridge or stove without the owner's request.
+**Root cause.** The recipe runtime waited indefinitely for a missing station,
+and the sale validator hid that flaw behind a gameplay restriction.
+**Prevention rule.** Do not impose that restriction. Abandon impossible unfinished
+recipes without payout and exclude incomplete recipes from autonomous selection.
+**How to verify.** Sell the only appliances, save and load the result, and test
+missing future stations separately from existing stations that are reserved.
+
+## [L-action-cards-project-live-state-and-visible-rows] Verify projections against their source
+
+**What happened.** Review found queued recipes labelled unavailable, suspended
+recipes masking active actions, and an unrestricted card list that could throw
+when spread into a DOM call. Bookcase and menu tests also passed mutations that
+restored their defects; the save test compared two already-migrated copies.
+**Root cause.** Labels omitted the recipe menu rows and preferred persistent
+recipe state over active commitments. Rendering ignored the viewport boundary.
+Tests substituted expected facing, inspected only the first matching media
+block, or omitted a direct comparison with the decoded historical source.
+**Prevention rule.** Follow the actual menu indices and active components.
+Preserve all stored orders while formatting and transferring only the bounded
+visible window. Limiting DOM rows after fetching the whole queue leaves the
+hidden work proportional to queue length. Observe
+the transform actually sent to drawing and every containing CSS scope. Compare
+every retained save field with its historical source before migration.
+**How to verify.** Recipe and interruption tests, a 200,000-order render test,
+all retained historical fields, and actual drawing-facing assertions are backed
+by recorded failing mutations and byte-identical restoration. Browser checks
+cover expanded menus on phone portrait and short landscape viewports.
+
+The final played pass also exposed stale Help and string-inventory references
+to Build under Options. Moving a control requires updating its navigation
+instructions and inventory as well as its layout. Verify the actual Help text
+and search all current control-location references before delivery.
+
+## [L-heavy-verification-runs-stay-sequential] Keep target copying away from timed file tests
+
+**What happened.** Two atlas file tests exceeded their five-second timeout while
+a mutation run was copying the existing Cargo target directory. Their assertion
+checks had not failed. A quiet rerun passed all 14 atlas tests in 112 milliseconds;
+the subsequent full web run passed all 1,232 tests.
+**Root cause.** Heavy verification jobs overlapped on a shared host. The observed
+timing points to file I/O contention; it does not establish an atlas defect.
+**Prevention rule.** Run heavy build and test gates sequentially. Use a separate
+mutation build without copying the large target directory. Do not increase test
+timeouts to conceal an overloaded verification run.
+**How to verify.** Complete the ordinary web suite before starting mutation
+compilation, and retain both the failure and the quiet-run result.
+
+## [L-autonomy-tests-cover-order-and-startup-wiring] Test the path that can actually regress
+
+**What happened.** Fresh-context review found two coverage gaps despite passing
+unit tests: migration fixtures already used sorted storage, and fresh-game tests
+bypassed the production constructor call.
+**Root cause.** Fixtures made the sorting mechanism unnecessary, while separate
+helper and constructor tests left their connection untested.
+**Prevention rule.** Deliberately scramble storage when ordering matters. Exercise
+the production connection as well as each endpoint when randomness crosses layers.
+**How to verify.** Removing the migration sort and replacing startup seeds with
+constants each produce the intended assertion failure. Restore exact source bytes
+and rerun both tests; evidence is in `docs/autonomy-mutation-evidence.md`.

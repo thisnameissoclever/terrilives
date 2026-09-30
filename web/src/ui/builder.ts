@@ -278,11 +278,8 @@ export class FurnitureBuilder {
         this.pending = false;
         const next = this.nextSelection;
         this.nextSelection = null;
-        if (result.reason === null && this.preview) {
-          const { x, y, facing } = this.preview;
-          this.original = { x, y, facing };
-        }
-        if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
+        if (result.reason === null) this.clearSelection();
+        else if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? 'Furniture placed.';
         if (next !== null) {
           this.selectNow(next);

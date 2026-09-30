@@ -53,6 +53,35 @@ mod tests {
     use crate::Sim;
 
     #[test]
+    fn self_preservation_migration_sorts_reordered_storage_before_drawing() {
+        #[derive(Component)]
+        struct Temporary;
+        let mut world = World::new();
+        world.insert_resource(SimRng::from_seed(17));
+        let people: Vec<_> = (0..3).map(|_| world.spawn(Agent).id()).collect();
+        world.entity_mut(people[0]).insert(Temporary);
+        world.entity_mut(people[0]).remove::<Temporary>();
+        let raw: Vec<_> = world
+            .query_filtered::<Entity, (With<Agent>, Without<SelfPreservation>)>()
+            .iter(&world)
+            .map(|entity| entity.index_u32())
+            .collect();
+        assert!(
+            raw.windows(2).any(|pair| pair[0] > pair[1]),
+            "fixture must reorder storage: {raw:?}"
+        );
+        let mut reference = world.resource::<SimRng>().clone();
+        let expected: Vec<_> = people
+            .iter()
+            .map(|entity| (entity.index_u32(), 30 + reference.range(41) as u8))
+            .collect();
+        assert!(expected.windows(2).any(|pair| pair[0].1 != pair[1].1));
+        migrate(&mut world);
+        assert_eq!(capture(&world), expected);
+        assert_eq!(world.resource::<SimRng>(), &reference);
+    }
+
+    #[test]
     fn self_preservation_migration_draws_stably_then_persists_zero_without_redraw() {
         let mut source = Sim::new_from_shipped_lot_with_seed(91);
         let mut snapshot = source.save_snapshot_v5();

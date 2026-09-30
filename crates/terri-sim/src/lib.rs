@@ -1,5 +1,6 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
+mod action_queue;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
