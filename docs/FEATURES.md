@@ -71,8 +71,8 @@ rejection feedback on keyboard and pointer routes, a dedicated command live
 region that clears on the next order attempt and cannot be overwritten by
 Save or autosave status, persistence-dialog focus recovery, and
 responsive accessible controls. Compact viewports now start with a
-safe-area-aware Time, Funds, and Menu strip. Roster, details, speed, and game
-actions enter the layout only after the player opens Menu.
+safe-area-aware world controls and a bottom Sim dock. The complete needs and
+Sim controls remain reachable through Sim details; see [CUI-world]-[CUI-build].
 Queue-capacity feedback shipped in PR 46 at merge `abd2e736`, and the honest
 generic object-use activity shipped in PR 47 at merge `38a03c15`. Their exact
 Pages runs and deployed browser evidence are recorded in
@@ -440,16 +440,13 @@ compiled content, the endpoint and actual walked path are both capped at three
 tiles, the choice remains deterministic and retry-bounded, and the measured and
 watched acceptance evidence is recorded at [A-local-idle-wandering].
 
-The compact HUD reuses the existing controls and adds one visibility
-controller. At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, only
-Time, Funds, Menu and the status line remain visible until the player
-expands the HUD; Light, sound and the game actions are in the Options
-flyout on every screen size ([OF3]). Phone
-portrait and ultra-narrow screens use a contiguous top sheet; wider short
-screens use a scrollable edge sheet; desktop keeps the existing sidebar. The
-current contract is [CH1]-[CH4].
-[MH1]-[MH5] and [A-mobile-hud-reflow] remain historical evidence for the
-superseded full-viewport dock.
+The compact HUD now separates world controls at the upper left from a bottom
+Sim dock. Desktop exposes all need meters; compact and collapsed layouts keep
+Sim details available for the same information. People, Traits, Queue and
+Household share one expandable sheet. Options holds world preferences and game
+actions; Queue mode and Clear orders live in Queue. Build retains its existing
+tools and restores the dock on exit. See [CUI-world]-[CUI-build].
+[CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -1362,10 +1359,11 @@ Tone should be locked before serious content authoring begins in M1.
 
 ## Gameplay UI corrections (2026-09-30)
 
-Simulation speed now sits below the clock and funds; Build sits at the bottom of
-the sidebar. Moving furniture displays one preview;
+Simulation speed sits below the clock and funds; Build and Options now share
+the upper-left world group ([CUI-world]). Moving furniture displays one preview;
 Confirm commits and deselects, and Cancel restores and deselects. Selected-person
-action cards descend from the top right and fade between 33% and 55% of viewport
+action cards now appear in the bounded Queue panel ([CUI-details]); the earlier
+top-right presentation faded between 33% and 55% of viewport
 height. Bed shortages apply a shared household mood penalty. Bookcases rotate
 against their tile edges, and scrolling sidebars retain their content width.
 See `docs/specs/2026-09-30-gameplay-ui.md` for scope and verification.

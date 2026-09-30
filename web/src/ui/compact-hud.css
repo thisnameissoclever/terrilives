@@ -1,0 +1,138 @@
+/* World controls and Sim information have separate, bounded footprints. */
+#hud {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  width: 144px;
+  display: grid;
+  gap: 4px;
+  z-index: 4;
+  pointer-events: none;
+}
+#hud > * { pointer-events: auto; }
+#household-summary {
+  padding: 6px 8px;
+  border: 1px solid var(--hud-edge);
+  border-radius: 6px;
+  background: var(--hud-bg);
+}
+#household-summary .summary-row { gap: 4px; }
+#household-summary .summary-label { font-size: 10px; }
+#household-summary .summary-value { font-size: 12px; overflow-wrap: anywhere; }
+#hud-status { margin-top: 2px; }
+#world-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+#world-actions #builder-desktop { padding: 0; }
+#hud .hud-button, #hud #time-controls label { min-height: 32px; }
+#hud #time-controls { margin: 0; gap: 2px; }
+#hud #time-controls label { width: auto; min-width: 0; flex: 1; padding: 0 4px; }
+body[data-building='true'] #hud { width: min(calc(220px + var(--hud-scrollbar-width, 0px)), calc(100vw - 16px)); }
+body[data-building='true'] #world-actions { display: block; }
+body[data-building='true'] #options { margin-top: 4px; }
+body[data-building='true'] #builder-desktop { max-height: calc(100dvh - 160px); overflow-y: auto; }
+body[data-building='true'] #builder-controls { padding: 8px; background: var(--hud-bg); border: 1px solid var(--hud-edge); border-radius: 6px; }
+
+#sim-dock {
+  position: fixed;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
+  max-width: 1080px;
+  margin-inline: auto;
+  box-sizing: border-box;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-edge);
+  border-radius: 8px;
+  padding: 6px 8px;
+  z-index: 5;
+}
+#sim-dock [hidden], #sim-dock[hidden] { display: none !important; }
+#sim-dock-header { display: flex; align-items: center; gap: 6px; }
+#sim-identity { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+#needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#dock-activity { color: var(--hud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sim-dock-header > .hud-button { min-height: 32px; padding: 0 10px; flex: none; }
+#sim-dock-body { display: grid; grid-template-columns: minmax(180px, 0.9fr) minmax(0, 2fr); gap: 12px; margin-top: 5px; align-items: center; }
+#household-roster { min-width: 0; }
+#household-roster-members { display: flex; overflow-x: auto; gap: 4px; padding: 2px; }
+#household-roster-members .household-member { min-height: 34px; min-width: 60px; max-width: 160px; flex: 0 0 auto; padding: 4px 8px; font-size: 15px; font-weight: 700; }
+#needs-content { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 12px; margin: 0; }
+#needs-content .need-row { grid-template-columns: auto minmax(20px, 1fr); gap: 5px; font-size: 11px; }
+#needs-content .need-state { font-size: 10px; }
+#needs-empty { margin: 0; }
+#sim-sheet {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  width: min(540px, calc(100vw - 18px));
+  max-height: min(420px, calc(100dvh - 100% - max(24px, env(safe-area-inset-top)) - env(safe-area-inset-bottom)));
+  display: flex;
+  flex-direction: column;
+  background: var(--hud-bg);
+  border: 1px solid var(--hud-edge);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0006;
+}
+#sim-sheet-header { display: flex; gap: 8px; padding: 6px; border-bottom: 1px solid var(--hud-edge); }
+#sim-sheet-header nav { display: flex; flex: 1; gap: 4px; overflow-x: auto; padding: 2px; }
+#sim-sheet-header .hud-button { flex: none; padding-inline: 8px; min-height: 36px; }
+#sim-sheet-header [aria-expanded='true'] { background: #29313a; border-color: var(--need-fill); }
+#sim-sheet-content { overflow-y: auto; padding: 10px; min-height: 0; overscroll-behavior: contain; }
+#sim-sheet-content p { margin-block: 4px 10px; }
+#overview-needs { margin-bottom: 10px; }
+#overview-needs:empty { display: none; }
+#selected-summary { border: 0; padding: 0; margin: 0; }
+#traits-block { margin: 0; border: 0; padding: 0; }
+#traits-caption { display: none; }
+.queue-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#queue-preview-note { color: var(--hud-muted); font-size: 12px; }
+
+@media (max-width: 900px) {
+  #sim-identity { display: grid; gap: 0; }
+  #sim-dock-body { grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2fr); }
+  #needs-content { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px), (max-height: 480px) {
+  #hud { width: 182px; }
+  #hud .hud-button, #hud #time-controls label { min-height: 44px; }
+  #hud #time-controls { display: grid; grid-template-columns: repeat(4, 1fr); }
+  #hud #time-controls label { min-width: 0; padding: 0; }
+  #sim-dock { padding: 4px 6px; }
+  #sim-dock-header { gap: 4px; }
+  #sim-identity { display: grid; gap: 0; }
+  #needs-caption { font-size: 18px; }
+  #dock-activity { font-size: 11px; }
+  #sim-dock-header > .hud-button { min-height: 44px; padding: 0 7px; }
+  #dock-queue, #dock-household { display: none; }
+  #sim-dock-collapse { font-size: 11px; }
+  #sim-dock-body { display: block; margin-top: 2px; }
+  #household-roster-members .household-member { min-height: 44px; }
+  #dock-needs { display: none; }
+  #sim-sheet { left: -1px; right: -1px; width: auto; }
+  #sim-sheet-header { gap: 4px; }
+  #sim-sheet-header .hud-button { min-height: 44px; }
+  #needs-content { grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+  #needs-content .need-row { grid-template-columns: auto minmax(24px, 1fr); font-size: 12px; }
+  body[data-building='true'] #hud { width: 182px; }
+  body[data-building='true'] #world-actions { display: grid; }
+  body[data-building='true'] #builder-desktop { max-height: none; overflow: visible; }
+  body[data-building='true'] #options { margin-top: 0; }
+}
+@media (max-height: 480px) and (min-width: 601px) {
+  #sim-dock { left: 200px; }
+  #sim-dock-body { max-height: 48px; overflow-y: auto; }
+}
+
+body[data-building='true'] #hud #time-controls { display: none; }
+#hud:has(#options-panel:not([hidden])) { z-index: 8; }
+
+#dock-activity[data-urgent='true'] { white-space: normal; color: var(--hud-danger); }
+
+#dock-alert { margin: 4px 0 0; color: var(--hud-danger); max-height: 4.2em; overflow-y: auto; }
+#dock-alert:empty { margin: 0; }
+@media (any-pointer: coarse) {
+  #hud { width: 182px; }
+  #hud .hud-button, #hud #time-controls label,
+  #sim-dock-header > .hud-button, #sim-sheet-header .hud-button,
+  #household-roster-members .household-member { min-height: 44px; }
+  #hud #time-controls label { min-width: 44px; box-sizing: border-box; }
+}

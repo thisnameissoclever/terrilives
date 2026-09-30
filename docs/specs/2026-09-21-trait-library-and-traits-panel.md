@@ -106,9 +106,11 @@ The shell already reads `traitsOf`, `traitLabels` and `traitKinds` for the
 developer overlay. The bridge gains one more startup read,
 `traitDescriptions`, aligned with the other two.
 
-The panel sits in the selected person's HUD below the need bars, because the
-bars are read far more often. It is hidden while nobody is selected: the panel
-it sits in already says to select a person. For each trait it shows:
+The panel is reached through Sim details / Traits in the bottom dock
+([CUI-details]). Its disclosure starts collapsed on each page load, on desktop
+and mobile, and its wrapper opens only on request. Opening it changes no
+simulation state. With nobody selected, the wrapper asks the player to select
+a person while the trait list stays hidden. For each trait it shows:
 
 * the label;
 * the description;

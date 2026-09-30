@@ -69,3 +69,16 @@ it('bridge exposes queue labels without mutating saved state and rejects invalid
     expect(source.saveBytes()).toEqual(saved);
   } finally { handle.free(); }
 });
+
+it('recomputes the bounded preview immediately when its hidden panel opens', () => {
+  let requested = 0;
+  const doc = { createElement: () => ({ append() {}, textContent: '', className: '' }), createTextNode: (text: string) => text };
+  const root = { ownerDocument: doc, clientHeight: 0, hidden: false, replaceChildren() {}, append() {} };
+  const queue = new ActionQueue(root as unknown as HTMLElement, 100);
+  const source = { selectedIndex: () => 1, actionQueueOf: (_id: number, limit = 0) => { requested = limit; return ['Read']; } };
+  queue.update(0, source);
+  expect(requested).toBe(2);
+  root.clientHeight = 220;
+  queue.invalidate(); queue.update(1, source);
+  expect(requested).toBe(8);
+});

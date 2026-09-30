@@ -329,3 +329,10 @@ describe('the placement buttons in the page', () => {
     expect(built).not.toContain('spriteContentLift');
   });
 });
+
+// The compact world controls now occupy the left corner.
+it('escapes to the right of world controls when a short Build dock leaves no room below', () => {
+  const box = { left: 0, gearLeft: 8, gearRight: 152, gearBottom: 160 };
+  expect(placementActionsPosition(70, 40, 150, 44, 844, 180, box)).toEqual({ x: 160, y: 8 });
+  expect(placementActionsPosition(400, 40, 150, 44, 844, 180, box)).toEqual({ x: 325, y: 8 });
+});
