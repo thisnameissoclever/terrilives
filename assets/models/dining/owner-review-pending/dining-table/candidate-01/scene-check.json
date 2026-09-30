@@ -1,0 +1,120 @@
+{
+  "state": "passed",
+  "parts": 9,
+  "contacts": {
+    "Long apron left / Leg left near": [
+      -0.3499999940395355,
+      -0.7960000038146973,
+      0.6399999856948853
+    ],
+    "Long apron left / Leg left far": [
+      -0.3499999940395355,
+      0.7239999771118164,
+      0.6399999856948853
+    ],
+    "Long apron right / Leg right near": [
+      0.28999999165534973,
+      -0.7960000038146973,
+      0.6399999856948853
+    ],
+    "Long apron right / Leg right far": [
+      0.28999999165534973,
+      0.7239999771118164,
+      0.6399999856948853
+    ],
+    "End apron near / Leg left near": [
+      -0.3425000011920929,
+      -0.7900000214576721,
+      0.6399999856948853
+    ],
+    "End apron near / Leg right near": [
+      0.2824999690055847,
+      -0.7900000214576721,
+      0.6399999856948853
+    ],
+    "End apron far / Leg left far": [
+      -0.3425000011920929,
+      0.7299999594688416,
+      0.6399999856948853
+    ],
+    "End apron far / Leg right far": [
+      0.2824999690055847,
+      0.7299999594688416,
+      0.6399999856948853
+    ],
+    "Tabletop / Leg left near": [
+      -0.35600000619888306,
+      -0.7960000038146973,
+      0.7124999761581421
+    ],
+    "Tabletop / Leg left far": [
+      -0.35600000619888306,
+      0.7239999771118164,
+      0.7124999761581421
+    ],
+    "Tabletop / Long apron left": [
+      -0.3499999940395355,
+      -0.6439999938011169,
+      0.7120000123977661
+    ],
+    "Tabletop / Leg right near": [
+      0.2839999794960022,
+      -0.7960000038146973,
+      0.7124999761581421
+    ],
+    "Tabletop / Leg right far": [
+      0.2839999794960022,
+      0.7239999771118164,
+      0.7124999761581421
+    ],
+    "Tabletop / Long apron right": [
+      0.28999999165534973,
+      -0.6439999938011169,
+      0.7120000123977661
+    ],
+    "Tabletop / End apron near": [
+      -0.2800000011920929,
+      -0.7900000214576721,
+      0.7120000123977661
+    ],
+    "Tabletop / End apron far": [
+      -0.2800000011920929,
+      0.7299999594688416,
+      0.7120000123977661
+    ]
+  },
+  "grounded": [
+    "Leg left near",
+    "Leg left far",
+    "Leg right near",
+    "Leg right far"
+  ],
+  "top_height": 0.7900000214576721,
+  "runtime_spans": {
+    "SE": [
+      1.8600000143051147,
+      0.8800000548362732
+    ],
+    "NW": [
+      1.8600000143051147,
+      0.8799999952316284
+    ],
+    "SW": [
+      0.8799999952316284,
+      1.8600000143051147
+    ],
+    "NE": [
+      0.8800001740455627,
+      1.8600001335144043
+    ]
+  },
+  "model_sha256": "5fa0a9091151a7ab7570e8da7ba5307ea52dcd40b539418c239af921f15c1e99",
+  "caught_mutations": [
+    "Leg left near lost floor contact",
+    "Long apron left detached from Leg left near",
+    "End apron far detached from Leg left far",
+    "Tabletop detached from Leg left near",
+    "Authored table basis changed",
+    "Table inventory changed"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "state": "complete",
+  "object": "dining-table",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "dining/render_table.py": "5d930d2220968d880c20b83d26206b44f832b5cdc77d719b6ad2e1315320622d",
+    "dining/table_model.py": "23ae75e0c4e0c6ea4c3de4a3e0af3fcfaedcc9228532e0ef5424d781ca10bcb7",
+    "dining/table_layout.py": "80a6f0e540c2749ef405930d6e96ea69a448c578ca81c083ba63608f1cb4f97e",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "c4fa95d835bb7a4b0bfabb8b198ed5d2ff43e8ace913f7db565729b82435bbe0"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "1292dc7e874d5d4197faf570e9d3634edc59c3aaf9e5ea99b01f3a73fb391bb3"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "790df5294eb8089d07f8f600896bd7bfa699a46a611565c432fd642e0f47a4a6"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "2cc32c31d182ed131c2631b9343b44572dc808ffd60ea730def3f1ddaf17f72d"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "long_axis": "Y",
+    "base_runtime_long_axis": "X",
+    "top_height": 0.79,
+    "base_footprint": [
+      2,
+      1
+    ],
+    "legs": 4,
+    "aprons": 4,
+    "seated_animation_proven": false
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "End apron far",
+    "End apron near",
+    "Leg left far",
+    "Leg left near",
+    "Leg right far",
+    "Leg right near",
+    "Long apron left",
+    "Long apron right",
+    "Tabletop"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "5fa0a9091151a7ab7570e8da7ba5307ea52dcd40b539418c239af921f15c1e99"
+}
