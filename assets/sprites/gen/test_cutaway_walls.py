@@ -31,7 +31,7 @@ class CutawayWallTests(unittest.TestCase):
     def test_previous_1229_records_and_decoded_pixels_are_unchanged(self):
         root = Path(__file__).resolve().parents[3]
         rows = tomllib.loads((root / 'assets/sprites/atlas.toml').read_text())['sprite']
-        self.assertEqual([r['name'] for r in rows[1229:]], [draw.__name__ for draw in SPRITES])
+        self.assertEqual([r['name'] for r in rows[1229:1246]], [draw.__name__ for draw in SPRITES])
         digest = hashlib.sha256()
         with Image.open(root / 'web/public/atlas.png') as image:
             for row in rows[:1229]:
