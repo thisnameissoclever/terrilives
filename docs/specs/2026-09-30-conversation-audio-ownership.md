@@ -113,11 +113,11 @@ Compiling mechanism-deletion checks all failed assertions with exit 1:
 | Mutation | Observed failure |
 | --- | --- |
 | Remove Rust high word | Expected 2097154; received 0 |
-| Remove owner from the playback key | Three ownership failures |
-| Remove high word from the playback key | One replacement failure |
-| Combine words into one JavaScript number | Adjacent wide-token identity failure |
-| Globally stop on an individual end | Surviving-pair assertion failed |
-| Leave an ended pending key in the map | Ended pair played after decoding |
+| Remove owner from the playback key | `expected [ { …(3) } ] to deeply equal [ { …(3) }, { …(3) } ]`; second simultaneous start absent; three failures |
+| Remove high word from the playback key | `expected [ { …(3) } ] to deeply equal [ { …(3) }, { …(2) }, { …(3) } ]`; replacement absent |
+| Combine words into one JavaScript number | Same missing end/start assertion for adjacent `2^53` and `2^53 + 1` tokens |
+| Globally stop on an individual end | `expected +0 to be 1 // Object.is equality`; surviving pair was stopped |
+| Leave an ended pending key in the map | `expected 2 to be 1 // Object.is equality`; ended pair played after decoding |
 
 Inverse patches restored exact production bytes after each mutation. Before
 the later formatting-only pass, Rust `lib.rs` matched SHA-256
@@ -140,3 +140,12 @@ integration tests above.
 The production bundle also loaded, advanced the household and accepted Pause
 without browser warnings/errors. Both task-owned game pages and both local
 servers were closed after verification; no user-owned page or save was changed.
+
+After merging main `627259f5` (the dining-table update), the full Rust tests,
+format/lint gates, WASM rebuild, 1,310 web tests across 93 files, typecheck and
+production build passed again. Eight dining-model tests and 91 sprite-generator
+tests passed; atlas reproduction matched 1,258 sprites at 8192x4128. Document
+IDs and whitespace checks passed. A final displayed production pass showed the
+updated dining table and advancing household, accepted Pause and reported no
+browser warnings/errors. Its page and server were closed. Remote CI and Pages
+deployment are separate from this local evidence.

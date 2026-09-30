@@ -21,6 +21,13 @@ visible earlier in the run. Neither issue is changed by audio ownership.
 Concurrent recordings were verified with real offline audio samples and
 integration tests, not a displayed four-person scene or subjective listening.
 
+After integrating main `627259f5`, the final production pass showed the new
+four-legged dining table aligned between its chairs and normal household
+activity. `docs/assets/review-evidence/audio-ownership-integrated.jpg` records
+that build. No missing atlas regions or new layout failures were visible in
+this brief pass; it does not replace the table's separate art review. The
+browser diagnostics were empty, and the owned page and server were closed.
+
 ## [A-conversation-audio-fades] Audio repair on the integrated household build
 
 2026-09-30, production build after main `5e9335a8`, 1280x720. The saved four-person
