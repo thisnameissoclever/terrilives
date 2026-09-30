@@ -104,6 +104,7 @@ pub fn advance_chains(
         // a free one exists anywhere; only a fully-booked role waits.
         let mut best: Option<(Entity, Vec<(i32, i32)>)> = None;
         let mut any_station = false;
+        let mut occupied_reachable = None;
         let mut in_order: Vec<_> = stations.iter().collect();
         in_order.sort_by_key(|(entity, ..)| entity.index());
         for (station, station_pos, object, reserved, facing) in in_order {
@@ -112,9 +113,6 @@ pub fn advance_chains(
                 continue;
             }
             any_station = true;
-            if reserved || claimed.contains(&station) {
-                continue;
-            }
             let to = (station_pos.x.round() as i32, station_pos.y.round() as i32);
             // The ORIENTED rectangle: a station the player has turned is
             // approached where it now lies.
@@ -125,6 +123,10 @@ pub fn advance_chains(
             else {
                 continue;
             };
+            if reserved || claimed.contains(&station) {
+                occupied_reachable.get_or_insert(station);
+                continue;
+            }
             let shorter = match &best {
                 Some((_, best_steps)) => steps.len() < best_steps.len(),
                 None => true,
@@ -160,6 +162,11 @@ pub fn advance_chains(
             // tick - the fridge-queue behaviour, inherited on purpose.
             None if any_station => {
                 commands.entity(sim).insert(Blocked);
+                if let Some(station) = occupied_reachable {
+                    commands
+                        .entity(sim)
+                        .insert(crate::waiting::advertised_needs(station, &chain.advertises));
+                }
             }
             None => {}
         }
@@ -1317,6 +1324,7 @@ mod tests {
             .insert(Traits::from_entries(vec![(0, 1.0)]));
         start_chain(&mut sim, agent);
         for _ in 0..400 {
+            crate::test_content::disable_mood_satisfaction(&mut sim);
             sim.tick();
             if sim.world().get::<ChainState>(agent).is_none() {
                 let paid = sim.world().get::<Satisfaction>(agent).unwrap().value();
@@ -1336,6 +1344,60 @@ mod tests {
     /// chain-holder WAITS (Blocked, counter intact) and proceeds the
     /// moment the station frees - the fridge-queue behaviour inherited.
     #[test]
+    fn autonomy_waits_for_the_meals_advertised_needs_at_a_booked_advertiser() {
+        let (mut sim, agent, _, _) = chain_world();
+        let mut pack = sim.world().resource::<Content>().0.clone();
+        pack.objects[0].interactions.clear();
+        pack.tuning.idle_threshold = 0.0;
+        sim.world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        let advertiser = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| object.0 == terri_data::ObjectDefId(0))
+            .unwrap()
+            .0;
+        sim.world_mut().entity_mut(advertiser).insert(Reserved);
+        sim.tick();
+        let waiting = sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .unwrap();
+        assert_eq!(waiting.1, advertiser);
+        assert_eq!(
+            waiting.0,
+            (1 << NeedId::Hunger.index()) | (1 << NeedId::Comfort.index())
+        );
+    }
+
+    #[test]
+    fn an_unreachable_booked_station_does_not_lower_mood_as_waiting() {
+        let (mut sim, agent, pantry, _) = chain_world();
+        sim.world_mut().entity_mut(pantry).insert(Reserved);
+        start_chain(&mut sim, agent);
+        sim.tick();
+        assert!(sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .is_some());
+        for y in 0..8 {
+            for x in 0..12 {
+                if (x, y) != (2, 4) {
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(x, y, true);
+                }
+            }
+        }
+        sim.tick();
+        assert!(sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .is_none());
+    }
+
+    #[test]
     fn a_booked_station_is_waited_for() {
         let (mut sim, agent, pantry, _table) = chain_world();
         sim.world_mut().entity_mut(pantry).insert(Reserved);
@@ -1344,6 +1406,10 @@ mod tests {
         for _ in 0..30 {
             sim.tick();
         }
+        assert!(sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .is_some());
         let world = sim.world();
         assert!(
             world.get::<ChainState>(agent).is_some()

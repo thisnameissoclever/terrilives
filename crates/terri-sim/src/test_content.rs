@@ -404,3 +404,15 @@ pub fn shipped_object(id: &str) -> SmartObject {
 pub fn shipped_fridge() -> SmartObject {
     shipped_object("fridge")
 }
+
+/// Isolate legacy payout tests from the separate mood contribution.
+pub fn disable_mood_satisfaction(sim: &mut Sim) {
+    let content = sim.world().resource::<Content>().0;
+    if content.tuning.satisfaction_mood_per_tick == 0.0 {
+        return;
+    }
+    let mut pack = content.clone();
+    pack.tuning.satisfaction_mood_per_tick = 0.0;
+    sim.world_mut()
+        .insert_resource(Content(Box::leak(Box::new(pack))));
+}

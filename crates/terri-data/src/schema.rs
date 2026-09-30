@@ -231,6 +231,21 @@ pub struct TuningFile {
     pub grief_max_score: f32,
     pub grief_min_ticks: u32,
     pub grief_hated_affinity: f32,
+    pub mood_critical_need_level: f32,
+    pub mood_low_need_level: f32,
+    pub mood_needs_met_level: f32,
+    pub mood_critical_need_penalty: f32,
+    pub mood_low_need_penalty: f32,
+    pub mood_needs_met_bonus: f32,
+    pub mood_condition_penalty: f32,
+    pub mood_relationship_strength: f32,
+    pub mood_relationship_radius: f32,
+    pub mood_relationship_min_affinity: f32,
+    pub mood_condition_min_severity: f32,
+    pub waiting_mood_min_penalty: f32,
+    pub waiting_mood_max_penalty: f32,
+    pub satisfaction_mood_neutral_band: f32,
+    pub satisfaction_mood_per_tick: f32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1024,7 +1039,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 40] = [
+    const TUNING_LINES: [(&str, &str); 55] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -1064,6 +1079,21 @@ mod tests {
         ("grief_max_score", "30.0"),
         ("grief_min_ticks", "600"),
         ("grief_hated_affinity", "-0.5"),
+        ("mood_critical_need_level", "20.0"),
+        ("mood_low_need_level", "40.0"),
+        ("mood_needs_met_level", "70.0"),
+        ("mood_critical_need_penalty", "25.0"),
+        ("mood_low_need_penalty", "12.0"),
+        ("mood_needs_met_bonus", "20.0"),
+        ("mood_condition_penalty", "30.0"),
+        ("mood_relationship_strength", "15.0"),
+        ("mood_relationship_radius", "4.0"),
+        ("mood_relationship_min_affinity", "0.1"),
+        ("mood_condition_min_severity", "0.05"),
+        ("waiting_mood_min_penalty", "2.0"),
+        ("waiting_mood_max_penalty", "30.0"),
+        ("satisfaction_mood_neutral_band", "15.0"),
+        ("satisfaction_mood_per_tick", "0.025"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.

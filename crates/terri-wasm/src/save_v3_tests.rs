@@ -226,7 +226,11 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     // those lists existed ([FL-save], [FM-save], [FM-identity]). That is
     // the price of growing a postcard struct by appending, and it is the
     // price the sleep-pressure list already pays.
-    cases.extend((SAVE_HEADER_BYTES..valid.len() - 4).map(|cut| valid[..cut].to_vec()));
+    cases.extend(
+        (SAVE_HEADER_BYTES..valid.len())
+            .filter(|cut| ![1, 2, 6, 7, 8, 9].contains(&(valid.len() - cut)))
+            .map(|cut| valid[..cut].to_vec()),
+    );
     for bytes in cases {
         let before = restored.save_bytes();
         assert!(
@@ -243,7 +247,7 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(painter.set_floor(2.0, 2.0, 1.0));
     painter.flush_commands();
     let painted = painter.save_bytes();
-    let before_ties = painted[..painted.len() - 3].to_vec();
+    let before_ties = painted[..painted.len() - 8].to_vec();
     let mut live = SimHandle::from_lot();
     assert!(
         live.load_bytes(&before_ties),
@@ -253,10 +257,12 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(live.family_ties().is_empty());
 
     for (cut, what) in [
-        (1, "mortality"),
-        (2, "ties keyed on SimId"),
-        (3, "family"),
-        (4, "floors and family"),
+        (1, "waiting"),
+        (2, "death default migration"),
+        (6, "mortality"),
+        (7, "ties keyed on SimId"),
+        (8, "family"),
+        (9, "floors and family"),
     ] {
         let older = valid[..valid.len() - cut].to_vec();
         assert!(
@@ -402,7 +408,7 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     snapshot.family_by_index = by_index;
     let written = v5_bytes(&snapshot);
     // Drop the SimId list and the tie's relation byte.
-    let cut = &written[..written.len() - 3];
+    let cut = &written[..written.len() - 8];
     assert!(decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none());
     let mut restored = SimHandle::from_lot();
     assert!(!restored.load_bytes(cut), "a relation nobody chose");
@@ -412,7 +418,7 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     painter.flush_commands();
     let painted = painter.save_bytes();
     // Drop both family lists and the tile's covering byte.
-    let cut = &painted[..painted.len() - 4];
+    let cut = &painted[..painted.len() - 9];
     assert!(
         decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none(),
         "a covering nobody laid"
@@ -442,7 +448,7 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
         + postcard::to_allocvec(&snapshot.family_by_index)
             .unwrap()
             .len();
-    let floors_start = payload.len() - family_bytes - floors.len() - 1;
+    let floors_start = payload.len() - family_bytes - floors.len() - 6;
     let cut = &payload[..=floors_start];
     assert!(decode_v5(cut).is_none(), "cut inside the floors length");
 
@@ -458,7 +464,7 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     by_sim.family = many.clone();
     let payload = postcard::to_allocvec(&by_sim).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
-    let start = payload.len() - length.len() - 1;
+    let start = payload.len() - length.len() - 6;
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the SimId list's length"
@@ -469,7 +475,7 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     let payload = postcard::to_allocvec(&by_index).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
     let after = postcard::to_allocvec(&by_index.family).unwrap().len();
-    let start = payload.len() - after - length.len() - 1;
+    let start = payload.len() - after - length.len() - 6;
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the entity-index list's length"
@@ -486,10 +492,10 @@ fn pre_mortality_save_preserves_nonempty_floors_and_family() {
     let bytes = handle.save_bytes();
     assert_eq!(bytes.last(), Some(&0));
     let mut restored = SimHandle::from_lot();
-    assert!(restored.load_bytes(&bytes[..bytes.len() - 1]));
+    assert!(restored.load_bytes(&bytes[..bytes.len() - 6]));
     assert_eq!(restored.floor_tiles(), vec![2, 2, 1]);
     assert_eq!(restored.family_ties(), handle.family_ties());
-    assert!(!restored.death_enabled());
+    assert!(restored.death_enabled());
     assert_eq!(restored.save_bytes(), bytes);
 }
 
@@ -505,12 +511,50 @@ fn mortality_length_truncation_cannot_invent_an_empty_count_list() {
     let tail = postcard::to_allocvec(&snapshot.mortality).unwrap();
     assert_eq!(&tail[..4], &[1, 1, 128, 1]);
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len();
+    let start = bytes.len() - tail.len() - 2;
     assert!(decode_v5(&bytes[..start + 3]).is_none());
-    for cut in start + 1..bytes.len() {
+    for cut in start + 1..start + tail.len() {
         assert!(
             decode_v5(&bytes[..cut]).is_none(),
             "accepted mortality cut {cut}"
         );
     }
+}
+
+#[test]
+fn waiting_length_truncation_cannot_invent_an_empty_list() {
+    let mut snapshot = SimHandle::from_lot().sim.save_snapshot_v5();
+    snapshot.waiting_needs = (0..128).map(|i| (i, 129, 1)).collect();
+    let tail = postcard::to_allocvec(&snapshot.waiting_needs).unwrap();
+    assert_eq!(&tail[..2], &[128, 1]);
+    let bytes = postcard::to_allocvec(&snapshot).unwrap();
+    let start = bytes.len() - tail.len();
+    for cut in start + 1..bytes.len() {
+        assert!(
+            decode_v5(&bytes[..cut]).is_none(),
+            "accepted waiting cut {cut}"
+        );
+    }
+}
+
+#[test]
+fn pre_default_change_preserves_nonempty_mortality_and_enables_death() {
+    let mut source = SimHandle::from_lot();
+    let (first, second) = two_sims(&mut source);
+    assert!(source.set_floor(2.0, 2.0, 1.0));
+    assert!(source.set_family_tie(first.into(), second.into(), 1.0));
+    source.flush_commands();
+    let mut snapshot = source.sim.save_snapshot_v5();
+    snapshot.mortality = Some(terri_core::save::SavedMortality {
+        enabled: false,
+        counts: vec![(first, 1)],
+        deaths: vec![],
+    });
+    let bytes = v5_bytes(&snapshot);
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes[..bytes.len() - 2]));
+    assert!(loaded.death_enabled());
+    assert_eq!(loaded.sim.deprivation_ticks(first), 1);
+    assert_eq!(loaded.family_ties(), source.family_ties());
+    assert_eq!(loaded.floor_tiles(), source.floor_tiles());
 }

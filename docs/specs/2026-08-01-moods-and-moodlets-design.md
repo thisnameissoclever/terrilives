@@ -3,10 +3,11 @@
 Status: implemented and accepted in visible Chromium on desktop and mobile;
 release verification is pending. Section IDs are stable; do not renumber.
 
-The score constants in this slice affect only the explanatory projection;
-nothing in simulation choice or outcome reads mood yet. Before a future system
-does read it, these balance values must move into `content/tuning.toml` and pass
-the pack's validation rules.
+Owner revision, 2026-09-30: [MW-satisfaction] integrates this projection into
+life satisfaction once per tick. All balance inputs now live in
+`content/tuning.toml` with compile-time validation. [MW-waiting] adds a penalty
+for an occupied item, scaled by the need the activity would satisfy. The
+numbers below describe the initial tuning, not constants in the simulation.
 
 ## [M1] One derived answer
 

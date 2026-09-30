@@ -118,7 +118,7 @@ Messes on the floor, a litter box that fills, a food bowl that empties, a sink t
 
 **Status: Not started.** The owner's pet example needs this: a person cleans up after the dog only when they are happy or motivated enough and are not too tired. The game has no such gate. Any person will start any action that scores well.
 
-The proposal is one general rule. A task can declare a minimum mood and a maximum tiredness, and a person below the bar refuses the task, both on their own and when ordered. The same rule then serves cleaning, repairs, chores, homework, and exercise. Mood is currently a display-only summary, so this is also the first place mood would change behaviour.
+The proposal is one general rule. A task can declare a minimum mood and a maximum tiredness, and a person below the bar refuses the task, both on their own and when ordered. The same rule then serves cleaning, repairs, chores, homework, and exercise. Mood already changes life satisfaction under [MW-satisfaction]; task refusal remains unbuilt.
 
 A task can also name the kind of unpleasantness it involves. A Sim who is sensitive to smells is less willing to clean up a dog mess than one who is not; [S-sensitivities] supplies that value.
 
@@ -353,7 +353,7 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial, about 60%.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, and nearby people the person likes or dislikes. Mood is display-only: it changes nothing a person does. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial, about 60%.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, and nearby people the person likes or dislikes. Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 ### [S-chains] Multi-step activities
 
@@ -414,7 +414,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-death] Death and its consequences
 
-**Status: Partial.** [DE-slice-neglect] implements deprivation deaths, off by default, with an Options command, row warnings, saved death records, retired entity indices and affinity-based grief. Stronger affinity at death produces stronger, longer grief; hatred produces none. Aging, ghosts, bodies, memorials and inheritance remain unbuilt. See [B-death] in [FEATURES.md](FEATURES.md).
+**Status: Partial.** [DE-slice-neglect] implements deprivation deaths, on by default for new and migrated worlds, with an Options command, row warnings, saved death records, retired entity indices and affinity-based grief. Stronger affinity at death produces stronger, longer grief; hatred produces none. Aging, ghosts, bodies, memorials and inheritance remain unbuilt. See [B-death] in [FEATURES.md](FEATURES.md).
 
 ### [S-outside] A playable outside
 
@@ -479,7 +479,7 @@ Once there are messes, dishes, litter boxes, and dog walks, the question of who 
 
 ### [P-mood-feedback] Mood that changes behaviour
 
-Mood is display-only today. Beyond the willingness gate, a bad mood could make a person choose comfort actions over productive ones, snap at others in conversation, work worse, and learn slower. A good mood could do the reverse. Without this, mood is a readout the player can ignore.
+Sustained mood now changes life satisfaction in either direction under [MW-satisfaction]. Occupied-item waiting lowers mood more strongly when the relevant need is low. Beyond this and the proposed willingness gate, a bad mood could make a person choose comfort actions over productive ones, snap at others in conversation, work worse, and learn slower. A good mood could do the reverse. Those effects on choices, conversations, work and learning remain unbuilt.
 
 **Owner direction, 2026-09-21.** Mood should affect nearly everything. Once careers exist it affects performance at work, how much the Sim earns, and how likely a promotion is.
 

@@ -1,4 +1,4 @@
-//! The second axis's two writers that run on a clock or a completion -
+//! Activity payouts and neglect costs for the satisfaction ledger -
 //! [E1]/[E2] in `docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md`.
 //!
 //! The PAYOUT is not a system: completions happen inside
@@ -6,7 +6,8 @@
 //! at their own completion points so the "on completion only" rule is
 //! enforced by the same code path that enforces it for habituation and
 //! relationships. What lives here is the arithmetic they share and the
-//! one writer with its own clock, the neglect bleed.
+//! neglect bleed. Career payouts live in `career`; the shared mood projection
+//! contributes once per tick through `mood::accrue_satisfaction`.
 
 use bevy_ecs::prelude::*;
 use terri_core::{Hobbies, NeedId, Needs, Satisfaction};
@@ -145,6 +146,7 @@ mod tests {
             .unwrap()
             .add(10.0);
 
+        crate::test_content::disable_mood_satisfaction(&mut sim);
         sim.tick();
 
         let after = sim
@@ -245,6 +247,7 @@ mod tests {
             .unwrap()
             .add(10.0);
 
+        crate::test_content::disable_mood_satisfaction(&mut sim);
         sim.tick();
 
         assert_eq!(
@@ -447,6 +450,7 @@ mod tests {
                 .value()
         };
         for _ in 0..200 {
+            crate::test_content::disable_mood_satisfaction(&mut sim);
             sim.tick();
             if ledger(&sim, lonely) > 0.0 {
                 // The FIRST completed conversation: 3x for the lover of

@@ -492,12 +492,10 @@ impl Relationships {
 /// How well this sim's LIFE is going - the second axis, [E1] in
 /// `docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md`.
 ///
-/// An accumulator, not an eighth need: it never drains on a clock, it
-/// has no ceiling, and no object advertises it. Exactly three writers
-/// exist by design - hobby completions add, neglect bleeds, and (from
-/// PR 2) conditions scale the accrual - and [S1]'s DECIDED rule that
-/// needs can only ever COST it is enforced upstream, where the compile
-/// step rejects a negative content yield.
+/// An accumulator with no ceiling. Activity completions and career shifts
+/// pay authored yields, conditions scale activity accrual, and neglect costs
+/// points. Sustained mood also contributes each tick, in either direction,
+/// under [MW-satisfaction]. Objects never advertise satisfaction as a need.
 ///
 /// Non-negative: a life cannot owe. [`Self::add`] holds the invariant
 /// so `world_hash`, which digests this, never sees a sign a replay

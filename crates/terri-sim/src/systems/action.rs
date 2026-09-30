@@ -631,15 +631,6 @@ pub fn serve_intents(
                 continue;
             }
         }
-        if (reserved && !held_here) || claimed.contains(&intent.object) {
-            // **Waiting its turn, which is exactly what `Blocked` says.**
-            // This is the second writer of that marker and the only one
-            // that ever sees a directed agent, because `select_action`
-            // filters them out before it scores anything - so the two
-            // cannot disagree about one agent on one tick.
-            commands.entity(agent).insert(Blocked);
-            continue;
-        }
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
         let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
         // **Beside it, not on it.** See `TileGrid::find_path_adjacent` for
@@ -663,6 +654,23 @@ pub fn serve_intents(
             queue.pop();
             continue;
         };
+
+        if (reserved && !held_here) || claimed.contains(&intent.object) {
+            // **Waiting its turn, which is exactly what `Blocked` says.**
+            // This is the second writer of that marker and the only one
+            // that ever sees a directed agent, because `select_action`
+            // filters them out before it scores anything - so the two
+            // cannot disagree about one agent on one tick.
+            commands.entity(agent).insert((
+                Blocked,
+                crate::waiting::advertised_needs(
+                    intent.object,
+                    &content.0.object(placed.0).interactions[intent.interaction as usize]
+                        .advertises,
+                ),
+            ));
+            continue;
+        }
 
         // Release whatever the agent was holding before, unless it is
         // the same object - re-targeting one object's other interaction
@@ -1084,6 +1092,10 @@ pub fn select_action(
         // exactly when the best thing the agent saw belongs to somebody
         // else, which is what `Blocked` means.
         let mut best_available = f32::NEG_INFINITY;
+        // Track potential item scores, including available items. The final
+        // strict comparison with best_available proves that waiting actually
+        // lost to contention, rather than merely failing the action threshold.
+        let mut waiting_item: Option<(f32, crate::waiting::WaitingNeeds)> = None;
 
         for (object, object_pos, placed, reserved, footprint) in &placed_objects {
             let object = *object;
@@ -1280,6 +1292,16 @@ pub fn select_action(
                 // answers `idle_threshold`'s question - but it is worth
                 // less than the same object free, because the agent
                 // cannot have it yet, and how much less is the knob.
+                let waiting_score = contested_score(score, contested_multiplier);
+                if waiting_item
+                    .as_ref()
+                    .is_none_or(|(best, _)| waiting_score > *best)
+                {
+                    waiting_item = Some((
+                        waiting_score,
+                        crate::waiting::advertised_needs(object, &advert.advertises),
+                    ));
+                }
                 best_seen = best_seen.max(if contested {
                     contested_score(score, contested_multiplier)
                 } else {
@@ -1381,6 +1403,16 @@ pub fn select_action(
                         total_duration,
                         distance + legs,
                     );
+                }
+                let waiting_score = contested_score(score, contested_multiplier);
+                if waiting_item
+                    .as_ref()
+                    .is_none_or(|(best, _)| waiting_score > *best)
+                {
+                    waiting_item = Some((
+                        waiting_score,
+                        crate::waiting::advertised_needs(object, &chain.advertises),
+                    ));
                 }
                 best_seen = best_seen.max(if contested {
                     contested_score(score, contested_multiplier)
@@ -1544,6 +1576,11 @@ pub fn select_action(
         }
 
         if candidates.is_empty() {
+            if let Some((score, needs)) = waiting_item {
+                if score > idle_threshold && score > best_available && score >= best_seen {
+                    commands.entity(agent).insert(needs);
+                }
+            }
             continue;
         }
 
@@ -1993,6 +2030,31 @@ mod intent_tests {
     /// marker has two writers where `Restless` has one - see `Blocked` for
     /// why the reason `Restless` needs a single writer does not apply here.
     #[test]
+    fn an_unreachable_reserved_item_is_not_a_waiting_order() {
+        let content = directed_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+        let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, hungry_and_tired());
+        sim.world_mut().entity_mut(bed).insert(Reserved);
+        queue_intent(&mut sim, agent, bed, 0);
+        for y in 0..16 {
+            for x in 0..16 {
+                if (x as f32, y as f32) != AGENT_AT {
+                    sim.world_mut()
+                        .resource_mut::<TileGrid>()
+                        .set_blocked(x, y, true);
+                }
+            }
+        }
+        sim.tick();
+        assert!(sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .is_none());
+        assert!(sim.world().get::<IntentQueue>(agent).unwrap().is_empty());
+    }
+
+    #[test]
     fn a_sim_waiting_for_a_reserved_object_is_marked_blocked() {
         let content = directed_content();
         let mut sim = test_content::sim_with(16, 16, content);
@@ -2007,6 +2069,12 @@ mod intent_tests {
         queue_intent(&mut sim, agent, bed, 0);
 
         sim.tick();
+        assert_eq!(
+            sim.world()
+                .get::<crate::waiting::WaitingNeeds>(agent)
+                .map(|w| w.0),
+            Some(1 << NeedId::Energy.index())
+        );
 
         assert!(
             sim.world().get::<Target>(agent).is_none(),
@@ -2049,6 +2117,10 @@ mod intent_tests {
         sim.world_mut().entity_mut(bed).remove::<Reserved>();
         sim.tick();
 
+        assert!(sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(agent)
+            .is_none());
         assert_eq!(
             sim.world().get::<Target>(agent).map(|t| t.object),
             Some(bed),
@@ -3069,6 +3141,12 @@ mod tests {
         let (mut sim, fridge, winner, loser) = one_object_two_agents();
 
         sim.tick();
+        let waiting = sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(loser)
+            .unwrap();
+        assert_eq!(waiting.0, 1 << NeedId::Hunger.index());
+        assert_eq!(waiting.1, fridge);
 
         // Preconditions. Without these, "the loser is not restless" is
         // satisfied by a world where the loser simply won.
@@ -3262,6 +3340,10 @@ mod tests {
              {attenuated} vs {idle_threshold}"
         );
 
+        assert!(sim
+            .world()
+            .get::<crate::waiting::WaitingNeeds>(loser)
+            .is_none());
         assert!(
             sim.world().get::<Restless>(loser).is_some(),
             "a sim that barely wanted the contested object must give up on it \

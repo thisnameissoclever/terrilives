@@ -328,7 +328,9 @@ fn place_intent(
 /// The type_complexity allow is for the same reason it is on
 /// `select_action`: the query tuple is what pushes past clippy's
 /// threshold, and a type alias would only move it somewhere less readable.
-#[allow(clippy::type_complexity)]
+/// Each argument is an ECS system parameter; the chain query distinguishes
+/// an owned order from autonomous waiting when processing cancellation.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub(crate) fn drain_ordinary_commands(
     mut commands: Commands,
     mut queue: ResMut<CommandQueue>,
@@ -337,6 +339,7 @@ pub(crate) fn drain_ordinary_commands(
     selected: Query<Entity, With<Selected>>,
     mut agents: Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
     objects: Query<Entity, With<SmartObject>>,
+    chains: Query<(), With<terri_core::ChainState>>,
 ) {
     // At least 1 by content validation - `ZeroQueuedIntents` - which is
     // what lets a fresh queue be created below without re-checking that
@@ -512,6 +515,9 @@ pub(crate) fn drain_ordinary_commands(
                 // front-only match would then empty the queue and leave
                 // the sim finishing, or walking to, the order it was just
                 // told to drop. See `IntentQueue::contains`.
+                let cancelled_wait = queue.as_deref().is_some_and(|q| !q.is_empty())
+                    || staged.as_ref().is_some_and(|q| !q.is_empty())
+                    || chains.contains(agent);
                 let serving = match target {
                     Some(target) => {
                         let carrying_out = Intent {
@@ -524,6 +530,11 @@ pub(crate) fn drain_ordinary_commands(
                     None => false,
                 };
                 let released = target.copied();
+                if cancelled_wait {
+                    commands
+                        .entity(agent)
+                        .remove::<crate::waiting::WaitingNeeds>();
+                }
 
                 if let Some(mut queue) = queue {
                     queue.clear();

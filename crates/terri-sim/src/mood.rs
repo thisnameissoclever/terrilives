@@ -1,21 +1,14 @@
 //! A read-only mood projection derived from the world the save already owns.
 //!
-//! Mood deliberately has no component and no schedule step. Needs, mutable
-//! conditions, positions, names and directional relationships are the state;
-//! this module merely turns one coherent read of them into presentation data.
+//! Mood has no stored component. The HUD and the once-per-tick satisfaction
+//! contribution share the same projection of needs, conditions, relationships,
+//! grief and occupied-item waiting. Only the satisfaction ledger accumulates.
 
 use bevy_ecs::prelude::*;
 use terri_core::{Agent, NeedId, Needs, Position, Relationships, SimId, SimName, Traits};
 use terri_data::CompiledTraitKind;
 
 use crate::{Content, Sim};
-
-const CRITICAL_NEED_SCORE: f32 = -25.0;
-const LOW_NEED_SCORE: f32 = -12.0;
-const NEEDS_MET_SCORE: f32 = 20.0;
-const CONDITION_SCORE_AT_FULL_SEVERITY: f32 = -30.0;
-const RELATIONSHIP_SCORE_AT_FULL_STRENGTH: f32 = 15.0;
-const RELATIONSHIP_RADIUS: f32 = 4.0;
 
 /// One active reason the derived overall mood moved.
 #[derive(Debug, Clone, PartialEq)]
@@ -40,145 +33,194 @@ impl Sim {
     /// indices and incomplete non-sim fixtures. Traits and relationships are
     /// optional because their absence is neutral.
     pub fn mood_of(&self, index: u32) -> Option<MoodSnapshot> {
-        let pack = self.world.get_resource::<Content>()?.0;
-        let mut subject_query = self.world.try_query_filtered::<(
-            Entity,
-            &Needs,
-            &Position,
-            Option<&Traits>,
-            Option<&Relationships>,
-        ), With<Agent>>()?;
-        let (subject, needs, position, traits, relationships) = subject_query
-            .iter(&self.world)
-            .find(|(entity, ..)| entity.index_u32() == index)?;
-
-        let mut moodlets = Vec::new();
-        for need in NeedId::ALL {
-            let level = needs.get(need);
-            let (low_label, critical_label) = need_labels(need);
-            if level <= 20.0 {
-                moodlets.push(Moodlet {
-                    label: critical_label.to_string(),
-                    score: CRITICAL_NEED_SCORE,
-                });
-            } else if level <= 40.0 {
-                moodlets.push(Moodlet {
-                    label: low_label.to_string(),
-                    score: LOW_NEED_SCORE,
-                });
-            }
-        }
-
-        if NeedId::ALL.into_iter().all(|need| needs.get(need) >= 70.0) {
-            moodlets.push(Moodlet {
-                label: "Needs met".to_string(),
-                score: NEEDS_MET_SCORE,
-            });
-        }
-
-        if let Some(traits) = traits {
-            for &(trait_index, severity) in traits.entries() {
-                if severity.partial_cmp(&0.05) != Some(std::cmp::Ordering::Greater) {
-                    continue;
-                }
-                let Some(definition) = pack.traits.get(trait_index as usize) else {
-                    continue;
-                };
-                if matches!(&definition.kind, CompiledTraitKind::Condition { .. }) {
-                    moodlets.push(Moodlet {
-                        label: definition.label.clone(),
-                        score: CONDITION_SCORE_AT_FULL_SEVERITY * severity,
-                    });
-                }
-            }
-        }
-
-        let mut nearby = Vec::new();
-        if let Some(relationships) = relationships {
-            let mut people_query = self
-                .world
-                .try_query_filtered::<(Entity, &SimId, &SimName, &Position), With<Agent>>()?;
-            for (other, sim_id, name, other_position) in people_query.iter(&self.world) {
-                if other == subject {
-                    continue;
-                }
-                let feeling = relationships.feeling(*sim_id);
-                if !feeling.is_finite() || feeling.abs() < 0.1 {
-                    continue;
-                }
-                let dx = other_position.x - position.x;
-                let dy = other_position.y - position.y;
-                let distance = (dx * dx + dy * dy).sqrt();
-                if !distance.is_finite() || distance >= RELATIONSHIP_RADIUS {
-                    continue;
-                }
-                nearby.push((
-                    sim_id.0,
-                    other.index_u32(),
-                    name.0.as_str(),
-                    feeling,
-                    distance,
-                ));
-            }
-        }
-        // SimId is the contract. Entity index is only a deterministic tie
-        // breaker for an invalid world containing duplicate stable ids.
-        nearby.sort_unstable_by_key(|(sim_id, entity_index, ..)| (*sim_id, *entity_index));
-        for (_, _, name, feeling, distance) in nearby {
-            moodlets.push(Moodlet {
-                label: if feeling.is_sign_positive() {
-                    format!("Comforted by {name}")
-                } else {
-                    format!("Uneasy around {name}")
-                },
-                score: RELATIONSHIP_SCORE_AT_FULL_STRENGTH
-                    * feeling
-                    * (1.0 - distance / RELATIONSHIP_RADIUS),
-            });
-        }
-
-        let now = self.world.resource::<terri_core::SimClock>().tick;
-        let subject_id = self.world.get::<SimId>(subject);
-        for death in self.death_records() {
-            if subject_id.is_none_or(|id| id.0 >= death.issued_sim_ids) {
-                continue;
-            }
-            let feeling = relationships.map_or(0.0, |r| r.feeling(SimId(death.sim_id)));
-            if feeling <= pack.tuning.grief_hated_affinity {
-                continue;
-            }
-            let closeness = feeling.max(0.0);
-            let duration = (f64::from(pack.tuning.grief_min_ticks)
-                + f64::from(pack.tuning.grief_ticks - pack.tuning.grief_min_ticks)
-                    * f64::from(closeness))
-            .round() as u64;
-            let elapsed = now.saturating_sub(death.tick);
-            if elapsed >= duration {
-                continue;
-            }
-            let strength = if feeling < 0.0 {
-                pack.tuning.grief_min_score * (1.0 - feeling / pack.tuning.grief_hated_affinity)
-            } else {
-                pack.tuning.grief_min_score
-                    + (pack.tuning.grief_max_score - pack.tuning.grief_min_score) * closeness
-            };
-            moodlets.push(Moodlet {
-                label: format!("Grieving {}", death.name),
-                score: -strength * (1.0 - elapsed as f32 / duration as f32),
-            });
-        }
-
-        let overall_score = moodlets
-            .iter()
-            .map(|moodlet| moodlet.score)
-            .sum::<f32>()
-            .clamp(-100.0, 100.0);
-        Some(MoodSnapshot {
-            overall_score,
-            overall_label: overall_label(overall_score),
-            moodlets,
-        })
+        derive_mood(&self.world, index)
     }
+}
+
+fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
+    let pack = world.get_resource::<Content>()?.0;
+    let mut subject_query = world.try_query_filtered::<(
+        Entity,
+        &Needs,
+        &Position,
+        Option<&Traits>,
+        Option<&Relationships>,
+    ), With<Agent>>()?;
+    let (subject, needs, position, traits, relationships) = subject_query
+        .iter(world)
+        .find(|(entity, ..)| entity.index_u32() == index)?;
+
+    let mut moodlets = Vec::new();
+    for need in NeedId::ALL {
+        let level = needs.get(need);
+        let (low_label, critical_label) = need_labels(need);
+        if level <= pack.tuning.mood_critical_need_level {
+            moodlets.push(Moodlet {
+                label: critical_label.to_string(),
+                score: -pack.tuning.mood_critical_need_penalty,
+            });
+        } else if level <= pack.tuning.mood_low_need_level {
+            moodlets.push(Moodlet {
+                label: low_label.to_string(),
+                score: -pack.tuning.mood_low_need_penalty,
+            });
+        }
+    }
+
+    if NeedId::ALL
+        .into_iter()
+        .all(|need| needs.get(need) >= pack.tuning.mood_needs_met_level)
+    {
+        moodlets.push(Moodlet {
+            label: "Needs met".to_string(),
+            score: pack.tuning.mood_needs_met_bonus,
+        });
+    }
+
+    if let Some(traits) = traits {
+        for &(trait_index, severity) in traits.entries() {
+            if severity.partial_cmp(&pack.tuning.mood_condition_min_severity)
+                != Some(std::cmp::Ordering::Greater)
+            {
+                continue;
+            }
+            let Some(definition) = pack.traits.get(trait_index as usize) else {
+                continue;
+            };
+            if matches!(&definition.kind, CompiledTraitKind::Condition { .. }) {
+                moodlets.push(Moodlet {
+                    label: definition.label.clone(),
+                    score: -pack.tuning.mood_condition_penalty * severity,
+                });
+            }
+        }
+    }
+
+    let mut nearby = Vec::new();
+    if let Some(relationships) = relationships {
+        let mut people_query =
+            world.try_query_filtered::<(Entity, &SimId, &SimName, &Position), With<Agent>>()?;
+        for (other, sim_id, name, other_position) in people_query.iter(world) {
+            if other == subject {
+                continue;
+            }
+            let feeling = relationships.feeling(*sim_id);
+            if !feeling.is_finite() || feeling.abs() < pack.tuning.mood_relationship_min_affinity {
+                continue;
+            }
+            let dx = other_position.x - position.x;
+            let dy = other_position.y - position.y;
+            let distance = (dx * dx + dy * dy).sqrt();
+            if !distance.is_finite() || distance >= pack.tuning.mood_relationship_radius {
+                continue;
+            }
+            nearby.push((
+                sim_id.0,
+                other.index_u32(),
+                name.0.as_str(),
+                feeling,
+                distance,
+            ));
+        }
+    }
+    // SimId is the contract. Entity index is only a deterministic tie
+    // breaker for an invalid world containing duplicate stable ids.
+    nearby.sort_unstable_by_key(|(sim_id, entity_index, ..)| (*sim_id, *entity_index));
+    for (_, _, name, feeling, distance) in nearby {
+        moodlets.push(Moodlet {
+            label: if feeling.is_sign_positive() {
+                format!("Comforted by {name}")
+            } else {
+                format!("Uneasy around {name}")
+            },
+            score: pack.tuning.mood_relationship_strength
+                * feeling
+                * (1.0 - distance / pack.tuning.mood_relationship_radius),
+        });
+    }
+
+    let now = world.resource::<terri_core::SimClock>().tick;
+    let subject_id = world.get::<SimId>(subject);
+    for death in world
+        .resource::<terri_core::save::SavedMortality>()
+        .deaths
+        .as_slice()
+    {
+        if subject_id.is_none_or(|id| id.0 >= death.issued_sim_ids) {
+            continue;
+        }
+        let feeling = relationships.map_or(0.0, |r| r.feeling(SimId(death.sim_id)));
+        if feeling <= pack.tuning.grief_hated_affinity {
+            continue;
+        }
+        let closeness = feeling.max(0.0);
+        let duration = (f64::from(pack.tuning.grief_min_ticks)
+            + f64::from(pack.tuning.grief_ticks - pack.tuning.grief_min_ticks)
+                * f64::from(closeness))
+        .round() as u64;
+        let elapsed = now.saturating_sub(death.tick);
+        if elapsed >= duration {
+            continue;
+        }
+        let strength = if feeling < 0.0 {
+            pack.tuning.grief_min_score * (1.0 - feeling / pack.tuning.grief_hated_affinity)
+        } else {
+            pack.tuning.grief_min_score
+                + (pack.tuning.grief_max_score - pack.tuning.grief_min_score) * closeness
+        };
+        moodlets.push(Moodlet {
+            label: format!("Grieving {}", death.name),
+            score: -strength * (1.0 - elapsed as f32 / duration as f32),
+        });
+    }
+
+    if let Some(penalty) = crate::waiting::penalty(world, subject, needs) {
+        moodlets.push(Moodlet {
+            label: "Waiting for an item".into(),
+            score: -penalty,
+        });
+    }
+
+    let overall_score = moodlets
+        .iter()
+        .map(|moodlet| moodlet.score)
+        .sum::<f32>()
+        .clamp(-100.0, 100.0);
+    Some(MoodSnapshot {
+        overall_score,
+        overall_label: overall_label(overall_score),
+        moodlets,
+    })
+}
+
+/// Integrates current mood once per simulation tick. A neutral band prevents
+/// small fluctuations from accumulating; the ledger preserves sustained effects.
+pub(crate) fn accrue_satisfaction(world: &mut World) {
+    let tuning = world.resource::<Content>().0.tuning;
+    let people: Vec<_> = world
+        .query_filtered::<Entity, (With<Agent>, With<terri_core::Satisfaction>)>()
+        .iter(world)
+        .collect();
+    let changes: Vec<_> = people
+        .into_iter()
+        .filter_map(|person| {
+            let mood = derive_mood(world, person.index_u32())?;
+            let delta = satisfaction_change(mood.overall_score, &tuning);
+            Some((person, delta))
+        })
+        .collect();
+    for (person, delta) in changes {
+        world
+            .get_mut::<terri_core::Satisfaction>(person)
+            .unwrap()
+            .add(delta);
+    }
+}
+
+fn satisfaction_change(score: f32, tuning: &terri_data::Tuning) -> f32 {
+    let excess = (score.abs() - tuning.satisfaction_mood_neutral_band).max(0.0);
+    score.signum() * excess / (100.0 - tuning.satisfaction_mood_neutral_band)
+        * tuning.satisfaction_mood_per_tick
 }
 
 fn need_labels(need: NeedId) -> (&'static str, &'static str) {
@@ -241,6 +283,140 @@ mod tests {
                 trait_def.label
             );
         }
+    }
+
+    #[test]
+    fn mood_contribution_has_a_neutral_band_and_a_signed_linear_rate() {
+        let tuning = test_content::tuning();
+        for score in [-15.0, -10.0, 0.0, 10.0, 15.0] {
+            assert_eq!(satisfaction_change(score, &tuning), 0.0);
+        }
+        for (score, expected) in [
+            (-100.0, -0.025),
+            (-57.5, -0.0125),
+            (57.5, 0.0125),
+            (100.0, 0.025),
+        ] {
+            assert_eq!(satisfaction_change(score, &tuning), expected);
+        }
+    }
+
+    #[test]
+    fn mood_reads_and_paused_commands_do_not_accrue_satisfaction() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let before = sim.world_hash();
+        let people: Vec<_> = sim
+            .world_mut()
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(sim.world())
+            .collect();
+        for _ in 0..20 {
+            for person in &people {
+                assert!(sim.mood_of(person.index_u32()).is_some());
+            }
+            sim.flush_commands();
+        }
+        assert_eq!(sim.world_hash(), before);
+    }
+
+    #[test]
+    fn the_full_tick_applies_mood_after_death_and_never_to_the_dead() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let victim = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(0),
+                SimName("Alex".into()),
+                Position { x: 1.0, y: 1.0 },
+                Needs::all_at(100.0),
+            ))
+            .id();
+        sim.world_mut()
+            .get_mut::<Needs>(victim)
+            .unwrap()
+            .set(NeedId::Hunger, 0.0);
+        let mut ledger = terri_core::Satisfaction::default();
+        ledger.add(100.0);
+        let mut feelings = Relationships::default();
+        feelings.bump(SimId(0), 1.0);
+        let survivor = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(1),
+                SimName("Jo".into()),
+                Position { x: 2.0, y: 1.0 },
+                Needs::all_at(100.0),
+                ledger,
+                feelings,
+            ))
+            .id();
+        sim.world_mut()
+            .insert_resource(terri_core::SimIdAllocator::resumed(2));
+        let threshold = sim.world().resource::<Content>().0.tuning.death_after_ticks;
+        sim.world_mut()
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .counts = vec![(victim.index_u32(), threshold - 1)];
+        sim.tick();
+        assert!(sim.world().get_entity(victim).is_err());
+        assert!(sim
+            .mood_of(survivor.index_u32())
+            .unwrap()
+            .moodlets
+            .iter()
+            .any(|m| m.label == "Grieving Alex"));
+        assert_eq!(
+            sim.world()
+                .get::<terri_core::Satisfaction>(survivor)
+                .unwrap()
+                .value(),
+            100.0
+        );
+        // Without grief this same comfortable survivor gains satisfaction.
+        sim.world_mut()
+            .resource_mut::<terri_core::save::SavedMortality>()
+            .deaths
+            .clear();
+        sim.tick();
+        assert!(
+            sim.world()
+                .get::<terri_core::Satisfaction>(survivor)
+                .unwrap()
+                .value()
+                > 100.0
+        );
+    }
+
+    #[test]
+    fn sustained_mood_changes_satisfaction_in_both_directions() {
+        let mut sim = Sim::new();
+        let happy = subject(&mut sim, Needs::all_at(100.0));
+        let sad = subject(&mut sim, Needs::all_at(25.0));
+        let neutral = subject(&mut sim, Needs::all_at(55.0));
+        for person in [happy, sad, neutral] {
+            let mut ledger = terri_core::Satisfaction::default();
+            ledger.add(100.0);
+            sim.world_mut().entity_mut(person).insert(ledger);
+        }
+        // Fixed needs isolate mood from neglect, decay, work and hobbies.
+        super::accrue_satisfaction(sim.world_mut());
+        let read = |sim: &Sim, person| {
+            sim.world()
+                .get::<terri_core::Satisfaction>(person)
+                .unwrap()
+                .value()
+        };
+        let first_happy = read(&sim, happy);
+        let first_sad = read(&sim, sad);
+        assert!(first_happy > 100.0 && first_happy < 100.1);
+        assert!(first_sad < 100.0 && first_sad > 99.9);
+        for _ in 1..1440 {
+            super::accrue_satisfaction(sim.world_mut());
+        }
+        assert!(read(&sim, happy) > first_happy + 1.0);
+        assert!(read(&sim, sad) < first_sad - 10.0);
+        assert_eq!(read(&sim, neutral), 100.0);
     }
 
     fn subject(sim: &mut Sim, needs: Needs) -> Entity {
@@ -319,9 +495,9 @@ mod tests {
 
         for (need, (low, critical)) in NeedId::ALL.into_iter().zip(labels) {
             for (level, expected_label, expected_score) in [
-                (20.0, critical, CRITICAL_NEED_SCORE),
-                (20.001, low, LOW_NEED_SCORE),
-                (40.0, low, LOW_NEED_SCORE),
+                (20.0, critical, -25.0),
+                (20.001, low, -12.0),
+                (40.0, low, -12.0),
             ] {
                 let mut needs = Needs::all_at(NEED_MAX);
                 needs.set(need, level);
@@ -392,7 +568,7 @@ mod tests {
             mood(&sim, subject).moodlets,
             vec![Moodlet {
                 label: "Needs met".to_string(),
-                score: NEEDS_MET_SCORE,
+                score: 20.0,
             }]
         );
         let mut almost = Needs::all_at(70.0);

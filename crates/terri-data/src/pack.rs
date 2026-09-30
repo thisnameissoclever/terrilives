@@ -658,6 +658,21 @@ pub struct Tuning {
     pub grief_max_score: f32,
     pub grief_min_ticks: u32,
     pub grief_hated_affinity: f32,
+    pub mood_critical_need_level: f32,
+    pub mood_low_need_level: f32,
+    pub mood_needs_met_level: f32,
+    pub mood_critical_need_penalty: f32,
+    pub mood_low_need_penalty: f32,
+    pub mood_needs_met_bonus: f32,
+    pub mood_condition_penalty: f32,
+    pub mood_relationship_strength: f32,
+    pub mood_relationship_radius: f32,
+    pub mood_relationship_min_affinity: f32,
+    pub mood_condition_min_severity: f32,
+    pub waiting_mood_min_penalty: f32,
+    pub waiting_mood_max_penalty: f32,
+    pub satisfaction_mood_neutral_band: f32,
+    pub satisfaction_mood_per_tick: f32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -1236,6 +1251,21 @@ mod tests {
             grief_max_score: 30.0,
             grief_min_ticks: 600,
             grief_hated_affinity: -0.5,
+            mood_critical_need_level: 20.0,
+            mood_low_need_level: 40.0,
+            mood_needs_met_level: 70.0,
+            mood_critical_need_penalty: 25.0,
+            mood_low_need_penalty: 12.0,
+            mood_needs_met_bonus: 20.0,
+            mood_condition_penalty: 30.0,
+            mood_relationship_strength: 15.0,
+            mood_relationship_radius: 4.0,
+            mood_relationship_min_affinity: 0.1,
+            mood_condition_min_severity: 0.05,
+            waiting_mood_min_penalty: 2.0,
+            waiting_mood_max_penalty: 30.0,
+            satisfaction_mood_neutral_band: 15.0,
+            satisfaction_mood_per_tick: 0.025,
         }
     }
 
@@ -1857,9 +1887,17 @@ mod tests {
         // [OS-daylight]: the two daylight floats precede mortality; 0.21875
         // and 0.15625 are 0, 0, 96, 62 and 0, 0, 32, 62, and a change of
         // either to 0.28125 or 0.34375 moves only its third byte.
-        let len = before.len() - 20;
+        let mood_bytes: Vec<_> = [
+            20.0_f32, 40.0, 70.0, 25.0, 12.0, 20.0, 30.0, 15.0, 4.0, 0.1, 0.05, 2.0, 30.0, 15.0,
+            0.025,
+        ]
+        .into_iter()
+        .flat_map(f32::to_le_bytes)
+        .collect();
+        assert_eq!(&before[before.len() - 60..], mood_bytes);
+        let len = before.len() - 20 - 60;
         assert_eq!(
-            before[len..],
+            before[len..len + 20],
             [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]
         );
         assert_eq!(before[len - 8..len], [0, 0, 32, 62, 0, 0, 96, 62]);

@@ -1,3 +1,34 @@
+# Preserves the critical need band used by the mood panel.
+mood_critical_need_level = 20.0
+# Preserves the low need band, above the critical band.
+mood_low_need_level = 40.0
+# All needs above this level describe a comfortable household.
+mood_needs_met_level = 70.0
+# Four critical needs can reach the bottom of the mood scale.
+mood_critical_need_penalty = 25.0
+# A low need hurts less than half as much as a critical one.
+mood_low_need_penalty = 12.0
+# Comfortable days slowly build satisfaction beyond the neutral band.
+mood_needs_met_bonus = 20.0
+# A full condition remains comparable to one critical need.
+mood_condition_penalty = 30.0
+# Nearby relationships can shift mood without replacing basic needs.
+mood_relationship_strength = 15.0
+# Preserves the existing four-tile social environment.
+mood_relationship_radius = 4.0
+# Tiny relationships do not clutter the mood panel.
+mood_relationship_min_affinity = 0.1
+# Almost resolved conditions no longer contribute a mood penalty.
+mood_condition_min_severity = 0.05
+# Waiting is mildly frustrating even with the relevant need met.
+waiting_mood_min_penalty = 2.0
+# Waiting with an empty relevant need hurts more than a critical need alone.
+waiting_mood_max_penalty = 30.0
+# Small mood fluctuations do not rewrite a life assessment.
+satisfaction_mood_neutral_band = 15.0
+# A full day at either mood extreme changes satisfaction by 36, making sustained mood a major contributor beside hobby rewards of 2 to 9 and a career reward of 1.
+satisfaction_mood_per_tick = 0.025
+
 # Six real minutes at normal speed leaves time to recover from an empty need.
 death_after_ticks = 3600
 # The final minute gives a visible chance to intervene.
