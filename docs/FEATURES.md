@@ -988,8 +988,9 @@ reserved but no authoritative door transition emits them yet. Routine controls
 are silent by design rather than waiting for blanket click sounds. Room and
 outdoor ambience, object loops, alarms, music, and non-conversation Sim voices
 remain unbuilt. Recorded conversation gain is 0.224 after owner listening;
-Effects currently controls it alongside procedural cues. The later control surface still needs music, ambience, and voice
-categories alongside the current master and effects controls. The detailed contract is
+Effects currently controls it alongside procedural cues. The later control
+surface still needs music, ambience, and voice categories alongside the current
+master and effects controls. The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 
 Interrupted recorded voices now retain their current envelope level before

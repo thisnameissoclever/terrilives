@@ -77,6 +77,17 @@ The full web suite passed 1,272 tests across 89 files, followed by typechecking
 and the production build. All commands exited zero. No Rust or simulation code
 changed in this audio slice; the prior sleep integration's Rust gates passed.
 
+After integrating main `5e9335a8` (dining-chair and compact-HUD changes), all
+1,208 Rust tests, formatting, lint with warnings denied, WASM rebuild, 1,283 web
+tests, typechecking and production build passed. The changed asset suites passed
+90 generator and 4 dining tests; atlas reproduction passed for 1,254 sprites.
+The displayed production build loaded the four-person test save, advanced the
+world, accepted a staged Chat order and exposed the existing sound controls.
+The later order remained queued while Tim was at work, so this is not evidence
+of an end-to-end conversation or a human listening acceptance. The browser
+warning/error query was empty. Owned pages and both proof/preview servers were
+closed. See `[A-conversation-audio-fades]` for the visual findings.
+
 ## Remaining audio work
 
 The household scheduler still represents all conversations with one selected

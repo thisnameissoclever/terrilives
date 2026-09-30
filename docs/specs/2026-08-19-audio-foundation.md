@@ -158,8 +158,8 @@ then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery
 from an externally suspended audio context, master mute changes, and Effects
-crossing zero reset both cadences so silent intervals cannot delay or burst
-later.
+crossing zero reset shared activity state so silent intervals cannot delay or
+burst later.
 
 Sleep's three-second cadence is presentation policy at 10 fixed ticks per second.
 It does not change simulation duration, animation timing, or save data.
