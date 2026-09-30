@@ -7055,7 +7055,10 @@ than by not building.
 **Prevention rule:** build with exactly the command CI runs,
 `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
 from the repository root, before every web test run that follows a Rust
-change.
+change. Wait for that command to finish successfully before starting Vitest,
+type checking or Vite. Starting them concurrently still reads the previous
+binary: the cutaway-wall integration hit six stale-binding/save-tail failures
+after merging newer autonomy code because its web suite ran before WASM finished.
 
 **How to verify:** after the build, the timestamp of
 `web/src/wasm/terri_wasm_bg.wasm` is newer than the last Rust edit, and a web
