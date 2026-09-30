@@ -11,12 +11,12 @@
 
 image = "atlas.png"
 width = 4096
-height = 7928
+height = 7979
 
 [[sprite]]
 name = "floor"
-x = 3688
-y = 7855
+x = 195
+y = 7928
 w = 64
 h = 42
 
@@ -78,7 +78,7 @@ h = 88
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 3323
+x = 3785
 y = 7855
 w = 54
 h = 51
@@ -99,8 +99,8 @@ h = 136
 
 [[sprite]]
 name = "selectionRing"
-x = 3753
-y = 7855
+x = 260
+y = 7928
 w = 64
 h = 42
 
@@ -141,7 +141,7 @@ h = 80
 
 [[sprite]]
 name = "trashcan"
-x = 3272
+x = 3734
 y = 7855
 w = 16
 h = 52
@@ -169,7 +169,7 @@ h = 81
 
 [[sprite]]
 name = "radio"
-x = 3208
+x = 3670
 y = 7855
 w = 46
 h = 54
@@ -218,7 +218,7 @@ h = 65
 
 [[sprite]]
 name = "cabinetBedDrawer"
-x = 2966
+x = 3428
 y = 7855
 w = 40
 h = 56
@@ -309,43 +309,43 @@ h = 76
 
 [[sprite]]
 name = "indicatorTalk"
-x = 3818
-y = 7855
+x = 325
+y = 7928
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorEat"
-x = 3845
-y = 7855
+x = 352
+y = 7928
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorSleep"
-x = 3872
-y = 7855
+x = 379
+y = 7928
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWait"
-x = 3899
-y = 7855
+x = 406
+y = 7928
 w = 26
 h = 26
 
 [[sprite]]
 name = "carried_ingredients"
-x = 4007
-y = 7855
+x = 514
+y = 7928
 w = 16
 h = 20
 
 [[sprite]]
 name = "carried_dinner"
-x = 4024
-y = 7855
+x = 531
+y = 7928
 w = 18
 h = 14
 
@@ -869,8 +869,8 @@ h = 88
 
 [[sprite]]
 name = "indicatorReading"
-x = 3926
-y = 7855
+x = 433
+y = 7928
 w = 26
 h = 26
 
@@ -1212,8 +1212,8 @@ h = 88
 
 [[sprite]]
 name = "heldSnack"
-x = 4043
-y = 7855
+x = 550
+y = 7928
 w = 14
 h = 10
 
@@ -1226,15 +1226,15 @@ h = 104
 
 [[sprite]]
 name = "indicatorExercise"
-x = 3953
-y = 7855
+x = 460
+y = 7928
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWatchFish"
-x = 3980
-y = 7855
+x = 487
+y = 7928
 w = 26
 h = 26
 
@@ -1639,14 +1639,14 @@ h = 102
 
 [[sprite]]
 name = "toiletSquareSW"
-x = 3007
+x = 3469
 y = 7855
 w = 38
 h = 56
 
 [[sprite]]
 name = "toiletSquareNW"
-x = 3046
+x = 3508
 y = 7855
 w = 38
 h = 56
@@ -1681,21 +1681,21 @@ h = 88
 
 [[sprite]]
 name = "loungeSofaOttomanSW"
-x = 3378
+x = 3840
 y = 7855
 w = 54
 h = 51
 
 [[sprite]]
 name = "loungeSofaOttomanNW"
-x = 3433
+x = 3895
 y = 7855
 w = 54
 h = 51
 
 [[sprite]]
 name = "loungeSofaOttomanNE"
-x = 3488
+x = 3950
 y = 7855
 w = 54
 h = 51
@@ -1828,21 +1828,21 @@ h = 80
 
 [[sprite]]
 name = "trashcanSW"
-x = 3289
+x = 3751
 y = 7855
 w = 16
 h = 52
 
 [[sprite]]
 name = "trashcanNW"
-x = 3306
+x = 3768
 y = 7855
 w = 16
 h = 52
 
 [[sprite]]
 name = "trashcanNE"
-x = 3255
+x = 3717
 y = 7855
 w = 16
 h = 53
@@ -1912,22 +1912,22 @@ h = 70
 
 [[sprite]]
 name = "radioSW"
-x = 3543
+x = 4005
 y = 7855
 w = 48
 h = 50
 
 [[sprite]]
 name = "radioNW"
-x = 3592
-y = 7855
+x = 0
+y = 7928
 w = 46
 h = 50
 
 [[sprite]]
 name = "radioNE"
-x = 3639
-y = 7855
+x = 47
+y = 7928
 w = 48
 h = 50
 
@@ -2059,21 +2059,21 @@ h = 65
 
 [[sprite]]
 name = "cabinetBedDrawerSW"
-x = 3085
+x = 3547
 y = 7855
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNW"
-x = 3126
+x = 3588
 y = 7855
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNE"
-x = 3167
+x = 3629
 y = 7855
 w = 40
 h = 56
@@ -9451,3 +9451,122 @@ x = 3787
 y = 7682
 w = 62
 h = 86
+
+[[sprite]]
+name = "wallLow1"
+x = 2966
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow2"
+x = 96
+y = 7928
+w = 32
+h = 48
+
+[[sprite]]
+name = "wallLow3"
+x = 2999
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow4"
+x = 129
+y = 7928
+w = 32
+h = 48
+
+[[sprite]]
+name = "wallLow5"
+x = 3032
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow6"
+x = 162
+y = 7928
+w = 32
+h = 48
+
+[[sprite]]
+name = "wallLow7"
+x = 3065
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow8"
+x = 3098
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow9"
+x = 3131
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow10"
+x = 3164
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow11"
+x = 3197
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow12"
+x = 3230
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow13"
+x = 3263
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow14"
+x = 3296
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "wallLow15"
+x = 3329
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "doorwayLowNS"
+x = 3362
+y = 7855
+w = 32
+h = 58
+
+[[sprite]]
+name = "doorwayLowEW"
+x = 3395
+y = 7855
+w = 32
+h = 58

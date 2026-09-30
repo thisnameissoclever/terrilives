@@ -15,8 +15,8 @@
  * 57.76 MB over 2,394 frames, from a two-element array nobody had
  * checked. Legacy layouts draw cell panels; explicit edge layouts own each
  * half-panel at one endpoint and each doorway at its midpoint. Local-light
- * values are baked into those rows; rebuilding or uploading them per frame would be that
- * mistake an order of magnitude larger.
+ * values are baked into those rows. Only the bounded short-wall batch is
+ * re-uploaded each frame for opacity; its geometry and light are not rebuilt.
  *
  * Pure arithmetic and no GPU, like `iso.ts` and `instances.ts`, so it is
  * testable in Node.
@@ -24,9 +24,12 @@
 
 import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
-import { buildEdgeWallGeometry } from './edge-walls.js';
+import { buildEdgeWallGeometry, buildShortEdgeWallGeometry, type EdgeWallPanel } from './edge-walls.js';
 import {
   FLOATS_PER_INSTANCE,
+  OFFSET_WALL_HEIGHT,
+  OFFSET_WALL_OPACITY,
+  SHORT_WALL_RASTER_HEIGHT,
   TINT_NONE,
   writeColourway,
   writeInstance,
@@ -119,6 +122,8 @@ export interface StaticGeometry {
   readonly count: number;
   /** The contiguous floor prefix, used to prove lighting adds no geometry. */
   readonly floorCount: number;
+  readonly lowInstances: InstanceArray;
+  readonly lowPanels: readonly EdgeWallPanel[];
 }
 
 /**
@@ -191,9 +196,15 @@ export function buildStaticInstances(
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
   const edgePanels = lot.edges == null ? null
-    : buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
-      [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.showCutAwayWalls === true,
-      lot.windows ?? []);
+    : lot.showCutAwayWalls === true
+      ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [])
+      : buildShortEdgeWallGeometry(lot.width, lot.height, lot.edges,
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? []);
+  // Only the small wall batch needs painter ordering. Entities retain depth ordering.
+  edgePanels?.sort((a, b) => Number(a.low === true) - Number(b.low === true)
+    || (a.x + a.y) - (b.x + b.y) || a.y - b.y);
+  const lowPanels = edgePanels?.filter(panel => panel.low) ?? [];
   // The yard's and the street's looks as a shift table, so a yard tile
   // writes row 1 and a street tile row 2 exactly as a colourway does
   // ([RC-shift]).
@@ -387,9 +398,14 @@ export function buildStaticInstances(
     }
     // A wall spans a plane, not the constant-depth billboard used by furniture.
     // Doors share that plane; their transparent aperture remains in the atlas.
-    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS'
-      || (panel.window === true && panel.spriteName === 'wallNS') ? 5 : 10);
+    const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' || panel.spriteName === 'doorwayLowNS'
+      || (panel.window === true && (panel.spriteName === 'wallNS' || panel.spriteName === 'wallLow5')) ? 5 : 10);
     write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask, shade);
+    if (panel.low) {
+      instances[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_WALL_OPACITY] = 1;
+      // P(0, 0, 2/3) rasterizes 26 pixels above the ground-plane origin.
+      instances[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_WALL_HEIGHT] = SHORT_WALL_RASTER_HEIGHT;
+    }
     // [WN-art]: there is no window art, so a window is its wall panel in a
     // paler tint. The tint is the only thing that says which lines are
     // glazed, so it goes until [T-window-art] lands.
@@ -414,5 +430,7 @@ export function buildStaticInstances(
     );
   }
 
-  return { instances, count: slot, floorCount };
+  const opaqueCount = slot - lowPanels.length;
+  return { instances, count: opaqueCount, floorCount, lowPanels,
+    lowInstances: instances.subarray(opaqueCount * FLOATS_PER_INSTANCE, slot * FLOATS_PER_INSTANCE) };
 }

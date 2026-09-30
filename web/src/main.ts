@@ -36,6 +36,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { householdMembers } from './ui/household-roster.js';
+import { WallFade } from './render/wall-fade.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
@@ -799,6 +800,7 @@ async function main(): Promise<void> {
     void loading
       .then((loaded) => {
         if (loaded) {
+          wallFade.reset();
           lotWidth = handle.lot_width();
           lotHeight = handle.lot_height();
           depthScale = Math.max(lotWidth, lotHeight);
@@ -1070,6 +1072,7 @@ async function main(): Promise<void> {
    * centre steady across a buffer resize by shifting half the delta.
    */
   let cameraInitialised = false;
+  const wallFade = new WallFade();
   function applyCamera(): void {
     if (lightingDirty) {
       lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
@@ -1113,7 +1116,8 @@ async function main(): Promise<void> {
       lightingMode.isFlat() ? null : lighting,
       sky,
     );
-    renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
+    wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
+    renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
     cameraDirty = false;
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
@@ -1525,6 +1529,7 @@ async function main(): Promise<void> {
     const ambient = lightingMode.isFlat()
       ? AMBIENT_NEUTRAL
       : ambientFor(sim.clockTick(), sim.dayTicks());
+    wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
     renderer.draw(
       instances,
       instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,

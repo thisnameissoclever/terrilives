@@ -73,11 +73,12 @@ house does not seem to carry on past its corner.
 
 **They are cut away.** The view looks at the house from the south-east, so a
 full wall on the east or south side would hide a strip of every room along it.
-Those sides are not drawn during play, and they stay undrawn then; the Walls and Room tools draw them ([WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`). The renderer leaves out
-any wall or doorway on a line with a house tile on its north or west side and
-a yard tile on its south or east side. They still stop sims, routes and lamp
-light, as every wall does. Walls a player builds in the yard are drawn as any
-other wall. Low wall art for a cut-away view waits on [T-yard-art].
+Those sides now use one-third-height art during play, as do interior and authored
+yard walls. Local sections fade when a Sim is immediately behind them. The two
+rear walls stay tall; Walls and Room tools restore full height and opacity
+([WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`). Collision, routes and
+lamp light still read the complete edge list. See `2026-09-30-cutaway-walls.md`
+for the presentation contract; the former omission-only view is historical.
 
 ## [OS-door] The front door stands on the house's wall
 
