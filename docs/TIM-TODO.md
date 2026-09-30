@@ -484,18 +484,23 @@ the TODO, while `FEATURES.md` owns their scope and implementation status.
 
 On 2026-09-21 you asked for more systems: skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a fuller build mode. Building all of them is mine. [GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the one place that lists every system, started or not. It gives a build status for everything except the new proposals, names the main dependencies, and suggests a build order for your requests; `FEATURES.md` points to it under [B-game-systems].
 
-The first [A-audio-voices] foundation is now implemented: gesture-gated native
-Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master
-mute, and Effects volume. Ambience, object loops, alarms, music, category
-controls beyond Effects, and Sim voices remain mine to build. The current door
-event types are reserved plumbing, not a functioning door sound. A candidate
-second pass also adds household-scoped conversation and sleep cues plus
-per-Sim eating, reading, and exercise cues; owner listening remains open.
-The candidate branch also carries authored source identity for shower water and
-stove cooking. It proves both ordinary-interaction and cooking-chain routes and
-deduplicates state by exact placed object. Sample selection, editing, looping,
-and audible playback remain mine after the CC0 download approval and listening
-gates; the bridge does not generate a fake procedural appliance sound.
+The [A-audio-voices] foundation is implemented: gesture-gated native Web Audio,
+quiet rejected-command feedback, fixed-tick distance footsteps, master mute,
+and Effects volume. Routine buttons, menus and slider releases are silent.
+Twelve recorded conversation clips play in pairs. Each conversation now starts
+and stops independently, with at most three pairs sounding at once. Sleep cues
+remain household-scoped; eating, reading and exercise cues have per-Sim cadence.
+The playback repairs are merged; remaining owner listening checks are still open.
+
+Authored source identity for shower water and stove cooking is also implemented.
+It covers ordinary interactions and cooking chains and deduplicates state by
+exact placed object. Sample selection, editing, looping and audible playback
+remain mine after the CC0 download approval and listening gates; these sources
+are currently silent. Door event types remain reserved plumbing. Ambience,
+object loops, alarms, music, non-conversation voices and category controls beyond
+Effects remain unbuilt. The current contract and evidence are in
+`docs/specs/2026-08-19-audio-foundation.md` and
+`docs/specs/2026-09-30-conversation-audio-ownership.md`.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 
