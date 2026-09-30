@@ -225,13 +225,13 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 6;
+    const APPENDED_LISTS: usize = 7;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: waiting, migration flag, mortality, SimId
+                // From the tail: instincts, waiting, migration flag, mortality, SimId
                 // ties, legacy ties, floors. Asking every appended field
                 // to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
@@ -251,15 +251,18 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let mortality = usize::from(snapshot.mortality.is_some());
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
+                let instinct = snapshot.self_preservation.len();
                 let invented = match pad {
                     0 => 0,
-                    1 => waiting,
-                    2 => waiting + migrated,
-                    3 => waiting + migrated + mortality,
-                    4 => waiting + migrated + mortality + family,
-                    5 => waiting + migrated + mortality + family + by_index,
+                    1 => instinct,
+                    2 => instinct + waiting,
+                    3 => instinct + waiting + migrated,
+                    4 => instinct + waiting + migrated + mortality,
+                    5 => instinct + waiting + migrated + mortality + family,
+                    6 => instinct + waiting + migrated + mortality + family + by_index,
                     _ => {
-                        waiting
+                        instinct
+                            + waiting
                             + migrated
                             + mortality
                             + family
@@ -321,6 +324,30 @@ impl SimHandle {
         };
         handle.sim.sync_render_buffer();
         handle
+    }
+
+    /// Constructs a new world with a 64-bit seed supplied as two unsigned halves.
+    pub fn from_lot_with_seed(low: u32, high: u32) -> SimHandle {
+        let seed = u64::from(low) | (u64::from(high) << 32);
+        let mut handle = SimHandle {
+            sim: Sim::new_from_shipped_lot_with_seed(seed),
+        };
+        handle.sim.sync_render_buffer();
+        handle
+    }
+
+    /// The living person's integer instinct, or -1 when unavailable.
+    pub fn self_preservation_of(&self, entity: u32) -> f64 {
+        self.sim
+            .world()
+            .try_query::<(terri_core::Entity, &Agent, &terri_core::SelfPreservation)>()
+            .and_then(|mut query| {
+                query
+                    .iter(self.sim.world())
+                    .find(|(person, _, _)| person.index_u32() == entity)
+                    .map(|(_, _, instinct)| f64::from(instinct.0))
+            })
+            .unwrap_or(-1.0)
     }
 
     /// The lot's width in tiles. The page needs it to place the camera
@@ -917,6 +944,43 @@ impl SimHandle {
         self.enqueue_command(&bytes)
     }
 
+    /// Stages a housemate with a chosen integer instinct from 0 through 100.
+    pub fn add_housemate_with_instinct(
+        &mut self,
+        name: &str,
+        personality: f64,
+        traits: &[f64],
+        instinct: f64,
+    ) -> bool {
+        let Some(instinct) = placement_u32(instinct).filter(|value| *value <= 100) else {
+            return false;
+        };
+        let Some(personality) = placement_u32(personality) else {
+            return false;
+        };
+        let Some(traits) = traits
+            .iter()
+            .map(|&index| placement_u32(index))
+            .collect::<Option<Vec<u32>>>()
+        else {
+            return false;
+        };
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+            || traits.len() > tuning.housemate_max_traits as usize
+        {
+            return false;
+        }
+        let bytes = postcard::to_allocvec(&SimCommand::AddHousemateWithInstinct {
+            name: name.to_string(),
+            personality,
+            traits,
+            instinct: instinct as u8,
+        })
+        .expect("a move-in serializes");
+        self.enqueue_command(&bytes)
+    }
+
     /// `[refusal, sim, handled]` of the last move-in a drain handled -
     /// [CS-command]: refusal zero when the housemate moved in, `sim` the
     /// newcomer's entity index or `u32::MAX` when nobody did, and how many
@@ -1248,7 +1312,13 @@ impl SimHandle {
         // only one anything advertises against. The other six start
         // satisfied, which is what keeps a spawned agent's behaviour
         // identical to the single-need version.
+        let instinct = self
+            .sim
+            .world_mut()
+            .resource_mut::<terri_core::SimRng>()
+            .range(101) as u8;
         self.sim.world_mut().spawn((
+            terri_core::SelfPreservation(instinct),
             Agent,
             Position { x, y },
             Needs::with(NeedId::Hunger, hunger),
@@ -1623,6 +1693,22 @@ impl SimHandle {
         };
         if !rest.is_empty() {
             return false;
+        }
+
+        if let SimCommand::AddHousemateWithInstinct {
+            name,
+            traits,
+            instinct,
+            ..
+        } = &command
+        {
+            let tuning = self.sim.world().resource::<Content>().0.tuning;
+            if *instinct > 100
+                || name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+                || traits.len() > tuning.housemate_max_traits as usize
+            {
+                return false;
+            }
         }
 
         // Read before the queue is borrowed mutably. `Tuning` is `Copy`
@@ -2059,6 +2145,25 @@ mod boundary_tests {
     //! out of the world it was spawned into.
 
     use super::*;
+
+    // Historical schemas omit instincts. Their other world fields stay exact;
+    // migration consumes one restored-RNG draw per living Sim in index order.
+    fn after_legacy_instinct_migration(
+        mut snapshot: terri_core::SaveSnapshotV1,
+    ) -> terri_core::SaveSnapshotV1 {
+        let mut agents: Vec<_> = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .map(|entity| entity.index)
+            .collect();
+        agents.sort_unstable();
+        for _ in agents {
+            snapshot.rng.range(41);
+        }
+        snapshot
+    }
+
     use terri_core::{Relationships, SimClock, SimId, SimName, Traits, NEED_COUNT};
 
     // Independent fixture for the published cell-wall house, not the current pack.
@@ -2271,7 +2376,10 @@ mod boundary_tests {
         // And it is the same game, not merely a game.
         let mut expected = original.sim.save_snapshot();
         set_legacy_walls(&mut expected, false);
-        assert_eq!(house_part(resumed.sim.save_snapshot()), expected);
+        assert_eq!(
+            house_part(resumed.sim.save_snapshot()),
+            after_legacy_instinct_migration(expected)
+        );
         assert_eq!(resumed.wall_layout_kind(), 1);
         assert_eq!(resumed.wall_edges().len(), (34 + 28) * 4);
 
@@ -2387,15 +2495,19 @@ mod boundary_tests {
         expected.blocked_tiles[10 * 16 + 14] = true;
         set_legacy_walls(&mut expected, false);
         assert_eq!(
-            snapshot, expected,
-            "migration must preserve every unrelated field"
+            snapshot,
+            after_legacy_instinct_migration(expected),
+            "migration preserves unrelated fields and advances RNG for missing instincts"
         );
         assert!(!snapshot.blocked_tiles[9 * 16 + 15]);
         assert!(snapshot.blocked_tiles[10 * 16 + 14]);
         assert_eq!(snapshot.entities, old.entities);
         assert_eq!(snapshot.funds, old.funds);
         assert_eq!(snapshot.tick, old.tick);
-        assert_eq!(snapshot.rng, old.rng);
+        assert_eq!(
+            snapshot.rng,
+            after_legacy_instinct_migration(old.clone()).rng
+        );
         let tub = snapshot
             .entities
             .iter()
@@ -2454,7 +2566,10 @@ mod boundary_tests {
                 .count(),
             30
         );
-        assert_eq!(house_part(migrated.sim.save_snapshot()), expected);
+        assert_eq!(
+            house_part(migrated.sim.save_snapshot()),
+            after_legacy_instinct_migration(expected)
+        );
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&migrated.save_bytes()));
         for _ in 0..300 {
@@ -2657,7 +2772,10 @@ mod boundary_tests {
             "a save from before the yard must load"
         );
         let current = loaded.sim.save_snapshot_v5();
-        assert_eq!(house_part(current.world.clone()), old.world);
+        assert_eq!(
+            house_part(current.world.clone()),
+            after_legacy_instinct_migration(old.world)
+        );
         assert_eq!(current.layout, grown_layout(&old.layout));
         assert_eq!(current.object_facings, old.object_facings);
         assert_eq!(current.retired_indices, old.retired_indices);
@@ -2731,7 +2849,8 @@ mod boundary_tests {
             let mut expected = old.world.clone();
             expected.content_fingerprint = current.world.content_fingerprint;
             assert_eq!(
-                current.world, expected,
+                current.world,
+                after_legacy_instinct_migration(expected),
                 "only the digest may differ after a load"
             );
             assert_ne!(
@@ -2824,7 +2943,10 @@ mod boundary_tests {
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
         expected_world.content_fingerprint = 0xc2cf_2919_84ed_61f7;
-        assert_eq!(house_part(current.world.clone()), expected_world);
+        assert_eq!(
+            house_part(current.world.clone()),
+            after_legacy_instinct_migration(expected_world)
+        );
         assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
         assert_eq!(migrated.wall_edges().len(), (34 + 28) * 4);
@@ -2913,7 +3035,9 @@ mod boundary_tests {
                 vec![0, 2, 1, 0, 1, 3, 2, 1]
             };
             assert_eq!(restored.wall_edges(), expected);
-            assert_eq!(restored.sim.save_snapshot_v2(), snapshot);
+            let mut expected = snapshot;
+            expected.world = after_legacy_instinct_migration(expected.world);
+            assert_eq!(restored.sim.save_snapshot_v2(), expected);
             assert_eq!(restored.save_bytes(), source.save_bytes());
             let grid = restored.sim.world().resource::<TileGrid>();
             assert_eq!(grid.can_cross((1, 1), (2, 1)), edges.is_empty());
@@ -2965,7 +3089,10 @@ mod boundary_tests {
         old.blocked_tiles[16] = true;
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&encode_save(&old)));
-        assert_eq!(loaded.sim.save_snapshot(), old);
+        assert_eq!(
+            loaded.sim.save_snapshot(),
+            after_legacy_instinct_migration(old)
+        );
         assert_eq!(loaded.wall_layout_kind(), 0);
         assert!(loaded.wall_edges().is_empty());
         let expected: Vec<_> = LEGACY_WALLS.iter().flat_map(|&(x, y)| [x, y]).collect();
@@ -3067,7 +3194,7 @@ mod boundary_tests {
         set_legacy_walls(&mut expected, false);
         assert_eq!(
             house_part(resumed.sim.save_snapshot()),
-            expected,
+            after_legacy_instinct_migration(expected),
             "the bridge must preserve household state and queues while rotating the bathtub, opening old wall cells and updating the digest"
         );
     }
@@ -7443,5 +7570,106 @@ mod boundary_tests {
             "the two pointers must address different buffers; aliasing them \
              would interpolate every entity from itself and freeze motion"
         );
+    }
+}
+
+#[cfg(test)]
+mod instinct_boundary_tests {
+    use super::*;
+
+    #[test]
+    fn self_preservation_seed_halves_and_projection_match_sim() {
+        let handle = SimHandle::from_lot_with_seed(0x89ab_cdef, 0x1234_5678);
+        let expected = Sim::new_from_shipped_lot_with_seed(0x1234_5678_89ab_cdef);
+        assert_eq!(handle.world_hash(), expected.world_hash());
+        for (person, instinct) in expected.save_snapshot_v5().self_preservation {
+            assert_eq!(handle.self_preservation_of(person), f64::from(instinct));
+        }
+        assert_eq!(handle.self_preservation_of(0), -1.0);
+        assert_eq!(handle.self_preservation_of(u32::MAX), -1.0);
+    }
+
+    #[test]
+    fn self_preservation_boundary_rejects_nonintegers_and_outside_range() {
+        let mut handle = SimHandle::from_lot();
+        let hash = handle.world_hash();
+        for value in [
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            -1.0,
+            0.5,
+            100.5,
+            101.0,
+        ] {
+            assert!(!handle.add_housemate_with_instinct("Ann", 0.0, &[], value));
+            assert_eq!(handle.world_hash(), hash);
+        }
+        let invalid = postcard::to_allocvec(&SimCommand::AddHousemateWithInstinct {
+            name: "Ann".into(),
+            personality: 0,
+            traits: vec![],
+            instinct: 101,
+        })
+        .unwrap();
+        assert!(!handle.enqueue_command(&invalid));
+        assert_eq!(handle.world_hash(), hash);
+        for instinct in [0.0, 100.0] {
+            assert!(handle.add_housemate_with_instinct("Ann", 0.0, &[], instinct));
+            let saved = handle.save_bytes();
+            let mut restored = SimHandle::from_lot();
+            assert!(restored.load_bytes(&saved));
+            assert_eq!(handle.world_hash(), restored.world_hash());
+            handle.flush_commands();
+            restored.flush_commands();
+            let result = handle.last_housemate_result();
+            assert_eq!(result[0], 0);
+            assert_eq!(handle.self_preservation_of(result[1]), instinct);
+            assert_eq!(restored.self_preservation_of(result[1]), instinct);
+            assert_eq!(handle.world_hash(), restored.world_hash());
+        }
+    }
+
+    #[test]
+    fn self_preservation_debug_spawn_uses_rng_and_refused_spawn_draws_nothing() {
+        let mut handle = SimHandle::new(4, 4);
+        let mut reference = handle.sim.world().resource::<terri_core::SimRng>().clone();
+        let expected = reference.range(101) as u8;
+        handle.spawn_agent(1.0, 1.0, 50.0);
+        assert_eq!(handle.self_preservation_of(0), f64::from(expected));
+        assert_eq!(
+            handle.sim.world().resource::<terri_core::SimRng>(),
+            &reference
+        );
+        let mut lot = SimHandle::from_lot();
+        let rng = lot.sim.world().resource::<terri_core::SimRng>().clone();
+        lot.spawn_agent(5000.0, 5000.0, 50.0);
+        assert_eq!(lot.sim.world().resource::<terri_core::SimRng>(), &rng);
+    }
+
+    #[test]
+    fn self_preservation_appended_tail_loads_old_v5_and_refuses_truncated_rows() {
+        let source = SimHandle::from_lot();
+        let mut snapshot = source.sim.save_snapshot_v5();
+        snapshot.self_preservation.clear();
+        let mut payload = postcard::to_allocvec(&snapshot).unwrap();
+        assert_eq!(payload.pop(), Some(0));
+        let decoded = decode_v5(&payload).unwrap();
+        assert!(decoded.self_preservation.is_empty());
+        let mut loaded = SimHandle::from_lot();
+        let mut bytes = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        bytes.extend(payload);
+        assert!(loaded.load_bytes(&bytes));
+        assert!(loaded
+            .sim
+            .save_snapshot_v5()
+            .self_preservation
+            .iter()
+            .all(|(_, instinct)| (30..=70).contains(instinct)));
+        let mut truncated = source.save_bytes();
+        truncated.pop();
+        let before = loaded.save_bytes();
+        assert!(!loaded.load_bytes(&truncated));
+        assert_eq!(before, loaded.save_bytes());
     }
 }

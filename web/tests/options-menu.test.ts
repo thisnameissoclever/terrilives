@@ -255,7 +255,7 @@ describe('the Options flyout wired into main.ts', () => {
   });
 
   it('closes the panel when Build starts and when it ends, then focuses the gear', () => {
-    expect(MAIN_TS).toContain('    enter() {\n      optionsMenu.close();');
+    expect(MAIN_TS).toMatch(/enter\(\) \{\r?\n\s*optionsMenu\.close\(\);/);
     expect(MAIN_TS).toMatch(/mobileHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*optionsToggle\.focus\(\);/);
   });
 

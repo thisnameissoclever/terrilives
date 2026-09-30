@@ -529,7 +529,7 @@ mod tests {
     }
 
     #[test]
-    fn satisfied_sim_does_not_seek_food() {
+    fn satisfied_sim_retains_food_and_wander_alternatives() {
         let mut sim = Sim::new_with_lot(16, 16);
         sim.world_mut()
             .spawn((Position { x: 10.0, y: 8.0 }, test_content::shipped_fridge()));
@@ -542,14 +542,22 @@ mod tests {
             ))
             .id();
 
-        for _ in 0..5 {
-            sim.tick();
-        }
-
-        assert!(
-            sim.world().get::<Target>(sim_entity).is_none(),
-            "a full sim should not target the fridge"
-        );
+        sim.tick();
+        let decision = sim
+            .world()
+            .resource::<crate::systems::autonomy::DecisionTelemetry>()
+            .0
+            .iter()
+            .find(|d| d.agent == sim_entity.index_u32())
+            .unwrap();
+        assert!(decision
+            .choices
+            .iter()
+            .any(|(_, row, _, _, p)| *row == 0 && *p > 0.0));
+        assert!(decision
+            .choices
+            .iter()
+            .any(|(_, row, _, _, p)| *row == u32::MAX && *p > 0.0));
     }
 
     #[test]

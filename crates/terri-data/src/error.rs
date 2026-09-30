@@ -9,6 +9,7 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidAutonomyTuning,
     EmptyObjectText {
         object: String,
         field: &'static str,
@@ -2216,6 +2217,7 @@ impl fmt::Display for ContentError {
                 f,
                 "two floor coverings are both named {name}; a player choosing                  one could not tell which floor they were choosing"
             ),
+            ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
             ContentError::InvalidMortalityTuning => write!(f, "death requires a positive duration and an earlier warning; grief requires positive ordered durations and finite ordered scores, with a hatred cutoff from -1 up to but excluding 0"),
             ContentError::DaylightReachOutOfRange { value } => write!(

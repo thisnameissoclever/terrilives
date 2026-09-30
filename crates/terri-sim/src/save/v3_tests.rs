@@ -111,7 +111,9 @@ fn v3_routes_and_active_contacts_use_the_restored_rectangle() {
         let saved = source.save_snapshot_v3();
         let mut live = Sim::new();
         live.load_snapshot_v3(saved.clone()).unwrap();
-        assert_eq!(live.save_snapshot_v3(), saved);
+        let mut expected = saved.clone();
+        expected.world = super::tests::after_legacy_instinct_migration(expected.world);
+        assert_eq!(live.save_snapshot_v3(), expected);
         let mut wrong_contact = saved;
         wrong_contact
             .world

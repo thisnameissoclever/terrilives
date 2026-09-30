@@ -959,45 +959,54 @@ mod tests {
     /// decoy filter working); fractionally above does not; exactly at
     /// it does not, because the comparison is strictly greater.
     #[test]
-    fn chain_scoring_is_pinned_by_a_threshold_sandwich() {
-        let (mut sim, agent, global) = scoring_world(|expected| expected * 0.998);
+    fn critical_chain_replaces_the_old_stroll_immediately() {
+        let (mut sim, agent, global) = scoring_world(|expected| expected);
+        let current = sim.world().resource::<crate::Content>().0;
+        let mut changed = current.clone();
+        changed.tuning.choice_temperature = 1e-6;
+        changed.tuning.choice_comfort_temperature = 1e-6;
+        changed.tuning.choice_exploration = 1e-8;
+        changed.tuning.choice_comfort_exploration = 1e-8;
+        sim.world_mut()
+            .insert_resource(crate::Content(Box::leak(Box::new(changed))));
+        sim.world_mut().entity_mut(agent).insert((
+            terri_core::Needs::with(NeedId::Hunger, 0.0),
+            terri_core::SelfPreservation(50),
+            terri_core::Path {
+                steps: vec![(3, 4), (4, 4), (5, 4)],
+                cursor: 0,
+            },
+            terri_core::Wander { pause_ticks: 10 },
+            terri_core::Restless,
+        ));
         sim.tick();
-        let state = sim
-            .world()
-            .get::<ChainState>(agent)
-            .expect("a score above the threshold starts the chain");
-        assert_eq!(
-            state.chain, global,
-            "the committed chain is the advertiser's own, not the decoy"
-        );
-
-        // ONE tick for the negative slices, deliberately: the score
-        // GROWS as needs decay, so a threshold set fractionally above
-        // the tick-1 score is crossed honestly a few ticks later - the
-        // first draft ran five ticks here and diagnosed its own
-        // modelling as wrong. The expectation models tick 1; tick 1 is
-        // what it pins.
-        let (mut sim, agent, _) = scoring_world(|expected| expected * 1.002);
-        sim.tick();
-        assert!(
-            sim.world().get::<ChainState>(agent).is_none(),
-            "a score below the threshold starts nothing; started {:?}",
-            sim.world().get::<ChainState>(agent)
-        );
-
-        let (mut sim, agent, _) = scoring_world(|expected| expected);
-        sim.tick();
-        assert!(
-            sim.world().get::<ChainState>(agent).is_none(),
-            "exactly at the threshold is not above it - the comparison \
-             is strictly greater"
-        );
+        assert_eq!(sim.world().get::<ChainState>(agent).unwrap().chain, global);
+        assert!(sim.world().get::<terri_core::Wander>(agent).is_none());
+        let path = sim.world().get::<terri_core::Path>(agent).unwrap();
+        assert_ne!(path.steps, vec![(3, 4), (4, 4), (5, 4)]);
+        assert!(sim.world().get::<terri_core::Target>(agent).is_some());
     }
 
-    /// The flyout arm resolves the same identity: a UseObject at the
-    /// row past the advertiser's interactions starts the advertiser's
-    /// FIRST chain - global index 1 past the decoy - through the
-    /// untouched wire.
+    #[test]
+    fn chain_scores_remain_eligible_around_the_old_threshold() {
+        for factor in [0.998, 1.0, 1.002] {
+            let (mut sim, agent, _) = scoring_world(|expected| expected * factor);
+            sim.tick();
+            let decisions = &sim
+                .world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0;
+            let decision = decisions
+                .iter()
+                .find(|d| d.agent == agent.index_u32())
+                .unwrap();
+            assert!(decision
+                .choices
+                .iter()
+                .any(|(_, row, _, _, probability)| *row == 2 && *probability > 0.0));
+        }
+    }
+
     #[test]
     fn a_use_object_row_starts_the_advertisers_chain_not_the_decoys() {
         let (mut sim, agent, global) = scoring_world(|expected| expected * 10.0);
@@ -1046,7 +1055,11 @@ mod tests {
                 object: fridge.index_u32(),
                 interaction: 7,
             });
-        sim.tick();
+        sim.flush_commands();
+        use bevy_ecs::system::RunSystemOnce;
+        sim.world_mut()
+            .run_system_once(crate::systems::action::serve_intents)
+            .unwrap();
         assert!(
             sim.world().get::<ChainState>(agent).is_none(),
             "a row past the chains is dropped"

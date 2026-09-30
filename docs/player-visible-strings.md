@@ -18,7 +18,7 @@ itself on having personality.
 | Placement buttons | Confirm; Buy; Cancel, over the piece being placed | `web/index.html`, `web/src/ui/placement-actions.ts` |
 | Options flyout | Options, the gear's accessible name; it holds Light, Build, Sound, Effects and the game actions | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
-| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the seven refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
+| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the eight refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
@@ -78,3 +78,12 @@ authorize unrelated replacement copy.
    session.
 5. Record the owner's approval and a watched play session in
    `docs/alpha-feel-notes.md` before marking criterion 11 complete.
+
+
+## Self-preservation copy for owner review
+
+The new Traits row and housemate control use `Self-preservation instinct`,
+`Random`, `Choose a whole instinct value from 0 to 100.`, and a numeric `{value}/100`. Their explanation is: "Higher values favor
+meeting low needs. Very low values can lead to dangerous neglect." These strings
+are functional descriptions of implemented mechanics. This change does not record
+release approval of the description; review it in the running build before release.

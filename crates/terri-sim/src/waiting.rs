@@ -149,7 +149,7 @@ mod tests {
     }
 
     #[test]
-    fn an_available_equally_good_activity_is_not_item_waiting() {
+    fn an_available_equally_good_activity_remains_selectable_beside_waiting() {
         use crate::test_content as tc;
         let pack = tc::pack_tuned(
             vec![tc::object("item", &[(NeedId::Hunger, 40.0)], 10)],
@@ -172,12 +172,33 @@ mod tests {
         ));
         sim.tick();
         assert!(sim.world().get::<WaitingNeeds>(person).is_some());
-        sim.world_mut().spawn((
-            Position { x: 2.0, y: 1.0 },
-            terri_core::SmartObject(terri_core::ObjectDefId(0)),
-        ));
+        let available = sim
+            .world_mut()
+            .spawn((
+                Position { x: 2.0, y: 1.0 },
+                terri_core::SmartObject(terri_core::ObjectDefId(0)),
+            ))
+            .id();
         sim.tick();
-        assert!(sim.world().get::<WaitingNeeds>(person).is_none());
+        let decisions = sim
+            .world()
+            .resource::<crate::systems::autonomy::DecisionTelemetry>();
+        let decision = decisions
+            .0
+            .iter()
+            .find(|row| row.agent == person.index_u32())
+            .unwrap();
+        assert!(decision
+            .choices
+            .iter()
+            .any(|row| row.0 == available.index_u32() && row.4 > 0.0));
+        if sim
+            .world()
+            .get::<terri_core::Target>(person)
+            .is_some_and(|target| target.object == available)
+        {
+            assert!(sim.world().get::<WaitingNeeds>(person).is_none());
+        }
     }
 
     #[test]

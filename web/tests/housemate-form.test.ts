@@ -36,7 +36,7 @@ class FakeHousehold {
   traitDescriptions() { return this.traitLabels().map((label) => `About ${label.toLowerCase()}.`); }
   householdSize(): [number, number] { return [this.size, this.most]; }
   housemateLimits(): [number, number] { return [8, 2]; }
-  addHousemate(name: string, personality: number, traits: readonly number[]) {
+  addHousemate(name: string, personality: number, traits: readonly number[], _instinct?: number | null) {
     this.staged.push([name, personality, [...traits]]);
     return this.accept;
   }
@@ -204,7 +204,7 @@ describe('HousemateForm', () => {
   });
 
   it('words every refusal code', () => {
-    for (const code of [1, 2, 3, 4, 5, 6, 7]) expect(housemateReason(code)).toMatch(/^[A-Z].*\.$/);
+    for (const code of [1, 2, 3, 4, 5, 6, 7, 8]) expect(housemateReason(code)).toMatch(/^[A-Z].*\.$/);
     expect(housemateReason(0)).toBeNull();
     expect(housemateReason(99)).toBe('They could not move in.');
   });
@@ -234,6 +234,8 @@ describe('HousemateFormView', () => {
       for (const listener of this.listeners.get(type) ?? []) listener(event);
       return event;
     }
+    setAttribute(_name: string, _value: string) {}
+    querySelector() { return null; }
     append(...children: FakeElement[]) { this.children.push(...children); }
     close(value: string) { this.closedWith = value; }
     focus() { this.focused += 1; }
@@ -567,4 +569,36 @@ it('refreshes move-in availability each frame when death frees a full household 
   expect(housemate.roomForOne()).toBe(true);
   const frame = MAIN_TS.slice(MAIN_TS.indexOf('function frame('));
   expect(frame.includes('syncNewHousemateButton();')).toBe(true);
+});
+
+it('keeps self-preservation random by default and accepts a chosen zero without using a trait slot', () => {
+  const { housemate, source } = form();
+  expect(housemate.instinct).toBeNull();
+  housemate.setName('Ann');
+  housemate.next();
+  housemate.setInstinct(0);
+  expect(housemate.chosenTraits).toEqual([]);
+  let chosen: number | null | undefined;
+  source.addHousemate = (_name, _personality, _traits, value?: number | null) => { chosen = value; return true; };
+  housemate.setInstinct(-1);
+  housemate.setInstinct(101);
+  housemate.setInstinct(0.5);
+  expect(housemate.instinct).toBe(0);
+  housemate.moveIn();
+  expect(chosen).toBe(0);
+});
+
+it('creates and saves an explicitly chosen instinct through real WASM', () => {
+  const handle = SimHandle.from_lot_with_seed(123, 0xfedcba98);
+  try {
+    const bridge = new SimBridge(handle, wasmMemory);
+    expect(bridge.addHousemate('Instinct', 0, [], 5)).toBe(true);
+    bridge.flushCommands();
+    const entity = bridge.lastHousemateResult()!.sim!;
+    expect(bridge.selfPreservationOf(entity)).toBe(5);
+    const saved = handle.save_bytes();
+    expect(handle.load_bytes(saved)).toBe(true);
+    expect(bridge.selfPreservationOf(entity)).toBe(5);
+    expect(bridge.addHousemate('Bad', 0, [], 100.5)).toBe(false);
+  } finally { handle.free(); }
 });

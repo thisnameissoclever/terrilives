@@ -20,7 +20,6 @@ pub mod save;
 pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
-pub use components::Colourway;
 pub use components::ObjectFacing;
 pub use components::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice, Eating,
@@ -28,6 +27,7 @@ pub use components::{
     Relationships, Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName,
     SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
 };
+pub use components::{Colourway, SelfPreservation};
 pub use facing::Facing;
 pub use grid::{Footprint, TileDistanceField, TileGrid};
 pub use hash::FnvHasher;

@@ -65,6 +65,7 @@ pub(crate) fn restore_v5(
         mortality,
         death_default_applied,
         waiting_needs,
+        self_preservation,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -143,6 +144,7 @@ pub(crate) fn restore_v5(
     candidate.world.insert_resource(family);
     crate::mortality::restore(&mut candidate.world, mortality)?;
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
+    super::self_preservation::restore(&mut candidate.world, self_preservation)?;
     if !death_default_applied {
         candidate
             .world

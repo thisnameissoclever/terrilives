@@ -673,6 +673,15 @@ pub struct Tuning {
     pub waiting_mood_max_penalty: f32,
     pub satisfaction_mood_neutral_band: f32,
     pub satisfaction_mood_per_tick: f32,
+    /// Autonomous choice and self-preservation controls.
+    pub choice_comfort_temperature: f32,
+    pub choice_exploration: f32,
+    pub choice_comfort_exploration: f32,
+    pub leisure_appeal: f32,
+    pub survival_risk_penalty: f32,
+    pub choice_probability_floor: f32,
+    pub wander_pause_variance: f32,
+    pub self_preservation_curve: [(u8, f32); 6],
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -1214,6 +1223,22 @@ mod tests {
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
         Tuning {
+            choice_comfort_temperature: 1.0,
+            choice_exploration: 0.005,
+            choice_comfort_exploration: 0.20,
+            leisure_appeal: 0.12,
+            survival_risk_penalty: 5.0,
+            choice_probability_floor: 0.000000001,
+            wander_pause_variance: 0.4,
+            self_preservation_curve: [
+                (0, 0.02),
+                (5, 0.10),
+                (30, 0.75),
+                (50, 1.0),
+                (70, 1.4),
+                (100, 2.0),
+            ],
+
             action_threshold: 0.25,
             choice_temperature: 0.5,
             idle_threshold: 0.125,
@@ -1894,8 +1919,10 @@ mod tests {
         .into_iter()
         .flat_map(f32::to_le_bytes)
         .collect();
-        assert_eq!(&before[before.len() - 60..], mood_bytes);
-        let len = before.len() - 20 - 60;
+        // Seven f32 controls and six (u8, f32) anchors append 58 bytes.
+        let old_end = before.len() - 58;
+        assert_eq!(&before[old_end - 60..old_end], mood_bytes);
+        let len = old_end - 20 - 60;
         assert_eq!(
             before[len..len + 20],
             [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]

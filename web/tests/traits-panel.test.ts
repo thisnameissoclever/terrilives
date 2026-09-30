@@ -373,3 +373,15 @@ describe('the Traits block in the page', () => {
     expect(block).not.toMatch(/<h[1-6]/);
   });
 });
+
+it('shows self-preservation separately from the optional trait slots, including zero', () => {
+  const source = new MutableTraitsSource();
+  source.worn = new Float32Array([0, 0]);
+  const withInstinct = Object.assign(source, { selfPreservationOf: () => 0 });
+  const state = traitsPanelState(withInstinct, LIBRARY);
+  expect(state.kind).toBe('ready');
+  if (state.kind !== 'ready') throw new Error('expected traits');
+  expect(state.traits.map(row => row.label)).toEqual(['Self-preservation instinct', 'Television devotee']);
+  expect(state.traits[0].state).toBe('0/100');
+  expect(traitsPanelState(Object.assign(source, { selfPreservationOf: () => 101 }), LIBRARY).kind).toBe('unavailable');
+});

@@ -246,6 +246,15 @@ pub struct TuningFile {
     pub waiting_mood_max_penalty: f32,
     pub satisfaction_mood_neutral_band: f32,
     pub satisfaction_mood_per_tick: f32,
+    /// Autonomous choice and self-preservation controls.
+    pub choice_comfort_temperature: f32,
+    pub choice_exploration: f32,
+    pub choice_comfort_exploration: f32,
+    pub leisure_appeal: f32,
+    pub survival_risk_penalty: f32,
+    pub choice_probability_floor: f32,
+    pub wander_pause_variance: f32,
+    pub self_preservation_curve: [(u8, f32); 6],
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -1039,7 +1048,18 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 55] = [
+    const TUNING_LINES: [(&str, &str); 63] = [
+        ("choice_comfort_temperature", "1.0"),
+        ("choice_exploration", "0.005"),
+        ("choice_comfort_exploration", "0.20"),
+        ("leisure_appeal", "0.12"),
+        ("survival_risk_penalty", "5.0"),
+        ("choice_probability_floor", "0.000000001"),
+        ("wander_pause_variance", "0.4"),
+        (
+            "self_preservation_curve",
+            "[[0, 0.02], [5, 0.10], [30, 0.75], [50, 1.0], [70, 1.4], [100, 2.0]]",
+        ),
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),

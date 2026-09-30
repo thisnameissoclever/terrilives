@@ -615,7 +615,7 @@ fn authored_object_sound(
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v4` for complete persistence of a current world.
+    /// Use `save_snapshot_v5` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -724,6 +724,7 @@ impl Sim {
             mortality: mortality::snapshot(&self.world),
             death_default_applied: true,
             waiting_needs: waiting::snapshot(&self.world),
+            self_preservation: save::self_preservation::capture(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -781,6 +782,7 @@ impl Sim {
     fn adopt(&mut self, mut restored: Sim) {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
+        save::self_preservation::migrate(&mut restored.world);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -855,6 +857,7 @@ impl Sim {
         // nothing. Later tasks must add their components here too.
         world.register_component::<terri_core::Position>();
         world.register_component::<terri_core::Agent>();
+        world.register_component::<terri_core::SelfPreservation>();
         world.register_component::<terri_core::Needs>();
         world.register_component::<terri_core::SmartObject>();
         world.register_component::<terri_core::Reserved>();
@@ -1222,8 +1225,15 @@ impl Sim {
     /// out of its manifest keeps its dependency list as small as the [D1]
     /// purity rule can make it.
     pub fn new_from_shipped_lot() -> Self {
+        Self::new_from_shipped_lot_with_seed(terri_data::pack().tuning.rng_seed)
+    }
+
+    /// Seeds household draws before any person is created.
+    pub fn new_from_shipped_lot_with_seed(seed: u64) -> Self {
         let pack = terri_data::pack();
         let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
+        sim.world
+            .insert_resource(terri_core::SimRng::from_seed(seed));
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -1292,6 +1302,7 @@ impl Sim {
                     hobbies: member.hobbies.clone(),
                     traits: &member.traits,
                     career: member.career,
+                    instinct: None,
                 },
             );
         }
@@ -2849,6 +2860,30 @@ impl Sim {
                         }));
                         row
                     }
+                    AddHousemateWithInstinct {
+                        personality,
+                        traits,
+                        instinct,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            18,
+                            u64::from(*instinct),
+                            content
+                                .and_then(|content| {
+                                    content.0.personalities.get(*personality as usize)
+                                })
+                                .map_or(u64::MAX, |personality| id_digest(&personality.id)),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row
+                    }
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {
@@ -2925,6 +2960,15 @@ impl Sim {
 
         mortality::hash(&self.world, &mut hasher);
         waiting::hash(&self.world, &mut hasher);
+        let instincts = save::self_preservation::capture(&self.world);
+        if !instincts.is_empty() {
+            hasher.write_bytes(b"self-preservation-v1");
+            hasher.write_u64(instincts.len() as u64);
+            for (index, instinct) in instincts {
+                hasher.write_u64(u64::from(index));
+                hasher.write_u64(u64::from(instinct));
+            }
+        }
         hasher.finish()
     }
 }
@@ -4132,7 +4176,14 @@ mod determinism_tests {
         sim.world_mut()
             .spawn((Position { x: 18.0, y: 14.0 }, shipped_fridge()));
         for i in 0..8 {
+            // Match the public debug-spawn API before either target ticks:
+            // each accepted spawn draws its instinct from the same RNG.
+            let instinct = sim
+                .world_mut()
+                .resource_mut::<terri_core::SimRng>()
+                .range(101) as u8;
             sim.world_mut().spawn((
+                terri_core::SelfPreservation(instinct),
                 Agent,
                 Position {
                     x: 1.0 + i as f32,
@@ -4853,7 +4904,10 @@ mod determinism_tests {
         // failing assertion.
         // Death defaults on and waiting records now contribute to the digest.
         // Measured from the native assertion after these state additions.
-        const GOLDEN: u64 = 0xd52d52487bf9267e;
+        // Varied autonomy changes selection draws and adds per-person instinct
+        // state to the digest. Native and rebuilt release WASM independently
+        // measured this value from the matching seeded debug-spawn scenario.
+        const GOLDEN: u64 = 0xa1a1f123206ce493;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

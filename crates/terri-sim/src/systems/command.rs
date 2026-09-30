@@ -121,6 +121,7 @@ impl Placement {
             | SimCommand::SetColourway { .. }
             | SimCommand::BuyObjectInColourway { .. }
             | SimCommand::AddHousemate { .. }
+            | SimCommand::AddHousemateWithInstinct { .. }
             | SimCommand::SetFloor { .. }
             | SimCommand::SetFamilyTie { .. }
             | SimCommand::SetDeathEnabled(_) => Self::Back,
@@ -377,6 +378,7 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::SetColourway { .. }
             | SimCommand::BuyObjectInColourway { .. }
             | SimCommand::AddHousemate { .. }
+            | SimCommand::AddHousemateWithInstinct { .. }
             | SimCommand::SetFloor { .. }
             | SimCommand::SetFamilyTie { .. }
             | SimCommand::SetDeathEnabled(_) => {

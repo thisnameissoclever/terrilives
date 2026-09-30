@@ -60,8 +60,7 @@ the local rule applies when that sim next rolls a wander.
 ## [LW4] Existing ownership rules do not change
 
 Wandering continues to insert the ordinary `Path` plus `Wander` marker. It
-does not gain a second movement system. Selection and player intent may still
-replace that path. Reserved conversation partners, working sims, commuters,
+does not gain a second movement system. Ordinary selection waits for the chosen stroll and sampled pause to finish. Critical needs and player intent may still replace that path. Pause lengths draw uniformly from the authored center plus or minus `wander_pause_variance`; the three-tile caps remain unchanged. See [VA-wandering]. Reserved conversation partners, working sims, commuters,
 and sims in an interaction or chain remain excluded by the existing filters.
 
 This slice does not add room interests, turning poses, a different idle gait,
