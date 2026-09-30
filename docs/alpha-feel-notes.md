@@ -1,5 +1,25 @@
 # Alpha Feel Notes
 
+## [A-conversation-audio-fades] Audio repair on the integrated household build
+
+2026-09-30, production build after main `5e9335a8`, 1280x720. The saved four-person
+household loaded and continued through nighttime into daylight. The new compact
+dock leaves the interior visible; the table/chair arrangement and rounded desk
+chair remain readable. Options exposed Sound and Effects, and Pause, roster
+selection and the Chat menu worked.
+
+The selected Sim's critical-hunger warning replaced the dock's ordinary action
+text; the expanded Overview revealed At work and one queued order. Therefore
+staging Chat is not counted as a completed conversation. Existing standing sleep
+poses with Z indicators remain visible, and hunger reached zero during work in
+this test save. These are separate simulation/animation findings, not repaired
+by changing audio envelopes. No full world-visual or listening approval is made.
+
+Evidence: `docs/assets/review-evidence/audio-conversation-fades.jpg`. The browser
+reported no warnings/errors during this pass. The page was paused and closed;
+its owned server was stopped. Rendered audio-sample assertions, rather than this
+screenshot, establish the interruption fix.
+
 ## [A-sleep-schedule-lifecycle] Authored timing survives a played save, 2026-09-30
 
 The displayed local build created a night-owl housemate, saved, reloaded, and

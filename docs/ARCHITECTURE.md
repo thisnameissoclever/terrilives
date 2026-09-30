@@ -1016,7 +1016,7 @@ Audio is presentation owned by the TypeScript shell. The Rust simulation has
 no browser audio types, nodes, volume settings, or playback state. The shell
 translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
-`sim.footstep`, household conversation and sleep cadence, personal eating,
+`sim.footstep`, recorded conversation start/end and household sleep cadence, personal eating,
 reading, and exercise cadence, source-owned object sound start and stop edges,
 and reserved door open and close events. Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
@@ -1027,7 +1027,13 @@ current routine-interface event mapped to a sound.
 
 The `AudioContext` is created or resumed only from a trusted pointer or keyboard
 gesture. Ordinary event emission never creates, resumes, or queues audio. The
-master gain is mute-only and the effects gain owns the current cue volume.
+master gain is mute-only and the effects gain owns both procedural cues and
+recorded conversation volume. The simulation chooses two clip indices and
+derives their duration from compiled voice metadata; the shell owns playback.
+Interrupted voice envelopes retain their current level before fading, bounded
+by natural sample completion. Failed construction disconnects every created
+node immediately, even if that node never started. See
+`docs/specs/2026-09-30-conversation-audio.md` for rendered-sample proof.
 Crossing either master mute or zero Effects clears footstep, shared-activity,
 personal-activity, and object-sound scheduler state on both edges. The first
 audible fixed tick therefore describes the current action instead of waiting

@@ -85,6 +85,9 @@ export const MAX_ACTIVE_VOICE_CONVERSATIONS = 3;
 interface ActiveConversation {
   readonly gain: GainNodePort;
   readonly sources: AudioBufferSourcePort[];
+  readonly startedAt: number;
+  readonly endsAt: number;
+  readonly fadeSeconds: number;
   ended: boolean;
   /** Set once the nodes have left the graph, so teardown cannot run twice. */
   torn: boolean;
@@ -164,22 +167,27 @@ export class VoiceClipPlayer {
       }
 
       gain = this.context.createGain();
-      gain.gain.cancelScheduledValues(now);
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(VOICE_CLIP_GAIN, now + EDGE_FADE_SECONDS);
-
       const firstSeconds = firstClip.duration / rate;
       const secondSeconds = secondClip.duration / rate;
       const totalSeconds = firstSeconds + secondSeconds;
+      // Keep attack and release ordered even for very short buffers. Shipped
+      // recordings retain the full 12 ms edges.
+      const fadeSeconds = Math.min(EDGE_FADE_SECONDS, totalSeconds / 2);
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(VOICE_CLIP_GAIN, now + fadeSeconds);
       gain.gain.linearRampToValueAtTime(
         VOICE_CLIP_GAIN,
-        now + Math.max(EDGE_FADE_SECONDS, totalSeconds - EDGE_FADE_SECONDS),
+        now + totalSeconds - fadeSeconds,
       );
       gain.gain.linearRampToValueAtTime(0, now + totalSeconds);
 
       const record: ActiveConversation = {
         gain,
         sources: [],
+        startedAt: now,
+        endsAt: now + totalSeconds,
+        fadeSeconds,
         ended: false,
         torn: false,
         teardownAfter: 0,
@@ -192,11 +200,11 @@ export class VoiceClipPlayer {
       ];
       for (const [clip, when] of starts) {
         const source = this.context.createBufferSource();
+        record.sources.push(source);
         source.buffer = clip;
         source.playbackRate.cancelScheduledValues(now);
         source.playbackRate.setValueAtTime(rate, now);
         source.connect(gain);
-        record.sources.push(source);
         source.start(when);
         source.stop(when + clip.duration / rate);
       }
@@ -212,7 +220,16 @@ export class VoiceClipPlayer {
       return true;
     } catch {
       if (conversation !== null) {
-        this.finish(conversation, true);
+        // A failed pair has never been published to the output. Reclaim it
+        // immediately, including sources that failed before they could start.
+        for (const source of conversation.sources) {
+          try {
+            source.stop(now);
+          } catch {
+            // An unstarted source may refuse stop; it still gets disconnected.
+          }
+        }
+        this.tearDown(conversation);
       } else if (gain !== null) {
         safeDisconnect(gain);
       }
@@ -261,7 +278,7 @@ export class VoiceClipPlayer {
     }
 
     const now = this.context.currentTime;
-    const silentAt = now + EDGE_FADE_SECONDS;
+    const silentAt = Math.max(now, Math.min(now + EDGE_FADE_SECONDS, conversation.endsAt));
 
     // **Ramp first, disconnect LATER.** Disconnecting in this same turn would
     // remove the nodes from the graph before the ramp could reach the output,
@@ -269,6 +286,10 @@ export class VoiceClipPlayer {
     // a cut partway through a waveform is a click.
     try {
       conversation.gain.gain.cancelScheduledValues(now);
+      // Replacing a future ramp also removes its current interpolated value.
+      // Anchor the original envelope with a ramp ending now, preserving its
+      // trajectory through attack or release before scheduling the stop fade.
+      conversation.gain.gain.linearRampToValueAtTime(envelopeGainAt(conversation, now), now);
       conversation.gain.gain.linearRampToValueAtTime(0, silentAt);
     } catch {
       // A context that is already closed cannot be ramped. Tearing down at
@@ -355,6 +376,14 @@ export class VoiceClipPlayer {
       if (now >= conversation.teardownAfter) this.tearDown(conversation);
     }
   }
+}
+
+function envelopeGainAt(conversation: ActiveConversation, time: number): number {
+  const { startedAt, endsAt, fadeSeconds } = conversation;
+  if (time <= startedAt || time >= endsAt) return 0;
+  const attack = (time - startedAt) / fadeSeconds;
+  const release = (endsAt - time) / fadeSeconds;
+  return VOICE_CLIP_GAIN * Math.min(1, attack, release);
 }
 
 function safeDisconnect(node: AudioNodePort): void {

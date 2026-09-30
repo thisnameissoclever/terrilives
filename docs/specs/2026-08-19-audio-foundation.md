@@ -1,14 +1,12 @@
 # Audio foundation
 
-Status: the first slice was integrated into `main` on 2026-08-28 after the owner
-accepted the overall footstep character and requested slightly less bass. A
-second local slice raises isolated footsteps out of the bass-only thud range,
-replaces the exercise cue's low square pulse with a quieter high triangle
-sweep, and adds sparse fixed-tick cues for conversation and sleep. Automated
-tests cover event timing, lifecycle resets, cue bounds, and the combined
-simulation. Owner listening for the revised footstep, exercise, conversation,
-and sleep sounds remains open. Hidden-tab silence also remains an owner-required
-action.
+Status: the foundation and quieter activity cues are merged. Conversation now
+uses twelve first-party recordings, not the original procedural tone. The owner
+has adjusted their mix level through listening; the current playback gain is
+0.224. Broader sound-content acceptance and hidden-tab listening remain open.
+The dated evidence below describes the original foundation, not a fresh test
+of every later audio feature. See `ASSETS.md` for recording provenance and
+`2026-09-30-conversation-audio.md` for interrupted-voice repair evidence.
 
 ## Decision
 
@@ -67,16 +65,19 @@ partial, out-of-range, or unknown-version record is ignored in full.
 
 The graph is:
 
-`procedural voice -> effects gain -> master gain -> destination`
+`procedural cue or recorded conversation -> effects gain -> master gain -> destination`
 
-The split is load-bearing. Effects may not change a future music, ambience, or
-voice bus. Mute owns the master gain only.
+Effects currently controls both cues and recorded conversation. There is no
+separate voice control yet. Future category controls must explicitly define
+migration from this behavior. Mute owns the master gain only.
 
 Each audible cue creates one oscillator and one gain envelope, then disconnects
-both nodes when ended or evicted. Rejection, footstep, conversation, and
+both nodes when ended or evicted. Rejection, footstep, and
 personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
 lasts 420 ms. At most eight voices remain active. A ninth event stops and
-disconnects the oldest voice instead of building an invisible backlog.
+disconnects the oldest voice instead of building an invisible backlog. Recorded
+conversations use two buffer sources sharing one gain, with a separate cap of
+three pairs. The household scheduler currently selects one pair at a time.
 
 The current semantic events are:
 
@@ -86,8 +87,9 @@ The current semantic events are:
 3. `ui.confirmed`: a selected immediate control completed.
 4. `sim.footstep { simId, stepIndex }`: a stable Sim crossed one stride
    threshold.
-5. `sim.conversation { simId, phraseIndex }`: one household conversation began
-   or reached its next sparse chatter interval.
+5. `sim.conversation-started { simId, voice }` and
+   `sim.conversation-ended`: start the simulation-selected recorded pair, or
+   fade the pair when the observed conversation ends.
 6. `sim.sleep-breath { simId, breathIndex }`: sleep began or reached its next
    slow breathing interval.
 7. `sim.eating { simId, biteIndex }`: one Sim began eating or reached its next
@@ -139,20 +141,28 @@ out of alignment.
 The same fixed-tick sample maps authored visual actions into `conversation`,
 `sleep`, or no sustained audio activity. Two participants do not emit two
 conversation cues. The scheduler selects the lowest stable `SimId` as the
-deterministic representative and emits one household conversation voice on
-entry, then once every eight ticks while any conversation remains active.
+representative and plays the two clips selected by the simulation. Their
+compiled durations determine conversation length. Playback schedules the second
+clip directly against the audio clock; it does not repeat a tone every eight
+ticks. Fast-forward modestly raises playback rate, then fades any remaining
+audio when the simulation ends the conversation. Simulation duration and rewards
+are not changed by the player.
+
+The current household-wide identity includes every talking Sim. With two
+conversations at once, a second pair joining or leaving can restart the selected
+pair. New housemates make that reachable; per-conversation ownership remains
+separate follow-up work, not an accepted behavior.
 
 Sleep follows the same household-level rule. One quiet breath plays on entry,
 then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery
 from an externally suspended audio context, master mute changes, and Effects
-crossing zero reset both cadences so silent intervals cannot delay or burst
-later.
+crossing zero reset shared activity state so silent intervals cannot delay or
+burst later.
 
-These rates are presentation policy at 10 fixed ticks per second: 0.8 seconds
-between conversation phrases and 3 seconds between sleep breaths. They do not
-change simulation duration, animation timing, or save data.
+Sleep's three-second cadence is presentation policy at 10 fixed ticks per second.
+It does not change simulation duration, animation timing, or save data.
 
 ## Personal activity cadence
 
@@ -235,8 +245,8 @@ fresh rather than resuming a loop whose start happened while silent.
 This bridge deliberately produces no oscillator placeholder and plays no
 downloaded sample. Shower and stove audio remain silent until recordings pass
 the documented CC0 intake, source review, editing, and owner listening gates.
-There is also no real door entity or door state in the current lot, so the
-reserved door event shapes are not evidence of working door audio.
+The front door now has authoritative animated portal state, but no producer
+currently emits the reserved door sound events. Door audio remains unbuilt.
 
 ## Performance acceptance
 
@@ -661,9 +671,9 @@ Restored SHA-256 values were:
 
 ## Open work
 
-1. Wire door events only after the front door has authoritative open and close
-   state.
-2. Add ambience, object loops, alarms, music, and nonverbal Sim voices.
+1. Wire door events to the existing authoritative portal transitions, with
+   sound selection and listening review.
+2. Add ambience, object loops, alarms, music, and non-conversation Sim voices.
 3. Add independent music, ambience, and voice controls without changing the
    current Effects meaning.
 4. Replace or refine procedural tones only after the event and lifecycle layer
