@@ -33,6 +33,7 @@ pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+mod meal_migration;
 #[cfg(test)]
 mod v3_tests;
 mod wall_migration;
@@ -419,7 +420,7 @@ fn restore_with_facings(
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
     retired: &[u32],
 ) -> Result<Sim, SaveError> {
-    let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
+    let (snapshot, migrate_legacy_household_names) = meal_migration::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));

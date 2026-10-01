@@ -1722,6 +1722,9 @@ fn compile_visual(
         "watch" => CompiledVisualAction::Watch,
         "sit" => CompiledVisualAction::Sit,
         "sleep" => CompiledVisualAction::Sleep,
+        "wash" => CompiledVisualAction::Wash,
+        "cook" => CompiledVisualAction::Cook,
+        "prepare" => CompiledVisualAction::Prepare,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -1765,7 +1768,10 @@ fn compile_visual(
             None
         ) | (
             VisualOwner::ChainStep { .. },
-            CompiledVisualAction::Eat,
+            CompiledVisualAction::Eat
+                | CompiledVisualAction::Prepare
+                | CompiledVisualAction::Cook
+                | CompiledVisualAction::Wash,
             CompiledVisualAnchor::Station,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -1816,6 +1822,9 @@ fn compile_visual(
             CompiledVisualAction::Watch => "watch",
             CompiledVisualAction::Sit => "sit",
             CompiledVisualAction::Sleep => "sleep",
+            CompiledVisualAction::Wash => "wash",
+            CompiledVisualAction::Cook => "cook",
+            CompiledVisualAction::Prepare => "prepare",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -1849,6 +1858,9 @@ fn compile_visual(
                             CompiledVisualAction::Watch => "watch",
                             CompiledVisualAction::Sit => "sit",
                             CompiledVisualAction::Sleep => "sleep",
+                            CompiledVisualAction::Wash => "wash",
+                            CompiledVisualAction::Cook => "cook",
+                            CompiledVisualAction::Prepare => "prepare",
                         },
                         "object_socket",
                     ),
@@ -1893,6 +1905,12 @@ fn compile_personalities(
             });
         }
 
+        check_number(archetype.cleanliness, "personality cleanliness")?;
+        if archetype.cleanliness > 1.0 {
+            return Err(ContentError::NonFiniteValue {
+                context: "cleanliness must be between zero and one".to_string(),
+            });
+        }
         let mut drain = [1.0f32; NEED_COUNT];
         for (need_name, value) in &archetype.drain {
             let Some(id) = NeedId::from_name(need_name) else {
@@ -1997,6 +2015,7 @@ fn compile_personalities(
             // hours earlier" are the same sim.
             chronotype_offset_ticks: archetype.chronotype_offset_ticks,
             description: archetype.description.clone(),
+            cleanliness: archetype.cleanliness,
         });
     }
 
@@ -2233,6 +2252,47 @@ fn compile_household(
 type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    if let Some(domestic) = &tuning.domestic {
+        for value in [
+            domestic.own_cleanup_min,
+            domestic.own_cleanup_bonus,
+            domestic.visitor_cleanup_fraction,
+            domestic.critical_cleanup_scale,
+            domestic.other_need_floor,
+            domestic.friend_affinity,
+            domestic.affinity_penalty_min,
+            domestic.affinity_penalty_bonus,
+        ] {
+            check_number(value, "domestic probability or affinity")?;
+            if value > 1.0 {
+                return Err(ContentError::InvalidDomesticTuning);
+            }
+        }
+        for value in [
+            domestic.ready_need_level,
+            domestic.other_need_level,
+            domestic.invite_hunger_level,
+            domestic.accept_hunger_level,
+            domestic.mood_units,
+            domestic.mood_max_load,
+        ] {
+            check_number(value, "domestic need or load")?;
+            if value <= 0.0 || value > 100.0 {
+                return Err(ContentError::InvalidDomesticTuning);
+            }
+        }
+        for value in [domestic.mood_penalty_min, domestic.mood_penalty_bonus] {
+            check_number(value, "domestic mood penalty")?;
+        }
+        if domestic.own_cleanup_min + domestic.own_cleanup_bonus > 1.0
+            || domestic.ready_need_level <= tuning.mood_critical_need_level
+            || domestic.invite_hunger_level > domestic.accept_hunger_level
+            || domestic.wash_ticks_per_unit == 0
+            || domestic.wash_ticks_per_unit > 1000
+        {
+            return Err(ContentError::InvalidDomesticTuning);
+        }
+    }
     // Read here, with every other tuning check, so no caller can compile
     // the knobs and forget the verb lines.
     let affinity = affinity_bands(&tuning)?;
@@ -2613,6 +2673,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
 
     Ok((
         Tuning {
+            domestic: tuning.domestic,
             habituation_per_use: tuning.habituation_per_use,
             habituation_decay_per_tick: tuning.habituation_decay_per_tick,
             habituation_floor: tuning.habituation_floor,
@@ -3604,7 +3665,7 @@ mod tests {
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
-    // Measured after appending the mood tuning fields.
+    // Appending domestic tuning adds one None byte after the mood rates.
     const GOLDEN_PACK_BYTES: &[u8] = &[
         // **Portal presentation appended one final field.** This fixture's
         // coordinate-only lot compiles no portal rows, so the last byte is the
@@ -3730,7 +3791,7 @@ mod tests {
         224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160, 65,
         0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160, 65,
         0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76, 61,
-        0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 0, 0,
+        0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
@@ -3861,6 +3922,7 @@ mod tests {
     /// what lets every other test in this module ignore decay entirely.
     fn full_tuning() -> TuningFile {
         TuningFile {
+            domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
             // golden vector reads, and its objects come from
@@ -6302,6 +6364,7 @@ mod tests {
     /// assertion ([L34]).
     fn archetype(id: &str) -> ArchetypeDef {
         ArchetypeDef {
+            cleanliness: 0.5,
             chronotype_offset_ticks: 0,
             description: format!("The {id} sort."),
             id: id.to_string(),

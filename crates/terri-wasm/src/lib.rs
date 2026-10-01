@@ -225,7 +225,7 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 6;
+    const APPENDED_LISTS: usize = 7;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
@@ -251,15 +251,18 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let mortality = usize::from(snapshot.mortality.is_some());
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
+                let domestic = usize::from(snapshot.domestic.is_some());
                 let invented = match pad {
                     0 => 0,
-                    1 => waiting,
-                    2 => waiting + migrated,
-                    3 => waiting + migrated + mortality,
-                    4 => waiting + migrated + mortality + family,
-                    5 => waiting + migrated + mortality + family + by_index,
+                    1 => domestic,
+                    2 => domestic + waiting,
+                    3 => domestic + waiting + migrated,
+                    4 => domestic + waiting + migrated + mortality,
+                    5 => domestic + waiting + migrated + mortality + family,
+                    6 => domestic + waiting + migrated + mortality + family + by_index,
                     _ => {
-                        waiting
+                        domestic
+                            + waiting
                             + migrated
                             + mortality
                             + family
@@ -1545,6 +1548,18 @@ impl SimHandle {
         self.sim.render_buffer().carrying.as_ptr()
     }
 
+    pub fn dirty_dishes_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().dirty_dishes.as_ptr()
+    }
+
+    pub fn carried_dishes_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().carried_dishes.as_ptr()
+    }
+
+    pub fn meal_portions_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().meal_portions.as_ptr()
+    }
+
     pub fn ids_ptr(&self) -> *const u32 {
         self.sim.render_buffer().ids.as_ptr()
     }
@@ -1883,6 +1898,10 @@ impl SimHandle {
             .personality_of(entity_index)
             .map(|values| values.to_vec())
             .unwrap_or_default()
+    }
+
+    pub fn cleanliness_of(&self, entity_index: u32) -> Option<f32> {
+        self.sim.cleanliness_of(entity_index)
     }
 
     /// Interleaved `[sim_id, feeling, ...]` pairs, or empty. See
@@ -2657,7 +2676,16 @@ mod boundary_tests {
             "a save from before the yard must load"
         );
         let current = loaded.sim.save_snapshot_v5();
-        assert_eq!(house_part(current.world.clone()), old.world);
+        let mut expected = old.world.clone();
+        expected.content_fingerprint = 0x85a2_d140_0dff_9da1;
+        for person in &mut expected.entities {
+            if let Some(chain) = &mut person.chain {
+                if chain.chain == "cook_dinner" && chain.step == 3 {
+                    chain.step = 5;
+                }
+            }
+        }
+        assert_eq!(house_part(current.world.clone()), expected);
         assert_eq!(current.layout, grown_layout(&old.layout));
         assert_eq!(current.object_facings, old.object_facings);
         assert_eq!(current.retired_indices, old.retired_indices);
@@ -2823,7 +2851,7 @@ mod boundary_tests {
         // the house's outside walls after them ([OS-migrate]).
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
-        expected_world.content_fingerprint = 0xc2cf_2919_84ed_61f7;
+        expected_world.content_fingerprint = 0x85a2_d140_0dff_9da1;
         assert_eq!(house_part(current.world.clone()), expected_world);
         assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
@@ -5509,7 +5537,7 @@ mod boundary_tests {
     #[test]
     fn flush_commands_refreshes_activity_metadata_without_a_tick() {
         let mut handle = SimHandle::new(8, 8);
-        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        assert!(handle.spawn_object(4.0, 4.0, "sink"));
         let agent = spawn_agent_at(&mut handle, 3.0, 4.0, 0.0);
         assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
         handle.tick();
@@ -5523,7 +5551,7 @@ mod boundary_tests {
             .expect("the agent must have a render row");
         assert_eq!(
             handle.sim.render_buffer().activities[row],
-            terri_sim::render_buffer::activity::EATING,
+            terri_sim::render_buffer::activity::USING_OBJECT,
             "the fixture must begin with visible interaction metadata"
         );
 
@@ -6680,7 +6708,7 @@ mod boundary_tests {
                 step: 2,
                 fumble_scale: 1.0,
             });
-        assert_eq!(handle.chain_status_of(tim), "Cook dinner - step: Cook");
+        assert_eq!(handle.chain_status_of(tim), "Cook breakfast - step: Cook");
 
         handle
             .sim
@@ -6689,7 +6717,7 @@ mod boundary_tests {
             .insert(terri_core::Carrying(0));
         assert_eq!(
             handle.chain_status_of(tim),
-            "Cook dinner - step: Cook (carrying ingredients)"
+            "Cook breakfast - step: Cook (carrying ingredients)"
         );
     }
 
@@ -7007,7 +7035,7 @@ mod boundary_tests {
         // the wire changing. The toilet advertises no chain, so its
         // list is its interactions alone.
         let mut fridge_rows = authored("fridge");
-        fridge_rows.push("Cook dinner".to_string());
+        fridge_rows.push("Cook breakfast".to_string());
         assert_eq!(handle.interaction_labels(fridge), fridge_rows);
         assert_eq!(handle.interaction_labels(toilet), authored("toilet"));
 

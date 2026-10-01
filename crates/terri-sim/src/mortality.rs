@@ -115,12 +115,11 @@ fn clear_action(world: &mut World, entity: Entity) {
 }
 
 fn remove_person(world: &mut World, dead: Entity) {
+    crate::domestic::remove_person(world, dead);
     let own_target = world.get::<Target>(dead).map(|t| t.object);
     let partner = world.get::<Socialising>(dead).map(|talk| talk.partner);
     for target in own_target.into_iter().chain(partner) {
-        if let Ok(mut target) = world.get_entity_mut(target) {
-            target.remove::<Reserved>();
-        }
+        crate::domestic::release_station(world, target, dead);
     }
     let mut people: Vec<_> = world.query::<Entity>().iter(world).collect();
     people.sort_unstable_by_key(|e| e.index_u32());

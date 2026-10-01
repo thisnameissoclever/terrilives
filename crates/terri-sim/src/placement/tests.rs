@@ -585,7 +585,7 @@ fn placement_scenery_blocks_and_moved_furniture_remains_usable() {
     let mut used = false;
     for _ in 0..50 {
         sim.tick();
-        if sim.world().get::<terri_core::Eating>(agent).is_some() {
+        if sim.world().get::<terri_core::StepWork>(agent).is_some() {
             assert_eq!(
                 sim.world().get::<Target>(agent).unwrap().object.index_u32(),
                 object

@@ -130,6 +130,11 @@ pub struct RenderBuffer {
     /// shell resolves the index against `item_kinds()` and the
     /// `carried_<kind>` atlas convention.
     pub carrying: Vec<u32>,
+    /// Visible dirty dish units and unclaimed meal plates on each surface row.
+    pub dirty_dishes: Vec<u32>,
+    /// Collected cleanup load, derived from the saved cleanup claims.
+    pub carried_dishes: Vec<u32>,
+    pub meal_portions: Vec<u32>,
     /// The voice clip played first by the conversation this row is in, or
     /// [`NO_VOICE_CLIP`].
     ///
@@ -223,6 +228,9 @@ pub mod visual_action {
     pub const SIT: u32 = 8;
     /// Horizontal sleeping body art at an object-local action socket.
     pub const SLEEP: u32 = 9;
+    pub const PREPARE: u32 = 10;
+    pub const COOK: u32 = 11;
+    pub const WASH: u32 = 12;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -3519,12 +3527,7 @@ mod tests {
         assert!(pack.object(station).roles.contains(&role));
 
         let mut sim = Sim::new_with_lot(24, 24);
-        let decoy_definition = pack
-            .objects
-            .iter()
-            .position(|object| object.id == "desk")
-            .map(|index| terri_data::ObjectDefId(index as u32))
-            .expect("shipped desk");
+        let decoy_definition = station;
         assert!(pack.object(decoy_definition).roles.contains(&role));
         let _decoy = sim
             .world_mut()
@@ -4647,6 +4650,9 @@ mod tests {
             assert_eq!(buf.interaction_targets.len(), expected_count);
             assert_eq!(buf.facings.len(), expected_count);
             assert_eq!(buf.carrying.len(), expected_count);
+            assert_eq!(buf.carried_dishes.len(), expected_count);
+            assert_eq!(buf.dirty_dishes.len(), expected_count);
+            assert_eq!(buf.meal_portions.len(), expected_count);
             assert_eq!(buf.positions.len(), expected_count * 2);
 
             sim.world_mut().spawn((

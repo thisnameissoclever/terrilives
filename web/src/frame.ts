@@ -18,6 +18,7 @@ import {
   ACTIVITY_AT_WORK,
   EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
+  OFFSET_PROJECTION_ANCHOR_X,
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
@@ -32,6 +33,7 @@ import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './rende
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
 import { writeFootprintProjection } from './render/footprint-depth.js';
+import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
 import type { PlacementPreview } from './bridge.js';
 import {
   placementInstanceCount,
@@ -561,20 +563,26 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
 
 const RIGGED_ACTIONS: readonly string[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
-  'watch_fish', 'sit', 'sleep',
+  'watch_fish', 'sit', 'sleep', 'prepare', 'cook', 'wash',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
+  10, 10, 10,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */
 export function simBodySprite(
   id: number, visualAction: number, facing: number, simulationTick: number,
-  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff,
+  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0,
 ): number {
-  if (!validFacing(facing)) return simSprite(id, simId);
-  const action = RIGGED_ACTIONS[visualAction] ?? 'idle';
+  if (!validFacing(facing)) {
+    if (carriedDishes === 0) return simSprite(id, simId);
+    facing = 1;
+  }
+  const action = carriedDishes > 0 && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
+    ? (visualAction === VISUAL_ACTION_WALK ? 'carry_walk' : 'carry_idle')
+    : RIGGED_ACTIONS[visualAction] ?? 'idle';
   const clip = RIGGED_SIM_VARIANTS[simShirtVariant(simId)][action];
   const frames = clip.frames[facing - 1];
   const halfCycle = ACTION_HALF_CYCLE_TICKS[visualAction] ?? 1;
@@ -841,6 +849,9 @@ export interface RenderSource {
    * u32::MAX empty-hands sentinel. Read every frame.
    */
   carrying(): Uint32Array;
+  dirtyDishes?(): Uint32Array;
+  carriedDishes?(): Uint32Array;
+  mealPortions?(): Uint32Array;
   /**
    * One name per pack item kind - `carried_<kind>` atlas resolution's
    * input. Stable for the life of the pack; read lazily once.
@@ -962,7 +973,7 @@ export function buildInstances(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
+  const needed = (count * 8 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
@@ -986,6 +997,9 @@ export function buildInstances(
   const colourwayShifts = source.colourwayShifts?.() ?? null;
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
+  const dirtyDishes = source.dirtyDishes?.();
+  const carriedDishes = source.carriedDishes?.();
+  const mealPortions = source.mealPortions?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
 
@@ -1041,6 +1055,7 @@ export function buildInstances(
             wx,
             wy,
             simIds?.[i],
+            carriedDishes?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     const localLight = lighting === null
@@ -1083,6 +1098,31 @@ export function buildInstances(
   // posts, rail and ladder over it without teaching the shell which object
   // owns those pixels.
   let slot = count;
+  for (let row = 0; row < count; row++) {
+    if (row === replacedRow || interactions.suppressed[row]) continue;
+    const wx = current[row * 2];
+    const wy = current[row * 2 + 1];
+    const layout = surfaceLayout(sprites[row]);
+    if (!layout) continue;
+    const dirty = dirtyDishes?.[row] ?? 0;
+    const items = surfaceItemCount(layout, dirty, mealPortions?.[row] ?? 0);
+    for (let item = 0; item < items; item++) {
+      const sprite = surfaceItemSprite(layout, dirty, item);
+      const point = layout.points[surfacePointIndex(layout, dirty, item)];
+      const light = lighting === null ? EMISSIVE_NONE : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
+      writeInstance(scratch, slot,
+        screenX(wx, wy, originX, scale) + (spriteDrawOffsetX(sprite) + point[0]) * scale,
+        screenY(wx, wy, originY, scale) + (spriteDrawOffsetY(sprite) + point[1]) * scale,
+        layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND), sprite,
+        TINT_NONE, TINT_NONE, TINT_NONE, light);
+      writeShade(scratch, slot, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
+      // Continue the supporting furniture's depth field at this displaced point.
+      writeFootprintProjection(scratch, slot, footprintWidths?.[row] ?? 0,
+        footprintDepths?.[row] ?? 0, sprite, gridSize);
+      scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += point[0];
+      slot++;
+    }
+  }
   if (portals !== undefined) {
     slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
   }
@@ -1151,6 +1191,7 @@ export function buildInstances(
             wx,
             wy,
             simIds?.[i],
+            carriedDishes?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     writeInstance(
@@ -1277,6 +1318,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
   interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null,
   highlight: TileHighlight | null = null): number {
   let extras = 0;
+  const sprites = source.sprites();
   const activities = source.activities();
   const carrying = source.carrying();
   const kinds = source.kinds();
@@ -1285,7 +1327,12 @@ export function instanceCount(source: RenderSource, selected: number | null,
   const foregroundSprites = source.foregroundSprites?.() ?? null;
   interactions.updateSource(source, 0, true);
   const replacedRow = placementReplacedRow(source, selected, placement);
+  const dirtyDishes = source.dirtyDishes?.();
+  const mealPortions = source.mealPortions?.();
   for (let i = 0; i < source.count; i++) {
+    if (i !== replacedRow && !interactions.suppressed[i]) {
+      extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0);
+    }
     if (
       foregroundSprites !== null &&
       foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&

@@ -179,6 +179,14 @@ describe('traitsPanelState', () => {
     expect(traitsPanelState(source, LIBRARY)).toEqual({ kind: 'ready', traits: [] });
   });
 
+  it('shows cleanliness separately from learned skills and rejects invalid scores', () => {
+    const source = new MutableTraitsSource() as MutableTraitsSource & { cleanlinessOf(): number };
+    source.cleanlinessOf = () => 0.9;
+    expect(ready(traitsPanelState(source, LIBRARY))[0]).toMatchObject({ key: -1, label: 'Cleanliness', state: '90%' });
+    source.cleanlinessOf = () => Number.NaN;
+    expect(traitsPanelState(source, LIBRARY)).toEqual({ kind: 'unavailable' });
+  });
+
   it('makes exactly one bridge read per refresh', () => {
     const source = new MutableTraitsSource();
     source.worn = new Float32Array([0, 0, 1, 0.25, 2, 0.6]);

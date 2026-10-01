@@ -228,7 +228,7 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     // price the sleep-pressure list already pays.
     cases.extend(
         (SAVE_HEADER_BYTES..valid.len())
-            .filter(|cut| ![1, 2, 6, 7, 8, 9].contains(&(valid.len() - cut)))
+            .filter(|cut| ![1, 2, 3, 7, 8, 9, 10].contains(&(valid.len() - cut)))
             .map(|cut| valid[..cut].to_vec()),
     );
     for bytes in cases {
@@ -247,7 +247,7 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(painter.set_floor(2.0, 2.0, 1.0));
     painter.flush_commands();
     let painted = painter.save_bytes();
-    let before_ties = painted[..painted.len() - 8].to_vec();
+    let before_ties = painted[..painted.len() - 9].to_vec();
     let mut live = SimHandle::from_lot();
     assert!(
         live.load_bytes(&before_ties),
@@ -257,12 +257,13 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(live.family_ties().is_empty());
 
     for (cut, what) in [
-        (1, "waiting"),
-        (2, "death default migration"),
-        (6, "mortality"),
-        (7, "ties keyed on SimId"),
-        (8, "family"),
-        (9, "floors and family"),
+        (1, "domestic consequences"),
+        (2, "waiting"),
+        (3, "death default migration"),
+        (7, "mortality"),
+        (8, "ties keyed on SimId"),
+        (9, "family"),
+        (10, "floors and family"),
     ] {
         let older = valid[..valid.len() - cut].to_vec();
         assert!(
@@ -279,7 +280,6 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
 
 /// Two sims of the shipped lot, as entity indices, lowest first.
 fn two_sims(handle: &mut SimHandle) -> (u32, u32) {
-    handle.tick();
     let count = handle.entity_count();
     let kinds = unsafe { std::slice::from_raw_parts(handle.kinds_ptr(), count) };
     let ids = unsafe { std::slice::from_raw_parts(handle.ids_ptr(), count) };
@@ -310,7 +310,7 @@ fn a_save_that_keyed_ties_on_entity_indices_loads_them_as_sim_ids() {
     snapshot.family = terri_core::layout::FamilyTies::default();
     let written = v5_bytes(&snapshot);
     // The last byte is the empty SimId list, which that build did not write.
-    let older = written[..written.len() - 2].to_vec();
+    let older = written[..written.len() - 8].to_vec();
 
     let mut restored = SimHandle::from_lot();
     assert!(
@@ -408,7 +408,7 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     snapshot.family_by_index = by_index;
     let written = v5_bytes(&snapshot);
     // Drop the SimId list and the tie's relation byte.
-    let cut = &written[..written.len() - 8];
+    let cut = &written[..written.len() - 9];
     assert!(decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none());
     let mut restored = SimHandle::from_lot();
     assert!(!restored.load_bytes(cut), "a relation nobody chose");
@@ -418,7 +418,7 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     painter.flush_commands();
     let painted = painter.save_bytes();
     // Drop both family lists and the tile's covering byte.
-    let cut = &painted[..painted.len() - 9];
+    let cut = &painted[..painted.len() - 10];
     assert!(
         decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none(),
         "a covering nobody laid"
@@ -448,7 +448,7 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
         + postcard::to_allocvec(&snapshot.family_by_index)
             .unwrap()
             .len();
-    let floors_start = payload.len() - family_bytes - floors.len() - 6;
+    let floors_start = payload.len() - family_bytes - floors.len() - 7;
     let cut = &payload[..=floors_start];
     assert!(decode_v5(cut).is_none(), "cut inside the floors length");
 
@@ -464,7 +464,7 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     by_sim.family = many.clone();
     let payload = postcard::to_allocvec(&by_sim).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
-    let start = payload.len() - length.len() - 6;
+    let start = payload.len() - length.len() - 7;
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the SimId list's length"
@@ -475,7 +475,7 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     let payload = postcard::to_allocvec(&by_index).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
     let after = postcard::to_allocvec(&by_index.family).unwrap().len();
-    let start = payload.len() - after - length.len() - 6;
+    let start = payload.len() - after - length.len() - 7;
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the entity-index list's length"
@@ -492,7 +492,7 @@ fn pre_mortality_save_preserves_nonempty_floors_and_family() {
     let bytes = handle.save_bytes();
     assert_eq!(bytes.last(), Some(&0));
     let mut restored = SimHandle::from_lot();
-    assert!(restored.load_bytes(&bytes[..bytes.len() - 6]));
+    assert!(restored.load_bytes(&bytes[..bytes.len() - 7]));
     assert_eq!(restored.floor_tiles(), vec![2, 2, 1]);
     assert_eq!(restored.family_ties(), handle.family_ties());
     assert!(restored.death_enabled());
@@ -511,7 +511,7 @@ fn mortality_length_truncation_cannot_invent_an_empty_count_list() {
     let tail = postcard::to_allocvec(&snapshot.mortality).unwrap();
     assert_eq!(&tail[..4], &[1, 1, 128, 1]);
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len() - 2;
+    let start = bytes.len() - tail.len() - 3;
     assert!(decode_v5(&bytes[..start + 3]).is_none());
     for cut in start + 1..start + tail.len() {
         assert!(
@@ -528,8 +528,8 @@ fn waiting_length_truncation_cannot_invent_an_empty_list() {
     let tail = postcard::to_allocvec(&snapshot.waiting_needs).unwrap();
     assert_eq!(&tail[..2], &[128, 1]);
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len();
-    for cut in start + 1..bytes.len() {
+    let start = bytes.len() - tail.len() - 1;
+    for cut in start + 1..start + tail.len() {
         assert!(
             decode_v5(&bytes[..cut]).is_none(),
             "accepted waiting cut {cut}"
@@ -552,9 +552,60 @@ fn pre_default_change_preserves_nonempty_mortality_and_enables_death() {
     });
     let bytes = v5_bytes(&snapshot);
     let mut loaded = SimHandle::from_lot();
-    assert!(loaded.load_bytes(&bytes[..bytes.len() - 2]));
+    assert!(loaded.load_bytes(&bytes[..bytes.len() - 3]));
     assert!(loaded.death_enabled());
     assert_eq!(loaded.sim.deprivation_ticks(first), 1);
     assert_eq!(loaded.family_ties(), source.family_ties());
     assert_eq!(loaded.floor_tiles(), source.floor_tiles());
+}
+
+#[test]
+fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter() {
+    for (hex, dinner) in [
+        (include_str!("../tests/fixtures/pre-meals-snack.hex"), false),
+        (include_str!("../tests/fixtures/pre-meals-dinner.hex"), true),
+    ] {
+        let bytes: Vec<_> = hex
+            .trim()
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        let mut old = bytes[SAVE_HEADER_BYTES..].to_vec();
+        old.push(0);
+        let source: SaveSnapshotV5 = postcard::from_bytes(&old).unwrap();
+        assert_eq!(source.world.content_fingerprint, 0xc2cf_2919_84ed_61f7);
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.load_bytes(&bytes), "actual old program bytes load");
+        let current = handle.sim.save_snapshot_v5();
+        assert_eq!(current.world.tick, source.world.tick);
+        let active = source
+            .world
+            .entities
+            .iter()
+            .find(|entity| {
+                if dinner {
+                    entity.chain.is_some()
+                } else {
+                    entity.eating.is_some()
+                }
+            })
+            .unwrap();
+        let mapped = current
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.index == active.index)
+            .unwrap();
+        assert_eq!(mapped.needs, active.needs);
+        assert_eq!(mapped.step_work_ticks, active.step_work_ticks);
+        assert_eq!(mapped.eating, active.eating);
+        if dinner {
+            assert_eq!(mapped.chain.as_ref().unwrap().step, 5);
+        }
+        let saved = handle.save_bytes();
+        let mut replay = SimHandle::from_lot();
+        assert!(replay.load_bytes(&saved));
+        assert_eq!(handle.sim.world_hash(), replay.sim.world_hash());
+    }
 }

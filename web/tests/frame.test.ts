@@ -301,6 +301,45 @@ class FakeEntities implements RenderSource {
   }
 }
 
+describe('domestic surface clutter', () => {
+  it('draws cooking clutter and separate waiting meals, and removes them when the live columns clear', () => {
+    const source = new FakeEntities() as FakeEntities & { dirtyDishes(): Uint32Array; mealPortions(): Uint32Array };
+    source.set([[2, 3, 2, 3, 1, spriteIndex('offlineCounter')]]);
+    source.dirtyDishes = () => new Uint32Array([3]);
+    source.mealPortions = () => new Uint32Array([3]);
+    const count = instanceCount(source, null);
+    expect(count).toBe(5);
+    const packed = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null);
+    expect(packed[1 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex('dirtyPrep'));
+    for (let plate = 2; plate < 5; plate++) {
+      expect(packed[plate * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex('mealPlate'));
+    }
+    expect(packed[2 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).not.toBe(packed[3 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]);
+    source.dirtyDishes = () => new Uint32Array([0]);
+    source.mealPortions = () => new Uint32Array([0]);
+    expect(instanceCount(source, null)).toBe(1);
+  });
+  it('changes table clutter as diners finish, without growing a single giant stack', () => {
+    const source = new FakeEntities() as FakeEntities & { dirtyDishes(): Uint32Array };
+    source.set([[2, 3, 2, 3, 1, spriteIndex('table')]]);
+    for (const units of [1, 2, 3, 4, 5]) {
+      source.dirtyDishes = () => new Uint32Array([units]);
+      expect(instanceCount(source, null)).toBe(1 + Math.min(units, 4));
+      const packed = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID);
+      expect(packed[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex(units > 4 ? 'dirtyDishesPair' : 'dirtyDishes'));
+    }
+  });
+  it('uses distance-driven carrying poses, with held dishes in all facings and palettes', () => {
+    for (const simId of [0, 1, 2]) for (const facing of [1, 2, 3, 4]) {
+      const moving = simBodySprite(0, 5, facing, 0, false, .25, .25, simId, 3);
+      expect(SPRITES[moving].name).toContain('CarryWalk');
+      const stopped = simBodySprite(0, 0, facing, 0, false, 0, 0, simId, 3);
+      expect(SPRITES[stopped].name).toContain('CarryIdle');
+      expect(SPRITES[simBodySprite(0, 0, facing, 0, false, 0, 0, simId, 0)].name).not.toContain('Carry');
+    }
+  });
+});
+
 describe('FixedStepDriver', () => {
   it('runs one tick per step at the configured rate, not at a fixed rate', () => {
     const tenHz = new FixedStepDriver(10, 5);
@@ -1135,10 +1174,13 @@ describe('approved rigged Sim selector', () => {
     ['sit', 'Sit', VISUAL_ACTION_SIT, SIT_FRAME_TICKS, 4],
     ['sleep', 'Sleep', VISUAL_ACTION_SLEEP, SLEEP_FRAME_TICKS, 4],
     ['exercise', 'Exercise', VISUAL_ACTION_EXERCISE, EXERCISE_FRAME_TICKS, 2],
+    ['prepare', 'Prepare', 10, 10, 4],
+    ['cook', 'Cook', 11, 10, 4],
+    ['wash', 'Wash', 12, 10, 4],
   ] as const;
 
-  it('selects every authored sample in all ten actions and four actual facings', () => {
-    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual(actions.map(([name]) => name).sort());
+  it('selects every authored sample in all thirteen actions and four actual facings', () => {
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...actions.map(([name]) => name), 'carry_walk', 'carry_idle'].sort());
     for (const [name, stem, action, halfCycle, count] of actions) {
       for (const [direction, suffix] of ['SE', 'NW', 'SW', 'NE'].entries()) {
         const facing = direction + 1;

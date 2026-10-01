@@ -10,6 +10,7 @@ export interface TraitsPanelSource {
   selectedIndex(): number | null;
   /** Interleaved [pack trait index, state, ...] pairs, or empty. */
   traitsOf(entity: number): Float32Array;
+  cleanlinessOf?(entity: number): number | null;
 }
 
 /** Three columns of one table, read once at startup and aligned by index. */
@@ -86,6 +87,13 @@ export function traitsPanelState(
   const worn = source.traitsOf(selected);
 
   const traits: TraitView[] = [];
+  const cleanliness = source.cleanlinessOf?.(selected);
+  if (cleanliness !== undefined && cleanliness !== null) {
+    if (!Number.isFinite(cleanliness) || cleanliness < 0 || cleanliness > 1) return UNAVAILABLE;
+    traits.push({ key: -1, label: 'Cleanliness',
+      description: 'Tidier Sims usually clean up and mind other people leaving dirty dishes. Urgent needs can take priority.',
+      state: `${percent(cleanliness)}%` });
+  }
   for (let at = 0; at < worn.length; at += 2) {
     const index = worn[at];
     // `undefined` past the end of an odd-length read, which is not finite.

@@ -35,13 +35,14 @@ satisfaction = 3.0
   [[chain.step]]
   role = "cold_storage"
   label = "Get ingredients"
-  duration_ticks = 20
+  duration_ticks = 30
   yields = "ingredients"
 
   [[chain.step]]
   role = "prep_surface"
   label = "Prepare food"
-  duration_ticks = 35
+  visual = { action = "prepare", anchor = "station", facing = "toward_anchor" }
+  duration_ticks = 90
 
   [[chain.step]]
   role = "hob"
@@ -49,14 +50,89 @@ satisfaction = 3.0
   # the cooking tag moved here from the stove's retired standalone
   # interaction (retirement lands in PR 2, when the chain runs).
   label = "Cook"
-  duration_ticks = 60
+  visual = { action = "cook", anchor = "station", facing = "toward_anchor" }
+  duration_ticks = 150
   tags = ["cooking"]
   transforms = { from = "ingredients", to = "dinner" }
   sound_action = "stove_cooking"
 
   [[chain.step]]
-  role = "eating_surface"
-  label = "Eat dinner"
-  duration_ticks = 45
+  role = "hob"
+  label = "Simmer and stir"
+  duration_ticks = 100
+  visual = { action = "cook", anchor = "station", facing = "toward_anchor" }
+  sound_action = "stove_cooking"
+
+  [[chain.step]]
+  role = "prep_surface"
+  label = "Plate meal"
+  duration_ticks = 40
+  visual = { action = "prepare", anchor = "station", facing = "toward_anchor" }
+
+  [[chain.step]]
+  role = "meal_table"
+  label = "Eat meal"
+  duration_ticks = 90
+  consumes = "dinner"
+  visual = { action = "eat", anchor = "station", facing = "toward_anchor" }
+
+# Internal chains keep the fridge's original snack command row stable.
+[[chain]]
+id = "prepare_snack"
+label = "Grab a snack"
+advertised_by = "fridge"
+advertises = { hunger = 40.0 }
+satisfaction = 0.0
+  [[chain.step]]
+  role = "cold_storage"
+  label = "Get snack"
+  duration_ticks = 20
+  yields = "ingredients"
+  [[chain.step]]
+  role = "prep_surface"
+  label = "Prepare snack"
+  duration_ticks = 30
+  transforms = { from = "ingredients", to = "dinner" }
+  visual = { action = "prepare", anchor = "station", facing = "toward_anchor" }
+  [[chain.step]]
+  role = "prep_surface"
+  label = "Eat snack"
+  duration_ticks = 35
+  consumes = "dinner"
+  visual = { action = "eat", anchor = "station", facing = "toward_anchor" }
+
+[[chain]]
+id = "clean_dishes"
+label = "Clean dishes"
+advertised_by = "kitchen_sink"
+advertises = {}
+satisfaction = 0.0
+  [[chain.step]]
+  role = "prep_surface"
+  label = "Collect dishes"
+  duration_ticks = 25
+  visual = { action = "prepare", anchor = "station", facing = "toward_anchor" }
+  [[chain.step]]
+  role = "dish_sink"
+  label = "Wash dishes"
+  duration_ticks = 25
+  visual = { action = "wash", anchor = "station", facing = "toward_anchor" }
+
+[[chain]]
+id = "eat_shared_meal"
+label = "Join meal"
+advertised_by = "fridge"
+advertises = { hunger = 70.0, comfort = 15.0 }
+satisfaction = 0.0
+  [[chain.step]]
+  role = "prep_surface"
+  label = "Get prepared plate"
+  duration_ticks = 25
+  yields = "dinner"
+  visual = { action = "prepare", anchor = "station", facing = "toward_anchor" }
+  [[chain.step]]
+  role = "meal_table"
+  label = "Eat together"
+  duration_ticks = 90
   consumes = "dinner"
   visual = { action = "eat", anchor = "station", facing = "toward_anchor" }

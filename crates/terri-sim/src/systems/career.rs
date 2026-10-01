@@ -112,7 +112,10 @@ pub fn start_shift(
         // The CancelIntents removal set: whatever the worker held is
         // released whole on this tick, not left to self-heal.
         if let Some(target) = target {
-            commands.entity(target.object).try_remove::<Reserved>();
+            let station = target.object;
+            commands.queue(move |world: &mut World| {
+                crate::domestic::release_station(world, station, worker)
+            });
         }
         commands
             .entity(worker)

@@ -23,6 +23,8 @@ itself on having personality.
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
 | Mood | Mood; Select a person to see their mood.; Mood unavailable; No active moodlets.; Overall mood; Miserable; Low; Okay; Good; Great; {label}: {signed score} | `web/index.html`, `web/src/ui/mood-panel.ts` |
+| Domestic actions and mood | Cook breakfast; Cook lunch; Cook dinner; Get ingredients; Prepare food; Cook; Simmer and stir; Plate meal; Eat meal; Grab a snack; Get snack; Prepare snack; Eat snack; Wash hands; Clean dishes; Collect dishes; Wash dishes; Get prepared plate; Eat together; Dirty dishes | `content/chains.toml`, `crates/terri-sim/src/domestic.rs`, `crates/terri-sim/src/mood.rs` |
+| Cleanliness | Cleanliness; {value}%; Tidier Sims usually clean up and mind other people leaving dirty dishes. Urgent needs can take priority. | `web/src/ui/traits-panel.ts` |
 | Need moodlets | Hungry; Starving; Tired; Exhausted; Needs a wash; Very dirty; Needs the toilet; Desperate for the toilet; Lonely; Very lonely; Bored; Very bored; Uncomfortable; Very uncomfortable; Needs met | `crates/terri-sim/src/mood.rs` |
 | Traits panel | Traits; No traits.; Traits unavailable; Skill {n}%; Severity {n}% | `web/index.html`, `web/src/ui/traits-panel.ts` |
 | Trait and environment moodlets | authored condition-trait label; Comforted by {name}; Uneasy around {name} | `content/traits.toml`, `crates/terri-sim/src/mood.rs` |

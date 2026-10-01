@@ -554,7 +554,10 @@ pub fn serve_intents(
             };
             if let Some(target) = target {
                 if target.object != intent.object {
-                    commands.entity(target.object).try_remove::<Reserved>();
+                    let station = target.object;
+                    commands.queue(move |world: &mut World| {
+                        crate::domestic::release_station(world, station, agent)
+                    });
                 }
             }
             // BOTH parties into the claimed list. The partner so no
@@ -566,6 +569,7 @@ pub fn serve_intents(
             // people loop documents.
             claimed.push(intent.object);
             claimed.push(agent);
+            commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
             commands.entity(intent.object).insert(Reserved);
             commands
                 .entity(agent)
@@ -593,16 +597,36 @@ pub fn serve_intents(
         // emptied: two dinners at once is not a state.
         {
             let interactions = content.0.object(placed.0).interactions.len();
-            if intent.interaction as usize >= interactions {
-                let local = intent.interaction as usize - interactions;
-                let Some((global, _)) = content
+            let snack = content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(intent.interaction as usize)
+                .is_some_and(|act| act.id == "grab_snack")
+                && content
                     .0
                     .chains
                     .iter()
-                    .enumerate()
-                    .filter(|(_, chain)| chain.advertised_by == placed.0)
-                    .nth(local)
-                else {
+                    .any(|chain| chain.id == crate::domestic::SNACK);
+            if intent.interaction as usize >= interactions || snack {
+                let local = (intent.interaction as usize).saturating_sub(interactions);
+                let requested = if snack {
+                    content
+                        .0
+                        .chains
+                        .iter()
+                        .enumerate()
+                        .find(|(_, chain)| chain.id == crate::domestic::SNACK)
+                } else {
+                    content
+                        .0
+                        .chains
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, chain)| chain.advertised_by == placed.0)
+                        .nth(local)
+                };
+                let Some((global, chain)) = requested else {
                     // Past the chains too: the pack changed under a
                     // saved command log, since a live click cannot name
                     // a row that is not there. Dropping it is what
@@ -612,8 +636,15 @@ pub fn serve_intents(
                     queue.pop();
                     continue;
                 };
+                if crate::domestic::hidden_chain(&chain.id) && !snack {
+                    queue.pop();
+                    continue;
+                }
                 if let Some(target) = target {
-                    commands.entity(target.object).try_remove::<Reserved>();
+                    let station = target.object;
+                    commands.queue(move |world: &mut World| {
+                        crate::domestic::release_station(world, station, agent)
+                    });
                 }
                 commands
                     .entity(agent)
@@ -626,6 +657,12 @@ pub fn serve_intents(
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
                     .insert(terri_core::ChainState::begin(global as u32));
+                commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
+                if chain.id == crate::domestic::CLEANUP {
+                    commands.queue(move |world: &mut World| {
+                        crate::domestic::directed_cleanup(world, agent)
+                    });
+                }
                 claimed.push(agent);
                 queue.pop();
                 continue;
@@ -681,7 +718,10 @@ pub fn serve_intents(
                 // uses it: `Commands::entity` does not validate, so a
                 // stale `Target` would otherwise route a removal to the
                 // command error handler.
-                commands.entity(target.object).try_remove::<Reserved>();
+                let station = target.object;
+                commands.queue(move |world: &mut World| {
+                    crate::domestic::release_station(world, station, agent)
+                });
             }
         }
         claimed.push(intent.object);
@@ -691,6 +731,7 @@ pub fn serve_intents(
         // blindness again.
         claimed.push(agent);
         commands.entity(intent.object).insert(Reserved);
+        commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
         // BOTH kinds of running interaction are preempted, and forgetting
         // the second was a measured deadlock rather than a hypothetical: a
         // command aimed at a sim mid-conversation left `Socialising`
@@ -1365,6 +1406,10 @@ pub fn select_action(
                 }
                 let row = interactions_len + chain_row;
                 chain_row += 1;
+                if crate::domestic::hidden_chain(&chain.id) || chain.id == crate::domestic::CLEANUP
+                {
+                    continue;
+                }
 
                 let total_duration: u32 = chain.steps.iter().map(|s| s.duration_ticks).sum();
                 let mut legs = 0.0f32;
@@ -1604,6 +1649,26 @@ pub fn select_action(
         // that is the station picker's call against live reservations.
         if let Ok((_, _, placed, _, _)) = objects.get(object) {
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            if content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(interaction as usize)
+                .is_some_and(|act| act.id == "grab_snack")
+            {
+                if let Some(global) = content
+                    .0
+                    .chains
+                    .iter()
+                    .position(|chain| chain.id == crate::domestic::SNACK)
+                {
+                    claimed.push(agent);
+                    commands
+                        .entity(agent)
+                        .insert(terri_core::ChainState::begin(global as u32));
+                    continue;
+                }
+            }
             if interaction >= interactions_len {
                 let local = (interaction - interactions_len) as usize;
                 if let Some((global, _)) = content

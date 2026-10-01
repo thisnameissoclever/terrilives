@@ -73,6 +73,8 @@ pub struct CircadianFile {
 
 #[derive(Debug, Deserialize)]
 pub struct TuningFile {
+    #[serde(default)]
+    pub domestic: Option<crate::pack::DomesticTuning>,
     /// The circadian rhythm, optional so every existing tuning fixture
     /// still parses. See `CircadianFile`.
     #[serde(default)]
@@ -649,6 +651,8 @@ pub struct PersonalitiesFile {
 
 #[derive(Debug, Deserialize)]
 pub struct ArchetypeDef {
+    #[serde(default = "default_cleanliness")]
+    pub cleanliness: f32,
     pub id: String,
     /// Where on the circadian curve this sim samples, in ticks.
     ///
@@ -1025,6 +1029,10 @@ pub struct PlacementDef {
     /// action sockets and matching rendered layers.
     #[serde(default)]
     pub facing: Option<String>,
+}
+
+fn default_cleanliness() -> f32 {
+    0.5
 }
 
 #[cfg(test)]

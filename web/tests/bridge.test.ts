@@ -28,6 +28,17 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('refreshes aligned dish views after save/load replaces WASM memory', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const saved = bridge.saveBytes();
+    expect(bridge.carriedDishes()).toHaveLength(bridge.count);
+    expect(Array.from(bridge.carriedDishes()).every(count => count === 0)).toBe(true);
+    expect(handle.load_bytes(saved)).toBe(true);
+    expect(bridge.carriedDishes().buffer).toBe(wasmMemory.buffer);
+    expect(bridge.dirtyDishes()).toHaveLength(bridge.count);
+    expect(bridge.mealPortions()).toHaveLength(bridge.count);
+  });
   it('enables death by default and preserves a saved off command', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
@@ -693,13 +704,14 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
     expect(bridge.spawnObject(4, 1, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
+    expect(bridge.spawnObject(4, 2, 'counter')).toBe(true);
     expect(bridge.useObject(1, 0, 0)).toBe(true);
     for (let i = 0; i < 120; i++) {
       bridge.tick();
-      if (bridge.visualActions()[1] === 2) break;
+      if (bridge.visualActions()[1] === 10) break;
     }
-    expect(Array.from(bridge.visualActions())).toEqual([0, 2]);
-    expect(Array.from(bridge.facings())).toEqual([0, 1]);
+    expect(Array.from(bridge.visualActions())).toEqual([0, 10, 0]);
+    expect(Array.from(bridge.facings())).toEqual([0, 3, 0]);
 
     // Hold the exact new views across growth. Zero-filled fresh views would
     // prove only their lengths; these non-zero sentinels also prove that each
@@ -724,21 +736,21 @@ describe('SimBridge', () => {
     expect(heldFacings.length).toBe(0);
     expect(heldFootprintWidths.length).toBe(0);
     expect(heldFootprintDepths.length).toBe(0);
-    expect(bridge.count).toBe(2002);
+    expect(bridge.count).toBe(2003);
     // If views were cached across growth this reads zeroes or throws.
     const pos = bridge.positions();
-    expect(pos.length).toBe(4004);
+    expect(pos.length).toBe(4006);
     expect(pos.some((v) => v !== 0)).toBe(true);
     const visualActions = bridge.visualActions();
     const facings = bridge.facings();
     const footprintWidths = bridge.footprintWidths();
     const footprintDepths = bridge.footprintDepths();
-    expect(visualActions.length).toBe(2002);
-    expect(facings.length).toBe(2002);
-    expect(footprintWidths.length).toBe(2002);
-    expect(footprintDepths.length).toBe(2002);
-    expect(Array.from(visualActions.slice(0, 2))).toEqual([0, 2]);
-    expect(Array.from(facings.slice(0, 2))).toEqual([0, 1]);
+    expect(visualActions.length).toBe(2003);
+    expect(facings.length).toBe(2003);
+    expect(footprintWidths.length).toBe(2003);
+    expect(footprintDepths.length).toBe(2003);
+    expect(Array.from(visualActions.slice(0, 3))).toEqual([0, 10, 0]);
+    expect(Array.from(facings.slice(0, 3))).toEqual([0, 3, 0]);
     expect(footprintWidths.every((value) => value === 1)).toBe(true);
     expect(footprintDepths.every((value) => value === 1)).toBe(true);
     expect(visualActions.buffer).toBe(wasmMemory.buffer);
@@ -868,10 +880,10 @@ describe('SimBridge', () => {
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
     // the applied migration flag and an empty waiting list.
-    expect(Array.from(legacyCells.slice(-14))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]);
+    expect(Array.from(legacyCells.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - 14] = 2;
+    edgeBytes[edgeBytes.length - 15] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -889,14 +901,14 @@ describe('SimBridge', () => {
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration, waiting.
-    expect(Array.from(valid.slice(-14))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]);
+    expect(Array.from(valid.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -3), valid.slice(0, -10), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -4), valid.slice(0, -11), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
@@ -1046,6 +1058,8 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(handle, wasmMemory);
     expect(bridge.itemKinds()).toEqual(['ingredients', 'dinner']);
 
+    const bill = Array.from(bridge.ids()).find(id => bridge.simName(id) === "Bill")!;
+    expect(bridge.useObjectFirst(bill, 0, 1)).toBe(true);
     const EMPTY_HANDS = 0xffff_ffff;
     for (let t = 0; t < 6000; t++) {
       bridge.tick();
@@ -1055,7 +1069,7 @@ describe('SimBridge', () => {
         if (carrying[row] === EMPTY_HANDS) continue;
         expect(carrying[row]).toBeLessThan(2);
         const status = bridge.chainStatusOf(ids[row]);
-        expect(status).toContain('Cook dinner');
+        if (status === null || !/^Cook (breakfast|lunch|dinner)/.test(status)) continue;
         expect(status).toContain('carrying');
         return;
       }
@@ -1258,7 +1272,7 @@ describe('SimBridge', () => {
     // ([BM-hash]), an encoding change that moved this from
     // 0xc7bb_234c_419a_654cn. Measured on the rebuilt wasm32 module first,
     // then found equal to the native value.
-    expect(bridge.worldHash()).toBe(0xd52d52487bf9267en);
+    expect(bridge.worldHash()).toBe(0x297e57b7cd2fb736n);
   });
 
   // ---- Player commands -------------------------------------------------
@@ -1746,7 +1760,7 @@ describe('SimBridge', () => {
     const build = () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
-      expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
+      expect(b.spawnObject(11, 8, 'radio')).toBe(true);
       b.spawnAgent(8, 8, 20);
       b.spawnAgent(8, 11, 80);
       return b;

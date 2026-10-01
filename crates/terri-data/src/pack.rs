@@ -68,6 +68,9 @@ pub enum CompiledVisualAction {
     Watch,
     Sit,
     Sleep,
+    Prepare,
+    Cook,
+    Wash,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -673,6 +676,29 @@ pub struct Tuning {
     pub waiting_mood_max_penalty: f32,
     pub satisfaction_mood_neutral_band: f32,
     pub satisfaction_mood_per_tick: f32,
+    /// Domestic systems are disabled in custom packs without this table.
+    pub domestic: Option<DomesticTuning>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct DomesticTuning {
+    pub own_cleanup_min: f32,
+    pub own_cleanup_bonus: f32,
+    pub visitor_cleanup_fraction: f32,
+    pub critical_cleanup_scale: f32,
+    pub ready_need_level: f32,
+    pub other_need_floor: f32,
+    pub other_need_level: f32,
+    pub invite_hunger_level: f32,
+    pub accept_hunger_level: f32,
+    pub friend_affinity: f32,
+    pub mood_penalty_min: f32,
+    pub mood_penalty_bonus: f32,
+    pub mood_units: f32,
+    pub mood_max_load: f32,
+    pub affinity_penalty_min: f32,
+    pub affinity_penalty_bonus: f32,
+    pub wash_ticks_per_unit: u32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -706,6 +732,7 @@ pub struct Circadian {
 /// positive - so a reader may assume the ranges rather than re-check.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledPersonality {
+    pub cleanliness: f32,
     pub id: String,
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
@@ -1214,6 +1241,7 @@ mod tests {
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
         Tuning {
+            domestic: None,
             action_threshold: 0.25,
             choice_temperature: 0.5,
             idle_threshold: 0.125,
@@ -1361,6 +1389,7 @@ mod tests {
             lot: a_lot(),
             tuning: a_tuning(),
             personalities: vec![CompiledPersonality {
+                cleanliness: 0.5,
                 id: "the_settled".to_string(),
                 // Pairwise distinct across BOTH arrays, so a round trip
                 // that wrote satisfaction into drain's slot - or dropped
@@ -1894,8 +1923,13 @@ mod tests {
         .into_iter()
         .flat_map(f32::to_le_bytes)
         .collect();
-        assert_eq!(&before[before.len() - 60..], mood_bytes);
-        let len = before.len() - 20 - 60;
+        assert_eq!(
+            before.last(),
+            Some(&0),
+            "domestic tuning is an appended optional record"
+        );
+        assert_eq!(&before[before.len() - 61..before.len() - 1], mood_bytes);
+        let len = before.len() - 1 - 20 - 60;
         assert_eq!(
             before[len..len + 20],
             [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]
