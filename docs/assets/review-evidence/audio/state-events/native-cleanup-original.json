@@ -1,0 +1,6 @@
+{
+  "generatedAt": "2026-10-01T12:41:06.961Z",
+  "passed": false,
+  "pageErrors": [],
+  "error": "page.evaluate: Error: Proof did not settle within 5 seconds\n    at eval (eval at evaluate (:367:30), <anonymous>:8:74)\n    at main (D:\\VIBES\\.worktrees\\audio-state-events\\terrilives\\web\\output\\playwright\\verify-audio-state-events.cjs:14:32)"
+}

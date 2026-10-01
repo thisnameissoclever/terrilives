@@ -229,6 +229,14 @@ mutation path or allowing simulation time to leak through pause. The drain is
 associative across batch boundaries: splitting an ordered command stream across
 two rendered frames produces the same saved world as draining it in one batch.
 
+Each completed full tick and paused drain is also a Bevy ECS update boundary.
+After the schedule applies its deferred commands, `World::clear_trackers()`
+retires older component-removal records and retains the just-finished update's
+records. Standalone ECS does not perform this maintenance automatically. These
+records are runtime bookkeeping, absent from saves and the world hash. A future
+removal reader must run at every relevant boundary: a reader that runs only on
+full ticks can miss removals after multiple paused drains.
+
 1. `advance_clock` - advance the day clock.
 2. `decay_needs` - apply content-defined need decay.
 3. `start_shift` - begin a scheduled career commute after the clock advances.
