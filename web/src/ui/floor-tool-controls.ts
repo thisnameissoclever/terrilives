@@ -2,6 +2,7 @@
 // tool switch's job, in build-tools.ts.
 
 import { BARE, type FloorTool } from './floor-tool.js';
+import { drawFloorSwatch } from './floor-swatches.js';
 
 export class FloorToolControls {
   private readonly status: HTMLElement;
@@ -9,7 +10,8 @@ export class FloorToolControls {
   private readonly touchHelp: HTMLElement;
   private readonly buttons: ReadonlyArray<readonly [HTMLButtonElement, number]>;
 
-  constructor(document: Document, private readonly tool: FloorTool) {
+  constructor(document: Document, private readonly tool: FloorTool,
+    swatch: (canvas: HTMLCanvasElement, covering: number) => Promise<void> = drawFloorSwatch) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing floor controls: ${id}`);
@@ -28,6 +30,18 @@ export class FloorToolControls {
       button.type = 'button';
       button.className = 'hud-button';
       button.textContent = label;
+      if (covering !== BARE) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 48;
+        canvas.height = 32;
+        canvas.setAttribute('aria-hidden', 'true');
+        canvas.setAttribute('style', 'width:48px;height:32px;display:block;image-rendering:pixelated;margin:auto');
+        button.append(canvas);
+        void swatch(canvas, covering).catch(error => {
+          canvas.hidden = true;
+          button.title = `Material sample unavailable: ${error instanceof Error ? error.message : String(error)}`;
+        });
+      }
       button.addEventListener('click', () => {
         tool.choose(covering);
         tool.apply();
@@ -48,7 +62,7 @@ export class FloorToolControls {
   }
 
   render(): void {
-    this.status.textContent = this.tool.status;
+    this.status.textContent = this.tool.resourceStatus ?? this.tool.status;
     for (const [button, covering] of this.buttons) {
       button.setAttribute('aria-pressed', String(covering === this.tool.chosen));
     }

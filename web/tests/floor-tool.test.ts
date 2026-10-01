@@ -225,7 +225,7 @@ describe('the Floors tool in the page', () => {
     // Review finding [F1] on PR 128: a Load left the previous game's floors
     // on screen, because only the lot-edit path re-read them. Both paths
     // must, so this counts rather than merely finding one.
-    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(3);
+    expect(MAIN_TS.split('lot.floors = sim.floorTiles();')).toHaveLength(4);
     const load = MAIN_TS.slice(MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();') - 1200,
       MAIN_TS.indexOf('lot.frontDoors = sim.frontDoorLines();'));
     expect(load).toContain('lot.floors = sim.floorTiles();');
@@ -237,7 +237,9 @@ describe('the Floors tool in the page', () => {
     const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
     const elements = new Map<string, FakeElement>();
     const document = fakeDocument(elements);
-    const view = new FloorToolControls(document as never, floors);
+    const swatches: number[] = [];
+    const view = new FloorToolControls(document as never, floors, async (_canvas, covering) => { swatches.push(covering); });
+    expect(swatches).toEqual([1, 2, 3]);
     expect(elements.get('floor-coverings')!.children.map((child) => child.textContent))
       .toEqual(['Boards', 'Tiles', 'Carpet', 'Remove']);
 
@@ -252,6 +254,20 @@ describe('the Floors tool in the page', () => {
     view.setCompact(true);
     expect(elements.get('floor-keyboard-help')!.hidden).toBe(true);
     expect(elements.get('floor-touch-help')!.hidden).toBe(false);
+  });
+
+  it('appends content choices and their material samples without shifting saved IDs', () => {
+    const source = new FakeFloors();
+    source.names.push('Fixture');
+    const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
+    const elements = new Map<string, FakeElement>();
+    const samples: number[] = [];
+    new FloorToolControls(fakeDocument(elements) as never, floors, async (_canvas, id) => { samples.push(id); });
+    expect(samples).toEqual([1, 2, 3, 4]);
+    expect(elements.get('floor-coverings')!.children.map(child => child.textContent)).toEqual(['Boards', 'Tiles', 'Carpet', 'Fixture', 'Remove']);
+    floors.enter();
+    elements.get('floor-coverings')!.children[3].listeners.click?.();
+    expect(floors.chosen).toBe(4);
   });
 });
 

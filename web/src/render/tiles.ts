@@ -26,6 +26,8 @@ import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
 import { buildEdgeWallGeometry, buildShortEdgeWallGeometry, type EdgeWallPanel } from './edge-walls.js';
 import { buildArchitectureWallGeometry } from './architecture-geometry.js';
+import { floorMaterial, relativeFloorLook } from './floor-materials.js';
+import { architectureFinishSlot, type ActiveFinishes, type FinishCatalogue } from './architecture-finishes.js';
 import type { WindowDefinition, WindowPlacement } from '../architecture/windows.js';
 import {
   FLOATS_PER_INSTANCE,
@@ -39,6 +41,7 @@ import {
   type InstanceArray,
   writeWindowTint,
   writeArchitectureDepth,
+  writeArchitectureFloor,
 } from './instances.js';
 import {
   sampleLight,
@@ -59,7 +62,10 @@ export interface Lot {
   readonly architecture?: { readonly windows: readonly WindowPlacement[];
     readonly catalogue: readonly WindowDefinition[]; readonly wallFinishSlot?: number;
     /** Overrides keyed by the panel's stable physical fadeKey, shared by wide-window pieces. */
-    readonly wallFinishSlots?: Readonly<Record<string, number>> };
+    readonly wallFinishSlots?: Readonly<Record<string, number>>;
+    readonly floorCatalogue?: FinishCatalogue; readonly finishes?: ActiveFinishes };
+  /** Transient tool selection; never written to the simulation or save. */
+  readonly floorPreview?: readonly [number, number, number] | null;
   readonly width: number;
   readonly height: number;
   /**
@@ -363,19 +369,33 @@ export function buildStaticInstances(
    * `FLOOR_DEPTH`.
    */
   const writeFloor = (x: number, y: number, sprite: number): void => {
+    const look = lookOf(x, y);
+    const covering = lot.floorPreview?.[0] === x && lot.floorPreview[1] === y
+      ? lot.floorPreview[2] : look >= 3 ? look - 2 : 0;
+    const zone = x === street ? 'street' : x >= house[0] || y >= house[1] ? 'yard' : 'house';
+    const material = lot.architecture ? floorMaterial(covering, zone, x, y, lot.architecture.floorCatalogue) : null;
     writeInstance(
       instances,
       slot++,
       screenX(x, y, originX, scale),
       screenY(x, y, originY, scale),
       FLOOR_DEPTH,
-      sprite,
+      material?.sprite.id ?? sprite,
       TINT_NONE,
       TINT_NONE,
       TINT_NONE,
       lighting === null ? 0 : sampleLight(lighting, x, y),
     );
-    writeColourway(instances, slot - 1, lookShifts, lookOf(x, y));
+    if (material) {
+      const finishSlot = material.accepted ? 0 : architectureFinishSlot(
+        lot.architecture!.finishes ?? { keys: [], resources: [], table: new Float32Array(), residentBytes: 0 }, material.finishKey);
+      writeArchitectureFloor(instances, slot - 1, x, y, finishSlot);
+      const lookRow = covering > 0 ? covering + 2 : zone === 'street' ? 2 : zone === 'yard' ? 1 : 0;
+      const relative = relativeFloorLook(lookShifts.subarray(lookRow * 3, lookRow * 3 + 3), material.authoredContentLook);
+      writeColourway(instances, slot - 1, Float32Array.from([0, 1, 0, ...relative]), 1);
+    } else {
+      writeColourway(instances, slot - 1, lookShifts, look);
+    }
     writeShade(instances, slot - 1, sampleShade(sky, x, y));
   };
 

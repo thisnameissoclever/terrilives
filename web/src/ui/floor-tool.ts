@@ -44,6 +44,7 @@ export class FloorTool {
   pending: number | null = null;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
+  resourceStatus: string | null = null;
   private revision: number;
   private shownHighlight: TileHighlight | null = null;
 
@@ -96,9 +97,21 @@ export class FloorTool {
     this.hooks.changed();
   }
 
+  setResourceStatus(status: string | null): void {
+    if (status === this.resourceStatus) return;
+    this.resourceStatus = status;
+    this.hooks.changed();
+  }
+
+  /** Shares the committed covering ID and the static floor material writer. */
+  preview(): readonly [number, number, number] | null {
+    return this.active && !this.blocked && this.resourceStatus === null && this.tile
+      && this.shownHighlight?.valid ? [this.tile[0], this.tile[1], this.chosen] : null;
+  }
+
   /** Whether laying the chosen covering on the chosen tile would do anything. */
   canApply(): boolean {
-    return this.active && !this.blocked && this.tile !== null && this.pending === null
+    return this.active && !this.blocked && this.resourceStatus === null && this.tile !== null && this.pending === null
       && this.chosen !== this.current
       && this.source.floorEditPreview(this.tile[0], this.tile[1], this.chosen) === 0;
   }

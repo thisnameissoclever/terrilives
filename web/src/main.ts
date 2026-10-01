@@ -28,6 +28,10 @@ import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
+import { activeFloorFinishKeys } from './render/floor-materials.js';
+import { FloorFinishResources } from './render/floor-finish-resources.js';
+import type { ActiveFinishes } from './render/architecture-finishes.js';
+import { drawFloorSwatch } from './ui/floor-swatches.js';
 import { decodeWindowPlacements } from './architecture/windows.js';
 import {
   FixedStepDriver,
@@ -1070,7 +1074,9 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
-    architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue() },
+    architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue(),
+      finishes: architectureAtlas.finishes },
+    floorPreview: null as readonly [number, number, number] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
@@ -1260,12 +1266,45 @@ async function main(): Promise<void> {
   // [FL-tool]. A covering laid on one tile, beside the tools that move
   // walls and furniture.
   let floorControls: FloorToolControls | undefined;
+  let floorResourcesReady = true;
+  let syncFloorResources = (): void => {};
   const floorTool = new FloorTool(sim, lotWidth, lotHeight, {
     changed: () => {
+      syncFloorResources();
+      lot.floorPreview = floorTool.preview();
+      cameraDirty = true;
       floorControls?.render();
       toolSwitch?.render();
     },
   });
+  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; finishes: ActiveFinishes | undefined }>({
+    prepare: async finishKeys => {
+      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys });
+      try { return { renderer: await SpriteRenderer.create(gpu, atlas), finishes: atlas.finishes }; }
+      finally { closeArchitectureAtlas(atlas); }
+    },
+    publish: next => {
+      const previous = renderer, previousFinishes = lot.architecture.finishes;
+      renderer = next.renderer;
+      lot.architecture.finishes = next.finishes;
+      lot.floors = sim.floorTiles();
+      try { applyCamera(); }
+      catch (error) {
+        renderer = previous;
+        lot.architecture.finishes = previousFinishes;
+        throw error;
+      }
+      previous.destroy();
+    },
+    dispose: next => next.renderer.destroy(),
+    state: (ready, error) => {
+      floorResourcesReady = ready;
+      floorTool.setResourceStatus(ready ? null : error ? `Floor materials could not load: ${error}` : 'Loading floor materials.');
+      cameraDirty = true;
+    },
+  });
+  syncFloorResources = () => floorResources.request(activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null));
+  syncFloorResources();
   const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
   // [PA-show]: Confirm and Cancel over the piece being placed. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
@@ -1340,7 +1379,8 @@ async function main(): Promise<void> {
   buyControls.setCompact(compactHudQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactHudQuery.matches);
-  floorControls = new FloorToolControls(document, floorTool);
+  floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
+    drawFloorSwatch(canvas, covering, lot.coveringLooks.subarray((covering - 1) * 3, covering * 3)));
   floorControls.setCompact(compactHudQuery.matches);
   toolSwitch = new BuildToolSwitch(document, [
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
@@ -1555,6 +1595,7 @@ async function main(): Promise<void> {
       lot.windows = sim.windowLines();
       lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
       lot.floors = sim.floorTiles();
+      syncFloorResources();
       lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
       cameraDirty = true;
@@ -1566,7 +1607,7 @@ async function main(): Promise<void> {
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
-    if (cameraDirty) applyCamera();
+    if (cameraDirty && floorResourcesReady) applyCamera();
     // [PA-place]: after the camera settles, so the buttons follow this
     // frame's pan and zoom.
     placementButtons.frame(camera, stage.width, stage.height);

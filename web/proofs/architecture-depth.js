@@ -6,6 +6,7 @@ import { ARCHITECTURE } from '../src/render/architecture-data.ts';
 import { architecturePieces, architectureSprite, architectureFloor } from '../src/render/architecture.ts';
 import { buildArchitectureWallGeometry } from '../src/render/architecture-geometry.ts';
 import { buildStaticInstances } from '../src/render/tiles.ts';
+import { floorMaterial, activeFloorFinishKeys } from '../src/render/floor-materials.ts';
 import { architectureFinishSlot } from '../src/render/architecture-finishes.ts';
 import { FLOATS_PER_INSTANCE, MAX_ARCHITECTURE_FINISH_SLOT, decodeArchitectureMode,
   writeInstance, writeArchitectureDepth, writeArchitectureFloor } from '../src/render/instances.ts';
@@ -56,7 +57,7 @@ export async function createArchitectureDepthProof() {
     closeArchitectureAtlas(atlas); atlas = undefined;
     const startup = await gpu.device.popErrorScope();
     assert(!startup, 'Architecture pipeline validation', { error: startup?.message });
-    const ox = 470.37, oy = 330.19;
+    let ox = 470.37, oy = 330.19;
     const row = (sprite, x = 0, y = 0, scale = 1, low = false, opacity = 1, finish = 0) => {
       const result = new Float32Array(16);
       writeInstance(result, 0, ox + (x - y) * 32 * scale, oy + (x + y) * 21 * scale,
@@ -251,6 +252,114 @@ export async function createArchitectureDepthProof() {
         assert(covered > 10 && transparent > 10 && bad === 0, 'Split ownership reconstructs common source raster', { key, scale, covered, checked, transparent, excludedBoundaries, bad, failures });
         return { pass: true, key, scale, pieces: pieces.length, covered, checked, bad,
           transparent, excludedBoundaries, sourceHash: reference.sources[key].rgba_sha256, milliseconds: performance.now() - start };
+      },
+      async floorMaterialCase({ scale = 1, origin = [320.37, 240.19], mixed = true, missing = false, covering = 3,
+        requireSourceReference = true } = {}) {
+        const previousOrigin = [ox, oy]; [ox, oy] = origin;
+        try {
+          const floors = [];
+          for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) floors.push(x, y, mixed ? (x + y) % 3 + 1 : covering);
+          const lot = { width: 3, height: 3, walls: new Uint32Array(), edges: new Uint32Array(),
+            architecture: { windows: [], catalogue: [] }, floors: Uint32Array.from(floors),
+            coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18]) };
+          const built = buildStaticInstances(lot, ox, oy, 16, scale);
+          const rows = Array.from({ length: built.floorCount }, (_, index) => built.instances.slice(index * 16, index * 16 + 16));
+          if (missing) rows.splice(4, 1);
+          const clear = await capture(empty, empty, scale);
+          assert(same(at(clear, Math.floor(ox), Math.floor(oy)), [23, 23, 28, 255]), 'Floor clear control');
+          const actual = await capture(join(rows), empty, scale);
+          const reversed = await capture(join([...rows].reverse()), empty, scale);
+          assert(same(actual, reversed), 'Mixed material draw order is pixel-identical');
+          let covered = 0, outside = 0, missingPixels = 0, referencePixels = 0, failures = 0;
+          let excludedCoverageEdges = 0, excludedMaterialEdges = 0, excludedTexelBoundaries = 0;
+          const examples = [];
+          for (let py = 0; py < canvas.height; py++) for (let px = 0; px < canvas.width; px++) {
+            const sx = (px + .5 - ox) / scale, sy = (py + .5 - oy) / scale;
+            const gx = (sy / 21 + sx / 32) / 2, gy = (sy / 21 - sx / 32) / 2;
+            const inside = gx > -.5 && gx < 2.5 && gy > -.5 && gy < 2.5;
+            const absent = missing && gx > .5 && gx < 1.5 && gy > .5 && gy < 1.5;
+            if ([gx + .5, gx - 2.5, gy + .5, gy - 2.5, ...(missing ? [gx - .5, gx - 1.5, gy - .5, gy - 1.5] : [])].some(value => Math.abs(value) < 1e-6)) {
+              excludedCoverageEdges++; continue;
+            }
+            const color = at(actual, px, py), isClear = same(color, [23, 23, 28, 255]);
+            if (!inside || absent) {
+              outside++; if (absent) missingPixels++;
+              if (!isClear) failures++;
+              continue;
+            }
+            covered++;
+            if (isClear) failures++;
+            if ([gx + .5, gy + .5].some(value => Math.abs(value - Math.round(value)) < 1e-6)) {
+              excludedMaterialEdges++; continue;
+            }
+            const x = Math.floor(gx + .5), y = Math.floor(gy + .5);
+            const sprite = floorMaterial(mixed ? (x + y) % 3 + 1 : covering, 'house', x, y).sprite;
+            const fx = (sx - (x - y) * 32 + sprite.origin[0]) * sprite.pixel_density;
+            const fy = (sy - (x + y) * 21 + sprite.origin[1]) * sprite.pixel_density;
+            if ([fx, fy].some(value => Math.abs(value - Math.round(value)) < .001)) {
+              excludedTexelBoundaries++; continue;
+            }
+            const tx = Math.max(0, Math.min(sprite.w - 1, Math.floor(fx)));
+            const ty = Math.max(0, Math.min(sprite.h - 1, Math.floor(fy)));
+            const atSource = ((sprite.y + ty) * ARCHITECTURE.width + sprite.x + tx) * 4;
+            const expected = [...pixels.slice(atSource, atSource + 3)];
+            referencePixels++;
+            if (expected.some((value, channel) => Math.abs(value - color[channel]) > 1)) {
+              failures++; if (examples.length < 5) examples.push({ px, py, x, y, expected, color });
+            }
+          }
+          assert(covered > 1000 && outside > 100 && (!missing || missingPixels > 100)
+            && failures === 0, 'Production floors retain exact physical coverage and match every stable source witness',
+          { scale, origin, mixed, missing, covering, covered, outside, missingPixels, referencePixels, failures, examples });
+          assert(!requireSourceReference || referencePixels > 1000, 'Required lossless source comparison has enough stable witnesses',
+            { scale, origin, referencePixels, excludedTexelBoundaries, requireSourceReference });
+          const marker = new Float32Array(16);
+          writeInstance(marker, 0, ox + .5, oy + .5, FLOOR_DEPTH - .01, spriteIndex('floor'), 1, 0, 1);
+          const markerOnly = await capture(marker, empty, scale);
+          const withFloors = await capture(join([...rows, marker]), empty, scale);
+          const witness = [Math.floor(ox), Math.floor(oy)];
+          assert(!same(at(markerOnly, ...witness), at(clear, ...witness))
+            && same(at(markerOnly, ...witness), at(withFloors, ...witness)), 'A nearer foot marker remains over the floor');
+          await capture(join(rows), empty, scale);
+          return { pass: true, scale, origin, mixed, missing, covering, covered, outside, missingPixels, referencePixels, failures,
+            requireSourceReference, sourceComparison: referencePixels === 0 ? 'unobserved' : 'passed',
+            excludedCoverageEdges, excludedMaterialEdges, excludedTexelBoundaries };
+        } finally { [ox, oy] = previousOrigin; }
+      },
+      async floorCatalogueCase() {
+        const original = ARCHITECTURE.catalogue;
+        const finishCatalogue = { ...original, patterns: { ...original.patterns,
+          'fixture.checks': { role: 'floor', period: [2, 2], resource: 'fixture-checks' } },
+          palettes: { ...original.palettes, cool: { multiply: [.4, .65, 1] }, warm: { multiply: [1, .55, .2] } },
+          finishes: { ...original.finishes,
+            cool: { patternKey: 'fixture.checks', paletteKey: 'cool', authoredContentLook: [0, 1, 0] },
+            warm: { patternKey: 'fixture.checks', paletteKey: 'warm', authoredContentLook: [0, 1, 0] } },
+          coverings: { ...original.coverings, 4: 'cool', 5: 'warm' } };
+        const patternResources = { ...ARCHITECTURE.patterns, 'fixture-checks': { width: 256, height: 256,
+          url: new URL('./fixtures/architecture/fixture-checks.pattern.png', import.meta.url).href } };
+        const lot = { width: 3, height: 1, walls: new Uint32Array(), edges: new Uint32Array(),
+          floors: new Uint32Array([0, 0, 1, 1, 0, 4, 2, 0, 5]),
+          coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0, 0, 1, 0]) };
+        let selected, alternate;
+        try {
+          const finishKeys = activeFloorFinishKeys(lot.floors, null, finishCatalogue);
+          selected = await loadArchitectureAtlas(gpu.device.limits, { baseUrl: '/', finishKeys, catalogue: finishCatalogue, patternResources });
+          alternate = await SpriteRenderer.create(gpu, selected);
+          const architecture = { windows: [], catalogue: [], floorCatalogue: finishCatalogue, finishes: selected.finishes };
+          const built = buildStaticInstances({ ...lot, architecture }, ox, oy, 16);
+          const rows = built.instances.slice(0, built.floorCount * 16);
+          const mixed = await capture(rows, empty, 1, alternate);
+          const acceptedOnly = await capture(rows.slice(0, 16));
+          assert(same(at(mixed, Math.floor(ox), Math.floor(oy)), at(acceptedOnly, Math.floor(ox), Math.floor(oy))), 'Accepted floor stays unchanged beside alternate finishes');
+          const samples = [1, 2].map(x => at(mixed, Math.floor(ox + x * 32), Math.floor(oy + x * 21)));
+          assert(samples.every(sample => !same(sample, [23, 23, 28, 255])) && !same(samples[0], samples[1]), 'Appended coverings display independent palettes simultaneously');
+          for (const covering of [0, 1, 2, 3, 4, 5]) {
+            const preview = buildStaticInstances({ ...lot, architecture, floorPreview: [1, 0, covering] }, ox, oy, 16).instances.slice(0, 48);
+            const committed = buildStaticInstances({ ...lot, architecture, floors: new Uint32Array([0, 0, 1, 1, 0, covering, 2, 0, 5]) }, ox, oy, 16).instances.slice(0, 48);
+            assert(same(await capture(preview, empty, 1, alternate), await capture(committed, empty, 1, alternate)), 'Preview and commit pixels match', { covering });
+          }
+          return { pass: true, finishKeys, resources: selected.finishes.resources, samples, previewCommitCases: 6 };
+        } finally { alternate?.destroy(); if (selected) closeArchitectureAtlas(selected); }
       },
       async floorCoverageCase(scale = 1) {
         const rows = [];
