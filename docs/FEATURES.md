@@ -13,6 +13,11 @@ name, personality, traits and family ties, including the starting household.
 The trait-progress rule must be designed before implementation. This slice does
 not depend on new appearance art, gender, or the advanced-controls system.
 
+**Soon after Edit Sims: communal activities and activity-specific seating.**
+Requested by the owner on 2026-10-01. Prioritise [S-communal-activities] and
+[S-activity-seating], including their missing sitting poses, before the later
+proposed priorities. Their scope is in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
+
 | Area | Completed and shipped | Still open |
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
@@ -424,7 +429,14 @@ an unchanged design target is not an unchanged measurement.
    rule for progressed traits, then implement editing through a validated simulation
    command, save/load, and the existing two-page form. Preserving progress for
    retained traits is the recommendation, pending that design decision.
-2. **Later priorities remain proposals.** Object affinities [B-object-affinities]
+2. **Communal activities and seating [S-communal-activities], [S-activity-seating]:
+   soon, owner-requested.** Sims who like each other should prefer sharing
+   compatible activities, including watching TV, listening to the radio and
+   reading together. Prefer suitable available seats for eating, reading, TV
+   and listening. Preserve activity-specific locations: watching fish stays
+   near the tank. Reuse existing sitting and seated-reading art, and deliver
+   missing sitting poses and animations with this slice [A-animations].
+3. **Later priorities remain proposals.** Object affinities [B-object-affinities]
    are the recommended follow-up, alongside the colour-preference design
    [B-colour-preferences]. Aging [DE-slice-age] is the next death slice, but needs
    an age and lifespan design. Neither is selected ahead of Edit Sims.
@@ -1322,6 +1334,11 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 ### [A-animations] Several ordinary actions are still static poses
 
 **Status: Partial: listed rigged actions shipped; remaining action categories are unbuilt.**
+
+The owner requested missing sitting poses and animations soon on 2026-10-01.
+Deliver seating for meals, reading, TV and listening with the early
+[S-activity-seating] slice. Reuse the existing armchair sitting and seated-reading
+poses where they fit, and add the remaining seat and activity combinations.
 
 The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
