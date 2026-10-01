@@ -587,29 +587,36 @@ export function simBodySprite(
 }
 
 /**
- * The activity-indicator bubbles, one atlas slot per code that draws.
- * Index 0 and 1 (none, walking) are deliberately null: an idle sim needs
- * no badge and a walking sim's motion IS its indicator - a bubble on
- * every walker would turn the house into a notification tray. The
- * remaining codes match `render_buffer::activity` on the Rust side.
+ * One bubble for every active activity, including travel and generic use.
+ * Idle Sims have no task; off-lot workers have no visible body. The codes
+ * match `render_buffer::activity`, including exact authored object uses.
  */
 const INDICATOR_SPRITES: readonly (number | null)[] = [
   null,
+  spriteIndex('activityWalking'),
+  spriteIndex('activityWait'),
+  spriteIndex('activityEat'),
+  spriteIndex('activityTalk'),
+  spriteIndex('activitySleep'),
+  // AT_WORK: the entire row stays off the lot.
   null,
-  spriteIndex('indicatorWait'),
-  spriteIndex('indicatorEat'),
-  spriteIndex('indicatorTalk'),
-  spriteIndex('indicatorSleep'),
-  // AT_WORK: no bubble - the whole ROW is skipped below; gone is gone.
-  null,
-  // USING_OBJECT: text-only. One 26px glyph cannot honestly cover
-  // washing, television, bathing, and toilet use.
-  null,
-  spriteIndex('indicatorReading'),
-  spriteIndex('indicatorExercise'),
-  spriteIndex('indicatorWatchFish'),
-  // SITTING: text-only. The seated silhouette and HUD name are explicit.
-  null,
+  spriteIndex('activityUse'),
+  spriteIndex('activityReading'),
+  spriteIndex('activityExercise'),
+  spriteIndex('activityWatchFish'),
+  spriteIndex('activitySitting'),
+  spriteIndex('activityShower'),
+  spriteIndex('activityToilet'),
+  spriteIndex('activityTV'),
+  spriteIndex('activityLyingDown'),
+  spriteIndex('activityWashHands'),
+  spriteIndex('activityWashDishes'),
+  spriteIndex('activityRadio'),
+  spriteIndex('activityCorrespondence'),
+  spriteIndex('activityBath'),
+  spriteIndex('activityIngredients'),
+  spriteIndex('activityPrepareFood'),
+  spriteIndex('activityCooking'),
 ];
 
 /**
@@ -1135,7 +1142,7 @@ export function buildInstanceBatch(
   // the owner's "if you can't see what they're doing, they may as well
   // not be doing anything", as quads.
   for (let i = 0; i < count; i++) {
-    const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
+    const sprite = kinds[i] === KIND_AGENT ? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
@@ -1327,7 +1334,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     ) {
       extras++;
     }
-    if (INDICATOR_SPRITES[activities[i]] != null) extras++;
+    if (kinds[i] === KIND_AGENT && INDICATOR_SPRITES[activities[i]] != null) extras++;
     const eatingPose = exactEatingPose(
       kinds[i],
       activities[i],

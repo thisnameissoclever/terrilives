@@ -373,6 +373,10 @@ pub fn compile(
                 satisfaction,
                 visual,
                 sound_action,
+                activity: compile_activity(
+                    act.activity.as_deref(),
+                    format!("'{}' interaction '{}'", object.id, act.id),
+                )?,
             });
         }
 
@@ -1030,6 +1034,10 @@ fn compile_chains(
                 consumes,
                 visual,
                 sound_action,
+                activity: compile_activity(
+                    step.activity.as_deref(),
+                    format!("chain '{}' step {index}", def.id),
+                )?,
             });
         }
         if let Some(held) = carrying {
@@ -1442,6 +1450,10 @@ fn compile_social(
                 action: action.clone(),
             });
         }
+        let activity = compile_activity(
+            act.activity.as_deref(),
+            format!("social.toml interaction '{}'", act.id),
+        )?;
         compiled.push(CompiledInteraction {
             id: act.id.clone(),
             advertises,
@@ -1452,6 +1464,7 @@ fn compile_social(
             satisfaction,
             visual,
             sound_action: None,
+            activity,
         });
     }
 
@@ -1521,6 +1534,43 @@ enum SoundOwner<'a> {
         chain: &'a str,
         step: usize,
     },
+}
+
+fn compile_activity(
+    activity: Option<&str>,
+    owner: String,
+) -> Result<Option<crate::pack::CompiledActivity>, ContentError> {
+    use crate::pack::CompiledActivity as Activity;
+    let Some(activity) = activity else {
+        return Ok(None);
+    };
+    let compiled = match activity {
+        "eating" => Activity::Eating,
+        "sleeping" => Activity::Sleeping,
+        "reading" => Activity::Reading,
+        "exercising" => Activity::Exercising,
+        "watching_fish" => Activity::WatchingFish,
+        "sitting" => Activity::Sitting,
+        "showering" => Activity::Showering,
+        "using_toilet" => Activity::UsingToilet,
+        "watching_tv" => Activity::WatchingTv,
+        "lounging" => Activity::Lounging,
+        "washing_hands" => Activity::WashingHands,
+        "washing_dishes" => Activity::WashingDishes,
+        "listening_radio" => Activity::ListeningRadio,
+        "correspondence" => Activity::Correspondence,
+        "bathing" => Activity::Bathing,
+        "getting_ingredients" => Activity::GettingIngredients,
+        "preparing_food" => Activity::PreparingFood,
+        "cooking" => Activity::Cooking,
+        unknown => {
+            return Err(ContentError::UnknownActivity {
+                owner,
+                activity: unknown.to_string(),
+            })
+        }
+    };
+    Ok(Some(compiled))
 }
 
 fn compile_sound_action(
@@ -3641,29 +3691,31 @@ mod tests {
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
-    // Measured after appending the mood tuning fields.
+    // Measured after appending ordinary activity metadata. The fixture carries
+    // None, whose zero byte follows the existing interaction sound field.
+    // These embedded build bytes are separate from persisted SaveSnapshot DTOs.
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
         116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5,
-        3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
-        0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62,
-        9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172,
-        2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
-        0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0, 0, 192,
-        62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28, 216, 4,
-        224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160, 65,
-        0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160, 65,
-        0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76, 61,
-        0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 128, 63,
-        10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112, 137, 48,
-        205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64, 63, 50,
-        0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
+        0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+        5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0,
+        0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0,
+        62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63, 3,
+        172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80,
+        63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0, 0,
+        192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28, 216,
+        4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160,
+        65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160,
+        65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76,
+        61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 128,
+        63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112, 137,
+        48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64, 63,
+        50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3965,6 +4017,7 @@ mod tests {
             satisfaction: 0.0,
             visual: None,
             sound_action: None,
+            activity: None,
             id: "grab_snack".into(),
             // Unlabelled, which is the DEFAULTING path and therefore the
             // one most tests should exercise: an object authored before
@@ -4069,6 +4122,56 @@ mod tests {
         let legacy = compile_objects(full_needs(), one_object(snack())).unwrap();
         assert_eq!(legacy.objects[0].display_name(), "Fridge");
         assert!(legacy.objects[0].presentation.is_none());
+    }
+
+    #[test]
+    fn compiles_activity_vocabulary_and_reports_unknown_owner() {
+        use crate::pack::CompiledActivity as Activity;
+        let cases = [
+            ("eating", Activity::Eating),
+            ("sleeping", Activity::Sleeping),
+            ("reading", Activity::Reading),
+            ("exercising", Activity::Exercising),
+            ("watching_fish", Activity::WatchingFish),
+            ("sitting", Activity::Sitting),
+            ("showering", Activity::Showering),
+            ("using_toilet", Activity::UsingToilet),
+            ("watching_tv", Activity::WatchingTv),
+            ("lounging", Activity::Lounging),
+            ("washing_hands", Activity::WashingHands),
+            ("washing_dishes", Activity::WashingDishes),
+            ("listening_radio", Activity::ListeningRadio),
+            ("correspondence", Activity::Correspondence),
+            ("bathing", Activity::Bathing),
+            ("getting_ingredients", Activity::GettingIngredients),
+            ("preparing_food", Activity::PreparingFood),
+            ("cooking", Activity::Cooking),
+        ];
+        for (name, expected) in cases {
+            let mut interaction = snack();
+            interaction.activity = Some(name.into());
+            let pack = compile_objects(full_needs(), one_object(interaction)).unwrap();
+            assert_eq!(
+                pack.objects[0].interactions[0].activity,
+                Some(expected),
+                "{name}"
+            );
+        }
+        assert_eq!(compile_activity(None, "fixture".into()).unwrap(), None);
+        for owner in [
+            "'shower' interaction 'take_shower'",
+            "chain 'cook_dinner' step 2",
+        ] {
+            let error = compile_activity(Some("guess_from_sprite"), owner.into()).unwrap_err();
+            assert_eq!(
+                error,
+                ContentError::UnknownActivity {
+                    owner: owner.into(),
+                    activity: "guess_from_sprite".into()
+                }
+            );
+            assert!(error.to_string().contains(owner));
+        }
     }
 
     #[test]
@@ -7725,6 +7828,7 @@ mod tests {
                 satisfaction: 0.0,
                 visual: None,
                 sound_action: None,
+                activity: None,
                 id: "lounge".into(),
                 label: None,
                 advertises: [("comfort".to_string(), 20.0)].into_iter().collect(),
@@ -9152,6 +9256,7 @@ mod tests {
                     socket: None,
                 }),
                 sound_action: None,
+                activity: None,
                 id: "chat".into(),
                 label: Some("Compare complaints".into()),
                 advertises: [("social".to_string(), 30.0), ("fun".to_string(), 6.0)]
@@ -9165,6 +9270,7 @@ mod tests {
                 satisfaction: 0.0,
                 visual: None,
                 sound_action: None,
+                activity: None,
                 id: "nod_politely".into(),
                 label: None,
                 advertises: [("social".to_string(), 8.0)].into_iter().collect(),
@@ -9224,6 +9330,7 @@ mod tests {
             satisfaction: 0.0,
             visual,
             sound_action: None,
+            activity: None,
             id: "chat".into(),
             label: None,
             advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -9546,6 +9653,7 @@ mod tests {
                     socket: Some("seat".to_string()),
                 }),
                 sound_action: None,
+                activity: None,
             }],
             roles: vec![],
             action_socket: vec![
@@ -10048,6 +10156,7 @@ mod tests {
                 satisfaction: 0.0,
                 visual: None,
                 sound_action: None,
+                activity: None,
                 id: "chat".into(),
                 label: None,
                 advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -10123,6 +10232,7 @@ mod tests {
             satisfaction: 0.0,
             visual: None,
             sound_action: None,
+            activity: None,
             id: "chat".into(),
             label: None,
             advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -10414,6 +10524,7 @@ mod tests {
                     consumes: None,
                     visual: None,
                     sound_action: None,
+                    activity: None,
                 },
                 crate::schema::ChainStepDef {
                     role: "eating_surface".to_string(),
@@ -10430,6 +10541,7 @@ mod tests {
                         socket: None,
                     }),
                     sound_action: None,
+                    activity: None,
                 },
             ],
         }
@@ -10458,6 +10570,7 @@ mod tests {
                 consumes: None,
                 visual: None,
                 sound_action: None,
+                activity: None,
             },
         );
         chain.step[2].consumes = Some("dinner".to_string());
