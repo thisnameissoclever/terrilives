@@ -1,6 +1,6 @@
 # Meals, shared dining and cleanup
 
-Housemates prepare and cook meals, share food with hungry friends, and leave dishes that affect the people around them.
+Housemates prepare and cook meals, share food with hungry friends, and leave dishes that affect the people around them. [PR #193](https://github.com/thisnameissoclever/terrilives/pull/193)
 
 ## Features & changes
 - **Meals take time at several stations.** Sims get ingredients, prepare food, cook, simmer, plate the meal and eat at the dining table. Base station work takes 50 seconds before walking or waiting. The fridge offers breakfast, lunch or dinner according to the game clock.

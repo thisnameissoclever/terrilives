@@ -1,6 +1,7 @@
 # Meals, dishes and cleanup
 
-Status: implemented locally; corrected art passed an independent adversarial review.
+Status: implemented; [delivery PR #193](https://github.com/thisnameissoclever/terrilives/pull/193).
+Corrected art and final integration passed independent adversarial reviews.
 Evidence: [local checks and screenshots](../assets/review-evidence/domestic/README.md).
 Companion: [Sim interpersonal relations](../SIM-RELATIONSHIPS.md).
 
