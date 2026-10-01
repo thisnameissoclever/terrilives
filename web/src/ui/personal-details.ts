@@ -1,4 +1,5 @@
 import type { SimDetails } from '../bridge.js';
+import { setTextIfChanged } from './set-text-if-changed.js';
 
 export interface PersonalDetailsSource {
   selectedIndex(): number | null;
@@ -87,9 +88,9 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
   return { render(state): void {
     content.hidden = state.kind !== 'ready';
     empty.hidden = state.kind === 'ready';
-    empty.textContent = state.kind === 'unselected' ? 'Select a person to see their personality and habits.' : 'Personal details unavailable.';
+    setTextIfChanged(empty, state.kind === 'unselected' ? 'Select a person to see their personality and habits.' : 'Personal details unavailable.');
     const data = state.kind === 'ready' ? state : null;
-    sleep.textContent = data ? `Sleep rhythm: ${data.sleep}` : '';
+    setTextIfChanged(sleep, data ? `Sleep rhythm: ${data.sleep}` : '');
     const needData = data?.needs ?? [];
     if (needs.length !== needData.length) {
       body.replaceChildren();
@@ -107,9 +108,9 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
       }
     }
     needData.forEach((need, index) => {
-      needs[index].name.textContent = need.name;
-      needs[index].drain.textContent = need.drain;
-      needs[index].refill.textContent = need.refill;
+      setTextIfChanged(needs[index].name, need.name);
+      setTextIfChanged(needs[index].drain, need.drain);
+      setTextIfChanged(needs[index].refill, need.refill);
     });
     const repeated = data?.repeated ?? [];
     const keys = new Set(repeated.map(row => row.key));
@@ -134,11 +135,11 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
         row = { root, object, activity, meter, value };
         rows.set(entry.key, row);
       }
-      row.object.textContent = entry.object;
-      row.activity.textContent = entry.activity;
+      setTextIfChanged(row.object, entry.object);
+      setTextIfChanged(row.activity, entry.activity);
       row.meter.value = entry.percent;
       row.meter.setAttribute('aria-label', `${entry.object}: ${entry.activity}, recent repetition`);
-      row.value.textContent = `${entry.percent}%`;
+      setTextIfChanged(row.value, `${entry.percent}%`);
       const at = list.children.item(index);
       if (at !== row.root) list.insertBefore(row.root, at);
     }

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { SimDetails } from '../src/bridge.js';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface, personalDetailsState, sleepTiming,
   type PersonalDetailsSource, type PersonalDetailsState } from '../src/ui/personal-details.js';
 
@@ -123,6 +124,32 @@ function surface() {
 }
 
 describe('personal details surface', () => {
+  it('preserves unchanged text while refreshing changed factors and repetition', () => {
+    const source = new Source();
+    const { content, empty, view } = surface();
+    const state = ready(personalDetailsState(source, names));
+    view.render(state);
+    const leaves = [empty, ...['p', 'th', 'td', 'strong', 'span'].flatMap(tag => content.all(tag))];
+    const probes = leaves.map(textWriteProbe);
+    for (let refresh = 0; refresh < 20; refresh++) view.render(state);
+    expect(probes.map(probe => probe.writes)).toEqual(leaves.map(() => 0));
+
+    view.render({ ...state, sleep: 'Usual schedule',
+      needs: state.needs.map((need, index) => index === 0 ? { ...need, drain: '75%' } : need),
+      repeated: state.repeated.map(row => ({ ...row, percent: 20 })) });
+    expect(content.all('p').some(node => node.textContent === 'Sleep rhythm: Usual schedule')).toBe(true);
+    expect(content.all('td')[0].textContent).toBe('75%');
+    expect(content.all('meter')[0].value).toBe(20);
+    expect(content.all('span').some(node => node.textContent === '20%')).toBe(true);
+    expect(probes.reduce((sum, probe) => sum + probe.writes, 0)).toBe(3);
+
+    view.render({ kind: 'unselected' });
+    const emptyWrites = probes[0].writes;
+    view.render({ kind: 'unselected' });
+    expect(probes[0].writes).toBe(emptyWrites);
+    expect(empty.textContent).toBe('Select a person to see their personality and habits.');
+  });
+
   it('switches between valid people using the selected ID and removes the previous habits', () => {
     const source = new Source();
     const { content, view } = surface();

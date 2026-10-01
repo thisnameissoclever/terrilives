@@ -58,6 +58,11 @@ numeric factors.
 
 ## Verification
 
+Personal details and the bed-assignment controls retain unchanged text nodes
+across visible refreshes. Changed factors, sleep timing, repetition, assignment,
+occupancy and status still update in the same refresh. Surface regression tests
+cover both behaviors; these controls alone are not a whole-game memory result.
+
 Local evidence is retained in `.tmp/sim-details/` for this worktree.
 
 1. `cargo test --workspace -- --test-threads=1`: PASS, exit 0, 1,221 tests.
