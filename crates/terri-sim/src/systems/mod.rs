@@ -28,6 +28,7 @@ pub mod habituation;
 // out` rather than as failures.
 pub mod idle;
 pub mod interact;
+pub(crate) mod interpersonal;
 pub mod lot_edit;
 pub mod movement;
 pub mod needs;

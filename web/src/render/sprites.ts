@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import { packBedLayers } from './bed-sprites.js';
 
 import {
   ATLAS_FILE_NAME,
@@ -7,6 +8,7 @@ import {
   SPRITES,
   SPRITE_PAIRS,
   SPRITE_ANCHORS,
+  BED_LAYERS,
   type AtlasSprite,
 } from './atlas.js';
 import type { GpuContext } from './device.js';
@@ -187,6 +189,7 @@ export class SpriteRenderer {
   private readonly uniformBuffer: GPUBuffer;
   /** The atlas rect table, uploaded once; the atlas cannot change. */
   private readonly spriteBuffer: GPUBuffer;
+  private readonly bedBuffer: GPUBuffer;
   private readonly bindGroup: GPUBindGroup;
   private capacity = INITIAL_CAPACITY;
   private instanceBuffer: GPUBuffer;
@@ -277,6 +280,7 @@ export class SpriteRenderer {
       { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
       { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 4, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -371,6 +375,10 @@ export class SpriteRenderer {
     });
     gpu.device.queue.writeBuffer(this.spriteBuffer, 0, spriteTable);
 
+    const bedTable = packBedLayers(SPRITES.length, BED_LAYERS);
+    this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    gpu.device.queue.writeBuffer(this.bedBuffer, 0, bedTable);
     this.bindGroup = gpu.device.createBindGroup({
       layout: this.pipeline.getBindGroupLayout(0),
       entries: [
@@ -391,6 +399,7 @@ export class SpriteRenderer {
         // The bind group keeps the texture alive, so nothing here holds
         // a second reference to it.
         { binding: 3, resource: atlasTexture.createView() },
+        { binding: 4, resource: { buffer: this.bedBuffer } },
       ],
     });
   }

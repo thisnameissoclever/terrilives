@@ -177,12 +177,18 @@ Sim. Their ordinary own-dish cleanup roll still applies independently. Either or
 both successful choices join one exclusive cleanup task; the 30% response does
 not turn every successful own-cleanup roll into foreign cleanup.
 
-The V5 envelope appends `SavedDining` after the unchanged `SavedDomestic` bytes.
+The V5 envelope appends `SavedDining` after the published domestic, sleeping-place,
+shyness and boundary fields, preserving their positional bytes.
 It carries exact diner claims, immutable dish settings, pending room opportunities,
 bounded episode complaint identities and started tableless batches. Validation
 checks actual chair geometry, permitted route endpoints, active chain ownership,
 exclusive claims and all live references before replacing the world. These values
 also enter the deterministic world hash.
+
+Historical in-progress diners adopt their existing table contact as standing
+dining during load, so the first current save already has a validated claim.
+Privacy detours preserve the exact claimed endpoint and stove-front contact;
+they cannot silently substitute a different seat or cooking position.
 
 Cooking suppresses the logical carried-dinner badge while work is active. A pot
 sits on the exact active stove burner, with a separate stirring pose and utensil.

@@ -1,7 +1,7 @@
-# Aquariums, exercise and a compact HUD
+# Fish, exercise and more room to play
 
-Housemates can watch fish and exercise on a bike. A collapsible HUD gives small screens more room for the house.
+Two new activities give housemates more ways to spend their time.
 
-## Features & changes
-- **Watch fish and exercise.** The aquarium and exercise bike add new activities with their own visual feedback. [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
-- **Collapse the HUD on small screens.** Essential household status remains visible while needs and other details open on demand. [PR #53](https://github.com/thisnameissoclever/terrilives/pull/53)
+## New
+- Watch fish in the aquarium or exercise on the bike.
+- Collapse the household panel to leave more room for the house. Essential status stays visible.

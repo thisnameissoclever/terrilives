@@ -139,3 +139,11 @@ was stopped.
 This simulation fix does not clear the separate held ambience memory gate.
 Its raw audio-specific result remains failed until the audio owner completes
 the unchanged acceptance procedure.
+
+## Production verification
+
+PR #186 merged as `c0949f0554f818571b233d0e5f76bb599039a045`. [Main CI](https://github.com/thisnameissoclever/terrilives/actions/runs/36865105430) and [Pages deployment](https://github.com/thisnameissoclever/terrilives/actions/runs/36865695578) both completed successfully.
+
+At 2026-10-01 13:05 UTC, the public site served `terri_wasm_bg-CrjyIyxa.wasm`, SHA-256 `42056e09d128cc133ba1554bc3d6270b0eab11f3d636fd8083e0f4d5b68d9f4f`. This is the deployed Linux-built artifact, distinct from the locally built artifact above. `production-artifact.json` records the exact entry script and binary URLs.
+
+The same probe ran against those downloaded production WASM bytes. It passed with exit 0. Every checkpoint's entity count, world hash, save length, complete save digest, and before/after observation capacity exactly matched `wasm-fixed.json`; final capacity was 5,242,880 bytes. The complete report is `production-retention.json`. All four state digests also match the original baseline. This proves the served binary has the measured fix; the audio acceptance gate remains separate.

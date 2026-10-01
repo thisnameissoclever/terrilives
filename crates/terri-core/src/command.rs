@@ -221,12 +221,61 @@ pub enum SimCommand {
         traits: Vec<u32>,
         instinct: u8,
     },
+    /// Assign or clear one physical bed place without interrupting current use.
+    SetBedAssignment {
+        agent: u32,
+        place: Option<(u32, u8)>,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
 /// issued in one tick must apply in the order the player issued them.
 #[derive(Resource, Debug, Default)]
 pub struct CommandQueue(Vec<SimCommand>);
+
+#[cfg(test)]
+mod bed_assignment_wire_tests {
+    use super::*;
+
+    #[test]
+    fn set_and_clear_bed_assignment_keep_wire_code_nineteen() {
+        for (command, saved, expected) in [
+            (
+                SimCommand::SetBedAssignment {
+                    agent: 300,
+                    place: Some((129, 1)),
+                },
+                crate::SavedCommand::SetBedAssignment {
+                    agent: 300,
+                    place: Some((129, 1)),
+                },
+                vec![19, 172, 2, 1, 129, 1, 1],
+            ),
+            (
+                SimCommand::SetBedAssignment {
+                    agent: 300,
+                    place: None,
+                },
+                crate::SavedCommand::SetBedAssignment {
+                    agent: 300,
+                    place: None,
+                },
+                vec![19, 172, 2, 0],
+            ),
+        ] {
+            assert_eq!(postcard::to_allocvec(&command).unwrap(), expected);
+            assert_eq!(postcard::to_allocvec(&saved).unwrap(), expected);
+            assert_eq!(
+                postcard::from_bytes::<SimCommand>(&expected).unwrap(),
+                command
+            );
+            assert_eq!(
+                postcard::from_bytes::<crate::SavedCommand>(&expected).unwrap(),
+                saved
+            );
+        }
+    }
+}
 
 impl CommandQueue {
     /// A queue already holding these commands in drain order. Used by

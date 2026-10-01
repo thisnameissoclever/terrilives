@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-01",
+  "baseline": "85e826ba",
+  "implementation_commit": "1ab82d18",
+  "integrated_source_sha256": {
+    "crates/terri-core/src/save.rs": "f74bc9dc3cc6b0d71728694fa6a9a5681a82a86ed9453c62c5747b4edd9a4b0b",
+    "crates/terri-sim/src/dining.rs": "94d9864953966cafea8f67f1a492a13f86f2e5c9bf5f1c26da8d483ed124cb80",
+    "crates/terri-sim/src/dining/tests.rs": "cdde8fe8239b0ad38b44a1dc1ece7f85b6d3bbb9fd6d3155fd737598bc08ebc2",
+    "crates/terri-sim/src/domestic.rs": "ccda805d60877149ceae2bdd5f93533e341d7a5a9f03e671d022779763187333",
+    "crates/terri-wasm/src/lib.rs": "afb1b09d8f8e75207a1272bf43f4d3eb5bf14182ce8a55566da550ab4129aee1",
+    "web/src/input.ts": "a5e94e8b4a50d6ad9bc8cdfa4b010481187511d5781ac899c6b223758718880f",
+    "web/src/frame.ts": "14e176bb3f1749c1061f10184c1a9bb91401ba279ce32c6cb699834ee86461fb",
+    "assets/sprites/atlas.toml": "e580cf46fc0ee0c3e7da761da138ae5f3737a99671538726f24e8b8034c8f143",
+    "assets/models/domestic/dining.blend": "614e25602e46d82e8f895062eabde80847642980898eb22b3d1fe92da049c22e"
+  },
+  "checks": [
+    {
+      "command": "cargo test --workspace -- --test-threads=1",
+      "exit_code": 101,
+      "result": "111 core, 277 data, 1 tool and 869 simulation tests passed. One historical byte-tail fixture failed in the WebAssembly crate; its corrected full rerun follows.",
+      "log": "dining-rust-integrated.log"
+    },
+    {
+      "command": "cargo test -p terri-wasm -- --test-threads=1",
+      "exit_code": 0,
+      "result": "165 passed; corrected fixture measures serialized suffix lengths.",
+      "log": "dining-wasm-tests-final.log"
+    },
+    {
+      "command": "cargo test -p terri-sim dining::tests -- --test-threads=1",
+      "exit_code": 0,
+      "result": "16 passed after deliberate mutations were restored.",
+      "log": "dining-core-final.log"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "exit_code": 0,
+      "result": "No warnings.",
+      "log": "dining-clippy-final.log"
+    },
+    {
+      "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm",
+      "exit_code": 0,
+      "result": "Final browser binary built successfully.",
+      "log": "dining-wasm-final.log"
+    },
+    {
+      "command": "npm --prefix web run typecheck",
+      "exit_code": 0,
+      "result": "Passed.",
+      "log": "dining-web-final-typecheck.log"
+    },
+    {
+      "command": "npm --prefix web test",
+      "exit_code": 1,
+      "result": "1804 passed; three existing source-hash tests timed out. The bounded rerun follows.",
+      "log": "dining-web-contended.log"
+    },
+    {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exit_code": 0,
+      "result": "123 files; 1807 tests passed.",
+      "log": "dining-web-final-tests.log"
+    },
+    {
+      "command": "npm --prefix web run build",
+      "exit_code": 0,
+      "result": "Production build passed; existing large-chunk advisory retained.",
+      "log": "dining-web-final-build.log"
+    },
+    {
+      "command": "python -B -m unittest discover -s assets/sprites/gen",
+      "exit_code": 0,
+      "result": "132 passed.",
+      "log": "dining-sprites-integrated.log"
+    },
+    {
+      "command": "python -B assets/sprites/gen/build.py --check",
+      "exit_code": 0,
+      "result": "Generated atlas matches source.",
+      "log": "dining-atlas-integrated-check.log"
+    }
+  ],
+  "native_tests": 1423,
+  "web_tests": 1807,
+  "asset_tests": 292,
+  "targeted_mutations": 8,
+  "full_remote_mutation_sweep": "not run",
+  "deployment": "not performed",
+  "runtime": {
+    "cooking": "20 consecutive ticks, facing NE; activity Cooking and visual Cook confirmed in cooking-runtime-rows.json",
+    "dining": "One native fixture meal batch; cook and three recipients observed eating simultaneously, two seated and two standing; 14 screenshots across the natural dining interval."
+  }
+}

@@ -555,7 +555,48 @@ pub(crate) fn snapshot(world: &World) -> Option<SavedDining> {
 }
 
 pub(crate) fn restore(world: &mut World, state: Option<SavedDining>) -> Result<(), SaveError> {
-    let Some(state) = state else { return Ok(()) };
+    let Some(state) = state else {
+        // Historical meals already own their table contact. Adopt that contact
+        // as standing dining before the first current-format re-save.
+        let mut adopted = SavedDining::default();
+        let mut people: Vec<_> = world
+            .query_filtered::<Entity, With<Agent>>()
+            .iter(world)
+            .collect();
+        people.sort_by_key(|p| p.index_u32());
+        for person in people {
+            if !terminal(world, person) {
+                continue;
+            }
+            let Some(target) = world
+                .get::<Target>(person)
+                .filter(|t| t.interaction == crate::systems::chain::CHAIN_STEP)
+            else {
+                continue;
+            };
+            let pos = world
+                .get::<Position>(person)
+                .ok_or(SaveError::InvalidValue)?;
+            let endpoint = world
+                .get::<Path>(person)
+                .and_then(|p| p.steps.last().copied())
+                .unwrap_or((pos.x.round() as i32, pos.y.round() as i32));
+            adopted.diners.push(SavedDiner {
+                person: person.index_u32(),
+                station: target.object.index_u32(),
+                chair: None,
+                setting: None,
+                endpoint,
+                obstructing: vec![],
+            });
+        }
+        if adopted.diners.is_empty() {
+            return Ok(());
+        }
+        world.insert_resource(adopted);
+        maintain(world);
+        return restore(world, Some(world.resource::<SavedDining>().clone()));
+    };
     if state.diners.windows(2).any(|p| p[0].person >= p[1].person)
         || state.settings.windows(2).any(|p| p[0] >= p[1])
         || state

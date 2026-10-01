@@ -109,6 +109,9 @@ pub(crate) fn commit(world: &mut World, object: u32) {
     if let Ok(plan) = result {
         world.insert_resource(plan.grid);
         world
+            .resource_mut::<crate::beds::BedAssignments>()
+            .remove_bed(plan.entity);
+        world
             .despawn_no_free(plan.entity)
             .expect("a validated sale names a live object");
         world

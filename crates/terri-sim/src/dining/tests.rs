@@ -418,6 +418,27 @@ fn all_stove_facings_route_cooks_to_the_actual_front_and_project_there() {
                 .copied(),
             Some(expected)
         );
+        let route = crate::domestic::boundary_route(
+            pack,
+            None,
+            person,
+            sim.world().get::<SimId>(person).copied(),
+            *sim.world().get::<ChainState>(person).unwrap(),
+            stove,
+            sim.world().get::<SmartObject>(stove).unwrap().0,
+            sim.world().get::<ObjectFacing>(stove),
+            *sim.world().get::<Position>(stove).unwrap(),
+            *sim.world().get::<Position>(person).unwrap(),
+            sim.world().resource::<TileGrid>(),
+            true,
+            &[],
+        )
+        .unwrap();
+        assert_eq!(
+            route.last(),
+            Some(&expected),
+            "privacy routes preserve stove contact"
+        );
         sim.world_mut().entity_mut(person).remove::<Path>().insert((
             Position {
                 x: expected.0 as f32,
@@ -432,6 +453,111 @@ fn all_stove_facings_route_cooks_to_the_actual_front_and_project_there() {
             (pose.x, pose.y, pose.facing),
             (expected.0 as f32, expected.1 as f32, direction)
         );
+    }
+}
+
+#[test]
+fn privacy_routes_preserve_exact_seated_and_standing_claims_and_reload() {
+    let (mut sim, people, _) = ready();
+    advance(sim.world_mut());
+    let pack = sim.world().resource::<Content>().0;
+    for person in people {
+        let diner = claim(sim.world(), person.index_u32()).unwrap().clone();
+        let station = entity(sim.world_mut(), diner.station).unwrap();
+        let occupants = crate::domestic::boundary_occupants(sim.world_mut());
+        let original = sim.world().resource::<TileGrid>().clone();
+        let route = |grid: &TileGrid| {
+            crate::domestic::boundary_route(
+                pack,
+                sim.world().get_resource::<SavedDomestic>(),
+                person,
+                sim.world().get::<SimId>(person).copied(),
+                *sim.world().get::<ChainState>(person).unwrap(),
+                station,
+                sim.world().get::<SmartObject>(station).unwrap().0,
+                sim.world().get::<ObjectFacing>(station),
+                *sim.world().get::<Position>(station).unwrap(),
+                *sim.world().get::<Position>(person).unwrap(),
+                grid,
+                false,
+                &occupants,
+            )
+        };
+        let start = sim.world().get::<Position>(person).unwrap();
+        let start = (start.x.round() as i32, start.y.round() as i32);
+        assert_eq!(
+            route(&original).unwrap().last().copied().unwrap_or(start),
+            diner.endpoint
+        );
+        let mut blocked = original.clone();
+        blocked.set_blocked(diner.endpoint.0 as usize, diner.endpoint.1 as usize, true);
+        assert!(
+            route(&blocked).is_none(),
+            "privacy cannot substitute a different setting"
+        );
+        let steps = route(&original).unwrap();
+        sim.world_mut()
+            .entity_mut(person)
+            .insert(Path { steps, cursor: 0 });
+        let mut replay = Sim::new_from_shipped_lot();
+        replay.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+        assert_eq!(replay.world_hash(), sim.world_hash());
+    }
+}
+
+#[test]
+fn historical_in_flight_diners_adopt_standing_claims_before_resaving() {
+    let (mut sim, people, table) = ready();
+    advance(sim.world_mut());
+    for person in &people[1..] {
+        sim.world_mut()
+            .entity_mut(*person)
+            .remove::<ChainState>()
+            .remove::<Target>()
+            .remove::<Path>()
+            .remove::<StepWork>()
+            .remove::<Carrying>();
+    }
+    let pack = sim.world().resource::<Content>().0;
+    let position = *sim.world().get::<Position>(people[0]).unwrap();
+    let table_pos = *sim.world().get::<Position>(table).unwrap();
+    let footprint = crate::placed_footprint(
+        pack,
+        sim.world().get::<SmartObject>(table).unwrap().0,
+        sim.world().get::<ObjectFacing>(table),
+    );
+    let steps = sim
+        .world()
+        .resource::<TileGrid>()
+        .find_path_adjacent(
+            (position.x.round() as i32, position.y.round() as i32),
+            (table_pos.x.round() as i32, table_pos.y.round() as i32),
+            footprint,
+        )
+        .unwrap();
+    if !steps.is_empty() {
+        sim.world_mut()
+            .entity_mut(people[0])
+            .insert(Path { steps, cursor: 0 });
+    }
+    let mut historical = sim.save_snapshot_v5();
+    historical.dining = None;
+    let mut migrated = Sim::new_from_shipped_lot();
+    migrated.load_snapshot_v5(historical).unwrap();
+    assert_eq!(migrated.world().resource::<SavedDining>().diners.len(), 1);
+    assert!(migrated
+        .world()
+        .resource::<SavedDining>()
+        .diners
+        .iter()
+        .all(|d| d.chair.is_none()));
+    for _ in 0..40 {
+        let mut replay = Sim::new_from_shipped_lot();
+        replay
+            .load_snapshot_v5(migrated.save_snapshot_v5())
+            .unwrap();
+        assert_eq!(replay.world_hash(), migrated.world_hash());
+        migrated.tick();
     }
 }
 

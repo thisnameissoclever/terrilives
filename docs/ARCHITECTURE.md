@@ -64,6 +64,16 @@ actually won or lost.
 
 ## [D1] Repository layout
 
+The relationship extension uses `interpersonal` for ordered start/entry consequences,
+`privacy` for cached decisions and derived routes, `compatibility` for authored
+preference comparison, and `relationship_dynamics` for minute-by-minute contact.
+Movement checks current room occupancy before crossing a boundary or starting
+private use. Contact then runs before interaction completion, so a final minute
+of shared activity counts once and a conversation receives only its completion
+reward. `relationship_effects` exposes a read-only causal journal for native
+traces. Boundary decisions are saved and hashed; diagnostics and derived
+compatibility are not. See the [relationship specification](specs/2026-09-30-relationship-development.md).
+
 The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
 `cargo test` at full speed. The CI job of the same name checks all three
@@ -436,7 +446,12 @@ mappings, footprints, trait state kind, and the current-content front door a
 restored career still follows. Missing object, career, trait, chain, and
 carried-item ids are validated directly. Known fingerprints from the retired
 full-pack algorithm map only to the exact reviewed replacement shape; they do
-not bypass normal snapshot validation. The one shipped household rename is
+not bypass normal snapshot validation. The local, unpublished bed-assignment
+extension also hashes ordered sleep-place IDs and canonical approach tiles.
+Only its pinned live and reconstructed pre-rotation shapes inherit the prior
+bridges. Access rules apply to newly selected routes; valid saved paths retain
+their geometry across migration and subsequent re-save/load cycles.
+The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
@@ -1376,7 +1391,7 @@ Room membership is a flood fill across open saved wall edges; doorways separate 
 The render bridge adds aligned `dirty_dishes` and `meal_portions` columns. Surface stacks and up to three prepared plate sprites disappear on actual collection, rather than on a reservation. Visual action codes 10, 11 and 12 append prepare, cook and wash; four rig frames per facing and shirt color use a ten-tick phase. Reduced motion holds frame zero. Existing action codes, sprite-name prefix order and approved rig source stay stable.
 
 
-`SavedDining` appends a separate optional V5 tail after `SavedDomestic`; published
+`SavedDining` appends a separate optional V5 tail after the published domestic, sleeping-place, shyness and boundary fields; published
 nested domestic records remain unchanged. It saves exact seats and settings,
 stand locations, deferred cleanup opportunities, episode complaints and tableless
 gathering decisions. The loader validates permitted contacts through these claims,

@@ -68,7 +68,7 @@ fn main() {
     let mut saved = sim.save_snapshot_v5();
     let mut hungry = Needs::all_at(100.0);
     hungry.set(NeedId::Hunger, 30.0);
-    let stations: Vec<_> = ["bed", "television", "long_sofa"]
+    let stations: Vec<_> = ["reading_chair", "television", "long_sofa"]
         .iter()
         .map(|id| {
             let object = saved

@@ -1,0 +1,37 @@
+[
+  {
+    "check": "tests",
+    "command": [
+      "npx.cmd",
+      "--no-install",
+      "vitest",
+      "run",
+      "tests/game-hud.test.ts",
+      "tests/personal-details.test.ts",
+      "tests/personal-details-bridge.test.ts",
+      "tests/compact-hud.test.ts",
+      "tests/bed-assignment.test.ts",
+      "--maxWorkers=1",
+      "--reporter=dot"
+    ],
+    "exit": 0
+  },
+  {
+    "check": "typecheck",
+    "command": [
+      "npm.cmd",
+      "run",
+      "typecheck"
+    ],
+    "exit": 0
+  },
+  {
+    "check": "build",
+    "command": [
+      "npm.cmd",
+      "run",
+      "build"
+    ],
+    "exit": 0
+  }
+]

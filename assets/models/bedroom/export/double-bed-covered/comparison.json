@@ -1,0 +1,1734 @@
+{
+  "comparisons": [
+    {
+      "group": [
+        0,
+        "NE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23153,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2276,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 0,
+        "p95_error": 0,
+        "active_pixels": 0,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        0,
+        "NW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23152,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2268,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 0,
+        "p95_error": 0,
+        "active_pixels": 0,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        0,
+        "SE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 0,
+        "active_pixels": 26733,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2125,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 0,
+        "p95_error": 0,
+        "active_pixels": 0,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        0,
+        "SW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 0,
+        "active_pixels": 26733,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2133,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 0,
+        "p95_error": 0,
+        "active_pixels": 0,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "NE",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23986,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2557,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 3,
+        "active_pixels": 1575,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "NE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23986,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2557,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 3,
+        "p95_error": 3,
+        "active_pixels": 1575,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "NE",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23986,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2557,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1575,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "NW",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23477,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2813,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "NW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23477,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2813,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "NW",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23477,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2813,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1698,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "SE",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2927,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1681,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "SE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2927,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1681,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "SE",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2927,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1681,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "SW",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26403,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3279,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1772,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "SW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26403,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3279,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1772,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        1,
+        "SW",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26403,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3279,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1772,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "NE",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23479,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2808,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1570,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "NE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23479,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2808,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1570,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "NE",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 23479,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2808,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1570,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "NW",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24104,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2575,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1697,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "NW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24104,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2575,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1697,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "NW",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24104,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2575,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1697,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "SE",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26402,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3200,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1689,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "SE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26402,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3200,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1689,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "SE",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26402,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3200,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 1689,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "SW",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2984,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1768,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "SW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2984,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1768,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        2,
+        "SW",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 2984,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 1768,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "blue",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "blue",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "red",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NE",
+        "red",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24641,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3233,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3121,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "blue",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "blue",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "red",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "NW",
+        "red",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 24759,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3265,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3300,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "blue",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "blue",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "red",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SE",
+        "red",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 26964,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3653,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 2,
+        "active_pixels": 3370,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "blue",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "blue",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "blue",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "green",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "green",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "green",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "red",
+        "blue",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "red",
+        "green",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    },
+    {
+      "group": [
+        3,
+        "SW",
+        "red",
+        "red",
+        0
+      ],
+      "scene": {
+        "max_error": 4,
+        "p95_error": 1,
+        "active_pixels": 27041,
+        "pixels_above_8": 0
+      },
+      "partial_coverage": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3780,
+        "pixels_above_8": 0
+      },
+      "visible_sleepers": {
+        "max_error": 4,
+        "p95_error": 3,
+        "active_pixels": 3540,
+        "pixels_above_8": 0
+      }
+    }
+  ],
+  "unique_layers": 69,
+  "layer_texels": 3489744
+}

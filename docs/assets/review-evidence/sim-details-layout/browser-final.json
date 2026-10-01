@@ -1,0 +1,57 @@
+{
+  "measures": [
+    {
+      "defaultWidth": 360,
+      "viewport": [
+        1365,
+        1000
+      ],
+      "width": 540,
+      "left": 681.5,
+      "right": 1221.5,
+      "overflow": false,
+      "closeHeight": 36,
+      "shyness": "89"
+    },
+    {
+      "defaultWidth": 304,
+      "viewport": [
+        320,
+        568
+      ],
+      "width": 304,
+      "left": 8,
+      "right": 312,
+      "overflow": false,
+      "closeHeight": 44,
+      "shyness": "89"
+    },
+    {
+      "defaultWidth": 374,
+      "viewport": [
+        390,
+        844
+      ],
+      "width": 374,
+      "left": 8,
+      "right": 382,
+      "overflow": false,
+      "closeHeight": 44,
+      "shyness": "89"
+    },
+    {
+      "defaultWidth": 432,
+      "viewport": [
+        640,
+        400
+      ],
+      "width": 432,
+      "left": 200,
+      "right": 632,
+      "overflow": false,
+      "closeHeight": 44,
+      "shyness": "89"
+    }
+  ],
+  "pageErrors": []
+}

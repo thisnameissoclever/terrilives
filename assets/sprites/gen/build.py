@@ -37,6 +37,7 @@ from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
+from offline_double_bed import append_layers, append_scene_records
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -894,7 +895,7 @@ def write_toml(sprites, placed, width, height, densities=None):
 
 def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None,
-             pairs=None, interactions=None, bounds=None, surfaces=None):
+             pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -914,6 +915,9 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
     interactions_json = json.dumps(interactions or {}, indent=2)
     bounds_json = json.dumps(bounds or {}, indent=2)
     surfaces_json = json.dumps(surfaces or {}, indent=2)
+    bed_catalog_json = json.dumps(bed_catalog or {}, indent=2)
+    bed_layers_json = json.dumps(bed_layers or {}, indent=2)
+    bed_coverage_json = json.dumps(bed_coverage or [], indent=2)
     # The export NAMES here are load-bearing: sprites.ts imports `SPRITES`,
     # `ATLAS_WIDTH` and `ATLAS_HEIGHT` by those names. Renaming any of them
     # is a compile error at best and a silently empty atlas at worst.
@@ -972,6 +976,9 @@ export const SPRITE_PAIRS: Readonly<Record<number, {{ readonly furniture: number
 /** Exact empty-sprite profiles; explicit body indices retain shared-layer deduplication. */
 export const INTERACTION_SPRITES: import('./interaction-sprites.js').InteractionCatalog = {interactions_json};
 /** Furniture support points projected from its authored surface and camera. */
+export const BED_CATALOG: import('./bed-sprites.js').BedCatalog = {bed_catalog_json};
+export const BED_LAYERS: Readonly<Record<number, readonly [number, number, number, number]>> = {bed_layers_json};
+export const BED_COVERAGE: readonly import('./bed-sprites.js').EncodedCoverage[] = {bed_coverage_json};
 export const SURFACE_LAYOUTS: Readonly<Record<number, import('./surface-items.js').SurfaceLayout>> = {surfaces_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
@@ -1240,6 +1247,20 @@ def main():
         anchors.update(more_anchors)
         tops.update(more_tops)
         variants[variant].update(more_clips)
+    surfaces = layouts(ROOT, sprites)
+    names = [s[0] for s in sprites]
+    if len(set(names)) != len(names):
+        sys.exit("duplicate sprite name in objects.SPRITES")
+    fill_padded_bounds(sprites, densities, bounds,
+                       sim_body_indices(sprites, legacy_count, variants))
+    bounds = dict(sorted(bounds.items()))
+
+    covered_bed, covered_indices = append_layers(sprites, anchors, densities,
+        os.path.join(ROOT, 'assets/models/bedroom/export/double-bed-covered/manifest.json'))
+    # Preserve published aliases before appending new textured dining records.
+    provisional = {index: (0, 0) for index in range(len(sprites))}
+    bed_catalog, bed_layers, bed_coverage = append_scene_records(
+        sprites, provisional, anchors, densities, bounds, covered_bed, covered_indices)
     for variant in ('green', 'blue', 'red'):
         dining = load_export(os.path.join(ROOT, 'assets/models/domestic/export/dining', variant, 'manifest.json'),
                              required_clips={'food_walk', 'food_idle', 'seated_eat', 'cook_v2'}, expected_variant=variant)
@@ -1255,19 +1276,18 @@ def main():
         anchors[len(sprites)]=pot_anchor
         densities[len(sprites)]=2
         sprites.append(sprite)
-    surfaces = layouts(ROOT, sprites)
     surfaces.update(stove_layouts(ROOT,sprites))
-    names = [s[0] for s in sprites]
-    if len(set(names)) != len(names):
-        sys.exit("duplicate sprite name in objects.SPRITES")
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
-    bounds = dict(sorted(bounds.items()))
-
-    placed, width, height = pack_atlas(sprites)
+    textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in bed_layers]
+    dense_sprites = [sprite for _, sprite in textured]
+    packed, width, height = pack_atlas(dense_sprites)
+    placed = {index: packed[dense] for dense, (index, _) in enumerate(textured)}
+    for alias, layers in bed_layers.items():
+        placed[alias] = placed[layers[0]]
     if height > 8192:
         raise ValueError("atlas exceeds the baseline WebGPU texture dimension limit")
-    sheet = compose(sprites, placed, width, height)
+    sheet = compose(dense_sprites, packed, width, height)
     png = png_bytes(sheet)
     toml = write_toml(sprites, placed, width, height, densities=densities)
     # The revision is part of the atlas PATH, so hashed JavaScript can never
@@ -1293,7 +1313,8 @@ def main():
     ts = write_ts(sprites, placed, width, height, png_sha256,
                   anchors=anchors, hands=hands, tops=tops, clips=clips,
                   hand_fronts=hand_fronts, variants=variants, densities=densities,
-                  pairs=pairs, interactions=interactions, bounds=bounds, surfaces=surfaces)
+                  pairs=pairs, interactions=interactions, bounds=bounds, surfaces=surfaces,
+                  bed_catalog=bed_catalog, bed_layers=bed_layers, bed_coverage=bed_coverage)
 
     if args.check:
         bad = []

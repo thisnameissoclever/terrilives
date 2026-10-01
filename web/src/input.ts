@@ -1,3 +1,4 @@
+import { sampleBedCoverage } from './render/bed-sprites.js';
 /**
  * Pointer input: a click on the canvas becomes a serialised player command.
  *
@@ -30,7 +31,7 @@
  * the part that needs a pick: which rows a right click asks for.
  */
 
-import { SPRITES, INTERACTION_SPRITES, SPRITE_CONTENT_BOUNDS } from './render/atlas.js';
+import { SPRITES, INTERACTION_SPRITES, BED_CATALOG, BED_COVERAGE, SPRITE_CONTENT_BOUNDS } from './render/atlas.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteWidth, spriteHeight } from './render/sprite-size.js';
@@ -84,8 +85,13 @@ export interface PickSource {
   ids(): Uint32Array;
   /** Persistent household identity used by shirt selection. */
   simIds?(): Uint32Array;
+  carrying?(): Uint32Array;
+  carriedDishes?(): Uint32Array;
+  itemKinds?(): readonly string[];
   /** Exact validated object entity ID, never a proximity match. */
   interactionTargets?(): Uint32Array;
+  sleepingBeds?(): Uint32Array;
+  sleepingPlaces?(): Uint32Array;
   /**
    * Atlas sprite index per row, which is what gives each entity its drawn
    * SIZE. Picking needs it because the thing a player aims at is the sprite,
@@ -334,7 +340,7 @@ export function clientToWorld(
  * loop's timing; the miss is small and only at the boundary, so it has not been
  * done.
  */
-const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
 
 export function pickSprite(
   source: PickSource,
@@ -358,11 +364,18 @@ export function pickSprite(
   const previous = source.prevPositions?.() ?? positions;
   const simulationTick = source.clockTick?.() ?? 0;
   const simIds = source.simIds?.();
+  const carrying = source.carrying?.();
+  const carriedDishes = source.carriedDishes?.();
+  const dinnerKind = source.itemKinds?.().indexOf('dinner') ?? -1;
   interactions.updateSource(source, simulationTick, reducedMotion);
 
   let best: Pick | null = null;
   let bestNearness = -Infinity;
   let bestLayer = -Infinity;
+  let bestBed = -1;
+  let bestCoverage = -1;
+  let bestPlace = 2;
+  let bestDrawRow = Infinity;
 
   for (let row = 0; row < count; row++) {
     // Not drawn, not clickable: frame.ts parks this row off-screen.
@@ -393,6 +406,8 @@ export function pickSprite(
             wx,
             wy,
             simIds?.[row],
+            carriedDishes?.[row],
+            carrying?.[row] === dinnerKind && activities[row] <= 2,
           )
         : spriteIndices[row];
     const sprite = SPRITES[displayedSprite];
@@ -427,20 +442,44 @@ export function pickSprite(
     if (py < top + (bounds?.[1] ?? 0) * scale ||
         py > top + (bounds?.[3] ?? spriteHeight(displayedSprite)) * scale) continue;
 
+    const bed = interactions.bedScenes[row];
+    const place = interactions.bedPlaces[row];
+    let coverage = -1;
+    if (bed) {
+      const x = (px - left) / scale * (sprite.pixel_density ?? 1) - 0.5;
+      const y = (py - top) / scale * (sprite.pixel_density ?? 1) - 0.5;
+      if (sampleBedCoverage(BED_COVERAGE[bed.alpha], x, y) < 0.5) continue;
+      if (kinds[row] === KIND_AGENT) {
+        const owner = bed.owners[place];
+        if (!owner) continue;
+        coverage = sampleBedCoverage(BED_COVERAGE[owner.coverage], x, y);
+        if (coverage <= 0) continue;
+      }
+    }
+    const bedTarget = bed ? interactions.targetRows[row] : -1;
     const nearness = wx + wy;
     // The renderer's own layer constants rather than 1 and 0, so that swapping
     // them in `iso.ts` moves the drawn order and the hit order together. Two
     // hand-written numbers here would leave picking silently disagreeing with
     // what is on top.
-    const layer = kinds[row] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
+    const drawRow = bed ? interactions.bedDrawRows[row] : row;
+    const layer = kinds[drawRow] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
     // Strictly greater on both, so an equal-depth equal-layer tie keeps the
     // EARLIER row - the one that won the pixel.
     if (
       nearness > bestNearness ||
-      (nearness === bestNearness && layer > bestLayer)
+      (nearness === bestNearness && layer > bestLayer) ||
+      (nearness === bestNearness && layer === bestLayer
+        && (bedTarget >= 0 && bestBed === bedTarget
+          ? coverage > bestCoverage || (coverage === bestCoverage && place < bestPlace)
+          : drawRow < bestDrawRow))
     ) {
       bestNearness = nearness;
       bestLayer = layer;
+      bestBed = bedTarget;
+      bestCoverage = coverage;
+      bestPlace = place;
+      bestDrawRow = drawRow;
       best = { entity: ids[row], isAgent: kinds[row] === KIND_AGENT };
     }
   }

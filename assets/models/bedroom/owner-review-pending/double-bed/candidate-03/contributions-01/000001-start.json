@@ -1,0 +1,30 @@
+{
+  "state": "running",
+  "pid": 38792,
+  "pilot": false,
+  "signature": {
+    "scripts": {
+      "double_bed_sleep.py": "719d9d69dbdace0b3772dfd2f46f3c3ce5f2f701d62ebd1b7b94ef36ee759138",
+      "double-bed-sleep-pose.json": "53bd65cc4c42ee60a3e68e5710e8da827e160f19c026da64237d58720eb31058",
+      "render_double_bed_sleep.py": "165ae4c01b551572bbb8db21e63e9a6c39c2de5b1733d5de621d9abc6d408e6a",
+      "double_bed_receipt.py": "6698f880b13ec55524d4076c7e495a69f73c153cf0138269473dc1a4d6635fef",
+      "double_bed_batch.py": "fe4ecfccb991107a56252e1e802295188bc9038fbf007e5f638b838bdd0e2905",
+      "double_bed_witnesses.py": "38339f24de047763fe3bef083de3c70d235512ed9104e5f71d81caaf1c1e310d"
+    },
+    "source_sha256": "3ad570674e768e07bbd6e2d9cac6dfd58a9b59e3202f2be4d5d782dd7f973d9f",
+    "blender_version": "4.5.14 LTS",
+    "blender_build": "62c1db4208e8",
+    "physical_canvas": [
+      1280,
+      1408
+    ],
+    "logical_canvas": [
+      160,
+      176
+    ],
+    "pixel_density": 8,
+    "static": true
+  },
+  "renders": [],
+  "surface_witnesses": {}
+}

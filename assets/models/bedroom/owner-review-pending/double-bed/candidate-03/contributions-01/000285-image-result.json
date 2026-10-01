@@ -1,0 +1,12 @@
+{
+  "occupancy": 3,
+  "facing": "NE",
+  "palettes": [
+    "blue",
+    "blue"
+  ],
+  "sample": 0,
+  "owner": "sim1",
+  "path": "double-bed-3-NE-blue-blue-0-sim1.png",
+  "sha256": "1da770fcfd3c7ed0c6dbfe32434461d6a1086a500db232ab8ccf444d3ef84727"
+}

@@ -43,7 +43,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
-| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Reservation release foundation; assignment and shared sleeping remain |
+| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves, controls and place-specific routing; occupied visuals remain |
 
 The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
@@ -336,7 +336,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Partial.** Overview now contains a collapsed Personality and habits section. It shows the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. These are read-only projections of existing state, with no save or simulation changes. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md).
+**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -358,13 +358,15 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-bed-assignment] Assigning a Sim to a bed
 
-**Status: In progress.** Owner-aware reservation release is implemented and
-tested as groundwork. Assignment, simultaneous double-bed admission and the
-two-person sleeping display remain unbuilt. Any Sim still sleeps in any free
-bed. The starting house has a bunk and a double bed. See
-`docs/specs/2026-10-01-bed-assignment.md`.
+**Status: Implemented.** Owner-aware reservation release, assignment, simultaneous
+double-bed admission, save migration, assignment controls and place-specific
+approach paths are implemented. The covered double-bed display supports either
+sleeper or both in all four facings; the sleeping poses are static. The starting
+house has a bunk and a double bed.
+See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
+`docs/assets/review-evidence/bed-assignment/navigation.md`.
 
-Bed assignment remains unbuilt. A separate household capacity rule now gives
+A separate shipped household capacity rule gives
 every living member a -20 Not enough beds moodlet when sleep places are fewer
 than people. The double bed counts as two places and the supported lower bunk
 as one. This affects the shared sustained-mood satisfaction mechanism, without
@@ -388,7 +390,7 @@ assigning ownership or adding a separate drain.
 
 ### [S-chains] Multi-step activities
 
-**Status: Partial.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Meals now use six stages across fridge, counter, stove and dining table. Snacks use three stages at fridge and counter. Dish cleanup visits each actual dirty surface and then the kitchen sink. Hungry friends can claim prepared portions and eat at the cook's table, which admits up to four diners at distinct positions. Station roles, walking, interruption and player-order priority remain shared mechanisms. Laundry, coffee, a morning routine and pet care remain candidates.
+**Status: Partial.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Meals now use six stages across fridge, counter, stove and dining table. Snacks use three stages at fridge and counter. Dish cleanup visits each actual dirty surface and then the kitchen sink. Hungry friends can claim up to three extra portions and eat with the cook. Physical chairs and clean settings determine who sits; other diners stand near the table or use a reachable counter. Station roles, walking, interruption and player-order priority remain shared mechanisms. Laundry, coffee, a morning routine and pet care remain candidates.
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
@@ -469,7 +471,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-action-animation] Action animation coverage
 
-**Status: Partial.** Walking, talking, eating, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, cooking, washing, using the toilet, showering, watching television, sitting at the dining table, and standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
+**Status: Partial.** Walking, food transport, talking, standing and seated eating, cooking, washing dishes, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, using the toilet, showering, watching television, and ordinary standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
 
 ### [S-object-facing] Object facing and layered depth
 

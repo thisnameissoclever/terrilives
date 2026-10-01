@@ -1113,6 +1113,26 @@ describe('pickSprite', () => {
     }
   });
 
+  it('picks the displayed food transport body for idle and walking Sims', () => {
+    const tile = [8, 6] as const;
+    for (const action of [0, 5]) {
+      const rows: PickSource = {
+        ...source([[7, KIND_AGENT, ...tile]]),
+        visualActions: () => Uint32Array.from([action]),
+        facings: () => Uint32Array.from([1]),
+        carrying: () => Uint32Array.from([0]),
+        itemKinds: () => ['dinner'],
+        activities: () => Uint32Array.from([action === 5 ? 1 : 0]),
+      };
+      const sprite = simBodySprite(7, action, 1, 0, false, ...tile, undefined, 0, true);
+      const box = drawnBox(tile, SPRITES[sprite].name);
+      const x = box.right - 0.1;
+      const y = (box.top + box.bottom) / 2;
+      expect(pickSprite(rows, x, y, 0, 0)?.entity).toBe(7);
+      expect(pickSprite({ ...rows, carrying: undefined }, x, y, 0, 0)).toBeNull();
+    }
+  });
+
   /**
    * The entity index out of `ids`, never the row number - the same property
    * `pickAt` has, restated because this is a different function.

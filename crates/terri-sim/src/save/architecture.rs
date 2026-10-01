@@ -68,6 +68,9 @@ pub(crate) fn restore_v5(
         self_preservation,
         chronotype_offsets,
         domestic,
+        sleeping_places,
+        shyness,
+        boundaries,
         dining,
     } = snapshot;
     if object_colourways
@@ -155,6 +158,12 @@ pub(crate) fn restore_v5(
         candidate.world.insert_resource(state.clone());
     }
     crate::domestic::restore(&mut candidate.world, domestic)?;
+    match sleeping_places {
+        Some(saved) => super::sleeping_places::restore(&mut candidate.world, saved)?,
+        None => super::sleeping_places::migrate_legacy(&mut candidate.world)?,
+    }
+    crate::shyness::restore(&mut candidate.world, shyness)?;
+    crate::privacy::restore(&mut candidate.world, boundaries)?;
     crate::dining::restore(&mut candidate.world, dining)?;
     if !death_default_applied {
         candidate

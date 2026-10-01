@@ -1,0 +1,74 @@
+{
+  "results": [
+    {
+      "before": [],
+      "after": [
+        1,
+        -0.28748998045921326
+      ],
+      "reciprocal": [],
+      "tick": 1,
+      "shyness": 100,
+      "scenario": "conversation",
+      "ui": "How B feels\nA\nDislikes",
+      "statRow": "100",
+      "needsPanel": "B\nLife satisfaction\n0.0\nMood\nLow\nDesperate for the toilet\n-25\nUneasy around A\n-3.2\nShyness\n100\nDoing\nTalking\nHunger\nEnergy\nHygiene\nBladder (Critical)\nSocial\nFun\nComfort\nTraits",
+      "visibleMeters": [
+        "-0.287"
+      ]
+    },
+    {
+      "before": [],
+      "after": [
+        1,
+        -0.37498998641967773
+      ],
+      "reciprocal": [],
+      "tick": 1,
+      "shyness": 100,
+      "scenario": "entry",
+      "ui": "How B feels\nA\nDislikes",
+      "statRow": "100",
+      "needsPanel": "B\nLife satisfaction\n0.0\nMood\nGood\nNeeds met\n+20\nUneasy around A\n-3.1\nShyness\n100\nDoing\nUsing object\nHunger\nEnergy\nHygiene\nBladder\nSocial\nFun\nComfort\nTraits",
+      "visibleMeters": [
+        "-0.375"
+      ]
+    },
+    {
+      "before": [],
+      "after": [
+        0,
+        -0.22649000585079193
+      ],
+      "reciprocal": [],
+      "tick": 1,
+      "shyness": 1,
+      "scenario": "start",
+      "ui": "How A feels\nB\nDislikes",
+      "statRow": "1",
+      "needsPanel": "A\nLife satisfaction\n0.0\nMood\nGood\nNeeds met\n+20\nUneasy around B\n-2.8\nShyness\n1\nDoing\nWalking\nHunger\nEnergy\nHygiene\nBladder\nSocial\nFun\nComfort\nTraits",
+      "visibleMeters": [
+        "-0.226"
+      ]
+    },
+    {
+      "before": [],
+      "after": [
+        0,
+        -0.22649000585079193
+      ],
+      "reciprocal": [],
+      "tick": 1,
+      "shyness": 1,
+      "scenario": "open_plan",
+      "ui": "How A feels\nB\nDislikes",
+      "statRow": "1",
+      "needsPanel": "A\nLife satisfaction\n0.0\nMood\nGood\nNeeds met\n+20\nUneasy around B\n-2.8\nShyness\n1\nDoing\nWalking\nHunger\nEnergy\nHygiene\nBladder\nSocial\nFun\nComfort\nTraits",
+      "visibleMeters": [
+        "-0.226"
+      ]
+    }
+  ],
+  "errors": [],
+  "clearedStat": true
+}

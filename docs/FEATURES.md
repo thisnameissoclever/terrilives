@@ -450,11 +450,15 @@ including New housemate even without a selected person; Queue mode and Clear ord
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
-Overview also has a collapsed Personality and habits section: personal drain
+Overview also has a collapsed Personality, habits and bed section: personal drain
 and refill factors, sleep timing, and recent activity repetition. Its meters
 have text values, and it uses the sheet's existing scrolling area. Opening it
 does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
 `docs/specs/2026-09-30-sim-details.md` for the projection and verification.
+The bed-assignment extension is implemented locally within that disclosure,
+with explicit Assign and Clear controls. It remains unpublished until the
+occupied-bed visual checks pass. Place-specific routing is implemented locally; see
+`docs/specs/2026-10-01-bed-assignment.md`.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -1416,3 +1420,21 @@ The follow-up makes action cards about 20% smaller, allows unlimited waiting
 orders and lets the player sell the last appliance. Build's left control becomes
 Exit build during editing. Historical saves predating per-entity conversation
 voices load through their frozen wire shape and normal simulation validation.
+
+### [A-needs-social-privacy] Inconvenient conversations and bathroom privacy
+
+Implemented locally, 2026-09-30; not committed, merged or deployed. A low or critical unhelped need makes a conversation recipient lose affinity toward the initiator. Private toilet, shower and bath use distinguishes who arrived first: the user resents later entrants; existing occupants resent someone who begins using the furniture beside them. The actual room containing the furniture controls the result, including living-room toilets. Remaining in the room never charges a penalty every tick.
+
+Each Sim also has shyness from 1 to 100: higher values amplify their annoyance and strengthen deliberate privacy avoidance. [Relationship development](specs/2026-09-30-relationship-development.md) adds cached boundary decisions, safe alternatives, pleasant-company and shared-activity gains, and directional personality friction. Player orders remain available.
+
+The [behavior specification](specs/2026-09-30-need-social-privacy.md) documents the approved balance and needs/social/mood/satisfaction interactions. Focused tests prove directionality, same-tick order, save/load replay, missing-component accumulation and existing mood integration. Validation evidence and its limits are recorded with the specification.
+
+### [B-hostility-expression] Make interpersonal hostility visible
+
+Status: planned. Relationship calculations can produce dislike, but the player needs to see who dislikes whom and how that affects ordinary life. This builds on [relationship dynamics](GAME-SYSTEMS.md#s-relationship-dynamics-relationship-causes-and-consequences).
+
+1. Distinguish one-sided hostility from mutual hostility, and identify both people. Give visual indicators a readable text equivalent; color alone cannot carry the meaning.
+2. Add reactions and activity feedback that convey discomfort or dislike. Consider glances, recoil, turning away and other new animations, with accessible text and reduced-motion behavior. Animation work and final player-facing wording need their normal review.
+3. Mildly lower the appeal of otherwise attractive activities when a disliked person occupies the room containing the relevant item, including a television or fridge. Evaluate the acting person's opinion, not the other person's opinion of them.
+4. Let urgent needs and player orders override this preference. Essential furniture must remain usable, and avoidance must not trap people, starve them or strand a multi-step activity.
+5. Revalidate relationship pacing when avoidance reduces contact between hostile Sims. Fewer encounters also mean fewer opportunities for friction and reconciliation; the existing balance measurements must cover both.

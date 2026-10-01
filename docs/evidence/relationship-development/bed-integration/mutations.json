@@ -1,0 +1,114 @@
+[
+  {
+    "name": "partner-reservation",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "changing_a_bed_errand_preserves",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "1ce42a4386859ea16000a4780b758ccea5c564a11e0c930d249707aea5fdd2a4"
+  },
+  {
+    "name": "sleep-place",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "privacy_substitutes_claim_distinct",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "1ce42a4386859ea16000a4780b758ccea5c564a11e0c930d249707aea5fdd2a4"
+  },
+  {
+    "name": "cross-bed-preference",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "privacy_substitution_preserves_assignment_preference_across_beds",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "1ce42a4386859ea16000a4780b758ccea5c564a11e0c930d249707aea5fdd2a4"
+  },
+  {
+    "name": "place-survival-risk",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "privacy_bed_substitution_prioritizes_survival",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "1ce42a4386859ea16000a4780b758ccea5c564a11e0c930d249707aea5fdd2a4"
+  },
+  {
+    "name": "authored-base",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-sim",
+      "privacy_bed_substitution_uses_the_authored_base",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "1ce42a4386859ea16000a4780b758ccea5c564a11e0c930d249707aea5fdd2a4"
+  },
+  {
+    "name": "bed-era-prefix",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-wasm",
+      "bed_era_prefix_preserves_nonempty_places",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "46c992714bca85f0adcbf9d49f7f1447ecaee0e82f940df68a47c1d50dbb7bc5"
+  },
+  {
+    "name": "explicit-bed-none",
+    "command": [
+      "cargo",
+      "test",
+      "-p",
+      "terri-wasm",
+      "grouped_sleeping_places_rejects",
+      "--lib",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "46c992714bca85f0adcbf9d49f7f1447ecaee0e82f940df68a47c1d50dbb7bc5"
+  }
+]
