@@ -1,5 +1,26 @@
 # Lessons Learned
 
+## [L-concept-context-is-art-direction] Surroundings in a concept sheet affect approval
+
+**What happened.** A window-selection sheet showed the proposed windows inside
+substantial beveled plaster walls. The owner approved all nine windows but pointed
+out that the surrounding walls looked better than the actual game, then requested
+matching wall and floor work.
+
+**Root cause.** The sheet was labeled concept art, but its surrounding architecture
+still implied an in-game appearance the current renderer did not provide. A label
+alone did not establish the difference between a proposed object and its context.
+
+**Prevention rule.** Identify proposed changes to surrounding art when presenting
+asset concepts. Before producing a full coordinated asset set, show a small room
+through the actual renderer with existing furniture and a Sim for scale. Preserve
+approved object choices separately from approval of new surrounding materials.
+
+**How to verify.** The windows/walls/floors spec records all nine window approvals
+and identifies floor finishes as proposals. Its implementation plan requires a
+rendered room checkpoint before the full architecture batch. Compare that room
+with the approved board at native game scale, including joins, depth and lighting.
+
 ## [L-changelog-has-its-own-tested-history] Published Markdown needs a site history
 
 **What happened.** Adding a generated changelog to a site whose CI skips Markdown exposed two publication gaps: notes would not trigger Pages, and comparing notes only from the last tested game would repeatedly redeploy later unrelated documentation.
