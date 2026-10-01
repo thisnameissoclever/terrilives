@@ -1,0 +1,103 @@
+{
+  "state": "complete",
+  "object": "floor-lamp",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_lamp.py": "6ce38592a25ce5f1898470797586b1f5d4492ba13f76ec4ec13e8d3f28d3904c",
+    "living/lamp_model.py": "b978d7bc50d03767f9ecb838ecb394c6661791c7f23878ddc28f174d99429da9",
+    "living/lamp_layout.py": "a776835d754067bab7778863be216273bdbcc5c23b79314664a4d0829e0b242d",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "c03875fb2cd46060013f581cb87e952c8f6dd2663a69c42e123340cbf3e4e237"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "823791e69e9709cc04e99db455e9432df4db0459d0c18065c7ddd689724c6dc2"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "5654955e2d736471f93c28f1a3f04be03c690bb2408ea8c72d6e2a0ee7b0c635"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "4cd115249423d4351b0c2a05fa69a27e7071430ba5cfd631cceca7e16ca9d50a"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "base_footprint": [
+      1,
+      1
+    ],
+    "shade_openings": 2,
+    "shade_wall_thickness": 0.009,
+    "runtime_light": "unchanged"
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Base",
+    "Base collar",
+    "Bulb",
+    "Finial",
+    "Shade",
+    "Shade support X",
+    "Shade support Y",
+    "Socket",
+    "Stem"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "1906adfab43cf9b62d89717385f61b23c01ec2bbf334d4be87c0353c5deae3de"
+}

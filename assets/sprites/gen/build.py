@@ -1178,6 +1178,17 @@ def main():
     densities.update(more_density)
     pairs.update(more_pairs)
     interactions.update(more_profiles)
+    # This static tail follows the occupied armchair records already published.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-04.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

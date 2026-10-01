@@ -1,0 +1,134 @@
+{
+  "state": "passed",
+  "parts": 13,
+  "contacts": {
+    "Stem / Base": {
+      "intersecting_face_pairs": 160,
+      "contained_point": null
+    },
+    "Base collar / Base": {
+      "intersecting_face_pairs": 180,
+      "contained_point": null
+    },
+    "Base collar / Stem": {
+      "intersecting_face_pairs": 168,
+      "contained_point": null
+    },
+    "Socket / Stem": {
+      "intersecting_face_pairs": 184,
+      "contained_point": null
+    },
+    "Bulb / Socket": {
+      "intersecting_face_pairs": 188,
+      "contained_point": null
+    },
+    "Harp lower L / Socket": {
+      "intersecting_face_pairs": 75,
+      "contained_point": null
+    },
+    "Harp upright L / Harp lower L": {
+      "intersecting_face_pairs": 96,
+      "contained_point": null
+    },
+    "Harp lower R / Socket": {
+      "intersecting_face_pairs": 75,
+      "contained_point": null
+    },
+    "Harp upright R / Harp lower R": {
+      "intersecting_face_pairs": 95,
+      "contained_point": null
+    },
+    "Shade support X / Harp upright L": {
+      "intersecting_face_pairs": 139,
+      "contained_point": null
+    },
+    "Shade support X / Harp upright R": {
+      "intersecting_face_pairs": 143,
+      "contained_point": null
+    },
+    "Shade support Y / Shade support X": {
+      "intersecting_face_pairs": 152,
+      "contained_point": null
+    },
+    "Shade / Shade support X": {
+      "intersecting_face_pairs": 132,
+      "contained_point": null
+    },
+    "Shade / Shade support Y": {
+      "intersecting_face_pairs": 129,
+      "contained_point": null
+    },
+    "Finial / Shade support X": {
+      "intersecting_face_pairs": 168,
+      "contained_point": null
+    }
+  },
+  "open_shade_rays": [
+    [
+      0,
+      0
+    ],
+    [
+      0.08,
+      0
+    ],
+    [
+      0,
+      0.08
+    ],
+    [
+      -0.08,
+      0
+    ],
+    [
+      0,
+      -0.08
+    ]
+  ],
+  "grounded_base": true,
+  "caught_mutations": [
+    {
+      "mutation": "lifted base",
+      "rejection": "Base lost ground contact"
+    },
+    {
+      "mutation": "detached stem",
+      "rejection": "Stem detached from Base"
+    },
+    {
+      "mutation": "detached shade",
+      "rejection": "Shade detached from Shade support X"
+    },
+    {
+      "mutation": "detached support",
+      "rejection": "Shade support X detached from Harp upright L"
+    },
+    {
+      "mutation": "detached bulb",
+      "rejection": "Bulb detached from Socket"
+    },
+    {
+      "mutation": "shifted root",
+      "rejection": "Root moved"
+    },
+    {
+      "mutation": "capped shade",
+      "rejection": "Shade opening blocked"
+    }
+  ],
+  "caught_guard_deletions": [
+    {
+      "deleted_guard": "Base lost ground contact",
+      "rejection": "Damaged scene passed: lifted base"
+    },
+    {
+      "deleted_guard": "detached from",
+      "rejection": "detached stem failed for the wrong reason: Footprint escaped"
+    },
+    {
+      "deleted_guard": "Shade opening blocked",
+      "rejection": "Damaged scene passed: capped shade"
+    }
+  ],
+  "model_sha256": "0eca9543ab2ba4c92b0b9b1d44341c5fe9dfd0e367372621f900fb7f7c9885a9"
+}

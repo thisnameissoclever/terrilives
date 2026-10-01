@@ -1,0 +1,54 @@
+{
+  "facing": [
+    {
+      "facing": 1,
+      "result": {
+        "object": 15,
+        "reason": null
+      },
+      "tick": 0,
+      "preview": "Facing: South-west"
+    },
+    {
+      "facing": 2,
+      "result": {
+        "object": 15,
+        "reason": null
+      },
+      "tick": 0,
+      "preview": "Facing: North-west"
+    },
+    {
+      "facing": 3,
+      "result": {
+        "object": 15,
+        "reason": null
+      },
+      "tick": 0,
+      "preview": "Facing: North-east"
+    },
+    {
+      "facing": 0,
+      "result": {
+        "object": 15,
+        "reason": null
+      },
+      "tick": 0,
+      "preview": "Facing: South-east"
+    }
+  ],
+  "savedUnchanged": true,
+  "pausedTick": 0,
+  "played": {
+    "tick": 241,
+    "text": "Time\nDay 1, 04:01\nFunds\n0\n\nNo save yet\n\nPause\n1x\n2x\n3x\nBuild\nOptions\nTim\nWalking / Low\nSim details\nQueue\nHousehold\nCollapse\n\nTim\nBill\nCasey\nHunger\nEnergy\nHygiene\nBladder\nSocial\nFun\nComfort",
+    "resources": [
+      "http://127.0.0.1:4183/assets/index-DNgAMbsA.js",
+      "http://127.0.0.1:4183/assets/index-CHOU2kqH.css",
+      "http://127.0.0.1:4183/assets/terri_wasm_bg-BJWyACFk.wasm",
+      "http://127.0.0.1:4183/atlas-734be515a3593bcada8f5f6d5e3f30a087213d34c2cbe43faae01330a29d3e2f.png",
+      "http://127.0.0.1:4183/assets/save-worker-Cb-g-Su5.js"
+    ]
+  },
+  "errors": []
+}

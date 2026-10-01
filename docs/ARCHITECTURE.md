@@ -95,10 +95,11 @@ speed.** A sim-hour is therefore 6 real seconds, roughly Sims pacing. Render
 runs at display refresh and interpolates entity positions between the last two
 simulation ticks.
 
-**Speed controls run more ticks per frame. They never change `dt`.** Speed 3
-means three ticks per rendered frame. Variable `dt` would destroy determinism
-and take Layer 2 multiplayer with it. Cheap to honor now, near-impossible to
-retrofit.
+**Speed controls scale elapsed time before fixed-step accumulation. They
+never change `dt`.** At 3x the shell requests 30 simulation ticks per real
+second, independent of the display refresh rate. A rendered frame may consume
+zero or several accumulated steps. Variable `dt` would break deterministic
+simulation.
 
 **The multiplier lives in the shell's `FixedStepDriver`, not in the
 simulation.** Speed is a rate at which the shell asks for full steps, not a
@@ -574,11 +575,14 @@ retain constant depth. This is a 2.5D ordering model for disjoint footprints,
 not a reconstruction of each sprite's 3D surfaces or overhangs. See
 `docs/assets/review-evidence/wall-clipping.md` for pixel and mutation checks.
 
-The shipped art direction is **Muted Line**, an original procedural isometric
-atlas generated from code. The renderer draws three stable baked character
-looks and a generated prop vocabulary from that atlas; per-instance tint and
-emissive strength carry the day/night treatment without a second draw. See
-TECH_STACK.md for the pipeline and the superseded alternatives.
+The shipped art direction is **Muted Line**. Its isometric atlas combines
+procedural architecture and props with reviewed offline Blender renders.
+The approved rig supplies character animation frames in three shirt colours;
+furniture exports supply consistent facings and, where implemented, matched
+occupied layers. Those models are authoring sources, not live 3D objects.
+Per-instance colour shifts and emissive strength apply to the sprite atlas
+without an extra draw. See TECH_STACK.md and the asset review evidence for
+the pipelines and their visual acceptance limits.
 
 Nighttime pools are a presentation-only tile field built from the render
 snapshot. The lamp and television spread neutral emissive strength by four-way
