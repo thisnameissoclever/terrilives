@@ -77,3 +77,15 @@ listening claim.
 Independent read-only review found no remaining actionable defects. It
 checked both busy guards, deliberate focus preservation, the enabled-trait
 selection and the restoration hashes.
+
+## Public delivery
+
+PR #174 merged as `fbc713159278494f9a2c5208d1bff3a4031d0d96`. The subsequent
+sink-audio PR #175 included it in `2021647fbd94801a181b8b2186691d06e13d78a0`.
+That revision passed main CI `36829533987`, then the actual Pages deployment
+step succeeded in run `36830185174`. Public HTML, JavaScript, CSS and WASM
+matched official artifact `11146584283` byte-for-byte.
+
+In the public game, the saved household loaded and advanced. New game followed
+by Escape returned focus to the visible Options button. Browser warnings and
+errors were empty. The task-owned page was closed in a `finally` block.

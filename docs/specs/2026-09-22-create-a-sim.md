@@ -111,7 +111,10 @@ leaving.
 
 The traits page includes Self-preservation instinct, Random selected by default,
 and a manual integer slider from 0 through 100. This numeric value occupies no
-optional trait slot. The original `AddHousemate` command keeps its encoding and
+optional trait slot. Random and the manual slider have separate labelled rows
+with at least 44px labelled row height. The slider keeps at least 80px of width;
+long output text wraps onto another line when needed. The original
+`AddHousemate` command keeps its encoding and
 draws uniformly from 0 through 100 only after arrival validation succeeds.
 `AddHousemateWithInstinct` appends wire code 18 with an explicit validated integer;
 zero is a valid override. The boundary rejects invalid values before staging.
