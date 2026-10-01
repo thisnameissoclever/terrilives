@@ -8427,3 +8427,24 @@ actions, zero-tick actions awaiting completion and full target entity identity.
 **Verify.** Cover alternate nap slots, independent visual metadata, immediate
 Load and memory growth. Replace a despawned bed at the same raw index; its old
 target must remain invalid. A deliberate raw-index lookup must fail that test.
+
+## [L-bed-colour-is-not-coverage] Verify colour reuse before budgeting joint sprites
+
+**What happened.** Independent review of the proposed double-bed export found
+that accepted bunk furniture samples already differ in RGB inside common opaque
+regions. Reusable RGB multiplied by genuine visibility cannot exactly reproduce
+those images. The proposal remained unimplemented.
+
+**Root cause.** A proposed image-count reduction separated colour from visibility
+without first measuring colour stability in the established shaded export.
+An emission output can still receive colour derived from lighting or occlusion.
+
+**Prevention.** Preserve per-scene RGB for the pilot. Compare reused-colour and
+per-scene-colour reconstructions against the same beauty render, with an
+identical-state noise control. Keep shading residuals separate from coverage.
+Prove independent occupant palettes before counting colour reuse.
+
+**Verify.** Compare fully opaque interiors separately from partial edges after
+actual resampling. Keep input hashes and per-region errors. The accepted bunk
+comparison disproves exact equality only; it does not prove a second-body shadow
+failure or settle the double bed's visual tolerance or atlas budget.

@@ -243,6 +243,15 @@ references the images for one bed composite. This is a proposal to test, not
 an accepted renderer format: another body could change surface shading, and
 partial-pixel visibility may not factor cleanly at antialiased edges.
 
+The accepted lower-bunk furniture already differs in RGB between samples zero
+and three at pixels fully opaque in both images. Raw differences reach five
+8-bit channel values; exported differences reach two. Exact pose-independent
+furniture colour is therefore disproved for those images. Their receipt does
+not isolate sampling noise from scene-dependent shading, and this result does
+not establish an unacceptable double-bed approximation. See
+`docs/assets/review-evidence/bed-assignment/visual-contract.md` for the verified
+inputs, reproducible comparison and limits of this evidence.
+
 With four facings, four samples and three palettes, the conservative image
 budget is 96 body images, four furniture images, 96 visibility images and 96
 outlines, before deduplication. The visibility and outline counts cover the
@@ -263,10 +272,15 @@ ownership and attempt this bounded proof:
    NE, positive X for NW and SW. This ordering only holds after containment
    is proved and does not settle furniture visibility.
 2. Choose a facing with maximum projected overlap. Independently render sample
-   pairs (0, 0), (0, 3), (3, 0), (3, 3), contrasting palettes, either single
-   occupant and the empty bed. Compare the candidate reconstruction against
-   those joint renders. Inspect interior colour, partial coverage, outlines
-   and contact regions separately; a global percentile can hide a narrow seam.
+   pairs (0, 0), (0, 3), (3, 0), (3, 3), contrasting palettes, either lane alone
+   at samples zero and three, and the empty bed. Demonstrate separate material
+   ownership for each shirt and repeat one identical joint state as a noise
+   control. Retain per-scene owner RGB, true coverage, outline and beauty, then
+   compare both reused-colour and per-scene-colour reconstructions against the
+   same beauty render. Inspect opaque interior colour, partial coverage,
+   outlines and contact regions separately after actual export resampling;
+   a global percentile can hide a narrow seam. A shading residual must remain
+   distinct from visibility and has its own unproved palette and atlas costs.
 3. Swap the place-to-mask mapping, choose the wrong near-place picking priority
    and omit an outline contribution. Each deliberate fault must fail. Reverse
    compositing order only if the tested route depends on it; adding joint
