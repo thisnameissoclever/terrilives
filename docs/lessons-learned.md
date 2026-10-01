@@ -8145,6 +8145,24 @@ operation guard, and restoring unconditional first-row focus, each caused a
 named assertion failure. All five faults were restored byte-for-byte before
 the full web suite passed.
 
+## [L-save-presence-boundary-after-later-fields] Padding rules belong to a field boundary
+
+**What happened.** Review of the planned bed-save format caught a rule rejecting
+every padded decode whose sleeping-place record was present. That works while
+the record is last, but would refuse complete bed-era saves after another
+feature appends fields.
+
+**Root cause.** The rule used total padding as a proxy for whether padding
+completed this particular field.
+
+**Prevention rule.** Track the historical presence boundary of each appended
+record. Padding only later fields may retain an earlier, physically complete
+record; padding must never manufacture that record from a truncated payload.
+
+**How to verify.** Test a complete bed-era payload after appending later fields,
+as well as every interior truncation of the grouped bed record. This was a
+documentation correction before implementation, not a shipped loader defect.
+
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 
 **What happened.** Separating the New housemate instinct labels fixed their
