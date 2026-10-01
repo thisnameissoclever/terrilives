@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "name": "offlineFloorLamp",
+      "directory": "living/owner-review-pending/floor-lamp/candidate-02",
+      "proof_sha256": "fed005e72796ac4773710f01f83b3e0fc1da61ee18a3e8d37ea8f8ae4ec7e015",
+      "review_status": "accepted-independent-review"
+    }
+  ]
+}

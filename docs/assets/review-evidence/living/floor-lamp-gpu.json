@@ -1,0 +1,121 @@
+{
+  "pass": true,
+  "validation": null,
+  "errors": [],
+  "atlas": "atlas-734be515a3593bcada8f5f6d5e3f30a087213d34c2cbe43faae01330a29d3e2f.png",
+  "records": [
+    {
+      "label": "SE",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "SE: midnight",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "SW",
+      "facing": 1,
+      "sprite": 1348,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "SW: midnight",
+      "facing": 1,
+      "sprite": 1348,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "NW",
+      "facing": 2,
+      "sprite": 1347,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "NW: midnight",
+      "facing": 2,
+      "sprite": 1347,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "NE",
+      "facing": 3,
+      "sprite": 1349,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "NE: midnight",
+      "facing": 3,
+      "sprite": 1349,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "As drawn",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "Colour 2",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 1,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "Colour 3",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 2,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "Muted",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 3,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "Rich",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 4,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    },
+    {
+      "label": "Build preview",
+      "facing": 0,
+      "sprite": 1346,
+      "colourway": 0,
+      "emissive": 0.8500000238418579,
+      "tileLight": 0.3499999940395355
+    }
+  ],
+  "pageErrors": []
+}

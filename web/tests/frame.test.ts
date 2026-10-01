@@ -1784,7 +1784,7 @@ describe('buildInstances', () => {
     // [ML-ambient] made every fragment darken as the hour turns, which
     // for the two things lighting the room is exactly backwards. Without
     // this the house at midnight contains an unlit lamp.
-    const lamp = spriteIndex('lampRoundFloor');
+    const lamp = spriteIndex('offlineFloorLamp');
     const view = new FakeEntities();
     view.set([
       [0, 0, 0, 0, 1, lamp],

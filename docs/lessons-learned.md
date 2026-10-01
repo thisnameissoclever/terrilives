@@ -7676,3 +7676,32 @@ Independent review caught this in the first migrated armchair fixtures. Use
 distinct valid IDs and assert their difference. Verify the foreground tests
 still pass, and delete preview foreground suppression to prove the browser
 fixture catches the resulting duplicate layer.
+
+## [L-floor-lamp-solids-and-verifier-contract] Inspect hidden construction and the current browser contract
+
+**What happened.** A floor-lamp render passed visual review while its base
+contained an internal wire edge and its stand continued through the bulb.
+The saved-scene and code reviews caught these separately. Browser proof
+also failed after assuming a clock accessor name, clicking behind the help
+dialog and reading the original object row during a Build preview.
+
+**Root cause.** Revolving zero-radius profile rings produced degenerate
+geometry. A convenient continuous stand hid incorrect construction inside
+the shade. The browser helper guessed interface behavior instead of reading
+the actual bridge and controls.
+
+**Prevention.** Use single axis vertices, check closed meshes and evaluated
+contacts, and require intentional clearance around internal parts. Keep
+source-art acceptance separate from physical and runtime acceptance. Read
+the clock and control contracts before scripting: `clockTick()` reads time,
+`tick()` advances it, confirmation clears furniture selection, and the help
+dialog intercepts clicks. Preview art replaces the original object instance;
+inspect the live output, not its suppressed row. After repeated helper
+failures, obtain a fresh-context approach review before another attempt.
+
+**Verify.** Lift the lamp base, detach supports, and cap the shade opening;
+each saved-scene check must fail for its intended cause. Deleting ground,
+contact and opening guards must break that rejection proof. In the browser,
+reselect before each rotation, wait for the applied command, and compare
+paused save bytes after a complete turn. Use the natural clock for the played
+pass and always close task-owned pages.

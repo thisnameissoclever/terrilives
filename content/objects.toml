@@ -677,7 +677,7 @@ sprite = "pottedPlant"
 id = "floor_lamp"
 name = "Illumination, Ambient"
 price = 45
-sprite = "lampRoundFloor"
+sprite = "offlineFloorLamp"
 
   # No interactions. Presentation uses this footprint as the room's strongest
   # local light source; it stays independent of autonomy and save state. The

@@ -125,3 +125,35 @@ fixes the arm/base fit but still intersects the hips. Candidate 03 has passed
 source, contact, contribution, GPU and played review. See
 `../../../docs/assets/review-evidence/living/armchair.md`; local acceptance does
 not itself prove a source merge or public deployment.
+
+## Floor lamp
+
+`lamp_layout.py` defines a cream, open-ended shade, metal base and stem,
+socket, bulb and independent shade support. `lamp_model.py` revolves the
+closed profiles into smooth solids. Axis poles use a single vertex; never
+collapse a whole ring into an internal wire edge. The stem must end below
+the bulb, with the shade supported around it rather than through it.
+
+1. Run the living-model unit suite above, then hidden background Blender
+   with `render_lamp.py -- NEW_ABSOLUTE_DIR`.
+2. Run `check_lamp_scene.py -- ABSOLUTE_MODEL NEW_ABSOLUTE_RESULT`. Require
+   closed meshes, a grounded base, 15 evaluated-solid contacts, a clear
+   shade opening and stand/bulb clearance. Damaged scenes and deliberate
+   deleted checks must fail for the recorded reasons.
+3. Run `../kitchen/review_fridge.py DIR 'Floor lamp'`, inspect all originals
+   and the reduced board, and obtain independent visual review.
+4. Append to `../static-props-04.json`, which loads after the occupied
+   armchair. Adding this asset to an earlier catalogue would move existing
+   sprite indices. Preserve the old procedural lamp records as well.
+5. Update the floor lamp's content sprite and the lighting prefix together.
+   Its existing whole-sprite emissive strength and room pool remain unchanged.
+   No power state, new light emitter or interaction is introduced.
+6. Run `floorLampProof()` from `web/proofs/floor-lamp.js` in the isolated
+   proof document. Separately check the production Build controls, paused
+   save equality after four rotations, room-scale appearance and natural
+   simulation playback. Close owned contexts in finally blocks.
+
+Candidate 01 is rejected for invalid mesh topology and a mast through the
+bulb. Candidate 02 passes source-art and solid-contact review. See
+`../../../docs/assets/review-evidence/living/floor-lamp.md` for runtime
+evidence and the limits of its acceptance.
