@@ -17,7 +17,7 @@ globalThis.bench = await createArchitectureBenchmark();
 ```
 
 ```javascript
-await bench.configure({ scale: 1, cutaway: true });
+await bench.configure({ scale: 1, cutaway: true, appearance: 'shipped-content' });
 // Return and persist the configuration, hashes and pixel controls now.
 ```
 
@@ -28,6 +28,10 @@ await bench.runRound({ round: 0, warmup: 60, frames: 120 });
 
 One round contains three arm blocks and takes about nine seconds at 60 Hz with those settings. Each arm warms independently before sampling. Three rounds rotate each arm through every position; six rounds also balance every ordered adjacency. `configure({scale: 1.75})` selects the same logical lot at fractional enlargement if that additional case is justified. Keep the same warmup/sample settings across comparable rounds.
 
+The default `shipped-content` appearance comes from the checked-in `content/lot.toml` covering triples, parsed with Python's TOML parser by the preparation script. The generated `fixtures/architecture/appearance-profiles.json` records that file's SHA-256 and ordered values. Run `python -B web/proofs/prepare-architecture-baseline.py --check-profile` to detect stale content before measuring. The chosen Float32 look array feeds both geometry producers. Configuration asserts that every authored interior floor row has exactly zero encoded colourway shifts in the default profile.
+
+The explicit `appearance: 'altered-zero-look'` profile retains the earlier benchmark's zero hue/strength/lightness triples. Those triples request an altered desaturated appearance, not the default production look. Earlier evidence remains valid for that named stress profile only. Every configuration and round identifies its profile, look-array hash, source hash and observed identity/shifted floor-row counts.
+
 All arms use the final 34x34 logical lot and the same canvas, camera and twelve dynamic rows:
 
 1. `baselineHistorical`: pinned historical renderer and historical geometry.
@@ -36,7 +40,7 @@ All arms use the final 34x34 logical lot and the same canvas, camera and twelve 
 
 Configuration requires exact pixel equality between the two historical-geometry arms, plus opaque clear and visible non-background controls for every arm. Each round checks that input hashes remain unchanged. Switching arms uploads their static geometry before warmup. The current renderer and architecture resources are shared between its two arms.
 
-Each result separates synchronous `renderer.draw` CPU time, actual GPU render-pass time and requestAnimationFrame cadence. The CPU interval includes the same counter/timestamp hook in each arm. GPU timestamps bracket the renderer's actual pass, excluding uploads, queue waiting, readback and JavaScript promise resumption. There is no per-frame completion fence, query resolve or map. The proof preallocates 240 query slots and two 1920-byte buffers, then resolves, copies and maps once after each 120-frame arm block. Those readback operations are separate from frame counters.
+Each result separates synchronous `renderer.draw` CPU time, actual GPU render-pass time and requestAnimationFrame cadence. The CPU interval includes the same counter/timestamp hook in each arm. GPU timestamps bracket elapsed time for the renderer's actual pass, excluding uploads, pre-pass queue waiting, readback and JavaScript promise resumption. Pass elapsed time may include GPU preemption or scheduling; it is not pure occupied shader time. There is no per-frame completion fence, query resolve or map. The proof preallocates 240 query slots and two 1920-byte buffers, then resolves, copies and maps once after each 120-frame arm block. Those readback operations are separate from frame counters.
 
 The result retains raw uint64 timestamp strings and subtracts them before conversion to JavaScript numbers. Zero durations remain in the distribution. An all-zero block cannot establish GPU cost. The observed greatest common divisor of nonzero durations is descriptive; it does not establish the device's timer precision. CPU/GPU distributions and refresh-limited cadence have different meanings, and a steady 60 Hz is not performance acceptance.
 

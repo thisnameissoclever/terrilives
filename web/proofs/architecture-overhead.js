@@ -14,6 +14,9 @@ import { acquireWithTimeout } from './owned-timeout.ts';
 import { benchmarkOrder, distribution, timestampDurations } from './architecture-benchmark-metrics.mjs';
 import metricsSource from './architecture-benchmark-metrics.mjs?raw';
 import proofSource from './architecture-overhead.js?raw';
+import appearanceProfiles from './fixtures/architecture/appearance-profiles.json';
+import appearanceSource from './fixtures/architecture/appearance-profiles.json?raw';
+import { OFFSET_COLOURWAY_HUE, OFFSET_COLOURWAY_STRENGTH, OFFSET_COLOURWAY_LIGHTNESS } from '../src/render/instances.ts';
 
 const baselineSources = import.meta.glob('./.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/*.{ts,wgsl}', { query: '?raw', import: 'default', eager: true });
 const candidateSources = import.meta.glob('../src/render/*.{ts,wgsl}', { query: '?raw', import: 'default', eager: true });
@@ -23,7 +26,9 @@ const visible = () => assert(document.visibilityState === 'visible', 'Benchmark 
 const bounded = (promise, name) => acquireWithTimeout(promise, 15000, () => {}, name);
 
 // The same logical lot is consumed by each revision. The old renderer never sees new IDs.
-function makeLot(finalScene, cutaway) {
+function makeLot(finalScene, cutaway, appearance) {
+  const profile = appearanceProfiles.profiles[appearance];
+  assert(profile, `Unknown appearance profile: ${appearance}`);
   const size = finalScene ? 34 : 8, shell = [], windows = [], lines = [], floors = [];
   const catalogue = Array.from({length:9}, (_,i) => ({id:i+1, label:`Window ${i+1}`, width:architectureSprite(i+1,0,'front',false)[0].width}));
   let start = 1;
@@ -36,7 +41,7 @@ function makeLot(finalScene, cutaway) {
   for(let i=0;i<size;i++) for(const edge of [[0,0,i,0],[0,size,i,0],[1,i,0,0],[1,i,size,0]])
     if(!opened.has(edge.slice(0,3).join(','))) shell.push(...edge);
   for(let x=0;x<size;x++) for(let y=0;y<size;y++) floors.push(x,y,1+(x%3));
-  return { lot:{width:size,height:size,house:[size,size],walls:new Uint32Array(),edges:Uint32Array.from(shell),windows:Uint32Array.from(lines),floors:Uint32Array.from(floors),coveringLooks:new Float32Array(9),showCutAwayWalls:!cutaway}, architecture:{windows,catalogue}, size };
+  return { lot:{width:size,height:size,house:[size,size],walls:new Uint32Array(),edges:Uint32Array.from(shell),windows:Uint32Array.from(lines),floors:Uint32Array.from(floors),coveringLooks:Float32Array.from(profile.coveringLooks),showCutAwayWalls:!cutaway}, architecture:{windows,catalogue}, size };
 }
 
 const MAX_FRAMES = 120;
@@ -128,7 +133,7 @@ export async function createArchitectureBenchmark() {
       return original.call(this, descriptor);
     });
 
-    const sources = { baseline: baselineManifest, candidate: {}, proofSHA256: await hash(proofSource), metricsSHA256: await hash(metricsSource) };
+    const sources = { baseline: baselineManifest, candidate: {}, proofSHA256: await hash(proofSource), metricsSHA256: await hash(metricsSource), appearanceFixtureSHA256: await hash(appearanceSource), contentSource: appearanceProfiles.source };
     for (const [path, source] of Object.entries(baselineSources)) {
       assert(await hash(source) === baselineManifest.files[path.split('/').pop()], `Pinned baseline changed: ${path}`);
     }
@@ -146,7 +151,7 @@ export async function createArchitectureBenchmark() {
     candidate = await bounded(CandidateRenderer.create(gpu, atlas), 'Candidate renderer'); const candidateSetup = { ...observed };
     closeArchitectureAtlas(atlas); atlas = null; active = null;
     let bytesPerRow = 0;
-    const metadata = { sources, atlasBytes, resources, setup: { baseline: baselineSetup, candidate: candidateSetup },
+    const metadata = { sources, appearanceProfiles, atlasBytes, resources, setup: { baseline: baselineSetup, candidate: candidateSetup },
       userAgent: navigator.userAgent, hardware: gpu.adapterInfo, format: gpu.format,
       limits: { maxTextureDimension2D: gpu.device.limits.maxTextureDimension2D,
         maxSampledTexturesPerShaderStage: gpu.device.limits.maxSampledTexturesPerShaderStage },
@@ -154,7 +159,7 @@ export async function createArchitectureBenchmark() {
         resolveBufferBytes: queryBytes, readbackBufferBytes: queryBytes, unit: 'nanoseconds',
         precision: 'Implementation-dependent quantization. Raw uint64 values, zeros and observed duration divisibility are retained.' },
       timingScope: { cpu: 'Synchronous renderer.draw call, including identical benchmark counter/timestamp descriptor hooks. No await inside the interval.',
-        gpu: 'Beginning to end of the actual render pass. Excludes uploads, queue waiting, readback and JavaScript promise resumption.',
+        gpu: 'Elapsed time from beginning to end of the actual render pass. Excludes uploads, pre-pass queue waiting, readback and JavaScript promise resumption; may include GPU preemption or scheduling, so it is not pure occupied shader time.',
         cadence: 'Differences between consecutive requestAnimationFrame callback timestamps. Refresh-limited cadence is not a performance acceptance test.',
         protocol: 'One draw per visible animation frame. No per-frame completion fence, query resolve or map. One query resolve/copy/submit/map after each measured arm block.' },
       allocationScope: 'GPU buffer/texture allocations are counted. Query resources and sample buffers are preallocated. JavaScript heap allocation and driver padding are unmeasured.',
@@ -189,10 +194,10 @@ export async function createArchitectureBenchmark() {
     };
     const inputHashes = async geometry => ({ opaque: await hash(geometry.instances), low: await hash(geometry.lowInstances) });
     return { metadata,
-      async configure({ scale = 1, cutaway = true } = {}) {
+      async configure({ scale = 1, cutaway = true, appearance = 'shipped-content' } = {}) {
         ready(); assert([1, 1.75].includes(scale), 'Use scale 1 or 1.75 for the final stress lot'); busy = true;
         try {
-          const data = makeLot(true, cutaway);
+          const data = makeLot(true, cutaway, appearance);
           canvas.width = Math.ceil((data.size * 64 + 160) * scale); canvas.height = Math.ceil((data.size * 42 + 220) * scale);
           assert(canvas.width <= gpu.device.limits.maxTextureDimension2D && canvas.height <= gpu.device.limits.maxTextureDimension2D,
             'Scene exceeds device canvas limit');
@@ -203,6 +208,21 @@ export async function createArchitectureBenchmark() {
           const previous = { instances: old.instances.slice(0, old.count * 16), count: old.count, lowInstances: old.lowInstances.slice() };
           const current = buildStaticInstances({ ...data.lot, architecture: data.architecture }, ox, oy, data.size, scale);
           const next = { instances: current.instances.slice(0, current.count * 16), count: current.count, lowInstances: current.lowInstances.slice() };
+          let shiftedFloorRows = 0;
+          for (let index = 0; index < current.floorCount; index++) {
+            const offset = index * 16;
+            if (next.instances[offset + OFFSET_COLOURWAY_HUE] !== 0
+              || next.instances[offset + OFFSET_COLOURWAY_STRENGTH] !== 0
+              || next.instances[offset + OFFSET_COLOURWAY_LIGHTNESS] !== 0) shiftedFloorRows++;
+          }
+          assert(current.floorCount === data.size * data.size, 'Inspect every authored interior floor row');
+          if (appearance === 'shipped-content') assert(shiftedFloorRows === 0, 'Shipped covering looks must encode exact identity colourway shifts');
+          else assert(shiftedFloorRows === current.floorCount, 'Altered zero-look profile must exercise the changed appearance');
+          const appearanceEvidence = { profile: appearance, source: appearanceProfiles.source,
+            fixtureSHA256: sources.appearanceFixtureSHA256, coveringLooks: [...data.lot.coveringLooks],
+            coveringLooksSHA256: await hash(data.lot.coveringLooks), checkedFloorRows: current.floorCount,
+            shiftedFloorRows, encodedColourwayIdentity: shiftedFloorRows === 0 };
+
           const props = new Float32Array(12 * 16);
           for (let i = 0; i < 12; i++) {
             const x = 1 + i % 4, y = 1 + Math.floor(i / 4), id = spriteIndex(i % 3 === 0 ? 'offlineDeskSW' : i % 3 === 1 ? 'offlineBunk' : 'sim');
@@ -213,7 +233,7 @@ export async function createArchitectureBenchmark() {
           arms.baselineHistorical = { renderer: baseline, resource: 'baseline', geometry: previous };
           arms.candidateHistorical = { renderer: candidate, resource: 'candidate', geometry: previous };
           arms.candidateFinal = { renderer: candidate, resource: 'candidate', geometry: next };
-          configured = { scene: 'final-stress-34x34', scale, cutaway, props };
+          configured = { scene: 'final-stress-34x34', scale, cutaway, props, appearance: appearanceEvidence };
           const pixels = {}, inputs = {}, rowCounts = {};
           for (const name of benchmarkOrder(0)) {
             pixels[name] = await capture(name); inputs[name] = await inputHashes(arms[name].geometry);
@@ -223,7 +243,7 @@ export async function createArchitectureBenchmark() {
           assert(inputs.baselineHistorical.opaque === inputs.candidateHistorical.opaque && inputs.baselineHistorical.low === inputs.candidateHistorical.low,
             'Historical arms must share identical geometry bytes');
           configured.inputs = inputs; configured.propsHash = await hash(props);
-          return { scene: configured.scene, scale, cutaway, canvas: { width: canvas.width, height: canvas.height },
+          return { scene: configured.scene, scale, cutaway, appearance: appearanceEvidence, canvas: { width: canvas.width, height: canvas.height },
             depthAttachmentBytesLowerBound: canvas.width * canvas.height * 3, windows: data.architecture.windows.length,
             interiorFloorTiles: data.size * data.size, pixels, historicalPixelsEqual: true, inputHashes: inputs,
             dynamicSHA256: configured.propsHash, rowCounts };
@@ -233,7 +253,7 @@ export async function createArchitectureBenchmark() {
         ready(); assert(configured, 'Configure the final scene before measuring');
         assert(Number.isInteger(frames) && frames >= 30 && frames <= MAX_FRAMES
           && Number.isInteger(warmup) && warmup >= 1 && warmup <= MAX_FRAMES, 'Use 30-120 samples and 1-120 warmup frames');
-        const order = benchmarkOrder(round), result = { round, order, frames, warmup, arms: {} }; busy = true;
+        const order = benchmarkOrder(round), result = { round, order, frames, warmup, appearance: configured.appearance, arms: {} }; busy = true;
         try {
           for (const name of order) {
             const renderer = activate(name);
