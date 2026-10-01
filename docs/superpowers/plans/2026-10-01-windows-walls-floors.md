@@ -371,27 +371,35 @@ losing architecture, covering choices, household state or queued operations.
 
 ## Task 6: Render connected walls and actual windows
 
-**Files:** Create `web/src/render/architecture.ts`, `web/tests/architecture.test.ts`
-and `web/proofs/architecture-depth.js`; modify `render/edge-walls.ts`, `tiles.ts`,
+**Files:** Create `web/src/render/architecture.ts`, `architecture-geometry.ts`,
+`architecture-finishes.ts`, `web/tests/architecture.test.ts`
+and `web/proofs/architecture-depth.js`; modify `render/architecture-atlas.ts`, `edge-walls.ts`, `tiles.ts`,
 `instances.ts`, `sprites.ts`, `sprites.wgsl`, `wall-fade.ts`,
 `main.ts`, and existing edge-wall/cutaway/wall-depth tests.
 
 **Consumes:** Generated `architecture-data.ts` from Task 2 and Task 5 descriptors.
 **Produces:** Architecture sprite/depth lookup and full/cutaway wall instances.
 
-- [ ] Add `architectureSprite(modelId, axis, side, cutaway)` using generated,
+- [x] Add `architectureSprite(modelId, axis, side, cutaway)` using generated,
   validated metadata. Draw one span model rather than stretched or repeated
   one-unit glass. Remove the blue tint from this new path; retain old records
   required by legacy rendering and tests.
-- [ ] Resolve wall appearances through Task 2's finish descriptors, with the
+- [x] Resolve wall appearances through Task 2's finish descriptors, with the
   accepted plaster as the default. Pattern and palette choices share physical
   geometry/depth and respect exported material roles. Prove alternate fixture
   finishes without recoloring glazing/frames, changing wall spans or adding a
   renderer branch per finish. Keep resource loading bounded by active assets.
-- [ ] Join opaque wall half-segments with windows at exact endpoints. Suppress
+  Preserve accepted pixels for defaults even when other surfaces use alternate
+  finishes. Use one architecture texture-array binding: accepted color in layer
+  zero and an optional neutral carrier in layer one, with roles and shared depth.
+  Keep finish slots per instance, so identical geometry can have different
+  appearances. Preserve the 16-float instance layout with bounded architecture
+  mode encoding: wall `-2 - 4 * slot`, floor `-3 - 4 * slot`; slot zero is accepted
+  art. Test matching TypeScript/shader decoding and every mode-dependent path.
+- [x] Join opaque wall half-segments with windows at exact endpoints. Suppress
   rear-shell solid arms covered by apertures. Add joining arms only outside an
   aperture, and keep material and baseboard continuity around doors.
-- [ ] Connect the Task 1 companion depth-texture foundation to the Task 2
+- [x] Connect the Task 1 companion depth-texture foundation to the Task 2
   generated metadata. Old sprites use their current depth logic. New architecture computes:
 
 ```wgsl
@@ -401,16 +409,16 @@ and `web/proofs/architecture-depth.js`; modify `render/edge-walls.ts`, `tiles.ts
 out.depth = clamp(in.clip.z - localSum * depthStep, 0.0, 1.0);
 ```
 
-- [ ] Use explicit texture level/load behavior inside conditional sampling.
+- [x] Use explicit texture level/load behavior inside conditional sampling.
   Apply the existing alpha coverage test before opacity. Keep the short-wall
   pass depth-tested without depth writes, including its wall-only draw path.
-- [ ] Give a wide cutaway panel the union of its far-side cells. Any relevant Sim
+- [x] Give a wide cutaway panel the union of its far-side cells. Any relevant Sim
   fades it; all must leave before it recovers. Camera changes preserve fade state,
   successful Load resets it, reduced motion applies target opacity immediately.
-- [ ] Prove all masks, aperture endpoints, both axes and full/low transitions.
+- [x] Prove all masks, aperture endpoints, both axes and full/low transitions.
   Compare split-piece reconstruction to the common source raster. Exercise
   0.5, 1, 1.375 and 2.5 zoom and paired 25% panels giving 43.75% combined coverage.
-- [ ] Run the focused web tests and real GPU depth proof. Deliberately reverse
+- [x] Run the focused web tests and real GPU depth proof. Deliberately reverse
   the depth sign, omit aperture suppression and enable low-wall depth writes;
   each must fail the relevant pixel assertion. Preserve source bytes afterward.
 
@@ -620,5 +628,6 @@ git diff --check
 
 The owner selected sequential subagent implementation with independent reviews.
 Use one implementing worker at a time in this worktree and fresh read-only reviewers.
-Record execution in this plan's local ledger. Task 1 remains the first visual
-checkpoint; its generated room has not yet received owner approval.
+Record execution in this plan's local ledger. The approved appearance reference
+is Task 1's candidate 08 room. Present the final combined game separately;
+approval of the reference does not establish acceptance of unseen integration.

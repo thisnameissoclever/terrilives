@@ -86,6 +86,14 @@ artwork, not another branch in the placement or rendering code.
    does not invent an unreviewed wallpaper library or require a new wall-painting
    interaction in this task.
 
+Keep accepted color pixels for unchanged surfaces when another surface receives
+an alternate finish. Neutral shading and a palette cannot reconstruct the baked
+art exactly after Blender's color processing. Store accepted color and the
+optional neutral carrier in separate layers of one texture-array binding.
+Load the carrier and role mask only when alternate finishes need them; retain
+shared depth. Per-instance finish selection permits different colors and
+patterns on identical geometry without creating new models.
+
 Generate the architecture sprite table as a logical suffix after the complete
 historical table, with separate architecture textures. The atlas generator owns
 this registration and verifies the historical prefix. Preserve the historical

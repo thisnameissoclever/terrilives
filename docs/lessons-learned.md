@@ -1,5 +1,50 @@
 # Lessons Learned
 
+## [L-window-height-follows-owning-wall] Match aperture art to its wall
+
+**What happened.** Cutaway mode shortened rear windows while their surrounding
+walls stayed full height, leaving large notches in the room silhouette.
+
+**Root cause.** Window selection used the global cutaway setting, while rear
+shell segments deliberately remained full height. Individual source-raster
+comparisons verified both forms but could not detect the wrong combination.
+
+**Prevention rule.** Derive an opening's height from its owning wall. Test rear
+and interior openings together under the same scene settings.
+
+**How to verify.** In cutaway mode, require rear windows on both axes to remain
+full height and interior windows to use their low forms. Inspect the assembled
+room in full and cutaway views, including the joins beside each opening.
+
+## [L-framebuffer-proofs-need-positive-controls] Prove what a pixel sample contains
+
+**What happened.** Architecture depth and opening checks appeared to pass while
+sampling transparent or background pixels. A blending check returned the same
+color for its background, opaque and faded cases. The replacement capture then
+failed because an empty renderer draw did not clear the target. A later source
+comparison reported two incorrect edge pixels because its reference image had
+lost color precision during a browser canvas conversion.
+
+**Root cause.** The proof copied a presentation canvas after yielding and reused
+a two-dimensional canvas without clearing its previous image. It also assumed
+that drawing no instances would issue a clear pass, although the renderer returns
+early in that case. Comparing two samples did not establish what either showed.
+The reference canvas also multiplied translucent colors by alpha and divided
+them back, losing integer precision before comparison with the original texture.
+
+**Prevention rule.** Copy the graphics texture before yielding to presentation.
+Read independent byte snapshots with explicit row alignment and channel order.
+Create the proof's empty background explicitly. Require an opaque background, a
+distinct marker and a sample matching the expected source surface before using
+their differences as evidence. Decode source references losslessly and verify
+their hashes; do not relax tolerances to accommodate a lossy reference path.
+
+**How to verify.** Draw a known marker in front of and behind an authored surface.
+Require the surface sample to match its source texel. Check a clear-only frame
+after a populated frame, and require faded-panel samples to differ from both.
+Deliberately reverse depth and enable faded-wall depth writes; each must fail
+its intended pixel assertion after the capture controls pass.
+
 ## [L-queued-commands-must-survive-save] Check stored command bounds before queueing
 
 **What happened.** A new window command could enter the queue with a span that
