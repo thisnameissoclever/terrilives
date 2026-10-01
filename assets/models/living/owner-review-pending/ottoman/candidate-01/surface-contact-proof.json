@@ -1,0 +1,95 @@
+{
+  "state": "passed",
+  "closed_connected_parts": 8,
+  "grounded": [
+    "Foot -0.275 -0.275",
+    "Foot -0.275 0.275",
+    "Foot 0.275 -0.275",
+    "Foot 0.275 0.275"
+  ],
+  "contacts": {
+    "Upholstered frame / Foot -0.275 -0.275": {
+      "crossing_faces": 24,
+      "contained_point": null
+    },
+    "Upholstered frame / Foot -0.275 0.275": {
+      "crossing_faces": 24,
+      "contained_point": null
+    },
+    "Upholstered frame / Foot 0.275 -0.275": {
+      "crossing_faces": 24,
+      "contained_point": null
+    },
+    "Upholstered frame / Foot 0.275 0.275": {
+      "crossing_faces": 24,
+      "contained_point": null
+    },
+    "Cushion / Upholstered frame": {
+      "crossing_faces": 28,
+      "contained_point": null
+    },
+    "Covered button / Cushion": {
+      "crossing_faces": 64,
+      "contained_point": null
+    },
+    "Cushion welt / Cushion": {
+      "crossing_faces": 360,
+      "contained_point": null
+    }
+  },
+  "welt_sections": 132,
+  "maximum_welt_surface_distance": 0.0009999872418120503,
+  "caught_mutations": [
+    {
+      "mutation": "missing foot",
+      "rejection": "Part inventory changed"
+    },
+    {
+      "mutation": "floating foot",
+      "rejection": "Foot lost ground contact"
+    },
+    {
+      "mutation": "detached frame",
+      "rejection": "Upholstered frame detached from Foot -0.275 -0.275"
+    },
+    {
+      "mutation": "detached cushion",
+      "rejection": "Cushion detached from Upholstered frame"
+    },
+    {
+      "mutation": "detached button",
+      "rejection": "Covered button detached from Cushion"
+    },
+    {
+      "mutation": "partly floating welt",
+      "rejection": "Welt section 0 detached from cushion"
+    },
+    {
+      "mutation": "oversized cushion",
+      "rejection": "Cushion size changed"
+    },
+    {
+      "mutation": "shifted root",
+      "rejection": "Root moved"
+    }
+  ],
+  "caught_guard_deletions": [
+    {
+      "deleted_guard": "Foot lost ground contact",
+      "rejection": "floating foot failed for wrong reason: Foot -0.275 -0.275 center changed"
+    },
+    {
+      "deleted_guard": "first} detached from",
+      "rejection": "detached frame failed for wrong reason: Upholstered frame center changed"
+    },
+    {
+      "deleted_guard": "Welt section",
+      "rejection": "Damaged ottoman passed: partly floating welt"
+    },
+    {
+      "deleted_guard": "Root moved",
+      "rejection": "shifted root failed for wrong reason: Footprint escaped"
+    }
+  ],
+  "model_sha256": "85d3155043bd11bb713fef3b8bfa516686c48448050a48eceb37057080a6f65b"
+}

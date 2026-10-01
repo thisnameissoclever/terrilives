@@ -153,6 +153,9 @@ pub(crate) fn restore_v5(
             .resource_mut::<terri_core::save::SavedMortality>()
             .enabled = true;
     }
+    // The base loader projected before V5 added colourways and other state.
+    // Refresh the complete candidate without draining commands or advancing time.
+    candidate.sync_render_buffer_after_commands();
     Ok(candidate)
 }
 

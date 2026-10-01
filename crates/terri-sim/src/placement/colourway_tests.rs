@@ -151,6 +151,8 @@ fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
     let sofa = placed(&sim, "sofa")[0];
     recolour(&mut sim, stove, 4);
     recolour(&mut sim, sofa, 2);
+    // Loading must not drain this saved edit merely to repair render metadata.
+    stage(&mut sim, sofa.index_u32(), 3);
     let saved = sim.save_snapshot_v5();
     let mut expected = vec![
         (stove.index_u32(), "rich".to_string()),
@@ -166,6 +168,17 @@ fn a_v5_save_keeps_colourways_and_a_v4_save_loads_as_drawn() {
         (colourway_of(&loaded, stove), colourway_of(&loaded, sofa)),
         (Some(4), Some(2))
     );
+    // A successful load must expose the saved colours before any tick or flush.
+    let rendered = loaded.render_buffer();
+    for (entity, colourway) in [(stove, 4), (sofa, 2)] {
+        let row = rendered
+            .ids
+            .iter()
+            .position(|&id| id == entity.index_u32())
+            .unwrap();
+        assert_eq!(rendered.colourways[row], colourway);
+    }
+    assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
 
     let mut older = Sim::new_from_shipped_lot();
     older.load_snapshot_v4(sim.save_snapshot_v4()).unwrap();
