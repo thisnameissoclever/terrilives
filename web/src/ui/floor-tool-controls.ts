@@ -9,9 +9,11 @@ export class FloorToolControls {
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
   private readonly buttons: ReadonlyArray<readonly [HTMLButtonElement, number]>;
+  private readonly retryButton: HTMLButtonElement | undefined;
 
   constructor(document: Document, private readonly tool: FloorTool,
-    swatch: (canvas: HTMLCanvasElement, covering: number) => Promise<void> = drawFloorSwatch) {
+    swatch: (canvas: HTMLCanvasElement, covering: number) => Promise<void> = drawFloorSwatch,
+    retry?: () => void) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing floor controls: ${id}`);
@@ -39,7 +41,8 @@ export class FloorToolControls {
         button.append(canvas);
         void swatch(canvas, covering).catch(error => {
           canvas.hidden = true;
-          button.title = `Material sample unavailable: ${error instanceof Error ? error.message : String(error)}`;
+          button.title = 'Material sample unavailable.';
+          console.warn('Floor material sample failed', error);
         });
       }
       button.addEventListener('click', () => {
@@ -51,6 +54,16 @@ export class FloorToolControls {
     };
     tool.coverings().forEach((name, index) => add(name, index + 1));
     add('Remove', BARE);
+    if (retry) {
+      const button = document.createElement('button');
+      button.id = 'floor-material-retry';
+      button.type = 'button';
+      button.className = 'hud-button';
+      button.textContent = 'Retry';
+      button.addEventListener('click', retry);
+      row.append(button);
+      this.retryButton = button;
+    }
     this.buttons = buttons;
     this.render();
   }
@@ -63,6 +76,7 @@ export class FloorToolControls {
 
   render(): void {
     this.status.textContent = this.tool.resourceStatus ?? this.tool.status;
+    if (this.retryButton) this.retryButton.hidden = !this.tool.resourceFailed;
     for (const [button, covering] of this.buttons) {
       button.setAttribute('aria-pressed', String(covering === this.tool.chosen));
     }

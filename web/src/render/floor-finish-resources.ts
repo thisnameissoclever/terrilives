@@ -23,6 +23,14 @@ export class FloorFinishResources<T> {
     void this.run();
   }
 
+  retry(): void {
+    if (!this.failed) return;
+    this.failed = false;
+    this.version++;
+    this.hooks.state(false, null);
+    void this.run();
+  }
+
   private async run(): Promise<void> {
     if (this.running || this.current === this.desired || this.failed) return;
     this.running = true;

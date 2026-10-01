@@ -269,6 +269,31 @@ describe('the Floors tool in the page', () => {
     elements.get('floor-coverings')!.children[3].listeners.click?.();
     expect(floors.chosen).toBe(4);
   });
+
+  it('offers Retry for a failed preview without staging a paint or exposing resource details', () => {
+    const source = new FakeFloors();
+    const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
+    const elements = new Map<string, FakeElement>();
+    let retries = 0;
+    const view = new FloorToolControls(fakeDocument(elements) as never, floors, async () => {}, () => {
+      retries++;
+      floors.setResourceStatus('Loading floor materials.');
+      view.render();
+    });
+    const retry = elements.get('floor-coverings')!.children.at(-1)!;
+    expect(retry.hidden).toBe(true);
+    floors.enter();
+    floors.setResourceStatus('Floor materials could not load. Try again.', true);
+    floors.choosePoint(1, 1);
+    view.render();
+    expect(source.staged).toEqual([]);
+    expect(elements.get('floor-status')!.textContent).toBe('Floor materials could not load. Try again.');
+    expect(retry.hidden).toBe(false);
+    retry.listeners.click?.();
+    expect(retries).toBe(1);
+    expect(retry.hidden).toBe(true);
+    expect(source.staged).toEqual([]);
+  });
 });
 
 interface FakeElement {

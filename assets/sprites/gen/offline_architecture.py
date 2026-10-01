@@ -166,6 +166,20 @@ def generated_files(batch,historical_count):
     text+='// Logical suffix after the complete historical atlas; separate texture coordinates.\n'
     text+='export const ARCHITECTURE = '+json.dumps(descriptor,indent=2)+' as const;\n'
     result={ROOT/'web/src/render/architecture-data.ts':text.encode()}
+    # Only identities present in the reviewed floor sources describe baked pixels.
+    # The live catalogue may later append finishes without adding geometry.
+    floor_patterns=sorted({entry['patternKey'] for entry in data['sprites'] if entry['kind']=='floor-patch'})
+    baked={key:{'finish':data['catalogue']['finishes'][key],
+                'pattern':data['catalogue']['patterns'][key],
+                'patternSha256':data['patternResources'][data['catalogue']['patterns'][key]['resource']]['sha256'],
+                'palette':data['catalogue']['palettes'][data['catalogue']['finishes'][key]['paletteKey']]}
+           for key in floor_patterns}
+    receipt={'manifestSha256':digest(batch.directory/'manifest.json'),
+             'colorSha256':data['hashes']['color'],'finishes':baked}
+    baked_text='// GENERATED from the accepted architecture export. Do not edit by hand.\n'
+    baked_text+='// Independent baked-pixel identities; never derive these from the live catalogue.\n'
+    baked_text+='export const BAKED_FLOORS = '+json.dumps(receipt,indent=2)+' as const;\n'
+    result[ROOT/'web/src/render/architecture-baked-floors.ts']=baked_text.encode()
     for key,name in resources.items(): result[ROOT/'web/public'/name]=(batch.directory/data['resources'][key]).read_bytes()
     for key,resource in patterns.items(): result[ROOT/'web/public'/resource['url']]=(batch.directory/resource['file']).read_bytes()
     return result

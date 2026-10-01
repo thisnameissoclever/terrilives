@@ -45,6 +45,7 @@ export class FloorTool {
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
   resourceStatus: string | null = null;
+  resourceFailed = false;
   private revision: number;
   private shownHighlight: TileHighlight | null = null;
 
@@ -97,9 +98,10 @@ export class FloorTool {
     this.hooks.changed();
   }
 
-  setResourceStatus(status: string | null): void {
-    if (status === this.resourceStatus) return;
+  setResourceStatus(status: string | null, failed = false): void {
+    if (status === this.resourceStatus && failed === this.resourceFailed) return;
     this.resourceStatus = status;
+    this.resourceFailed = failed;
     this.hooks.changed();
   }
 
