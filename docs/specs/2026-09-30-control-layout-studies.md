@@ -96,8 +96,11 @@ Time, Funds and live status remain in the upper-left group, followed by speed,
 Build and Options. The default group is 144px wide on desktop and 182px on
 compact screens. Options contains Light, Death, Sound, Effects, Save, Load,
 New game and Help. Close Options, Escape and an outside press close it.
-Opening Options closes the Sim sheet. Dialogs keep their existing pause and
-focus-return behavior. No game command is issued by opening a panel.
+Opening Options closes the Sim sheet. Cancelling Load or New game returns
+stranded keyboard focus to the visible Options button and releases that
+dialog's pause. A confirmed storage operation retains ownership until it
+settles; neither path steals focus deliberately moved elsewhere. No game
+command is issued by opening a panel.
 
 ### [CUI-dock] Compact Sim dock
 

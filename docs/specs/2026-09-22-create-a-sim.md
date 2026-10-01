@@ -58,6 +58,10 @@ Added 2026-09-22 at the owner's request, after they found a drop-down of persona
 
 Next is off until the name is complete, and Move in is only on page 2, so a newcomer cannot be sent without a name. Back keeps every choice, and opening the form again starts on page 1, empty. Every button is `type="button"`: nothing submits the dialog's form, and Enter in the name box moves on to page 2 rather than closing the dialog. A page change moves keyboard focus onto the new page.
 
+Returning to Traits focuses its first enabled checkbox. A full selection
+disables unchecked boxes, so the first row is not necessarily focusable.
+With no enabled checkbox, focus goes to enabled Move in, otherwise Back.
+
 ## [CS-personality] A personality says what it is like
 
 Each archetype in `content/personalities.toml` gains a `description`, one or two plain sentences read from its numbers, appended last to the compiled personality. The compile step refuses a blank one. Its verbs follow [TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`: the correspondent's desk weight of 1.7 is "Loves", the settled's desk weight of 0.45 is "hates". Personalities are in no save and not in the save digest, so the new field changes neither. The names stay the content ids in words ("The correspondent") until the owner names them ([T22]).
