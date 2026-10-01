@@ -481,6 +481,8 @@ pub struct InteractionDef {
     /// field because they have no SmartObject sound source.
     #[serde(default)]
     pub sound_action: Option<String>,
+    #[serde(default)]
+    pub completion_sound: Option<String>,
 }
 
 /// Authored action-presentation metadata before validation.

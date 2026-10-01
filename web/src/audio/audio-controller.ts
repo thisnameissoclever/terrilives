@@ -29,6 +29,7 @@ import { ObjectLoopPlayer, prepareObjectLoopClips, type ObjectLoopClips } from '
 import { loadObjectRecordings } from './object-recordings.js';
 import { PortalAudioScheduler } from './portal-audio.js';
 import { RecordedDoorPlayer } from './recorded-doors.js';
+import { RecordedToiletPlayer, MAX_TOILET_CLIP_SECONDS } from './recorded-toilet.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -78,6 +79,7 @@ export type GameAudioEvent =
     }
   | ActivityCueEvent
   | ObjectSoundCueEvent
+  | { readonly type: 'object.completed'; readonly sourceId: number; readonly action: number }
   | { readonly type: 'door.opened'; readonly doorId: string }
   | { readonly type: 'door.closed'; readonly doorId: string };
 
@@ -94,6 +96,7 @@ export interface AudioCuePlayCounts {
   readonly exercise: number;
   readonly 'door-opened': number;
   readonly 'door-closed': number;
+  readonly 'toilet-flush': number;
 }
 
 export type AudioResetBoundary = 'load' | 'background';
@@ -131,6 +134,10 @@ export class AudioController implements GameAudioEventSink {
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
   private doors: RecordedDoorPlayer | null = null;
+  private toilet: RecordedToiletPlayer | null = null;
+  private toiletClip: AudioBufferPort | null = null;
+  private toiletFetch: Promise<void> | null = null;
+  private nextToiletRetryAt = 0;
   private readonly doorClips: Partial<Record<'opened' | 'closed', AudioBufferPort>> = {};
   private doorFetch: Promise<void> | null = null;
   private nextDoorRetryAt = 0;
@@ -160,7 +167,7 @@ export class AudioController implements GameAudioEventSink {
   private readonly footsteps: FootstepScheduler;
   private readonly activities: ActivityCueScheduler;
   private readonly objectSounds: ObjectSoundCueScheduler;
-  private readonly playedCueCounts = new Uint32Array(8);
+  private readonly playedCueCounts = new Uint32Array(9);
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -274,6 +281,16 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
 
+    if (event.type === 'object.completed') {
+      if (!this.objectCuesAudible() || event.action !== 1 || !Number.isInteger(event.sourceId) ||
+        event.sourceId < 0 || event.sourceId >= 0xffff_ffff) return;
+      if (this.toiletClip !== null && this.toilet?.play(event.sourceId, this.toiletClip)) {
+        this.playedCueCounts[8]++;
+      }
+      void this.loadToiletRecording();
+      return;
+    }
+
     if (event.type === 'door.opened' || event.type === 'door.closed') {
       if (this.objectSoundsPaused) return;
       this.doorDemandObserved = true;
@@ -337,12 +354,42 @@ export class AudioController implements GameAudioEventSink {
   }
   endPortalFrame(): void {
     this.portals.endFrame();
-    if (!this.doorDemandObserved && this.portals.activeTrackCount() > 0 && this.doorsAudible()) {
+    if (!this.doorDemandObserved && this.portals.activeTrackCount() > 0 && this.objectCuesAudible()) {
       this.doorDemandObserved = true;
       void this.loadDoorRecordings();
     }
   }
   activeDoorVoiceCount(): number { return this.doors?.activeVoiceCount() ?? 0; }
+  activeToiletVoiceCount(): number { return this.toilet?.activeVoiceCount() ?? 0; }
+
+  /** Preload or fresh demand only; successful decoding never plays a held event. */
+  async loadToiletRecording(): Promise<void> {
+    if (this.toiletFetch !== null) { await this.toiletFetch; return; }
+    const context = this.context;
+    // Preparation may run while a trusted gesture closes a paused overlay.
+    // Only playback, not decoding, depends on simulation pause.
+    if (context === null || !this.isUnlocked() || this.mutedPreference ||
+      this.effectsLevelPreference === 0 || this.toiletClip !== null ||
+      performance.now() < this.nextToiletRetryAt) return;
+    const fetching = this.fetchToiletClip(context);
+    this.toiletFetch = fetching;
+    try { await fetching; }
+    finally { if (this.toiletFetch === fetching) this.toiletFetch = null; }
+  }
+
+  private async fetchToiletClip(context: BrowserAudioContext): Promise<void> {
+    try {
+      const response = await fetch('audio/toilet/flush.wav');
+      if (!response.ok) throw new Error(`toilet recording: ${response.status}`);
+      const clip = await context.decodeAudioData(await response.arrayBuffer());
+      if (!Number.isFinite(clip.duration) || clip.duration < .024 || clip.duration > MAX_TOILET_CLIP_SECONDS) {
+        throw new Error('invalid toilet recording');
+      }
+      this.toiletClip = clip;
+    } catch {
+      this.nextToiletRetryAt = performance.now() + 5000;
+    }
+  }
   doorTrackCount(): number { return this.portals.activeTrackCount(); }
   doorTrackCapacity(): number { return this.portals.trackCapacity(); }
 
@@ -350,7 +397,7 @@ export class AudioController implements GameAudioEventSink {
   async loadDoorRecordings(): Promise<void> {
     if (this.doorFetch !== null) { await this.doorFetch; return; }
     const context = this.context;
-    if (context === null || !this.doorsAudible() || !this.doorDemandObserved ||
+    if (context === null || !this.objectCuesAudible() || !this.doorDemandObserved ||
       performance.now() < this.nextDoorRetryAt ||
       (this.doorClips.opened !== undefined && this.doorClips.closed !== undefined)) return;
     const fetching = this.fetchDoorClips(context);
@@ -374,7 +421,7 @@ export class AudioController implements GameAudioEventSink {
     }));
   }
 
-  private doorsAudible(): boolean {
+  private objectCuesAudible(): boolean {
     return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0 && !this.objectSoundsPaused;
   }
 
@@ -476,7 +523,10 @@ export class AudioController implements GameAudioEventSink {
     this.doorDemandObserved = false;
     this.objectSounds.reset();
     this.desiredObjectLoops.clear();
-    if (paused) this.objectLoops?.stopAll();
+    if (paused) {
+      this.toilet?.stopAll();
+      this.objectLoops?.stopAll();
+    }
   }
 
   private reconcileObjectLoops(): void {
@@ -571,6 +621,7 @@ export class AudioController implements GameAudioEventSink {
     // against a suspended clock that plays it on return to the tab.
     this.pendingVoices.clear();
     this.desiredObjectLoops.clear();
+    this.toilet?.stopAll();
     this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
@@ -783,6 +834,7 @@ export class AudioController implements GameAudioEventSink {
       exercise: this.playedCueCounts[5] ?? 0,
       'door-opened': this.playedCueCounts[6] ?? 0,
       'door-closed': this.playedCueCounts[7] ?? 0,
+      'toilet-flush': this.playedCueCounts[8] ?? 0,
     };
   }
 
@@ -814,6 +866,7 @@ export class AudioController implements GameAudioEventSink {
         this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
         this.doors = new RecordedDoorPlayer(context, effectsGain);
+        this.toilet = new RecordedToiletPlayer(context, effectsGain);
         this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
         this.objectLoops.setClips(this.objectLoopClips);
         // Voices adjusts recordings only; Effects and Sound still govern all audio.
@@ -838,6 +891,7 @@ export class AudioController implements GameAudioEventSink {
         this.voices = null;
         this.objectLoops = null;
         this.doors = null;
+        this.toilet = null;
         if (context !== null) {
           try {
             await context.close();
@@ -876,6 +930,7 @@ export class AudioController implements GameAudioEventSink {
       this.stopEveryPlayer();
       this.resetSchedulers();
     }
+    if (running) void this.loadToiletRecording();
     return running;
   }
 
@@ -980,6 +1035,7 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
       return 'exercise';
     case 'object.sound-started':
     case 'object.sound-stopped':
+    case 'object.completed':
       return null;
     case 'door.opened':
     case 'door.closed':

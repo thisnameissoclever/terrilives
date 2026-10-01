@@ -1,5 +1,67 @@
 # Lessons Learned
 
+## [L-audio-memory-matched-baseline] Match the measured world after audio preparation
+
+**What happened.** The audio memory check warmed random worlds for a fixed time
+without proving that new playback paths had run. A replacement lifecycle
+warmup started both controls from one save, but waiting for natural audio to
+end could still leave the measured worlds at different ticks.
+
+**Root cause.** Shared starting data was mistaken for equivalent measurement
+conditions. Audio completion uses real time while the simulation continues.
+Another autonomous action can extend only the sound-enabled preparation.
+
+**Prevention rule.** Exercise the required playback and cleanup paths, then
+restore a shared measurement fixture before collecting the baseline. Require
+matching baseline world hashes and ticks. Never reload during the measured
+interval. Fingerprint the JS and WASM response bodies actually loaded, not a
+later refetch. Mark heap-snapshot callback runs diagnostic-only and reject
+them from acceptance.
+
+**How to verify.** Keep failed reports. Negative report tests must reject
+mismatched worlds, builds, incomplete lifecycle preparation and instrumented
+runs. Preserve the original 540-tick measured window and 65,536-byte raw JS
+growth allowance. A smaller second window or V8 compiler-category growth is
+diagnostic evidence, not permission to replace or subtract from that gate.
+
+## [L-audio-timer-covers-completion] Measure every fixed-tick audio path
+
+**What happened.** Review found completion-event draining before the audio
+sampler's timer started. Overall frame timing included it, but the dedicated
+audio budget did not.
+
+**Root cause.** The new completion path was added beside the existing Sim and
+portal samplers without extending their measurement boundary.
+
+**Prevention rule.** A fixed-tick audio budget must include completion transport,
+dispatch and playback setup, not just the older observation paths. Disabled
+audio still drains transient events without emitting sound.
+
+**How to verify.** Assert the ordering of the timing boundary and all audio
+paths, including disabled sampling. Run the production timing proof and report
+unavailable refresh-rate coverage separately from measured audio work.
+
+## [L-preload-is-not-playback] Paused overlays can supply the first audio gesture
+
+**What happened.** The first toilet completion reached the browser but stayed
+silent; the second played. Unit playback and decoded-signal checks had passed.
+
+**Root cause.** The recording loader reused the playback gate, which rejects
+simulation pause. Trusted input is handled in capture phase, before Help or
+Options closes. That gesture unlocked audio while the overlay still paused the
+game, so it did not preload. The first completion started a fetch and was
+correctly discarded rather than replayed late.
+
+**Prevention rule.** Separate permission to prepare a recording from permission
+to play it. A running, unmuted context with nonzero Effects may preload while
+the simulation is paused. Actual playback must still honor pause and all other
+silence boundaries. Do not patch a proof by adding an unrelated extra gesture.
+
+**How to verify.** Unlock while paused, await exactly one decode, and require
+zero played voices. Resume and complete actual toilet use; require its exact
+source event and a played cue on that first completion. Keep cancellation,
+late-decode and paused-playback rejection tests.
+
 ## [L-audio-proof-visible-gesture] Discover visible controls before driving audio checks
 
 **What happened.** A production sink check first used the wrong preview URL

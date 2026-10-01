@@ -505,7 +505,10 @@ kitchen washing-up reuse that decoded recording at lower gain, with independent
 source ownership. Its timbre and
 mix still need listening acceptance; stove selection remains mine. Door opening
 and closing now have quiet provisional recorded cues tied to authoritative portal
-state. Ambience, alarms, music, non-conversation voices
+state. Completed toilet use has a provisional recorded flush; cancellation,
+loading and late decoding do not trigger one. Its listening acceptance remains
+open; see `docs/specs/2026-10-01-toilet-completion-audio.md`.
+Ambience, alarms, music, non-conversation voices
 and music/ambience controls remain unbuilt. The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.

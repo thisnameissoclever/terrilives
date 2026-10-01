@@ -101,6 +101,7 @@ import {
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
 import { sampleSimAudioAfterTick, samplePortalAudioAfterTick, withObjectSoundPause } from './audio/frame-audio.js';
+import { drainCompletionAudioAfterTick } from './audio/completion-audio.js';
 import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
@@ -156,6 +157,7 @@ export interface StressHandle {
     readonly retainedConversationVoices: number;
     readonly objectLoopVoices: number;
     readonly doorVoices: number;
+    readonly toiletVoices: number;
     readonly doorTracks: number;
     readonly doorCapacity: number;
     readonly retainedObjectLoopVoices: number;
@@ -409,14 +411,18 @@ async function main(): Promise<void> {
       // stride distance that the simulation actually travelled.
       if (footstepSampling) {
         if (footstepSamplerTimer === null) {
+          drainCompletionAudioAfterTick(sim, audio, true);
           sampleSimAudioAfterTick(sim, audio);
           samplePortalAudioAfterTick(sim, audio);
         } else {
           const sampleStartedMs = performance.now();
+          drainCompletionAudioAfterTick(sim, audio, true);
           sampleSimAudioAfterTick(sim, audio);
           samplePortalAudioAfterTick(sim, audio);
           footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
         }
+      } else {
+        drainCompletionAudioAfterTick(sim, audio, false);
       }
     },
     flushCommands(): void {
@@ -1653,6 +1659,7 @@ async function main(): Promise<void> {
           return audio.activeObjectLoopCount();
         },
         get doorVoices() { return audio.activeDoorVoiceCount(); },
+        get toiletVoices() { return audio.activeToiletVoiceCount(); },
         get doorTracks() { return audio.doorTrackCount(); },
         get doorCapacity() { return audio.doorTrackCapacity(); },
         get retainedObjectLoopVoices() {

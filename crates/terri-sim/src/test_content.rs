@@ -48,6 +48,7 @@ pub fn interaction(
          name one twice"
     );
     CompiledInteraction {
+        completion_sound: None,
         id: id.to_string(),
         advertises,
         duration_ticks,

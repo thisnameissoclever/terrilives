@@ -170,6 +170,7 @@ sprite = "offlineToilet"
   # most-chosen action outright at 26.4%, ahead of the fridge.
   [[object.interaction]]
   id = "relieve_self"
+  completion_sound = "toilet_flush"
   label = "Use the toilet"
   advertises = { bladder = 95.0 }
   duration_ticks = 24

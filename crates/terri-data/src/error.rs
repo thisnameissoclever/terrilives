@@ -640,6 +640,11 @@ pub enum ContentError {
         interaction: String,
         action: String,
     },
+    UnknownCompletionSound {
+        object: String,
+        interaction: String,
+        action: String,
+    },
     /// A social interaction cannot name a SmartObject sound source.
     SocialSoundAction {
         interaction: String,
@@ -1713,6 +1718,9 @@ impl fmt::Display for ContentError {
                 f,
                 "'{object}' interaction '{interaction}' declares unknown sound action \
                  '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
+            ),
+            ContentError::UnknownCompletionSound { object, interaction, action } => write!(
+                f, "'{object}' interaction '{interaction}' declares unknown completion sound '{action}'; the current vocabulary is toilet_flush"
             ),
             ContentError::SocialSoundAction {
                 interaction,

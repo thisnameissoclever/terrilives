@@ -1,6 +1,9 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod action_queue;
+#[cfg(test)]
+mod completion_sound_tests;
+pub mod completion_sounds;
 pub mod details;
 #[cfg(test)]
 mod facing_tests;
@@ -838,6 +841,7 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+        world.insert_resource(completion_sounds::CompletionSounds::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
             ..Default::default()
@@ -1328,6 +1332,7 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
     }
 
@@ -1338,7 +1343,22 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
+    }
+
+    pub fn completion_sounds(&self) -> &[u32] {
+        &self
+            .world
+            .resource::<completion_sounds::CompletionSounds>()
+            .0
+    }
+
+    pub fn clear_completion_sounds(&mut self) {
+        self.world
+            .resource_mut::<completion_sounds::CompletionSounds>()
+            .0
+            .clear();
     }
 
     /// Returns and clears the number of object or social orders refused

@@ -714,7 +714,14 @@ Restored SHA-256 values were:
 
 ## Open work
 
-1. Complete subjective listening review for provisional shower and door recordings.
+Completed toilet use now has a separate authored completion event and a
+provisional recorded flush. It does not infer success from disappearance of the
+active action. The bounded transient buffer is drained once per fixed tick;
+cancellation, Load and late decoding stay silent. Unlike sub-second door cues,
+the four-second flush stops on effective pause. See
+`2026-10-01-toilet-completion-audio.md` for the source, contract and evidence.
+
+1. Complete subjective listening review for provisional shower, sink, door and toilet recordings.
 2. Select and accept recordings for the object-loop player. Add ambience,
    alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.

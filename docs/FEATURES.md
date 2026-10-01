@@ -999,7 +999,11 @@ also remains owner-listening evidence rather than accepted sound design.
 This is not the complete audio feature. Front and interior door transitions now
 play two quiet provisional recordings, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
-`specs/2026-10-01-door-audio.md`. Routine controls
+`specs/2026-10-01-door-audio.md`. Completed toilet use has a provisional recorded
+flush, sourced from a separate exact-target completion event rather than an
+action stopping. Cancellation and Load never fabricate a completion. The cue
+stops on pause and cannot replay after late decoding; technical and listening
+status are in `specs/2026-10-01-toilet-completion-audio.md`. Routine controls
 are silent by design rather than waiting for blanket click sounds. Room and
 outdoor ambience, alarms, music, and non-conversation Sim voices remain unbuilt.
 Object-loop playback exists; its audible content still needs selection and
@@ -1008,7 +1012,7 @@ Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water and door recordings are now integrated.
+downloaded and inventoried; selected water, door and toilet recordings are integrated.
 The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 

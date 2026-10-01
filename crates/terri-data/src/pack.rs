@@ -57,6 +57,12 @@ pub enum CompiledSoundAction {
     SinkWater,
 }
 
+/// One-shot presentation category emitted only by actual completion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledCompletionSound {
+    ToiletFlush,
+}
+
 /// Body-pose category resolved from an authored `visual` table.
 /// Presentation has its own vocabulary rather than reusing gameplay tags or
 /// broad activity-indicator codes, which answer different questions.
@@ -186,8 +192,11 @@ pub struct CompiledInteraction {
     pub visual: Option<CompiledVisual>,
     /// Optional authored object-audio category. Presentation-only and outside
     /// Save V1's compatibility digest.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// Appended before completion metadata to preserve the pack field order.
     pub sound_action: Option<CompiledSoundAction>,
+    /// One-shot presentation metadata, outside Save V1's compatibility digest.
+    /// Last in this struct, per the appending rule.
+    pub completion_sound: Option<CompiledCompletionSound>,
 }
 
 /// Optional object identity copy. It never changes saved simulation state.
@@ -1125,6 +1134,7 @@ mod tests {
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
+            completion_sound: None,
             id: id.to_string(),
             advertises: vec![(0, 35.0), (6, 5.0)],
             duration_ticks: 15,
@@ -1403,6 +1413,7 @@ mod tests {
             // interaction above, so the round trip can see the social
             // list written into the objects' slot or vice versa.
             social: vec![CompiledInteraction {
+                completion_sound: None,
                 id: "chat".to_string(),
                 advertises: vec![(4, 30.0), (5, 6.0)],
                 duration_ticks: 40,
