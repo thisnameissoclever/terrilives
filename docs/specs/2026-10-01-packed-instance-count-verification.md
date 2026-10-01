@@ -164,3 +164,40 @@ exited Build mode through the existing keyboard behavior. Its count comparison
 was not a product regression. The corrected script resets selection through
 the observed Furniture/Floors buttons and asserts only while Build is active.
 No production change was made to satisfy the mistaken script.
+
+## Activity-bubble integration
+
+Main then advanced to `46e6b0a7` (shipped PR 190). This changes activity
+presentation, authored data and the compiled simulation; the old WASM artifact
+is not acceptance evidence for this revision. Original worker merged without
+conflicts at `002bd345` and verified/copied the six generated package files
+from the clean release checkout at that exact main commit. New WASM SHA-256:
+`a7440ec0c4c486682f266923cf959be7d1946bc3c6e73b230026a6fbb5f76e0f`.
+Every copied package file matched its source hash; the source checkout remained
+unchanged. No new Rust, dependency, authored art or saved-state change was made
+by this renderer slice relative to shipped main.
+
+The first focused run failed two stale eating-icon expectations: old sprite 43
+versus the shipped appended activityEat sprite 1372. The two names were corrected
+at `a323b6e9`; independent expected counts 14 and 3 remained unchanged. Focused
+command then exited 0, 6 files / 127 tests PASS:
+`npm --prefix web test -- --maxWorkers=1 tests/instance-batch.test.ts tests/instance-batch-production.test.ts tests/frame.test.ts tests/interaction-production.test.ts tests/portals.test.ts tests/placement-preview.test.ts`.
+
+Because real activity/WASM inputs changed, the complete single-worker suite
+was run on the new combined tree, rather than reusing the older total:
+`$env:NODE_OPTIONS = '--max-old-space-size=1024'; npm --prefix web test -- --maxWorkers=1`.
+Exit 0, 117 files / 1759 tests PASS. Typecheck, build, documentation IDs and
+whitespace checks also exited 0. Final frame.ts SHA-256:
+`ed3d7f63bad0af0b53826f5280db604497a1f4549f1e17dbce8f781ca647c74b`.
+Final main.ts remains `fc3551b77dc8091c33bd29432853a87ae10aeb0186e3caf217acd251a383a45d`.
+Combined production `index-BQx-xRrq.js` SHA-256:
+`9a785ef0d706a1e5ab4be3bd13f46f45221768399043ef807f34a4bcf8581cf3`.
+
+Root played this rebuilt output independently. Desktop and phone floor checks
+again showed dynamic 45 to 46 and opaque 394 to 395, with the cyan sprite-12
+ring. Desktop/phone/desktop help transitions passed. Phone table preview had
+48 rows and parked original row 7; Cancel restored 45 and the table. Fresh save
+bytes remained identical, 3159 bytes. All three `activity-integrated-*.png`
+screenshots were inspected; the owned page and server closed. This is renderer
+integration evidence, not a replacement for PR 190's separate full activity
+pairing review or either held audio feature's memory acceptance.
