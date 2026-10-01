@@ -481,6 +481,10 @@ pub struct InteractionDef {
     /// field because they have no SmartObject sound source.
     #[serde(default)]
     pub sound_action: Option<String>,
+    /// Optional activity bubble identity, independent of body art and tags.
+    /// Unknown values are reported with the owning content row by the compiler.
+    #[serde(default)]
+    pub activity: Option<String>,
 }
 
 /// Authored action-presentation metadata before validation.
@@ -863,6 +867,9 @@ pub struct ChainStepDef {
     /// The resolved station becomes the exact sound source at runtime.
     #[serde(default)]
     pub sound_action: Option<String>,
+    /// Activity shown while this exact station step is actively running.
+    #[serde(default)]
+    pub activity: Option<String>,
 }
 
 /// A `transforms` entry: what the carried item was, and what it
