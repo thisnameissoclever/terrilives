@@ -4,6 +4,7 @@ mod action_queue;
 #[cfg(test)]
 mod activity_tests;
 pub mod beds;
+mod compatibility;
 pub mod details;
 pub mod domestic;
 #[cfg(test)]
@@ -16,11 +17,16 @@ mod mood;
 pub mod mortality;
 pub mod placement;
 pub mod portals;
+mod privacy;
+mod relationship_dynamics;
+pub mod relationship_effects;
 pub mod render_buffer;
 mod reservations;
 #[cfg(test)]
 mod reservations_tests;
+mod room_regions;
 mod save;
+mod shyness;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
@@ -885,6 +891,14 @@ impl Sim {
             self_preservation: save::self_preservation::capture(&self.world),
             chronotype_offsets: save::chronotype::capture(&self.world),
             sleeping_places: Some(save::sleeping_places::capture(&self.world)),
+            shyness: shyness::deviations(&self.world),
+            boundaries: self
+                .world
+                .resource::<privacy::BoundaryDecisions>()
+                .0
+                .values()
+                .cloned()
+                .collect(),
             domestic: domestic::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
@@ -986,6 +1000,9 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+        world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
+        world.insert_resource(relationship_dynamics::RelationshipContext::default());
+        world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
             ..Default::default()
@@ -1059,6 +1076,7 @@ impl Sim {
         world.register_component::<terri_core::SimId>();
         world.register_component::<terri_core::SimName>();
         world.register_component::<terri_core::Personality>();
+        world.register_component::<terri_core::Shyness>();
         // M2d's two. `Relationships` is in `world_hash`'s query, so [L3]
         // bites the way it does for Habituation: unregistered, the digest
         // goes EMPTY rather than wrong, and empty compares equal to
@@ -1181,7 +1199,9 @@ impl Sim {
                 // function's docs for why that is the choice.
                 (
                     systems::action::serve_intents,
+                    crate::relationship_effects::reset,
                     domestic::tick,
+                    systems::interpersonal::prepare,
                     systems::action::select_action,
                 )
                     .chain(),
@@ -1200,7 +1220,14 @@ impl Sim {
                 // exactly like a path to an object - a wander that had
                 // to wait a tick would read as a hesitation.
                 systems::idle::wander,
-                systems::movement::follow_path,
+                (
+                    privacy::route,
+                    systems::interpersonal::refresh_routes,
+                    systems::movement::follow_path,
+                    systems::interpersonal::apply,
+                    relationship_dynamics::tick,
+                )
+                    .chain(),
                 // Directly after movement, because arrival at the door
                 // is a fact `follow_path` establishes (an exhausted
                 // target-less path is removed there - the wander shape,
@@ -1234,7 +1261,7 @@ impl Sim {
                 // lives.
                 systems::satisfaction::bleed_neglect,
                 mortality::tick,
-                mood::accrue_satisfaction,
+                (mood::accrue_satisfaction, privacy::maintain).chain(),
             )
                 .chain(),
         );
@@ -1497,6 +1524,7 @@ impl Sim {
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
         self.command_schedule.run(&mut self.world);
+        privacy::maintain(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
     }
@@ -2643,6 +2671,13 @@ impl Sim {
         state.iter(&self.world).map(|e| e.index_u32()).min()
     }
 
+    pub fn shyness_of(&self, index: u32) -> Option<u8> {
+        let index = bevy_ecs::entity::EntityIndex::from_raw_u32(index)?;
+        let entity = self.world.entities().resolve_from_index(index);
+        self.world.get::<terri_core::Agent>(entity)?;
+        Some(shyness::of(&self.world, entity).value())
+    }
+
     /// Hashes all simulation-visible state. Entities are sorted by index
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
@@ -3279,6 +3314,16 @@ impl Sim {
             for (index, offset) in offsets {
                 hasher.write_u64(u64::from(index));
                 hasher.write_u64(offset as i64 as u64);
+            }
+        }
+        privacy::hash(&self.world, &mut hasher);
+        let shyness = shyness::deviations(&self.world);
+        if !shyness.is_empty() {
+            hasher.write_u64(0x5348_594E_4553);
+            hasher.write_u64(shyness.len() as u64);
+            for (id, value) in shyness {
+                hasher.write_u64(u64::from(id));
+                hasher.write_u64(u64::from(value));
             }
         }
         domestic::hash(&self.world, &mut hasher);

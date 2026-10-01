@@ -21,6 +21,7 @@ fn sleeping_pair() -> (Sim, Entity, [Entity; 2]) {
         ));
     }
     // Enter sleep through normal arrival, with both people at valid contact tiles.
+    crate::systems::interpersonal::prepare(sim.world_mut());
     sim.world_mut()
         .run_system_once(crate::systems::movement::follow_path)
         .unwrap();
@@ -161,6 +162,7 @@ fn vanished_bed_cleanup_releases_every_travelling_place() {
             cursor: 0,
         });
     }
+    crate::systems::interpersonal::prepare(sim.world_mut());
     sim.world_mut()
         .run_system_once(crate::systems::movement::follow_path)
         .unwrap();

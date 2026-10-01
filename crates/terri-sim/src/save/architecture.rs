@@ -67,8 +67,10 @@ pub(crate) fn restore_v5(
         waiting_needs,
         self_preservation,
         chronotype_offsets,
-        sleeping_places,
         domestic,
+        sleeping_places,
+        shyness,
+        boundaries,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -154,6 +156,8 @@ pub(crate) fn restore_v5(
         Some(saved) => super::sleeping_places::restore(&mut candidate.world, saved)?,
         None => super::sleeping_places::migrate_legacy(&mut candidate.world)?,
     }
+    crate::shyness::restore(&mut candidate.world, shyness)?;
+    crate::privacy::restore(&mut candidate.world, boundaries)?;
     if !death_default_applied {
         candidate
             .world

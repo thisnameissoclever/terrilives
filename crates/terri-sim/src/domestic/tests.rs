@@ -209,7 +209,7 @@ fn complaints_are_directional_once_per_visit_and_stronger_for_neat_people() {
         .get::<Relationships>(observer)
         .unwrap()
         .feeling(SimId(0));
-    assert!((first + 0.03).abs() < 0.00001);
+    assert!((first + 0.003).abs() < 0.00001);
     assert!(mood_penalty(sim.world(), observer).unwrap() > 7.0);
     assert_eq!(
         sim.world()
@@ -234,7 +234,7 @@ fn complaints_are_directional_once_per_visit_and_stronger_for_neat_people() {
             .get::<Relationships>(observer)
             .unwrap()
             .feeling(SimId(0))
-            + 0.06)
+            + 0.006)
             .abs()
             < 0.00001
     );
@@ -924,7 +924,26 @@ fn a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook
     }
     let state = sim.world().resource::<SavedDomestic>();
     assert_eq!(state.meals[0].table, None);
-    assert_eq!(state.meals[0].collected.len(), 2);
+    assert_eq!(
+        state.meals[0].collected.len(),
+        2,
+        "state={state:?}; guests={:?}; waits={:?}",
+        people[1..]
+            .iter()
+            .map(|e| (
+                *e,
+                sim.world().get::<ChainState>(*e),
+                sim.world().get::<Target>(*e),
+                sim.world().get::<terri_core::Path>(*e),
+                sim.world().get::<Position>(*e),
+                sim.world().get::<Needs>(*e),
+                sim.world().get::<terri_core::Socialising>(*e),
+                sim.world().get::<StepWork>(*e),
+                sim.world().get::<terri_core::Blocked>(*e)
+            ))
+            .collect::<Vec<_>>(),
+        sim.privacy_waits()
+    );
     for guest in &people[1..] {
         assert_eq!(sim.world().get::<ChainState>(*guest).unwrap().step, 1);
         assert!(sim.world().get::<terri_core::Carrying>(*guest).is_some());
@@ -1285,4 +1304,156 @@ fn the_hash_observes_domestic_identity_memory_claims_and_quality() {
         sim.world_mut().insert_resource(state.clone());
         assert_eq!(baseline, sim.world_hash());
     }
+}
+
+#[test]
+fn privacy_substitution_suspends_collected_cleanup_and_replays() {
+    let (mut sim, people, _, counter, _) = household();
+    for person in &people {
+        *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
+    }
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+    assert!(start_cleanup(sim.world_mut(), people[0], vec![0], true));
+    for _ in 0..300 {
+        sim.tick();
+        if carried_dishes(sim.world()).get(&people[0].index_u32()) == Some(&2) {
+            break;
+        }
+    }
+    assert_eq!(
+        carried_dishes(sim.world()).get(&people[0].index_u32()),
+        Some(&2)
+    );
+    sim.world_mut()
+        .get_mut::<Needs>(people[0])
+        .unwrap()
+        .set(NeedId::Energy, 4.0);
+    let safe = sim.world().resource::<terri_core::TileGrid>().clone();
+    assert!(crate::privacy::substitute(
+        sim.world_mut(),
+        people[0],
+        NeedId::Energy as u8,
+        &safe,
+        false
+    ));
+    assert_eq!(
+        carried_dishes(sim.world()).get(&people[0].index_u32()),
+        Some(&0)
+    );
+    assert_eq!(sim.world().get::<ChainState>(people[0]).unwrap().step, 0);
+    assert_eq!(surface_items(sim.world()), vec![counter.index_u32(), 2, 0]);
+    let mut replay = Sim::new_from_shipped_lot();
+    replay.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    for _ in 0..40 {
+        sim.tick();
+        replay.tick();
+        assert_eq!(sim.world_hash(), replay.world_hash());
+    }
+}
+
+#[test]
+fn mess_diagnostics_survive_full_tick_and_report_clamping() {
+    let (mut sim, people, _, counter, _) = household();
+    let observer = people[1];
+    let position = *sim.world().get::<Position>(counter).unwrap();
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() = position;
+    sim.world_mut()
+        .entity_mut(observer)
+        .insert(ChainState::begin(0));
+    let mut feelings = Relationships::default();
+    feelings.bump(SimId(0), -0.999);
+    sim.world_mut().entity_mut(observer).insert(feelings);
+    sim.world_mut().insert_resource(SavedDomestic {
+        cleanliness: vec![(observer.index_u32(), 1.0)],
+        ..Default::default()
+    });
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    sim.tick();
+    let effect = sim
+        .relationship_effects()
+        .iter()
+        .find(|e| {
+            e.cause == crate::relationship_effects::RelationshipCause::HouseholdMess
+                && e.affected == SimId(1)
+                && e.responsible == SimId(0)
+        })
+        .unwrap();
+    assert!((effect.requested + 0.003).abs() < 0.00001);
+    assert!((effect.actual + 0.001).abs() < 0.00001);
+}
+
+#[test]
+fn privacy_station_routes_preserve_owned_counter_and_unique_dining_seats() {
+    let (mut sim, people, _, counter, table) = household();
+    let pack = sim.world().resource::<Content>().0;
+    let other_counter =
+        sim.spawn_object(Position { x: 6.0, y: 12.0 }, pack.find("counter").unwrap());
+    let shared = pack
+        .chains
+        .iter()
+        .position(|chain| chain.id == SHARED)
+        .unwrap() as u32;
+    let mut state = SavedDomestic {
+        meals: vec![SavedMeal {
+            cook: 0,
+            counter: counter.index_u32(),
+            table: Some(table.index_u32()),
+            guests: vec![1, 2],
+            claimed: vec![1, 2],
+            collected: vec![1, 2],
+            eaten: vec![],
+            scale: 1.0,
+            tick: 0,
+            dining_started: false,
+        }],
+        ..Default::default()
+    };
+    let grid = sim.world().resource::<terri_core::TileGrid>().clone();
+    let route = |station: Entity, step, occupants: &[BoundaryOccupant], state: &SavedDomestic| {
+        boundary_route(
+            pack,
+            Some(state),
+            people[1],
+            Some(SimId(1)),
+            ChainState {
+                chain: shared,
+                step,
+                ..ChainState::begin(shared)
+            },
+            station,
+            sim.world().get::<SmartObject>(station).unwrap().0,
+            sim.world().get::<terri_core::ObjectFacing>(station),
+            *sim.world().get::<Position>(station).unwrap(),
+            *sim.world().get::<Position>(people[1]).unwrap(),
+            &grid,
+            true,
+            occupants,
+        )
+    };
+    assert!(route(counter, 0, &[], &state).is_some());
+    assert!(
+        route(other_counter, 0, &[], &state).is_none(),
+        "a different role-compatible owned pickup must fail"
+    );
+    let first = route(table, 1, &[], &state).unwrap();
+    let occupied = BoundaryOccupant {
+        actor: people[2],
+        target: Target {
+            object: table,
+            interaction: crate::systems::chain::CHAIN_STEP,
+        },
+        chain: Some(ChainState {
+            chain: shared,
+            step: 1,
+            ..ChainState::begin(shared)
+        }),
+        seat: *first.last().unwrap(),
+    };
+    let second = route(table, 1, &[occupied], &state).unwrap();
+    assert_ne!(first.last(), second.last());
+    state.meals[0].table = Some(counter.index_u32());
+    assert!(
+        route(table, 1, &[], &state).is_none(),
+        "a newly bound table must be respected"
+    );
 }

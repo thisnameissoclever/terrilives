@@ -7,6 +7,8 @@
 pub mod compile;
 pub mod error;
 pub mod pack;
+mod relationship_tuning;
+pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
 
 pub use compile::{compile, SIM_SPRITE};
@@ -845,6 +847,7 @@ mod tests {
     /// pack. Both values were read from this assertion failing.
     #[test]
     fn the_trait_library_digest_is_pinned() {
+        assert_eq!(content_fingerprint(pack()), 0xcf787472e9e838f5);
         let mut rebuilt = pre_meals_content(pack()).expect("reviewed pre-meal shape");
         assert_eq!(
             pre_sleep_places_fingerprint(&rebuilt),

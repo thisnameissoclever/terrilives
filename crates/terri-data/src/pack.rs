@@ -215,10 +215,30 @@ pub struct CompiledInteraction {
     /// Save V1's compatibility digest.
     /// Activity metadata was appended after this field.
     pub sound_action: Option<CompiledSoundAction>,
+    pub shared_activity: Option<String>,
     /// Optional authored activity indicator; excluded from save compatibility.
     /// Appended after sound to preserve the preceding interaction fields.
     /// The embedded pack has no cross-build decoding contract.
     pub activity: Option<CompiledActivity>,
+}
+
+#[cfg(test)]
+#[test]
+fn shipped_shared_activity_metadata_covers_parallel_reading_and_exercise() {
+    let pack = crate::pack();
+    for (object, group) in [
+        ("bookshelf", "reading"),
+        ("reading_chair", "reading"),
+        ("reference_shelf", "aquarium"),
+        ("moving_box", "exercise"),
+    ] {
+        let act = &pack.object(pack.find(object).unwrap()).interactions[0];
+        assert_eq!(act.shared_activity.as_deref(), Some(group), "{object}");
+    }
+    assert_eq!(
+        pack.object(pack.find("television").unwrap()).interactions[0].shared_activity,
+        None
+    );
 }
 
 /// Optional object identity copy. It never changes saved simulation state.
@@ -741,6 +761,14 @@ pub struct Tuning {
     pub choice_probability_floor: f32,
     pub wander_pause_variance: f32,
     pub self_preservation_curve: [(u8, f32); 6],
+    pub social_unmet_need_penalty: f32,
+    pub social_critical_need_penalty: f32,
+    pub bathroom_privacy_penalty: f32,
+    pub social_boundary_avoidance_cost: f32,
+    pub shyness_annoyance_strength: f32,
+    pub boundary_wander_reconsider_chance: f32,
+    pub shyness_wander_reconsider_strength: f32,
+    pub relationships: crate::RelationshipTuning,
     /// Domestic systems are disabled in custom packs without this table.
     pub domestic: Option<DomesticTuning>,
 }
@@ -1238,6 +1266,7 @@ mod tests {
             satisfaction: 2.25,
             visual: None,
             sound_action: Some(CompiledSoundAction::ShowerWater),
+            shared_activity: None,
             activity: None,
         }
     }
@@ -1378,6 +1407,14 @@ mod tests {
             waiting_mood_max_penalty: 30.0,
             satisfaction_mood_neutral_band: 15.0,
             satisfaction_mood_per_tick: 0.025,
+            social_unmet_need_penalty: 0.20,
+            social_critical_need_penalty: 0.35,
+            bathroom_privacy_penalty: 0.45,
+            social_boundary_avoidance_cost: 0.01,
+            shyness_annoyance_strength: 0.25,
+            boundary_wander_reconsider_chance: 0.10,
+            shyness_wander_reconsider_strength: 0.15,
+            relationships: crate::RelationshipTuning::default(),
         }
     }
 
@@ -1522,6 +1559,7 @@ mod tests {
                     socket: None,
                 }),
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
             }],
             // Three traits, one of each kind with pairwise-distinct
@@ -1993,6 +2031,7 @@ mod tests {
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
+        let old_end = before.len() - 35;
         let changed = |after: Tuning| -> Vec<usize> {
             let after = postcard::to_allocvec(&after).expect("tuning must serialise");
             assert_eq!(before.len(), after.len());
@@ -2013,10 +2052,13 @@ mod tests {
         .into_iter()
         .flat_map(f32::to_le_bytes)
         .collect();
-        // Seven f32 controls and six (u8, f32) anchors append 58 bytes.
-        let old_end = before.len() - 59;
-        assert_eq!(&before[old_end - 60..old_end], mood_bytes);
-        let len = old_end - 20 - 60;
+        assert_eq!(&before[old_end - 146..old_end - 86], mood_bytes);
+        let penalty_bytes: Vec<_> = [0.20_f32, 0.35, 0.45]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(&before[old_end - 28..old_end - 16], penalty_bytes);
+        let len = old_end - 20 - 60 - 28 - 58;
         assert_eq!(
             before[len..len + 20],
             [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]

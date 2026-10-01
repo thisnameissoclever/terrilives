@@ -5802,6 +5802,14 @@ and confirm the review controls exist. Only then ask the owner to review it.
 For public review, cite the successful deployment run tied to the exact merge
 SHA and open the mutable Pages site immediately afterward.
 
+**Privacy handoff recurrence, 2026-10-01.** The completion message said the
+implementation was ready for review but linked only an evidence document after
+stopping the verification server. The owner needed a playable link. Automated
+verification cleanup must be followed by a separate owner-review preview when
+requesting interactive review. Give its clickable URL in the handoff and keep
+that server available. For this correction, the production page and exact
+`terri_wasm_bg-C0oUKkc1.wasm` asset both returned HTTP 200 on port 4185.
+
 ## [L-isolated-audio-must-work-without-accidental-layering] Judge one voice before a crowd hides its shape
 
 **What happened.** Several overlapping movement cues read as pleasant
@@ -8575,6 +8583,113 @@ copies can agree while both freeze or restart the same countdown.
 **Verify.** Swap assignment ordinals while retaining their count, corrupt the
 surviving partner's place, and omit admission's place insertion. Each fault must
 fail its named lifecycle assertion. Restore source bytes and rerun the suite.
+## [L-privacy-legacy-geometry-and-contact] Derived events must respect retained legacy worlds
+
+**What happened.** Review found that privacy regions merged the frozen legacy house through its doorway gaps, and a failed legacy conversation approach could leave the new unmet-need penalty.
+
+**Root cause.** The new region builder assumed explicit doorway records; old layouts store wall cells. The conversation hook trusted arrival acceptance, although legacy movement preserves historical random draws even when contact has failed.
+
+**Prevention.** Check every retained layout representation when deriving geometry. Preserve the frozen house's known doorways without rewriting its save. Gate new social consequences on live reservation, target state and contact independently of compatibility behavior.
+
+**Verification.** The legacy room test first failed with one region instead of five, then passed for both frozen layout variants without changing saved architecture. The invalid-arrival regression first created a relationship penalty, then passed while preserving the original voice and duration draws.
+
+## [L-save-tail-offset-fixtures] Appended fields move historical test cuts
+
+Adding shyness after waiting exposed native and browser save tests whose byte cuts still treated waiting as the final field. They cut a valid older field boundary or a different record and reported a loader failure. The loader preserved its canonical-padding rule; the fixtures were out of date. On every appended field, scan all native and real-WASM byte fixtures, update historical boundary tables and record offsets, and retain tests that cut inside each variable-length list. Verify whole historical fields load, record/length truncations fail atomically, and nonempty older floors, family and mortality survive. The final suites include shyness record truncation and real-WASM stat reads.
+
+## [L-privacy-browser-fixture-reads] Verify the control and refresh the whole panel
+
+Privacy verification repeated the earlier hidden-radio lesson: a Pause label looked like a button, but three button locators timed out. Fresh review identified the native radio and visible label; clicking the label paused the actual driver. Inspect the role before repeated locator attempts and search the existing control lessons. The first fast fixture captures also reused the previous need/action panel because synthetic frame times did not advance past its refresh interval. Use monotonically increasing behavior-frame timestamps, assert a fresh need/action reading as well as the new stat, and inspect actual relationship meter values. The corrected four captures show the expected victim, affinity, shyness and current mood; task-owned browsers and preview servers close afterward.
+
+## [L-relationship-phase-and-evidence-boundaries] Check the state at the event, and identify the assertion being changed
+
+**What happened.** Review found that newly changed occupancy could grant an emergency privacy exception before checking an alternative, and that contact eligibility missed active chain work and later trusted a conversation already interrupted by a player order. A cancellation test also kept failing because a text replacement changed a similar assertion in a different test. Historical save-tail offsets were briefly incremented twice by overlapping replacements.
+
+**Root cause.** Selection-time knowledge was treated as current at movement time, and a transient conversation marker was treated as proof of live participation. Broad text matching confused repeated assertions and byte offsets with unique locations.
+
+**Prevention.** Revalidate alternatives against current ordered occupancy. Resolve helped needs from the actual live action, including chains and both conversation roles. Before changing a test, inspect its enclosing function and preserve its causal claim. Update save boundaries in one explicit table, rather than chained replacements.
+
+**Verification.** The late-occupancy and redirected-partner tests failed before their guards existed and pass afterward. Mid-wait replay crosses cache expiry and action completion. Historical whole-tail saves load while partial lengths and records fail. Cancellation tests forbid a completion event while permitting the separately recorded proximity effect. On Windows, finish a task-owned native run before rebuilding its executable; the linker cannot replace a running file.
+
+## [L-relationship-fixtures-and-need-attribution] Validate geometry and separate need causes
+
+**What happened.** A browser fixture generator was initially placed in a crate without the serializer dependency, then wrote an oversized path and diagonal reading contacts. Three failures triggered fresh review. Long household runs also reported more minutes with an empty essential need, which could not be attributed from a combined Hunger-or-Energy counter.
+
+**Root cause.** Hand-built components skipped the placement and contact contract. An aggregate need counter concealed both the need and the current activity. Review also found a real access edge: an unrelated blocked goal could prevent a hungry Sim from selecting food behind the same privacy boundary.
+
+**Prevention.** Keep serialization examples at the existing serialization boundary. Block fixture furniture footprints, assert cardinal interaction contact and round-trip every generated save through the production loader. Break empty needs down by need, activity and recent waiting before claiming starvation or dismissing the result. Change to an urgent goal before deciding whether it qualifies for a privacy emergency.
+
+**Verification.** All five browser fixtures load after checked construction, without dependency or loader changes. The urgent-goal regression first retained the TV target, then selected the fridge while preserving normal emergency checks. Native balance output separates empty Hunger/Energy by activity and notes privacy waits in the preceding two hours; temporal association alone is not a causal claim.
+
+Changing to an urgent goal also needs stable priority. Comparing two critical needs by their raw levels caused food and sleep targets to alternate, restarting the privacy wait clock. Preserve the current critical goal unless another need enters the desperate class while the current goal is above it. The regression keeps the same goal through ten blocked minutes and then crosses under the normal emergency rule; removing that priority guard fails the test.
+
+The balance harness initially inferred completion from any final-step disappearance and omitted chains still active at cutoff. Its JSON summary also dropped recovery contributions and some negative causes. Observe the terminal countdown, report outstanding chains and progress intervals, and retain every cause before drawing an access or balance conclusion. All 168 final runs reproduced identical hashes and prior metrics after adding those read-only observations; the report distinguishes pooled privacy frequency from individual-layout results and reused validation seeds from an untouched holdout.
+
+
+## [L-privacy-autonomy-integration] Preserve published behavior when integrating simulation features
+
+**What happened:** integrating privacy development with newer autonomy and sleep changes exposed a stroll detour that discarded the distance already walked, save fixtures that cut at outdated offsets, and replay fixtures that omitted the newly required self-preservation component. The previous relationship calibration no longer described the integrated simulation.
+
+**Root cause:** privacy routing and historical-save tests were written against an older runtime. A successful textual merge could not preserve the newer behavioral constraints or validate changed pacing.
+
+**Prevention:** keep published V5 fields in their original order and append unpublished state after them. Derive historical cuts from each serialized field, with an independent test pinning the published prefix. Retain a stroll's completed path prefix when applying a detour. Current-world test fixtures must include current behavioral components; migration tests should omit them deliberately.
+
+**Verification:** run the published instinct/chronotype prefix test, privacy save/load continuation and whole-stroll budget regression. Recalibrate the full deterministic household matrix after changes to action selection or sleep scheduling; do not carry forward older pacing results as current acceptance.
+
+
+## [L-calibration-opportunities-and-censoring] Measure whether recovery can occur before changing rates
+
+**What happened:** after integrating newer autonomy, recovery took much longer despite few bathroom incidents. The furnished fixture provided little independent Social relief. One mutation check also reported a survivor after a Windows line-ending mismatch left the source unchanged.
+
+**Root cause:** recovery depends on eligible contact, not just its reward rate. Critical Social blocked positive effects for much of the fixture run. The mutation runner verified its search anchor but did not verify that the replacement changed any bytes.
+
+**Prevention:** record critical minutes by need, first actual positive contact, effective per-run tuning and unfinished durations. Give ordinary fixtures independent need relief, retain the original as an explicit stress case, and disclose that adding a television changes multiple decisions rather than isolating Social causality. Check that every mutation changes source before compiling, then restore and verify the original bytes.
+
+**Verification:** matched fixture runs retain all seeds and outcomes. Summary statistics label completed-only durations and also report a cohort mean lower bound using the observation horizon for unfinished cases. Diagnostic additions reproduce prior RUN records and hashes. The corrected published-save-order mutation fails its historical-prefix assertion.
+
+
+## [L-browser-repl-handle-capture] Pass the current browser into persistent helpers
+
+**What happened:** a browser check immediately addressed a closed page although a newly created page was visibly open. The browser itself had no recorded error. Earlier fast captures also refreshed the person panel too soon to replace stale action text.
+
+**Root cause:** helpers defined in an earlier REPL cell retained that cell's old page binding. Reassigning the top-level page name did not update the captured reference. A two-cell object probe reproduced the difference between the current binding and the closure's value.
+
+**Prevention:** pass the current page and a mutable frame-clock holder explicitly into each helper. Bind local refresh functions to that argument and advance synthetic timestamps monotonically. Inspect first-run dialogs and use the visible Pause label before loading controlled saves. Keep cleanup in finally, even when assertions fail.
+
+**Verification:** all five controlled cases use the current page, assert fresh selected-person text, and reproduce their saved world hashes after 40 ticks. Reading shows its current action and shyness; privacy shows the affected direction and mood reason. Close owned contexts and stop only the owned preview server, verifying its port is closed.
+
+
+## [L-recovery-measurement-requires-an-actual-loss] Do not count clamped penalties as recovery
+
+**What happened:** the household trace counted eight privacy victim records as immediate recoveries even though their actual clamped loss was already within the 0.01 recovery tolerance. This understated the mean duration of the measurable recoveries. Its median and P90 definitions also differed from the balance summarizer.
+
+**Root cause:** the observer opened a recovery interval for every privacy record instead of checking its actual effect. Separate reporting code had independently chosen different percentile conventions.
+
+**Prevention:** preserve all incidents and contributions, but report losses already within tolerance separately. Open recovery intervals only for larger actual losses, retain unfinished intervals, and use the same median and nearest-rank percentile definitions across reports.
+
+**Verification:** repeating the 120,000-tick trace retains the same world hash and every non-recovery observation. The corrected population is 59 finished, 33 unfinished and eight already within tolerance, compared with the previous 67 finished and 33 unfinished. Controlled matrix results remain unchanged.
+
+
+## [L-privacy-bed-integration-fixtures] Match navigation tests to their actual mode and ownership
+
+**What happened:** bed integration tests initially guessed component fields and equality support, then assumed every route anchors fractional positions and every autonomous admission chooses place zero. A partner-preservation fixture also started sleep away from its bed. Independent review caught privacy substitutions bypassing survival-first place selection and the authored facing fallback.
+
+**Root cause:** player-order examples were copied into autonomous-route tests without checking their different preconditions. Legacy grids deliberately retain their old fractional movement behavior. Bed ownership is per physical place, while older privacy code assumed one reservation per object.
+
+**Prevention:** inspect component definitions and navigation contracts before constructing fixtures. Use matching saved architecture and grid edges when testing anchoring. Establish sleep through normal arrival at a valid contact. Compare complete surviving action state. Use the same admission, access, survival-risk and base-facing rules for privacy substitutes and ordinary autonomy; release only the departing owner's claim.
+
+**Verification:** four-facing privacy tests check separate admissions, exact approaches, coherent fractional anchoring and replay. Other cases preserve a sleeping partner, reject an inaccessible free place, choose safety before assignment, retain player routes, and use authored base facing without an explicit component. Historical bed-era byte fixtures load nonempty claims and assignments without fabricating missing privacy state.
+
+
+## [L-browser-speed-control-role] Inspect the actual control before choosing a locator
+
+**What happened:** a browser harness timed out looking for a Pause button. The outer tool timeout reset the session before Playwright could report the missing element. A first explanation blamed disabled animation frames; source inspection showed the Pause control is a radio label.
+
+**Root cause:** visible text was mistaken for an accessibility role. A later unscoped Overview selector matched both the compact details button and the tab inside the sheet.
+
+**Prevention:** inspect control type and scope before writing a locator. Use the actual speed label, verify its radio is checked, and scope tab selectors to their container. Keep browser rendering active while the simulation driver is paused. Set action timeouts shorter than the enclosing tool timeout and close owned contexts in finally.
+
+**Verification:** normal clicks dismiss Help, select Pause and open the intended tab. Five controlled browser cases keep the simulation at tick one during observation and reproduce 40-tick saved replays. Captures show the current person and action; no owned game page or listening preview server remains.
 Freezing only the partner's timer must also fail the full-tick handoff test.
 
 ## [L-bed-access-needs-the-shipped-house] Check place access in the actual starting lot
@@ -8604,6 +8719,27 @@ ordered Sims at distinct places, preserve exact assignments, and replay after
 save/load. Returning the bed to `(0, 6)` must fail that check. Load actual bytes
 captured before the layout change and require identical re-saved bytes and
 world hash. Keep the frozen bathtub source at its historical bed position.
+
+## [L-personality-stats-belong-in-details] Match a stat's prominence to the player's current task
+
+**What happened.** Shyness was added as a standalone Overview row beside mood
+and life satisfaction. The owner questioned that prominence and found the
+default Sim details sheet unnecessarily wide.
+
+**Root cause.** The display followed the new implementation field rather than
+its role as one personality characteristic. The sheet used one fixed desktop
+width for both the summary and detailed tables.
+
+**Prevention.** Group personality statistics with personality details. Keep
+the default summary compact, and widen it when a visible section needs more
+space. Move data ownership with the display so a hidden detail does not add
+periodic reads. Keep navigation and Close reachable at the smaller width.
+
+**Verify.** Opening personality shows the selected person's shyness; switching
+or clearing selection cannot retain another person's value. The desktop sheet
+measures 360 pixels by default and 540 while personality is expanded. Other
+tabs and collapsing restore 360. Compact viewports have no horizontal overflow
+and retain 44-pixel controls.
 For autonomous runs, require actual shared-sleep observations across the seed
 set and count sleep exits without calling them completed actions. A place map
 can hide duplicate claimants; require every sleeping Sim to appear exactly once
@@ -8805,6 +8941,25 @@ claim comparison; both assertions fail. Review actual moving wash frames with
 the media preference recorded, rather than treating identical screenshots as
 animation evidence.
 
+### [L-privacy-domestic-composition] Merge station ownership and save contracts together
+
+Privacy and domestic work developed independently. A role-only privacy detour could
+choose the wrong meal counter, retain collected dishes through an urgent substitute,
+and omit dish resentment from causal diagnostics. Their V5 extensions also occupied
+the same tail slot. Preserve published wire order, decode reviewed local formats by
+source fingerprint, and share fixed-station/capacity/seat rules. Refresh routing
+snapshots after claims change; retain the incident baseline for same-tick ordering.
+Verify authentic historical bytes, transactional interior-cut rejection, owned pickup,
+distinct dining seats, cleanup interruption and full-tick diagnostic clamping.
+
+Balance fixtures must include facilities required by newly integrated mechanics.
+Without a dish sink, the formerly adequate household could never clean its dishes.
+Repeated mess resentment then dominated relationship pacing. Check furniture roles
+before calibrating, measure every relationship cause, and tune existing consequence
+coefficients rather than weakening an unrelated fixed penalty. Preserve noticing,
+mood and cleanup rules; verify the full seed cohorts after composition.
+When a penalty shrinks, move a clamping fixture close enough to the bound that
+the requested change still crosses it. Keep separate requested/actual assertions.
 ## [L-published-save-tail-wins] Integrate unpublished tails after released fields
 
 **What happened.** Held sleeping-place state and released domestic state both appended a V5 field after chronotypes. A mechanical union would place one record where released saves encode the other. The sleeping-access fingerprint also made released meal saves look like old recipes to the staged-meal migration.
@@ -9109,3 +9264,13 @@ writer cannot replace an existing terminal result.
 **Prevention.** Finish physical-layer metadata before packing. Retain the shared scene's combined bounds, and independently measure its support from all visible layer images. Preserve old records and Sim whole-canvas exclusions.
 
 **Verify.** The original full-suite failures name the missing physical records and mismatched scene aliases. The corrected atlas passes all 130 generator tests, including the independently pinned original sprite prefix.
+
+## [L-calibration-load-and-rate-composition] Verify timed checks without unrelated simulation load
+
+**What happened.** An atlas source-hash test exceeded its existing timeout while eleven native calibration processes ran. The unchanged test passed after those processes ended, followed by the complete web suite. Recovery calibration also reached conflicting cohort bounds when only the contact rate changed.
+
+**Root cause.** Host contention was mistaken for a potential test defect, and existing neutral drift imposed a different recovery rate at neutral and positive starting affinity.
+
+**Prevention.** Separate heavy simulations from timed browser and asset checks. Measure the complete relationship contribution before changing a timeout or choosing a coefficient. Preserve symmetric, strictly positive neutral drift and disclose changes to unattended friendship and grudge lifetimes.
+
+**Verify.** Retain the loaded failure and unloaded passing logs. Compare all predeclared cohorts after a joint coefficient change, including subsequent incidents, incomplete recoveries and layout-specific results.

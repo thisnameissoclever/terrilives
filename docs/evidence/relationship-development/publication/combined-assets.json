@@ -1,0 +1,34 @@
+[
+  {
+    "Directory": "assets/sprites/gen",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "assets/models/sims/sim-01",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "assets/models/furniture",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "assets/models/kitchen",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "assets/models/bathroom",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "assets/models/bedroom",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "assets/models/office",
+    "ExitCode": 0
+  },
+  {
+    "Directory": "atlas --check",
+    "ExitCode": 0
+  }
+]

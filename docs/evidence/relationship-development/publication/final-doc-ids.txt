@@ -1,0 +1,1 @@
+Documentation ids are unique and allocation-free.

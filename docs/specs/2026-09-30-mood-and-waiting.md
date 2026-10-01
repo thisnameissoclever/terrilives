@@ -26,4 +26,16 @@ Every mood input that now affects simulation outcomes is authored in `content/tu
 
 ## [MW-save] Keep historical envelopes readable
 
-V5 appends the default migration boolean and a sparse waiting list after mortality. Each missing field is one zero byte. The decoder extends its existing padding checks to six appended fields, accepts only canonical re-encoding, and permits padding to fill only the final missing fields. Cuts inside a list length or record remain invalid. Earlier floors, family ties and mortality records must survive migration.
+V5 appends the default migration boolean and a sparse waiting list after mortality. Each missing field is one zero byte. The decoder checks ten appended fields, accepts only canonical re-encoding, and permits padding to fill only the final missing fields. Cuts inside a list length or record remain invalid. Earlier floors, family ties and mortality records must survive migration.
+
+The seventh and eighth appended fields retain the published self-preservation and exact chronotype offsets. The ninth stores shyness deviations; older saves derive the stat from saved identity. The tenth stores sparse privacy decisions, wait timing and player-directed chain origin. See [the interaction spec](2026-09-30-need-social-privacy.md) and [relationship development](2026-09-30-relationship-development.md).
+
+## [MW-social-privacy] Frustration affects relationships, then mood
+
+The locally implemented [unmet-needs and bathroom-privacy slice](2026-09-30-need-social-privacy.md) changes the offended Sim's directional affinity once at the relevant start or entry. Each Sim also has shyness from 1 to 100: higher values amplify their annoyance and increase deliberate privacy avoidance. Player orders remain available.
+
+Existing nearby-relationship mood reads that opinion, and sustained mood reaches life satisfaction through [MW-satisfaction]. There is no extra direct incident charge to satisfaction and no new timed incident moodlet. Needs, occupied-item waiting, ordinary conversation gains and hobby payouts keep their existing independent effects.
+
+[Relationship development](2026-09-30-relationship-development.md) adds pleasant-company gains, larger gains from recognized shared activities, and directional personality friction. Positive affinity requires the other person's hygiene above the low threshold and no critical need left unhelped by the subject's active interaction, chain work or live conversation. Existing dislike and low relationship-derived mood do not block recovery. Conversations keep one completion reward, and shared activities replace proximity and suspend friction during that contact. These affinity changes feed the same mood and satisfaction projection; they add no second payout or charge.
+
+Privacy waits retain their path and reservation. Their diagnostic wait time is distinct from the occupied-item mood marker, which excludes walking. This slice does not add a second waiting mood penalty.

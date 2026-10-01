@@ -1390,6 +1390,12 @@ export class SimBridge {
     return this.handle.relationships_of(entityIndex);
   }
 
+  shynessOf(entityIndex: number): number | null {
+    if (!isU32(entityIndex)) return null;
+    const value = this.handle.shyness_of(entityIndex);
+    return value === 0 ? null : value;
+  }
+
   /**
    * Overall mood score followed by each active moodlet's score, or empty.
    * The aligned text half comes from `moodSummaryOf`; both are copies read

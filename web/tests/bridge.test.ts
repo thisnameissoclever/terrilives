@@ -844,6 +844,22 @@ describe('SimBridge', () => {
     expect([...bridge.positions()]).not.toEqual(before);
   });
 
+  it('reads bounded shyness from real wasm and preserves it through saving', () => {
+    const sim = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const person = Array.from(sim.ids()).find((_, row) => sim.kinds()[row] === 0)!;
+    expect(sim.shynessOf(person)).toBe(89);
+    const bytes = sim.saveBytes();
+    expect(sim.loadBytes(bytes)).toBe(true);
+    expect(sim.shynessOf(person)).toBe(89);
+    expect(sim.shynessOf(0xffff_ffff)).toBeNull();
+    expect(sim.shynessOf(-1)).toBeNull();
+    expect(sim.shynessOf(0.5)).toBeNull();
+    expect(sim.shynessOf(Number.NaN)).toBeNull();
+    const debug = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    debug.spawnAgent(1, 1, 100);
+    expect(debug.shynessOf(0)).toBe(50);
+  });
+
   it('saves, restores and continues through the release wasm bridge', () => {
     const original = new SimBridge(SimHandle.from_lot(), wasmMemory);
     for (let tick = 0; tick < 173; tick++) original.tick();
@@ -881,7 +897,7 @@ describe('SimBridge', () => {
     // the applied migration flag, waiting, instincts and chronotype offsets.
     // Some(SavedSleepingPlaces) adds its tag and two empty vector lengths.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0];
     expect(Array.from(legacyCells.slice(-tail.length))).toEqual(tail);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
@@ -903,18 +919,25 @@ describe('SimBridge', () => {
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration,
-    // waiting, instincts and chronotypes, followed by the grouped sleep record.
+    // waiting, instincts and chronotypes, then sleeping places and the privacy fields.
     const sleepingPlacesTail = [1, 0, 0];
-    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail];
+    const tail = [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, ...sleepingPlacesTail, 0, 0];
     expect(Array.from(valid.slice(-tail.length))).toEqual(tail);
+    // A complete bed-era save lacks both privacy fields. Earlier V5 saves
+    // also lack the whole grouped bed record; both remain loadable.
+    for (const absent of [1, 2, 2 + sleepingPlacesTail.length, 3 + sleepingPlacesTail.length]) {
+      const historical = new SimBridge(new SimHandle(4, 4), wasmMemory);
+      expect(historical.loadBytes(valid.slice(0, -absent))).toBe(true);
+      expect(historical.saveBytes()).toEqual(valid);
+    }
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -1), valid.slice(0, -2),
-      valid.slice(0, -6 - sleepingPlacesTail.length), valid.slice(0, -13 - sleepingPlacesTail.length),
+    const invalid = [valid.slice(0, -3), valid.slice(0, -4),
+      valid.slice(0, -8 - sleepingPlacesTail.length), valid.slice(0, -15 - sleepingPlacesTail.length),
       valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();

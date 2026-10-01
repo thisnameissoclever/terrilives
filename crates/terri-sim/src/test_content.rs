@@ -81,6 +81,7 @@ pub fn interaction(
         // same absence as an interaction with no authored `visual` table.
         visual: None,
         sound_action: None,
+        shared_activity: None,
         activity: None,
     }
 }

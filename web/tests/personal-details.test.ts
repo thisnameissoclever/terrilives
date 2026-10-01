@@ -15,8 +15,10 @@ class Source implements PersonalDetailsSource {
   selected: number | null = 7;
   value: SimDetails | null = details();
   asked: number[] = [];
+  shynessAsked: number[] = [];
   selectedIndex() { return this.selected; }
   simDetailsOf(entity: number) { this.asked.push(entity); return this.value; }
+  shynessOf(entity: number) { this.shynessAsked.push(entity); return entity === 7 ? 73 : 8; }
   dayTicks() { return 6000; }
 }
 function ready(state: PersonalDetailsState) {
@@ -79,6 +81,7 @@ describe('personal details values and refresh', () => {
     active = false;
     expect(panel.update(1000)).toBe(false);
     expect(source.asked).toEqual([7, 7, 7]);
+    expect(source.shynessAsked).toEqual([7, 7, 7]);
   });
 
   it.each([0, -1, NaN, Infinity])('rejects invalid refresh interval %s', interval => {
@@ -124,6 +127,22 @@ function surface() {
 }
 
 describe('personal details surface', () => {
+  it('shows shyness with personality and clears stale values when selection ends', () => {
+    const source = new Source();
+    const { content, view } = surface();
+    const panel = new PersonalDetailsPanel(source, names, view, 100, () => true);
+    const value = content.all('span').find(node => node.className === 'summary-value')!;
+    panel.update(0);
+    expect(value.textContent).toBe('73');
+    source.selected = 83;
+    panel.update(100);
+    expect(value.textContent).toBe('8');
+    source.selected = null;
+    panel.update(200);
+    expect(value.textContent).toBe('');
+    expect(value.parent!.hidden).toBe(true);
+    expect(source.shynessAsked).toEqual([7, 83]);
+  });
   it('preserves unchanged text while refreshing changed factors and repetition', () => {
     const source = new Source();
     const { content, empty, view } = surface();

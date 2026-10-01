@@ -64,6 +64,16 @@ actually won or lost.
 
 ## [D1] Repository layout
 
+The relationship extension uses `interpersonal` for ordered start/entry consequences,
+`privacy` for cached decisions and derived routes, `compatibility` for authored
+preference comparison, and `relationship_dynamics` for minute-by-minute contact.
+Movement checks current room occupancy before crossing a boundary or starting
+private use. Contact then runs before interaction completion, so a final minute
+of shared activity counts once and a conversation receives only its completion
+reward. `relationship_effects` exposes a read-only causal journal for native
+traces. Boundary decisions are saved and hashed; diagnostics and derived
+compatibility are not. See the [relationship specification](specs/2026-09-30-relationship-development.md).
+
 The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
 `cargo test` at full speed. The CI job of the same name checks all three

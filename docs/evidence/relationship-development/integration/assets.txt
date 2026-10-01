@@ -1,0 +1,42 @@
+...................................................................................................................
+----------------------------------------------------------------------
+Ran 115 tests in 47.306s
+
+OK
+..........................
+----------------------------------------------------------------------
+Ran 26 tests in 37.388s
+
+OK
+......D:\VIBES\.worktrees\b770\terrilives\assets\models\furniture\layer_partition.py:22: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for sim, prop, ink in zip(body.getdata(), furniture.getdata(), outline.getdata()):
+D:\VIBES\.worktrees\b770\terrilives\assets\models\furniture\export_contributions.py:54: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for left,right in zip(actual.getdata(),reference.getdata()) if left[3] or right[3])
+........................
+----------------------------------------------------------------------
+Ran 30 tests in 0.784s
+
+OK
+..............
+----------------------------------------------------------------------
+Ran 14 tests in 0.309s
+
+OK
+PASS: four hashed, padded source views; review sheet uses only resampling and layout.
+PASS: four hashed, padded source views; review sheet uses only resampling and layout.
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.007s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 0.002s
+
+OK
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+atlas is up to date: 1362 sprites, 8192x4777
