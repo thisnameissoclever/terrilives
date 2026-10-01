@@ -1,5 +1,6 @@
 //! Interior architecture lives on cell boundaries, separately from occupancy.
 
+use crate::windows::{WindowModel, WindowPlacement};
 use bevy_ecs::prelude::Resource;
 use serde::{Deserialize, Serialize};
 
@@ -400,6 +401,11 @@ pub enum SavedLayout {
         edges: Vec<WallEdge>,
         windows: Vec<WallLine>,
     },
+    /// Typed windows, appended so every historical layout keeps its bytes.
+    EdgeWallsV3 {
+        edges: Vec<WallEdge>,
+        windows: Vec<WindowPlacement>,
+    },
 }
 
 impl SavedLayout {
@@ -408,13 +414,15 @@ impl SavedLayout {
     /// the next variant costs one method here instead of a match each.
     pub fn edges(&self) -> &[WallEdge] {
         match self {
-            Self::EdgeWallsV1 { edges } | Self::EdgeWallsV2 { edges, .. } => edges,
+            Self::EdgeWallsV1 { edges }
+            | Self::EdgeWallsV2 { edges, .. }
+            | Self::EdgeWallsV3 { edges, .. } => edges,
             Self::LegacyAuthoredV1 | Self::LegacyCells { .. } => &[],
         }
     }
 
-    /// The lines that are windows ([WN-state]), empty for every layout
-    /// written before windows existed.
+    /// Historical V2 records only. Typed readers use `window_placements`,
+    /// `window_lines` or `window_at`; a V3 layout has no V2 records.
     pub fn windows(&self) -> &[WallLine] {
         match self {
             Self::EdgeWallsV2 { windows, .. } => windows,
@@ -422,10 +430,47 @@ impl SavedLayout {
         }
     }
 
+    /// Canonical windows. V2 lines project as single-unit Sash windows,
+    /// without changing their stored layout version.
+    pub fn window_placements(&self) -> Vec<WindowPlacement> {
+        match self {
+            Self::EdgeWallsV2 { windows, .. } => windows
+                .iter()
+                .map(|&line| WindowPlacement {
+                    line,
+                    model: WindowModel::Sash,
+                })
+                .collect(),
+            Self::EdgeWallsV3 { windows, .. } => windows.clone(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Expanded lines for collision and presentation. Direct Rust callers
+    /// must validate spans before storing them; decoding rejects overflow.
+    pub fn window_lines(&self) -> Vec<WallLine> {
+        self.window_placements()
+            .into_iter()
+            .flat_map(WindowPlacement::lines)
+            .collect()
+    }
+
+    /// The owner of any covered segment, retaining its canonical start/model.
+    pub fn window_at(&self, line: WallLine) -> Option<WindowPlacement> {
+        self.window_placements().into_iter().find(|window| {
+            window
+                .checked_lines()
+                .is_some_and(|lines| lines.contains(&line))
+        })
+    }
+
     /// Whether this layout keeps its architecture as edge records at all,
     /// which the legacy two do not.
     pub fn has_edges(&self) -> bool {
-        matches!(self, Self::EdgeWallsV1 { .. } | Self::EdgeWallsV2 { .. })
+        matches!(
+            self,
+            Self::EdgeWallsV1 { .. } | Self::EdgeWallsV2 { .. } | Self::EdgeWallsV3 { .. }
+        )
     }
 
     /// The layout holding these records, and the OLDER variant whenever
@@ -441,6 +486,12 @@ impl SavedLayout {
         }
     }
 
+    /// Construct typed storage without rebuilding models from expanded lines.
+    /// Keep V3 even when empty; unrelated edits must preserve storage identity.
+    pub fn from_window_placements(edges: Vec<WallEdge>, windows: Vec<WindowPlacement>) -> Self {
+        Self::EdgeWallsV3 { edges, windows }
+    }
+
     /// What this boundary is, reading both lists ([WN-state]). A line in
     /// both is a corrupt save, and the wall wins, because a barrier kept by
     /// mistake is safe and one dropped by mistake strands a sim outdoors.
@@ -450,7 +501,7 @@ impl SavedLayout {
             .iter()
             .find(|edge| edge.axis == line.axis && edge.x == line.x && edge.y == line.y);
         match WallState::of(edge) {
-            WallState::Open if self.windows().contains(&line) => WallState::Window,
+            WallState::Open if self.window_at(line).is_some() => WallState::Window,
             state => state,
         }
     }
@@ -465,6 +516,102 @@ impl Default for SavedLayout {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn old_layout_vectors_remain_exact_and_v2_projection_does_not_rewrite_storage() {
+        let cases = [
+            (SavedLayout::LegacyAuthoredV1, vec![0]),
+            (
+                SavedLayout::LegacyCells {
+                    walls: vec![(4, 3)],
+                },
+                vec![1, 1, 4, 3],
+            ),
+            (
+                SavedLayout::EdgeWallsV1 {
+                    edges: vec![WallEdge {
+                        axis: EdgeAxis::Horizontal,
+                        x: 4,
+                        y: 3,
+                        doorway: true,
+                    }],
+                },
+                vec![2, 1, 1, 4, 3, 1],
+            ),
+            (
+                SavedLayout::EdgeWallsV2 {
+                    edges: Vec::new(),
+                    windows: vec![WallLine {
+                        axis: EdgeAxis::Vertical,
+                        x: 4,
+                        y: 3,
+                    }],
+                },
+                vec![3, 0, 1, 0, 4, 3],
+            ),
+        ];
+        for (layout, bytes) in cases {
+            assert_eq!(postcard::to_allocvec(&layout).unwrap(), bytes);
+            assert_eq!(postcard::from_bytes::<SavedLayout>(&bytes).unwrap(), layout);
+            let before = layout.clone();
+            let placements = layout.window_placements();
+            assert_eq!(layout.window_lines(), layout.windows());
+            for placement in placements {
+                assert_eq!(placement.model, crate::windows::WindowModel::Sash);
+                assert_eq!(placement.lines(), [placement.line]);
+                assert_eq!(layout.window_at(placement.line), Some(placement));
+            }
+            assert_eq!(layout, before);
+            assert_eq!(postcard::to_allocvec(&layout).unwrap(), bytes);
+        }
+        assert!(SavedLayout::default().window_placements().is_empty());
+    }
+
+    #[test]
+    fn typed_layout_tag_fields_and_wall_precedence_are_pinned() {
+        let placed = crate::windows::WindowPlacement {
+            line: WallLine {
+                axis: EdgeAxis::Horizontal,
+                x: 4,
+                y: 3,
+            },
+            model: crate::windows::WindowModel::Picture,
+        };
+        let layout = SavedLayout::from_window_placements(Vec::new(), vec![placed]);
+        let bytes = postcard::to_allocvec(&layout).unwrap();
+        assert_eq!(
+            bytes,
+            [4, 0, 1, 1, 4, 3, 6],
+            "V3 tag and field order must stay fixed"
+        );
+        assert_eq!(postcard::from_bytes::<SavedLayout>(&bytes).unwrap(), layout);
+        for end in 0..bytes.len() {
+            assert!(postcard::from_bytes::<SavedLayout>(&bytes[..end]).is_err());
+        }
+        let wall = WallEdge {
+            axis: EdgeAxis::Horizontal,
+            x: 5,
+            y: 3,
+            doorway: false,
+        };
+        let conflict = SavedLayout::from_window_placements(vec![wall], vec![placed]);
+        assert_eq!(conflict.edges(), [wall]);
+        assert_eq!(
+            conflict.state_of(WallLine {
+                axis: wall.axis,
+                x: wall.x,
+                y: wall.y
+            }),
+            WallState::Wall
+        );
+        assert_eq!(
+            SavedLayout::from_window_placements(Vec::new(), Vec::new()),
+            SavedLayout::EdgeWallsV3 {
+                edges: Vec::new(),
+                windows: Vec::new()
+            }
+        );
+    }
 
     #[test]
     fn axis_and_state_codes_are_pinned_and_round_trip() {
