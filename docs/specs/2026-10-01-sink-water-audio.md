@@ -90,9 +90,15 @@ previous two authored source types. Four tracks fail the memory report's guard.
    Broader page-memory measurement was unavailable; WASM grew in both controls
    and is not attributed to audio.
 8. The production performance command exited 1 because its display acceptance
-   requires a refresh rate above 110 Hz, while both calibration and active runs
+   requires calibration between 118 and 122 Hz, while both calibration and active runs
    measured 60 Hz. The 120 Hz gate is **unverified**, not passed. At the available
    refresh rate, sampler p95 was 0.20 ms and maximum 0.30 ms; application-work
    p95 was 4.70 ms in both enabled and disabled runs, with zero work frames over
    16.6 ms and zero steady identity queries. No display setting or acceptance
    threshold was changed. This limitation does not establish an audio regression.
+
+The browser measurements above used the sink implementation over `1d97455d`.
+Before delivery, main's later bed-fit documentation and compact-HUD focus fixes
+through `fbc71315` were merged without conflict. Combined web checks passed:
+1,564 tests, typecheck and production build, all exit 0. No Rust content or
+audio logic changed during that integration.
