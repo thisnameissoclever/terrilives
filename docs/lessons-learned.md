@@ -8409,3 +8409,21 @@ set and count sleep exits without calling them completed actions. A place map
 can hide duplicate claimants; require every sleeping Sim to appear exactly once
 in its occupancy projection. Reload a deliberately advanced twin to prove that
 loading restores state, rather than merely accepting an identical snapshot.
+
+## [L-bed-projection-is-semantic] Keep sleep ownership independent of body art
+
+**What happened.** Review of the planned sleep-place column found that reusing
+the socket projection would omit the double bed, which has no occupied-art
+contract yet. Requiring activity 5 or a positive countdown would also narrow
+existing valid state.
+
+**Root cause.** Semantic sleep tags, authored visuals and pending action
+completion are separate contracts. Numeric entity indices also omit generations.
+
+**Prevention.** Derive a separate exact bed/place pair from validated running
+ownership. Preserve independent visuals, shared capacity across alternate sleep
+actions, zero-tick actions awaiting completion and full target entity identity.
+
+**Verify.** Cover alternate nap slots, independent visual metadata, immediate
+Load and memory growth. Replace a despawned bed at the same raw index; its old
+target must remain invalid. A deliberate raw-index lookup must fail that test.

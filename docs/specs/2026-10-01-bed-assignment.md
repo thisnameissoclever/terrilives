@@ -282,32 +282,46 @@ The source of the body envelope is the accepted lower-bunk full-scene proof at
 Atlas measurements use the existing pack function with added image dimensions;
 they are capacity estimates, not generated-art or runtime acceptance.
 
-### Integration boundaries after the visual proof
+### Runtime identity before visual integration
+
+The local render buffer now carries aligned `sleeping_beds` and
+`sleeping_places` columns. Each row contains the exact bed entity index and
+physical place for a running sleep-tagged action, or two `u32::MAX` sentinels.
+Both pointers and bridge getters refresh after sync, Load and memory growth.
+This is derived state, with no new save field or command.
+
+The projection validates the full target entity, object definition, interaction,
+sleep tag and shared physical capacity. It excludes walkers, active chain work,
+commuters, workers and both conversation participants. Resumable background
+chain progress and an action awaiting its zero-tick completion remain valid.
+Assignments alone do not project occupancy. Tags and visual metadata are
+independent, so this pair does not override the existing activity or body art.
+
+The double bed currently has no authored body-art socket. Keeping this pair
+separate from socket-only `interaction_targets` preserves existing positions,
+facings and visual-action codes while occupied-art verification continues.
+See `docs/assets/review-evidence/bed-assignment/projection.md` for native,
+release-bridge, mutation and replay evidence.
+
+### Renderer integration after the visual proof
 
 A read-only impact review identified the following seams. These preserve
 runtime identity and do not approve an unproved image format.
 
-1. `authored_socket_action_visual` in `terri-sim/src/lib.rs` validates a running
-   `Eating` action, its exact target and authored socket before projecting it.
-   A sleep-specific helper should additionally validate `SleepPlace` and return
-   the exact bed and ordinal. Travelling leases remain walking; permanent
-   assignment alone must never create a sleeping visual.
-2. `RenderBuffer` can carry an aligned derived ordinal column, with `u32::MAX`
-   outside a validated occupied-bed projection. Its clear/push lifecycle,
-   WASM pointer and bridge view must remain aligned through memory growth.
-   This is derived rendering state and requires no further save field. Keep
-   action 9, activity 5 and existing facing codes stable.
-3. `InteractionSelection.update` currently picks one owner per target by raw
+1. Use the validated bed/place pair alongside the accepted body-art contract.
+   Travelling leases remain walking; permanent assignment alone must never
+   create a sleeping visual. Keep action 9, activity 5 and facing codes stable.
+2. `InteractionSelection.update` currently picks one owner per target by raw
    entity ID. Add a bed-specific group beside that path, keyed by exact target
    and physical place. Preserve both logical Sim rows, stable shirt identities
    and independent animation samples while drawing shared furniture once.
    Keep duplicate-owner rejection for ordinary single-user furniture.
-4. `buildInstances` and `instanceCount` must agree. Occupancy determines draw
+3. `buildInstances` and `instanceCount` must agree. Occupancy determines draw
    count independently of animation sample because count currently selects at
    tick zero with reduced motion. The proven asset contract must define any
    changes to sprite pairs, the instance layout and shader together; ordinary
    alpha-over of two existing paired sprites is not an acceptable substitute.
-5. `pickSprite` needs occupant-specific visible coverage and ordering rather
+4. `pickSprite` needs occupant-specific visible coverage and ordering rather
    than identical whole-bed bounds or row order. The bed remains clickable
    outside the occupied body coverage. Give each person's bubble and selection
    ring a distinct anchor, separate from shared-composite registration.

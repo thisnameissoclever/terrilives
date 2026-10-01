@@ -688,6 +688,16 @@ export class SimBridge {
     );
   }
 
+  /** Exact bed IDs for running sleep-tagged place ownership, or 0xffffffff. */
+  sleepingBeds(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.sleeping_beds_ptr(), this.count);
+  }
+
+  /** Places within sleepingBeds; 0xffffffff means absent. Refresh after sync or memory growth. */
+  sleepingPlaces(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.sleeping_places_ptr(), this.count);
+  }
+
   /**
    * Authored object-sound action per row: 0 none, 1 shower water,
    * 2 stove cooking, 3 sink water. These codes describe current semantic state, not a cue

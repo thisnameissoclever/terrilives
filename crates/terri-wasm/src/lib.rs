@@ -1622,6 +1622,18 @@ impl SimHandle {
         self.sim.render_buffer().interaction_targets.as_ptr()
     }
 
+    /// Exact bed IDs for running sleep-tagged place ownership, or u32::MAX. Aligned with
+    /// sleeping_places_ptr; re-read both after sync, Load or memory growth.
+    pub fn sleeping_beds_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sleeping_beds.as_ptr()
+    }
+
+    /// Physical place within each sleeping bed, or u32::MAX. This is current
+    /// sleep ownership, not an assignment, walking lease or body-art contract.
+    pub fn sleeping_places_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sleeping_places.as_ptr()
+    }
+
     /// Projected lot-axis facing per row. Re-read after every sync or memory
     /// growth, like every other zero-copy render pointer.
     pub fn facings_ptr(&self) -> *const u32 {
@@ -4908,6 +4920,84 @@ mod boundary_tests {
             targets[row],
             terri_sim::render_buffer::NO_INTERACTION_TARGET
         );
+    }
+
+    #[test]
+    fn sleeping_place_pointers_keep_both_columns_aligned_after_growth_and_clear() {
+        use terri_core::{Agent, Eating, Position, SleepPlace, Target};
+        let mut handle = SimHandle::new(96, 96);
+        let definition = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .find("double_bed")
+            .unwrap();
+        let bed = handle
+            .sim
+            .spawn_object(Position { x: 8.0, y: 8.0 }, definition);
+        let people: Vec<_> = (0..2)
+            .map(|ordinal| {
+                handle
+                    .sim
+                    .world_mut()
+                    .spawn((
+                        Agent,
+                        Position { x: 7.0, y: 8.0 },
+                        Eating {
+                            object: definition,
+                            interaction: 0,
+                            remaining_ticks: 10,
+                        },
+                        Target {
+                            object: bed,
+                            interaction: 0,
+                        },
+                        SleepPlace(ordinal),
+                    ))
+                    .id()
+            })
+            .collect();
+        for index in 0..32 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+        let ids = addressed(handle.ids_ptr(), handle.entity_count(), "ids_ptr");
+        let beds = addressed(handle.sleeping_beds_ptr(), ids.len(), "sleeping_beds_ptr");
+        let places = addressed(
+            handle.sleeping_places_ptr(),
+            ids.len(),
+            "sleeping_places_ptr",
+        );
+        for (row, id) in ids.iter().enumerate() {
+            let ordinal = people.iter().position(|person| person.index_u32() == *id);
+            assert_eq!(beds[row], ordinal.map_or(u32::MAX, |_| bed.index_u32()));
+            assert_eq!(
+                places[row],
+                ordinal.map_or(u32::MAX, |ordinal| ordinal as u32)
+            );
+        }
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(people[0])
+            .remove::<Eating>();
+        handle.sim.sync_render_buffer_after_commands();
+        let beds = addressed(handle.sleeping_beds_ptr(), ids.len(), "sleeping_beds_ptr");
+        let places = addressed(
+            handle.sleeping_places_ptr(),
+            ids.len(),
+            "sleeping_places_ptr",
+        );
+        let first = ids
+            .iter()
+            .position(|id| *id == people[0].index_u32())
+            .unwrap();
+        let second = ids
+            .iter()
+            .position(|id| *id == people[1].index_u32())
+            .unwrap();
+        assert_eq!((beds[first], places[first]), (u32::MAX, u32::MAX));
+        assert_eq!((beds[second], places[second]), (bed.index_u32(), 1));
     }
 
     #[test]
