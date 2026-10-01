@@ -58,6 +58,13 @@ describe('the sky wired into the page', () => {
     expect(MAIN_TS).toContain('lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),');
   });
 
+  it('passes expanded window lines to exposure and refreshes them after Load and lot edits', () => {
+    expect(MAIN_TS).toContain('daylightReachPerTile, lot.windows)');
+    expect(MAIN_TS.match(/lot.windows = sim.windowLines\(\);/g)).toHaveLength(2);
+    expect(MAIN_TS).toMatch(/if \(loaded\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
+    expect(MAIN_TS).toMatch(/if \(builder.afterCommands\(\)\) \{[\s\S]*?lot.windows = sim.windowLines\(\);[\s\S]*?lightingDirty = true;/);
+  });
+
   it('rebuilds the sky with the lamp field whenever the lot changes', () => {
     expect(MAIN_TS).toMatch(/lighting = buildLightField\(sim, lotWidth, lotHeight, lot\.walls, true, lot\.edges, lot\.windows\);\s*sky = buildSky\(\);/);
   });

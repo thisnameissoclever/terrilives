@@ -1098,7 +1098,7 @@ async function main(): Promise<void> {
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile);
+    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile, lot.windows);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();

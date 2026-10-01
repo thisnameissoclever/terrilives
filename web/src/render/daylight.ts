@@ -47,6 +47,7 @@ const STOPS: readonly Stop[] = [
   { at: 0.21, rgb: [0.46, 0.5, 0.7] }, // 05:00 still night
   { at: 0.29, rgb: [0.86, 0.82, 0.86] }, // 07:00 dawn, colour returning
   { at: 0.42, rgb: [1.0, 1.0, 1.0] }, // 10:00 neutral daylight
+  { at: 0.5, rgb: [1.0, 1.0, 1.0] }, // 12:00 full daylight
   { at: 0.62, rgb: [1.0, 0.99, 0.96] }, // 15:00 barely warm
   { at: 0.79, rgb: [1.0, 0.88, 0.72] }, // 19:00 low warm sun
   { at: 0.87, rgb: [0.72, 0.64, 0.72] }, // 21:00 dusk

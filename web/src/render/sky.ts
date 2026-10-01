@@ -32,7 +32,8 @@ export const OPEN_SKY: SkyExposure = { width: 0, height: 0, values: new Float32A
  * `house` null a lot with no house: both are open sky everywhere, as is a
  * reach outside `(0, 1]`. An empty edge list is a house with no walls, which
  * the sky reaches into from the yard on every side, still losing
- * `reachPerTile` per tile.
+ * `reachPerTile` per tile. `windows` contains expanded `[axis, x, y]` rows;
+ * only rear lines at x = 0 or y = 0 seed virtual outside sky.
  */
 export function buildSkyExposure(
   width: number,
@@ -40,8 +41,11 @@ export function buildSkyExposure(
   edges: ArrayLike<number> | null,
   house: readonly [number, number] | null,
   reachPerTile: number,
+  windows: ArrayLike<number> = [],
 ): SkyExposure {
-  if (edges === null || house === null || !(width > 0 && height > 0)
+  if (edges === null || house === null
+    || !Number.isSafeInteger(width) || !Number.isSafeInteger(height)
+    || width <= 0 || height <= 0 || width * height > 1_000_000
     || !(reachPerTile > 0 && reachPerTile <= 1)) {
     return OPEN_SKY;
   }
@@ -51,7 +55,9 @@ export function buildSkyExposure(
   const walls = new Uint8Array(width * height);
   for (let i = 0; i + 3 < edges.length; i += 4) {
     const [axis, x, y, door] = [edges[i], edges[i + 1], edges[i + 2], edges[i + 3]];
-    if (door === 1 || x >= width || y >= height) continue;
+    if (door === 1 || (axis !== 0 && axis !== 1)
+      || !Number.isInteger(x) || !Number.isInteger(y)
+      || x < 0 || y < 0 || x >= width || y >= height) continue;
     walls[y * width + x] |= axis === 0 ? 1 : 2;
   }
   const queue: number[] = [];
@@ -63,10 +69,24 @@ export function buildSkyExposure(
       }
     }
   }
+  // Rear apertures have no exterior floor tile. Their adjacent indoor tile
+  // is one step from virtual sky. Yard seeds stay first (distance zero),
+  // then these seeds (distance one), so the first visit is always brightest.
+  for (let i = 0; i + 2 < windows.length; i += 3) {
+    const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];
+    if (!Number.isInteger(x) || !Number.isInteger(y)
+      || x < 0 || y < 0 || x >= width || y >= height
+      || x >= house[0] || y >= house[1]) continue;
+    const rear = (axis === 0 && x === 0) || (axis === 1 && y === 0);
+    const at = y * width + x;
+    if (!rear || (walls[at] & (axis === 0 ? 1 : 2)) !== 0 || values[at] >= 0) continue;
+    values[at] = Math.max(0, 1 - reachPerTile);
+    queue.push(at);
+  }
   // Every step loses the same amount, so a breadth-first flood from all the
   // open tiles at once reaches each tile first along its shortest open way,
   // which is also its brightest.
-  for (let head = 0; head < queue.length; head++) {
+  for (let head = 0; head < queue.length && head < values.length; head++) {
     const at = queue[head];
     const x = at % width;
     const y = (at - x) / width;
