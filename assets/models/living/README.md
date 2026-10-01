@@ -243,3 +243,31 @@ The persistence ID remains `sofa`, distinct from `long_sofa`.
 
 Candidate 01's source and runtime evidence is recorded in
 `../../../docs/assets/review-evidence/living/ottoman.md`.
+
+## Wall bookcase
+
+`bookcase_layout.py` defines a shallow cabinet with four rows of six books.
+`bookcase_model.py` builds editable bevelled solids in the accepted material
+family. Persistence ID `bookshelf` remains the standing-reading object;
+`reference_shelf` is the unrelated aquarium and must not be changed here.
+
+1. Run the living-model tests, then hidden background Blender with
+   `render_bookcase.py -- NEW_ABSOLUTE_DIR`. Author the back at Y=0.5 and the
+   front toward -Y. Rotate around the tile origin, not the cabinet centre.
+   The shipped back edges are X=-0.5, Y=-0.5, X=0.5 and Y=0.5 for SE/SW/NW/NE.
+2. Run `check_bookcase_scene.py -- ABSOLUTE_MODEL NEW_RESULT`. Require 32
+   closed connected parts, four grounded frame pieces and 41 evaluated
+   contacts. Check overhead clearance independently of shelf support. Nine
+   damaged copies and five deleted guards must be rejected.
+3. Produce the four-facing board with `../kitchen/review_fridge.py DIR LABEL`.
+   Inspect originals and reduced art independently, then append accepted
+   views to `../static-props-04.json`. Preserve earlier crops and metadata.
+4. Run `bookcaseProof()` from `web/proofs/bookcase.js`. Check four facings,
+   midnight lighting, restored colours, preview suppression and picking.
+5. Rotate through production Build controls and compare the restored paused
+   save. Start Read a book through the visible object menu. Standing reading
+   uses visual action 4/activity 8 beside the object, with no furniture socket;
+   the socket-target column therefore remains its no-target sentinel.
+
+Candidate 01's source and runtime evidence is recorded in
+`../../../docs/assets/review-evidence/living/bookcase.md`.

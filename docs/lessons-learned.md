@@ -7774,3 +7774,26 @@ at the API return boundary, before normal frame processing.
 Load and immediately compare component values, render columns, save bytes, world
 hash and clock. The pending command must remain pending. Native and real-WASM
 tests must fail when the final metadata refresh is removed.
+
+## [L-shelf-support-does-not-prove-clearance] Check both sides of a fitted object
+
+**What happened.** Independent bookcase review made a supported book taller
+in memory. The layout tests still passed although it entered the shelf above.
+The candidate itself had 0.002 clearance and needed no art change. An initial
+reading test also incorrectly treated a socket-only render column as a general
+gameplay target, and two proposed picking points missed the intended padding.
+
+**Root cause.** Support and source-derived dimensions do not independently
+establish fit. Render columns and picking bounds have narrower contracts than
+their names suggest.
+
+**Prevention.** Check the actual free space above every supported book as well
+as contact beneath it. Read the projection contract before asserting a target:
+standing reading has no socket. Choose negative picking points inside the
+registered canvas but outside the actual facing's content bounds.
+
+**Verify.** Raise a book's top while preserving its supported bottom; require
+the explicit overhead-clearance failure. Delete that guard and require the
+negative proof to notice. Test standing reading with its exact active queue,
+visual action, activity and ordinary adjacent position. Test front and rear
+padding separately because their projected bounds differ.

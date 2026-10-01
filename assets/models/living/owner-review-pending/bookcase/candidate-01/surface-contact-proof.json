@@ -1,0 +1,241 @@
+{
+  "state": "passed",
+  "closed_connected_parts": 32,
+  "grounded": [
+    "Back panel",
+    "Left side",
+    "Right side",
+    "Base"
+  ],
+  "contacts": {
+    "Left side / Back panel": {
+      "crossing_faces": 49,
+      "contained_point": null
+    },
+    "Right side / Back panel": {
+      "crossing_faces": 51,
+      "contained_point": null
+    },
+    "Base / Back panel": {
+      "crossing_faces": 89,
+      "contained_point": null
+    },
+    "Base / Left side": {
+      "crossing_faces": 87,
+      "contained_point": null
+    },
+    "Base / Right side": {
+      "crossing_faces": 85,
+      "contained_point": null
+    },
+    "Shelf 1 / Back panel": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Shelf 1 / Left side": {
+      "crossing_faces": 25,
+      "contained_point": null
+    },
+    "Shelf 1 / Right side": {
+      "crossing_faces": 28,
+      "contained_point": null
+    },
+    "Shelf 2 / Back panel": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Shelf 2 / Left side": {
+      "crossing_faces": 26,
+      "contained_point": null
+    },
+    "Shelf 2 / Right side": {
+      "crossing_faces": 27,
+      "contained_point": null
+    },
+    "Shelf 3 / Back panel": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Shelf 3 / Left side": {
+      "crossing_faces": 28,
+      "contained_point": null
+    },
+    "Shelf 3 / Right side": {
+      "crossing_faces": 28,
+      "contained_point": null
+    },
+    "Crown / Back panel": {
+      "crossing_faces": 28,
+      "contained_point": null
+    },
+    "Crown / Left side": {
+      "crossing_faces": 29,
+      "contained_point": null
+    },
+    "Crown / Right side": {
+      "crossing_faces": 29,
+      "contained_point": null
+    },
+    "Book 0 0 / Base": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 0 1 / Base": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 0 2 / Base": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 0 3 / Base": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 0 4 / Base": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 0 5 / Base": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 1 0 / Shelf 1": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 1 1 / Shelf 1": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 1 2 / Shelf 1": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 1 3 / Shelf 1": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 1 4 / Shelf 1": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 1 5 / Shelf 1": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 2 0 / Shelf 2": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 2 1 / Shelf 2": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 2 2 / Shelf 2": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 2 3 / Shelf 2": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 2 4 / Shelf 2": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 2 5 / Shelf 2": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 3 0 / Shelf 3": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 3 1 / Shelf 3": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 3 2 / Shelf 3": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 3 3 / Shelf 3": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 3 4 / Shelf 3": {
+      "crossing_faces": 20,
+      "contained_point": null
+    },
+    "Book 3 5 / Shelf 3": {
+      "crossing_faces": 20,
+      "contained_point": null
+    }
+  },
+  "maximum_height": 1.54,
+  "wall_back_y": 0.5,
+  "books": 24,
+  "minimum_overhead_clearance": 0.001999974250793457,
+  "caught_mutations": [
+    {
+      "mutation": "missing book",
+      "rejection": "Part inventory changed"
+    },
+    {
+      "mutation": "floating base",
+      "rejection": "Frame lost ground contact"
+    },
+    {
+      "mutation": "detached shelf",
+      "rejection": "Shelf 1 detached from Back panel"
+    },
+    {
+      "mutation": "floating book",
+      "rejection": "Book 2 4 detached from Shelf 2"
+    },
+    {
+      "mutation": "floating crown",
+      "rejection": "Crown detached from Back panel"
+    },
+    {
+      "mutation": "oversized book",
+      "rejection": "Book 3 1 dimensions changed"
+    },
+    {
+      "mutation": "book through shelf",
+      "rejection": "Book 0 2 penetrates shelf above"
+    },
+    {
+      "mutation": "shifted root",
+      "rejection": "Root moved"
+    },
+    {
+      "mutation": "rotated root",
+      "rejection": "Root rotated"
+    }
+  ],
+  "caught_guard_deletions": [
+    {
+      "deleted_guard": "Frame lost ground contact",
+      "rejection": "floating base failed for wrong reason: Base dimensions changed"
+    },
+    {
+      "deleted_guard": "first} detached from",
+      "rejection": "detached shelf failed for wrong reason: Shelf 1 dimensions changed"
+    },
+    {
+      "deleted_guard": "Root moved",
+      "rejection": "shifted root failed for wrong reason: Back panel dimensions changed"
+    },
+    {
+      "deleted_guard": "Root rotated",
+      "rejection": "rotated root failed for wrong reason: Back panel dimensions changed"
+    },
+    {
+      "deleted_guard": "penetrates shelf above",
+      "rejection": "book through shelf failed for wrong reason: Book 0 2 dimensions changed"
+    }
+  ],
+  "model_sha256": "9483a5f0dbf574ff7942b839c395b7c9dc89f1642b3a1ad8a174c1b870ab0ce5"
+}
