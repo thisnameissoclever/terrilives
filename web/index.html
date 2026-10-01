@@ -671,7 +671,7 @@
         border: 1px solid var(--hud-edge); border-radius: 4px;
         font: inherit; font-size: 14px;
       }
-      .builder-row { display: flex; align-items: center; gap: 8px; }
+      .builder-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
       /* [B-phone-build-dock]: each tool holds its choices, then a footer of
          its status and buttons. On a desktop the choices join the tool's
          own grid and the help lines follow the footer, as they always did. */
@@ -689,11 +689,11 @@
 
       .builder-help { order: 1; }
       .builder-actions { display: grid; gap: 8px; }
-      /* Four tools do not fit one row of the side panel, so two by two. */
-      #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      #build-tools > * { min-width: 0; }
-      .builder-row > * { flex: 1; min-width: 0; }
-      #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
+      /* Let the labels set each tab's width, including with enlarged text. */
+      #build-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+      #build-tools > * { flex: 1 1 auto; min-width: 0; }
+      .builder-row > * { flex: 1 1 auto; min-width: 0; }
+      #builder-controls .hud-button { min-height: 44px; max-width: 100%; font-size: 14px; white-space: normal; overflow-wrap: anywhere; }
       #builder-controls .hud-button:disabled { opacity: 0.5; cursor: default; }
       #builder-status { color: var(--need-fill); }
       #builder-status[data-valid='false'] { color: var(--hud-danger); }
@@ -724,9 +724,7 @@
           position: absolute; width: 1px; height: 1px; overflow: hidden;
           clip-path: inset(50%); white-space: nowrap;
         }
-        /* The four tools share one row. At 320 wide each is about 65
-           pixels, and "Furniture" fits once the side padding is trimmed. */
-        #builder-dock #build-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        /* Trim padding while retaining wrapping at the labels' actual widths. */
         #builder-dock #build-tools .hud-button { padding-inline: 2px; }
         /* Each list's label sits beside it. */
         #builder-dock .builder-choices {
@@ -797,10 +795,6 @@
         #builder-dock .builder-actions {
           flex: none; padding-top: 8px; border-top: 1px solid var(--hud-edge);
         }
-      }
-      @media (max-width: 300px) {
-/* One row of four would be under 60 pixels a tool. */
-        #builder-dock #build-tools { grid-template-columns: 1fr 1fr; }
       }
       /* The right-click flyout. `fixed` rather than `absolute`, because
          the menu is positioned from a MouseEvent's clientX/clientY and

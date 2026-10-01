@@ -42,7 +42,6 @@ describe('the phone Build dock', () => {
 
   const COMPACT = /@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/;
   const TALL = /@media\s*\(max-width:\s*600px\)\s*and\s*\(min-height:\s*481px\)/;
-  const NARROW = /@media\s*\(max-width:\s*300px\)/;
 
   it.each([
     ['builder-status', ['builder-confirm', 'builder-cancel', 'builder-sell', 'builder-sale-note']],
@@ -74,9 +73,7 @@ describe('the phone Build dock', () => {
     expect(compact).toMatch(/#builder-dock #builder-controls\s*\{[^}]*box-sizing:\s*border-box;[^}]*max-height:\s*45dvh;[^}]*overflow-y:\s*auto/);
     // The heading and the paused note leave the view but not the page.
     expect(compact).toMatch(/#builder-dock #builder-name,\s*#builder-dock #builder-paused\s*\{[^}]*position:\s*absolute;[^}]*clip-path:\s*inset\(50%\)/);
-    // The four tools share one row, their side padding trimmed so the
-    // longest label fits at 320 wide.
-    expect(compact).toMatch(/#builder-dock #build-tools\s*\{\s*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/);
+    // Tabs wrap at their label widths; phone padding leaves more room for choices.
     expect(compact).toMatch(/#builder-dock #build-tools \.hud-button\s*\{\s*padding-inline:\s*2px;/);
     // Each list's label sits beside it.
     expect(compact).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);
@@ -143,8 +140,13 @@ describe('the phone Build dock', () => {
     expect(important).toEqual(['#builder-controls[hidden], .builder-tool[hidden]', '#sim-dock [hidden], #sim-dock[hidden]']);
   });
 
-  it('puts the tools back two by two below 301 pixels wide', () => {
-    expect(mediaBlock(NARROW)).toMatch(/#builder-dock #build-tools\s*\{\s*grid-template-columns:\s*1fr 1fr;/);
+  it('wraps Build tabs at their text widths and bounds enlarged control labels', () => {
+    expect(INDEX_HTML).toMatch(/#build-tools\s*\{\s*display:\s*flex;\s*flex-wrap:\s*wrap;\s*gap:\s*8px;/);
+    expect(INDEX_HTML).toMatch(/#build-tools > \*\s*\{\s*flex:\s*1 1 auto;\s*min-width:\s*0;/);
+    expect(INDEX_HTML).toMatch(/#builder-controls \.hud-button\s*\{[^}]*max-width:\s*100%;[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/);
+    expect(INDEX_HTML).toMatch(/\.builder-row\s*\{\s*display:\s*flex;\s*flex-wrap:\s*wrap;/);
+    expect(INDEX_HTML).toMatch(/\.builder-row > \*\s*\{\s*flex:\s*1 1 auto;\s*min-width:\s*0;/);
+    expect(INDEX_HTML).not.toMatch(/#(?:builder-dock #)?build-tools\s*\{[^}]*grid-template-columns/);
   });
 });
 
