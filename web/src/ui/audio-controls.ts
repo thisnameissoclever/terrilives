@@ -4,6 +4,9 @@ export interface AudioSettings {
   effectsLevel(): number;
   previewEffectsLevel(level: number): void;
   setEffectsLevel(level: number): void;
+  voicesLevel(): number;
+  previewVoicesLevel(level: number): void;
+  setVoicesLevel(level: number): void;
 }
 
 export interface AudioMuteButton {
@@ -23,7 +26,7 @@ export interface AudioEffectsValue {
 /**
  * Keeps the accessible audio controls synchronized with one settings owner.
  *
- * The controller stores normalized 0..1 effects levels. The range input uses
+ * The controller stores normalized 0..1 levels. Each range input uses
  * whole percentages because that is what a player can read and adjust without
  * deciphering a decimal that exists only for the implementation's benefit.
  */
@@ -33,6 +36,8 @@ export class AudioControls {
     private readonly muteButton: AudioMuteButton,
     private readonly effectsSlider: AudioEffectsSlider,
     private readonly effectsValue: AudioEffectsValue,
+    private readonly voicesSlider: AudioEffectsSlider,
+    private readonly voicesValue: AudioEffectsValue,
   ) {
     this.reflect();
   }
@@ -64,6 +69,24 @@ export class AudioControls {
     return this.settings.effectsLevel();
   }
 
+  setVoicesPercent(value: string): number {
+    return this.applyVoicesPercent(value, false);
+  }
+
+  previewVoicesPercent(value: string): number {
+    return this.applyVoicesPercent(value, true);
+  }
+
+  private applyVoicesPercent(value: string, preview: boolean): number {
+    const percent = Number(value);
+    if (Number.isFinite(percent)) {
+      if (preview) this.settings.previewVoicesLevel(percent / 100);
+      else this.settings.setVoicesLevel(percent / 100);
+    }
+    this.reflect();
+    return this.settings.voicesLevel();
+  }
+
   /** Re-reads the controller after storage, lifecycle, or external changes. */
   reflect(): void {
     const muted = this.settings.isMuted();
@@ -73,5 +96,9 @@ export class AudioControls {
     this.effectsSlider.value = String(percent);
     this.effectsSlider.setAttribute('aria-valuetext', `${percent}%`);
     this.effectsValue.textContent = `${percent}%`;
+    const voicesPercent = Math.round(this.settings.voicesLevel() * 100);
+    this.voicesSlider.value = String(voicesPercent);
+    this.voicesSlider.setAttribute('aria-valuetext', `${voicesPercent}%`);
+    this.voicesValue.textContent = `${voicesPercent}%`;
   }
 }

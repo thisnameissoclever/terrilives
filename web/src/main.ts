@@ -721,6 +721,10 @@ async function main(): Promise<void> {
   const effectsVolumeValue = document.querySelector<HTMLOutputElement>(
     '#effects-volume-value',
   );
+  const voicesVolume = document.querySelector<HTMLInputElement>('#voices-volume');
+  const voicesVolumeValue = document.querySelector<HTMLOutputElement>(
+    '#voices-volume-value',
+  );
   if (
     !saveButton ||
     !loadButton ||
@@ -739,7 +743,9 @@ async function main(): Promise<void> {
     !confirmLoadGame ||
     !audioMuteButton ||
     !effectsVolume ||
-    !effectsVolumeValue
+    !effectsVolumeValue ||
+    !voicesVolume ||
+    !voicesVolumeValue
   ) {
     throw new Error('missing game action markup');
   }
@@ -750,6 +756,8 @@ async function main(): Promise<void> {
     audioMuteButton,
     effectsVolume,
     effectsVolumeValue,
+    voicesVolume,
+    voicesVolumeValue,
   );
   // Every other fallback may sit in the closed Options panel ([OF2]).
   const persistenceFocusFallbacks = [
@@ -790,6 +798,12 @@ async function main(): Promise<void> {
   effectsVolume.addEventListener('change', () => {
     audioControls.setEffectsPercent(effectsVolume.value);
     audio.emit({ type: 'ui.confirmed' });
+  });
+  voicesVolume.addEventListener('input', () => {
+    audioControls.previewVoicesPercent(voicesVolume.value);
+  });
+  voicesVolume.addEventListener('change', () => {
+    audioControls.setVoicesPercent(voicesVolume.value);
   });
   saveButton.addEventListener('click', () => {
     const saving = persistence.save();

@@ -21,20 +21,26 @@ tones are acceptance candidates, not a permanent sound-design commitment.
 
 ## Current player surface
 
-The HUD exposes two persistent controls:
+The Options menu exposes three persistent controls:
 
 1. `Sound: on/off` is master mute. It changes only the master gain between one
    and zero.
-2. `Effects` is a zero-to-100 percent range for current cues and footsteps. It
+2. `Effects` is a zero-to-100 percent range for all sound, including conversations. It
    previews gain during drag and writes storage once on committed change. Drag
    and release are silent.
+3. `Voices` is a zero-to-100 percent multiplier for recorded conversations only,
+   applied before Effects. Its default is 100%, preserving the existing mix.
+   Dragging previews the level; committed changes persist silently. It does not
+   change footsteps, other activity cadence or the Effects setting.
 
-Both controls remain visible in the desktop HUD and belong to the compact
-mobile HUD. The range is at least 44 CSS pixels tall. The help dialog names both
-controls. Browser storage denial leaves the current session setting usable.
+The controls live in Options on desktop and mobile. Both ranges are at least
+44 CSS pixels tall. The help dialog names the controls. Browser storage denial
+leaves the current session settings usable.
 
-The versioned preference key is `terrilives.audio-preferences.v1`. A malformed,
-partial, out-of-range, or unknown-version record is ignored in full.
+The versioned preference key remains `terrilives.audio-preferences.v1`.
+Malformed original fields or an unknown version discard the record. Existing
+valid records without `voicesLevel` keep their mute and Effects settings and
+default Voices to 100%. An invalid Voices field defaults only that field.
 
 ## Activation and browser lifecycle
 
@@ -65,11 +71,17 @@ partial, out-of-range, or unknown-version record is ignored in full.
 
 The graph is:
 
-`procedural cue or recorded conversation -> effects gain -> master gain -> destination`
+`recorded conversation -> voices gain -> effects gain -> master gain -> destination`
 
-Effects currently controls both cues and recorded conversation. There is no
-separate voice control yet. Future category controls must explicitly define
-migration from this behavior. Mute owns the master gain only.
+`procedural cue -> effects gain -> master gain -> destination`
+
+Effects retains its existing meaning: it controls cues and recorded conversation.
+Voices scales conversations further. Mute owns the master gain only. Changing
+Voices, including crossing zero, leaves bounded conversation transport running
+and does not reset any scheduler. Raising it therefore restores the current
+position, not a restarted clip. Master mute, Effects zero, hidden tabs and world
+replacement retain their existing stop/reset behavior. Library loads use the
+same graph and cannot bypass a zero voice gain.
 
 Each audible cue creates one oscillator and one gain envelope, then disconnects
 both nodes when ended or evicted. Rejection, footstep, and
@@ -676,7 +688,7 @@ Restored SHA-256 values were:
 1. Wire door events to the existing authoritative portal transitions, with
    sound selection and listening review.
 2. Add ambience, object loops, alarms, music, and non-conversation Sim voices.
-3. Add independent music, ambience, and voice controls without changing the
-   current Effects meaning.
+3. Add music and ambience controls when those categories have playable content.
+   Voices now has its own multiplier without changing the Effects meaning.
 4. Replace or refine procedural tones only after the event and lifecycle layer
    passes listening acceptance.

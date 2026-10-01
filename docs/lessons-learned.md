@@ -1,5 +1,23 @@
 # Lessons Learned
 
+## [L-carry-forward-audio-approval] Execute approved routine work without reopening the decision
+
+**What happened.** Automatic continuation turns repeated the pending Voices
+slider and four-pack download questions. The owner approved both and explicitly
+asked for ordinary decisions to use judgment rather than more questions.
+
+**Root cause.** The approval state was not recorded in the intake contract, and
+continuation messages repeated the same request without a new decision to make.
+
+**Prevention rule.** Carry explicit approval into the task's current docs and
+execute the approved work. Do not ask again about the same slider design, pack
+set or routine implementation details. Keep costs, dependencies, destructive
+actions and materially different scope subject to their separate rules.
+
+**How to verify.** The intake spec records the approved set, the results identify
+the downloaded hashes, and the Voices default preserves existing preferences
+and the accepted mix without asking the owner to choose implementation details.
+
 ## [L-conversation-identity-is-not-a-household-mask] Track the actual interaction instance
 
 **What happened.** A second conversation starting or ending could restart an
@@ -5936,10 +5954,15 @@ footstep lifecycle. Two explicit scheduler lists evolved independently: the
 audible re-entry branch and the browser proof's diagnostics. Each list was
 partially updated, so neither represented the complete controller contract.
 
-**Prevention rule.** Every transition from inaudible to audible must call the
+**Prevention rule.** Every global transition from inaudible to audible must call the
 controller's single all-scheduler reset. Every bounded-state proof must sample
 and constrain every retained scheduler's live count and capacity. Adding a
 scheduler requires updating both contracts in the same change.
+
+A category gain adjustment is different: Voices can reach zero while the global
+audio context and simulation remain active. Keep its bounded transport running
+and do not reset unrelated footsteps or personal activity. Master mute, Effects
+zero, backgrounding and world replacement still use the global lifecycle.
 
 **How to verify.** Populate footstep, personal-activity, and object-sound state;
 externally suspend the context; continue sampling while inaudible; then recover

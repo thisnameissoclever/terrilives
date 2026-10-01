@@ -16,7 +16,7 @@ itself on having personality.
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Compact HUD | Sim details; Overview; Queue; People; Traits; Household; Collapse; Expand; Close; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
 | Placement buttons | Confirm; Buy; Cancel, over the piece being placed | `web/index.html`, `web/src/ui/placement-actions.ts` |
-| Options flyout | Options; Close Options; holds Light, Death, Sound, Effects and game actions in the upper-left world group | `web/index.html`, `web/src/ui/options-menu.ts` |
+| Options flyout | Options; Close Options; holds Light, Death, Sound, Effects, Voices and game actions in the upper-left world group | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Build sidebar controls | Build; Exit build, in the upper-left world group on every screen size | `web/index.html`, `web/src/ui/builder-controls.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the eight refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |

@@ -441,12 +441,14 @@
         color: var(--hud-muted);
         font-size: 12px;
       }
+      #voices-volume,
       #effects-volume {
         width: 100%;
         min-width: 0;
         min-height: 44px;
         accent-color: var(--need-fill);
       }
+      #voices-volume-value,
       #effects-volume-value {
         color: var(--hud-text);
         font-variant-numeric: tabular-nums;
@@ -1028,6 +1030,19 @@
           aria-label="Effects volume"
           aria-valuetext="70%"
         />
+        <label class="audio-effects-label" for="voices-volume">
+          Voices <output id="voices-volume-value" for="voices-volume">100%</output>
+        </label>
+        <input
+          id="voices-volume"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value="100"
+          aria-label="Voices volume"
+          aria-valuetext="100%"
+        />
         </section>
         <section id="game-actions" aria-label="Game actions">
         <button id="save-game" class="hud-button" type="button">Save</button>
@@ -1256,7 +1271,7 @@
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
           <li>Open Sim details for needs, mood, career and life satisfaction. Choose Traits to see their traits; Close returns to the compact dock.</li>
           <li>Choose People inside Sim details to see how the selected person feels about everyone else. Household contains New housemate.</li>
-          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game and Help. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets cue and footstep volume.</li>
+          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game and Help. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
         </ol>
       </div>
       <div id="help-actions">

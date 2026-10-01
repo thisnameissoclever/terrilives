@@ -1,7 +1,9 @@
 # CC0 audio intake
 
-Status: exact pack approval is pending. No third-party audio has been accepted,
-copied into the game, or added to repository history.
+Status: the owner approved all four packs on 2026-09-30. Download and archive
+inventory are complete. Five water-related files passed browser decoding and
+level screening; listening and sound selection remain unfinished. No third-party
+audio has been copied into the game or added to repository history.
 
 ## Decision
 
@@ -73,6 +75,11 @@ earlier completed archives. Archives are intake material, not game assets, and
 the tool never extracts or commits them.
 
 ## Selection workflow
+
+The approved intake is recorded in `2026-09-30-cc0-audio-intake-results.md`.
+Do not ask again to download this exact set or to perform routine selection
+work. Keep new costs, dependencies and replacement of accepted sounds within
+their existing approval boundaries.
 
 After an approved fetch:
 
