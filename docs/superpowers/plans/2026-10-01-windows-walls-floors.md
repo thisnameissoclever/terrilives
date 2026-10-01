@@ -546,20 +546,20 @@ without guessing its occupied width or losing part of an existing window.
 **Consumes:** Expanded window lines, rear-shell descriptors and current daylight tuning.
 **Produces:** Daylight exposure for every legal aperture with no nighttime window source.
 
-- [ ] Extend `buildSkyExposure` with an optional window-line argument for rear
+- [x] Extend `buildSkyExposure` with an optional window-line argument for rear
   shell apertures; default to an empty list for existing callers. Ordinary
   window lines already pass the sky because they are absent from solid edges.
-- [ ] Seed each in-bounds rear-adjacent cell at `max(0, 1 - reachPerTile)` from
+- [x] Seed each in-bounds rear-adjacent cell at `max(0, 1 - reachPerTile)` from
   virtual outside sky. Keep solid shell cells unseeded. Internal windows never
   seed light themselves. Use a bounded flood and only valid tile indices.
-- [ ] Keep the current per-frame multiplier `interiorDaylightShade * sunStrength(ambient)`.
+- [x] Keep the current per-frame multiplier `interiorDaylightShade * sunStrength(ambient)`.
   Rebuild exposure on relevant lot revision/Load, not every frame. Use all covered
   window lines for lamp blocking, including rotated/multi-unit models.
-- [ ] Tests use a sealed room control and exactly one changed aperture. Assert
+- [x] Tests use a sealed room control and exactly one changed aperture. Assert
   increased indoor exposure at noon, attenuation with distance, broader coverage
   for a three-unit span, and unchanged exposure through an interior-only window
   between two sealed dark rooms. Then add an external source and prove propagation.
-- [ ] Pin the daily multiplier with the actual `ambientFor(tick, dayTicks)` API:
+- [x] Pin the daily multiplier with the actual `ambientFor(tick, dayTicks)` API:
 
 ```ts
 expect(sunStrength(ambientFor(0, 1440))).toBe(0);
@@ -569,7 +569,7 @@ expect(sunStrength(ambientFor(720, 1440))).toBe(1);
   Compare identical no-lamp rooms with and without
   windows: floor lighting must match. Check dawn/dusk continuity, Flat mode,
   reduced-motion override, lamp blocking and world-hash independence.
-- [ ] Run the daylight/sky/lighting suites, then read actual GPU room pixels at
+- [x] Run the daylight/sky/lighting suites, then read actual GPU room pixels at
   noon, dusk and midnight. Removing the night multiplier or incorrectly seeding
   an internal window must fail the corresponding regression check.
 
