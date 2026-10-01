@@ -64,7 +64,7 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
   },
   footstep: {
     durationSeconds: 0.04,
-    peakGain: 0.045,
+    peakGain: 0.0225,
     startHz: 175,
     endHz: 130,
     oscillator: 'triangle',

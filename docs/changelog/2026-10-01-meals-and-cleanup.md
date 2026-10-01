@@ -48,3 +48,4 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 ## Sound
 - Doors open silently and close with a softer thud.
 - Running sinks and cooking have their own recorded sounds.
+- Footsteps are quieter.
