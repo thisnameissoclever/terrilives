@@ -25,3 +25,12 @@ The task-owned localhost save uses public simulation commands and an empty save 
 3. Assignment controls remain usable at 390 by 844 and 320 by 568. Keyboard focus reaches Clear assignment on the short phone. The document has no horizontal overflow at widths 320 and 800. Screenshots retain desktop, phone, one-sleeper departure and restored-load views. The game is muted and task-owned pages are closed after verification.
 
 The reference generator is [make-covered-bed-gpu-reference.py](make-covered-bed-gpu-reference.py). Run it from the repository root, start Vite from `web`, then open `/proofs/covered-bed.html`. The generated reference is ignored and is not a production asset. `/proofs/covered-bed-sum.html` runs the alpha denominator control. `/proofs/covered-bed-played.html` prepares an isolated test save only when its origin's slot is empty. These checks establish local runtime behavior; deployment is verified separately after merge.
+
+## Final integration checks
+
+The release integrates main `93968a17` and export clarification `f7e74963`. The main change affects the changelog, its writing rules and presentation, rather than game simulation. The sleeping-place note is consolidated into the existing October 1 entry as those rules require.
+
+1. `python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'`: PASS, exit 0, 130 tests. Its first run found missing physical-layer padding bounds and a furniture-only assumption in the composite alias check. The generator now adds bounds after importing layers; the test independently unions physical layer alpha support. The original failure and restored pass logs are retained.
+2. `python assets/sprites/gen/build.py --check`: PASS, exit 0, 1,833 sprites at 8,192 by 6,096. All six model test groups from CI pass with exit 0, as recorded in the model log.
+3. `npm --prefix web run typecheck`: PASS, exit 0. The full web suite after main integration passes again: 1,797 tests in 123 files. `node --test scripts/build-changelog.test.mjs`: PASS, exit 0, 12 tests. `node scripts/build-changelog.mjs` and `npm --prefix web run build`: PASS, exit 0. The existing large-chunk advisory remains; it is not a build failure.
+4. `python check-doc-ids.py` and `git diff --check`: PASS, exit 0. Independent adversarial source review recommends release after the full Python suite; that suite has passed. The GPU and atlas hashes remain unchanged after the bounds metadata correction. The generated notes show the new sleeping-place controls with no horizontal overflow on the short phone.

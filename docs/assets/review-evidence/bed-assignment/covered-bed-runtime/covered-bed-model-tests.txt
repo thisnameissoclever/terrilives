@@ -1,0 +1,40 @@
+.............................
+----------------------------------------------------------------------
+Ran 29 tests in 1.638s
+
+OK
+......D:\VIBES\.worktrees\2301\terrilives\assets\models\furniture\layer_partition.py:22: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for sim, prop, ink in zip(body.getdata(), furniture.getdata(), outline.getdata()):
+D:\VIBES\.worktrees\2301\terrilives\assets\models\furniture\export_contributions.py:54: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for left,right in zip(actual.getdata(),reference.getdata()) if left[3] or right[3])
+........................
+----------------------------------------------------------------------
+Ran 30 tests in 1.783s
+
+OK
+...............
+----------------------------------------------------------------------
+Ran 15 tests in 0.668s
+
+OK
+PASS: four hashed, padded source views; review sheet uses only resampling and layout.
+PASS: four hashed, padded source views; review sheet uses only resampling and layout.
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.013s
+
+OK
+..............D:\VIBES\.worktrees\2301\terrilives\assets\models\bedroom\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for parts in zip(*(image.getdata() for image in layers)):
+..D:\VIBES\.worktrees\2301\terrilives\assets\models\bedroom\double_bed_layers.py:9: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for values in zip(*(layer.getdata() for layer in layers), outline.getdata()):
+............
+----------------------------------------------------------------------
+Ran 28 tests in 0.062s
+
+OK
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK

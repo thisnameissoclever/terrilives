@@ -9100,3 +9100,12 @@ writer cannot replace an existing terminal result.
 **Prevention.** Describe what a player can do or notice, preserve feature restrictions, and keep implementation and review evidence in internal documentation. Consolidate same-day changes. The generator rejects common development references and duplicate dates. These checks supplement editorial review; they cannot decide whether a sentence matters to a player. Respect an explicit mockup approval boundary before implementing a new design.
 
 **Verify.** Build the real history with no PR or commit references. Deliberately remove the copy and date guards and confirm their tests fail. Inspect the approved accordion on desktop and phone in both themes, confirm dark is the fresh default and light persists, and open both current and historical links.
+## [L-composite-atlas-bounds] Complete atlas metadata after appending physical layers
+
+**What happened.** The full atlas suite rejected covered-bed layers without padding bounds and scene bounds measured against furniture-only alias texels.
+
+**Root cause.** New physical images were appended after the existing bounds pass. A composite alias reuses one layer's texture rectangle while rendering several layers, so the historical single-image assertion no longer measured its actual silhouette.
+
+**Prevention.** Finish physical-layer metadata before packing. Retain the shared scene's combined bounds, and independently measure its support from all visible layer images. Preserve old records and Sim whole-canvas exclusions.
+
+**Verify.** The original full-suite failures name the missing physical records and mismatched scene aliases. The corrected atlas passes all 130 generator tests, including the independently pinned original sprite prefix.
