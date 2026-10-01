@@ -45,8 +45,8 @@ struct Uniforms {
   // multiplies by the camera scale below, so this stays half a tile at
   // every zoom.
   anchor: vec2<f32>,
-  // The camera zoom in x; yzw are padding to the 16-byte uniform
-  // stride, so the scale sits at offset 16 and `ambient` at 32.
+  // Camera zoom in x, shared architecture camera origin in yz, padding in w.
+  // The scale sits at offset 16 and `ambient` at 32.
   //
   // Instance POSITIONS arrive already scaled - `screenX`/`screenY` bake
   // the zoom into the world term on the CPU, for statics and entities
@@ -99,6 +99,8 @@ struct Atlas {
 @group(0) @binding(1) var<storage, read> atlas: Atlas;
 @group(0) @binding(2) var atlasSampler: sampler;
 @group(0) @binding(3) var atlasTexture: texture_2d<f32>;
+@group(0) @binding(4) var architectureDepth: texture_2d<f32>;
+@group(0) @binding(5) var architectureColor: texture_2d<f32>;
 
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
@@ -142,7 +144,17 @@ fn vs(
   // scales with the camera; the instance position already did on the CPU.
   let scale = u.scale.x;
   let topLeft = instance.xy + (u.anchor - vec2f(size.x * 0.5, size.y)) * scale;
-  let screen = topLeft + corner * size * scale;
+  var screen = topLeft + corner * size * scale;
+  var textureCorner = corner;
+  if (wall.x == -3.0) {
+    // A canonical world corner is computed identically by both adjacent tiles.
+    // The hardware triangle fill rule owns their shared edge; independent
+    // fragment predicates from separately rounded centers cannot open a seam.
+    let ground = wall.zw + corner - vec2f(0.5);
+    screen = u.scale.yz + vec2f((ground.x-ground.y)*32.0,
+      (ground.x+ground.y)*21.0) * scale;
+    textureCorner = (screen-topLeft) / (size*scale);
+  }
 
   // Screen pixels to clip space. Y is flipped because screen space
   // grows downward and clip space grows upward.
@@ -153,12 +165,12 @@ fn vs(
 
   var out: VertexOut;
   out.clip = vec4f(clipXy, instance.z, 1.0);
-  out.uv = mix(sprite.uv.xy, sprite.uv.zw, corner);
+  out.uv = mix(sprite.uv.xy, sprite.uv.zw, textureCorner);
   out.uvBounds = sprite.uv;
-  out.corner = corner;
+  out.corner = textureCorner;
   out.pair = vec2u(sprite.size.zw);
   out.tint = tint;
-  out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + corner * size;
+  out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + textureCorner * size;
   out.wall = wall;
   out.colourway = colourway;
   return out;
@@ -235,6 +247,23 @@ fn fs(in: VertexOut) -> FragmentOut {
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
   var colour = textureSample(atlasTexture, atlasSampler, uv);
+  let architectureFloor = in.wall.x == -3.0;
+  let architecture = in.wall.x == -2.0 || architectureFloor;
+  var architecturePixel = vec2i(0);
+  if (architecture) {
+    let architectureSize = vec2f(textureDimensions(architectureColor));
+    let architectureUv = clamp(in.uv, in.uvBounds.xy + vec2f(0.5) / architectureSize,
+      in.uvBounds.zw - vec2f(0.5) / architectureSize);
+    architecturePixel = vec2i(floor(architectureUv * architectureSize));
+    // Color coverage and depth have the same nearest-texel owner, including
+    // antialiased and silhouette pixels. No filtered depth crosses a reveal.
+    colour = textureLoad(architectureColor, architecturePixel, 0);
+    if (architectureFloor) {
+      // The vertex stage already supplies exact physical coverage. The material
+      // apron protects sampling at the silhouette without expanding geometry.
+      colour.a = 1.0;
+    }
+  }
   if (in.pair.x > 0u) {
     let furniture = atlas.sprites[in.pair.x - 1u];
     let outline = atlas.sprites[in.pair.y - 1u];
@@ -296,7 +325,11 @@ fn fs(in: VertexOut) -> FragmentOut {
   var out: FragmentOut;
   out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
   out.depth = in.clip.z;
-  if (in.wall.x > 0.0) {
+  if (architecture) {
+    let localSum = textureLoad(architectureDepth, architecturePixel, 0).r;
+    out.depth = clamp(in.clip.z - localSum * in.wall.y, 0.0, 1.0);
+    if (!architectureFloor && in.wall.w > 0.0) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x > 0.0) {
     let short = in.wall.w > 0.0;
     let height = select(76.0, in.wall.w, short);
     out.depth = clamp(in.clip.z - wallSumOffset(in.localPixel, u32(in.wall.x), height) * in.wall.y, 0.0, 1.0);

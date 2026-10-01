@@ -1,0 +1,268 @@
+{
+  "result": {
+    "pass": false,
+    "error": null,
+    "results": [
+      {
+        "surface": "front face",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.2215625,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.20619029453822554,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "front face",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.13714285714286234,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.2799923706054699,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.1485790579659465,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.005721915108807707,
+        "expectedSum": 0.22999981834774935,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "front face",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.086666666666666,
+        "expectedSum": 0.2215625,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.086666666666666,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.08667429606120436,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.24665903727213845,
+        "expectedSum": 0.20619029453822554,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1,
+        "origin": [
+          230,
+          112
+        ],
+        "checked": 11304,
+        "holes": 0,
+        "outsideChecked": 2260,
+        "leaks": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1,
+        "origin": [
+          320.37,
+          240.37
+        ],
+        "checked": 11303,
+        "holes": 0,
+        "outsideChecked": 2257,
+        "leaks": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "checked": 11300,
+        "holes": 0,
+        "outsideChecked": 2250,
+        "leaks": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1.75,
+        "origin": [
+          402.5,
+          196
+        ],
+        "checked": 34617,
+        "holes": 8,
+        "outsideChecked": 6916,
+        "leaks": 0,
+        "pass": false
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1.75,
+        "origin": [
+          320.37,
+          240.37
+        ],
+        "checked": 34612,
+        "holes": 0,
+        "outsideChecked": 6910,
+        "leaks": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1.75,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "checked": 34619,
+        "holes": 12,
+        "outsideChecked": 6920,
+        "leaks": 0,
+        "pass": false
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 3,
+        "origin": [
+          690,
+          336
+        ],
+        "checked": 34230,
+        "holes": 0,
+        "outsideChecked": 9062,
+        "leaks": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 3,
+        "origin": [
+          320.37,
+          240.37
+        ],
+        "checked": 101723,
+        "holes": 0,
+        "outsideChecked": 20312,
+        "leaks": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 3,
+        "origin": [
+          320.5,
+          240.25
+        ],
+        "checked": 101731,
+        "holes": 0,
+        "outsideChecked": 20328,
+        "leaks": 0,
+        "pass": true
+      }
+    ],
+    "measurements": {
+      "uploadMilliseconds": 891.1599999964237,
+      "renderMilliseconds": 0.2473333328962326,
+      "historicalRenderMilliseconds": 0.37716666658719383,
+      "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+      "colorTextureBytes": 5128192,
+      "depthTextureBytes": 2564096,
+      "historicalSpriteCount": 1700,
+      "trialSpriteCount": 29
+    },
+    "room": {
+      "scale": 1,
+      "cutaway": true,
+      "staticCount": 38,
+      "lowCount": 12,
+      "referenceCount": 4,
+      "desk": [
+        1,
+        0.1
+      ],
+      "occupiedBed": [
+        3.5,
+        2
+      ],
+      "standingSim": [
+        1.5,
+        3.5
+      ]
+    }
+  },
+  "visibility": {
+    "state": "visible",
+    "focus": true
+  },
+  "timestamp": "2026-10-01T16:59:16.379Z",
+  "browser": "154.0.8037.58"
+}

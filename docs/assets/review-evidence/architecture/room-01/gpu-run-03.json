@@ -1,0 +1,241 @@
+{
+  "result": {
+    "pass": true,
+    "error": null,
+    "results": [
+      {
+        "surface": "front face",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.2215625,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 1,
+        "sourceBoundaryDistance": 0.2599999999999909,
+        "expectedSum": 0.20619029453822554,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "front face",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.13714285714286234,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.2799923706054699,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.1485790579659465,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 1.75,
+        "sourceBoundaryDistance": 0.005721915108807707,
+        "expectedSum": 0.22999981834774935,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "front face",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.086666666666666,
+        "expectedSum": 0.2215625,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "back face after rotation",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.086666666666666,
+        "expectedSum": 0.2059375,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "top cap",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.08667429606120436,
+        "expectedSum": 0.20238077072870164,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "sill",
+        "scale": 3,
+        "sourceBoundaryDistance": 0.24665903727213845,
+        "expectedSum": 0.20619029453822554,
+        "frontWins": true,
+        "wallWins": true,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1,
+        "checked": 11303,
+        "holes": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 1.75,
+        "checked": 34612,
+        "holes": 0,
+        "pass": true
+      },
+      {
+        "surface": "joined carpet coverage",
+        "scale": 3,
+        "checked": 101723,
+        "holes": 0,
+        "pass": true
+      }
+    ],
+    "measurements": {
+      "uploadMilliseconds": 412.82499998807907,
+      "renderMilliseconds": 0.16350000003973644,
+      "historicalRenderMilliseconds": 0.22349999944368998,
+      "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+      "colorTextureBytes": 5128192,
+      "depthTextureBytes": 2564096,
+      "historicalSpriteCount": 1700,
+      "trialSpriteCount": 29
+    },
+    "room": {
+      "scale": 1,
+      "cutaway": true,
+      "staticCount": 38,
+      "lowCount": 12,
+      "referenceCount": 4,
+      "desk": [
+        1,
+        0.1
+      ],
+      "occupiedBed": [
+        3.5,
+        2
+      ],
+      "standingSim": [
+        1.5,
+        3.5
+      ]
+    }
+  },
+  "messages": [
+    "[vite] connecting...",
+    "[vite] connected.",
+    "Architecture proof: Acquire GPU",
+    "Architecture proof: Fetch trial color",
+    "Architecture proof: Decode trial color",
+    "Architecture proof: Fetch trial depth",
+    "Architecture proof: Create SpriteRenderer",
+    "Architecture proof: Read carpet reference pixels",
+    "Architecture proof: Depth probe front face at 1",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe back face after rotation at 1",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe top cap at 1",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe sill at 1",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe front face at 1.75",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe back face after rotation at 1.75",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe top cap at 1.75",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe sill at 1.75",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe front face at 3",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe back face after rotation at 3",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe top cap at 3",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Depth probe sill at 3",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Joined carpet at 1",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Read joined carpet at 1",
+    "Architecture proof: Joined carpet at 1.75",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Read joined carpet at 1.75",
+    "Architecture proof: Joined carpet at 3",
+    "Architecture proof: Complete probe draw",
+    "Architecture proof: Read joined carpet at 3",
+    "Architecture proof: Build historical room control",
+    "Architecture proof: Complete historical room timing",
+    "Architecture proof: Complete trial room timing",
+    "Architecture proof: Resolve GPU validation",
+    "Architecture proof: Complete"
+  ],
+  "timestamp": "2026-10-01T16:51:19.966Z",
+  "browser": "154.0.8037.58"
+}

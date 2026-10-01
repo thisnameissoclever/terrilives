@@ -1,0 +1,200 @@
+{
+  "results": [
+    {
+      "pass": false,
+      "error": null,
+      "results": [
+        {
+          "surface": "front face",
+          "scale": 1,
+          "expectedSum": 0.2215625,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "back face after rotation",
+          "scale": 1,
+          "expectedSum": 0.2059375,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "top cap",
+          "scale": 1,
+          "expectedSum": 0.20238077072870164,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "sill",
+          "scale": 1,
+          "expectedSum": 0.20619029453822554,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "front face",
+          "scale": 1.75,
+          "expectedSum": 0.2215625,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "back face after rotation",
+          "scale": 1.75,
+          "expectedSum": 0.2059375,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "top cap",
+          "scale": 1.75,
+          "expectedSum": 0.20238077072870164,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "sill",
+          "scale": 1.75,
+          "expectedSum": 0.20619029453822554,
+          "frontWins": true,
+          "wallWins": false,
+          "pass": false
+        },
+        {
+          "surface": "front face",
+          "scale": 3,
+          "expectedSum": 0.2059375,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "back face after rotation",
+          "scale": 3,
+          "expectedSum": 0.2059375,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "top cap",
+          "scale": 3,
+          "expectedSum": 0.20238077072870164,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        },
+        {
+          "surface": "sill",
+          "scale": 3,
+          "expectedSum": 0.20619029453822554,
+          "frontWins": true,
+          "wallWins": true,
+          "pass": true
+        }
+      ],
+      "measurements": {
+        "uploadMilliseconds": 259.3149999976158,
+        "renderMilliseconds": 0.20650000075499217,
+        "colorTextureBytes": 5140480,
+        "depthTextureBytes": 2570240,
+        "historicalSpriteCount": 1700,
+        "trialSpriteCount": 29
+      },
+      "room": {
+        "scale": 1,
+        "cutaway": true,
+        "staticCount": 38,
+        "lowCount": 12,
+        "referenceCount": 4,
+        "desk": [
+          1,
+          0.1
+        ],
+        "occupiedBed": [
+          3.5,
+          2
+        ],
+        "standingSim": [
+          1.5,
+          3.5
+        ]
+      }
+    },
+    {
+      "pass": true,
+      "error": null,
+      "results": [],
+      "measurements": {
+        "uploadMilliseconds": 289.0799999833107,
+        "renderMilliseconds": 2.76566666662693,
+        "colorTextureBytes": 5140480,
+        "depthTextureBytes": 2570240,
+        "historicalSpriteCount": 1700,
+        "trialSpriteCount": 29
+      },
+      "room": {
+        "scale": 3,
+        "cutaway": true,
+        "staticCount": 38,
+        "lowCount": 12,
+        "referenceCount": 4,
+        "desk": [
+          1,
+          0.1
+        ],
+        "occupiedBed": [
+          3.5,
+          2
+        ],
+        "standingSim": [
+          1.5,
+          3.5
+        ]
+      }
+    },
+    {
+      "pass": true,
+      "error": null,
+      "results": [],
+      "measurements": {
+        "uploadMilliseconds": 231.72499999403954,
+        "renderMilliseconds": 1.5633333335320154,
+        "colorTextureBytes": 5140480,
+        "depthTextureBytes": 2570240,
+        "historicalSpriteCount": 1700,
+        "trialSpriteCount": 29
+      },
+      "room": {
+        "scale": 1,
+        "cutaway": false,
+        "staticCount": 50,
+        "lowCount": 0,
+        "referenceCount": 4,
+        "desk": [
+          1,
+          0.1
+        ],
+        "occupiedBed": [
+          3.5,
+          2
+        ],
+        "standingSim": [
+          1.5,
+          3.5
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "visibility": "visible",
+  "browser": "154.0.8037.58"
+}

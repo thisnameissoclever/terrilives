@@ -23,6 +23,7 @@ import {
 import { TILE_HALF_HEIGHT } from './iso.js';
 import { AMBIENT_NEUTRAL, type Ambient } from './daylight.js';
 import shaderSource from './sprites.wgsl?raw';
+import { validateArchitectureAtlas, type ArchitectureAtlas } from './architecture-atlas.js';
 
 const INITIAL_CAPACITY = 4096;
 
@@ -212,8 +213,8 @@ export class SpriteRenderer {
    * Scratch for the per-frame uniform upload, allocated once and mutated
    * in place. Layout matches `struct Uniforms` in `sprites.wgsl`:
    * viewport x, viewport y, anchor x, anchor y, then the camera scale at
-   * float 4 (byte offset 16) with three floats of padding to the 16-byte
-   * uniform stride.
+   * float 4 (byte offset 16), the shared architecture camera origin at 5/6,
+   * and one float of padding to the 16-byte uniform stride.
    *
    * [D11] forbids per-frame allocation on the render path, and this is
    * the one allocation there that **no optimiser can remove**: the array
@@ -262,14 +263,19 @@ export class SpriteRenderer {
    * finished by the time this resolves, so no frame can ever sample an
    * empty texture.
    */
-  static async create(gpu: GpuContext): Promise<SpriteRenderer> {
+  static async create(gpu: GpuContext, architecture?: ArchitectureAtlas): Promise<SpriteRenderer> {
+    if (architecture) {
+      validateArchitectureAtlas(architecture);
+      validateAtlasDimensions(architecture.width, architecture.height, gpu.device.limits.maxTextureDimension2D);
+    }
     const texture = await loadAtlasTexture(gpu.device);
-    return new SpriteRenderer(gpu, texture);
+    return new SpriteRenderer(gpu, texture, architecture);
   }
 
   private constructor(
     private readonly gpu: GpuContext,
     atlasTexture: GPUTexture,
+    architecture?: ArchitectureAtlas,
   ) {
     const module = gpu.device.createShaderModule({ code: shaderSource });
     const bindGroupLayout = gpu.device.createBindGroupLayout({ entries: [
@@ -277,6 +283,8 @@ export class SpriteRenderer {
       { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
       { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } },
+      { binding: 5, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -364,13 +372,25 @@ export class SpriteRenderer {
 
     // The sprite table never changes after this: the atlas is a
     // committed artifact, so its rects are fixed for the session.
-    const spriteTable = packSpriteTable();
+    const historical = packSpriteTable();
+    const extra = architecture ? packSpriteTable(architecture.sprites, architecture.width, architecture.height, {}, {}) : new Float32Array();
+    const spriteTable = new Float32Array(historical.length + extra.length);
+    spriteTable.set(historical); spriteTable.set(extra, historical.length);
     this.spriteBuffer = gpu.device.createBuffer({
       size: spriteTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     gpu.device.queue.writeBuffer(this.spriteBuffer, 0, spriteTable);
 
+    const architectureSize = { width: architecture?.width ?? 1, height: architecture?.height ?? 1 };
+    const architectureDepth = gpu.device.createTexture({ size: architectureSize,
+      format: 'r16float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+    gpu.device.queue.writeTexture({ texture: architectureDepth }, architecture?.depth ?? new Uint16Array(1),
+      { bytesPerRow: architectureSize.width * 2 }, architectureSize);
+    const architectureColor = gpu.device.createTexture({ size: architectureSize, format: 'rgba8unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
+    if (architecture) gpu.device.queue.copyExternalImageToTexture({ source: architecture.color },
+      { texture: architectureColor }, architectureSize);
     this.bindGroup = gpu.device.createBindGroup({
       layout: this.pipeline.getBindGroupLayout(0),
       entries: [
@@ -391,6 +411,8 @@ export class SpriteRenderer {
         // The bind group keeps the texture alive, so nothing here holds
         // a second reference to it.
         { binding: 3, resource: atlasTexture.createView() },
+        { binding: 4, resource: architectureDepth.createView() },
+        { binding: 5, resource: architectureColor.createView() },
       ],
     });
   }
@@ -419,6 +441,12 @@ export class SpriteRenderer {
     this.lowWallCount = lowWalls.length / FLOATS_PER_INSTANCE;
     this.ensureCapacity(count);
     this.uploadStatic();
+  }
+
+  /** Shared camera origin for opt-in canonical floor vertices. Ordinary sprites ignore it. */
+  setArchitectureCamera(originX: number, originY: number): void {
+    this.uniformData[5] = originX;
+    this.uniformData[6] = originY;
   }
 
   private uploadStatic(): void {

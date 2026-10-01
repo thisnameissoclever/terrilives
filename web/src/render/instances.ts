@@ -89,6 +89,10 @@ export const OFFSET_SHADE = 15;
 export const COLOURWAY_ATTRIBUTE_OFFSET =
   OFFSET_COLOURWAY_HUE * Float32Array.BYTES_PER_ELEMENT;
 export const FOOTPRINT_PROJECTION = -1;
+/** Opt-in local X + Y texture; never interpreted as a furniture footprint. */
+export const ARCHITECTURE_DEPTH = -2;
+/** Exact physical tile coverage with historical fixed floor depth. */
+export const ARCHITECTURE_FLOOR = -3;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */
@@ -246,6 +250,28 @@ export function growCapacity(current: number, needed: number): number {
  */
 export function writeShade(out: Float32Array, index: number, shade: number): void {
   out[index * FLOATS_PER_INSTANCE + OFFSET_SHADE] = shade;
+}
+
+/** Call after writeInstance. Cut surfaces share the existing low-wall draw. */
+export function writeArchitectureDepth(
+  out: Float32Array, index: number, depthStep: number, opacity = 1, cutaway = false,
+): void {
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_WALL_MASK] = ARCHITECTURE_DEPTH;
+  out[base + OFFSET_WALL_DEPTH_STEP] = depthStep;
+  out[base + OFFSET_WALL_OPACITY] = opacity;
+  out[base + OFFSET_WALL_HEIGHT] = cutaway ? 1 : 0;
+}
+
+/** Canonical tile coordinates let neighboring floor quads share exact vertices. */
+export function writeArchitectureFloor(
+  out: Float32Array, index: number, tileX: number, tileY: number,
+): void {
+  const base = index * FLOATS_PER_INSTANCE;
+  out[base + OFFSET_WALL_MASK] = ARCHITECTURE_FLOOR;
+  out[base + OFFSET_WALL_DEPTH_STEP] = 0;
+  out[base + OFFSET_WALL_OPACITY] = tileX;
+  out[base + OFFSET_WALL_HEIGHT] = tileY;
 }
 
 /**

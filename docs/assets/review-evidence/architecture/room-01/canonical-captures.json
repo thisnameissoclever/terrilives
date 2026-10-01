@@ -1,0 +1,127 @@
+{
+  "captures": [
+    {
+      "name": "canonical-cutaway-3x.png",
+      "pass": true,
+      "error": null,
+      "results": [],
+      "measurements": {
+        "uploadMilliseconds": 242.52500000596046,
+        "renderMilliseconds": 0.16233333349227905,
+        "historicalRenderMilliseconds": 4.355000000198682,
+        "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+        "colorTextureBytes": 5128192,
+        "depthTextureBytes": 2564096,
+        "historicalSpriteCount": 1700,
+        "trialSpriteCount": 29
+      },
+      "room": {
+        "scale": 3,
+        "cutaway": true,
+        "staticCount": 38,
+        "lowCount": 12,
+        "referenceCount": 4,
+        "desk": [
+          1,
+          0.1
+        ],
+        "occupiedBed": [
+          3.5,
+          2
+        ],
+        "standingSim": [
+          1.5,
+          3.5
+        ]
+      }
+    },
+    {
+      "name": "canonical-cutaway-1.75x.png",
+      "pass": true,
+      "error": null,
+      "results": [],
+      "measurements": {
+        "uploadMilliseconds": 239.6899999976158,
+        "renderMilliseconds": 0.14833333392937978,
+        "historicalRenderMilliseconds": 2.2518333325783413,
+        "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+        "colorTextureBytes": 5128192,
+        "depthTextureBytes": 2564096,
+        "historicalSpriteCount": 1700,
+        "trialSpriteCount": 29
+      },
+      "room": {
+        "scale": 1.75,
+        "cutaway": true,
+        "staticCount": 38,
+        "lowCount": 12,
+        "referenceCount": 4,
+        "desk": [
+          1,
+          0.1
+        ],
+        "occupiedBed": [
+          3.5,
+          2
+        ],
+        "standingSim": [
+          1.5,
+          3.5
+        ]
+      }
+    },
+    {
+      "name": "canonical-full-3x.png",
+      "pass": true,
+      "error": null,
+      "results": [],
+      "measurements": {
+        "uploadMilliseconds": 199.5649999976158,
+        "renderMilliseconds": 0.16216666698455812,
+        "historicalRenderMilliseconds": 0.7461666663487753,
+        "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+        "colorTextureBytes": 5128192,
+        "depthTextureBytes": 2564096,
+        "historicalSpriteCount": 1700,
+        "trialSpriteCount": 29
+      },
+      "room": {
+        "scale": 3,
+        "cutaway": false,
+        "staticCount": 50,
+        "lowCount": 0,
+        "referenceCount": 4,
+        "desk": [
+          1,
+          0.1
+        ],
+        "occupiedBed": [
+          3.5,
+          2
+        ],
+        "standingSim": [
+          1.5,
+          3.5
+        ]
+      }
+    }
+  ],
+  "regression": [
+    {
+      "name": "wallOcclusionProof",
+      "pass": true,
+      "error": null,
+      "count": 171,
+      "failures": []
+    },
+    {
+      "name": "cutawayWallProof",
+      "pass": true,
+      "error": null,
+      "count": 127,
+      "failures": []
+    }
+  ],
+  "visibility": "visible",
+  "timestamp": "2026-10-01T17:10:25.867Z"
+}
