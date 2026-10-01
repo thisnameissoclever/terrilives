@@ -28,10 +28,13 @@ function runsWithDoors(doorTracks) {
       conversationVoices: 0, retainedConversationVoices: 0,
       objectLoopVoices: 0, retainedObjectLoopVoices: 0,
       doorVoices: 0, doorTracks: 0, doorCapacity: audioEnabled ? 4 : 0,
+      ambienceVoices: 0, retainedAmbienceVoices: 0, ambienceStarts: 0,
       domDocuments: 1, domNodes: 100, eventListeners: 20,
     };
     return {repetition, audioEnabled, samples: [{...common},
-      {...common, doorTracks: audioEnabled ? doorTracks : 0}, {...common}]};
+      {...common, doorTracks: audioEnabled ? doorTracks : 0,
+        ambienceVoices: audioEnabled ? 1 : 0, retainedAmbienceVoices: audioEnabled ? 1 : 0,
+        ambienceStarts: audioEnabled ? 1 : 0}, {...common, ambienceStarts: audioEnabled ? 1 : 0}]};
   }));
 }
 
@@ -43,6 +46,18 @@ test('memory acceptance needs exercised doors and rejects retained door growth o
     runs[0].samples[1][field] = value;
     expect(proof.analyseMemory(runs).structuralPass, field).toBe(false);
   }
+});
+test('memory acceptance requires positive room playback and complete bounded drained ownership', () => {
+  for (const [field, value] of [['ambienceVoices', 2], ['retainedAmbienceVoices', 3], ['ambienceStarts', undefined]]) {
+    const runs = runsWithDoors(4); runs[0].samples[1][field] = value;
+    expect(proof.analyseMemory(runs).structuralPass, field).toBe(false);
+  }
+  const silent = runsWithDoors(4); silent[0].samples[1].ambienceVoices = 0;
+  expect(proof.analyseMemory(silent).structuralPass).toBe(false);
+  const retained = runsWithDoors(4); retained[0].samples[2].retainedAmbienceVoices = 1;
+  expect(proof.analyseMemory(retained).structuralPass).toBe(false);
+  const disabled = runsWithDoors(4); disabled[1].samples[1].ambienceStarts = 1;
+  expect(proof.analyseMemory(disabled).structuralPass).toBe(false);
 });
 
 test.each([-1, 1])('equivalent endpoint HUD states reject node, document and listener changes of %s', change => {

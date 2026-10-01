@@ -1001,8 +1001,12 @@ This is not the complete audio feature. Front and interior door transitions now
 play two quiet provisional recordings, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
 `specs/2026-10-01-door-audio.md`. Routine controls
-are silent by design rather than waiting for blanket click sounds. Room and
-outdoor ambience, alarms, music, and non-conversation Sim voices remain unbuilt.
+are silent by design rather than waiting for blanket click sounds. Indoor air
+ambience and a saved independent Ambience control are implemented locally, with
+delivery and listening acceptance pending. The house-wide synthetic loop follows
+running-world demand, fades on Pause and cannot revive a frozen release after
+suspension. See `specs/2026-10-01-indoor-ambience.md`. Outdoor ambience, alarms,
+music, and non-conversation Sim voices remain unbuilt.
 Object-loop playback exists; its audible content still needs selection and
 listening acceptance. Recorded conversation gain is 0.224 after owner listening;
 Effects still controls it alongside procedural cues. A saved Voices multiplier

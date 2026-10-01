@@ -442,6 +442,7 @@
         font-size: 12px;
       }
       #voices-volume,
+      #ambience-volume,
       #effects-volume {
         width: 100%;
         min-width: 0;
@@ -449,6 +450,7 @@
         accent-color: var(--need-fill);
       }
       #voices-volume-value,
+      #ambience-volume-value,
       #effects-volume-value {
         color: var(--hud-text);
         font-variant-numeric: tabular-nums;
@@ -1051,6 +1053,11 @@
           aria-label="Voices volume"
           aria-valuetext="100%"
         />
+        <label class="audio-effects-label" for="ambience-volume">
+          Ambience <output id="ambience-volume-value" for="ambience-volume">25%</output>
+        </label>
+        <input id="ambience-volume" type="range" min="0" max="100" step="5" value="25"
+          aria-label="Ambience volume" aria-valuetext="25%" />
         </section>
         <section id="game-actions" aria-label="Game actions">
         <button id="save-game" class="hud-button" type="button">Save</button>
@@ -1283,7 +1290,7 @@
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
           <li>Open Sim details for needs, mood, career and life satisfaction. Choose Traits to see their traits; Close returns to the compact dock.</li>
           <li>Choose People inside Sim details to see how the selected person feels about everyone else. Household contains New housemate.</li>
-          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game and Help. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
+          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game and Help. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix. Ambience adjusts room sound within the Effects mix.</li>
         </ol>
       </div>
       <div id="help-actions">

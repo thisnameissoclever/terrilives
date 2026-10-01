@@ -46,6 +46,7 @@ function source(): SimAudioFrameSource {
 
 function sink(calls: string[]): SimAudioFrameSink {
   return {
+    observeRunningWorld: () => {},
     beginFootstepFrame: () => calls.push('begin'),
     observeFootstep: (simId, x, y, walking) => {
       calls.push(`${simId}:${x}:${y}:${walking}`);
@@ -65,6 +66,15 @@ function sink(calls: string[]): SimAudioFrameSink {
 }
 
 describe('sampleSimAudioAfterTick', () => {
+  it('establishes room demand once only after valid world columns are acquired', () => {
+    const input = source(), output = sink([]);
+    const observe = vi.fn(); output.observeRunningWorld = observe;
+    sampleSimAudioAfterTick(input, output);
+    expect(observe).toHaveBeenCalledOnce();
+    input.positions = () => { throw Error('not ready'); };
+    expect(() => sampleSimAudioAfterTick(input, output)).toThrow('not ready');
+    expect(observe).toHaveBeenCalledOnce();
+  });
   it('uses stable Sim ids and includes stopped Sims while ignoring objects and bare agents', () => {
     const calls: string[] = [];
     const input = source();
@@ -216,6 +226,7 @@ describe('sampleSimAudioAfterTick', () => {
     const input = source();
     const calls: string[] = [];
     const failingSink: SimAudioFrameSink = {
+      observeRunningWorld: () => {},
       beginFootstepFrame: () => calls.push('begin'),
       observeFootstep: () => {
         calls.push('observe');
@@ -394,6 +405,7 @@ describe('sampleSimAudioAfterTick', () => {
       conversationEndHighs: () => new Uint32Array([7, 7]),
     };
     const sink: SimAudioFrameSink = {
+      observeRunningWorld: () => {},
       beginFootstepFrame: () => {},
       observeFootstep: () => {},
       endFootstepFrame: () => {},
@@ -435,6 +447,7 @@ describe('sampleSimAudioAfterTick', () => {
       conversationEndHighs: () => new Uint32Array(1),
     };
     const sink: SimAudioFrameSink = {
+      observeRunningWorld: () => {},
       beginFootstepFrame: () => {},
       observeFootstep: () => {},
       endFootstepFrame: () => {},

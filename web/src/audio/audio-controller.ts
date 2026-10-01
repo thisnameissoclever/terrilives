@@ -32,11 +32,13 @@ import {
 } from './object-recordings.js';
 import { PortalAudioScheduler } from './portal-audio.js';
 import { RecordedDoorPlayer } from './recorded-doors.js';
+import { RoomAmbiencePlayer } from './room-ambience.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
 export const DEFAULT_EFFECTS_LEVEL = 0.7;
 export const DEFAULT_VOICES_LEVEL = 1;
+export const DEFAULT_AMBIENCE_LEVEL = 0.25;
 const VOICE_RETRY_COOLDOWN_MS = 5000;
 const OBJECT_RECORDING_RETRY_COOLDOWN_MS = 5000;
 
@@ -50,6 +52,7 @@ export interface AudioPreferences {
   readonly muted: boolean;
   readonly effectsLevel: number;
   readonly voicesLevel: number;
+  readonly ambienceLevel: number;
 }
 
 interface StoredAudioPreferences extends AudioPreferences {
@@ -127,6 +130,14 @@ export class AudioController implements GameAudioEventSink {
   private mutedPreference: boolean;
   private effectsLevelPreference: number;
   private voicesLevelPreference: number;
+  private ambienceLevelPreference: number;
+  private ambienceGain: GainNodePort | null = null;
+  private ambience: RoomAmbiencePlayer | null = null;
+  private ambienceDemand = false;
+  private ambienceClip: AudioBufferPort | null = null;
+  private ambienceFetch: Promise<void> | null = null;
+  private ambienceRetryAt = 0;
+  private ambienceStarts = 0;
   private context: BrowserAudioContext | null = null;
   private masterGain: GainNodePort | null = null;
   private effectsGain: GainNodePort | null = null;
@@ -178,6 +189,7 @@ export class AudioController implements GameAudioEventSink {
     this.mutedPreference = preferences.muted;
     this.effectsLevelPreference = preferences.effectsLevel;
     this.voicesLevelPreference = preferences.voicesLevel;
+    this.ambienceLevelPreference = preferences.ambienceLevel;
     this.footsteps = new FootstepScheduler(this);
     this.activities = new ActivityCueScheduler(this);
     this.objectSounds = new ObjectSoundCueScheduler(this);
@@ -189,6 +201,7 @@ export class AudioController implements GameAudioEventSink {
       muted: this.mutedPreference,
       effectsLevel: this.effectsLevelPreference,
       voicesLevel: this.voicesLevelPreference,
+      ambienceLevel: this.ambienceLevelPreference,
     };
   }
 
@@ -209,8 +222,65 @@ export class AudioController implements GameAudioEventSink {
    */
   unlockFromGesture(): Promise<boolean> {
     if (this.backgrounded) return Promise.resolve(false);
-    return this.resumeFromGesture();
+    return this.resumeFromGesture().then(running => {
+      if (running && this.ambienceDemand && performance.now() >= this.ambienceRetryAt) void this.loadAmbience();
+      return running;
+    });
   }
+
+  ambienceLevel(): number { return this.ambienceLevelPreference; }
+  setAmbienceLevel(level: number): void { this.previewAmbienceLevel(level); this.persist(); }
+  previewAmbienceLevel(level: number): void {
+    this.ambienceLevelPreference = Number.isFinite(level) ? Math.min(1, Math.max(0, level)) : DEFAULT_AMBIENCE_LEVEL;
+    if (this.ambienceLevelPreference === 0) this.clearAmbience(true);
+    this.applyAmbienceGain();
+  }
+  private ambienceAvailable(): boolean {
+    return this.worldAudioAvailable() && !this.objectSoundsPaused && this.ambienceLevelPreference > 0;
+  }
+  observeRunningWorld(): void {
+    this.ambience?.sweep();
+    if (!this.ambienceAvailable()) { this.clearAmbience(!this.isUnlocked()); return; }
+    const fresh = !this.ambienceDemand;
+    this.ambienceDemand = true;
+    if (this.ambienceClip) this.startAmbience();
+    else if (fresh && performance.now() >= this.ambienceRetryAt) void this.loadAmbience();
+  }
+  async loadAmbience(): Promise<void> {
+    const context = this.context;
+    if (!context || !this.ambienceDemand || !this.ambienceAvailable()) return;
+    if (this.ambienceClip) { this.startAmbience(); return; }
+    if (this.ambienceFetch) { await this.ambienceFetch; return; }
+    if (performance.now() < this.ambienceRetryAt) return;
+    const fetching = (async () => {
+      try {
+        const response = await fetch('audio/ambience/indoor-air.wav');
+        if (!response.ok) throw Error('Room ambience request failed');
+        const clip = await context.decodeAudioData(await response.arrayBuffer());
+        if (!Number.isFinite(clip.duration) || clip.duration <= 0) throw Error('Invalid room ambience duration');
+        if (this.context !== context) return;
+        this.ambienceClip = clip;
+        this.startAmbience();
+      } catch {
+        if (this.context === context) this.ambienceRetryAt = performance.now() + 5000;
+      }
+    })();
+    this.ambienceFetch = fetching;
+    try { await fetching; }
+    finally { if (this.ambienceFetch === fetching) this.ambienceFetch = null; }
+  }
+  private startAmbience(): void {
+    if (!this.ambienceDemand || !this.ambienceAvailable() || !this.ambienceClip || !this.ambience) return;
+    const wasActive = this.ambience.activeCount() > 0;
+    if (this.ambience.play(this.ambienceClip) && !wasActive) this.ambienceStarts++;
+  }
+  private clearAmbience(immediate: boolean): void {
+    this.ambienceDemand = false;
+    this.ambience?.stop(immediate);
+  }
+  activeAmbienceCount(): number { return this.ambience?.activeCount() ?? 0; }
+  retainedAmbienceCount(): number { return this.ambience?.retainedCount() ?? 0; }
+  ambienceStartCount(): number { return this.ambienceStarts; }
 
   setMuted(muted: boolean): void {
     const changed = this.mutedPreference !== muted;
@@ -395,6 +465,7 @@ export class AudioController implements GameAudioEventSink {
 
   private prepareWorldAudioFrame(): void {
     if (this.worldAudioAvailable()) return;
+    this.clearAmbience(true);
     // Discard frozen sources, including releases whose scheduler owner is already gone.
     if ((this.player?.activeVoiceCount() ?? 0) > 0) this.player?.stopAll();
     if ((this.doors?.activeVoiceCount() ?? 0) > 0) this.doors?.stopAll();
@@ -514,6 +585,7 @@ export class AudioController implements GameAudioEventSink {
   setObjectSoundsPaused(paused: boolean): void {
     if (this.objectSoundsPaused === paused) return;
     this.objectSoundsPaused = paused;
+    if (paused) this.clearAmbience(!this.isUnlocked());
     this.portals.reset();
     this.doorDemandObserved = false;
     this.objectSounds.reset();
@@ -601,9 +673,9 @@ export class AudioController implements GameAudioEventSink {
    * next one added here cannot be half-wired.
    */
   private stopEveryPlayer(): void {
-    // **Dropped FIRST**, before anything that touches the audio hardware. If
-    // a `stopAll` threw, a hold cleared after it would survive the silencing,
-    // which is the whole defect this line exists to prevent.
+    this.clearAmbience(true);
+    // Clear these holds before their players touch hardware. Room cleanup above
+    // contains node failures and clears its own demand before disconnecting.
     //
     // **Drop the held conversation at all.** Every route here - mute, Effects
     // reaching zero, backgrounding, Load - also resets the scheduler, and
@@ -837,16 +909,39 @@ export class AudioController implements GameAudioEventSink {
   }
 
   private async resumeFromGesture(): Promise<boolean> {
+    if (this.context?.state === 'closed') {
+      this.stopEveryPlayer();
+      this.resetSchedulers();
+      safelyDisconnect(this.ambienceGain);
+      safelyDisconnect(this.voicesGain);
+      safelyDisconnect(this.effectsGain);
+      safelyDisconnect(this.masterGain);
+      this.context = null;
+      this.masterGain = null;
+      this.effectsGain = null;
+      this.voicesGain = null;
+      this.ambienceGain = null;
+      this.ambience = null;
+      this.ambienceFetch = null;
+      this.ambienceRetryAt = 0;
+      this.player = null;
+      this.voices = null;
+      this.objectLoops = null;
+      this.doors = null;
+    }
     if (this.context === null) {
       let context: BrowserAudioContext | null = null;
       let masterGain: GainNodePort | null = null;
       let effectsGain: GainNodePort | null = null;
       let voicesGain: GainNodePort | null = null;
+      let ambienceGain: GainNodePort | null = null;
       try {
         context = this.createContext();
         masterGain = context.createGain();
         effectsGain = context.createGain();
         voicesGain = context.createGain();
+        ambienceGain = context.createGain();
+        ambienceGain.connect(effectsGain);
         voicesGain.connect(effectsGain);
         effectsGain.connect(masterGain);
         masterGain.connect(context.destination);
@@ -854,6 +949,8 @@ export class AudioController implements GameAudioEventSink {
         this.masterGain = masterGain;
         this.effectsGain = effectsGain;
         this.voicesGain = voicesGain;
+        this.ambienceGain = ambienceGain;
+        this.ambience = new RoomAmbiencePlayer(context, ambienceGain);
         this.player = new ProceduralCuePlayer(context, effectsGain);
         this.doors = new RecordedDoorPlayer(context, effectsGain);
         this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
@@ -868,7 +965,10 @@ export class AudioController implements GameAudioEventSink {
         this.applyMasterGain();
         this.applyEffectsGain();
         this.applyVoicesGain();
+        this.applyAmbienceGain();
       } catch {
+        this.clearAmbience(true);
+        safelyDisconnect(ambienceGain);
         safelyDisconnect(voicesGain);
         safelyDisconnect(effectsGain);
         safelyDisconnect(masterGain);
@@ -876,6 +976,9 @@ export class AudioController implements GameAudioEventSink {
         this.masterGain = null;
         this.effectsGain = null;
         this.voicesGain = null;
+        this.ambienceGain = null;
+        this.ambience = null;
+        this.ambienceFetch = null;
         this.player = null;
         this.voices = null;
         this.objectLoops = null;
@@ -952,12 +1055,18 @@ export class AudioController implements GameAudioEventSink {
       muted: this.mutedPreference,
       effectsLevel: this.effectsLevelPreference,
       voicesLevel: this.voicesLevelPreference,
+      ambienceLevel: this.ambienceLevelPreference,
     };
     try {
       this.store?.setItem(AUDIO_PREFERENCES_KEY, JSON.stringify(value));
     } catch {
       // Storage denial must not undo a usable in-memory choice for this session.
     }
+  }
+  private applyAmbienceGain(): void {
+    if (!this.ambienceGain || !this.context) return;
+    this.ambienceGain.gain.cancelScheduledValues(this.context.currentTime);
+    this.ambienceGain.gain.setValueAtTime(this.ambienceLevelPreference, this.context.currentTime);
   }
 }
 
@@ -1086,7 +1195,7 @@ function clampLevel(value: number): number {
 }
 
 function readPreferences(store: AudioPreferenceStore | undefined): AudioPreferences {
-  const fallback = { muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, voicesLevel: DEFAULT_VOICES_LEVEL };
+  const fallback = { muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, voicesLevel: DEFAULT_VOICES_LEVEL, ambienceLevel: DEFAULT_AMBIENCE_LEVEL };
   try {
     const raw = store?.getItem(AUDIO_PREFERENCES_KEY);
     if (raw === undefined || raw === null) return fallback;
@@ -1104,7 +1213,8 @@ function readPreferences(store: AudioPreferenceStore | undefined): AudioPreferen
     const voicesLevel = typeof parsed.voicesLevel === 'number' &&
       Number.isFinite(parsed.voicesLevel) && parsed.voicesLevel >= 0 && parsed.voicesLevel <= 1
       ? parsed.voicesLevel : DEFAULT_VOICES_LEVEL;
-    return { muted: parsed.muted, effectsLevel: parsed.effectsLevel, voicesLevel };
+    const ambienceLevel = typeof parsed.ambienceLevel === 'number' && Number.isFinite(parsed.ambienceLevel) && parsed.ambienceLevel >= 0 && parsed.ambienceLevel <= 1 ? parsed.ambienceLevel : DEFAULT_AMBIENCE_LEVEL;
+    return { muted: parsed.muted, effectsLevel: parsed.effectsLevel, voicesLevel, ambienceLevel };
   } catch {
     return fallback;
   }

@@ -159,6 +159,9 @@ export interface StressHandle {
     readonly doorTracks: number;
     readonly doorCapacity: number;
     readonly retainedObjectLoopVoices: number;
+    readonly ambienceVoices: number;
+    readonly retainedAmbienceVoices: number;
+    readonly ambienceStarts: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -745,6 +748,8 @@ async function main(): Promise<void> {
     '#effects-volume-value',
   );
   const voicesVolume = document.querySelector<HTMLInputElement>('#voices-volume');
+  const ambienceVolume = document.querySelector<HTMLInputElement>('#ambience-volume');
+  const ambienceVolumeValue = document.querySelector<HTMLOutputElement>('#ambience-volume-value');
   const voicesVolumeValue = document.querySelector<HTMLOutputElement>(
     '#voices-volume-value',
   );
@@ -768,7 +773,7 @@ async function main(): Promise<void> {
     !effectsVolume ||
     !effectsVolumeValue ||
     !voicesVolume ||
-    !voicesVolumeValue
+    !voicesVolumeValue || !ambienceVolume || !ambienceVolumeValue
   ) {
     throw new Error('missing game action markup');
   }
@@ -781,6 +786,8 @@ async function main(): Promise<void> {
     effectsVolumeValue,
     voicesVolume,
     voicesVolumeValue,
+    ambienceVolume,
+    ambienceVolumeValue,
   );
   // Every other fallback may sit in the closed Options panel ([OF2]).
   const persistenceFocusFallbacks = [
@@ -825,6 +832,8 @@ async function main(): Promise<void> {
   voicesVolume.addEventListener('input', () => {
     audioControls.previewVoicesPercent(voicesVolume.value);
   });
+  ambienceVolume.addEventListener('input', () => { audioControls.previewAmbiencePercent(ambienceVolume.value); });
+  ambienceVolume.addEventListener('change', () => { audioControls.setAmbiencePercent(ambienceVolume.value); });
   voicesVolume.addEventListener('change', () => {
     audioControls.setVoicesPercent(voicesVolume.value);
   });
@@ -1652,6 +1661,9 @@ async function main(): Promise<void> {
         get objectLoopVoices() {
           return audio.activeObjectLoopCount();
         },
+        get ambienceVoices() { return audio.activeAmbienceCount(); },
+        get retainedAmbienceVoices() { return audio.retainedAmbienceCount(); },
+        get ambienceStarts() { return audio.ambienceStartCount(); },
         get doorVoices() { return audio.activeDoorVoiceCount(); },
         get doorTracks() { return audio.doorTrackCount(); },
         get doorCapacity() { return audio.doorTrackCapacity(); },

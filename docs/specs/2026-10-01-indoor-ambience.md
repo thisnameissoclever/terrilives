@@ -1,6 +1,6 @@
 # Indoor ambience
 
-Status: implementation planned, not shipped or listening-approved.
+Status: implemented, delivery pending. Subjective listening is not approved.
 
 ## Intent and authority
 
@@ -98,3 +98,41 @@ the full relevant local suite, typecheck, production build and document checks;
 obtain independent review, then commit, push and merge. Report source delivery,
 Pages deployment and owner listening separately. No subjective listening or
 120 Hz acceptance may be claimed without evidence.
+
+## Implementation evidence, 2026-10-01
+
+The source/runtime WAV is 768,044 bytes, SHA-256
+`714374c981c63e1ac3a96e493687dfc4cca176aaeb12b14a984c00caed0dc42b`.
+It has 384,000 mono PCM16 frames at 48 kHz. RMS is 0.0409303682, peak
+0.1557312012, absolute mean 0.0000000217 and wrap discontinuity zero.
+No external asset, dependency or simulation/save contract changed.
+
+The public controller additions and fixed-tick observation are implemented.
+The room player evicts older releases at replacement stop as well as bounding
+replacement starts. Closed contexts are abandoned before rebuilding the graph,
+and room requests from the old context cannot populate the replacement graph.
+Stress getters are `ambienceVoices`, `retainedAmbienceVoices`, and `ambienceStarts`.
+Memory reports require positive enabled playback, zero disabled starts, at most
+one active/two retained room records and fully drained paused endpoints. Existing
+64 KiB and exact document/node/listener equality limits are unchanged.
+
+The single-worker full Web suite passed 1,746 tests in 116 files. TypeScript and
+production Web build passed, using main-matching release WASM built offline.
+Nine targeted mutations each failed their covering test and restored exact
+pre-mutation SHA-256 bytes. Detailed commands, outputs and restoration hashes are
+in `.superpowers/sdd/2026-10-01-indoor-ambience/task-1-report.md`.
+
+The native browser export is `proveRoomAmbience` in `web/proofs/room-ambience.js`.
+Root reports all ten rendered checks passed, including positive signal,
+independent gain routing, positive pause fade, zero suspended/releasing resumed
+tail, maximum-level peak 0.0146923745 and bounded 30-toggle ownership. The proof
+RMS at Ambience 100% and Effects 70% is 0.004350841. This is rendered-signal
+evidence, not a claim of hearing or accepting the texture.
+
+Root's first six-run memory acceptance failed: pair differentials 90,376,
+-237,816 and 69,120 bytes produce a median of 69,120, above the unchanged
+65,536-byte allowance by 3,584 bytes. Structural checks passed, including bounded
+room ownership and identical paused endpoint document/node/listener counts
+1/1,446/159. Delivery is held for causal diagnosis and independent review; this
+failure is not resolved by a repeat run or a relaxed threshold. Root-owned
+production UI evidence passed separately. Held PR 178 remains outside this slice.

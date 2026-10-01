@@ -40,6 +40,7 @@ export interface SimAudioFrameSource {
 }
 
 export interface SimAudioFrameSink {
+  observeRunningWorld(): void;
   beginFootstepFrame(): void;
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void;
   endFootstepFrame(): void;
@@ -112,6 +113,8 @@ export function sampleSimAudioAfterTick(
   const conversationOwners = source.conversationOwners();
   const conversationEndLows = source.conversationEndLows();
   const conversationEndHighs = source.conversationEndHighs();
+
+  sink.observeRunningWorld();
 
   sink.beginFootstepFrame();
   try {

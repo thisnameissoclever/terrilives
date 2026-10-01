@@ -217,6 +217,22 @@ The existing Cook step plays it at gain 0.6 before Effects. This is a provisiona
 interpretation of cooking, not an accepted recording of a particular recipe.
 See `docs/specs/2026-10-01-stove-cooking-texture.md` for preparation and evidence.
 
+## Indoor air texture
+
+`web/public/audio/ambience/indoor-air.wav` is a first-party synthetic texture,
+not a field recording. `scripts/build-room-ambience.mjs` generates seeded noise,
+filters below 180 Hz and above 1800 Hz, conditions a 100 ms loop overlap, removes
+DC and exports eight-second mono 48 kHz PCM16. Rebuilding accepts identical bytes
+and refuses to overwrite a different existing file.
+
+The 768,044-byte source/runtime WAV has SHA-256
+`714374c981c63e1ac3a96e493687dfc4cca176aaeb12b14a984c00caed0dc42b`.
+Measured PCM RMS is 0.0409303682, peak 0.1557312012, mean 0.0000000217 and wrap
+discontinuity zero. Playback envelope gain is 0.15 before Ambience, Effects and
+master. Ambience defaults to 25%; source rate stays one at every game speed.
+Implementation is complete locally; delivery and subjective listening acceptance
+remain separate gates. See `docs/specs/2026-10-01-indoor-ambience.md`.
+
 ## Door recordings
 
 Two provisional recordings accompany actual door state changes. Author:

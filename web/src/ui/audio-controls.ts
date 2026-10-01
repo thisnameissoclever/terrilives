@@ -7,6 +7,9 @@ export interface AudioSettings {
   voicesLevel(): number;
   previewVoicesLevel(level: number): void;
   setVoicesLevel(level: number): void;
+  ambienceLevel(): number;
+  previewAmbienceLevel(level: number): void;
+  setAmbienceLevel(level: number): void;
 }
 
 export interface AudioMuteButton {
@@ -38,6 +41,8 @@ export class AudioControls {
     private readonly effectsValue: AudioEffectsValue,
     private readonly voicesSlider: AudioEffectsSlider,
     private readonly voicesValue: AudioEffectsValue,
+    private readonly ambienceSlider: AudioEffectsSlider,
+    private readonly ambienceValue: AudioEffectsValue,
   ) {
     this.reflect();
   }
@@ -87,6 +92,18 @@ export class AudioControls {
     return this.settings.voicesLevel();
   }
 
+  setAmbiencePercent(value: string): number { return this.applyAmbiencePercent(value, false); }
+  previewAmbiencePercent(value: string): number { return this.applyAmbiencePercent(value, true); }
+  private applyAmbiencePercent(value: string, preview: boolean): number {
+    const percent = Number(value);
+    if (Number.isFinite(percent)) {
+      if (preview) this.settings.previewAmbienceLevel(percent / 100);
+      else this.settings.setAmbienceLevel(percent / 100);
+    }
+    this.reflect();
+    return this.settings.ambienceLevel();
+  }
+
   /** Re-reads the controller after storage, lifecycle, or external changes. */
   reflect(): void {
     const muted = this.settings.isMuted();
@@ -100,5 +117,9 @@ export class AudioControls {
     this.voicesSlider.value = String(voicesPercent);
     this.voicesSlider.setAttribute('aria-valuetext', `${voicesPercent}%`);
     this.voicesValue.textContent = `${voicesPercent}%`;
+    const ambiencePercent = Math.round(this.settings.ambienceLevel() * 100);
+    this.ambienceSlider.value = String(ambiencePercent);
+    this.ambienceSlider.setAttribute('aria-valuetext', `${ambiencePercent}%`);
+    this.ambienceValue.textContent = `${ambiencePercent}%`;
   }
 }

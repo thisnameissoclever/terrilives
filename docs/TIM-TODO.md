@@ -507,8 +507,11 @@ mix still need listening acceptance. Stove cooking now uses a provisional
 first-party synthetic texture with independent demand loading; its listening
 acceptance also remains open. Door opening
 and closing now have quiet provisional recorded cues tied to authoritative portal
-state. Ambience, alarms, music, non-conversation voices
-and music/ambience controls remain unbuilt. The current contract and evidence are in
+state. Indoor ambience and its independent saved control are implemented locally,
+with delivery and subjective listening pending. Ambience adjusts room sound
+within Effects, defaults to 25% and stops at world lifecycle boundaries. See
+`docs/specs/2026-10-01-indoor-ambience.md`. Outdoor ambience, alarms, music,
+non-conversation voices and music controls remain unbuilt. The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.
 

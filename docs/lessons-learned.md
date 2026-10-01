@@ -1,5 +1,39 @@
 # Lessons Learned
 
+## [L-room-release-cap-applies-on-stop] A replacement stop must also bound fading owners
+
+**What happened.** Rapid room-loop replacements were bounded to two retained
+sources, but stopping the replacement left two fading sources. The stronger
+one-active/one-fading contract required one remaining release.
+
+**Root cause.** Eviction ran only when starting a replacement. Its next stop
+changed the active record into another release without evicting the older one.
+
+**Prevention rule.** Before a normal room release, dispose every older releasing
+record. Keep immediate silence capable of disposing all retained records.
+
+**How to verify.** Start, stop, replace and stop repeatedly before end callbacks.
+Require at most one active and one fading source, and one retained record after
+the final stop. Deleting stop-time eviction failed with `expected 2 to be 1`;
+the player file hash was restored exactly.
+
+## [L-audio-proof-inventory-before-paths] Discover verification entry points before invoking them
+
+**What happened.** Three root verification reads guessed absent filenames:
+`audio-memory-acceptance.cjs`, `audio-memory-proof.cjs` and `stove-cooking.js`.
+Fresh-context review identified the actual entry points without a runtime change.
+
+**Root cause.** Expected feature names were treated as filenames and execution
+formats instead of reading the inventory and exports.
+
+**Prevention rule.** List matching files first. Read the CLI argument contract
+and browser module exports before choosing the command or execution environment.
+
+**How to verify.** Memory acceptance uses `scripts/audio-browser-proof.cjs memory`.
+Native stove checks import the named browser export from `stove-recording.js`;
+the room check imports `proveRoomAmbience` from `room-ambience.js`. Browser modules
+with OfflineAudioContext are not Node command-line programs.
+
 ## [L-binary-tests-need-bounded-diffs] Compare large binary artifacts without printing every byte
 
 **What happened.** A deliberately changed audio seed caused a deep byte-array

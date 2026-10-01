@@ -21,7 +21,7 @@ tones are acceptance candidates, not a permanent sound-design commitment.
 
 ## Current player surface
 
-The Options menu exposes three persistent controls:
+The Options menu exposes four persistent controls:
 
 1. `Sound: on/off` is master mute. It changes only the master gain between one
    and zero.
@@ -33,7 +33,13 @@ The Options menu exposes three persistent controls:
    Dragging previews the level; committed changes persist silently. It does not
    change footsteps, other activity cadence or the Effects setting.
 
-The controls live in Options on desktop and mobile. Both ranges are at least
+4. `Ambience` is a zero-to-100 percent multiplier for the house-wide room texture,
+   before Effects, defaulting to 25%. Preview and committed changes are silent;
+   preview does not write storage. Zero stops only ambience; raising it waits for
+   a fresh ready-world observation. Local implementation is complete, with
+   delivery and listening acceptance pending.
+
+The controls live in Options on desktop and mobile. All three ranges are at least
 44 CSS pixels tall. The help dialog names the controls. Browser storage denial
 leaves the current session settings usable.
 
@@ -41,6 +47,8 @@ The versioned preference key remains `terrilives.audio-preferences.v1`.
 Malformed original fields or an unknown version discard the record. Existing
 valid records without `voicesLevel` keep their mute and Effects settings and
 default Voices to 100%. An invalid Voices field defaults only that field.
+The new `ambienceLevel` field likewise defaults only itself to 25% when missing
+or invalid, preserving valid mute, Effects and Voices values.
 
 ## Activation and browser lifecycle
 
@@ -95,6 +103,15 @@ The graph is:
 `procedural cue -> effects gain -> master gain -> destination`
 
 `prepared object recording -> effects gain -> master gain -> destination`
+
+`room source -> envelope -> ambience gain -> effects gain -> master gain -> destination`
+
+The room player owns one active and one fading source at most. A running-world
+observation, not initialization or a gesture alone, establishes lazy-loading
+demand. Pause and blocking overlays fade over 100 ms. Load, mute, Effects zero,
+hidden tabs and a non-running clock clear demand and immediately reclaim every
+retained source; new audible observations can restart cached content. Ambience
+does not follow game speed. See `2026-10-01-indoor-ambience.md`.
 
 Effects retains its existing meaning: it controls cues, object recordings, and recorded conversation.
 Voices scales conversations further. Mute owns the master gain only. Changing
@@ -740,9 +757,10 @@ Restored SHA-256 values were:
 ## Open work
 
 1. Complete subjective listening review for provisional shower and door recordings.
-2. Select and accept recordings for the object-loop player. Add ambience,
+2. Select and accept recordings for the object-loop player and indoor ambience. Add outdoor ambience,
    alarms, music, and non-conversation Sim voices.
-3. Add music and ambience controls when those categories have playable content.
+3. Add music controls when that category has playable content. Indoor Ambience
+   now has its own saved control; delivery and listening acceptance are pending.
    Voices now has its own multiplier without changing the Effects meaning.
 4. Replace or refine procedural tones only after the event and lifecycle layer
    passes listening acceptance.

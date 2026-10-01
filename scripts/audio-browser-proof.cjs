@@ -273,6 +273,9 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         retainedConversationVoices: stress.audio.retainedConversationVoices,
         objectLoopVoices: stress.audio.objectLoopVoices,
         retainedObjectLoopVoices: stress.audio.retainedObjectLoopVoices,
+        ambienceVoices: stress.audio.ambienceVoices,
+        retainedAmbienceVoices: stress.audio.retainedAmbienceVoices,
+        ambienceStarts: stress.audio.ambienceStarts,
         doorVoices: stress.audio.doorVoices,
         doorTracks: stress.audio.doorTracks,
         doorCapacity: stress.audio.doorCapacity,
@@ -412,7 +415,8 @@ async function waitForAudioDrain(page) {
     const audio = globalThis.__terriStress.audio;
     return audio.activeVoices === 0 && audio.doorVoices === 0 &&
       audio.conversationVoices === 0 && audio.retainedConversationVoices === 0 &&
-      audio.objectLoopVoices === 0 && audio.retainedObjectLoopVoices === 0;
+      audio.objectLoopVoices === 0 && audio.retainedObjectLoopVoices === 0 &&
+      audio.ambienceVoices === 0 && audio.retainedAmbienceVoices === 0;
   }, undefined, { polling: 50, timeout: 10_000 });
 }
 
@@ -465,6 +469,10 @@ function analyseMemory(runs) {
         sample.doorTracks <= 4 &&
         sample.doorVoices <= 4 &&
         sample.activeVoices <= 8 &&
+        Number.isSafeInteger(sample.ambienceVoices) && sample.ambienceVoices >= 0 && sample.ambienceVoices <= 1 &&
+        Number.isSafeInteger(sample.retainedAmbienceVoices) && sample.retainedAmbienceVoices >= sample.ambienceVoices && sample.retainedAmbienceVoices <= 2 &&
+        Number.isSafeInteger(sample.ambienceStarts) && sample.ambienceStarts >= 0 &&
+        (run.audioEnabled || sample.ambienceStarts === 0) &&
         // The recorded conversation voices are a retained scheduler like the
         // rest, and `activeVoices` cannot see them: that counts oscillators
         // and these are buffer sources. Leaving them out is the exact
@@ -489,11 +497,12 @@ function analyseMemory(runs) {
     return (
       boundedLiveState &&
       (!run.audioEnabled || run.samples.some(sample => sample.doorTracks > 0)) &&
+      (!run.audioEnabled || run.samples.some(sample => sample.ambienceVoices === 1 && sample.ambienceStarts > 0)) &&
       // Intermediate samples may be sounding. Endpoints wait for natural
       // completion so listener comparisons measure retained ownership.
       [baseline, final].every(sample => ['activeVoices', 'objectLoopVoices',
         'doorVoices', 'conversationVoices', 'retainedConversationVoices',
-        'retainedObjectLoopVoices'].every(field => sample[field] === 0)) &&
+        'retainedObjectLoopVoices', 'ambienceVoices', 'retainedAmbienceVoices'].every(field => sample[field] === 0)) &&
       final.domDocuments === baseline.domDocuments &&
       final.domNodes === baseline.domNodes &&
       final.eventListeners === baseline.eventListeners

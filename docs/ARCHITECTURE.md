@@ -1051,6 +1051,21 @@ an older v1 preference record without that field. Changing Voices does not reset
 transport or other schedulers; even at zero, conversation playback stays bounded and
 advances normally. The simulation chooses two clip indices and
 derives their duration from compiled voice metadata; the shell owns playback.
+The indoor room player independently feeds an Ambience gain into Effects, with
+one active and one fading source at most. Its eight-second synthetic loop uses
+gain 0.15 and fixed playback rate one. Saved `ambienceLevel` defaults to 0.25
+without discarding valid legacy mute, Effects or Voices values. A ready-world
+observation after fixed-tick column acquisition establishes demand; gestures
+and audio initialization alone neither fetch nor play the loop. Success is
+cached, in-flight loads coalesce, and failed demand retries only after a new
+audible transition or trusted gesture with a five-second cooldown.
+Load, mute, Effects zero, backgrounding and unavailable audio frames clear demand
+and immediately disconnect active and releasing room nodes. Effective pause
+fades for 100 ms; resume waits for a fresh observation. Ambience zero affects
+only this player. Closed-context replacement abandons its pending room request;
+stale completion cannot install into the replacement graph. Stress getters
+`ambienceVoices`, `retainedAmbienceVoices` and `ambienceStarts` expose bounded
+ownership and positive enabled coverage. See `specs/2026-10-01-indoor-ambience.md`.
 Each conversation has independent ownership: initiator ID, both words of its
 derived completion token, and clip indices. Both participant rows project the
 same identity. Ending one pair cancels only its playback and pending library
@@ -1085,7 +1100,7 @@ Automatic return to running therefore starts only current actions, without
 requiring another gesture or replaying old motion. This samples availability
 at fixed ticks; it is not an operating-system interruption listener. See
 `docs/specs/2026-10-01-automatic-audio-recovery.md`.
-Pause stops fixed ticks and fades object loops, but does not suspend the context
+Pause stops fixed ticks and fades object and room loops, but does not suspend the context
 or stop an already-playing short cue or conversation. A successful Load reads
 identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually

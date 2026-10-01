@@ -9,6 +9,138 @@ import {
   type BrowserAudioContext,
 } from '../src/audio/audio-controller.js';
 import { FOOTSTEP_DISTANCE_TILES } from '../src/audio/footsteps.js';
+it('stale room completion cannot start into a rebuilt closed graph or consume its independent load gate', async () => {
+  const abandoned = new FakeContext(), fresh = new FakeContext();
+  let finish!: (clip: AudioBufferPort) => void;
+  vi.spyOn(abandoned, 'decodeAudioData').mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const fetcher = vi.fn(async () => ({ok: true, arrayBuffer: async () => new ArrayBuffer(2)}));
+  vi.stubGlobal('fetch', fetcher);
+  try {
+    const controller = new AudioController(vi.fn().mockReturnValueOnce(abandoned).mockReturnValue(fresh), undefined);
+    await controller.unlockFromGesture(); controller.observeRunningWorld(); const old = controller.loadAmbience();
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+    abandoned.state = 'closed'; await controller.unlockFromGesture();
+    controller.observeRunningWorld(); await controller.loadAmbience();
+    expect(controller.activeAmbienceCount()).toBe(1);
+    finish({duration: 8}); await old;
+    expect(abandoned.bufferSources).toHaveLength(0);
+    expect(fresh.bufferSources).toHaveLength(1);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(abandoned.gains.every(gain => gain.disconnected)).toBe(true);
+  } finally { vi.unstubAllGlobals(); }
+});
+it('room failure and object recording failure do not consume each other response or decode gates', async () => {
+  const context = new FakeContext(); const controller = new AudioController(() => context, undefined);
+  const requested: string[] = [];
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    requested.push(url);
+    if (url.includes('ambience')) throw Error('room unavailable');
+    return {ok: true, arrayBuffer: async () => new ArrayBuffer(2)};
+  }));
+  try {
+    await controller.unlockFromGesture(); controller.observeRunningWorld(); await controller.loadAmbience();
+    controller.emit({type: 'object.sound-started', sourceId: 41, action: OBJECT_SOUND_ACTION_STOVE_COOKING});
+    await controller.loadObjectRecordings();
+    expect(requested.some(url => url.includes('ambience'))).toBe(true);
+    expect(requested.some(url => url.includes('stove'))).toBe(true);
+    expect(controller.activeObjectLoopCount()).toBe(1);
+    expect(controller.activeAmbienceCount()).toBe(0);
+  } finally { vi.unstubAllGlobals(); }
+});
+it.each(['mute', 'effects', 'pause', 'load', 'hidden', 'suspended', 'ambience'] as const)('late room decode cannot cross %s boundary and fresh observation starts once', async boundary => {
+  const context = new FakeContext();
+  let resolve!: (clip: AudioBufferPort) => void;
+  vi.spyOn(context, 'decodeAudioData').mockImplementationOnce(() => new Promise(done => { resolve = done; }));
+  const fetcher = vi.fn(async () => ({ok: true, arrayBuffer: async () => new ArrayBuffer(2)}));
+  vi.stubGlobal('fetch', fetcher);
+  try {
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    controller.observeRunningWorld();
+    const pending = controller.loadAmbience();
+    await vi.waitFor(() => expect(resolve).toBeTypeOf('function'));
+    if (boundary === 'mute') controller.setMuted(true);
+    if (boundary === 'effects') controller.setEffectsLevel(0);
+    if (boundary === 'pause') controller.setObjectSoundsPaused(true);
+    if (boundary === 'load') controller.reset('load');
+    if (boundary === 'hidden') await controller.setBackgrounded(true);
+    if (boundary === 'ambience') controller.setAmbienceLevel(0);
+    if (boundary === 'suspended') { context.state = 'suspended'; controller.beginFootstepFrame(); controller.endFootstepFrame(); }
+    resolve({duration: 8}); await pending;
+    expect(context.bufferSources).toHaveLength(0);
+    expect(controller.ambienceStartCount()).toBe(0);
+    controller.setMuted(false); controller.setEffectsLevel(0.7); controller.setAmbienceLevel(0.25);
+    controller.setObjectSoundsPaused(false);
+    await controller.setBackgrounded(false); context.state = 'running';
+    expect(controller.activeAmbienceCount()).toBe(0);
+    controller.observeRunningWorld(); controller.observeRunningWorld();
+    expect(controller.activeAmbienceCount()).toBe(1);
+    expect(controller.ambienceStartCount()).toBe(1);
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(context.gains[3].connections).toEqual([context.gains[1]]);
+    expect(context.gains[4].connections).toEqual([context.gains[3]]);
+    expect(context.bufferSources[0].playbackRate.calls).toContainEqual({kind: 'set', value: 1, time: context.currentTime});
+  } finally { vi.unstubAllGlobals(); }
+});
+it('unchanged failed demand never retries every tick; fresh demand and later trusted gesture respect five seconds', async () => {
+  const context = new FakeContext(); const controller = new AudioController(() => context, undefined);
+  const clock = vi.spyOn(performance, 'now').mockReturnValue(100);
+  const fetcher = vi.fn(async () => { throw Error('offline'); }); vi.stubGlobal('fetch', fetcher);
+  try {
+    await controller.unlockFromGesture(); controller.observeRunningWorld(); await controller.loadAmbience();
+    clock.mockReturnValue(6000);
+    for (let i = 0; i < 30; i++) controller.observeRunningWorld();
+    expect(fetcher).toHaveBeenCalledOnce();
+    await controller.unlockFromGesture(); await controller.loadAmbience();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    controller.setObjectSoundsPaused(true); controller.setObjectSoundsPaused(false); controller.observeRunningWorld();
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    clock.mockReturnValue(12000);
+    controller.setObjectSoundsPaused(true); controller.setObjectSoundsPaused(false); controller.observeRunningWorld(); await controller.loadAmbience();
+    expect(fetcher).toHaveBeenCalledTimes(3);
+  } finally { clock.mockRestore(); vi.unstubAllGlobals(); }
+});
+it.each([0, -1, NaN, Infinity])('malformed room duration %s creates no source and does not escape', async duration => {
+  const context = new FakeContext(); vi.spyOn(context, 'decodeAudioData').mockResolvedValue({duration});
+  vi.stubGlobal('fetch', vi.fn(async () => ({ok: true, arrayBuffer: async () => new ArrayBuffer(2)})));
+  try {
+    const controller = new AudioController(() => context, undefined); await controller.unlockFromGesture();
+    controller.observeRunningWorld(); await controller.loadAmbience(); expect(context.bufferSources).toHaveLength(0);
+  } finally { vi.unstubAllGlobals(); }
+});
+it.each([undefined, null, 'quiet', -0.1, 1.1, 0, 0.6, 1])('restores legacy choices while defaulting only invalid Ambience %s', ambienceLevel => {
+  const store = memoryStore(JSON.stringify({version: 1, muted: true, effectsLevel: 0.4, voicesLevel: 0.6, ambienceLevel}));
+  const controller = new AudioController(() => new FakeContext(), store);
+  expect(controller.preferences()).toEqual({muted: true, effectsLevel: 0.4, voicesLevel: 0.6,
+    ambienceLevel: typeof ambienceLevel === 'number' && ambienceLevel >= 0 && ambienceLevel <= 1 ? ambienceLevel : 0.25});
+  controller.previewAmbienceLevel(Infinity); expect(controller.ambienceLevel()).toBe(0.25);
+  controller.previewAmbienceLevel(-1); expect(controller.ambienceLevel()).toBe(0);
+  controller.previewAmbienceLevel(2); expect(controller.ambienceLevel()).toBe(1);
+  expect(store.writes).toHaveLength(0);
+  controller.setAmbienceLevel(0.6); expect(store.writes).toHaveLength(1);
+});
+it('room demand requires a ready-world observation after gesture, coalesces decode and caches playback', async () => {
+  const context = new FakeContext();
+  const fetcher = vi.fn(async () => ({ok: true, arrayBuffer: async () => new ArrayBuffer(2)}));
+  vi.stubGlobal('fetch', fetcher);
+  const controller = new AudioController(() => context, undefined);
+  await controller.unlockFromGesture();
+  expect(fetcher).not.toHaveBeenCalled();
+  controller.observeRunningWorld();
+  await controller.loadAmbience();
+  expect(fetcher).toHaveBeenCalledOnce();
+  expect(controller.activeAmbienceCount()).toBe(1);
+  expect(controller.ambienceStartCount()).toBe(1);
+  controller.observeRunningWorld();
+  await controller.loadAmbience();
+  expect(controller.ambienceStartCount()).toBe(1);
+  controller.reset('load');
+  expect(controller.retainedAmbienceCount()).toBe(0);
+  controller.observeRunningWorld();
+  expect(controller.ambienceStartCount()).toBe(2);
+  expect(fetcher).toHaveBeenCalledOnce();
+  vi.unstubAllGlobals();
+});
 import { RecordedDoorPlayer } from '../src/audio/recorded-doors.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 import { sampleSimAudioAfterTick, withObjectSoundPause } from '../src/audio/frame-audio.js';
@@ -331,8 +463,8 @@ describe('recorded physical doors', () => {
       expect(context.bufferSources).toHaveLength(1);
       expect(context.oscillators).toHaveLength(0);
       expect(context.bufferSources[0].playbackRate.calls).toContainEqual({ kind: 'set', value: 1, time: 4 });
-      expect(context.gains[3].connections).toEqual([context.gains[1]]);
-      expect(context.gains[3].gain.calls).toEqual([
+      expect(context.gains[4].connections).toEqual([context.gains[1]]);
+      expect(context.gains[4].gain.calls).toEqual([
         { kind: 'set', value: 0, time: 4 },
         { kind: 'ramp', value: 0.05, time: 4.012 },
         { kind: 'set', value: 0.05, time: 4.988 },
@@ -393,7 +525,7 @@ describe('recorded physical doors', () => {
       context.bufferSources[0].onended?.();
       expect(controller.activeDoorVoiceCount()).toBe(3);
       expect(context.bufferSources[0].disconnected).toBe(true);
-      expect(context.gains[3].disconnected).toBe(true);
+      expect(context.gains[4].disconnected).toBe(true);
       context.createGain = () => { throw new Error('device failed'); };
       expect(() => controller.emit({ type: 'door.opened', doorId: 'failure' })).not.toThrow();
       expect(context.bufferSources[4].disconnected).toBe(true);
@@ -970,7 +1102,7 @@ describe('AudioController object loops', () => {
     controller.setVoicesLevel(0);
     controller.installObjectLoopClips(OBJECT_CLIPS);
     expect(context.bufferSources).toHaveLength(1);
-    expect(context.gains[3].connections).toEqual([context.gains[1]]);
+    expect(context.gains[4].connections).toEqual([context.gains[1]]);
     objectSoundFrame(controller, [[42, 1]]);
     controller.setVoicesLevel(0.8);
     expect(context.bufferSources).toHaveLength(1);
@@ -1003,7 +1135,7 @@ describe('AudioController preferences', () => {
   ])('restores Voices %j without discarding valid v1 mute and Effects', (voicesLevel, expected) => {
     const store = memoryStore(JSON.stringify({ version: 1, muted: true, effectsLevel: 0.25, voicesLevel }));
     const controller = new AudioController(() => new FakeContext(), store);
-    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.25, voicesLevel: expected });
+    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.25, ambienceLevel: 0.25, voicesLevel: expected });
     expect(store.writes).toHaveLength(0);
   });
 
@@ -1017,7 +1149,7 @@ describe('AudioController preferences', () => {
     controller.setMuted(true);
     controller.setEffectsLevel(5);
 
-    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 1, voicesLevel: 1 });
+    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 1, ambienceLevel: 0.25, voicesLevel: 1 });
     expect(store.writes).toHaveLength(2);
     expect(store.writes[1]?.[0]).toBe(AUDIO_PREFERENCES_KEY);
     expect(JSON.parse(store.writes[1]?.[1] ?? '')).toEqual({
@@ -1025,6 +1157,7 @@ describe('AudioController preferences', () => {
       muted: true,
       effectsLevel: 1,
       voicesLevel: 1,
+      ambienceLevel: 0.25,
     });
   });
 
@@ -1036,7 +1169,7 @@ describe('AudioController preferences', () => {
     });
     expect(
       new AudioController(() => new FakeContext(), memoryStore(valid)).preferences(),
-    ).toEqual({ muted: true, effectsLevel: 0.25, voicesLevel: 1 });
+    ).toEqual({ muted: true, effectsLevel: 0.25, ambienceLevel: 0.25, voicesLevel: 1 });
 
     for (const invalid of [
       '{',
@@ -1049,7 +1182,7 @@ describe('AudioController preferences', () => {
           () => new FakeContext(),
           memoryStore(invalid),
         ).preferences(),
-      ).toEqual({ muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, voicesLevel: 1 });
+      ).toEqual({ muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, ambienceLevel: 0.25, voicesLevel: 1 });
     }
   });
 
@@ -1067,7 +1200,7 @@ describe('AudioController preferences', () => {
     controller.setMuted(true);
     controller.setEffectsLevel(0.4);
 
-    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.4, voicesLevel: 1 });
+    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.4, ambienceLevel: 0.25, voicesLevel: 1 });
   });
 
   it('bounds Voices previews and persists only the committed setting in v1', () => {
@@ -1082,7 +1215,7 @@ describe('AudioController preferences', () => {
     expect(store.writes).toHaveLength(1);
     expect(store.writes[0]?.[0]).toBe('terrilives.audio-preferences.v1');
     const reloaded = new AudioController(() => new FakeContext(), memoryStore(store.writes[0]![1]));
-    expect(reloaded.preferences()).toEqual({ muted: false, effectsLevel: 0.7, voicesLevel: 0.35 });
+    expect(reloaded.preferences()).toEqual({ muted: false, effectsLevel: 0.7, ambienceLevel: 0.25, voicesLevel: 0.35 });
   });
 });
 
@@ -1104,7 +1237,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     const controller = new AudioController(() => attempts++ === 0 ? failed : recovered, undefined);
     controller.setVoicesLevel(0.2);
     expect(await controller.unlockFromGesture()).toBe(false);
-    expect(failed.gains).toHaveLength(3);
+    expect(failed.gains).toHaveLength(4);
     expect(failed.gains.every((gain) => gain.disconnected)).toBe(true);
     expect(failed.closeCalls).toBe(1);
     expect(controller.activeConversationVoiceCount()).toBe(0);
@@ -2253,7 +2386,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     await controller.unlockFromGesture();
     const master = context.gains[0];
     const effects = context.gains[1];
-    expect(context.gains).toHaveLength(3);
+    expect(context.gains).toHaveLength(4);
     expect(effects?.connections).toEqual([master]);
     expect(master?.connections).toEqual([context.destination]);
 

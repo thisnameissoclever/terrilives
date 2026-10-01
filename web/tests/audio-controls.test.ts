@@ -50,6 +50,7 @@ function settings(muted = false, effects = 0.7): AudioSettings & {
   let currentMuted = muted;
   let currentEffects = effects;
   let currentVoices = 1;
+  let currentAmbience = 0.25;
   const muteWrites: boolean[] = [];
   const effectsWrites: number[] = [];
   const effectsPreviews: number[] = [];
@@ -64,6 +65,9 @@ function settings(muted = false, effects = 0.7): AudioSettings & {
     },
     effectsLevel: () => currentEffects,
     voicesLevel: () => currentVoices,
+    ambienceLevel: () => currentAmbience,
+    previewAmbienceLevel: value => { currentAmbience = value; },
+    setAmbienceLevel: value => { currentAmbience = value; },
     previewVoicesLevel: (value) => { currentVoices = value; },
     setVoicesLevel: (value) => { currentVoices = value; },
     previewEffectsLevel(value) {
@@ -78,6 +82,22 @@ function settings(muted = false, effects = 0.7): AudioSettings & {
 }
 
 describe('AudioControls', () => {
+  it('previews Ambience without unlocking or writing and commits exactly once', () => {
+    let saved = JSON.stringify({version: 1, muted: true, effectsLevel: 0.45, voicesLevel: 0.6});
+    let writes = 0;
+    const controller = new AudioController(() => { throw Error('No slider activation'); }, {
+      getItem: () => saved, setItem: (_key, value) => { saved = value; writes++; },
+    });
+    const ambience = slider(), value = {textContent: null as string | null};
+    const controls = new AudioControls(controller, button(), slider(), {textContent: null}, slider(), {textContent: null}, ambience, value);
+    expect(ambience.value).toBe('25');
+    controls.previewAmbiencePercent('60');
+    expect(value.textContent).toBe('60%');
+    expect(writes).toBe(0);
+    controls.setAmbiencePercent('60');
+    expect(writes).toBe(1);
+    expect(new AudioController(undefined, {getItem: () => saved, setItem: () => {}}).preferences()).toEqual({muted: true, effectsLevel: 0.45, voicesLevel: 0.6, ambienceLevel: 0.6});
+  });
   it('reflects saved Voices and previews silently before persisting a change', () => {
     let saved = JSON.stringify({ version: 1, muted: true, effectsLevel: 0.45, voicesLevel: 0.65 });
     let writes = 0;
@@ -87,7 +107,7 @@ describe('AudioControls', () => {
     const voices = slider();
     const value = { textContent: null as string | null };
     const effects = slider();
-    const controls = new AudioControls(controller, button(), effects, { textContent: null }, voices, value);
+    const controls = new AudioControls(controller, button(), effects, { textContent: null }, voices, value, slider(), { textContent: null });
     expect(voices.value).toBe('65');
     expect(voices.attributes.get('aria-valuetext')).toBe('65%');
     expect(value.textContent).toBe('65%');
@@ -97,7 +117,7 @@ describe('AudioControls', () => {
     expect(value.textContent).toBe('20%');
     expect(controls.setVoicesPercent('20')).toBe(0.2);
     expect(writes).toBe(1);
-    expect(new AudioController(undefined, store).preferences()).toEqual({ muted: true, effectsLevel: 0.45, voicesLevel: 0.2 });
+    expect(new AudioController(undefined, store).preferences()).toEqual({ muted: true, effectsLevel: 0.45, voicesLevel: 0.2, ambienceLevel: 0.25 });
     expect(effects.value).toBe('45');
     expect(controls.setVoicesPercent('broken')).toBe(0.2);
     expect(writes).toBe(1);
@@ -134,7 +154,7 @@ describe('AudioControls', () => {
     const effects = slider();
     const value = { textContent: null as string | null };
 
-    new AudioControls(state, mute, effects, value, slider(), { textContent: null });
+    new AudioControls(state, mute, effects, value, slider(), { textContent: null }, slider(), { textContent: null });
 
     expect(mute.textContent).toBe('Sound: off');
     expect(mute.attributes.get('aria-pressed')).toBe('true');
@@ -153,6 +173,7 @@ describe('AudioControls', () => {
       effects,
       { textContent: null },
       slider(), { textContent: null },
+      slider(), { textContent: null },
     );
 
     expect(controls.toggleMuted()).toBe(true);
@@ -170,7 +191,7 @@ describe('AudioControls', () => {
     const state = settings();
     const effects = slider();
     const value = { textContent: null as string | null };
-    const controls = new AudioControls(state, button(), effects, value, slider(), { textContent: null });
+    const controls = new AudioControls(state, button(), effects, value, slider(), { textContent: null }, slider(), { textContent: null });
 
     expect(controls.setEffectsPercent('35')).toBe(0.35);
     expect(state.effectsWrites).toEqual([0.35]);
@@ -186,6 +207,7 @@ describe('AudioControls', () => {
       button(),
       slider(),
       { textContent: null },
+      slider(), { textContent: null },
       slider(), { textContent: null },
     );
 
@@ -206,6 +228,7 @@ describe('AudioControls', () => {
       effects,
       { textContent: null },
       slider(), { textContent: null },
+      slider(), { textContent: null },
     );
 
     expect(controls.setEffectsPercent('125')).toBe(1);
@@ -219,7 +242,7 @@ describe('AudioControls', () => {
     const state = settings(false, 0.4);
     const effects = slider();
     const value = { textContent: null as string | null };
-    const controls = new AudioControls(state, button(), effects, value, slider(), { textContent: null });
+    const controls = new AudioControls(state, button(), effects, value, slider(), { textContent: null }, slider(), { textContent: null });
 
     expect(controls.setEffectsPercent('volume')).toBe(0.4);
     expect(state.effectsWrites).toEqual([]);
