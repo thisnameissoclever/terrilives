@@ -7797,6 +7797,7 @@ the explicit overhead-clearance failure. Delete that guard and require the
 negative proof to notice. Test standing reading with its exact active queue,
 visual action, activity and ordinary adjacent position. Test front and rear
 padding separately because their projected bounds differ.
+
 ## [L-mutation-budget-must-span-prs] Bound mutation runners across the repository
 
 **What happened.** Several PRs each started an eight-shard mutation sweep.

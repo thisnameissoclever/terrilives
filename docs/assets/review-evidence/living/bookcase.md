@@ -92,3 +92,10 @@ freshness, 119 sprite tests, 33 living-model tests and documentation IDs without
 ignored source files. Its eight source inputs, four renders, saved model and
 atlas bytes matched their hashes. Subsequent edits only add verification results
 to this receipt.
+
+Before pushing, main advanced to `fe8f9fe1e915427521d9bda5c78025317610a5b0`
+through PR162. Its CI scheduling guards, family-label test and documentation
+were inspected and merged without changing runtime or artwork. The merged
+checkout passed `cargo test -p terri-core` (107 tests), the complete CI-script
+suite (15 tests), documentation IDs and diff checks. Both appended lessons
+were preserved; their separating blank line was restored after the union merge.
