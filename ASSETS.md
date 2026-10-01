@@ -219,7 +219,7 @@ See `docs/specs/2026-10-01-stove-cooking-texture.md` for preparation and evidenc
 
 ## Door recordings
 
-Two provisional recordings accompany actual door state changes. Author:
+The closing impact accompanies actual door closure; opening is silent. Author:
 rubberduck; pack: [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx),
 CC0 1.0. Archive SHA-256:
 `a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`.
@@ -228,12 +228,19 @@ CC0 1.0. Archive SHA-256:
 | --- | --- | --- | --- |
 | `door_open.ogg`, retained in `assets/audio/doors/` | `62b42cdf0d8b25ef80c0f3bc815aa65977b78b20225481461ea134798172f59d` | `web/public/audio/doors/open.wav` | `01c05db9d4349f7da37821cc71bfaec7aa4da8486c7096406520ef8c3e1be2da` |
 | `door_close_02.ogg`, retained in `assets/audio/doors/` | `3f4ce43f7a676d8907258908c90e88caecffd4526fce43e40df6726bf67ed91b` | `web/public/audio/doors/close.wav` | `5aa47dfbe01fa785de53564e24229640dfd60cdbc231f43323882fa73e7dbd92` |
+| Closing impact derived from the preserved `close.wav` | `5aa47dfbe01fa785de53564e24229640dfd60cdbc231f43323882fa73e7dbd92` | `web/public/audio/doors/close-thunk.wav` | `3df7b05fe5101da61d0f06e523b52f0f038bee32c22fca2569107bf58f087cc3` |
 
 Chromium decoded the originals at 48 kHz; export retains every decoded frame
 as stereo signed PCM16. No trim, normalization, filter or dithering is applied.
-Opening has 21,698 frames and closing has 41,227. Playback gain and edge fades
-are applied at runtime. The recipe and measured screening are in
-`docs/specs/2026-10-01-door-audio.md`. Subjective listening acceptance remains open.
+The original exports remain as preparation sources, with 21,698 opening frames
+and 41,227 closing frames. The current game requests only `close-thunk.wav`.
+`scripts/build-door-thunk.mjs` preserves the first 15,360 closing frames (0.32 s),
+applies two cascaded 1 kHz low-pass filters and 10 ms edge fades, and exports
+stereo PCM16 at 48 kHz without normalization. Measured left-channel peak falls
+from 0.898499 to 0.440674. A 2.5 kHz high-pass energy comparison over the same
+window falls from 36.79813 to 0.40876. This measures reduced sharp content,
+not subjective listening acceptance. Runtime gain remains 0.05 before Effects.
+See `docs/specs/2026-10-01-door-audio.md` for timing and verification.
 
 ## Paper recordings for review only
 

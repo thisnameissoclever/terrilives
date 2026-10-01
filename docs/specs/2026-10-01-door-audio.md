@@ -73,6 +73,9 @@ and edge fades. This replaces only the runtime selection, not the source files.
 
 ## Verification
 
+Current closing-only preparation, controller, native-output and played
+production evidence is in [door-thunk verification](2026-10-01-door-thunk-verification.md).
+
 The numbered results below document the initial two-recording implementation,
 not current closing-only acceptance. Its signal levels and opening counters are
 historical. The current offline proof requires zero opening output, exactly one
