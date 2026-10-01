@@ -1,0 +1,577 @@
+{
+  "schema_version": 1,
+  "width": 38,
+  "height": 88,
+  "anchor": [
+    19.00001358985901,
+    100.00043803453445
+  ],
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "variant": "red",
+  "pixel_density": 2,
+  "frames": [
+    {
+      "name": "rigSimRedCarryWalkSE0",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 0,
+      "path": "carry_walk-SE-0.png",
+      "sha256": "fa41a318285f9407f374626fbfc89cdfbf6e9f965efd8659587563d6543c0cf7"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE1",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 1,
+      "path": "carry_walk-SE-1.png",
+      "sha256": "12c9a82ebdf47ebe306607440cb723282c15aa8cfdfbf4f2ae93d9a642cdf5c2"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE2",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 2,
+      "path": "carry_walk-SE-2.png",
+      "sha256": "620ff6c8d5600d432c8a95e769ad100427574b9abd3d91eccd7b69a19ab87109"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE3",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 3,
+      "path": "carry_walk-SE-3.png",
+      "sha256": "329429b27bb1b78f8983d4147a2e4fe1aa2a31a13a28c239bc854b224e16186d"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE4",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 4,
+      "path": "carry_walk-SE-4.png",
+      "sha256": "22329d717b6dfd35d6b96be1d5886c902fe2e322d156fac42812945c23a8c06d"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE5",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 5,
+      "path": "carry_walk-SE-5.png",
+      "sha256": "743baebbd814d9d42a2106ce81c0e9d6fa939a7a8c906a99f55c99dc93a9de1a"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE6",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 6,
+      "path": "carry_walk-SE-6.png",
+      "sha256": "500efcc1406f80cc79a952e930c02f6bb6643a9b300d898aa9ce8fde8413511e"
+    },
+    {
+      "name": "rigSimRedCarryWalkSE7",
+      "action": "carry_walk",
+      "facing": "SE",
+      "frame": 7,
+      "path": "carry_walk-SE-7.png",
+      "sha256": "9565ccc80b92acfe1151d8a6761661949570f905415bbcdda178eac6465f9dff"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW0",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 0,
+      "path": "carry_walk-SW-0.png",
+      "sha256": "735b2e84f9f9b0df8aacf2f978b488d2247ebe1cf5a8a8a999c7ffc9636ab28a"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW1",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 1,
+      "path": "carry_walk-SW-1.png",
+      "sha256": "27cde1c93f80d57dbef035b8ee28a6d932d8a86a47d53c0f0be9a20e94439c36"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW2",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 2,
+      "path": "carry_walk-SW-2.png",
+      "sha256": "a30c87a319c6a2d901b3ff6b27aeca22da8a1d7282e98a43c576025e3818ca48"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW3",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 3,
+      "path": "carry_walk-SW-3.png",
+      "sha256": "e40ab78894630611bbde012f951167b8ca46a4ff09e5f4290c16aba879b1a3fd"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW4",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 4,
+      "path": "carry_walk-SW-4.png",
+      "sha256": "c30fe59e80ac9e9fccc591e3798bdd69d5f8f2031ff1c0686012f1bc4a35124e"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW5",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 5,
+      "path": "carry_walk-SW-5.png",
+      "sha256": "d4e97d5d929c9014b3f237d3984fcd0d489d956b5adfac932ffbc99acbcf759c"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW6",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 6,
+      "path": "carry_walk-SW-6.png",
+      "sha256": "aa278263f9b20530ec14f2ec26cd08001cf064cc27f1c5bb3e13572298fdf707"
+    },
+    {
+      "name": "rigSimRedCarryWalkSW7",
+      "action": "carry_walk",
+      "facing": "SW",
+      "frame": 7,
+      "path": "carry_walk-SW-7.png",
+      "sha256": "ef273211cd133bf188d0ef7d174c536b9481376f5b0e9f0a60378cd019db282c"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW0",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 0,
+      "path": "carry_walk-NW-0.png",
+      "sha256": "437af937fdac0ce8ad4f62e6e18bf63bd6ad32504b68600606223d7e89dce288"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW1",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 1,
+      "path": "carry_walk-NW-1.png",
+      "sha256": "9d1fd136099c8345527f9cf50cd3aa75833d7d81c06bf05f270fdd55214b45c1"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW2",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 2,
+      "path": "carry_walk-NW-2.png",
+      "sha256": "5d782b3c97ed219f1b49b299a8242ef0641ca3aca7685f1835df725ce934561c"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW3",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 3,
+      "path": "carry_walk-NW-3.png",
+      "sha256": "8ab7a09132cb266ffdb03c58b724d3561e4e9b418dad61e65319416070e19255"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW4",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 4,
+      "path": "carry_walk-NW-4.png",
+      "sha256": "0cd8145bb9b65b333e2c6564558b8b5a7f3aa4ba81c1eeeb564b943b727f987d"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW5",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 5,
+      "path": "carry_walk-NW-5.png",
+      "sha256": "d40fb127fdfe84cf37a0d980000367af4efaa6284ce52a82ef9e7138fb9f9340"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW6",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 6,
+      "path": "carry_walk-NW-6.png",
+      "sha256": "d5302a3cc3295396e6169fb4142fc30d9911f142cafe18674bfc3ed5e209f493"
+    },
+    {
+      "name": "rigSimRedCarryWalkNW7",
+      "action": "carry_walk",
+      "facing": "NW",
+      "frame": 7,
+      "path": "carry_walk-NW-7.png",
+      "sha256": "4cde7721e79d4e3cde961e2102bdbabdfc114bf3bd01fee35582cbb04582bc91"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE0",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 0,
+      "path": "carry_walk-NE-0.png",
+      "sha256": "56fa6fdb367f34ac49887dd5a868c14d44ef4514e4b8f2eb21b034fb39d6e47c"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE1",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 1,
+      "path": "carry_walk-NE-1.png",
+      "sha256": "7b3ccd70edb0d27645ea0442f38c36971ece03edcd882f07cd1b835efb89fd4a"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE2",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 2,
+      "path": "carry_walk-NE-2.png",
+      "sha256": "17462b25039e8dd44aa00aebc795dffee1f58aff16eae85817bd3dfdda0acdc4"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE3",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 3,
+      "path": "carry_walk-NE-3.png",
+      "sha256": "d7909b01b591a804389035a4ec6b5e40684b0c417330ca45dce5f7d815cfec7c"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE4",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 4,
+      "path": "carry_walk-NE-4.png",
+      "sha256": "4b02546690f77eba453a951997394200c432c4c18de1e59973cfe1c353bcac88"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE5",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 5,
+      "path": "carry_walk-NE-5.png",
+      "sha256": "9a07601b3e1a7cb674ecc69276f1a83ad8bdf88ed960bc4da232d37b676cb850"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE6",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 6,
+      "path": "carry_walk-NE-6.png",
+      "sha256": "557091a44ba8bcbbeb45706b16ba95ed4172004bae7204b24082d9b3ebf82a57"
+    },
+    {
+      "name": "rigSimRedCarryWalkNE7",
+      "action": "carry_walk",
+      "facing": "NE",
+      "frame": 7,
+      "path": "carry_walk-NE-7.png",
+      "sha256": "681b29cd48cdb0779eaff2bb6b9e00634863787b9d1f3926c0347bfdf9576ac5"
+    },
+    {
+      "name": "rigSimRedCarryIdleSE0",
+      "action": "carry_idle",
+      "facing": "SE",
+      "frame": 0,
+      "path": "carry_idle-SE-0.png",
+      "sha256": "cbbe2f34996755769f6a28959c002be948492079a1058fcc32e460bc3913f9aa"
+    },
+    {
+      "name": "rigSimRedCarryIdleSE1",
+      "action": "carry_idle",
+      "facing": "SE",
+      "frame": 1,
+      "path": "carry_idle-SE-1.png",
+      "sha256": "cbbe2f34996755769f6a28959c002be948492079a1058fcc32e460bc3913f9aa"
+    },
+    {
+      "name": "rigSimRedCarryIdleSE2",
+      "action": "carry_idle",
+      "facing": "SE",
+      "frame": 2,
+      "path": "carry_idle-SE-2.png",
+      "sha256": "cbbe2f34996755769f6a28959c002be948492079a1058fcc32e460bc3913f9aa"
+    },
+    {
+      "name": "rigSimRedCarryIdleSE3",
+      "action": "carry_idle",
+      "facing": "SE",
+      "frame": 3,
+      "path": "carry_idle-SE-3.png",
+      "sha256": "cbbe2f34996755769f6a28959c002be948492079a1058fcc32e460bc3913f9aa"
+    },
+    {
+      "name": "rigSimRedCarryIdleSW0",
+      "action": "carry_idle",
+      "facing": "SW",
+      "frame": 0,
+      "path": "carry_idle-SW-0.png",
+      "sha256": "9622c5f4bf416c1bf5ebfb81d926048b3d8eb9340eb12e28b33cd21dbabe645d"
+    },
+    {
+      "name": "rigSimRedCarryIdleSW1",
+      "action": "carry_idle",
+      "facing": "SW",
+      "frame": 1,
+      "path": "carry_idle-SW-1.png",
+      "sha256": "9622c5f4bf416c1bf5ebfb81d926048b3d8eb9340eb12e28b33cd21dbabe645d"
+    },
+    {
+      "name": "rigSimRedCarryIdleSW2",
+      "action": "carry_idle",
+      "facing": "SW",
+      "frame": 2,
+      "path": "carry_idle-SW-2.png",
+      "sha256": "9622c5f4bf416c1bf5ebfb81d926048b3d8eb9340eb12e28b33cd21dbabe645d"
+    },
+    {
+      "name": "rigSimRedCarryIdleSW3",
+      "action": "carry_idle",
+      "facing": "SW",
+      "frame": 3,
+      "path": "carry_idle-SW-3.png",
+      "sha256": "9622c5f4bf416c1bf5ebfb81d926048b3d8eb9340eb12e28b33cd21dbabe645d"
+    },
+    {
+      "name": "rigSimRedCarryIdleNW0",
+      "action": "carry_idle",
+      "facing": "NW",
+      "frame": 0,
+      "path": "carry_idle-NW-0.png",
+      "sha256": "dc0428170e68c8685063a59e6fe746ab2c4785464139567a1daecfaaeb02cc42"
+    },
+    {
+      "name": "rigSimRedCarryIdleNW1",
+      "action": "carry_idle",
+      "facing": "NW",
+      "frame": 1,
+      "path": "carry_idle-NW-1.png",
+      "sha256": "dc0428170e68c8685063a59e6fe746ab2c4785464139567a1daecfaaeb02cc42"
+    },
+    {
+      "name": "rigSimRedCarryIdleNW2",
+      "action": "carry_idle",
+      "facing": "NW",
+      "frame": 2,
+      "path": "carry_idle-NW-2.png",
+      "sha256": "dc0428170e68c8685063a59e6fe746ab2c4785464139567a1daecfaaeb02cc42"
+    },
+    {
+      "name": "rigSimRedCarryIdleNW3",
+      "action": "carry_idle",
+      "facing": "NW",
+      "frame": 3,
+      "path": "carry_idle-NW-3.png",
+      "sha256": "dc0428170e68c8685063a59e6fe746ab2c4785464139567a1daecfaaeb02cc42"
+    },
+    {
+      "name": "rigSimRedCarryIdleNE0",
+      "action": "carry_idle",
+      "facing": "NE",
+      "frame": 0,
+      "path": "carry_idle-NE-0.png",
+      "sha256": "96cc9e846216184e3d41a7b547e9c11a46cf667704a62a549fe1523b49627f5a"
+    },
+    {
+      "name": "rigSimRedCarryIdleNE1",
+      "action": "carry_idle",
+      "facing": "NE",
+      "frame": 1,
+      "path": "carry_idle-NE-1.png",
+      "sha256": "96cc9e846216184e3d41a7b547e9c11a46cf667704a62a549fe1523b49627f5a"
+    },
+    {
+      "name": "rigSimRedCarryIdleNE2",
+      "action": "carry_idle",
+      "facing": "NE",
+      "frame": 2,
+      "path": "carry_idle-NE-2.png",
+      "sha256": "96cc9e846216184e3d41a7b547e9c11a46cf667704a62a549fe1523b49627f5a"
+    },
+    {
+      "name": "rigSimRedCarryIdleNE3",
+      "action": "carry_idle",
+      "facing": "NE",
+      "frame": 3,
+      "path": "carry_idle-NE-3.png",
+      "sha256": "96cc9e846216184e3d41a7b547e9c11a46cf667704a62a549fe1523b49627f5a"
+    },
+    {
+      "name": "rigSimRedWashSE0",
+      "action": "wash",
+      "facing": "SE",
+      "frame": 0,
+      "path": "wash-SE-0.png",
+      "sha256": "75405bc5f6fa656ecb262671f522ca20ee307d1b563222a85f72c20c63d1ce90"
+    },
+    {
+      "name": "rigSimRedWashSE1",
+      "action": "wash",
+      "facing": "SE",
+      "frame": 1,
+      "path": "wash-SE-1.png",
+      "sha256": "393ae0fb645ab4f95c8a4775c29fb48155948b1152ba21335ba58cb685593ae8"
+    },
+    {
+      "name": "rigSimRedWashSE2",
+      "action": "wash",
+      "facing": "SE",
+      "frame": 2,
+      "path": "wash-SE-2.png",
+      "sha256": "7a64a424f35e1fedef7ceaeab1228e935a5cd473cf7036874ff1c5769cb239b8"
+    },
+    {
+      "name": "rigSimRedWashSE3",
+      "action": "wash",
+      "facing": "SE",
+      "frame": 3,
+      "path": "wash-SE-3.png",
+      "sha256": "6ae475199315e03f87fa4ec10e8a4d312c9d5e5a4a3bd05972f4c5b9e82dbebd"
+    },
+    {
+      "name": "rigSimRedWashSW0",
+      "action": "wash",
+      "facing": "SW",
+      "frame": 0,
+      "path": "wash-SW-0.png",
+      "sha256": "6a9f1baa0f3e60ad13422299d9ef12283ffb3450e945eb036c23c07e16e87824"
+    },
+    {
+      "name": "rigSimRedWashSW1",
+      "action": "wash",
+      "facing": "SW",
+      "frame": 1,
+      "path": "wash-SW-1.png",
+      "sha256": "6d097520c96af820080d6dea0f55b0a9458c718e440d3fc0b4d319070d4bba7a"
+    },
+    {
+      "name": "rigSimRedWashSW2",
+      "action": "wash",
+      "facing": "SW",
+      "frame": 2,
+      "path": "wash-SW-2.png",
+      "sha256": "8690cf4a323d1389444689a0210804592b7627a999b601ff46e927aa964129c2"
+    },
+    {
+      "name": "rigSimRedWashSW3",
+      "action": "wash",
+      "facing": "SW",
+      "frame": 3,
+      "path": "wash-SW-3.png",
+      "sha256": "4ed5fc17e99b71f044c759291d45204b1e84071d746659fb3008b926458730dc"
+    },
+    {
+      "name": "rigSimRedWashNW0",
+      "action": "wash",
+      "facing": "NW",
+      "frame": 0,
+      "path": "wash-NW-0.png",
+      "sha256": "7cbf189e45d13bd675610fecff0bfbd68a79246bbef66fe185f1f7cd398eb23b"
+    },
+    {
+      "name": "rigSimRedWashNW1",
+      "action": "wash",
+      "facing": "NW",
+      "frame": 1,
+      "path": "wash-NW-1.png",
+      "sha256": "b6fd670ff0babb27b828848d9a21ff2cd51934db5341409e896c10e917928c6b"
+    },
+    {
+      "name": "rigSimRedWashNW2",
+      "action": "wash",
+      "facing": "NW",
+      "frame": 2,
+      "path": "wash-NW-2.png",
+      "sha256": "f685bc44d04f8d973f25dc69a9b21e33769e5d8f8a9dadfb4a11f4fb8f8ddbf6"
+    },
+    {
+      "name": "rigSimRedWashNW3",
+      "action": "wash",
+      "facing": "NW",
+      "frame": 3,
+      "path": "wash-NW-3.png",
+      "sha256": "1b4d825935affe5e326516389749aa7f8fc7ef3e4500e3f3fc1a4d0315dd5241"
+    },
+    {
+      "name": "rigSimRedWashNE0",
+      "action": "wash",
+      "facing": "NE",
+      "frame": 0,
+      "path": "wash-NE-0.png",
+      "sha256": "9f390f8f434ecc849b52dac44719211e75589c7b9d6fdcc4337354d6104dbc44"
+    },
+    {
+      "name": "rigSimRedWashNE1",
+      "action": "wash",
+      "facing": "NE",
+      "frame": 1,
+      "path": "wash-NE-1.png",
+      "sha256": "6e520ecf9865f4cd10882a1279e94c264833d77c8e1fe502dfefb6df4c7457d4"
+    },
+    {
+      "name": "rigSimRedWashNE2",
+      "action": "wash",
+      "facing": "NE",
+      "frame": 2,
+      "path": "wash-NE-2.png",
+      "sha256": "3ed5401b4e0ca3c61edc7175c1725c104eb886bd839c4551f8a7ccd3e593416e"
+    },
+    {
+      "name": "rigSimRedWashNE3",
+      "action": "wash",
+      "facing": "NE",
+      "frame": 3,
+      "path": "wash-NE-3.png",
+      "sha256": "a9a0fcb614edf937651c4e3f905005fe5390f496734e12375319583f22e701de"
+    }
+  ],
+  "clips": {
+    "carry_walk": {
+      "frame_count": 8,
+      "sample_fps": 10,
+      "loop": true,
+      "source_action": "carry_walk",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ],
+      "distance_per_cycle_model_units": 1.0
+    },
+    "carry_idle": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "carry_idle",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "wash": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "wash",
+      "width": 80,
+      "height": 104,
+      "anchor": [
+        40.00001239776611,
+        108.00043880939484
+      ],
+      "world_origin": [
+        40.00001239776611,
+        87.00043880939484
+      ]
+    }
+  }
+}

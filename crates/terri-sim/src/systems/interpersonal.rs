@@ -42,6 +42,8 @@ struct AffinityEffect {
 #[derive(Resource)]
 pub struct InterpersonalPhase {
     rooms: RoomRegions,
+    domestic: Option<terri_core::save::SavedDomestic>,
+    domestic_occupants: Vec<crate::domestic::BoundaryOccupant>,
     participants: Vec<Participant>,
     objects: Vec<(Entity, Option<u32>)>,
     effects: Vec<AffinityEffect>,
@@ -56,10 +58,6 @@ fn tile(position: Position) -> (i32, i32) {
 
 pub(crate) fn prepare(world: &mut World) {
     crate::privacy::maintain(world);
-    let mut diagnostics = world.resource_mut::<RelationshipDiagnostics>();
-    diagnostics.effects.clear();
-    diagnostics.contacts.clear();
-    diagnostics.waits.clear();
     let rooms = RoomRegions::from_world(world);
     let pack = world.resource::<Content>().0;
     let mut objects: Vec<_> = world
@@ -101,7 +99,13 @@ pub(crate) fn prepare(world: &mut World) {
         })
         .collect();
     participants.sort_by_key(|p| p.entity.index());
+    let domestic = world
+        .get_resource::<terri_core::save::SavedDomestic>()
+        .cloned();
+    let domestic_occupants = crate::domestic::boundary_occupants(world);
     world.insert_resource(InterpersonalPhase {
+        domestic,
+        domestic_occupants,
         rooms,
         participants,
         objects,
@@ -245,9 +249,25 @@ impl InterpersonalPhase {
                             .is_some()
                     };
                     if let Some(role) = role {
-                        return definition.roles.contains(&role)
-                            && occupancy.exclusive_available(agent, item.entity)
-                            && reachable(crate::beds::Admission::Exclusive);
+                        let _ = role;
+                        return person.chain.is_some_and(|chain| {
+                            crate::domestic::boundary_route(
+                                pack,
+                                self.domestic.as_ref(),
+                                agent,
+                                Some(person.id),
+                                chain,
+                                item.entity,
+                                item.definition,
+                                Some(&terri_core::ObjectFacing(item.facing)),
+                                item.position,
+                                position,
+                                &safe,
+                                occupancy.exclusive_available(agent, item.entity),
+                                &self.domestic_occupants,
+                            )
+                            .is_some()
+                        });
                     }
                     definition
                         .interactions
@@ -537,6 +557,28 @@ pub(crate) fn apply(world: &mut World) {
                 emergency: effect.emergency,
                 directed: effect.directed,
             });
+    }
+}
+
+/// Refresh task routing facts without resetting the incident ordering baseline.
+pub(crate) fn refresh_routes(world: &mut World) {
+    let domestic = world
+        .get_resource::<terri_core::save::SavedDomestic>()
+        .cloned();
+    let occupants = crate::domestic::boundary_occupants(world);
+    let chains: Vec<_> = world
+        .query::<(Entity, Option<&terri_core::ChainState>)>()
+        .iter(world)
+        .map(|(e, c)| (e, c.copied()))
+        .collect();
+    let mut phase = world.resource_mut::<InterpersonalPhase>();
+    phase.domestic = domestic;
+    phase.domestic_occupants = occupants;
+    for person in &mut phase.participants {
+        person.chain = chains
+            .iter()
+            .find(|(e, _)| *e == person.entity)
+            .and_then(|(_, c)| *c);
     }
 }
 

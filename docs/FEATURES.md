@@ -215,7 +215,7 @@ placement for the same Save V1 reason.
 activity 11 project the displayed Sim to the existing armchair seat without
 moving ECS position or widening the WASM bridge. Every shipped look has two
 directional, planted seated frames on a 24-tick hold; the normal HUD says
-`Sitting` and deliberately adds no generic bubble. Pause, speed, reduced
+`Sitting` and shows the chair activity bubble. Pause, speed, reduced
 motion, entry, and exit follow the same deterministic socket rules as seated
 reading and exercise. Sofas, beds, and other multi-user furniture remain
 separate until the simulation owns deterministic per-user slots.
@@ -442,9 +442,11 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 
 The compact HUD now separates world controls at the upper left from a bottom
 Sim dock. Desktop exposes all need meters; compact and collapsed layouts keep
-Sim details available for the same information. People, Traits, Queue and
-Household share one expandable sheet. Options holds world preferences and game
-actions; Queue mode and Clear orders live in Queue. Build retains its existing
+Sim details available for the same information. Mood and life satisfaction
+remain visible in the dock, including when collapsed; phones give them a short
+row beneath the identity and controls. Overview, People, Traits and Queue share
+one expandable sheet. Options holds world preferences and game actions,
+including New housemate even without a selected person; Queue mode and Clear orders live in Queue. Build retains its existing
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
@@ -971,7 +973,8 @@ Shower use now loads a prepared CC0 flowing-water loop on audible demand, with
 cached success and bounded recovery after download failure. It is a provisional
 addition, not owner-listening acceptance. Handwashing and kitchen washing-up
 share that recording at lower gain with independent object ownership. See
-`specs/2026-10-01-sink-water-audio.md`. Stove cooking remains silent. See
+`specs/2026-10-01-sink-water-audio.md`. The Cook step now plays a provisional
+first-party cooking texture; see `specs/2026-10-01-stove-cooking-texture.md`. See
 `specs/2026-10-01-shower-water-recording.md` and the source-owned playback spec.
 
 The original foundation's production proof ran in visible Chrome on a display
@@ -1000,8 +1003,8 @@ for eight. The current candidate aligns both at eight ticks and
 replaces it with a quieter 520 to 340 Hz triangle sweep, but that correction
 also remains owner-listening evidence rather than accepted sound design.
 
-This is not the complete audio feature. Front and interior door transitions now
-play two quiet provisional recordings, keyed by physical portal geometry with
+This is not the complete audio feature. Front and interior doors open silently
+and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
 `specs/2026-10-01-door-audio.md`. Routine controls
 are silent by design rather than waiting for blanket click sounds. Room and
@@ -1012,7 +1015,9 @@ Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water and door recordings are now integrated.
+downloaded and inventoried; selected water recordings and a filtered closing-door
+thunk are now integrated. Door opening is silent; the original door recordings
+remain preserved but are not fetched by gameplay.
 The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 
@@ -1393,6 +1398,13 @@ than explicit and topical, and it keeps the audience twice as large.
 
 Tone should be locked before serious content authoring begins in M1.
 
+## [F-domestic-meals-cleanup] Meals, messes and shared food
+
+Requested 2026-09-30; implemented locally, verification recorded in [the meal spec](specs/2026-09-30-meals-and-cleanup.md). Meals have six stages totaling 500 base work ticks, snacks three totaling 85. New prepare, cook and wash clips cover all four directions and three household shirt colors. Preparation and eating leave visible, attributed dishes. Kitchen-sink cleanup collects each dirty surface before washing.
+
+Cleanliness is a separate personality value. Needs reduce autonomous cleanup willingness; critical energy, hunger or bladder almost always wins. Foreign dishes lower mood and directional affinity once per room visit, and allow one visitor-cleanup roll at 20% of own willingness. A cook can provide real portions for up to three strongly liked hungry friends; all four can eat at the dining table. Time-of-day fridge labels read breakfast, lunch or dinner. Save/load preserves claims, responsibility and visit memory, and reads earlier meal bytes through a reviewed bridge.
+
+[Sim interpersonal relations](SIM-RELATIONSHIPS.md) is the dedicated account of support, resentment, needs, personality, mood and satisfaction. This local implementation is not a claim of merged or deployed delivery.
 ## Gameplay UI corrections (2026-09-30)
 
 Simulation speed sits below the clock and funds; Build and Options now share

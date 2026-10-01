@@ -13,6 +13,7 @@ pub enum RelationshipCause {
     SharedActivity,
     Incompatibility,
     Decay,
+    HouseholdMess,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -65,4 +66,11 @@ impl crate::Sim {
     pub fn relationship_contacts(&self) -> &[(SimId, SimId)] {
         &self.world().resource::<RelationshipDiagnostics>().contacts
     }
+}
+
+pub(crate) fn reset(world: &mut World) {
+    let mut diagnostics = world.resource_mut::<RelationshipDiagnostics>();
+    diagnostics.effects.clear();
+    diagnostics.contacts.clear();
+    diagnostics.waits.clear();
 }

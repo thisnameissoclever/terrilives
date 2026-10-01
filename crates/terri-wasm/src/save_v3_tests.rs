@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 11] {
+pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 12] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -54,6 +54,7 @@ pub(super) fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 11] {
         postcard::to_allocvec(&snapshot.chronotype_offsets)
             .unwrap()
             .len(),
+        postcard::to_allocvec(&snapshot.domestic).unwrap().len(),
         postcard::to_allocvec(&snapshot.sleeping_places)
             .unwrap()
             .len(),
@@ -87,7 +88,7 @@ fn grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut() {
         source.sleeping_places = Some(state);
         let payload = postcard::to_allocvec(&source).unwrap();
         let tail = postcard::to_allocvec(&source.sleeping_places).unwrap();
-        let privacy_len: usize = v5_appended_lengths(&source)[9..].iter().sum();
+        let privacy_len: usize = v5_appended_lengths(&source)[10..].iter().sum();
         let end = payload.len() - privacy_len;
         let start = end - tail.len();
         assert_eq!(
@@ -193,6 +194,7 @@ fn bed_era_prefix_preserves_nonempty_places_paths_and_sleep_countdowns() {
             &snapshot.waiting_needs,
             &snapshot.self_preservation,
             &snapshot.chronotype_offsets,
+            &snapshot.domestic,
             &snapshot.sleeping_places,
         ))
         .unwrap();
@@ -233,7 +235,7 @@ fn independent_bed_release_wasm_saves_preserve_claims_and_pending_command_19() {
             true,
         ),
     ] {
-        let expected = decode_v5(&bytes[10..]).unwrap();
+        let expected = decode_local_bed_v5(&bytes[10..]).unwrap();
         let places = expected.sleeping_places.as_ref().unwrap();
         assert_eq!(places.active_places, vec![(34, 0), (35, 1)]);
         assert_eq!(places.assignments, vec![(0, 19, 0), (1, 19, 1)]);
@@ -249,14 +251,12 @@ fn independent_bed_release_wasm_saves_preserve_claims_and_pending_command_19() {
         }
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(bytes));
-        assert_eq!(loaded.sim.save_snapshot_v5(), expected);
-        let mut current = bytes.to_vec();
-        current.extend([0, 0]);
-        assert_eq!(
-            loaded.save_bytes(),
-            current,
-            "only absent privacy fields are appended"
-        );
+        let actual = loaded.sim.save_snapshot_v5();
+        let mut normalized = expected.clone();
+        normalized.world.content_fingerprint = actual.world.content_fingerprint;
+        assert_eq!(actual, normalized);
+        let current = loaded.save_bytes();
+        assert_current_resave_is_stable(&loaded);
         let mut replay = SimHandle::from_lot();
         assert!(replay.load_bytes(&current));
         loaded.flush_commands();
@@ -317,6 +317,45 @@ fn published_v5_instinct_and_chronotype_prefix_survives_privacy_extension() {
     assert_eq!(restored.chronotype_offsets, snapshot.chronotype_offsets);
     assert!(restored.boundaries.is_empty());
     assert_current_resave_is_stable(&loaded);
+}
+
+#[test]
+fn public_main_meal_preserves_personality_tail_and_migrates_recipe_counter() {
+    // Written and validated by public main 6d2499d4, before domestic existed.
+    let hex = include_str!("../tests/fixtures/public-main-meal.hex").trim();
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    let state = loaded.sim.save_snapshot_v5();
+    assert_eq!(state.self_preservation, vec![(34, 0), (35, 93), (36, 47)]);
+    assert_eq!(state.chronotype_offsets, vec![(34, -317), (35, 629)]);
+    let cook = state
+        .world
+        .entities
+        .iter()
+        .find(|row| row.index == 34)
+        .unwrap();
+    assert_eq!(cook.chain.as_ref().unwrap().step, 5);
+    assert_eq!(cook.step_work_ticks, Some(31));
+    assert_eq!(
+        postcard::to_allocvec(&state.world.rng).unwrap(),
+        postcard::to_allocvec(&(12019770418448921669u64, 40521457u64)).unwrap()
+    );
+    assert!(state
+        .domestic
+        .as_ref()
+        .is_none_or(|state| state.dishes.is_empty() && state.meals.is_empty()));
+    assert_current_resave_is_stable(&loaded);
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&loaded.save_bytes()));
+    for _ in 0..160 {
+        loaded.tick();
+        resumed.tick();
+        assert_eq!(loaded.world_hash(), resumed.world_hash());
+    }
 }
 
 #[test]
@@ -674,7 +713,6 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
 
 /// Two sims of the shipped lot, as entity indices, lowest first.
 fn two_sims(handle: &mut SimHandle) -> (u32, u32) {
-    handle.tick();
     let count = handle.entity_count();
     let kinds = unsafe { std::slice::from_raw_parts(handle.kinds_ptr(), count) };
     let ids = unsafe { std::slice::from_raw_parts(handle.ids_ptr(), count) };
@@ -1011,4 +1049,237 @@ fn boundary_length_and_record_truncations_cannot_invent_decisions() {
     }
     let legacy = decode_v5(&bytes[..start]).unwrap();
     assert!(legacy.boundaries.is_empty());
+}
+
+#[test]
+fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter() {
+    for (hex, dinner) in [
+        (include_str!("../tests/fixtures/pre-meals-snack.hex"), false),
+        (include_str!("../tests/fixtures/pre-meals-dinner.hex"), true),
+    ] {
+        let bytes: Vec<_> = hex
+            .trim()
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        let source = decode_v5(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        assert_eq!(source.world.content_fingerprint, 0xc2cf_2919_84ed_61f7);
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.load_bytes(&bytes), "actual old program bytes load");
+        let current = handle.sim.save_snapshot_v5();
+        assert_eq!(current.world.tick, source.world.tick);
+        let active = source
+            .world
+            .entities
+            .iter()
+            .find(|entity| {
+                if dinner {
+                    entity.chain.is_some()
+                } else {
+                    entity.eating.is_some()
+                }
+            })
+            .unwrap();
+        let mapped = current
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.index == active.index)
+            .unwrap();
+        assert_eq!(mapped.needs, active.needs);
+        assert_eq!(mapped.step_work_ticks, active.step_work_ticks);
+        assert_eq!(mapped.eating, active.eating);
+        if dinner {
+            assert_eq!(mapped.chain.as_ref().unwrap().step, 5);
+        }
+        let saved = handle.save_bytes();
+        let mut replay = SimHandle::from_lot();
+        assert!(replay.load_bytes(&saved));
+        assert_eq!(handle.sim.world_hash(), replay.sim.world_hash());
+    }
+}
+
+#[test]
+fn published_domestic_prefix_preserves_nonempty_state_and_current_recipe_step() {
+    let mut source = SimHandle::from_lot();
+    let mut snapshot = source.sim.save_snapshot_v5();
+    let counter = snapshot
+        .world
+        .entities
+        .iter()
+        .find(|row| row.smart_object.as_deref() == Some("counter"))
+        .unwrap()
+        .index;
+    let actor = snapshot
+        .world
+        .entities
+        .iter()
+        .find(|row| row.agent)
+        .unwrap()
+        .index;
+    snapshot.domestic = Some(terri_core::save::SavedDomestic {
+        cleanliness: vec![(actor, 0.73)],
+        dishes: vec![terri_core::save::SavedDishes {
+            id: 0,
+            surface: counter,
+            owner: 0,
+            units: 2,
+        }],
+        next_dish: 1,
+        ..Default::default()
+    });
+    source.sim.load_snapshot_v5(snapshot).unwrap();
+    let fridge = source
+        .sim
+        .save_snapshot()
+        .entities
+        .iter()
+        .find(|row| row.smart_object.as_deref() == Some("fridge"))
+        .unwrap()
+        .index;
+    let cook_row = source
+        .sim
+        .world()
+        .resource::<terri_sim::Content>()
+        .0
+        .objects
+        .iter()
+        .find(|object| object.id == "fridge")
+        .unwrap()
+        .interactions
+        .len() as u32;
+    source
+        .sim
+        .world_mut()
+        .resource_mut::<terri_core::CommandQueue>()
+        .push(terri_core::SimCommand::UseObjectFirst {
+            agent: actor,
+            object: fridge,
+            interaction: cook_row,
+        });
+    for _ in 0..2000 {
+        source.tick();
+        if source
+            .sim
+            .save_snapshot()
+            .entities
+            .iter()
+            .find(|row| row.index == actor)
+            .unwrap()
+            .chain
+            .as_ref()
+            .is_some_and(|chain| chain.chain == "cook_dinner" && chain.step == 3)
+        {
+            break;
+        }
+    }
+    let mut snapshot = source.sim.save_snapshot_v5();
+    assert_eq!(
+        snapshot
+            .world
+            .entities
+            .iter()
+            .find(|row| row.index == actor)
+            .unwrap()
+            .chain
+            .as_ref()
+            .unwrap()
+            .step,
+        3
+    );
+    assert!(!snapshot.domestic.as_ref().unwrap().cleanliness.is_empty());
+    snapshot.world.content_fingerprint = 0x85a2_d140_0dff_9da1;
+    let payload = postcard::to_allocvec(&(
+        &snapshot.world,
+        &snapshot.layout,
+        &snapshot.object_facings,
+        &snapshot.retired_indices,
+        &snapshot.object_colourways,
+        &snapshot.floors,
+        &snapshot.family_by_index,
+        &snapshot.family,
+        &snapshot.mortality,
+        snapshot.death_default_applied,
+        &snapshot.waiting_needs,
+        &snapshot.self_preservation,
+        &snapshot.chronotype_offsets,
+        &snapshot.domestic,
+    ))
+    .unwrap();
+    let mut bytes = SAVE_MAGIC.to_vec();
+    bytes.extend(5u16.to_le_bytes());
+    bytes.extend(&payload);
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    let actual = loaded.sim.save_snapshot_v5();
+    assert_eq!(actual.domestic, snapshot.domestic);
+    assert_eq!(actual.world.entities, snapshot.world.entities);
+    assert_current_resave_is_stable(&loaded);
+    // Every interior cut of the public domestic group must fail transactionally.
+    let tail = postcard::to_allocvec(&snapshot.domestic).unwrap();
+    let start = bytes.len() - tail.len();
+    let before = loaded.save_bytes();
+    let hash = loaded.world_hash();
+    for cut in start + 1..bytes.len() {
+        assert!(
+            !loaded.load_bytes(&bytes[..cut]),
+            "domestic interior cut {cut}"
+        );
+        assert_eq!(loaded.save_bytes(), before);
+        assert_eq!(loaded.world_hash(), hash);
+    }
+}
+
+#[test]
+fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
+    let mut snapshot = SimHandle::from_lot().sim.save_snapshot_v5();
+    snapshot.domestic = Some(terri_core::save::SavedDomestic {
+        cleanliness: vec![(300, 0.73); 128],
+        ..Default::default()
+    });
+    let bytes = postcard::to_allocvec(&snapshot).unwrap();
+    let lengths = v5_appended_lengths(&snapshot);
+    let end = bytes.len() - lengths[9..].iter().sum::<usize>();
+    let start = end - lengths[8];
+    for cut in start + 1..end {
+        assert!(decode_v5(&bytes[..cut]).is_none(), "domestic cut {cut}");
+    }
+    snapshot.domestic = None;
+    snapshot.world.content_fingerprint = LOCAL_BED_FINGERPRINT;
+    for places in [
+        None,
+        Some(terri_core::save::SavedSleepingPlaces {
+            active_places: vec![(300, 1); 128],
+            assignments: vec![(3, 129, 1); 128],
+        }),
+    ] {
+        snapshot.sleeping_places = places;
+        let mut bytes = postcard::to_allocvec(&snapshot).unwrap();
+        let lengths = v5_appended_lengths(&snapshot);
+        let domestic = bytes.len() - lengths[8..].iter().sum::<usize>();
+        assert_eq!(bytes.remove(domestic), 0); // Frozen local layout lacks this public field.
+        if snapshot.sleeping_places.is_none() {
+            for absent in 0..=2 {
+                assert!(decode_v5(&bytes[..bytes.len() - absent]).is_none());
+            }
+        } else {
+            assert!(decode_v5(&bytes).is_some());
+            let end = bytes.len() - 2;
+            for cut in domestic + 1..end {
+                assert!(decode_v5(&bytes[..cut]).is_none(), "local bed cut {cut}");
+            }
+            let (_, rest) = postcard::take_from_bytes::<u64>(&bytes).unwrap();
+            let mut unknown = postcard::to_allocvec(&0x1234u64).unwrap();
+            unknown.extend(rest);
+            assert!(decode_local_bed_v5(&unknown).is_none());
+            let mut live = SimHandle::from_lot();
+            let before = live.save_bytes();
+            let mut envelope = SAVE_MAGIC.to_vec();
+            envelope.extend(5u16.to_le_bytes());
+            envelope.extend(unknown);
+            assert!(!live.load_bytes(&envelope));
+            assert_eq!(live.save_bytes(), before);
+        }
+    }
 }

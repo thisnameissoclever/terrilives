@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig } from 'vite';
+import { changelogPlugin } from './changelog/plugin.js';
 
 /**
  * Self-signed TLS, when the material exists.
@@ -40,6 +41,7 @@ export default defineConfig(({ mode }) => ({
   // base would 404 every asset there while working fine locally, which
   // is the kind of difference that only shows up after deploying.
   base: './',
+  plugins: [changelogPlugin()],
   server: {
     // Bind every interface, not only localhost, so the dev build is
     // reachable from other machines and phones on the same network at

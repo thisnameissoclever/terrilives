@@ -1,0 +1,1067 @@
+{
+  "pass": false,
+  "phase": "paused",
+  "tick": 69,
+  "pausedTick": 69,
+  "frames": 91,
+  "unchanged": [
+    {
+      "target": "needs-caption",
+      "text": "Select a person",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "clock-value",
+      "text": "Day 1, 01:09",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "funds-value",
+      "text": "0",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "satisfaction-value",
+      "text": "unavailable",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "activity-value",
+      "text": "Nothing selected",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "orders-value",
+      "text": "0",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "people-caption",
+      "text": "People",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "people-empty",
+      "text": "Select a person to see how they feel about the household.",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "mood-empty",
+      "text": "Select a person to see their mood.",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "traits-empty",
+      "text": "No traits.",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "Tim",
+      "text": "Tim",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "Bill",
+      "text": "Bill",
+      "sameNode": false,
+      "sameText": true
+    },
+    {
+      "target": "Casey",
+      "text": "Casey",
+      "sameNode": false,
+      "sameText": true
+    }
+  ],
+  "pausedMutations": [
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "needs-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "clock-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "funds-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "satisfaction-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "activity-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "orders-value",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Tim",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Bill",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "Casey",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-caption",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "people-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "mood-empty",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "target": "traits-empty",
+      "added": 1,
+      "removed": 1
+    }
+  ],
+  "scripts": [
+    "http://127.0.0.1:5221/assets/index-CCdYZJyP.js"
+  ]
+}

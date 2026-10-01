@@ -1,3 +1,5 @@
+import { setTextIfChanged } from './set-text-if-changed.js';
+
 // The selected person's traits in plain words - [TL-panel] in
 // docs/specs/2026-09-21-trait-library-and-traits-panel.md.
 //
@@ -10,6 +12,7 @@ export interface TraitsPanelSource {
   selectedIndex(): number | null;
   /** Interleaved [pack trait index, state, ...] pairs, or empty. */
   traitsOf(entity: number): Float32Array;
+  cleanlinessOf?(entity: number): number | null;
   selfPreservationOf?(entity: number): number | null;
 }
 
@@ -87,6 +90,13 @@ export function traitsPanelState(
   const worn = source.traitsOf(selected);
 
   const traits: TraitView[] = [];
+  const cleanliness = source.cleanlinessOf?.(selected);
+  if (cleanliness !== undefined && cleanliness !== null) {
+    if (!Number.isFinite(cleanliness) || cleanliness < 0 || cleanliness > 1) return UNAVAILABLE;
+    traits.push({ key: -2, label: 'Cleanliness',
+      description: 'Tidier Sims usually clean up and mind other people leaving dirty dishes. Urgent needs can take priority.',
+      state: `${percent(cleanliness)}%` });
+  }
   for (let at = 0; at < worn.length; at += 2) {
     const index = worn[at];
     // `undefined` past the end of an odd-length read, which is not finite.
@@ -199,10 +209,10 @@ export function createTraitsPanelSurface(
           row = createTraitRow(doc);
           rowByKey.set(trait.key, row);
         }
-        row.label.textContent = trait.label;
-        row.state.textContent = trait.state;
+        setTextIfChanged(row.label, trait.label);
+        setTextIfChanged(row.state, trait.state);
         row.state.hidden = trait.state === '';
-        row.description.textContent = trait.description;
+        setTextIfChanged(row.description, trait.description);
 
         const current = list.children.item(index);
         if (current !== row.root) {
@@ -214,7 +224,7 @@ export function createTraitsPanelSurface(
       root.hidden = state.kind === 'unselected';
       list.hidden = !hasRows;
       empty.hidden = hasRows;
-      empty.textContent = state.kind === 'unavailable' ? 'Traits unavailable' : 'No traits.';
+      setTextIfChanged(empty, state.kind === 'unavailable' ? 'Traits unavailable' : 'No traits.');
     },
   };
 }

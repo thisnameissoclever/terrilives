@@ -6,8 +6,10 @@ This slice connected shower and stove sound state to a bounded recording player,
 initially with an empty catalog. The subsequent
 [shower recording slice](2026-10-01-shower-water-recording.md) adds one prepared
 flowing-water loop. The [sink addition](2026-10-01-sink-water-audio.md) reuses it
-at lower gain; either water action fetches missing clips on playable demand. Stove cooking stays
-silent. No placeholder oscillator or new dependency is introduced. Historical
+at lower gain; either water action fetches missing clips on playable demand.
+The [cooking addition](2026-10-01-stove-cooking-texture.md) supplies a provisional
+first-party texture with independent demand loading. No runtime oscillator or
+new dependency is introduced. Historical
 empty-catalog checks below describe this player's original delivery.
 
 The owner requested autonomous sound improvements and approved routine selection
@@ -52,6 +54,10 @@ provenance and the remaining listening work.
     ownership. On automatic recovery, only currently observed actions restart.
     See `2026-10-01-suspended-audio-cancellation.md` and
     `2026-10-01-automatic-audio-recovery.md`.
+11. Unavailable frame boundaries immediately dispose all retained records,
+    including releases begun before suspension. An already-ended scheduler
+    owner is not needed to find these draining nodes. Available frames retain
+    the normal fade. See `2026-10-01-interrupted-release-cleanup.md`.
 
 ## Verification
 

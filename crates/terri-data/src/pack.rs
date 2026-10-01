@@ -57,6 +57,30 @@ pub enum CompiledSoundAction {
     SinkWater,
 }
 
+/// Authored activity identity for a bubble and its text label. Presentation
+/// only: it neither changes gameplay tags nor selects body animation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledActivity {
+    Eating,
+    Sleeping,
+    Reading,
+    Exercising,
+    WatchingFish,
+    Sitting,
+    Showering,
+    UsingToilet,
+    WatchingTv,
+    Lounging,
+    WashingHands,
+    WashingDishes,
+    ListeningRadio,
+    Correspondence,
+    Bathing,
+    GettingIngredients,
+    PreparingFood,
+    Cooking,
+}
+
 /// Body-pose category resolved from an authored `visual` table.
 /// Presentation has its own vocabulary rather than reusing gameplay tags or
 /// broad activity-indicator codes, which answer different questions.
@@ -69,6 +93,9 @@ pub enum CompiledVisualAction {
     Watch,
     Sit,
     Sleep,
+    Prepare,
+    Cook,
+    Wash,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -186,9 +213,13 @@ pub struct CompiledInteraction {
     pub visual: Option<CompiledVisual>,
     /// Optional authored object-audio category. Presentation-only and outside
     /// Save V1's compatibility digest.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// Activity metadata was appended after this field.
     pub sound_action: Option<CompiledSoundAction>,
     pub shared_activity: Option<String>,
+    /// Optional authored activity indicator; excluded from save compatibility.
+    /// Appended after sound to preserve the preceding interaction fields.
+    /// The embedded pack has no cross-build decoding contract.
+    pub activity: Option<CompiledActivity>,
 }
 
 #[cfg(test)]
@@ -738,6 +769,29 @@ pub struct Tuning {
     pub boundary_wander_reconsider_chance: f32,
     pub shyness_wander_reconsider_strength: f32,
     pub relationships: crate::RelationshipTuning,
+    /// Domestic systems are disabled in custom packs without this table.
+    pub domestic: Option<DomesticTuning>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct DomesticTuning {
+    pub own_cleanup_min: f32,
+    pub own_cleanup_bonus: f32,
+    pub visitor_cleanup_fraction: f32,
+    pub critical_cleanup_scale: f32,
+    pub ready_need_level: f32,
+    pub other_need_floor: f32,
+    pub other_need_level: f32,
+    pub invite_hunger_level: f32,
+    pub accept_hunger_level: f32,
+    pub friend_affinity: f32,
+    pub mood_penalty_min: f32,
+    pub mood_penalty_bonus: f32,
+    pub mood_units: f32,
+    pub mood_max_load: f32,
+    pub affinity_penalty_min: f32,
+    pub affinity_penalty_bonus: f32,
+    pub wash_ticks_per_unit: u32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -771,6 +825,7 @@ pub struct Circadian {
 /// positive - so a reader may assume the ranges rather than re-check.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledPersonality {
+    pub cleanliness: f32,
     pub id: String,
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
@@ -1039,8 +1094,10 @@ pub struct CompiledChainStep {
     pub visual: Option<CompiledVisual>,
     /// Optional authored station-audio category. Presentation-only and outside
     /// Save V1's compatibility digest.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// Activity metadata was appended after this field.
     pub sound_action: Option<CompiledSoundAction>,
+    /// Optional authored activity indicator; excluded from save compatibility.
+    pub activity: Option<CompiledActivity>,
 }
 
 /// One career, compiled and validated: the shift fits inside the day,
@@ -1210,6 +1267,7 @@ mod tests {
             visual: None,
             sound_action: Some(CompiledSoundAction::ShowerWater),
             shared_activity: None,
+            activity: None,
         }
     }
 
@@ -1296,6 +1354,7 @@ mod tests {
                 (100, 2.0),
             ],
 
+            domestic: None,
             action_threshold: 0.25,
             choice_temperature: 0.5,
             idle_threshold: 0.125,
@@ -1452,6 +1511,7 @@ mod tests {
             lot: a_lot(),
             tuning: a_tuning(),
             personalities: vec![CompiledPersonality {
+                cleanliness: 0.5,
                 id: "the_settled".to_string(),
                 // Pairwise distinct across BOTH arrays, so a round trip
                 // that wrote satisfaction into drain's slot - or dropped
@@ -1500,6 +1560,7 @@ mod tests {
                 }),
                 sound_action: None,
                 shared_activity: None,
+                activity: None,
             }],
             // Three traits, one of each kind with pairwise-distinct
             // numbers, so a round trip that transposed two kinds' fields
@@ -1591,6 +1652,7 @@ mod tests {
                         consumes: None,
                         visual: None,
                         sound_action: None,
+                        activity: None,
                     },
                     CompiledChainStep {
                         role: 0,
@@ -1602,6 +1664,7 @@ mod tests {
                         consumes: None,
                         visual: None,
                         sound_action: Some(CompiledSoundAction::StoveCooking),
+                        activity: None,
                     },
                     CompiledChainStep {
                         role: 1,
@@ -1618,6 +1681,7 @@ mod tests {
                             socket: None,
                         }),
                         sound_action: None,
+                        activity: None,
                     },
                 ],
             }],
@@ -1967,7 +2031,7 @@ mod tests {
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
-        let old_end = before.len() - 34;
+        let old_end = before.len() - 35;
         let changed = |after: Tuning| -> Vec<usize> {
             let after = postcard::to_allocvec(&after).expect("tuning must serialise");
             assert_eq!(before.len(), after.len());
@@ -2052,8 +2116,8 @@ mod tests {
 
     /// Pins both the appended chain-step field and the append-only enum
     /// discriminants. A round trip alone would accept a writer and reader that
-    /// reordered the same variants together, which would still break an older
-    /// compiled pack on disk.
+    /// reordered the same variants together. The compiled pack is embedded by
+    /// the same build that decodes it; persisted worlds use separate save DTOs.
     #[test]
     fn a_chain_step_visual_has_stable_postcard_bytes() {
         let step = CompiledChainStep {
@@ -2071,13 +2135,15 @@ mod tests {
                 socket: None,
             }),
             sound_action: Some(CompiledSoundAction::StoveCooking),
+            activity: None,
         };
 
         assert_eq!(
             postcard::to_allocvec(&step).expect("chain step must serialise"),
             // Visual socket `None` is followed by Some and enum discriminant
-            // 1 for the appended StoveCooking sound action.
-            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1]
+            // 1 for the appended StoveCooking sound action. The final zero is
+            // the independently authored activity's None value.
+            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1, 0]
         );
     }
 

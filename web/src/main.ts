@@ -30,8 +30,7 @@ import { SpriteRenderer } from './render/sprites.js';
 import {
   FixedStepDriver,
   advanceSimulationFrame,
-  buildInstances,
-  instanceCount,
+  buildInstanceBatch,
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
@@ -598,7 +597,7 @@ async function main(): Promise<void> {
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
     const activity = critical.length ? `Critical: ${critical.join(', ')}`
-      : [activityValue.textContent, moodContent.hidden ? '' : moodLabel.textContent].filter(Boolean).join(' / ');
+      : activityValue.textContent ?? '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
@@ -640,6 +639,7 @@ async function main(): Promise<void> {
     wallControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
+    floorControls?.setCompact(event.matches);
   });
   observeHudScrollbar(hudRoot);
   const gameHud = new GameHud(
@@ -955,6 +955,7 @@ async function main(): Promise<void> {
   housemateDialog.addEventListener('close', () => {
     overlayPause.resume('housemate');
     syncNewHousemateButton();
+    restorePersistenceFocus(document, housemateDialog, optionsToggle, persistenceFocusFallbacks);
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
@@ -1578,7 +1579,7 @@ async function main(): Promise<void> {
     placementButtons.frame(camera, stage.width, stage.height);
     // Editing marks the original furniture; play mode marks the selected Sim.
     const selected = builder.active ? builder.selected : sim.selectedIndex();
-    const instances = buildInstances(
+    const batch = buildInstanceBatch(
       sim,
       alpha,
       camera.originX,
@@ -1605,9 +1606,8 @@ async function main(): Promise<void> {
       : ambientFor(sim.clockTick(), sim.dayTicks());
     wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
     renderer.draw(
-      instances,
-      instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
-        wallTool.highlight() ?? roomTool.highlight()),
+      batch.instances,
+      batch.count,
       camera.scale,
       ambient,
       // [OS-daylight]: the sky shades the house by day; flat light is even.

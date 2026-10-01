@@ -1,5 +1,159 @@
 # Lessons Learned
 
+## [L-changelog-has-its-own-tested-history] Published Markdown needs a site history
+
+**What happened.** Adding a generated changelog to a site whose CI skips Markdown exposed two publication gaps: notes would not trigger Pages, and comparing notes only from the last tested game would repeatedly redeploy later unrelated documentation.
+
+**Root cause.** The existing classifier had one history because all served content was game code. The changelog introduces independently editable, published Markdown.
+
+**Prevention rule.** Keep game checks based on the newest successful main push whose web job passed. Compare published notes from the newest successful main push whose changelog or web job passed. Report both `code` and `site`; Pages must use `site` when deciding whether newer content makes an artifact stale. Check all published notes before allowing publication.
+
+**How to verify.** The change-classifier tests use real Git commits to add, edit and delete notes, then add unrelated documentation after a tested note. Notes require site publication without game tests, later unpublished docs skip, and untested code cannot hide behind either. Deleting the published-note classification must fail these assertions. The Pages contracts require successful push CI, the triggering SHA and the generated artifact.
+## [L-floor-help-viewport-transition] Compact floor help must follow viewport changes
+
+**What happened.** The played renderer check changed a desktop viewport to 390px
+and found keyboard instructions still visible in the floor tool.
+
+**Root cause.** Floor controls received the initial compact state, but the shared
+media-query change listener updated the other build controls without them.
+
+**Prevention rule.** Wire every responsive build control into both initial state
+and the existing viewport-change listener. Keep instruction text unchanged.
+
+**How to verify.** Run floor-control and compact-HUD tests, then resize the running
+game from desktop to a small viewport and back. Verify touch help replaces keyboard
+help on the small viewport and keyboard help returns on desktop. The live transition
+check remains separate from unit tests of setCompact.
+
+## [L-packed-instance-count] The packer must publish the draw count
+
+**What happened.** Floor-tool highlights were packed into the instance array but
+left outside the uploaded live prefix. Wall and room highlights still drew.
+
+**Root cause.** Main rebuilt the draw count in a second traversal with a separate
+highlight argument list that omitted the floor tool. Counting also repeated world
+column reads and interaction selection after packing had already done that work.
+
+**Prevention rule.** Publish the final written slot from the packer, including the
+last highlight writer. Draw the borrowed array with that count immediately. Update
+count on every frame and the pointer on growth; reuse the result object. Keep legacy
+verification helpers outside the production draw path.
+
+**How to verify.** Execute main's actual packing and draw statements with a floor
+highlight and assert two uploaded ring rows with no recount. Test independent exact
+counts and rows, one real interaction update, growth followed by shrink and empty
+frames, and the legacy wrapper. Delete each publishing mechanism and reintroduce
+the production recount separately; each covering test must fail an assertion.
+Update production-wiring assertions that counted the old duplicate call sites;
+they must require one preview/highlight argument list rather than preserving the
+removed recount as a test expectation.
+## [L-generated-copy-needs-directory] Create the generated bundle directory before copying
+
+**What happened.** The new door checkout could not import generated WASM glue;
+27 test files and the displayed game failed to start.
+
+**Root cause.** Root copied several generated files to `web/src/wasm` before
+creating that directory. PowerShell treated the destination as one file.
+
+**Prevention rule.** Create and verify the destination directory first. Check
+the generated file inventory and WASM hash before starting tests or a preview.
+
+**How to verify.** Require all five bundle files at their expected paths and
+the reviewed WASM SHA-256. Preserve the mistaken copy in ignored scratch, then
+run the failed checks against the corrected bundle.
+
+## [L-door-output-policy-is-separate-from-transition-state] Silent opening still anchors the close
+
+**What happened.** The owner rejected the initial door recordings as loud and
+high-pitched, asking for silent opening and only the closing impact.
+
+**Root cause.** The initial selection retained the squeak and played both
+transition types. Signal bounds alone did not establish listening acceptance.
+
+**Prevention rule.** Keep simulation transition tracking independent of sound
+selection. Silence opening in the controller without removing the scheduler's
+opening anchor; load only the filtered closing asset. Preserve original files.
+
+**How to verify.** After preloading, opening must create zero source and gain
+nodes and keep its play count at zero. The next close must create exactly one
+source, with the only fetch URL `audio/doors/close-thunk.wav`. Delete the silent
+opening guard and restore the old URL separately; both must fail the regression.
+
+## [L-door-install-ownership] One checkout has one dependency installer
+
+**What happened.** Root and a worker started locked dependency installs in the
+same new audio checkout. One run emitted extraction warnings; the other failed
+with ENOTEMPTY, and the following test could not find Vitest.
+
+**Root cause.** Setup ownership was not communicated before dispatch. Each
+installer removed files the other was extracting.
+
+**Prevention rule.** Root completes dependency setup before delegating tests,
+or explicitly assigns installation to the worker. Never overlap installs in
+one checkout. Infrastructure failures do not count as a behavioral RED test.
+
+**How to verify.** After both original installs finish, run one serial locked
+install. Require clean exit and the actual focused tests to start before
+recording regression evidence. The serial recovery installed 48 packages in
+911 ms with exit 0 and no warnings.
+
+## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
+
+**What happened.** A browser interruption while simulation ticks were paused
+froze existing sources and release-only recordings. Native resume replayed the
+object release at `0.08399999886751175` rather than zero without a new gesture.
+
+**Root cause.** Global unavailability was observed only at fixed-tick boundaries
+and explicit gestures. A paused world supplied neither, so the player graph and
+scheduler history remained owned throughout the stopped audio clock.
+
+**Prevention rule.** Bind one controller-owned context state handler after player
+construction. Non-running events immediately dispose every player, clear pending
+ownership and reset every scheduler. Running events admit no playback. Detach
+failed graphs before close and guard callbacks by captured context identity.
+
+**How to verify.** Start positive object, conversation, door and procedural
+sources, pause or end into release, then interrupt and recover through context
+state events without a fixed tick or another gesture. Render resumed samples
+alongside ordinary-fade controls. Delete event cleanup, scheduler reset and the
+captured-context guard independently; each covering regression must fail.
+
+## [L-binary-tests-need-bounded-diffs] Compare large binary artifacts without printing every byte
+
+**What happened.** A deliberately changed audio seed caused a deep byte-array
+assertion to spend excessive time formatting hundreds of thousands of values.
+The task-owned test was stopped and the source restored.
+
+**Root cause.** The assertion requested a structural diff of a complete WAV
+when the useful evidence was whether the bytes matched.
+
+**Prevention rule.** Use byte equality plus a fixed content hash for large
+reproducible artifacts. Assert header fields and signal bounds separately.
+Keep negative CLI checks isolated from the real runtime asset.
+
+**How to verify.** Changing the seed must fail the equality assertion promptly;
+silence must fail the signal bound; removing the publication guard must fail an
+isolated differing-output test without modifying the shipped WAV.
+
+## [L-audio-retained-is-not-active] Silence boundaries must include release-only nodes
+
+**What happened.** A recording ended normally, began fading, then the browser
+suspended audio. Its remaining release resumed later despite an empty audio
+frame. Both object and conversation output reproduced the tail.
+
+**Root cause.** The scheduler had removed the owner and the player had removed
+its active record. Only the separate collection of draining nodes still held
+the release. Active counts and repeated exact-owner stops could not find it.
+
+**Prevention rule.** Global unavailable-frame cleanup must inspect retained
+records and immediately dispose active and draining nodes. Preserve default
+fades on a running audible clock and keep direct stops identity-specific.
+
+**How to verify.** End while running, suspend midway through the release,
+process an empty frame, and render the resumed samples. Require zero across
+the entire resumed tail, alongside a positive normal-fade control. Cover
+throwing stops and stale callbacks as well as retained counts.
+
 ## [L-browser-cli-page-argument] Check the CLI callback signature
 
 **What happened.** Two cleanup callbacks destructured `{ page }`, received
@@ -455,6 +609,10 @@ reversed projection, width/depth swaps, anchor omission, wrong occupied ownershi
 stale row fields and missing indicator projection. Review close-up played images.
 
 ## [L-builder-preview-overlap] Preview geometry and drawing must agree
+
+**Superseded.** [L-furniture-preview-replacement] replaces this overlap-only
+presentation rule. Drawable move previews hide their original even when refused
+or nonoverlapping; the following account records the earlier behavior.
 
 **What happened.** The first played builder pass showed old chair arms behind
 a rotated candidate, and old table artwork beneath a partially overlapping
@@ -4571,6 +4729,11 @@ work and merely makes an invalid test look stable.
 Assert the second `instanceCount` and its live prefix. Permit any value beyond
 that prefix, and verify the draw call receives the same live count.
 
+The current production API is `buildInstanceBatch`: its reused result publishes
+the written count with the borrowed array. Calls through either building API
+invalidate both fields. Production consumes that count instead of the legacy
+`instanceCount` helper.
+
 ## [L-save-presentation-boundary] Tick state and presentation state are different save boundaries
 
 **What happened.** A movement-animation test rendered the pre-save and
@@ -7660,6 +7823,51 @@ Review also found New housemate availability cached after a full household lost 
 
 Adding occupied-item mood exposed two cancellation cases: an autonomous wait has no player order to cancel, and an order staged earlier in the same paused command batch is not yet in the live queue. Clearing every waiting marker discarded autonomous frustration; checking only the live queue made batched and separately flushed commands disagree. Cancel only waiting owned by a current or staged order, or an active chain. Verify all three sources, an autonomous wait that survives Clear orders, and equivalent batched and split command sequences. The mood projection must also stop penalizing a freed or sold item without requiring a clock tick.
 
+## [L-domestic-transition-saves] Claims must be valid at the action boundary
+
+**What happened.** Integration review found cleanup claims surviving paused cancellation, room memory retaining washed dish identities, and dirty furniture or the last washing station remaining sellable. An early bulk source edit also matched an unrelated similarly shaped declaration.
+
+**Root cause.** Claim cleanup was left to the next simulation tick, and text edits used patterns broader than the intended type or transition. A save or paused command can occur before that next tick.
+
+**Prevention.** Maintain claim ownership at cancellation, replacement, washing, sale and death themselves. Validate both the claim-to-chain and chain-to-claim directions. Use small, context-specific patches and inspect each changed declaration before compiling.
+
+**Verification.** Save and reload after every domestic work tick, after paused cancel/reissue, and exactly when washing finishes. Reject duplicated or unowned claims transactionally. Prove furniture refusal and ownership-aware reservation release. Remove the transition mechanism deliberately, observe the regression fail, and restore byte-identical source.
+
+## [L-dish-art-needs-support-and-motion] Passing simulation tests does not make the dishes look right
+
+**What happened.** The first domestic preview showed oversized gray stacks hanging over furniture edges. The owner rejected it. Pickup also hid the surface pile without showing a carried load, and the first replacement wash pose held its plate over the counter lip.
+
+**Root cause.** One procedural stack represented every quantity. The renderer used one guessed screen offset for different furniture and cameras. Tests checked sprite presence, not physical support, scale, hand contact or action continuity. The visual review was deferred to the owner.
+
+**Prevention.** Derive support points from authored furniture geometry and its export camera. Bake hand-held props into the rig when correct hand occlusion requires it. Inspect normal-scale gameplay, all furniture facings, mixed occupancy, lighting, near/far occlusion and ordered pickup-through-washing frames. Use a fresh-context adversarial reviewer before reporting visual work as complete.
+
+**Verification.** Run the surface geometry, export registration and cleanup conservation tests; then inspect the real GPU fixture and a played meal. The plate must fit inside the surface, remain visible during transport, sit over the basin while washing, and disappear only on completion. Record rejected evidence as rejected, regardless of passing behavior tests.
+
+## [L-shared-food-scheduler-boundary] Test the handoff through the actual scheduler
+
+**What happened.** An idle invited guest could start a new snack while the cook's finished meal waited for table assignment. The original shared-meal test assigned the table directly before ticking, so it bypassed the failing boundary.
+
+**Root cause.** Acceptance required a dining table before the collection step could use an already-known counter. Table selection ran later in the tick, after ordinary food selection. Making guests simply wait would also have stranded them if the cook was cancelled before choosing a table.
+
+**Prevention.** Require only the resources needed by the current step. Let the prepared meal own its table assignment, publish that assignment within the station-selection pass, and make every diner honor it. Preserve ongoing activities and explicit orders.
+
+**Verification.** Finish a guest's non-food activity on the cook's real plating-completion tick. On the next tick the idle guest must claim prepared food rather than start a snack. Save and reload with a collected portion while the table is occupied, cancel the cook, release the table, and prove the guest still eats exactly once.
+
+The fresh review also caught table selection borrowing the newest retained
+meal by cook identity. A cook can have an older unclaimed meal and a newer
+solo meal. Save an explicit current batch association, clear it at completion
+and cancellation, and bind only that batch. Reject duplicate batch identities
+and mismatches between a serving cook's target and the batch's table. Tests
+must distinguish old leftovers, current food and already-finished guest claims.
+
+Played verification then showed the cook finishing before the last guest
+arrived. Serialized pickup and travel can exceed the cook's eating time.
+Starting independent eating countdowns does not provide a shared meal. Save
+a one-way dining-start decision and retain each present diner's full eating
+interval while active participants gather. Exclude player interruptions and
+busy guests; urgent needs and insufficient free seats must release the group.
+Verify a sustained four-person eating interval, save/load during gathering,
+and each release condition. A one-tick overlap is not an adequate assertion.
 
 ## [L-autonomy-positive-choices] Random seeds do not fix deterministic eligibility
 
@@ -8185,6 +8393,55 @@ record; padding must never manufacture that record from a truncated payload.
 as well as every interior truncation of the grouped bed record. This was a
 documentation correction before implementation, not a shipped loader defect.
 
+## [L-unchanged-text-node-churn] Unchanged text assignments still replace nodes
+
+**What happened.** The cooking-audio memory check failed exact DOM equality in
+an audio-disabled control: 1,435 nodes became 1,434. Paused HUD panels repeatedly
+assigned the same text, despite a comment claiming those writes were no-ops.
+
+**Root cause.** Assigning an element's `textContent` replaces its text child even
+when the string is unchanged. A render between garbage collection and the DOM
+counter sample exposed the detached old node. A focused probe reproduced the
+one-node difference using only the `needs-caption` writer.
+
+**Prevention.** Compare the actual DOM text before assigning. Do not add a second
+cached UI state, change the memory allowance, or accept a failed equality check
+because its count declined. Text refreshes must still repair changed DOM values.
+Include open disclosures in the writer inventory. Personal details retained
+redundant writes after the always-visible HUD was fixed: 20 unchanged public
+refreshes replaced 23 text children and emitted 460 native text mutations.
+The shared text guard reduced both to zero while still repairing changed text.
+
+**Verify.** Check text-child identity across repeated unchanged public updates,
+then change the source value and verify the text updates. The causal diagnostic
+had 250/250 stable samples when unchanged writes were suppressed; production
+acceptance also requires the unchanged whole-game memory check after the repair.
+
+## [L-memory-endpoints-need-complete-projection] Await the whole UI projection before measuring
+
+**What happened.** After redundant text writes were fixed, the memory proof
+still saw one fewer DOM node at an audio-disabled endpoint. Its baseline had
+the selected person's `Office clerk` career text; the final endpoint did not.
+
+**Root cause.** Clearing simulation selection does not synchronously update
+independently throttled panels. The normalizer checked only rows and warnings
+which could already be empty, accepting a partially updated presentation.
+
+**Prevention.** Establish the complete semantic endpoint before collecting:
+all selected-person fields and rows cleared, derived summaries updated, and
+audio drained. Do not repair an invalid baseline by relaxing exact equality,
+freezing the page, or adding a delay that merely makes the race less likely.
+
+**Verify.** A fixture with the old subset ready and stale career text must stay
+unready. Reject each other incomplete panel and missing required node. Retained
+node, document and listener changes in either direction must still fail the
+unchanged acceptance calculation. Then exercise the actual browser transition.
+
+The ECS lifecycle browser check repeated this timing mistake with the selected
+name: one frame applied the command before the throttled panel refreshed. Wait
+for the displayed name to match the clicked person before asserting the panel,
+while separately checking that paused simulation time stayed fixed.
+
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 
 **What happened.** Separating the New housemate instinct labels fixed their
@@ -8461,3 +8718,127 @@ or clearing selection cannot retain another person's value. The desktop sheet
 measures 360 pixels by default and 540 while personality is expanded. Other
 tabs and collapsing restore 360. Compact viewports have no horizontal overflow
 and retain 44-pixel controls.
+## [L-native-link-proof-needs-activation] Tab inventory alone cannot verify a new-window link
+
+**What happened.** Three clicks on a native Changelog link produced no new tab in the in-app browser's inventory. The link had focus, no overlay and no cancellation handler. Treating the inventory alone as the result left product activation unresolved.
+
+**Root cause.** The verification conflated the renderer's new-window request with the host exposing its resulting tab. The host's disposition was not observed.
+
+**Prevention.** Register the browser's new-window event before activation, then record the resolved URL, requested window name and trusted user gesture. Verify the destination separately when the host does not expose the popup. Do not change ordinary link behavior to accommodate missing host evidence, or claim visible navigation from an activation event alone.
+
+**Verify.** The unchanged anchor emits `Page.windowOpen` with the expected project changelog URL, `_blank` and `userGesture=true`. The requested destination renders 25 entries. Evidence: `docs/assets/review-evidence/changelog/link-activation.json` and the verification README. Visible popup creation in the in-app host remains unobserved.
+
+## [L-standalone-ecs-removal-history] Standalone ECS needs an update boundary
+
+**What happened.** A matched 1,037-entity workload grew WebAssembly capacity from 5,308,416 bytes at tick 60 to 118,095,872 at tick 1,680 without a browser or audio. A native allocation counter found 71,003,186 live requested bytes and 2,482,699 retained component-removal messages at the final checkpoint.
+
+**Root cause.** The game uses Bevy ECS without Bevy App. Neither the full-tick schedule nor the paused command schedule maintained the world's trackers. Repeated marker removals appended lifecycle messages indefinitely. Save size and world hashes omitted that bookkeeping, so stable saves did not establish stable memory use.
+
+**Prevention.** Call `World::clear_trackers()` once after each completed full or paused schedule, after deferred commands have applied. Preserve the newest removal window. Future readers must respect those boundaries; a reader running only on full ticks can miss removals during repeated paused drains.
+
+**Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
+
+The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
+
+## [L-activity-identity-needs-complete-presentation] Every active interaction needs a visible identity
+
+**What happened.** Shower, toilet, bath, TV, radio and several seated uses had
+no head bubble. Dinner preparation and cooking also appeared inactive. The old
+aquarium glyph was visibly off center.
+
+**Root cause.** Activity presentation depended on the small set of authored
+body animations. Generic object use and sitting intentionally had no bubble;
+non-eating chain work had no activity identity. Existing glyphs lacked a
+complete small-size visual inventory and a centered fish geometry check.
+
+**Prevention.** Author presentation-only activity metadata on every executable
+interaction and chain work step. Validate the exact runtime target and chain
+role, retain body-action precedence, and give generic uses a visible fallback.
+Keep new artwork appended after the historical atlas records. Review each
+activity/icon pair in the release renderer as well as in the art sheet.
+The owner clarified that walking is travel toward an action, not an action
+requiring a bubble. Show activity and waiting icons; suppress travel bubbles.
+
+**Verify.** Count and test every shipped interaction and dinner step, remove
+ordinary and chain identity checks, reverse body precedence, and remove a
+renderer mapping; each must fail. Check all glyphs at game size in different
+lighting and zoom levels. Push the fish into its rim and require the geometry
+test to fail. Confirm save bytes, structural fingerprints and historical
+atlas pixels stay unchanged. Evidence:
+`docs/assets/review-evidence/activity-bubbles/README.md`.
+## [L-markup-tests-own-boundaries] Bound markup assertions by the element they test
+
+**What happened.** Removing Household from Sim details broke a Traits assertion even though Traits was unchanged. A second assertion silently included the rest of the page.
+
+**Root cause.** Both tests used the unrelated Household section as their slice endpoint. When that marker disappeared, JavaScript's negative slice endpoint included unrelated Build markup.
+
+**Prevention.** Find the tested section or disclosure's own closing tag and assert that both endpoints exist before slicing. Do not rely on a sibling remaining in the layout.
+
+**Verify.** The Traits section and disclosure assertions now validate their boundaries; the full 1,717-test web suite and final 48-test focused suite pass after Household removal.
+
+## [L-clipped-headers-need-field-bounds] Page width alone does not prove controls fit
+
+**What happened.** The first dock proof passed ten ordinary sizes and enlarged phone text. Adversarial review found that doubled text at 601px and 640px pushed Collapse past the window and reduced the selected identity to zero width.
+
+**Root cause.** A non-wrapping header combined fixed wellbeing width with non-shrinking buttons. The page clipped overflow, so document scroll width stayed unchanged. The longest desktop mood label also overflowed its column.
+
+**Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
+
+**Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+## [L-domestic-integrated-actions-need-terminal-scoring] Score the food that actually arrives
+
+**What happened.** Main integration exposed an instant-fridge survival score
+for the longer snack chain and repetition tracked against a hidden chain row.
+Public command fixtures also assumed every need started low; public spawning
+only makes hunger low.
+
+**Root cause.** Older fixtures and scorer assumptions described the one-step
+action rather than the staged runtime. Main's current public boundary differed
+from the internal test builder.
+
+**Prevention.** Score all required work and travel before terminal recovery.
+Use the visible snack identity for repetition, preserve ordinary custom-pack
+behavior when the chain is absent, and establish the actual autonomous choice
+before asserting player-command preemption. Read the public initial needs;
+do not infer them from a helper name.
+
+**Verify.** A starving Sim beside a fridge still incurs staged snack risk;
+moving the counter farther increases it. Completed snacks change the visible
+habituation row. The public command fixture first walks east for food, then
+reverses west for a valid bed order; an invalid interaction preserves the
+autonomous direction. Removing terminal scoring, the row alias, command
+identity or intent dispatch fails the corresponding regression. Receipts:
+`docs/assets/review-evidence/domestic/integration-mutations.md`.
+
+## [L-domestic-presentation-needs-exact-claimed-station] Body motion and action identity compose
+
+**What happened.** Integrating authored activity bubbles hid preparation,
+cooking and washing identities behind a generic pose activity. Collecting
+dishes from a table also lost its cleanup bubble because the table is not a
+preparation counter.
+
+**Root cause.** Pose fallback ran before metadata, and ordinary station-role
+validation could not recognize a saved cleanup surface at another object type.
+
+**Prevention.** Preserve explicit eating precedence, let generic domestic poses
+use authored activity metadata, and permit the cleanup collection exception
+only for the cleaner's exact saved surface at step zero. Ordinary Wash hands
+remains distinct from the cleanup chain that removes persistent dishes.
+
+**Verify.** Exhaust every shipped chain step and its activity/body pair. Reach
+actual table collection through the runtime and retain the washing identity
+after reload. Deliberately reinstate the generic override and break the exact
+claim comparison; both assertions fail. Review actual moving wash frames with
+the media preference recorded, rather than treating identical screenshots as
+animation evidence.
+
+### [L-privacy-domestic-composition] Merge station ownership and save contracts together
+
+Privacy and domestic work developed independently. A role-only privacy detour could
+choose the wrong meal counter, retain collected dishes through an urgent substitute,
+and omit dish resentment from causal diagnostics. Their V5 extensions also occupied
+the same tail slot. Preserve published wire order, decode reviewed local formats by
+source fingerprint, and share fixed-station/capacity/seat rules. Refresh routing
+snapshots after claims change; retain the incident baseline for same-tick ordering.
+Verify authentic historical bytes, transactional interior-cut rejection, owned pickup,
+distinct dining seats, cleanup interruption and full-tick diagnostic clamping.

@@ -1,0 +1,19 @@
+tick,live_bytes,removed_messages,current_messages,archetypes,tables,table_capacity,decisions,choice_len,telemetry_capacity_bytes,world_hash
+60,2667786,53491,53491,44,44,4904,399,8778,235248,1689968484302009063
+600,11082754,498477,498477,90,90,5264,565,12995,361032,6672627640496136405
+1140,36521006,1441607,1441607,90,90,5456,958,22992,600960,10010906560745498215
+1680,71003186,2482699,2482699,116,116,5672,959,23015,601512,17615774119548958193
+removed,<Enable the debug feature to see the name>,1206966,0
+removed,<Enable the debug feature to see the name>,18839,0
+removed,<Enable the debug feature to see the name>,1219514,0
+removed,<Enable the debug feature to see the name>,18599,0
+removed,<Enable the debug feature to see the name>,17558,0
+removed,<Enable the debug feature to see the name>,359,0
+removed,<Enable the debug feature to see the name>,395,0
+removed,<Enable the debug feature to see the name>,395,0
+removed,<Enable the debug feature to see the name>,1,0
+removed,<Enable the debug feature to see the name>,35,0
+removed,<Enable the debug feature to see the name>,35,0
+removed,<Enable the debug feature to see the name>,2,0
+removed,<Enable the debug feature to see the name>,1,0
+after_drop_live_bytes,27570

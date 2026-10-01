@@ -88,7 +88,7 @@ class ShippedAtlasTests(unittest.TestCase):
         bounds = {int(index) for index in shipped_table("SPRITE_CONTENT_BOUNDS")}
         sim_bodies = shipped_sim_bodies(records)
         # 219 legacy figures plus 156 rigged samples in each of three palettes.
-        self.assertEqual(len(sim_bodies), 687)
+        self.assertEqual(len(sim_bodies), 975)
         self.assertEqual(sorted(sim_bodies & bounds), [])
 
 

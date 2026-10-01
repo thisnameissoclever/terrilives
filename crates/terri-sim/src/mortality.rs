@@ -121,6 +121,7 @@ fn remove_person(world: &mut World, dead: Entity) {
             .resource_mut::<crate::beds::BedAssignments>()
             .set(person, None);
     }
+    crate::domestic::remove_person(world, dead);
     let own_target = world.get::<Target>(dead).copied();
     let partner = world.get::<Socialising>(dead).map(|talk| Target {
         object: talk.partner,

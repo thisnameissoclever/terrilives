@@ -232,10 +232,43 @@ fn floor_edit_arguments(
 /// padding such a payload rescues a corrupt save: a name whose length byte
 /// grew by one eats a terminator, and the pad puts one back. Review finding
 /// [F2] on PR 128 reproduced exactly that.
+const LOCAL_BED_FINGERPRINT: u64 = 0xb38e_71a1_23bb_8273;
+
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
+    let (fingerprint, _) = postcard::take_from_bytes::<u64>(payload).ok()?;
+    if fingerprint == LOCAL_BED_FINGERPRINT {
+        return decode_local_bed_v5(payload);
+    }
+    decode_current_v5(payload)
+}
+
+fn decode_local_bed_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
+    use terri_core::save::LocalBedSnapshotV5;
+    let mut padded = payload.to_vec();
+    for pad in 0..=2 {
+        match postcard::take_from_bytes::<LocalBedSnapshotV5>(&padded) {
+            Ok((snapshot, [])) => {
+                if snapshot.world.content_fingerprint != LOCAL_BED_FINGERPRINT
+                    || snapshot.sleeping_places.is_none()
+                    || (pad >= 1 && !snapshot.boundaries.is_empty())
+                    || (pad >= 2 && !snapshot.shyness.is_empty())
+                    || postcard::to_allocvec(&snapshot).ok().as_deref() != Some(padded.as_slice())
+                {
+                    return None;
+                }
+                return Some(snapshot.into_current());
+            }
+            Err(postcard::Error::DeserializeUnexpectedEnd) if pad < 2 => padded.push(0),
+            _ => return None,
+        }
+    }
+    None
+}
+
+fn decode_current_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 11;
+    const APPENDED_LISTS: usize = 12;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
@@ -268,6 +301,7 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                     snapshot.boundaries.len(),
                     snapshot.shyness.len(),
                     usize::from(snapshot.sleeping_places.is_some()),
+                    usize::from(snapshot.domestic.is_some()),
                     snapshot.chronotype_offsets.len(),
                     snapshot.self_preservation.len(),
                     waiting,
@@ -1639,6 +1673,18 @@ impl SimHandle {
         self.sim.render_buffer().carrying.as_ptr()
     }
 
+    pub fn dirty_dishes_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().dirty_dishes.as_ptr()
+    }
+
+    pub fn carried_dishes_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().carried_dishes.as_ptr()
+    }
+
+    pub fn meal_portions_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().meal_portions.as_ptr()
+    }
+
     pub fn ids_ptr(&self) -> *const u32 {
         self.sim.render_buffer().ids.as_ptr()
     }
@@ -2004,6 +2050,10 @@ impl SimHandle {
             .personality_of(entity_index)
             .map(|values| values.to_vec())
             .unwrap_or_default()
+    }
+
+    pub fn cleanliness_of(&self, entity_index: u32) -> Option<f32> {
+        self.sim.cleanliness_of(entity_index)
     }
 
     /// Signed sleep offset, seven drain factors, seven refill factors, then
@@ -2970,14 +3020,18 @@ mod boundary_tests {
             "a save from before the yard must load"
         );
         let current = loaded.sim.save_snapshot_v5();
-        let mut expected_world = old.world;
-        expected_world.content_fingerprint = Sim::new_from_shipped_lot()
+        let mut expected = after_legacy_instinct_migration(old.world.clone());
+        expected.content_fingerprint = Sim::new_from_shipped_lot()
             .save_snapshot()
             .content_fingerprint;
-        assert_eq!(
-            house_part(current.world.clone()),
-            after_legacy_instinct_migration(expected_world)
-        );
+        for person in &mut expected.entities {
+            if let Some(chain) = &mut person.chain {
+                if chain.chain == "cook_dinner" && chain.step == 3 {
+                    chain.step = 5;
+                }
+            }
+        }
+        assert_eq!(house_part(current.world.clone()), expected);
         assert_eq!(current.layout, grown_layout(&old.layout));
         assert_eq!(current.object_facings, old.object_facings);
         assert_eq!(current.retired_indices, old.retired_indices);
@@ -4413,8 +4467,9 @@ mod boundary_tests {
         // object's reads NONE - two different values, which is what
         // rules out a zeroed sibling column as well as a null.
         let mut handle = SimHandle::new(16, 16);
-        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
-        handle.spawn_agent(12.0, 2.0, 20.0);
+        assert!(handle.spawn_object(2.0, 2.0, "sink"));
+        let agent = spawn_agent_at(&mut handle, 12.0, 2.0, 20.0);
+        assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
         handle.tick();
         handle.tick();
 
@@ -5184,7 +5239,7 @@ mod boundary_tests {
             .world_mut()
             .entity_mut(carrier)
             .insert(terri_core::Carrying(1));
-        handle.tick();
+        handle.flush_commands();
 
         assert_eq!(
             addressed(handle.carrying_ptr(), handle.entity_count(), "carrying_ptr"),
@@ -6011,8 +6066,10 @@ mod boundary_tests {
     #[test]
     fn flush_commands_preserves_an_in_flight_interpolation_pair() {
         let mut handle = SimHandle::new(8, 8);
-        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
-        handle.spawn_agent(1.0, 4.0, 0.0);
+        assert!(handle.spawn_object(4.0, 4.0, "sink"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 4.0, 0.0);
+        assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
+        handle.tick();
         handle.tick();
 
         let before_previous = handle.sim.render_buffer().prev_positions.clone();
@@ -6031,7 +6088,7 @@ mod boundary_tests {
     #[test]
     fn flush_commands_refreshes_activity_metadata_without_a_tick() {
         let mut handle = SimHandle::new(8, 8);
-        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        assert!(handle.spawn_object(4.0, 4.0, "sink"));
         let agent = spawn_agent_at(&mut handle, 3.0, 4.0, 0.0);
         assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
         handle.tick();
@@ -6045,7 +6102,7 @@ mod boundary_tests {
             .expect("the agent must have a render row");
         assert_eq!(
             handle.sim.render_buffer().activities[row],
-            terri_sim::render_buffer::activity::EATING,
+            terri_sim::render_buffer::activity::WASHING_HANDS,
             "the fixture must begin with visible interaction metadata"
         );
 
@@ -6061,7 +6118,7 @@ mod boundary_tests {
     }
 
     #[test]
-    fn activities_ptr_carries_generic_object_use_without_an_eating_alias() {
+    fn activities_ptr_carries_authored_handwashing_without_an_eating_alias() {
         let mut handle = SimHandle::new(8, 8);
         assert!(handle.spawn_object(4.0, 4.0, "sink"));
         let agent = spawn_agent_at(&mut handle, 3.0, 4.0, 0.0);
@@ -6076,9 +6133,9 @@ mod boundary_tests {
             ),
             vec![
                 terri_sim::render_buffer::activity::NONE,
-                terri_sim::render_buffer::activity::USING_OBJECT,
+                terri_sim::render_buffer::activity::WASHING_HANDS,
             ],
-            "the append-only generic code must cross the existing WASM activity column"
+            "the authored handwashing code must cross the existing WASM activity column"
         );
     }
 
@@ -7202,7 +7259,7 @@ mod boundary_tests {
                 step: 2,
                 fumble_scale: 1.0,
             });
-        assert_eq!(handle.chain_status_of(tim), "Cook dinner - step: Cook");
+        assert_eq!(handle.chain_status_of(tim), "Cook breakfast - step: Cook");
 
         handle
             .sim
@@ -7211,7 +7268,7 @@ mod boundary_tests {
             .insert(terri_core::Carrying(0));
         assert_eq!(
             handle.chain_status_of(tim),
-            "Cook dinner - step: Cook (carrying ingredients)"
+            "Cook breakfast - step: Cook (carrying ingredients)"
         );
     }
 
@@ -7530,7 +7587,7 @@ mod boundary_tests {
         // the wire changing. The toilet advertises no chain, so its
         // list is its interactions alone.
         let mut fridge_rows = authored("fridge");
-        fridge_rows.push("Cook dinner".to_string());
+        fridge_rows.push("Cook breakfast".to_string());
         assert_eq!(handle.interaction_labels(fridge), fridge_rows);
         assert_eq!(handle.interaction_labels(toilet), authored("toilet"));
 
@@ -7771,15 +7828,15 @@ mod boundary_tests {
         // returning `false` for every byte it is given.
         //
         // The sim is HUNGRY and the two objects advertise different
-        // needs, so autonomy has an unambiguous preference for the
-        // fridge. Directing it at the BED is therefore an instruction it
-        // would never have given itself - a script whose commands agree
+        // needs. Measure autonomy's eastward first step before directing
+        // it at the BED; a script whose commands agree
         // with autonomy proves nothing ([L36]).
         let mut handle = SimHandle::new(16, 16);
         assert!(handle.spawn_object(2.0, 8.0, "bed"));
         assert!(handle.spawn_object(11.0, 8.0, "fridge"));
         let bed = 0;
-        let agent = spawn_agent_at(&mut handle, 8.0, 8.0, 20.0);
+        let agent = spawn_agent_at(&mut handle, 8.0, 8.0, 0.0);
+        assert!(handle.spawn_object(13.0, 8.0, "counter"));
         assert_eq!(
             (bed, agent),
             (0, 2),
@@ -7793,8 +7850,18 @@ mod boundary_tests {
         let mut autonomous = SimHandle::new(16, 16);
         assert!(autonomous.spawn_object(2.0, 8.0, "bed"));
         assert!(autonomous.spawn_object(11.0, 8.0, "fridge"));
-        spawn_agent_at(&mut autonomous, 8.0, 8.0, 20.0);
+        spawn_agent_at(&mut autonomous, 8.0, 8.0, 0.0);
+        assert!(autonomous.spawn_object(13.0, 8.0, "counter"));
         autonomous.tick();
+        let autonomous_x = addressed(
+            autonomous.positions_ptr(),
+            autonomous.entity_count() * 2,
+            "positions_ptr",
+        )[agent as usize * 2];
+        assert!(
+            autonomous_x > 8.0,
+            "the control must first choose the fridge"
+        );
         let undirected = autonomous.world_hash();
 
         assert!(handle.enqueue_command(&use_object_bytes(agent, bed, 0)));
@@ -7815,7 +7882,7 @@ mod boundary_tests {
         for _ in 0..20 {
             handle.tick();
         }
-        assert_eq!(handle.entity_count(), 3);
+        assert_eq!(handle.entity_count(), 4);
         let rows = addressed(
             handle.positions_ptr(),
             handle.entity_count() * 2,
@@ -7847,6 +7914,22 @@ mod boundary_tests {
             agent,
             "the caller names the agent by literal index"
         );
+        assert!(handle.spawn_object(13.0, 8.0, "counter"));
+        let entity = {
+            let world = handle.sim.world_mut();
+            world
+                .query::<terri_core::Entity>()
+                .iter(world)
+                .find(|entity| entity.index_u32() == agent)
+                .unwrap()
+        };
+        let mut needs = terri_core::Needs::all_at(100.0);
+        needs.set(terri_core::NeedId::Hunger, 0.0);
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(entity)
+            .insert((needs, terri_core::SelfPreservation(100)));
         assert!(
             handle.enqueue_command(command),
             "the command must be accepted, or the two runs differ in \
@@ -8049,6 +8132,7 @@ mod instinct_boundary_tests {
         let mut snapshot = source.sim.save_snapshot_v5();
         snapshot.self_preservation.clear();
         snapshot.chronotype_offsets.clear();
+        snapshot.domestic = None;
         let mut payload = postcard::to_allocvec(&snapshot).unwrap();
         let suffix: usize = super::save_v3_tests::v5_appended_lengths(&snapshot)[6..]
             .iter()
@@ -8068,6 +8152,7 @@ mod instinct_boundary_tests {
             .all(|(_, instinct)| (30..=70).contains(instinct)));
         let mut current = source.sim.save_snapshot_v5();
         current.chronotype_offsets.clear();
+        current.domestic = None;
         let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
         truncated.extend(postcard::to_allocvec(&current).unwrap());
         let suffix: usize = super::save_v3_tests::v5_appended_lengths(&current)[7..]

@@ -212,6 +212,7 @@ pub(crate) fn route(world: &mut World) {
         .collect();
     walkers.sort_by_key(|(e, _, _)| e.index());
     for (actor, pos, path) in walkers {
+        let domestic_occupants = crate::domestic::boundary_occupants(world);
         if directed(world, actor) {
             continue;
         }
@@ -360,24 +361,30 @@ pub(crate) fn route(world: &mut World) {
         if let Some(chain) = world
             .get::<terri_core::ChainState>(actor)
             .filter(|_| target.is_some_and(|t| t.interaction == crate::systems::chain::CHAIN_STEP))
+            .copied()
         {
-            let role = pack.chains[chain.chain as usize].steps[chain.step as usize].role;
             let mut choices = Vec::new();
             for (object, position, placed, facing) in world
                 .query::<(Entity, &Position, &SmartObject, Option<&ObjectFacing>)>()
                 .iter(world)
             {
-                if !pack.object(placed.0).roles.contains(&role)
-                    || (world.get::<Reserved>(object).is_some()
-                        && target.is_none_or(|t| t.object != object))
-                {
-                    continue;
-                }
-                let to = (position.x.round() as i32, position.y.round() as i32);
-                if let Some(steps) = safe
-                    .find_path_adjacent(from, to, crate::placed_footprint(pack, placed.0, facing))
-                    .and_then(|s| safe.anchor_path((pos.x, pos.y), s))
-                {
+                let exclusive = world.get::<Reserved>(object).is_none()
+                    || target.is_some_and(|t| t.object == object);
+                if let Some(steps) = crate::domestic::boundary_route(
+                    pack,
+                    world.get_resource::<terri_core::save::SavedDomestic>(),
+                    actor,
+                    world.get::<terri_core::SimId>(actor).copied(),
+                    chain,
+                    object,
+                    placed.0,
+                    facing,
+                    *position,
+                    pos,
+                    &safe,
+                    exclusive,
+                    &domestic_occupants,
+                ) {
                     choices.push((steps.len(), object.index_u32(), object, steps));
                 }
             }
@@ -439,7 +446,7 @@ fn occupancy(world: &mut World) -> crate::beds::Occupancy {
     )
 }
 
-fn substitute(
+pub(crate) fn substitute(
     world: &mut World,
     actor: Entity,
     need: u8,
@@ -587,6 +594,7 @@ fn substitute(
     candidates.retain(|row| eligible.contains(&(row.3, row.2)));
     candidates.sort_by_key(|(length, index, act, _, _, _, _)| (*length, *index, *act));
     if let Some((_, _, interaction, object, admission, steps, _)) = candidates.into_iter().next() {
+        crate::domestic::suspend_cleanup(world, actor);
         if let Some(t) = target {
             crate::reservations::release_now(world, actor, t);
         }

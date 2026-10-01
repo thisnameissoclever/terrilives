@@ -9,6 +9,8 @@
 //! the thing you would send over a wire is exactly a serialised command.
 
 use bevy_ecs::prelude::*;
+#[cfg(test)]
+use terri_core::Reserved;
 use terri_core::{
     Agent, CommandQueue, Eating, Intent, IntentQueue, Path, Selected, SimCommand, SmartObject,
     Target,
@@ -16,8 +18,6 @@ use terri_core::{
 
 pub use super::lot_edit::drain_commands;
 use crate::Content;
-#[cfg(test)]
-use terri_core::Reserved;
 
 /// Player-visible results produced while staged commands become simulation
 /// state.
@@ -540,6 +540,7 @@ pub(crate) fn drain_ordinary_commands(
                 // the station release here without touching the guard
                 // above; the counter and the carried item go
                 // unconditionally, no-ops for everyone else.
+                commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
                 if let Some(target) = released {
                     if target.interaction == crate::systems::chain::CHAIN_STEP {
                         crate::reservations::release(&mut commands, agent, target);
@@ -2555,6 +2556,10 @@ mod tests {
                 test_content::shipped_fridge(),
             ))
             .id();
+        sim.world_mut().spawn((
+            terri_core::Position { x: 17.0, y: 18.0 },
+            test_content::shipped_object("counter"),
+        ));
         assert_eq!(
             (bed.index_u32(), agent.index_u32(), fridge.index_u32()),
             (0, 1, 2),

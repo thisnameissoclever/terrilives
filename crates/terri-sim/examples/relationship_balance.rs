@@ -17,6 +17,7 @@ struct Overrides {
     respect: Option<f32>,
     proximity: Option<f32>,
     friction: Option<f32>,
+    mess_scale: Option<f32>,
     television: bool,
 }
 
@@ -71,6 +72,7 @@ fn furnished(count: usize) -> Sim {
         ("stove", 3, 0),
         ("counter", 6, 0),
         ("dining_table", 9, 0),
+        ("kitchen_sink", 10, 3),
         ("bookshelf", 0, 4),
         ("reading_chair", 2, 4),
         ("moving_box", 4, 4),
@@ -236,6 +238,11 @@ fn run(seed: u64, scenario: &str, without_avoidance: bool, tuning: Overrides) {
         }
         if let Some(value) = tuning.friction {
             pack.tuning.relationships.friction_per_hour = value;
+        }
+        if let Some(value) = tuning.mess_scale {
+            let domestic = pack.tuning.domestic.as_mut().expect("domestic tuning");
+            domestic.affinity_penalty_min *= value;
+            domestic.affinity_penalty_bonus *= value;
         }
         if without_avoidance {
             pack.tuning.relationships.privacy_respect_chance = 0.0;
@@ -588,6 +595,7 @@ fn main() {
         respect: value("--respect="),
         proximity: value("--proximity="),
         friction: value("--friction="),
+        mess_scale: value("--mess-scale="),
         television: !args.iter().any(|s| s == "--social-stress"),
     };
     println!("CONFIG,{tuning:?}");

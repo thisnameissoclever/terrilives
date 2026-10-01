@@ -73,6 +73,8 @@ pub struct CircadianFile {
 
 #[derive(Debug, Deserialize)]
 pub struct TuningFile {
+    #[serde(default)]
+    pub domestic: Option<crate::pack::DomesticTuning>,
     /// The circadian rhythm, optional so every existing tuning fixture
     /// still parses. See `CircadianFile`.
     #[serde(default)]
@@ -495,6 +497,10 @@ pub struct InteractionDef {
     pub sound_action: Option<String>,
     #[serde(default)]
     pub shared_activity: Option<String>,
+    /// Optional activity bubble identity, independent of body art and tags.
+    /// Unknown values are reported with the owning content row by the compiler.
+    #[serde(default)]
+    pub activity: Option<String>,
 }
 
 /// Authored action-presentation metadata before validation.
@@ -671,6 +677,8 @@ pub struct PersonalitiesFile {
 
 #[derive(Debug, Deserialize)]
 pub struct ArchetypeDef {
+    #[serde(default = "default_cleanliness")]
+    pub cleanliness: f32,
     pub id: String,
     /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     ///
@@ -877,6 +885,9 @@ pub struct ChainStepDef {
     /// The resolved station becomes the exact sound source at runtime.
     #[serde(default)]
     pub sound_action: Option<String>,
+    /// Activity shown while this exact station step is actively running.
+    #[serde(default)]
+    pub activity: Option<String>,
 }
 
 /// A `transforms` entry: what the carried item was, and what it
@@ -1047,6 +1058,10 @@ pub struct PlacementDef {
     /// action sockets and matching rendered layers.
     #[serde(default)]
     pub facing: Option<String>,
+}
+
+fn default_cleanliness() -> f32 {
+    0.5
 }
 
 #[cfg(test)]

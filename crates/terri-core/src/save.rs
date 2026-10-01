@@ -63,11 +63,138 @@ pub struct SaveSnapshotV5 {
     /// Person index and exact nonzero sleep-schedule offset, ascending by index.
     /// Missing entries retain the historical zero; never infer them from content.
     pub chronotype_offsets: Vec<(u32, i32)>,
+    /// Food, dishes, cleanup claims and room visits. Older saves append None.
+    pub domestic: Option<SavedDomestic>,
     /// Absent only in historical payloads; current writers emit Some, even empty.
     pub sleeping_places: Option<SavedSleepingPlaces>,
     /// Stable SimId and nondefault shyness. Earlier payloads omit this tail.
     pub shyness: Vec<(u32, u8)>,
     pub boundaries: Vec<SavedBoundaryDecision>,
+}
+
+#[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDomestic {
+    pub cleanliness: Vec<(u32, f32)>,
+    pub dishes: Vec<SavedDishes>,
+    pub visits: Vec<SavedRoomVisit>,
+    pub cleanup: Vec<SavedCleanup>,
+    pub meals: Vec<SavedMeal>,
+    pub next_dish: u32,
+    /// Current cook's SimId and plating tick, distinct from older unclaimed meals.
+    pub serving_meals: Vec<(u32, u64)>,
+}
+
+/// Frozen local V5 order, accepted only for its reviewed bed-era fingerprint.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct LocalBedSnapshotV5 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    pub object_facings: Vec<(u32, u8)>,
+    pub retired_indices: Vec<u32>,
+    pub object_colourways: Vec<(u32, String)>,
+    /// What the player has laid on each floor tile - [FL-save] in
+    /// `docs/specs/2026-09-22-floors.md`.
+    ///
+    /// **Appended last, and sparse, both on purpose**, for the reason
+    /// `sleep_pressure` is: postcard writes a struct's fields back to back,
+    /// so a payload written before this field existed is a prefix of one
+    /// written after it, and the loader reads the prefix and defaults the
+    /// tail. A house nobody has painted costs one byte.
+    #[serde(default)]
+    pub floors: crate::layout::SavedFloors,
+    /// Who the household were to each other, keyed on entity index, as the
+    /// first build with ties wrote it ([FM-identity]) - [FM-save] in
+    /// `docs/specs/2026-09-22-family.md`. Appended after the floors, for the
+    /// same reason: an older payload is a prefix of a newer one, so a save
+    /// written before ties existed loads with nobody related.
+    ///
+    /// **Read, never written.** A save now writes this empty and the ties
+    /// in `family` below; the loader turns a non-empty one into SimIds,
+    /// which it can because a load rebuilds every entity index exactly.
+    #[serde(default)]
+    pub family_by_index: crate::layout::FamilyTies,
+    /// Who the household are to each other, keyed on SimId - [FM-save].
+    /// Appended last, so a save written with the entity-index list above is
+    /// a prefix of this one and loads through it.
+    #[serde(default)]
+    pub family: crate::layout::FamilyTies,
+    /// Appended optional death state. Old saves supply one zero byte.
+    pub mortality: Option<SavedMortality>,
+    /// Older worlds adopt the enabled default once. Later saved choices win.
+    pub death_default_applied: bool,
+    /// Person index, occupied item index, and the activity's relevant need bits.
+    pub waiting_needs: Vec<(u32, u32, u8)>,
+    /// Living person index and instinct, in ascending entity order.
+    pub self_preservation: Vec<(u32, u8)>,
+    /// Person index and exact nonzero sleep-schedule offset, ascending by index.
+    /// Missing entries retain the historical zero; never infer them from content.
+    pub chronotype_offsets: Vec<(u32, i32)>,
+    /// Absent only in historical payloads; current writers emit Some, even empty.
+    pub sleeping_places: Option<SavedSleepingPlaces>,
+    /// Stable SimId and nondefault shyness. Earlier payloads omit this tail.
+    pub shyness: Vec<(u32, u8)>,
+    pub boundaries: Vec<SavedBoundaryDecision>,
+}
+
+impl LocalBedSnapshotV5 {
+    pub fn into_current(self) -> SaveSnapshotV5 {
+        SaveSnapshotV5 {
+            world: self.world,
+            layout: self.layout,
+            object_facings: self.object_facings,
+            retired_indices: self.retired_indices,
+            object_colourways: self.object_colourways,
+            floors: self.floors,
+            family_by_index: self.family_by_index,
+            family: self.family,
+            mortality: self.mortality,
+            death_default_applied: self.death_default_applied,
+            waiting_needs: self.waiting_needs,
+            self_preservation: self.self_preservation,
+            chronotype_offsets: self.chronotype_offsets,
+            sleeping_places: self.sleeping_places,
+            shyness: self.shyness,
+            boundaries: self.boundaries,
+            domestic: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedDishes {
+    pub id: u32,
+    pub surface: u32,
+    pub owner: u32,
+    pub units: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedRoomVisit {
+    pub person: u32,
+    pub room: u32,
+    pub seen: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanup {
+    pub person: u32,
+    pub dishes: Vec<u32>,
+    pub collected: Vec<u32>,
+    pub directed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedMeal {
+    pub cook: u32,
+    pub counter: u32,
+    pub table: Option<u32>,
+    pub guests: Vec<u32>,
+    pub claimed: Vec<u32>,
+    pub collected: Vec<u32>,
+    pub eaten: Vec<u32>,
+    pub scale: f32,
+    pub tick: u64,
+    pub dining_started: bool,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]

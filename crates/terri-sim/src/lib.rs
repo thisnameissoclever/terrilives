@@ -1,9 +1,14 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod action_queue;
+#[cfg(test)]
+mod activity_tests;
 pub mod beds;
 mod compatibility;
 pub mod details;
+pub mod domestic;
+#[cfg(test)]
+mod ecs_lifecycle_tests;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
@@ -317,14 +322,17 @@ fn authored_object_facing_codes(
     }
 }
 
-fn is_authored_station_eat_visual(step: &terri_data::CompiledChainStep) -> bool {
+fn is_authored_station_visual(step: &terri_data::CompiledChainStep) -> bool {
     let Some(visual) = step.visual.as_ref() else {
         return false;
     };
     matches!(
         (&visual.action, &visual.anchor, &visual.facing,),
         (
-            terri_data::CompiledVisualAction::Eat,
+            terri_data::CompiledVisualAction::Eat
+                | terri_data::CompiledVisualAction::Prepare
+                | terri_data::CompiledVisualAction::Cook
+                | terri_data::CompiledVisualAction::Wash,
             terri_data::CompiledVisualAnchor::Station,
             terri_data::CompiledVisualFacing::TowardAnchor,
         )
@@ -475,6 +483,106 @@ fn eating_interaction_exists(
         .is_some()
 }
 
+fn activity_code(activity: terri_data::CompiledActivity) -> u32 {
+    use render_buffer::activity as code;
+    use terri_data::CompiledActivity as Activity;
+    match activity {
+        Activity::Eating => code::EATING,
+        Activity::Sleeping => code::SLEEPING,
+        Activity::Reading => code::READING,
+        Activity::Exercising => code::EXERCISING,
+        Activity::WatchingFish => code::WATCHING_FISH,
+        Activity::Sitting => code::SITTING,
+        Activity::Showering => code::SHOWERING,
+        Activity::UsingToilet => code::USING_TOILET,
+        Activity::WatchingTv => code::WATCHING_TV,
+        Activity::Lounging => code::LOUNGING,
+        Activity::WashingHands => code::WASHING_HANDS,
+        Activity::WashingDishes => code::WASHING_DISHES,
+        Activity::ListeningRadio => code::LISTENING_RADIO,
+        Activity::Correspondence => code::CORRESPONDENCE,
+        Activity::Bathing => code::BATHING,
+        Activity::GettingIngredients => code::GETTING_INGREDIENTS,
+        Activity::PreparingFood => code::PREPARING_FOOD,
+        Activity::Cooking => code::COOKING,
+    }
+}
+
+/// Resolves bubble identity from the exact active interaction or station step.
+/// Authored indicators do not select body art and never infer identity from
+/// menu labels, gameplay tags, or the sprite drawn for an object.
+fn authored_activity(
+    content: &terri_data::ContentPack,
+    world: &World,
+    person: Entity,
+    eating: Option<&terri_core::Eating>,
+    chain_state: Option<&terri_core::ChainState>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<u32> {
+    if eating.is_some() && step_work.is_some() {
+        return None;
+    }
+    let target = target?;
+    let object = world.get::<terri_core::SmartObject>(target.object)?;
+    world.get::<terri_core::Position>(target.object)?;
+    let definition = content.objects.get(object.0 .0 as usize)?;
+    if let Some(eating) = eating {
+        if target.interaction == systems::chain::CHAIN_STEP
+            || target.interaction != eating.interaction
+            || object.0 != eating.object
+        {
+            return None;
+        }
+        let interaction = definition.interactions.get(target.interaction as usize)?;
+        return interaction.activity.map(activity_code);
+    }
+    step_work?;
+    let chain_state = chain_state?;
+    if target.interaction != systems::chain::CHAIN_STEP {
+        return None;
+    }
+    let chain = content.chains.get(chain_state.chain as usize)?;
+    let step = chain.steps.get(chain_state.step as usize)?;
+    if !chain_station_matches(
+        world,
+        person,
+        chain,
+        chain_state.step,
+        definition,
+        target.object,
+    ) {
+        return None;
+    }
+    step.activity.map(activity_code)
+}
+
+fn chain_station_matches(
+    world: &World,
+    person: Entity,
+    chain: &terri_data::CompiledChain,
+    step: u32,
+    definition: &terri_data::CompiledObject,
+    station: Entity,
+) -> bool {
+    if definition.roles.contains(&chain.steps[step as usize].role) {
+        return true;
+    }
+    chain.id == domestic::CLEANUP
+        && step == 0
+        && world
+            .get_resource::<terri_core::save::SavedDomestic>()
+            .is_some_and(|state| {
+                domestic::step_station(
+                    state,
+                    person.index_u32(),
+                    world.get::<terri_core::SimId>(person).copied(),
+                    &chain.id,
+                    step,
+                ) == Some(station.index_u32())
+            })
+}
+
 fn object_footprint_centre(
     content: &terri_data::ContentPack,
     object: &terri_core::SmartObject,
@@ -546,13 +654,20 @@ fn authored_eating_visual(
         }
         let chain = content.chains.get(chain_state.chain as usize)?;
         let step = chain.steps.get(chain_state.step as usize)?;
-        if !is_authored_station_eat_visual(step) {
+        if !is_authored_station_visual(step) {
             return None;
         }
         let target_object = world.get::<terri_core::SmartObject>(target.object)?;
         let target_position = world.get::<terri_core::Position>(target.object)?;
         let definition = content.objects.get(target_object.0 .0 as usize)?;
-        if !definition.roles.contains(&step.role) {
+        if !chain_station_matches(
+            world,
+            entity,
+            chain,
+            chain_state.step,
+            definition,
+            target.object,
+        ) {
             return None;
         }
         let anchor = object_footprint_centre(
@@ -562,7 +677,13 @@ fn authored_eating_visual(
             world.get::<terri_core::ObjectFacing>(target.object),
         )?;
         return Some((
-            visual_action::EAT,
+            match step.visual.as_ref()?.action {
+                terri_data::CompiledVisualAction::Eat => visual_action::EAT,
+                terri_data::CompiledVisualAction::Prepare => visual_action::PREPARE,
+                terri_data::CompiledVisualAction::Cook => visual_action::COOK,
+                terri_data::CompiledVisualAction::Wash => visual_action::WASH,
+                _ => return None,
+            },
             facing_toward(entity, position, target.object, &anchor),
         ));
     }
@@ -586,6 +707,7 @@ fn sound_action_code(action: terri_data::CompiledSoundAction) -> u32 {
 fn authored_object_sound(
     content: &terri_data::ContentPack,
     world: &World,
+    entity: Entity,
     eating: Option<&terri_core::Eating>,
     chain_state: Option<&terri_core::ChainState>,
     step_work: Option<&terri_core::StepWork>,
@@ -626,7 +748,14 @@ fn authored_object_sound(
         let target_object = world.get::<terri_core::SmartObject>(target.object)?;
         world.get::<terri_core::Position>(target.object)?;
         let definition = content.objects.get(target_object.0 .0 as usize)?;
-        if !definition.roles.contains(&step.role) {
+        if !chain_station_matches(
+            world,
+            entity,
+            chain,
+            chain_state.step,
+            definition,
+            target.object,
+        ) {
             return None;
         }
         return Some((
@@ -762,6 +891,7 @@ impl Sim {
                 .values()
                 .cloned()
                 .collect(),
+            domestic: domestic::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -1061,10 +1191,12 @@ impl Sim {
                 // function's docs for why that is the choice.
                 (
                     systems::action::serve_intents,
+                    crate::relationship_effects::reset,
+                    domestic::tick,
                     systems::interpersonal::prepare,
+                    systems::action::select_action,
                 )
                     .chain(),
-                systems::action::select_action,
                 // Directly after selection, so a chain chosen this
                 // tick (or resumed after an interruption) gets its
                 // station walk on the same tick a chosen fridge gets
@@ -1082,6 +1214,7 @@ impl Sim {
                 systems::idle::wander,
                 (
                     privacy::route,
+                    systems::interpersonal::refresh_routes,
                     systems::movement::follow_path,
                     systems::interpersonal::apply,
                     relationship_dynamics::tick,
@@ -1094,6 +1227,7 @@ impl Sim {
                 // paid return.
                 systems::career::commute_and_work,
                 systems::interact::tick_interactions,
+                domestic::gather_diners,
                 // Beside tick_interactions because it is the same job
                 // for chain steps: run the clock at the station, and
                 // pay - whole, terminal-only - when the last one ends.
@@ -1370,6 +1504,8 @@ impl Sim {
 
     pub fn tick(&mut self) {
         self.schedule.run(&mut self.world);
+        // Standalone ECS needs explicit update boundaries to retire removal history.
+        self.world.clear_trackers();
     }
 
     /// Applies staged player input without advancing simulation time.
@@ -1381,6 +1517,8 @@ impl Sim {
     pub fn flush_commands(&mut self) {
         self.command_schedule.run(&mut self.world);
         privacy::maintain(&mut self.world);
+        // Paused frames can remove components too; keep the same observation window.
+        self.world.clear_trackers();
     }
 
     /// Returns and clears the number of object or social orders refused
@@ -1491,6 +1629,9 @@ impl Sim {
         self.render.sound_actions.clear();
         self.render.sound_sources.clear();
         self.render.carrying.clear();
+        self.render.dirty_dishes.clear();
+        self.render.carried_dishes.clear();
+        self.render.meal_portions.clear();
         self.render.voice_firsts.clear();
         self.render.voice_seconds.clear();
         self.render.conversation_owners.clear();
@@ -1721,7 +1862,15 @@ impl Sim {
                 None
             };
             let sound_projection = if is_agent && !socially_active && !at_work {
-                authored_object_sound(content, &self.world, eating, chain_state, step_work, target)
+                authored_object_sound(
+                    content,
+                    &self.world,
+                    entity,
+                    eating,
+                    chain_state,
+                    step_work,
+                    target,
+                )
             } else {
                 None
             };
@@ -1746,7 +1895,8 @@ impl Sim {
                         x,
                         y,
                         false,
-                        Some(render_buffer::activity::EATING),
+                        (action == render_buffer::visual_action::EAT)
+                            .then_some(render_buffer::activity::EATING),
                     )
                 } else if let Some(socket_action) = socket_action_visual {
                     (
@@ -1783,7 +1933,17 @@ impl Sim {
             } else if socially_active {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
-                if let Some(activity) = authored_activity {
+                if let Some(activity) = authored_activity.or_else(|| {
+                    self::authored_activity(
+                        content,
+                        &self.world,
+                        entity,
+                        eating,
+                        chain_state,
+                        step_work,
+                        target,
+                    )
+                }) {
                     // An exact visual contract owns both the body pose and its
                     // activity label. Tags remain independent authored data,
                     // so a legal overlap must not split those two signals.
@@ -1799,17 +1959,26 @@ impl Sim {
                     // player-facing eating activity.
                     render_buffer::activity::USING_OBJECT
                 }
-            } else if step_work.is_some()
-                && authored_activity == Some(render_buffer::activity::EATING)
-            {
-                // A running chain step has no `Eating` component, but an
-                // authored terminal eat still needs the existing fork bubble.
-                // The implication is one-way: generic object use never
-                // selects body art or the fork bubble.
-                render_buffer::activity::EATING
+            } else if step_work.is_some() {
+                authored_activity
+                    .or_else(|| {
+                        self::authored_activity(
+                            content,
+                            &self.world,
+                            entity,
+                            eating,
+                            chain_state,
+                            step_work,
+                            target,
+                        )
+                    })
+                    .unwrap_or(render_buffer::activity::USING_OBJECT)
             } else if path.is_some() {
                 render_buffer::activity::WALKING
-            } else if reserved {
+            } else if reserved
+                || (self.world.get::<terri_core::Blocked>(entity).is_some()
+                    && self.world.get::<waiting::WaitingNeeds>(entity).is_some())
+            {
                 render_buffer::activity::WAITING
             } else {
                 render_buffer::activity::NONE
@@ -1879,7 +2048,21 @@ impl Sim {
         }
         rows.sort_by_key(|row| row.index);
 
+        let domestic_items = domestic::surface_items(&self.world);
+        let carried_dishes = domestic::carried_dishes(&self.world);
         for row in &rows {
+            self.render
+                .carried_dishes
+                .push(carried_dishes.get(&row.index).copied().unwrap_or(0));
+            let surface = domestic_items
+                .chunks_exact(3)
+                .find(|items| items[0] == row.index);
+            self.render
+                .dirty_dishes
+                .push(surface.map_or(0, |items| items[1]));
+            self.render
+                .meal_portions
+                .push(surface.map_or(0, |items| items[2]));
             self.render.positions.push(row.x);
             self.render.positions.push(row.y);
             self.render.kinds.push(row.kind);
@@ -2124,6 +2307,14 @@ impl Sim {
                 // into a blank line, not a panicked overlay.
                 let chain = pack.chains.get(chain_state.chain as usize)?;
                 let step = chain.steps.get(chain_state.step as usize)?;
+                let label = if chain.id == "cook_dinner" {
+                    domestic::meal_label(
+                        self.world.resource::<terri_core::SimClock>().tick,
+                        pack.tuning.day_ticks,
+                    )
+                } else {
+                    &chain.label
+                };
                 Some(match carrying {
                     Some(item) => {
                         let kind = pack
@@ -2135,9 +2326,9 @@ impl Sim {
                         // dinner: Cook": the panel prefixes this with a
                         // label of its own, and three colons in one
                         // line reads as nothing at all.
-                        format!("{} - step: {} (carrying {})", chain.label, step.label, kind)
+                        format!("{} - step: {} (carrying {})", label, step.label, kind)
                     }
-                    None => format!("{} - step: {}", chain.label, step.label),
+                    None => format!("{} - step: {}", label, step.label),
                 })
             })
     }
@@ -2284,6 +2475,13 @@ impl Sim {
             })
     }
 
+    pub fn cleanliness_of(&self, index: u32) -> Option<f32> {
+        let entity_index = bevy_ecs::entity::EntityIndex::from_raw_u32(index)?;
+        let person = self.world.entities().resolve_from_index(entity_index);
+        self.world.get::<terri_core::Agent>(person)?;
+        Some(domestic::cleanliness(&self.world, person))
+    }
+
     /// How the sim carrying `index` feels about everyone it knows, as
     /// interleaved `[sim_id, feeling, sim_id, feeling, ...]` pairs in
     /// the component's own key-sorted order.
@@ -2383,7 +2581,17 @@ impl Sim {
                     pack.chains
                         .iter()
                         .filter(|chain| chain.advertised_by == object.0)
-                        .map(|chain| chain.label.as_str()),
+                        .filter(|chain| !domestic::hidden_chain(&chain.id))
+                        .map(|chain| {
+                            if chain.id == "cook_dinner" {
+                                domestic::meal_label(
+                                    self.world.resource::<SimClock>().tick,
+                                    pack.tuning.day_ticks,
+                                )
+                            } else {
+                                chain.label.as_str()
+                            }
+                        }),
                 )
                 .collect(),
         )
@@ -3097,6 +3305,7 @@ impl Sim {
                 hasher.write_u64(u64::from(value));
             }
         }
+        domestic::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }
@@ -3788,6 +3997,7 @@ mod household_tests {
         // pairwise distinct for the same reason.
         let personalities = vec![
             terri_data::CompiledPersonality {
+                cleanliness: 0.5,
                 id: "a".into(),
                 drain: [1.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                 satisfaction: [1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0],
@@ -3796,6 +4006,7 @@ mod household_tests {
                 description: String::new(),
             },
             terri_data::CompiledPersonality {
+                cleanliness: 0.5,
                 id: "b".into(),
                 drain: [1.0, 1.0, 2.25, 1.0, 1.0, 1.0, 1.0],
                 satisfaction: [1.0, 1.0, 1.0, 1.125, 1.0, 1.0, 1.0],
@@ -5036,7 +5247,10 @@ mod determinism_tests {
         // Varied autonomy changes selection draws and adds per-person instinct
         // state to the digest. Native and rebuilt release WASM independently
         // measured this value from the matching seeded debug-spawn scenario.
-        const GOLDEN: u64 = 0xa1a1f123206ce493;
+        // Staged snack work and domestic state now compose with varied autonomy.
+        // This fridge-only fixture cannot prepare snacks without a counter;
+        // eligibility excludes that action and changes the selection draws.
+        const GOLDEN: u64 = 0x21c21e6232f46614;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

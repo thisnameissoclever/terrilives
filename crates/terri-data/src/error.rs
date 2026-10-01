@@ -13,6 +13,7 @@ pub enum ContentError {
         object: String,
         reason: String,
     },
+    InvalidDomesticTuning,
     InvalidAutonomyTuning,
     EmptyObjectText {
         object: String,
@@ -644,6 +645,11 @@ pub enum ContentError {
         interaction: String,
         action: String,
     },
+    /// An activity indicator outside the compiled presentation vocabulary.
+    UnknownActivity {
+        owner: String,
+        activity: String,
+    },
     /// A social interaction cannot name a SmartObject sound source.
     SocialSoundAction {
         interaction: String,
@@ -1153,6 +1159,7 @@ impl fmt::Display for ContentError {
             ContentError::InvalidSleepPlaces { object, reason } => write!(
                 f, "object '{object}' has invalid sleep places: {reason}"
             ),
+            ContentError::InvalidDomesticTuning => write!(f, "domestic tuning has an invalid probability, need threshold or work rate"),
             ContentError::UnknownNeed {
                 object,
                 interaction,
@@ -1725,6 +1732,10 @@ impl fmt::Display for ContentError {
                 f,
                 "'{object}' interaction '{interaction}' declares unknown sound action \
                  '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
+            ),
+            ContentError::UnknownActivity { owner, activity } => write!(
+                f,
+                "{owner} declares unknown activity '{activity}'"
             ),
             ContentError::SocialSoundAction {
                 interaction,

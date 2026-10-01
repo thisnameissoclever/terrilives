@@ -1,0 +1,16 @@
+[
+  {
+    "mutation": "shower-bubble-removal",
+    "command": "npm --prefix web test -- --maxWorkers=1 tests/frame.test.ts",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "4c0b06d8c3fed115ddc85582285c4f9e102fbf1cb659e1670e0c3b84dc89cc9f"
+  },
+  {
+    "mutation": "fish-tail-on-rim",
+    "command": "python -B -m unittest discover -s assets/sprites/gen -p test_activity_icons.py",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "ef822a3ec0adcdd8534d593e6ef55f97284339240f8ad826c023e9b7b0b0c1a6"
+  }
+]

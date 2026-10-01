@@ -1,7 +1,8 @@
 use super::*;
 
 fn destination() -> &'static ContentPack {
-    let mut pack = terri_data::pack().clone();
+    let mut pack = terri_data::pre_meals_content(terri_data::pack()).unwrap();
+    pack.tuning.domestic = None;
     pack.lot.wall_edges.clear();
     pack.lot.walls = terri_core::layout::LEGACY_WALL_TILES.to_vec();
     let id = pack.find("bathtub").unwrap();
@@ -773,7 +774,7 @@ fn current_digest_custom_layouts_do_not_enter_bathtub_migration() {
     radio.position.as_mut().unwrap().x += 0.25;
     source.blocked_tiles[8 * source.grid_width as usize + 8] = true;
     assert_eq!(
-        restore_without_portals(source.clone(), destination())
+        restore_without_portals(source.clone(), terri_data::pack())
             .unwrap()
             .save_snapshot(),
         source

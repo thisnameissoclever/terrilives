@@ -82,6 +82,7 @@ pub fn interaction(
         visual: None,
         sound_action: None,
         shared_activity: None,
+        activity: None,
     }
 }
 
