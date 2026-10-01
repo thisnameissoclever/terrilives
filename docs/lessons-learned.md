@@ -8293,7 +8293,10 @@ they intended to clear.
 **Prevention.** Compare the complete assignment map and exact surviving target,
 place and action. Account explicitly for the expected duration decrement.
 Before cleanup, assert the specific claims, paths and shared marker exist.
+For a multi-tick handoff, check the surviving action on every tick. Two replay
+copies can agree while both freeze or restart the same countdown.
 
 **Verify.** Swap assignment ordinals while retaining their count, corrupt the
 surviving partner's place, and omit admission's place insertion. Each fault must
 fail its named lifecycle assertion. Restore source bytes and rerun the suite.
+Freezing only the partner's timer must also fail the full-tick handoff test.

@@ -201,3 +201,147 @@ fn autonomous_claims_share_two_places_and_the_third_waits_in_the_same_pass() {
     assert!(sim.world().get::<SleepPlace>(third).is_none());
     assert!(sim.world().get::<Blocked>(third).is_some());
 }
+
+#[test]
+fn full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facings() {
+    let endpoints = [
+        ((7, 6), (7, 8)),
+        ((8, 7), (6, 7)),
+        ((7, 8), (7, 6)),
+        ((6, 7), (8, 7)),
+    ];
+    for (facing, (first_end, second_end)) in terri_core::Facing::ALL.into_iter().zip(endpoints) {
+        let (mut sim, bed, [first, second, third]) = fixture();
+        let mut pack = sim.world().resource::<crate::Content>().0.clone();
+        pack.objects[0].facing_sprites =
+            terri_data::FacingSprites([Some(pack.objects[0].sprite); 4]);
+        pack.objects[0].interactions[0].duration_ticks = 80;
+        pack.objects[0].interactions[1].duration_ticks = 240;
+        pack.tuning.duration_variance = 0.0;
+        let pack = Box::leak(Box::new(pack));
+        sim.world_mut().insert_resource(crate::Content(pack));
+        sim.world_mut()
+            .entity_mut(bed)
+            .insert(terri_core::ObjectFacing(facing));
+        for (person, ordinal) in [(first, 0), (second, 1)] {
+            commit(
+                sim.world_mut(),
+                person.index_u32(),
+                Some((bed.index_u32(), ordinal)),
+            );
+        }
+        let assignments = sim.world().resource::<BedAssignments>().clone();
+        for (person, interaction) in [(first, 0), (second, 1), (third, 0)] {
+            order(&mut sim, person, bed, interaction);
+        }
+        sim.tick();
+        for (person, ordinal) in [(first, 0), (second, 1)] {
+            assert_eq!(
+                sim.world().get::<SleepPlace>(person),
+                Some(&SleepPlace(ordinal))
+            );
+            assert!(sim.world().get::<Path>(person).is_some());
+            assert!(sim.world().get::<Eating>(person).is_none());
+        }
+        assert!(sim.world().get::<Blocked>(third).is_some());
+        assert!(sim.world().get::<Target>(third).is_none());
+
+        let mut loaded = test_content::sim_with(12, 12, pack);
+        let walking = sim.save_snapshot_v5();
+        loaded.load_snapshot_v5(walking.clone()).unwrap();
+        assert_eq!(loaded.save_snapshot_v5(), walking);
+        let mut saw_both_sleeping = false;
+        let mut saw_handoff = false;
+        let mut partner_sleep = None;
+        for _ in 0..600 {
+            sim.tick();
+            loaded.tick();
+            assert_eq!(loaded.world_hash(), sim.world_hash(), "{facing:?}");
+            assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
+            assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
+            if !saw_both_sleeping
+                && sim.world().get::<Eating>(first).is_some()
+                && sim.world().get::<Eating>(second).is_some()
+            {
+                saw_both_sleeping = true;
+                partner_sleep = Some((
+                    sim.world().resource::<SimClock>().tick,
+                    *sim.world().get::<Eating>(second).unwrap(),
+                ));
+                for (person, endpoint) in [(first, first_end), (second, second_end)] {
+                    let position = sim.world().get::<Position>(person).unwrap();
+                    assert_eq!(
+                        (position.x, position.y),
+                        (endpoint.0 as f32, endpoint.1 as f32)
+                    );
+                    assert!(sim.world().get::<Path>(person).is_none());
+                }
+                assert!(sim.world().get::<Blocked>(third).is_some());
+                assert!(sim.world().get::<Target>(third).is_none());
+                let sleeping = sim.save_snapshot_v5();
+                loaded.load_snapshot_v5(sleeping.clone()).unwrap();
+                assert_eq!(loaded.save_snapshot_v5(), sleeping);
+            }
+            if let Some((started_at, original)) = partner_sleep {
+                let elapsed = sim.world().resource::<SimClock>().tick - started_at;
+                let remaining_ticks = original
+                    .remaining_ticks
+                    .checked_sub(elapsed as u32)
+                    .expect("the partner's longer action must outlast the handoff");
+                assert_eq!(
+                    sim.world().get::<Eating>(second),
+                    Some(&Eating {
+                        remaining_ticks,
+                        ..original
+                    })
+                );
+                assert_eq!(sim.world().get::<SleepPlace>(second), Some(&SleepPlace(1)));
+                assert_eq!(
+                    sim.world().get::<Target>(second),
+                    Some(&Target {
+                        object: bed,
+                        interaction: 1
+                    })
+                );
+                assert!(sim.world().get::<Path>(second).is_none());
+            }
+            if saw_both_sleeping && sim.world().get::<Eating>(third).is_some() {
+                assert_eq!(sim.world().get::<SleepPlace>(third), Some(&SleepPlace(0)));
+                assert_eq!(
+                    sim.world().get::<Target>(third),
+                    Some(&Target {
+                        object: bed,
+                        interaction: 0
+                    })
+                );
+                let position = sim.world().get::<Position>(third).unwrap();
+                assert_eq!(
+                    (position.x, position.y),
+                    (first_end.0 as f32, first_end.1 as f32)
+                );
+                assert!(sim.world().get::<SleepPlace>(first).is_none());
+                assert!(sim.world().get::<Eating>(first).is_none());
+                assert_eq!(sim.world().get::<SleepPlace>(second), Some(&SleepPlace(1)));
+                assert_eq!(
+                    sim.world().get::<Target>(second),
+                    Some(&Target {
+                        object: bed,
+                        interaction: 1
+                    })
+                );
+                assert!(sim.world().get::<Eating>(second).unwrap().remaining_ticks > 0);
+                assert!(sim.world().get::<Reserved>(bed).is_some());
+                saw_handoff = true;
+                break;
+            }
+        }
+        assert!(
+            saw_both_sleeping,
+            "full ticks never started both sleepers: {facing:?}"
+        );
+        assert!(
+            saw_handoff,
+            "the waiting Sim never reused the departed place: {facing:?}"
+        );
+    }
+}

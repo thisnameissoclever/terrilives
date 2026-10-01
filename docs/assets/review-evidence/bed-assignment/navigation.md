@@ -143,6 +143,52 @@ also passed, each with exit 0. The built WASM remains `terri_wasm_bg-DbLSdXLq.wa
 the resulting JavaScript is `index-DkaRgyf3.js`. This is local integration
 evidence, not a deployment claim.
 
+### Full-tick handoff and replay
+
+`full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facings`
+now runs the real tick schedule on the isolated one-tile bed fixture in all four
+facings. Two ordered Sims must walk to their distinct authored endpoints and
+sleep at the same time. A third must first wait, then walk to and sleep in the
+first person's released place while the second person's longer action remains
+active. No position, path cursor or running duration is patched after admission.
+
+The test reloads once during travel and once while both are asleep. It compares
+the complete persisted state and world hash after each subsequent tick, and
+keeps the exact permanent assignment map unchanged. Each facing has a 600-tick
+bound and must reach both observed milestones; two equally stuck runs cannot
+pass just by matching each other. This uses the fixture geometry, not the
+shipped double-bed footprint or occupied-art projection.
+
+Review also required the partner's original action to be checked continuously,
+rather than only confirming a positive countdown at handoff. From the first
+overlap onward, every tick asserts the exact target, place and action, with only
+the expected one-tick duration decrement and no renewed path. Freezing only
+interaction one's timer failed the named test with exit 101:
+
+```text
+assertion `left == right` failed
+  left: Some(Eating { object: ObjectDefId(0), interaction: 1, remaining_ticks: 240 })
+ right: Some(Eating { object: ObjectDefId(0), interaction: 1, remaining_ticks: 239 })
+```
+
+`systems/interact.rs` was restored in `finally` to SHA-256
+`FAA3D96032CEAD9800556807916E6E80AD8D9DAB2A77588C6D8984E4C7E242BC`.
+
+Deleting `systems::movement::follow_path` from the actual tick schedule made the
+named test exit 101 with this assertion:
+
+```text
+full ticks never started both sleepers: SouthEast
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 751 filtered out
+```
+
+`terri-sim/src/lib.rs` was restored byte-for-byte in `finally`, with SHA-256
+`AEF95995931AEA428DACE00780CD1895A4107413FF5F7A1D28E6A7A1A90301E1`.
+After both faults, `cargo test -p terri-sim beds::tests::lifecycle -- --test-threads=1`
+passed all five tests, and `cargo clippy -p terri-sim --all-targets -- -D warnings`
+passed, both with exit 0. The combined native count is now 1,284. Production
+code is unchanged by this follow-up; this does not complete occupied visuals.
+
 ## Review
 
 Two read-only adversarial reviews found no production routing or fingerprint
@@ -158,6 +204,9 @@ The lifecycle follow-up received a separate read-only review. It identified
 three assertion gaps, then confirmed their repair and the three additional
 fault failures recorded in `lifecycle-faults.md`. No further findings remained
 in that focused review; its scope excludes occupied visuals.
+The full-tick extension then received focused review. Its continuous partner
+assertion and frozen-timer fault closed the sole finding; no further findings
+remained in that test's review.
 
 Before release, integrate and verify the occupied body fit, composite layers,
 picking and indicators. Rebuild after those changes and review the complete
