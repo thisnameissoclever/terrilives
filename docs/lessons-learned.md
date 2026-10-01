@@ -9444,3 +9444,13 @@ writer cannot replace an existing terminal result.
 **Prevention.** Pause through the existing speed control from a page-local frame observer. Require the exact measured tick interval and matching final world hashes. Reject overshoot as an invalid run. Keep the raw memory limit unchanged; do not reload state or subtract allocations to manufacture a passing comparison.
 
 **Verify.** The report tests reject a missing endpoint, a changed final tick and a changed final world hash. Use a frozen production build for the predefined paired assessment. Preserve earlier failed results separately from any corrected measurement.
+
+## [L-memory-diagnostics-must-isolate-observer-changes] Keep measurement changes separate from runtime attribution
+
+**What happened.** A smaller audio memory result came from a diagnostic that omitted intermediate observations and changed endpoint waiting. The result could not explain a failure measured under the original protocol. A later comparison changed only intermediate explicit garbage collection, the browser's reclamation of unused objects, while preserving observations and endpoint collection.
+
+**Root cause.** The first diagnostic changed several measurement conditions at once. Equal game states did not remove browser history, elapsed-time or pending measurement-request differences. The runtime cause of the memory failure remains unknown.
+
+**Prevention.** Predeclare finite conditions before running a diagnostic. Change one measurement intervention at a time. Assert the retained observations and endpoint collection calls. Inspect enabled and disabled growth separately before interpreting their difference. Record timed-out measurement requests and differing initial memory capacities. Keep diagnostic results separate from acceptance results; do not relax a limit or retry for a favorable sample.
+
+**Verify.** Require matching initial and final game ticks, world hashes and loaded build hashes. Require unchanged within-run structural bounds. Preserve raw enabled and disabled values. Report whether a lower difference came from lower enabled growth or movement in the disabled control. Do not claim causation from one observation per condition. Dated evidence: [audio memory protocol diagnostic](assets/review-evidence/audio/toilet/2026-10-01-protocol-diagnostic.md).

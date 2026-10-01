@@ -60,6 +60,12 @@ unchanged document/listener counts and no page errors. Browser and both servers
 closed. These single samples do not prove repeatability or resolve the failed
 assessment. Raw report: [current-causal.json](current-causal.json).
 
+This comparison changed both intermediate sampling and endpoint waiting relative
+to the acceptance assessment. Its smaller result cannot isolate either change.
+The separate [collection-protocol diagnostic](2026-10-01-protocol-diagnostic.md)
+preserves observations and endpoint collection while omitting only intermediate
+explicit collections. Its results do not establish a cause or clear release.
+
 Diagnostic script SHA-256:
 `d1944b828cc5b3d26a406bf1f4485e4a738e908bb89ff125e6a2d2c725510307`.
 The task-owned script remains `.tmp/toilet-current-causal.cjs`.
