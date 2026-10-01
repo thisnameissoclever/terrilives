@@ -179,7 +179,7 @@ sprite = "offlineToilet"
 id = "television"
 name = "Cathode Companion"
 price = 350
-sprite = "televisionVintage"
+sprite = "offlineTelevision"
 
   # Presentation treats the screen as a weak local light. There is no authored
   # power state yet, so the pool remains visible whether or not somebody is
@@ -271,7 +271,7 @@ sprite = "televisionVintage"
 id = "sofa"
 name = "Chesterfield Regret"
 price = 200
-sprite = "loungeSofaOttoman"
+sprite = "offlineOttoman"
 
   # Two advertised needs, deliberately. [D6]'s scoring SUMS across
   # advertised deltas, and this is the first object in shipped content
@@ -336,6 +336,7 @@ sprite = "offlineBathroomSink"
   [[object.interaction]]
   id = "wash_hands"
   label = "Wash hands"
+  sound_action = "sink_water"
   advertises = { hygiene = 32.0 }
   duration_ticks = 21
   slots = 1
@@ -344,7 +345,7 @@ sprite = "offlineBathroomSink"
 id = "bookshelf"
 name = "Wall of Intent"
 price = 120
-sprite = "bookcaseClosedDoors"
+sprite = "offlineBookcase"
 
   # The low end of the fun range, so the three fun objects span a real spread
   # instead of clustering and making the choice between them arbitrary.
@@ -482,6 +483,7 @@ roles = ["prep_surface", "dish_sink"]
   [[object.interaction]]
   id = "wash_up"
   label = "Wash hands"
+  sound_action = "sink_water"
   # **20 and 23, raised from 14 and 27 after the first trace.** At 14 hygiene
   # this was at zero uses in 12 000 ticks, and the candidate table said why: it
   # is the fourth hygiene option in a house where hygiene is over-supplied
@@ -502,10 +504,9 @@ id = "dining_table"
 name = "Visiting Hours"
 presentation = { object_type = "Dining table", description = "A table for meals and whatever everyone promises to put away." }
 price = 120
-sprite = "table"
+sprite = "offlineDiningTable"
 footprint = { width = 2, depth = 1 }
-# The chain's terminal station: the table finally gets somebody to
-# sit at it.
+# The chain terminal uses the standing eating animation.
 roles = ["eating_surface", "meal_table"]
 
   # 37 comfort over 62 ticks is 0.597 per tick standing beside it, against the
@@ -540,7 +541,7 @@ roles = ["eating_surface", "meal_table"]
 id = "chair"
 name = "Chair, Standard Issue"
 price = 40
-sprite = "chair"
+sprite = "offlineDiningChair"
 
   # No interactions. A chair at a table is where a sim sits when it uses the
   # TABLE; it is not a separate thing to sit on. Modelling it as one would put
@@ -555,7 +556,7 @@ sprite = "chair"
 id = "trashcan"
 name = "Receptacle for Later"
 price = 20
-sprite = "trashcan"
+sprite = "offlineTrashcan"
 
   # No interactions. Scenery, and a promise.
 
@@ -565,7 +566,7 @@ sprite = "trashcan"
 id = "long_sofa"
 name = "The Sectional Compromise"
 price = 280
-sprite = "loungeSofaLong"
+sprite = "offlineLongSofa"
 footprint = { width = 2, depth = 1 }
 
   # **Three slots, which is the highest in the house, and the reason this
@@ -606,14 +607,13 @@ id = "armchair"
 name = "Staying In"
 presentation = { object_type = "Armchair", description = "A chair for sitting. Leaving it remains a personal decision." }
 price = 140
-sprite = "loungeChair"
-foreground_sprite = "loungeChairForeground"
+sprite = "offlineArmchair"
 
   [[object.action_socket]]
   id = "seat"
   x = 0.0
   y = 0.0
-  # The source chair opens toward +Y, unlike the +X-facing wingback.
+  # The default exported chair opens toward +Y, unlike the +X-facing wingback.
   facing = "SW"
 
   # One slot, and 29 comfort at 41 ticks - the best comfort-per-tick in the
@@ -643,7 +643,7 @@ foreground_sprite = "loungeChairForeground"
 id = "radio"
 name = "Frequency of Record"
 price = 60
-sprite = "radio"
+sprite = "offlineRadio"
 
   # 22 fun and 5 social at 38 ticks. Deliberately sat just under the
   # bookshelf's 26 fun at 34 ticks, so the two are close enough that
@@ -671,7 +671,7 @@ sprite = "radio"
 id = "potted_plant"
 name = "Ficus, Under Review"
 price = 30
-sprite = "pottedPlant"
+sprite = "offlinePottedPlant"
 
   # No interactions. Placed twice.
 
@@ -679,7 +679,7 @@ sprite = "pottedPlant"
 id = "floor_lamp"
 name = "Illumination, Ambient"
 price = 45
-sprite = "lampRoundFloor"
+sprite = "offlineFloorLamp"
 
   # No interactions. Presentation uses this footprint as the room's strongest
   # local light source; it stays independent of autonomy and save state. The
@@ -690,7 +690,7 @@ sprite = "lampRoundFloor"
 id = "coat_rack"
 name = "Vertical Filing for Outerwear"
 price = 35
-sprite = "coatRackStanding"
+sprite = "offlineCoatRack"
 
   # No interactions.
 
@@ -821,7 +821,7 @@ roles = ["eating_surface"]
 id = "desk_chair"
 name = "Ergonomic, Allegedly"
 price = 60
-sprite = "chairDesk"
+sprite = "offlineDeskChair"
 
   # No interactions, for the same reason as the dining chairs.
 

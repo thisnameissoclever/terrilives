@@ -1,3 +1,5 @@
+import { setTextIfChanged } from './set-text-if-changed.js';
+
 // The selected person's traits in plain words - [TL-panel] in
 // docs/specs/2026-09-21-trait-library-and-traits-panel.md.
 //
@@ -11,6 +13,7 @@ export interface TraitsPanelSource {
   /** Interleaved [pack trait index, state, ...] pairs, or empty. */
   traitsOf(entity: number): Float32Array;
   cleanlinessOf?(entity: number): number | null;
+  selfPreservationOf?(entity: number): number | null;
 }
 
 /** Three columns of one table, read once at startup and aligned by index. */
@@ -90,7 +93,7 @@ export function traitsPanelState(
   const cleanliness = source.cleanlinessOf?.(selected);
   if (cleanliness !== undefined && cleanliness !== null) {
     if (!Number.isFinite(cleanliness) || cleanliness < 0 || cleanliness > 1) return UNAVAILABLE;
-    traits.push({ key: -1, label: 'Cleanliness',
+    traits.push({ key: -2, label: 'Cleanliness',
       description: 'Tidier Sims usually clean up and mind other people leaving dirty dishes. Urgent needs can take priority.',
       state: `${percent(cleanliness)}%` });
   }
@@ -111,6 +114,12 @@ export function traitsPanelState(
       description: library.descriptions[index],
       state: text,
     });
+  }
+  if (source.selfPreservationOf) {
+    const instinct = source.selfPreservationOf(selected);
+    if (instinct === null || !Number.isInteger(instinct) || instinct < 0 || instinct > 100) return UNAVAILABLE;
+    traits.unshift({ key: -1, label: 'Self-preservation instinct', state: `${instinct}/100`,
+      description: 'Higher values favor meeting low needs. Very low values can lead to dangerous neglect.' });
   }
   return { kind: 'ready', traits };
 }
@@ -200,10 +209,10 @@ export function createTraitsPanelSurface(
           row = createTraitRow(doc);
           rowByKey.set(trait.key, row);
         }
-        row.label.textContent = trait.label;
-        row.state.textContent = trait.state;
+        setTextIfChanged(row.label, trait.label);
+        setTextIfChanged(row.state, trait.state);
         row.state.hidden = trait.state === '';
-        row.description.textContent = trait.description;
+        setTextIfChanged(row.description, trait.description);
 
         const current = list.children.item(index);
         if (current !== row.root) {
@@ -215,7 +224,7 @@ export function createTraitsPanelSurface(
       root.hidden = state.kind === 'unselected';
       list.hidden = !hasRows;
       empty.hidden = hasRows;
-      empty.textContent = state.kind === 'unavailable' ? 'Traits unavailable' : 'No traits.';
+      setTextIfChanged(empty, state.kind === 'unavailable' ? 'Traits unavailable' : 'No traits.');
     },
   };
 }

@@ -1281,7 +1281,7 @@ export function buildInstances(
   // the sim would obscure the thing it is pointing at, and one at
   // `LAYER_FLOOR`'s old depth would be invisible now that the floor shares one
   // depth in front of nothing.
-  const ringRow = findSelectedRow(source, selected);
+  const ringRow = replacedRow === null ? findSelectedRow(source, selected) : null;
   if (ringRow !== null) {
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
@@ -1357,7 +1357,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     }
   }
   return source.count + extras + (source.portals?.().portalCount ?? 0) * 2
-    + (findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement)
+    + (replacedRow !== null || findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement)
     + tileHighlightCount(highlight);
 }
 
@@ -1382,17 +1382,10 @@ function findSelectedRow(source: RenderSource, selected: number | null): number 
   return null;
 }
 
-/** Replace presentation only: valid overlapping previews must not expose old art. */
+/** The preview owns all furniture presentation until Confirm or Cancel. */
 function placementReplacedRow(source: RenderSource, selected: number | null,
   placement: PlacementPreview | null): number | null {
-  if (!placement?.valid || !source.footprintWidths || !source.footprintDepths) return null;
+  if (!placement || placementInstanceCount(placement) === 0) return null;
   const row = findSelectedRow(source, selected);
-  if (row === null || source.kinds()[row] !== 1) return null;
-  const current = source.positions();
-  const width = source.footprintWidths()[row];
-  const depth = source.footprintDepths()[row];
-  const x = Math.floor(current[row * 2] - (width - 1) / 2);
-  const y = Math.floor(current[row * 2 + 1] - (depth - 1) / 2);
-  return placement.x < x + width && placement.x + placement.width > x &&
-    placement.y < y + depth && placement.y + placement.depth > y ? row : null;
+  return row !== null && source.kinds()[row] === 1 ? row : null;
 }

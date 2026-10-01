@@ -1,0 +1,115 @@
+{
+  "state": "complete",
+  "object": "radio",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_media.py": "78ac7ccaf3f230f259bb40615ab9907e60b5b1b68093b5f5fff79962124bd607",
+    "living/media_model.py": "fdbe2457082a7ae2705606fe3692d8949bb2ebedaffd45d7bad3771999f65026",
+    "living/media_layout.py": "0573eb210a50b72e2adf65275de7b2189cf9b7ecb04b7bd8089e139892684d24",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "9ec06a8ac73a8067991984cd274198f09909b8bb5e9fdc2ccb77328a407eecaa"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "78e9b5e2978a5a6063d9aebeb1c206327fe37c2f3b3c81b6ea1487c165da4717"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "71982b99375e4f741c288f938f489f5ba89f85d7b771da33db3ac603cfb4124f"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "acaead3cbf8a2fe25f4686f6a831ea9f163926fbef627be49a3564031b1c95af"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "front": [
+      0,
+      -1,
+      0
+    ],
+    "base_footprint": [
+      1,
+      1
+    ],
+    "feet": 4,
+    "power_state": false,
+    "animated_screen": false,
+    "kind": "radio"
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Antenna",
+    "Cabinet",
+    "Foot -0.29 -0.11",
+    "Foot -0.29 0.11",
+    "Foot 0.29 -0.11",
+    "Foot 0.29 0.11",
+    "Grille rib 0",
+    "Grille rib 1",
+    "Grille rib 2",
+    "Grille rib 3",
+    "Grille rib 4",
+    "Rear cover",
+    "Speaker grille",
+    "Tuning scale",
+    "Volume control"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "03fb113af82a9795bd5fdaa6c8139564760c482d2b595e2ce1598f2293fecbdb"
+}

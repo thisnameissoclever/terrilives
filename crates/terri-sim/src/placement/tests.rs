@@ -582,6 +582,14 @@ fn placement_scenery_blocks_and_moved_furniture_remains_usable() {
             object,
             interaction: 0,
         });
+    // A staged snack needs a preparation station even in this placement fixture.
+    sim.spawn_object(
+        Position { x: 0.0, y: 2.0 },
+        terri_data::pack().find("counter").unwrap(),
+    );
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(0, 2, true);
     let mut used = false;
     for _ in 0..50 {
         sim.tick();
@@ -1039,14 +1047,14 @@ fn placement_save_reload_keeps_rotated_rectangles_sockets_foregrounds_and_pendin
             facing: f,
         });
     assert_ne!(sim.world_hash(), hash, "hash ignores queued placement");
-    let snapshot = sim.save_snapshot_v3();
+    let snapshot = sim.save_snapshot_v5();
     let mut loaded = Sim::new();
-    loaded.load_snapshot_v3(snapshot.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot_v3(), snapshot);
+    loaded.load_snapshot_v5(snapshot.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v5(), snapshot);
     assert_eq!(loaded.world_hash(), sim.world_hash());
     loaded.flush_commands();
     sim.flush_commands();
-    assert_eq!(loaded.save_snapshot_v3(), sim.save_snapshot_v3());
+    assert_eq!(loaded.save_snapshot_v5(), sim.save_snapshot_v5());
     assert_eq!(loaded.world_hash(), sim.world_hash());
     assert!(
         validate_placement(loaded.world(), object, origin, f).is_ok(),
@@ -1196,12 +1204,12 @@ fn placement_preserves_clear_remaining_routes_with_repeated_waypoints() {
         sim.world_mut()
             .entity_mut(agent)
             .insert(Path { steps, cursor: 0 });
-        let before = sim.save_snapshot_v3();
+        let before = sim.save_snapshot_v5();
         assert!(
             validate_placement(sim.world(), object, (1, 0), f).is_ok(),
             "an already-reached waypoint is not a blocked move"
         );
-        assert_eq!(sim.save_snapshot_v3(), before);
+        assert_eq!(sim.save_snapshot_v5(), before);
     }
     let path = sim.world().get::<Path>(agent).unwrap().clone();
     place(&mut sim, object, (1, 0), f);

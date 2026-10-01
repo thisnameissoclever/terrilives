@@ -124,6 +124,82 @@ function player(context = new FakeContext()): {
 }
 
 describe('VoiceClipPlayer', () => {
+  it.each([undefined, 0, 1, 2, 3])(
+    'immediately disposes active and draining pairs despite stop failure at source %s', failedSource => {
+      const { context, player: voices } = player();
+      voices.play(0, 1, 1, 'draining');
+      voices.play(0, 1, 1, 'active');
+      context.currentTime = 10.1;
+      voices.stopConversation('draining');
+      const staleCallbacks = context.sources.map(source => source.onended);
+      expect(voices.activeConversationCount()).toBe(1);
+      expect(voices.retainedConversationCount()).toBe(2);
+      context.currentTime = 10.105;
+      if (failedSource !== undefined) context.sources[failedSource].failNextStop = true;
+      expect(() => voices.stopAll(true)).not.toThrow();
+      expect(voices.activeConversationCount()).toBe(0);
+      expect(voices.retainedConversationCount()).toBe(0);
+      expect(context.sources.every(source => source.disconnected && source.onended === null)).toBe(true);
+      expect(context.gains.every(gain => gain.disconnected)).toBe(true);
+      for (const [index, source] of context.sources.entries()) {
+        if (index !== failedSource) expect(source.stops.at(-1)).toBe(10.105);
+      }
+      const stops = context.sources.map(source => [...source.stops]);
+      voices.stopAll(true);
+      expect(context.sources.map(source => source.stops)).toEqual(stops);
+      voices.play(0, 1, 1, 'draining');
+      for (const callback of staleCallbacks) callback?.();
+      expect(voices.activeConversationCount()).toBe(1);
+      expect(voices.retainedConversationCount()).toBe(1);
+      expect(context.sources.slice(4).every(source => !source.disconnected)).toBe(true);
+    },
+  );
+
+  it('immediately releases only the requested identity despite a source stop failure', () => {
+    const { context, player: voices } = player();
+    voices.play(0, 1, 1, 'ended');
+    voices.play(0, 1, 1, 'continuing');
+    const continuingStops = context.sources.slice(2).map(source => [...source.stops]);
+    voices.stopConversation('stale', true);
+    expect(voices.activeConversationCount()).toBe(2);
+    context.sources[0].failNextStop = true;
+    expect(() => voices.stopConversation('ended', true)).not.toThrow();
+    expect(voices.activeConversationCount()).toBe(1);
+    expect(voices.retainedConversationCount()).toBe(1);
+    expect(context.sources.slice(0, 2).every(source => source.disconnected && source.onended === null)).toBe(true);
+    expect(context.gains[0].disconnected).toBe(true);
+    expect(context.sources[1].stops.at(-1)).toBe(10);
+    expect(context.sources.slice(2).map(source => source.stops)).toEqual(continuingStops);
+    expect(context.sources.slice(2).every(source => !source.disconnected)).toBe(true);
+  });
+
+  it('does not stop a newer instance when an older instance has naturally ended', () => {
+    const { context, player: voices } = player();
+    voices.play(0, 1, 1, 'old');
+    context.sources[1].onended?.();
+    voices.play(0, 1, 1, 'new');
+    voices.stopConversation('old');
+    expect(voices.activeConversationCount()).toBe(1);
+    expect(context.sources.slice(2).map((source) => source.stops.length)).toEqual([1, 1]);
+    voices.stopConversation('new');
+    expect(voices.activeConversationCount()).toBe(0);
+  });
+
+  it('keeps keyed ownership after capacity eviction and late source callbacks', () => {
+    const { context, player: voices } = player();
+    for (const key of ['a', 'b', 'c', 'd']) voices.play(0, 1, 1, key);
+    expect(voices.activeConversationCount()).toBe(3);
+    voices.stopConversation('a');
+    context.sources[1].onended?.();
+    expect(voices.activeConversationCount()).toBe(3);
+    voices.stopConversation('c');
+    expect(voices.activeConversationCount()).toBe(2);
+    expect(context.sources.slice(6).map((source) => source.stops.length)).toEqual([1, 1]);
+    voices.stopAll();
+    for (const source of context.sources) source.onended?.();
+    expect(voices.retainedConversationCount()).toBe(0);
+  });
+
   it('plays the second clip the instant the first ends', () => {
     const { context, player: voices } = player();
 
@@ -211,6 +287,26 @@ describe('VoiceClipPlayer', () => {
     expect(gain?.disconnected).toBe(true);
   });
 
+  it.each([
+    [10, 0, 10.012],
+    [10.006, 0.112, 10.018],
+    [11, 0.224, 11.012],
+    [15.594, 0.112, 15.6],
+    [15.6, 0, 15.6],
+    [16, 0, 16],
+  ])('anchors an interrupted envelope at time %s before fading', (time, level, end) => {
+    const { context, player: voices } = player();
+    voices.play(0, 1);
+    context.currentTime = time;
+    voices.stopAll();
+
+    const ramps = context.gains[0].gain.ramps;
+    expect(ramps.at(-2)?.endTime).toBe(time);
+    expect(ramps.at(-2)?.value).toBeCloseTo(level, 8);
+    expect(ramps.at(-1)?.value).toBe(0);
+    expect(ramps.at(-1)?.endTime).toBeCloseTo(end, 8);
+  });
+
   it('reclaims a conversation whose every source refused to stop', () => {
     // The ordering that produced the original leak: teardown running inside
     // the stop loop, before the conversation had been listed as draining, so
@@ -223,6 +319,20 @@ describe('VoiceClipPlayer', () => {
 
     expect(voices.retainedConversationCount()).toBe(0);
     for (const source of context.sources) expect(source.disconnected).toBe(true);
+  });
+
+  it.each([
+    [0.004, 10.004, 0.224],
+    [0.006, 10.004, 0.149333333333],
+    [0.01, 10.016, 0.0896],
+  ])('preserves the envelope of two %s second clips', (duration, time, level) => {
+    const { context, player: voices } = player();
+    voices.setClips([{ duration }, { duration }]);
+    expect(voices.play(0, 1)).toBe(true);
+    context.currentTime = time;
+    voices.stopAll();
+    expect(context.gains[0].gain.ramps.at(-2)?.value).toBeCloseTo(level, 8);
+    expect(context.gains[0].gain.ramps.at(-1)?.endTime).toBeCloseTo(10 + duration * 2, 8);
   });
 
   it('counts a fading conversation as retained until it is reclaimed', () => {
@@ -325,9 +435,75 @@ describe('VoiceClipPlayer', () => {
     expect(voices.play(0, 1)).toBe(false);
     expect(voices.activeConversationCount()).toBe(0);
   });
+
+  it.each([1, 2].flatMap((index) =>
+    ['buffer', 'rate', 'connect', 'start', 'stop'].map((operation) => ({ index, operation })),
+  ))('cleans every node when source $index fails at $operation', ({ index, operation }) => {
+    const { context, player: voices } = player();
+    const create = context.createBufferSource.bind(context);
+    context.createBufferSource = () => {
+      const source = create();
+      if (context.sources.length === index) {
+        const fail = () => { throw new Error('audio operation refused'); };
+        if (operation === 'buffer') Object.defineProperty(source, 'buffer', { set: fail });
+        if (operation === 'rate') source.playbackRate.setValueAtTime = fail;
+        if (operation === 'connect') source.connect = fail;
+        if (operation === 'start') source.start = fail;
+        if (operation === 'stop') source.stop = fail;
+      }
+      return source;
+    };
+
+    expect(voices.play(0, 1)).toBe(false);
+    expect(context.sources).toHaveLength(index);
+    expect(voices.retainedConversationCount()).toBe(0);
+    for (const source of context.sources) {
+      expect(source.disconnected).toBe(true);
+      expect(source.onended).toBeNull();
+    }
+    expect(context.gains[0].disconnected).toBe(true);
+  });
+
+  it('cleans a complete pair when connecting its output fails', () => {
+    const { context, player: voices } = player();
+    const create = context.createGain.bind(context);
+    context.createGain = () => {
+      const gain = create();
+      gain.connect = () => { throw new Error('output refused'); };
+      return gain;
+    };
+
+    expect(voices.play(0, 1)).toBe(false);
+    expect(context.sources).toHaveLength(2);
+    expect(voices.retainedConversationCount()).toBe(0);
+    for (const source of context.sources) expect(source.disconnected).toBe(true);
+    expect(context.gains[0].disconnected).toBe(true);
+  });
 });
 
 describe('loadVoiceClips', () => {
+  it.each(['fetch', 'decode'])('retries a %s failure without downloading successful slots again', async (failure) => {
+    let failing = true;
+    const requests: string[] = [];
+    const fetchBytes = async (url: string) => {
+      requests.push(url);
+      if (failing && failure === 'fetch' && url.includes('two')) throw new Error('offline');
+      return new ArrayBuffer(url.includes('two') ? 2 : 1);
+    };
+    const decode = async (bytes: ArrayBuffer) => {
+      if (failing && failure === 'decode' && bytes.byteLength === 2) throw new Error('decode');
+      return { duration: bytes.byteLength };
+    };
+    const first = await loadVoiceClips(['one', 'two'], fetchBytes, decode);
+    expect(first).toEqual([{ duration: 1 }, undefined]);
+    failing = false;
+    const recovered = await loadVoiceClips(['one', 'two'], fetchBytes, decode, first);
+    expect(recovered).toEqual([{ duration: 1 }, { duration: 2 }]);
+    expect(recovered[0]).toBe(first[0]);
+    expect(first[1]).toBeUndefined();
+    expect(requests).toEqual(['audio/voice/one.wav', 'audio/voice/two.wav', 'audio/voice/two.wav']);
+  });
+
   it('resolves an id to the served path', () => {
     expect(voiceClipUrl('sim-talking-4')).toBe('audio/voice/sim-talking-4.wav');
   });

@@ -1,12 +1,14 @@
 # Game systems: inventory, build status, and proposals
 
-Written 2026-09-21 against `main` at `097a849`, and extended the same day with the owner's second round of direction. This document lists every major gameplay system that the owner has requested, that the docs already plan, or that this document proposes. Each requested, planned, and foundation entry states how much of it exists in the game today. A proposed system has no status, because none of it exists.
+Originally written 2026-09-21. Status reconciled on 2026-09-30 against main at `5ac34ca`, current content and commands, and merged PRs through #141. This document lists requested, planned and proposed systems. Completed slices are distinguished from unfinished full systems. Accepted proposals carry build status; undecided proposals remain proposals.
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
+**Next build: Edit Sims [B-edit-sims], selected by the owner on 2026-09-30.** The suggested order at the end starts with that slice. Later steps remain recommendations.
+
 ## How to read the status
 
-Every status was checked against the code and the content files, not against the plans. The percentage is a judgement of how much of the full system described in that entry exists today. It measures the distance to the finished system, so a working first slice of a large system scores low.
+Status follows implemented code and content, with merge evidence in FEATURES.md. The former percentage estimates have been removed: they were subjective and did not track shipped slices consistently. Each row now names what is built. A partial system can contain several completed slices without being complete as a whole.
 
 | Label | Meaning |
 |---|---|
@@ -22,51 +24,62 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 
 ### Systems the owner asked for on 2026-09-21
 
-| ID | System | Status | Built |
+| ID | System | Status | Shipped scope |
 |---|---|---|---|
-| [S-skills] | Skills | Foundation only | 5% |
-| [S-pets] | Pets as full characters | Not started | 0% |
-| [S-household-events] | Random household events and messes | Partial | Domestic first slice |
-| [S-money] | Money: deep earning and spending | Partial | 10% |
-| [S-catalogue] | Furniture and visual asset volume | Partial | 15% |
-| [S-household-size] | More people in the house | Partial | 35% |
-| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 40% |
+| [S-skills] | Skills | Foundation only | Three capability traits; no general skills system |
+| [S-pets] | Pets as full characters | Not started | None |
+| [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
+| [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
+| [S-catalogue] | Furniture and visual asset volume | Partial | 30 object types, reviewed replacements and recolour controls |
+| [S-household-size] | More people in the house | Partial | Six-member capacity, creation and removal by death |
+| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | Placement, buying/selling, walls, rooms, floors and windows |
 
 ### Systems the owner added in a second round on 2026-09-21
 
-| ID | System | Status | Built |
+| ID | System | Status | Shipped scope |
 |---|---|---|---|
-| [S-sensitivities] | Sensory and social sensitivities | Not started | 0% |
-| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | 20% |
-| [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | 10% |
-| [S-sim-details] | An expandable details panel for each Sim | Foundation only | 10% |
-| [S-advanced-controls] | An advanced controls toggle | Not started | 0% |
-| [S-bed-assignment] | Assigning a Sim to a bed | Not started | 0% |
+| [S-sensitivities] | Sensory and social sensitivities | Not started | None |
+| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | Action habituation only |
+| [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
+| [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
+| [S-advanced-controls] | An advanced controls toggle | Not started | None |
+| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Reservation release foundation; assignment and shared sleeping remain |
 
 The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
 ### Systems already planned in the docs and not fully built
 
-| ID | System | Status | Built |
+| ID | System | Status | Shipped scope |
 |---|---|---|---|
-| [S-traits] | Traits | Substantial | 85% |
-| [S-moods] | Moods and moodlets | Substantial | 60% |
-| [S-chains] | Multi-step activities | Partial | 50% |
-| [S-relationship-dynamics] | Relationship causes and consequences | Partial | 45% |
-| [S-family] | Family relationships and kinship | Partial | 10% |
-| [S-careers] | Jobs and careers, with player-directed career paths | Partial | 15% |
-| [S-create-a-sim] | Create-a-sim and appearance | Partial | 25% |
-| [S-life-stages] | Life stages and aging | Not started | 0% |
-| [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | 0% |
-| [S-death] | Death and its consequences | Partial | First slice |
-| [S-outside] | A playable outside | Not started | 0% |
-| [S-emergencies] | Fires, emergencies, and disasters | Not started | 0% |
-| [S-town] | Town, neighbours, and other households | Not started | 0% |
-| [S-ghosts] | Ghosts shared between players | Not started | 0% |
-| [S-calendar] | Calendar and weekly schedules | Not started | 0% |
-| [S-action-animation] | Action animation coverage | Partial | 50% |
-| [S-object-facing] | Object facing and layered depth | Partial | 40% |
-| [S-audio] | Sound, ambience, music, and voices | Partial | 45% |
+| [S-traits] | Traits | Substantial | 15 traits, panel, wording and creation choices |
+| [S-moods] | Moods and moodlets | Substantial | Derived moodlets, grief, waiting and satisfaction feedback |
+| [S-chains] | Multi-step activities | Partial | Cooking dinner and resumable chain engine |
+| [S-relationship-dynamics] | Relationship causes and consequences | Partial | Directional feelings, chat and living-person decay |
+| [S-family] | Family relationships and kinship | Partial | Saved SimId ties and People labels; ties survive death |
+| [S-careers] | Jobs and careers, with player-directed career paths | Partial | One scheduled office job with wages |
+| [S-create-a-sim] | Create-a-sim and appearance | Partial | New housemate: name, personality, traits and family tie |
+| [S-life-stages] | Life stages and aging | Not started | None |
+| [S-birth-genetics] | Pregnancy, birth, and genetics | Not started | None |
+| [S-death] | Death and its consequences | Partial | Deprivation, warning, setting, removal, records and grief |
+| [S-outside] | A playable outside | Partial | Yard, street commute and daylight |
+| [S-emergencies] | Fires, emergencies, and disasters | Not started | None |
+| [S-town] | Town, neighbours, and other households | Not started | None |
+| [S-ghosts] | Ghosts shared between players | Not started | None |
+| [S-calendar] | Calendar and weekly schedules | Not started | Daily clock only; no weekly calendar |
+| [S-action-animation] | Action animation coverage | Partial | Walking, conversation, eating, sitting, reading, fish, cycling and bunk sleep |
+| [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
+| [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
+
+### Later owner requests, reviewed 2026-09-30
+
+| Feature | Status | Boundary |
+|---|---|---|
+| [B-edit-sims] | Not started; next build | Existing names, personalities, traits and family ties |
+| [B-gender] | Not started | Gender and saved appearance choices; new bodies and clothing need art |
+| [B-object-affinities] | Not started | Individual reactions to kinds of objects and others' use |
+| [B-colour-preferences] | Not started | Colour-family preferences, distinct from shipped recolour controls |
+
+FEATURES.md records their requested behaviour and unresolved design choices.
 
 ### Systems that are built and carry the rest
 
@@ -78,11 +91,11 @@ These work in normal play today. They appear here because every new system must 
 | Autonomy | Substantial | Each person scores every available action by how urgent the need is, how much the action helps, and how long it takes. The choice is weighted-random from a seeded generator, so the same save replays identically. |
 | Habituation | Substantial | Repeating the same action on the same object pays less each time and recovers with time. This is what makes people rotate between objects. |
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
-| Player orders | Substantial | A ten-order queue per person, orders that go to the front or the back, and clear feedback when an order is rejected. |
+| Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
-| Save and load | Substantial | Save format version 3, with older versions still loadable. One save slot in browser storage, a daily autosave, and New game. |
-| Pathfinding | Substantial | Shortest-path walking on one floor, indoors. Walls sit on tile edges. The front door is the only exit. |
-| HUD | Substantial | Roster, needs, mood, relationships, career, activity, orders, time, audio, save controls, help, a build dock, and a phone layout. |
+| Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting, instinct and accumulated life satisfaction persist. |
+| Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges; lot edits validate reachability from the front door. |
+| HUD | Substantial | Roster, needs, mood, relationships, career, action cards, audio, saves, help and compact controls. Speed sits below Time and Funds; Build and Exit build sit at the sidebar's bottom. |
 | Tuning file | Complete | Every system-wide tunable number lives in `content/tuning.toml`. Numbers that belong to one piece of content, such as a job's pay or an object's benefit, live in that content file. The build rejects invalid values in both. New systems follow the same split. |
 | Content compiler | Substantial | The build refuses content with a broken reference, an unreachable interaction point, or inconsistent tuning. |
 
@@ -138,7 +151,7 @@ The feed keeps a history the player can scroll back through. A muted notificatio
 
 ### [S-skills] Skills
 
-**Status: Foundation only, about 5%.**
+**Status: Foundation only.**
 
 **What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. Three of them exist as of PR 87: cooking, exercise and reading. The selected person's Traits panel shows each one's number as "Skill" and a percentage.
 
@@ -152,7 +165,7 @@ Skills then need consequences. Higher skill should give better outcomes: tastier
 
 ### [S-pets] Pets as full characters
 
-**Status: Not started, 0%.** No pet code or content exists. The aquarium is a piece of furniture with a "Watch the fish" action; no fish is simulated. [FEATURES.md](FEATURES.md) names pets in one paragraph under `[B-pets]`.
+**Status: Not started.** No pet code or content exists. The aquarium is a piece of furniture with a "Watch the fish" action; no fish is simulated. [FEATURES.md](FEATURES.md) names pets in one paragraph under `[B-pets]`.
 
 **The target.** A pet is a full character with the same depth as a person. It has its own needs, personality, preferences, relationships, and autonomous behaviour. It is never furniture.
 
@@ -188,11 +201,11 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 ### [S-money] Money: deep earning and spending
 
-**Status: Partial, about 10%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it. Since PR 96 the household has something to spend on.
+**Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it. Since PR 96 the household has something to spend on.
 
-**What exists.** The household has one shared Funds number. It is saved and shown in the HUD. Two things change it: Tim's office job pays 120 at the end of each shift, and the Buy tool takes an object's price when the household buys it. Nothing else costs money yet.
+**What exists.** Shared Funds are saved and shown in the HUD. Tim's office job pays 120 per completed shift, purchases charge the object's price, and sales refund the tuned fraction of that price. Sales shipped in PR 101. Building walls, rooms and floors does not yet charge Funds.
 
-**What is missing.** Refunds for sales, which arrive with selling in [S-build]. Costs for walls, floors, and lot expansion. Since PR 96 every object has a price in `content/objects.toml` and the Buy tool charges it.
+**What is missing.** Costs for walls, floors and lot expansion, plus the recurring costs and income routes below. Purchase prices and sale refunds already work.
 
 Recurring costs: rent or a mortgage, utility bills that scale with the house and what runs in it, groceries, and pet food and vet fees. Consequences for not paying, such as a shut-off utility or a repossessed object. The Funds number was deliberately built to allow a negative balance for this reason.
 
@@ -214,13 +227,13 @@ Paid services through [P-services]: a cleaner, a repair person, a dog walker. Re
 
 ### [S-catalogue] Furniture and visual asset volume
 
-**Status: Partial, about 15%.**
+**Status: Partial.**
 
 **What exists.** 30 object types, all of them placed in the starting house. 19 have an action of their own. 17 of those offer one action. The fridge offers a snack and a meal whose label follows the time of day; the kitchen sink offers washing hands and cleaning dishes. Of the other 11, the stove and the counter are working stations in the cooking activity, and 9 are decorative. 13 objects use the newer reviewed 3D-modelled art, plus the bunk, the exercise bike, and the reading chair. The original plan called for about 40 interactive objects at this stage.
 
 **What is missing.** Volume, in several directions. More objects per need, at several quality and price tiers, so that buying a better bed means something. Several actions per object as the normal case. Objects for every new system: pet bowls, pet beds, a litter box, a lead hook, skill objects such as an easel or a workbench, a phone, outdoor furniture.
 
-Walls, floors, doors, and windows as selectable styles. Recolours of existing objects. More hairstyles, clothing, and body variation for people, which [S-create-a-sim] needs. Every rotatable object needs art for each direction it supports, and only a few have all four today.
+Floor-covering choices and furniture recolour controls are shipped; distinct floor art and final palettes remain open. More wall, door and window styles and more hairstyles, clothing and bodies remain. Rotation is supported for every movable or buyable object: 29 of 30 catalogue objects have four directions, while the aquarium has one. Further visual depth layers remain separate work.
 
 **The real constraint.** Each new object currently passes through modelling, rendering to sprites, a primary review, an adversarial review, and integration into the sprite sheet. The catalogue grows only as fast as that pipeline runs. Making the pipeline faster per object is worth more than any single object.
 
@@ -228,32 +241,40 @@ Walls, floors, doors, and windows as selectable styles. Recolours of existing ob
 
 ### [S-household-size] More people in the house
 
-**Status: Partial, about 35%.**
+**Status: Partial.**
 
 **What exists.** The content format accepts up to six household members and rejects a seventh. The roster, the people panel, and the save format all handle six. The shipped household has three people, Tim, Bill, and Casey, and all three share one face, hairstyle, and body and differ only by shirt colour.
 
-**What is missing.** A new housemate can move in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`); a partner moving in, a baby, or an adopted child cannot yet. A way for a person to leave ([CS-slice-move-out]). Both need [F-entity-lifecycle].
+**Also completed.** New housemate moves a person in during play, optionally as a partner, parent, child or sibling. Death removes a member and frees household capacity, including a valid empty household that can be repopulated.
 
-A larger household also needs a larger house, so that six people are not queueing for one bathroom. That ties this entry to [S-build]. More people need to look different from each other, which ties it to [S-create-a-sim]. Whether six is the right ceiling is an open design question; performance is not the limit, since the engine has been measured with a thousand characters on screen.
+**What is missing.** Moving an existing person between households, moving out ([CS-slice-move-out]), births, adoption and capacity above six. Creating a new partner is supported; moving an existing off-lot partner in is not.
+
+The shipped yard and room tools already let the player build more house and buy facilities. Appearance variety still belongs to [S-create-a-sim]. Whether six is the right household ceiling remains an open design question; the separate thousand-character rendering measurement does not settle household design.
 
 **Depends on.** [F-entity-lifecycle], [S-create-a-sim], [S-build].
 
 ### [S-build] Build mode: buying, walls, rooms, and a bigger house
 
-**Status: Partial, about 40%.**
+**Status: Partial.**
 
 **What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. Since PR 96 a Buy tool lists every object with its price, and a purchase stands the new object on the floor under the same rules as a move and takes the price from Funds. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
 
-**What is missing, in a sensible order.**
+**Completed slices.** Buy mode (PR 96), walls (95), whole rooms (97), vertical hinged doors (98), front-door reachability (99), catalogue need filtering (100), sales (101), compact build controls (102), rotated lighting (103), placed and purchased colourways (104, 105), the larger yard lot (106), street (107), visible build walls (112), floating placement controls (113), daylight (116), windows (126) and floor painting (128). These are merged features, not branch-only work. FEATURES.md records the individual merge and play evidence.
 
-1. ~~Buy mode: a catalogue panel, placing a new object, and charging Funds for it.~~ Done in PR 96. Still open: selling an object back ([BM-slice-sell] in `docs/specs/2026-09-21-buy-mode.md`), and recolours, which need art.
-2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. A whole room outline in one edit is built too, with its doorway ([RT-slice-room]). Still open: hinged doors that need art.
-3. Floor and wall coverings per room or per tile.
-4. Windows, which also affect the lighting already in the game.
-5. A larger lot. The lot is 20 by 16 tiles on branch `twcl/the-yard`: the 16 by 12 house stands in a yard on its east and south sides, where the player can buy furniture and build ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`). Lots of other sizes remain open.
-6. Multiple floors, with stairs. Pathfinding, rendering, and the camera all assume one floor today, so this is the most expensive item on the list.
-7. Roofs and exterior walls, which belong with [S-outside].
-8. Undo and redo in build mode.
+The 2026-09-30 corrections show furniture only at its preview position. Successful
+Confirm and Cancel both clear selection. Sales allow removal of the last appliance;
+impossible unfinished recipes abandon without payout. Active commitments still
+prevent sales. Bookcase backs meet a tile edge in each supported rotation. Scope
+and local evidence are in `docs/specs/2026-09-30-gameplay-ui.md`.
+
+**What remains.**
+
+1. Wall coverings, more floor art and room-wide floor painting.
+2. Horizontal hinged-door art, window art and final recolour palettes.
+3. Other lot sizes or player-directed expansion beyond the shipped 20 by 16 lot.
+4. Multiple floors and stairs; pathfinding, rendering and the camera assume one floor.
+5. Roofs and exterior presentation under [S-outside].
+6. Undo/redo and building costs under [S-money].
 
 **Depends on.** [S-money] for prices. [S-catalogue] for things worth buying. [S-object-facing] for rotation.
 
@@ -261,7 +282,7 @@ A larger household also needs a larger house, so that six people are not queuein
 
 ### [S-sensitivities] Sensory and social sensitivities
 
-**Status: Not started, 0%.** No Sim has any sensitivity value today.
+**Status: Not started.** No Sim has any sensitivity value today.
 
 **The target.** Each Sim has a sensitivity value in each of four primary categories: visual, auditory, olfactory, and social. The social category measures how much the presence and attention of other people wears on the Sim, which the owner also called antisocial and confirmed as the intended meaning on 2026-09-21. The category list is content, so more can be added later.
 
@@ -275,7 +296,7 @@ A more sensitive Sim is annoyed more, keeps a greater distance from the source, 
 
 ### [S-acclimation] Overdoing it, novelty, and acclimation
 
-**Status: Partial, about 20%.**
+**Status: Partial.**
 
 **What exists.** Repeating the same action on the same object pays less each time. Each completed use lowers the benefit, the benefit recovers with time away, and it never falls below 45% of its full value. This is tracked separately for each Sim and each action on each kind of object, so two identical chairs count as one. It never turns negative, it covers actions only, and nothing in the game is new or old.
 
@@ -283,7 +304,7 @@ A more sensitive Sim is annoyed more, keeps a greater distance from the source, 
 
 An action's effect on its need is separate from its effect on happiness. Eating always reduces hunger. Eating again and again when not hungry lowers happiness and eventually makes the Sim feel sick. The first version of feeling sick can be a temporary condition with a moodlet; the full version belongs to [P-health].
 
-**Owner direction, part two: new things.** This part waits for the in-game shop in [S-build]. Every Sim in the household gets a happiness boost when something new is bought. The size of the boost depends on that Sim's affinity for the kind of item, its colour, and similar properties, and it is always positive.
+**Owner direction, part two: new things.** Buy mode now supplies the purchase event, but the novelty boost is not built. The proposal gives every Sim a positive happiness boost when something new is bought, sized by item and colour affinity. Reconcile this with the later hated-item direction in [B-object-affinities] before implementation.
 
 Being near the new thing keeps boosting the Sim for a while. The boost fades as the Sim grows used to the thing. It can return only after the Sim has spent long enough away from the thing, or has stopped doing the activity for long enough. The rate of fading belongs to each pairing of one Sim and one item, and it follows from that Sim's preferences.
 
@@ -299,9 +320,9 @@ The game has two values a player might call happiness: mood, which moves minute 
 
 ### [S-deep-traits] Behaviour traits with hidden sub-traits
 
-**Status: Foundation only, about 10%.**
+**Status: Foundation only.**
 
-**What exists.** Three traits, one of each kind the engine supports. Three personality types, each a set of multipliers on how fast needs fall, how much each activity satisfies, and how attractive some actions are. No Sim has a numeric value for anything like novelty-seeking or empathy.
+**What exists.** Fifteen traits across three kinds, and three personality types with multipliers on need decay, activity benefits and attraction. The Traits panel shows assigned traits. Numeric novelty-seeking, empathy and hidden sub-traits remain unbuilt.
 
 **Owner direction.** The behaviour systems need to become much deeper, fed by a large set of traits. Each visible trait, such as novelty-seeking, is broken down into sub-traits that work under the hood. The owner's example: two Sims who both score eight for novelty-seeking should not have the same appetite for skydiving.
 
@@ -315,7 +336,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Foundation only, about 10%.** The HUD shows the selected Sim's needs, mood and moodlets, relationships, satisfaction, job, and activity. A developer debug panel shows a few hidden numbers. Nothing shows a Sim's whole make-up in one place.
+**Status: Partial.** Overview now contains a collapsed Personality and habits section. It shows the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. These are read-only projections of existing state, with no save or simulation changes. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -327,7 +348,7 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-advanced-controls] An advanced controls toggle
 
-**Status: Not started, 0%.** The only comparable thing today is a read-only developer overlay reached through a web address option.
+**Status: Not started.** The only comparable thing today is a read-only developer overlay reached through a web address option.
 
 **Owner direction.** A toggle in the game's settings. When it is on, the player can change values that are normally fixed, starting with each Sim's sensitivities. When it is off, those values are visible and locked.
 
@@ -337,7 +358,17 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-bed-assignment] Assigning a Sim to a bed
 
-**Status: Not started, 0%.** Any Sim sleeps in any free bed. The starting house has a bunk and a double bed.
+**Status: In progress.** Owner-aware reservation release is implemented and
+tested as groundwork. Assignment, simultaneous double-bed admission and the
+two-person sleeping display remain unbuilt. Any Sim still sleeps in any free
+bed. The starting house has a bunk and a double bed. See
+`docs/specs/2026-10-01-bed-assignment.md`.
+
+Bed assignment remains unbuilt. A separate household capacity rule now gives
+every living member a -20 Not enough beds moodlet when sleep places are fewer
+than people. The double bed counts as two places and the supported lower bunk
+as one. This affects the shared sustained-mood satisfaction mechanism, without
+assigning ownership or adding a separate drain.
 
 **Owner direction.** The player can assign a Sim to a bed. The Sim then prefers that bed when tired, and other Sims leave it alone when they have a choice.
 
@@ -349,19 +380,19 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-traits] Traits
 
-**Status: Substantial, about 85%.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. Fifteen traits exist as of PR 87: nine preferences, three competences and three conditions. Each household member has three or four, and the selected person's panel lists them with one sentence each and a percentage for a competence or a severity. Four of the fifteen belong to nobody yet. The remaining work is the owner's voice pass on the names and sentences ([T-trait-copy] in TIM-TODO.md), choosing traits when a person is created ([S-create-a-sim]), and rolling traits for people the game spawns by itself.
+**Status: Substantial.** The engine supports three kinds of trait: a preference that makes certain actions more attractive, a competence that can fail and improves with practice, and a condition with a severity that the person manages over time. Fifteen traits exist as of PR 87: nine preferences, three competences and three conditions. Each household member has three or four, and the selected person's panel lists them with one sentence each and a percentage for a competence or a severity. Four of the fifteen belong to nobody yet. Plain affinity wording shipped in PR 109, and New housemate already lets the player choose up to four traits (PR 110). Editing existing Sims is next. The owner voice pass and random assignment for autonomously generated people remain open.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial, about 60%.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby people the person likes or dislikes, and foreign dirty dishes in the same room. Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and foreign dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 ### [S-chains] Multi-step activities
 
-**Status: Partial, about 50%.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Meals now use six stages across fridge, counter, stove and dining table. Snacks use three stages at fridge and counter. Dish cleanup visits each actual dirty surface and then the kitchen sink. Hungry friends can claim prepared portions and eat at the cook's table, which admits up to four diners at distinct positions. Station roles, walking, interruption and player-order priority remain shared mechanisms. Laundry, coffee, a morning routine and pet care remain candidates.
+**Status: Partial.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Meals now use six stages across fridge, counter, stove and dining table. Snacks use three stages at fridge and counter. Dish cleanup visits each actual dirty surface and then the kitchen sink. Hungry friends can claim prepared portions and eat at the cook's table, which admits up to four diners at distinct positions. Station roles, walking, interruption and player-order priority remain shared mechanisms. Laundry, coffee, a morning routine and pet care remain candidates.
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial, about 45%.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades it. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades feelings toward living people. Affinity toward a dead person is preserved for grief. The shipped waiting moodlet does not implement the relationship penalty in [H12]. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
 - `[H13]` Slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
@@ -372,13 +403,13 @@ Also missing: more social actions than chat, group conversations (the content al
 
 ### [S-family] Family relationships and kinship
 
-**Status: Partial, about 10%.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Nothing in the simulation behaves differently for family yet, and there is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Genetics, inheritance, and bereavement depend on it.
+**Status: Partial.** A newcomer can arrive as somebody's partner, parent, child or sibling, the tie is saved with the house, and the relationship list says it beside the feeling. Ties name each person by SimId, so they stay with the people they join. Nothing in the simulation behaves differently for family yet, and there is no family tree view or relative outside the household. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) and `docs/specs/2026-09-22-family.md` plan the rest. Ties survive death, and affinity-based bereavement is shipped under [S-death]. Genetics, inheritance and additional family-specific consequences remain open.
 
 ### [S-careers] Jobs and careers, with player-directed career paths
 
-**Status: Partial, about 15%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
+**Status: Partial.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
 
-**What exists.** One career exists, an office job. One person holds it. They walk to the front door, vanish for the shift, return, and get paid a fixed 120. The job runs every day, never changes, and the player has no say in it. The HUD shows the job's name and nothing else about it.
+**What exists.** Tim holds the one office job, leaves through the front door and across the yard to the street, returns after the shift and receives 120 Funds. The job runs daily with fixed hours, need costs and a satisfaction reward. The HUD names it; there is no career-management panel or player-directed job choice yet.
 
 **Owner direction, 2026-09-21.** The player must be able to direct each person's career choices, and every career must be a path with levels.
 
@@ -402,15 +433,15 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
-**Status: Partial, about 25%.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
+**Status: Partial.** A New housemate form lets the player name a person, choose one of the three personalities and up to four traits, choose a family tie, and move them in during play ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`). Editing existing people is the next slice, [B-edit-sims]. Every person still uses one approved face, hairstyle, and body, and there are no body, face, hair, or clothing options to choose from ([CS-slice-looks]). The shipped household is still authored in a content file. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
 
 ### [S-life-stages] Life stages and aging
 
-**Status: Not started, 0%.** Everyone is an adult forever. The plan lists baby, toddler, child, teen, adult, and elder. Each stage needs its own body art, animation set, and permitted actions, so the art cost is several times the code cost.
+**Status: Not started.** Sims have no age and do not change life stage; deprivation can still kill them. The plan lists baby, toddler, child, teen, adult and elder. Each stage needs its own art, animation and permitted actions. Ages, lifespan tuning and older-save migration require design before [DE-slice-age].
 
 ### [S-birth-genetics] Pregnancy, birth, and genetics
 
-**Status: Not started, 0%.** Depends on [S-family], [S-life-stages], [S-create-a-sim], and [F-entity-lifecycle].
+**Status: Not started.** Depends on [S-family], [S-life-stages], [S-create-a-sim], and [F-entity-lifecycle].
 
 ### [S-death] Death and its consequences
 
@@ -418,39 +449,39 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-outside] A playable outside
 
-**Status: Started, about 20%.** On branch `twcl/the-yard` the house stands in a yard that sims walk out into through the front door ([OS-slice-yard] in `docs/specs/2026-09-22-the-outside.md`), and on branch `twcl/the-street` a worker walks out across the yard to a street along the lot's edge to leave for work ([OS-slice-street]). `[B-outside]` in [FEATURES.md](FEATURES.md) plans exterior walls, roofs, and outdoor lighting next. Dog walking, visitors arriving, gardening, and neighbours all need it.
+**Status: Partial.** Yard and street merged in PRs 106 and 107. Workers cross the yard to leave via the street, and newcomers enter from it. PR 116 added outdoor daylight reaching rooms through doorways, and PR 126 added windows admitting that daylight. Roofs, further exterior presentation, outdoor objects and activities, and ambience remain. See [B-outside].
 
 ### [S-emergencies] Fires, emergencies, and disasters
 
-**Status: Not started, 0%.** `[B-emergencies-disasters]` in [FEATURES.md](FEATURES.md) plans a general incident system, with fire and smoke as the first case. It should share [F-event-scheduler] with [S-household-events].
+**Status: Not started.** `[B-emergencies-disasters]` in [FEATURES.md](FEATURES.md) plans a general incident system, with fire and smoke as the first case. It should share [F-event-scheduler] with [S-household-events].
 
 ### [S-town] Town, neighbours, and other households
 
-**Status: Not started, 0%.** This is milestone M3: several lots, a neighbourhood map, households that live their own lives off-screen, and visits between them. `[B-neighborhood-dynamics]` in [FEATURES.md](FEATURES.md) adds household-to-household relationships. The engine design for simulating distant households cheaply is decided in [ARCHITECTURE.md](ARCHITECTURE.md) and unbuilt.
+**Status: Not started.** This is milestone M3: several lots, a neighbourhood map, households that live their own lives off-screen, and visits between them. `[B-neighborhood-dynamics]` in [FEATURES.md](FEATURES.md) adds household-to-household relationships. The engine design for simulating distant households cheaply is decided in [ARCHITECTURE.md](ARCHITECTURE.md) and unbuilt.
 
 ### [S-ghosts] Ghosts shared between players
 
-**Status: Not started, 0%.** This is milestone M4 and the game's signature feature. A dead person exports a record that appears as a ghost in other players' towns, haunts places, teaches skills, and leaves unfinished business. It depends on [S-death], [S-skills], [S-town], a sync service, and moderation tools, plus the owner's legal and policy items in [TIM-TODO.md](TIM-TODO.md).
+**Status: Not started.** This is milestone M4 and the game's signature feature. A dead person exports a record that appears as a ghost in other players' towns, haunts places, teaches skills, and leaves unfinished business. It depends on [S-death], [S-skills], [S-town], a sync service, and moderation tools, plus the owner's legal and policy items in [TIM-TODO.md](TIM-TODO.md).
 
 ### [S-calendar] Calendar and weekly schedules
 
-**Status: Not started, 0%.** The HUD shows "Day N" and a time. There are no weekdays, weekends, dates, or seasons. A job runs every single day. Weekends, bill due dates, birthdays, bin day, and scheduled visits all need a calendar. It is cheap to build and many other systems need it.
+**Status: Not started.** The HUD shows "Day N" and a time. There are no weekdays, weekends, dates, or seasons. A job runs every single day. Weekends, bill due dates, birthdays, bin day, and scheduled visits all need a calendar. It is cheap to build and many other systems need it.
 
 ### [S-action-animation] Action animation coverage
 
-**Status: Partial, about 50%.** Walking, talking, eating, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, cooking, washing, using the toilet, showering, watching television, sitting at the dining table, and standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
+**Status: Partial.** Walking, talking, eating, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, cooking, washing, using the toilet, showering, watching television, sitting at the dining table, and standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
 
 ### [S-object-facing] Object facing and layered depth
 
-**Status: Partial, about 40%.** A few objects have art for all four directions. The bunk is the only object that draws a front layer over a person. Televisions, fridge doors, and other objects with moving or covering parts still need their own split art. `[B-facing]` in [FEATURES.md](FEATURES.md) has the detail.
+**Status: Partial.** Supported rotation and its saved direction are complete: 29 of 30 catalogue objects support four directions; the aquarium supports one. The bunk proves foreground layering over a person. Other moving or covering parts still need authored splits and review. [B-facing] distinguishes completed rotation from remaining depth work.
 
 ### [S-audio] Sound, ambience, music, and voices
 
-**Status: Partial, about 45%.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Two object loops are wired and silent until recordings are chosen: the shower and the stove. There is no music, no room or outdoor ambience, no door sound, no alarm, and no non-verbal voice for anything except conversation. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
+**Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Doors have provisional opening and closing recordings. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. There is no music, room or outdoor ambience, alarm, or non-verbal voice for anything except conversation. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
 
 ## Proposed additional systems
 
-None of these was planned in the docs before this document. Each is offered for the owner to accept, change, or reject by ID.
+These began as proposals. The decisions below remain in force; they are not all approved work. Accepted items are still unbuilt except for the shipped mood-to-satisfaction and waiting slices in [P-mood-feedback].
 
 | ID | Decision on 2026-09-21 |
 |---|---|
@@ -479,6 +510,8 @@ Once there are messes, dishes, litter boxes, and dog walks, the question of who 
 
 ### [P-mood-feedback] Mood that changes behaviour
 
+**Status: Partial.** Mood-to-satisfaction and occupied-item frustration are complete. The behaviour, performance and despondency proposals below remain unbuilt.
+
 Sustained mood now changes life satisfaction in either direction under [MW-satisfaction]. Occupied-item waiting lowers mood more strongly when the relevant need is low. Beyond this and the proposed willingness gate, a bad mood could make a person choose comfort actions over productive ones, snap at others in conversation, work worse, and learn slower. A good mood could do the reverse. Those effects on choices, conversations, work and learning remain unbuilt.
 
 **Owner direction, 2026-09-21.** Mood should affect nearly everything. Once careers exist it affects performance at work, how much the Sim earns, and how likely a promotion is.
@@ -491,7 +524,7 @@ A despondent Sim keeps a small chance of finding the motivation to go and do som
 
 ### [P-wants] Wants and short-term goals
 
-Each person holds a few small current wants drawn from their traits, hobbies, relationships, and recent events: "talk to Bill", "buy a better bed", "get the dog to stop barking". Fulfilling a want pays satisfaction, and ignoring it costs a little. This gives the player direction at every moment, and it gives the satisfaction score, which already exists, a third source besides hobbies and completed work shifts.
+Each person holds a few small current wants drawn from their traits, hobbies, relationships, and recent events: "talk to Bill", "buy a better bed", "get the dog to stop barking". Fulfilling a want pays satisfaction, and ignoring it costs a little. This would give the player direction and another satisfaction source alongside hobbies, work, need neglect and sustained mood.
 
 ### [P-memories] Life events and memories
 
@@ -521,32 +554,79 @@ Each room gets a score from its size, its lighting, its decoration, and any mess
 
 ### [P-ownership] Personal belongings and territory
 
-A bed, a chair, or a room can belong to one person. The armchair is already named "The Chair That Is His". Using someone else's belongings lowers their feeling toward you. Cats in particular would claim furniture. It is a small system, and it produces household friction of a kind a player will recognise. The owner asked for its first slice, [S-bed-assignment], on 2026-09-21.
+A bed, a chair, or a room can belong to one person. The armchair has no owner today. Using someone else's belongings lowers their feeling toward you. Cats in particular would claim furniture. It is a small system, and it produces household friction of a kind a player will recognise. The owner asked for its first slice, [S-bed-assignment], on 2026-09-21.
 
 ## A suggested build order
 
-This order is a recommendation. It puts each foundation before the systems that need it, and it keeps something new and playable at every step, which is the project's standing rule for milestones.
+**Edit Sims is next, by owner direction on 2026-09-30.** Only that first position
+is an approved priority. The later order remains a recommendation, subject to
+design and owner choice. Each step must deliver playable behaviour, not isolated
+infrastructure. FEATURES.md owns the same current priority.
 
-1. **[S-skills] and the first version of [S-sim-details].** Neither depends on anything. The panel starts with the data the game already has and gains rows with every later step.
-2. **[S-calendar], [F-notifications] with channels and mutes, and buy mode with prices from [S-build] and [S-money].** Money gains a purpose the moment there is something to buy.
-3. **[S-acclimation].** Overdoing it needs nothing new. The boost from new purchases needs the shop from step 2.
-4. **[S-deep-traits] and [P-mood-feedback], with [S-advanced-controls].** Work performance reads mood, so mood must affect behaviour before careers are balanced.
-5. **[S-careers] and the rest of [S-money], designed as one economy, with the phone from [P-services] as the way to look for work.** Career paths, the job search, performance, bills, and the ledger land together, so that income and costs can be balanced against each other from the start.
-6. **[F-object-state], [F-event-scheduler], and [F-task-willingness], delivered through [S-household-events].** People can exercise the mess-and-clean loop alone, before any pet exists.
-7. **[S-sensitivities] and [P-nuisance], together.** A loud television near a sleeper proves both without new art.
-8. **[F-entity-lifecycle] and [F-creature], delivered through [P-visitors] first.** A visitor is a human, so it tests adding and removing characters without the cost of a new species.
-9. **[S-pets], one species first.** By this point every mechanism a dog needs already exists and has been played. What remains is the dog's own content, art, and animation.
-10. **The wall tool, a larger lot, [S-create-a-sim], [S-household-size], and [S-bed-assignment].** New housemates need to look different from each other, so making a person comes first. Bed assignment depends on nothing and can move earlier.
-11. **[S-outside]**, which dog walks and visitors make more valuable by then.
-12. **[P-health].** The sick feeling from overeating ships earlier as a simple condition; this step is the full system.
-13. **[P-upkeep]**, last, as the owner directed.
+1. **Edit Sims [B-edit-sims].** Reuse New housemate for existing names,
+   personalities, traits and family ties. Settle progressed-trait removal and
+   re-addition before implementation. No new art is required.
+   The draft contract is `docs/specs/2026-09-30-edit-sims.md`; its proposed
+   removed-trait history policy awaits the owner's answer.
+2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
+   Recommended follow-up: connect different people's preferences to the shared
+   room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
+   nuisance rules before choosing the first playable slice.
+3. **[S-skills] and [S-sim-details].** Extend capability progress into a general
+   skills system and show existing and newly added values in the details panel.
+4. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
+   channels and mutes. Buying, selling and their Funds changes are already done.
+5. **[S-acclimation].** Negative mood from overdoing activities and a fading
+   novelty boost. Purchase and sale mechanisms no longer block this work.
+6. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
+   Mood already affects satisfaction. Behaviour, performance and despondency
+   remain, with empathy and recovery rules designed before implementation.
+7. **[S-careers] and remaining [S-money].** Design career paths, job search,
+   performance, bills and a ledger together. A phone or other job-search surface
+   needs its own agreed slice; [P-services] remains an undecided broader proposal.
+8. **[S-household-events].** Deliver object state, event scheduling and willingness
+   through a playable mess-and-clean loop.
+9. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
+   prove the first slice; affinities should share its model where appropriate.
+10. **Further character lifecycle and [F-creature].** Creation and death are
+    complete. Visitors are a proposed human test case, pending acceptance;
+    nonhuman needs and behaviour remain separate work required by pets.
+11. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
+    mechanisms above, with the species art and animation they need.
+12. **Remaining creation, household, building and outside slices.** Gender and
+    appearance, moving out, larger households, bed assignment, roofs, further
+    exterior work and other lot sizes. The wall/room tools, yard, street, floors,
+    windows and New housemate are already shipped. Bed assignment can move earlier.
+13. **[P-health].** The full health and medical system, including recovery options.
+14. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
+    breakage and repair.
 
-This order covers the owner's requests and what they depend on. It leaves out the later planned systems, such as life stages, death, the town, and ghosts, and most of the proposals; each of those takes a place when it is accepted or when its milestone comes up.
+Aging [DE-slice-age] is the next death slice, but its ages, lifespans and migration
+rules are not designed. It is not ahead of Edit Sims. Birth/genetics, town, ghosts,
+memorials and inheritance remain later scope with their documented dependencies.
+Deprivation death and its grief follow-ups are complete, not future build steps.
 
-[S-catalogue], [S-action-animation], and [S-audio] are not steps in this order. They run alongside every step, limited by the art pipeline and not by code.
+[S-catalogue], [S-action-animation] and [S-audio] continue alongside these systems.
+Art and owner acceptance are separate from completed code slices. No art, policy
+or proposal is approved merely by appearing in this order.
 
 The main risk in this plan is art throughput, not engineering. Nearly every system above needs new objects, new character animations, or a whole new species, and each of those passes through the same review pipeline. A pet species is the largest single art commitment in this document.
 
 ## Domestic interactions, 2026-09-30
 
 [Meals, dishes and cleanup](specs/2026-09-30-meals-and-cleanup.md) owns the implemented domestic slice and its verification. [Sim interpersonal relations](SIM-RELATIONSHIPS.md) owns how personality, needs, mood, satisfaction and directional affinity compose, including support through shared food and friction from attributed messes. The status updates above describe local implementation; they do not claim a release.
+
+## [VA-status] Varied autonomy and self-preservation
+
+Each new game starts with fresh browser cryptographic entropy. Saved games retain
+their RNG state and subsequent choices. Each person has a saved integer
+Self-preservation instinct from 0 through 100, displayed in Traits without taking
+an optional slot. New housemate defaults to Random and offers a manual slider.
+The authored starter people also draw independently across the full range.
+
+All physically eligible actions retain positive selection probability. Needs,
+personality, traits, relationships, habituation, travel and duration weight those
+choices. Comfortable people vary their decisions more and retain appeal for Fun
+and Social even at full meters. Very low instinct can neglect critical needs;
+higher values increase urgency and penalize delays toward hunger or energy death.
+This does not change need decay, restoration or death timing. See [VA-choice].

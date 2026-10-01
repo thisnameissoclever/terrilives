@@ -1,5 +1,6 @@
 use super::*;
 use crate::Sim;
+use terri_core::Reserved;
 use terri_core::{CommandQueue, SimCommand};
 
 fn household() -> (Sim, Vec<Entity>, Entity, Entity, Entity) {
@@ -146,6 +147,33 @@ fn snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips() {
         }
         assert!(began && ticks > minimum);
         assert_eq!(seen.len(), if row == 0 { 3 } else { 6 });
+        if row == 0 {
+            let repetition = sim.world().get::<terri_core::Habituation>(person).unwrap();
+            let pack = sim.world().resource::<Content>().0;
+            let fridge_def = sim.world().get::<SmartObject>(fridge).unwrap().0;
+            let visible_row = pack
+                .object(fridge_def)
+                .interactions
+                .iter()
+                .position(|action| action.id == "grab_snack")
+                .unwrap() as u32;
+            assert!(
+                repetition.get(fridge_def, visible_row) > 0.0,
+                "finishing a snack must affect its visible action's repetition"
+            );
+            let hidden_row = pack.object(fridge_def).interactions.len() as u32
+                + pack
+                    .chains
+                    .iter()
+                    .filter(|chain| chain.advertised_by == fridge_def)
+                    .position(|chain| chain.id == SNACK)
+                    .unwrap() as u32;
+            assert_eq!(
+                repetition.get(fridge_def, hidden_row),
+                0.0,
+                "the hidden implementation chain must not get a separate repetition row"
+            );
+        }
         let state = sim.world().resource::<SavedDomestic>();
         let own: Vec<_> = state.dishes.iter().filter(|dish| dish.owner == 0).collect();
         assert_eq!(own.iter().map(|dish| dish.units).sum::<u32>(), dishes);
@@ -321,10 +349,7 @@ fn paused_cancel_reissue_and_furniture_sales_preserve_valid_claims() {
         })
         .unwrap()
         .0;
-    assert!(matches!(
-        crate::placement::sale::validate_sale(sim.world(), sink.index_u32()),
-        Err(crate::placement::PlacementRefusal::LastForAChain)
-    ));
+    assert!(crate::placement::sale::validate_sale(sim.world(), sink.index_u32()).is_ok());
 }
 
 #[test]
@@ -374,6 +399,39 @@ fn interrupting_a_collected_cleanup_frees_the_hands_and_preserves_the_dishes() {
         loaded.render_buffer().carried_dishes,
         sim.render_buffer().carried_dishes
     );
+}
+
+#[test]
+fn selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_mess() {
+    let (mut sim, people, _, counter, _) = household();
+    add_dishes(sim.world_mut(), counter.index_u32(), 0, 3);
+    assert!(start_cleanup(sim.world_mut(), people[0], vec![0], true));
+    let sink = sim
+        .world_mut()
+        .query::<(Entity, &SmartObject)>()
+        .iter(sim.world())
+        .find(|(_, object)| {
+            sim.world().resource::<Content>().0.object(object.0).id == "kitchen_sink"
+        })
+        .unwrap()
+        .0;
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SellObject {
+            object: sink.index_u32(),
+        });
+    sim.flush_commands();
+    assert!(sim.world().get_entity(sink).is_err());
+    sim.tick();
+    let state = sim.world().resource::<SavedDomestic>();
+    assert!(state.cleanup.is_empty());
+    assert_eq!(state.dishes[0].surface, counter.index_u32());
+    assert_eq!(state.dishes[0].owner, 0);
+    assert_eq!(state.dishes[0].units, 3);
+    assert!(sim.world().get::<ChainState>(people[0]).is_none());
+    let mut restored = Sim::new_from_shipped_lot();
+    restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+    assert_eq!(restored.world_hash(), sim.world_hash());
 }
 
 #[test]
@@ -583,6 +641,14 @@ fn plate_with_guests_finishing_their_activity() -> (Sim, Vec<Entity>, Entity) {
         }
     }
     assert!(ready);
+    for person in &people[1..] {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::CancelIntents {
+                agent: person.index_u32(),
+            });
+    }
+    sim.flush_commands();
     for (person, station_id) in people[1..].iter().zip(["bed", "television"]) {
         let (station, object) = sim
             .world_mut()
@@ -1025,10 +1091,24 @@ fn abandoned_shared_plate_becomes_a_counter_dish_and_reservation_has_multiple_ow
             interaction: crate::systems::chain::CHAIN_STEP,
         });
     }
-    release_station(sim.world_mut(), table, people[0]);
+    crate::reservations::release_now(
+        sim.world_mut(),
+        people[0],
+        terri_core::Target {
+            object: table,
+            interaction: crate::systems::chain::CHAIN_STEP,
+        },
+    );
     assert!(sim.world().get::<Reserved>(table).is_some());
     sim.world_mut().entity_mut(people[0]).remove::<Target>();
-    release_station(sim.world_mut(), table, people[1]);
+    crate::reservations::release_now(
+        sim.world_mut(),
+        people[1],
+        terri_core::Target {
+            object: table,
+            interaction: crate::systems::chain::CHAIN_STEP,
+        },
+    );
     assert!(sim.world().get::<Reserved>(table).is_none());
 }
 

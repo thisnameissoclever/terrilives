@@ -1,0 +1,103 @@
+{
+  "state": "complete",
+  "object": "ottoman",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_ottoman.py": "61c1b4e3ba79a06fe648fc095c6ef0d817aeb4a2daf7b9d42063ff96d999d9ec",
+    "living/ottoman_model.py": "f4fc7b0ac626e919031734e13a858a4823b80f3ca8f029ab3d57ece1b410d28f",
+    "living/ottoman_layout.py": "f08de3158269e17ae8b6b9c70ec960a5bf207d88be240ea49eedfa2f16cfe4b5",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "3f403ac9021bb8b185621b2bb500dcc70f9a9a4df093ecd5f3f45d7cc416e0f1"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "b88925c150b86fd175466e32333e19ebafcd6c7f591ac5e5f0e598b9478a47cc"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "fb6dd21dd787efd3d9cc0f01dfcb25b62ed6a72015e58ae91a8d301b0ea0f5d3"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "63a41cdcbc6e64d8786390cef0d75adf49eebc1d55ca0dae35045d2375430479"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "base_footprint": [
+      1,
+      1
+    ],
+    "feet": 4,
+    "cushion_height": 0.385,
+    "maximum_height": 0.39,
+    "seated_animation_proven": false
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Covered button",
+    "Cushion",
+    "Cushion welt",
+    "Foot -0.275 -0.275",
+    "Foot -0.275 0.275",
+    "Foot 0.275 -0.275",
+    "Foot 0.275 0.275",
+    "Upholstered frame"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "85d3155043bd11bb713fef3b8bfa516686c48448050a48eceb37057080a6f65b"
+}

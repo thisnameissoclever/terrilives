@@ -32,8 +32,177 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
     bytes
 }
 
+// Serialize each appended field independently so historical-prefix fixtures
+// cannot accidentally cut a newer field that follows the intended boundary.
+fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 9] {
+    [
+        postcard::to_allocvec(&snapshot.floors).unwrap().len(),
+        postcard::to_allocvec(&snapshot.family_by_index)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.family).unwrap().len(),
+        postcard::to_allocvec(&snapshot.mortality).unwrap().len(),
+        postcard::to_allocvec(&snapshot.death_default_applied)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.waiting_needs)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.self_preservation)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.chronotype_offsets)
+            .unwrap()
+            .len(),
+        postcard::to_allocvec(&snapshot.domestic).unwrap().len(),
+    ]
+}
+
+fn assert_current_resave_is_stable(handle: &SimHandle) {
+    let bytes = handle.save_bytes();
+    let mut next = SimHandle::from_lot();
+    assert!(next.load_bytes(&bytes));
+    assert_eq!(next.save_bytes(), bytes);
+}
+
+#[test]
+fn public_main_meal_preserves_personality_tail_and_migrates_recipe_counter() {
+    // Written and validated by public main 6d2499d4, before domestic existed.
+    let hex = include_str!("../tests/fixtures/public-main-meal.hex").trim();
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    let state = loaded.sim.save_snapshot_v5();
+    assert_eq!(state.self_preservation, vec![(34, 0), (35, 93), (36, 47)]);
+    assert_eq!(state.chronotype_offsets, vec![(34, -317), (35, 629)]);
+    let cook = state
+        .world
+        .entities
+        .iter()
+        .find(|row| row.index == 34)
+        .unwrap();
+    assert_eq!(cook.chain.as_ref().unwrap().step, 5);
+    assert_eq!(cook.step_work_ticks, Some(31));
+    assert_eq!(
+        postcard::to_allocvec(&state.world.rng).unwrap(),
+        postcard::to_allocvec(&(12019770418448921669u64, 40521457u64)).unwrap()
+    );
+    assert!(state
+        .domestic
+        .as_ref()
+        .is_none_or(|state| state.dishes.is_empty() && state.meals.is_empty()));
+    assert_current_resave_is_stable(&loaded);
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&loaded.save_bytes()));
+    for _ in 0..160 {
+        loaded.tick();
+        resumed.tick();
+        assert_eq!(loaded.world_hash(), resumed.world_hash());
+    }
+}
+
+#[test]
+fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
+    let source = SimHandle::from_lot();
+    let mut snapshot = source.sim.save_snapshot_v5();
+    let people: Vec<_> = snapshot.self_preservation.iter().map(|row| row.0).collect();
+    snapshot.chronotype_offsets = vec![(people[0], i32::MIN), (people[1], i32::MAX)];
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&v5_bytes(&snapshot)));
+    assert_eq!(loaded.sim.save_snapshot_v5(), snapshot);
+    assert_current_resave_is_stable(&loaded);
+
+    let bytes = v5_bytes(&snapshot);
+    let tail = postcard::to_allocvec(&snapshot.chronotype_offsets).unwrap();
+    let suffix = postcard::to_allocvec(&snapshot.domestic).unwrap().len();
+    let prefix = &bytes[..bytes.len() - tail.len() - suffix];
+    assert!(loaded.load_bytes(prefix));
+    assert!(loaded.sim.save_snapshot_v5().chronotype_offsets.is_empty());
+    assert_eq!(loaded.sim.save_snapshot_v5().world, snapshot.world);
+    assert_current_resave_is_stable(&loaded);
+}
+
+#[test]
+fn chronotype_v5_rejects_invalid_complete_rows_without_changing_the_live_world() {
+    let mut live = SimHandle::from_lot();
+    let good = live.sim.save_snapshot_v5();
+    let people: Vec<_> = good.self_preservation.iter().map(|row| row.0).collect();
+    let object = good
+        .world
+        .entities
+        .iter()
+        .find(|row| !row.agent)
+        .unwrap()
+        .index;
+    let before = live.save_bytes();
+    let hash = live.sim.world_hash();
+    for rows in [
+        vec![(people[0], -731), (people[0], 180)],
+        vec![(people[1], -731), (people[0], 180)],
+        vec![(people[0], -731), (people[1], 0)],
+        vec![(object, -731)],
+        vec![(people[0], -731), (u32::MAX, 180)],
+    ] {
+        let mut invalid = good.clone();
+        invalid.chronotype_offsets = rows;
+        assert!(!live.load_bytes(&v5_bytes(&invalid)));
+        assert_eq!(live.save_bytes(), before);
+        assert_eq!(live.sim.world_hash(), hash);
+    }
+    let mut missing_personality = good.clone();
+    missing_personality
+        .world
+        .entities
+        .iter_mut()
+        .find(|row| row.index == people[0])
+        .unwrap()
+        .personality = None;
+    missing_personality.chronotype_offsets = vec![(people[0], -731)];
+    assert!(!live.load_bytes(&v5_bytes(&missing_personality)));
+    assert_eq!(live.save_bytes(), before);
+    assert_eq!(live.sim.world_hash(), hash);
+}
+
+#[test]
+fn chronotype_v5_rejects_every_partial_tail_and_noncanonical_length_atomically() {
+    let source = SimHandle::from_lot();
+    let mut snapshot = source.sim.save_snapshot_v5();
+    let person = snapshot.self_preservation[0].0;
+    let mut loaded = SimHandle::from_lot();
+    let before = loaded.save_bytes();
+    for rows in [
+        vec![(person, -731)],
+        vec![(person, i32::MIN)],
+        vec![(person, 180); 128],
+    ] {
+        snapshot.chronotype_offsets = rows;
+        let bytes = v5_bytes(&snapshot);
+        let tail = postcard::to_allocvec(&snapshot.chronotype_offsets).unwrap();
+        let suffix = postcard::to_allocvec(&snapshot.domestic).unwrap().len();
+        let start = bytes.len() - tail.len() - suffix;
+        for cut in start + 1..start + tail.len() {
+            assert!(
+                decode_v5(&bytes[SAVE_HEADER_BYTES..cut]).is_none(),
+                "decoder accepted partial tail at {cut}"
+            );
+            assert!(
+                !loaded.load_bytes(&bytes[..cut]),
+                "accepted partial tail at {cut}"
+            );
+            assert_eq!(loaded.save_bytes(), before);
+        }
+        let mut long_empty = bytes[..start].to_vec();
+        long_empty.push(0x80);
+        assert!(!loaded.load_bytes(&long_empty));
+        assert_eq!(loaded.save_bytes(), before);
+    }
+}
+
 /// V3 saves are still read, strictly: every truncation, trailing data, a V2
-/// body and a V3 body labelled V4 are refused. The writer is V4 now, so the
+/// body and a V3 body labelled V4 are refused. The writer is V5 now, so the
 /// V3 bytes here are built directly.
 #[test]
 fn v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body() {
@@ -196,8 +365,8 @@ fn v4_required_tail_rejects_every_truncation_and_trailing_data() {
     }
 }
 
-/// [RC-save]: the public writer's V5 envelope ends with the colourway list,
-/// and is read as strictly as V4: every truncation and trailing data refused,
+/// [RC-save]: the V5 colourway list is required. Later appended fields may
+/// be wholly absent in historical saves; cuts inside records and trailing data are refused,
 /// the running world untouched. A recoloured object survives the round trip.
 #[test]
 fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
@@ -206,7 +375,11 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     let plain = source.save_bytes();
     assert_eq!(&plain[8..10], &[5, 0]);
     assert_eq!(plain, v5_bytes(&source.sim.save_snapshot_v5()));
-    assert_eq!(plain.last(), Some(&0), "no colourways is one empty list");
+    assert_eq!(
+        plain.last(),
+        Some(&0),
+        "no people means an empty chronotype list"
+    );
     let chair = (0..16u32)
         .find(|&index| source.object_colourway(f64::from(index)) == 0)
         .unwrap();
@@ -220,15 +393,14 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     let mut trailing = valid.clone();
     trailing.push(0);
     let mut cases = vec![trailing];
-    // Three truncations are not malformed and must load: cutting the final
-    // one, two or three bytes takes off the empty family lists and the
-    // floors, which makes the payload byte for byte a save written before
-    // those lists existed ([FL-save], [FM-save], [FM-identity]). That is
-    // the price of growing a postcard struct by appending, and it is the
-    // price the sleep-pressure list already pays.
+    let lengths = v5_appended_lengths(&source.sim.save_snapshot_v5());
+    let historical_cuts: Vec<usize> = (0..lengths.len())
+        .map(|first| lengths[first..].iter().sum())
+        .collect();
+    // Only whole appended-field boundaries existed in older writers.
     cases.extend(
         (SAVE_HEADER_BYTES..valid.len())
-            .filter(|cut| ![1, 2, 3, 7, 8, 9, 10].contains(&(valid.len() - cut)))
+            .filter(|cut| !historical_cuts.contains(&(valid.len() - cut)))
             .map(|cut| valid[..cut].to_vec()),
     );
     for bytes in cases {
@@ -247,7 +419,10 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(painter.set_floor(2.0, 2.0, 1.0));
     painter.flush_commands();
     let painted = painter.save_bytes();
-    let before_ties = painted[..painted.len() - 9].to_vec();
+    let tail = v5_appended_lengths(&painter.sim.save_snapshot_v5())[1..]
+        .iter()
+        .sum::<usize>();
+    let before_ties = painted[..painted.len() - tail].to_vec();
     let mut live = SimHandle::from_lot();
     assert!(
         live.load_bytes(&before_ties),
@@ -256,15 +431,16 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert_eq!(live.floor_tiles(), vec![2, 2, 1], "and keep its floors");
     assert!(live.family_ties().is_empty());
 
-    for (cut, what) in [
-        (1, "domestic consequences"),
-        (2, "waiting"),
-        (3, "death default migration"),
-        (7, "mortality"),
-        (8, "ties keyed on SimId"),
-        (9, "family"),
-        (10, "floors and family"),
+    for (first, what) in [
+        (6, "instincts"),
+        (5, "waiting"),
+        (4, "death default migration"),
+        (3, "mortality"),
+        (2, "ties keyed on SimId"),
+        (1, "family"),
+        (0, "floors and family"),
     ] {
+        let cut = lengths[first..].iter().sum::<usize>();
         let older = valid[..valid.len() - cut].to_vec();
         assert!(
             restored.load_bytes(&older),
@@ -301,7 +477,6 @@ fn a_save_that_keyed_ties_on_entity_indices_loads_them_as_sim_ids() {
     let (first, second) = two_sims(&mut handle);
     assert!(handle.set_family_tie(f64::from(first), f64::from(second), 1.0));
     handle.flush_commands();
-    let today = handle.save_bytes();
 
     let mut snapshot = handle.sim.save_snapshot_v5();
     let mut by_index = terri_core::layout::FamilyTies::default();
@@ -309,8 +484,8 @@ fn a_save_that_keyed_ties_on_entity_indices_loads_them_as_sim_ids() {
     snapshot.family_by_index = by_index;
     snapshot.family = terri_core::layout::FamilyTies::default();
     let written = v5_bytes(&snapshot);
-    // The last byte is the empty SimId list, which that build did not write.
-    let older = written[..written.len() - 8].to_vec();
+    let tail = v5_appended_lengths(&snapshot)[2..].iter().sum::<usize>();
+    let older = written[..written.len() - tail].to_vec();
 
     let mut restored = SimHandle::from_lot();
     assert!(
@@ -318,7 +493,13 @@ fn a_save_that_keyed_ties_on_entity_indices_loads_them_as_sim_ids() {
         "a save with ties keyed on entity index must still load"
     );
     assert_eq!(restored.family_ties(), handle.family_ties());
-    assert_eq!(restored.save_bytes(), today, "and it saves in today's form");
+    assert!(restored
+        .sim
+        .save_snapshot_v5()
+        .family_by_index
+        .ties()
+        .is_empty());
+    assert_current_resave_is_stable(&restored);
 }
 
 /// [FM-identity]: no build writes ties in both lists, so a save that has
@@ -408,7 +589,8 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     snapshot.family_by_index = by_index;
     let written = v5_bytes(&snapshot);
     // Drop the SimId list and the tie's relation byte.
-    let cut = &written[..written.len() - 9];
+    let tail = v5_appended_lengths(&snapshot)[2..].iter().sum::<usize>();
+    let cut = &written[..written.len() - tail - 1];
     assert!(decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none());
     let mut restored = SimHandle::from_lot();
     assert!(!restored.load_bytes(cut), "a relation nobody chose");
@@ -418,7 +600,10 @@ fn a_cut_inside_the_last_tie_or_tile_is_not_padded_into_one() {
     painter.flush_commands();
     let painted = painter.save_bytes();
     // Drop both family lists and the tile's covering byte.
-    let cut = &painted[..painted.len() - 10];
+    let tail = v5_appended_lengths(&painter.sim.save_snapshot_v5())[1..]
+        .iter()
+        .sum::<usize>();
+    let cut = &painted[..painted.len() - tail - 1];
     assert!(
         decode_v5(&cut[SAVE_HEADER_BYTES..]).is_none(),
         "a covering nobody laid"
@@ -448,7 +633,8 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
         + postcard::to_allocvec(&snapshot.family_by_index)
             .unwrap()
             .len();
-    let floors_start = payload.len() - family_bytes - floors.len() - 7;
+    let suffix = v5_appended_lengths(&snapshot)[3..].iter().sum::<usize>();
+    let floors_start = payload.len() - family_bytes - floors.len() - suffix;
     let cut = &payload[..=floors_start];
     assert!(decode_v5(cut).is_none(), "cut inside the floors length");
 
@@ -464,7 +650,8 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     by_sim.family = many.clone();
     let payload = postcard::to_allocvec(&by_sim).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
-    let start = payload.len() - length.len() - 7;
+    let suffix = v5_appended_lengths(&by_sim)[3..].iter().sum::<usize>();
+    let start = payload.len() - length.len() - suffix;
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the SimId list's length"
@@ -475,7 +662,8 @@ fn a_cut_inside_a_two_byte_length_is_not_padded_into_an_empty_list() {
     let payload = postcard::to_allocvec(&by_index).unwrap();
     assert!(decode_v5(&payload).is_some(), "the whole save decodes");
     let after = postcard::to_allocvec(&by_index.family).unwrap().len();
-    let start = payload.len() - after - length.len() - 7;
+    let suffix = v5_appended_lengths(&by_index)[3..].iter().sum::<usize>();
+    let start = payload.len() - after - length.len() - suffix;
     assert!(
         decode_v5(&payload[..=start]).is_none(),
         "cut inside the entity-index list's length"
@@ -490,13 +678,15 @@ fn pre_mortality_save_preserves_nonempty_floors_and_family() {
     assert!(handle.set_family_tie(first.into(), second.into(), 1.0));
     handle.flush_commands();
     let bytes = handle.save_bytes();
-    assert_eq!(bytes.last(), Some(&0));
+    let tail = v5_appended_lengths(&handle.sim.save_snapshot_v5())[3..]
+        .iter()
+        .sum::<usize>();
     let mut restored = SimHandle::from_lot();
-    assert!(restored.load_bytes(&bytes[..bytes.len() - 7]));
+    assert!(restored.load_bytes(&bytes[..bytes.len() - tail]));
     assert_eq!(restored.floor_tiles(), vec![2, 2, 1]);
     assert_eq!(restored.family_ties(), handle.family_ties());
     assert!(restored.death_enabled());
-    assert_eq!(restored.save_bytes(), bytes);
+    assert_current_resave_is_stable(&restored);
 }
 
 #[test]
@@ -511,7 +701,8 @@ fn mortality_length_truncation_cannot_invent_an_empty_count_list() {
     let tail = postcard::to_allocvec(&snapshot.mortality).unwrap();
     assert_eq!(&tail[..4], &[1, 1, 128, 1]);
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len() - 3;
+    let suffix = v5_appended_lengths(&snapshot)[4..].iter().sum::<usize>();
+    let start = bytes.len() - tail.len() - suffix;
     assert!(decode_v5(&bytes[..start + 3]).is_none());
     for cut in start + 1..start + tail.len() {
         assert!(
@@ -528,7 +719,8 @@ fn waiting_length_truncation_cannot_invent_an_empty_list() {
     let tail = postcard::to_allocvec(&snapshot.waiting_needs).unwrap();
     assert_eq!(&tail[..2], &[128, 1]);
     let bytes = postcard::to_allocvec(&snapshot).unwrap();
-    let start = bytes.len() - tail.len() - 1;
+    let suffix = v5_appended_lengths(&snapshot)[6..].iter().sum::<usize>();
+    let start = bytes.len() - tail.len() - suffix;
     for cut in start + 1..start + tail.len() {
         assert!(
             decode_v5(&bytes[..cut]).is_none(),
@@ -552,7 +744,8 @@ fn pre_default_change_preserves_nonempty_mortality_and_enables_death() {
     });
     let bytes = v5_bytes(&snapshot);
     let mut loaded = SimHandle::from_lot();
-    assert!(loaded.load_bytes(&bytes[..bytes.len() - 3]));
+    let suffix = v5_appended_lengths(&snapshot)[4..].iter().sum::<usize>();
+    assert!(loaded.load_bytes(&bytes[..bytes.len() - suffix]));
     assert!(loaded.death_enabled());
     assert_eq!(loaded.sim.deprivation_ticks(first), 1);
     assert_eq!(loaded.family_ties(), source.family_ties());
@@ -571,9 +764,7 @@ fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter()
             .chunks_exact(2)
             .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
             .collect();
-        let mut old = bytes[SAVE_HEADER_BYTES..].to_vec();
-        old.push(0);
-        let source: SaveSnapshotV5 = postcard::from_bytes(&old).unwrap();
+        let source = decode_v5(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         assert_eq!(source.world.content_fingerprint, 0xc2cf_2919_84ed_61f7);
         let mut handle = SimHandle::from_lot();
         assert!(handle.load_bytes(&bytes), "actual old program bytes load");

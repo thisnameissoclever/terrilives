@@ -113,6 +113,22 @@ pub fn advance_chains(
             continue;
         };
         let chain = &content.0.chains[chain_state.chain as usize];
+        if chain.steps[chain_state.step as usize..].iter().any(|step| {
+            !stations
+                .iter()
+                .any(|(_, _, object, _, _)| content.0.object(object.0).roles.contains(&step.role))
+        }) {
+            // Sold stations cannot become free. Abandon the unfinished recipe.
+            commands
+                .entity(sim)
+                .remove::<ChainState>()
+                .remove::<Carrying>()
+                .remove::<terri_core::Fumbled>()
+                .remove::<Blocked>()
+                .remove::<Restless>();
+            commands.queue(move |world: &mut World| crate::domestic::abandon(world, sim));
+            continue;
+        }
         let step = &chain.steps[chain_state.step as usize];
         let cleanup = chain.id == crate::domestic::CLEANUP;
         if cleanup
@@ -398,10 +414,7 @@ pub fn tick_chain_steps(
         // The station is released either way: done with the counter is
         // done with the counter.
         if let Some(target) = target {
-            let station = target.object;
-            commands.queue(move |world: &mut World| {
-                crate::domestic::release_station(world, station, sim)
-            });
+            crate::reservations::release(&mut commands, sim, *target);
         }
         commands.entity(sim).remove::<Target>().remove::<StepWork>();
 
@@ -426,8 +439,22 @@ pub fn tick_chain_steps(
 
         // Habituation against the advertiser, under the chain's flyout
         // row: the sim tires of DINNER, not of the table.
-        let row = content.0.object(chain.advertised_by).interactions.len() as u32
-            + chain_position(content.0, chain_state.chain);
+        let advertiser = content.0.object(chain.advertised_by);
+        let row = (chain.id == crate::domestic::SNACK)
+            .then(|| {
+                advertiser
+                    .interactions
+                    .iter()
+                    .position(|interaction| interaction.id == "grab_snack")
+            })
+            .flatten()
+            .map_or_else(
+                || {
+                    advertiser.interactions.len() as u32
+                        + chain_position(content.0, chain_state.chain)
+                },
+                |row| row as u32,
+            );
         commands.queue({
             let advertiser = chain.advertised_by;
             let per_use = content.0.tuning.habituation_per_use;
@@ -605,6 +632,48 @@ mod tests {
             .insert(ChainState::begin(0));
     }
 
+    #[test]
+    fn a_missing_future_station_abandons_the_recipe_without_payout() {
+        let (mut sim, agent, _, table) = chain_world();
+        start_chain(&mut sim, agent);
+        sim.world_mut().entity_mut(agent).insert((
+            Carrying(0),
+            terri_core::Fumbled { delta_scale: 0.2 },
+            Blocked,
+        ));
+        let before = *sim.world().get::<Satisfaction>(agent).unwrap();
+        sim.world_mut().despawn(table);
+        let mut schedule = Schedule::default();
+        schedule.add_systems(advance_chains);
+        schedule.run(sim.world_mut());
+        let person = sim.world().entity(agent);
+        assert!(person.get::<ChainState>().is_none());
+        assert!(person.get::<Carrying>().is_none());
+        assert!(person.get::<terri_core::Fumbled>().is_none());
+        assert!(person.get::<Blocked>().is_none());
+        assert!(person.get::<Target>().is_none());
+        assert_eq!(person.get::<Satisfaction>(), Some(&before));
+    }
+
+    #[test]
+    fn autonomy_skips_recipes_with_a_missing_station() {
+        let (mut sim, agent, _, table) = chain_world();
+        sim.world_mut().despawn(table);
+        let mut schedule = Schedule::default();
+        schedule.add_systems(super::super::action::select_action);
+        schedule.run(sim.world_mut());
+        assert!(sim.world().get::<ChainState>(agent).is_none());
+        let target = sim
+            .world()
+            .get::<Target>(agent)
+            .expect("the available snack");
+        assert_eq!(target.interaction, 0);
+        assert_eq!(
+            sim.world().get::<SmartObject>(target.object).unwrap().0,
+            chain_pack().find("fridge").unwrap()
+        );
+    }
+
     /// A turned station is approached at its live footprint, not its base shape.
     ///
     /// The 2 by 1 pantry at origin (2, 1) faces south-west, covering (2, 1)
@@ -639,6 +708,10 @@ mod tests {
                 terri_core::ObjectFacing(terri_core::Facing::SouthWest),
             ))
             .id();
+        sim.world_mut().spawn((
+            Position { x: 4.0, y: 1.0 },
+            SmartObject(pack.find("table").unwrap()),
+        ));
         let agent = sim
             .world_mut()
             .spawn((Agent, Position { x: 2.0, y: 5.0 }, Needs::all_at(NEED_MAX)))
@@ -1099,45 +1172,54 @@ mod tests {
     /// decoy filter working); fractionally above does not; exactly at
     /// it does not, because the comparison is strictly greater.
     #[test]
-    fn chain_scoring_is_pinned_by_a_threshold_sandwich() {
-        let (mut sim, agent, global) = scoring_world(|expected| expected * 0.998);
+    fn critical_chain_replaces_the_old_stroll_immediately() {
+        let (mut sim, agent, global) = scoring_world(|expected| expected);
+        let current = sim.world().resource::<crate::Content>().0;
+        let mut changed = current.clone();
+        changed.tuning.choice_temperature = 1e-6;
+        changed.tuning.choice_comfort_temperature = 1e-6;
+        changed.tuning.choice_exploration = 1e-8;
+        changed.tuning.choice_comfort_exploration = 1e-8;
+        sim.world_mut()
+            .insert_resource(crate::Content(Box::leak(Box::new(changed))));
+        sim.world_mut().entity_mut(agent).insert((
+            terri_core::Needs::with(NeedId::Hunger, 0.0),
+            terri_core::SelfPreservation(50),
+            terri_core::Path {
+                steps: vec![(3, 4), (4, 4), (5, 4)],
+                cursor: 0,
+            },
+            terri_core::Wander { pause_ticks: 10 },
+            terri_core::Restless,
+        ));
         sim.tick();
-        let state = sim
-            .world()
-            .get::<ChainState>(agent)
-            .expect("a score above the threshold starts the chain");
-        assert_eq!(
-            state.chain, global,
-            "the committed chain is the advertiser's own, not the decoy"
-        );
-
-        // ONE tick for the negative slices, deliberately: the score
-        // GROWS as needs decay, so a threshold set fractionally above
-        // the tick-1 score is crossed honestly a few ticks later - the
-        // first draft ran five ticks here and diagnosed its own
-        // modelling as wrong. The expectation models tick 1; tick 1 is
-        // what it pins.
-        let (mut sim, agent, _) = scoring_world(|expected| expected * 1.002);
-        sim.tick();
-        assert!(
-            sim.world().get::<ChainState>(agent).is_none(),
-            "a score below the threshold starts nothing; started {:?}",
-            sim.world().get::<ChainState>(agent)
-        );
-
-        let (mut sim, agent, _) = scoring_world(|expected| expected);
-        sim.tick();
-        assert!(
-            sim.world().get::<ChainState>(agent).is_none(),
-            "exactly at the threshold is not above it - the comparison \
-             is strictly greater"
-        );
+        assert_eq!(sim.world().get::<ChainState>(agent).unwrap().chain, global);
+        assert!(sim.world().get::<terri_core::Wander>(agent).is_none());
+        let path = sim.world().get::<terri_core::Path>(agent).unwrap();
+        assert_ne!(path.steps, vec![(3, 4), (4, 4), (5, 4)]);
+        assert!(sim.world().get::<terri_core::Target>(agent).is_some());
     }
 
-    /// The flyout arm resolves the same identity: a UseObject at the
-    /// row past the advertiser's interactions starts the advertiser's
-    /// FIRST chain - global index 1 past the decoy - through the
-    /// untouched wire.
+    #[test]
+    fn chain_scores_remain_eligible_around_the_old_threshold() {
+        for factor in [0.998, 1.0, 1.002] {
+            let (mut sim, agent, _) = scoring_world(|expected| expected * factor);
+            sim.tick();
+            let decisions = &sim
+                .world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0;
+            let decision = decisions
+                .iter()
+                .find(|d| d.agent == agent.index_u32())
+                .unwrap();
+            assert!(decision
+                .choices
+                .iter()
+                .any(|(_, row, _, _, probability)| *row == 2 && *probability > 0.0));
+        }
+    }
+
     #[test]
     fn a_use_object_row_starts_the_advertisers_chain_not_the_decoys() {
         let (mut sim, agent, global) = scoring_world(|expected| expected * 10.0);
@@ -1186,7 +1268,11 @@ mod tests {
                 object: fridge.index_u32(),
                 interaction: 7,
             });
-        sim.tick();
+        sim.flush_commands();
+        use bevy_ecs::system::RunSystemOnce;
+        sim.world_mut()
+            .run_system_once(crate::systems::action::serve_intents)
+            .unwrap();
         assert!(
             sim.world().get::<ChainState>(agent).is_none(),
             "a row past the chains is dropped"
@@ -1262,6 +1348,10 @@ mod tests {
     fn the_nearest_free_station_is_picked_over_an_earlier_far_one() {
         let pack = chain_pack();
         let mut sim = test_content::sim_with(12, 8, pack);
+        sim.world_mut().spawn((
+            Position { x: 8.0, y: 1.0 },
+            SmartObject(pack.find("table").unwrap()),
+        ));
         let def = pack.find("pantry").expect("fixture");
         let far = sim
             .world_mut()
@@ -1293,6 +1383,10 @@ mod tests {
         // of two equidistant counters a sim claims is a function of
         // world state rather than of comparison slack.
         let mut sim = test_content::sim_with(12, 8, pack);
+        sim.world_mut().spawn((
+            Position { x: 8.0, y: 1.0 },
+            SmartObject(pack.find("table").unwrap()),
+        ));
         let first = sim
             .world_mut()
             .spawn((Position { x: 1.0, y: 4.0 }, SmartObject(def)))
@@ -1319,12 +1413,9 @@ mod tests {
         assert!(sim.world().get::<Reserved>(second).is_none());
     }
 
-    /// A role with NO stations at all (a hand-built world the compile
-    /// gate would refuse) does nothing - no Blocked, because there is
-    /// nothing to wait FOR; Blocked is for a booked kitchen, not a
-    /// missing one.
+    /// Missing stations abandon the recipe without a spurious wait marker.
     #[test]
-    fn a_roleless_world_neither_proceeds_nor_claims_to_wait() {
+    fn a_roleless_world_abandons_instead_of_waiting() {
         let pack = chain_pack();
         let mut sim = test_content::sim_with(12, 8, pack);
         let agent = sim
@@ -1342,8 +1433,8 @@ mod tests {
         }
         let world = sim.world();
         assert!(
-            world.get::<ChainState>(agent).is_some(),
-            "the counter holds"
+            world.get::<ChainState>(agent).is_none(),
+            "the impossible recipe is abandoned"
         );
         assert!(
             world.get::<terri_core::Blocked>(agent).is_none(),

@@ -1,6 +1,10 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
+mod action_queue;
+pub mod details;
 pub mod domestic;
+#[cfg(test)]
+mod ecs_lifecycle_tests;
 #[cfg(test)]
 mod facing_tests;
 pub mod family;
@@ -10,6 +14,9 @@ pub mod mortality;
 pub mod placement;
 pub mod portals;
 pub mod render_buffer;
+mod reservations;
+#[cfg(test)]
+mod reservations_tests;
 mod save;
 pub mod systems;
 #[cfg(test)]
@@ -139,6 +146,18 @@ struct RenderRow {
     carrying: u32,
     voice_first: u32,
     voice_second: u32,
+    conversation_owner: u32,
+    conversation_end_low: u32,
+    conversation_end_high: u32,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ConversationAudioProjection {
+    first: u32,
+    second: u32,
+    owner: u32,
+    end_low: u32,
+    end_high: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -560,6 +579,7 @@ fn sound_action_code(action: terri_data::CompiledSoundAction) -> u32 {
     match action {
         terri_data::CompiledSoundAction::ShowerWater => render_buffer::sound_action::SHOWER_WATER,
         terri_data::CompiledSoundAction::StoveCooking => render_buffer::sound_action::STOVE_COOKING,
+        terri_data::CompiledSoundAction::SinkWater => render_buffer::sound_action::SINK_WATER,
     }
 }
 
@@ -625,7 +645,7 @@ fn authored_object_sound(
 
 impl Sim {
     /// Captures the frozen V1 world payload, without edge architecture.
-    /// Use `save_snapshot_v4` for complete persistence of a current world.
+    /// Use `save_snapshot_v5` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
@@ -734,6 +754,8 @@ impl Sim {
             mortality: mortality::snapshot(&self.world),
             death_default_applied: true,
             waiting_needs: waiting::snapshot(&self.world),
+            self_preservation: save::self_preservation::capture(&self.world),
+            chronotype_offsets: save::chronotype::capture(&self.world),
             domestic: domestic::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
@@ -792,6 +814,7 @@ impl Sim {
     fn adopt(&mut self, mut restored: Sim) {
         let content = restored.world.resource::<Content>().0;
         save::yard::grow(&mut restored, content);
+        save::self_preservation::migrate(&mut restored.world);
         restored
             .world
             .resource_mut::<placement::LotEditState>()
@@ -866,6 +889,7 @@ impl Sim {
         // nothing. Later tasks must add their components here too.
         world.register_component::<terri_core::Position>();
         world.register_component::<terri_core::Agent>();
+        world.register_component::<terri_core::SelfPreservation>();
         world.register_component::<terri_core::Needs>();
         world.register_component::<terri_core::SmartObject>();
         world.register_component::<terri_core::Reserved>();
@@ -1238,8 +1262,15 @@ impl Sim {
     /// out of its manifest keeps its dependency list as small as the [D1]
     /// purity rule can make it.
     pub fn new_from_shipped_lot() -> Self {
+        Self::new_from_shipped_lot_with_seed(terri_data::pack().tuning.rng_seed)
+    }
+
+    /// Seeds household draws before any person is created.
+    pub fn new_from_shipped_lot_with_seed(seed: u64) -> Self {
         let pack = terri_data::pack();
         let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
+        sim.world
+            .insert_resource(terri_core::SimRng::from_seed(seed));
         sim.world
             .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
@@ -1308,6 +1339,7 @@ impl Sim {
                     hobbies: member.hobbies.clone(),
                     traits: &member.traits,
                     career: member.career,
+                    instinct: None,
                 },
             );
         }
@@ -1315,6 +1347,8 @@ impl Sim {
 
     pub fn tick(&mut self) {
         self.schedule.run(&mut self.world);
+        // Standalone ECS needs explicit update boundaries to retire removal history.
+        self.world.clear_trackers();
     }
 
     /// Applies staged player input without advancing simulation time.
@@ -1325,6 +1359,8 @@ impl Sim {
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
         self.command_schedule.run(&mut self.world);
+        // Paused frames can remove components too; keep the same observation window.
+        self.world.clear_trackers();
     }
 
     /// Returns and clears the number of object or social orders refused
@@ -1440,6 +1476,9 @@ impl Sim {
         self.render.meal_portions.clear();
         self.render.voice_firsts.clear();
         self.render.voice_seconds.clear();
+        self.render.conversation_owners.clear();
+        self.render.conversation_end_lows.clear();
+        self.render.conversation_end_highs.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
@@ -1452,10 +1491,11 @@ impl Sim {
         // pass before the per-row loop can answer it.
         let mut partners: HashSet<Entity> = HashSet::new();
         let mut conversation_visuals: HashMap<Entity, (u32, u32)> = HashMap::new();
-        // Filled for BOTH participants in the same pass, for the reason
-        // `RenderBuffer::voice_firsts` documents: the shell chooses which
-        // row speaks for a conversation and may well choose the partner.
-        let mut conversation_voices: HashMap<Entity, (u32, u32)> = HashMap::new();
+        // Filled for both participants from the one authoritative record.
+        // Their identical instance identity lets the shell deduplicate rows
+        // without merging separate conversations or choosing a representative.
+        let mut conversation_voices: HashMap<Entity, ConversationAudioProjection> = HashMap::new();
+        let tick = self.world.resource::<SimClock>().tick;
         {
             let mut talks = self.world.query::<(Entity, &terri_core::Socialising)>();
             for (initiator, talk) in talks.iter(&self.world) {
@@ -1466,8 +1506,27 @@ impl Sim {
                 // it is drawn, so gating it on the pose would silence a
                 // talk that is perfectly real and merely invisible.
                 if let Some(voice) = self.world.get::<terri_core::ConversationVoice>(initiator) {
-                    conversation_voices.insert(initiator, (voice.first, voice.second));
-                    conversation_voices.insert(talk.partner, (voice.first, voice.second));
+                    let owner = self
+                        .world
+                        .get::<terri_core::SimId>(initiator)
+                        .map_or(render_buffer::NO_SIM_ID, |id| id.0);
+                    // The clock rises as remaining ticks fall. Their wrapping
+                    // sum stays fixed for this instance without saved state or
+                    // another random draw; two words preserve all 64 bits in JS.
+                    let end = if owner == render_buffer::NO_SIM_ID {
+                        0
+                    } else {
+                        tick.wrapping_add(u64::from(talk.remaining_ticks))
+                    };
+                    let projection = ConversationAudioProjection {
+                        first: voice.first,
+                        second: voice.second,
+                        owner,
+                        end_low: end as u32,
+                        end_high: (end >> 32) as u32,
+                    };
+                    conversation_voices.insert(initiator, projection);
+                    conversation_voices.insert(talk.partner, projection);
                 }
                 let Some(interaction) = content.social.get(talk.interaction as usize) else {
                     continue;
@@ -1790,10 +1849,19 @@ impl Sim {
                 carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
                 voice_first: conversation_voices
                     .get(&entity)
-                    .map_or(render_buffer::NO_VOICE_CLIP, |(first, _)| *first),
+                    .map_or(render_buffer::NO_VOICE_CLIP, |voice| voice.first),
                 voice_second: conversation_voices
                     .get(&entity)
-                    .map_or(render_buffer::NO_VOICE_CLIP, |(_, second)| *second),
+                    .map_or(render_buffer::NO_VOICE_CLIP, |voice| voice.second),
+                conversation_owner: conversation_voices
+                    .get(&entity)
+                    .map_or(render_buffer::NO_SIM_ID, |voice| voice.owner),
+                conversation_end_low: conversation_voices
+                    .get(&entity)
+                    .map_or(0, |voice| voice.end_low),
+                conversation_end_high: conversation_voices
+                    .get(&entity)
+                    .map_or(0, |voice| voice.end_high),
             });
         }
         rows.sort_by_key(|row| row.index);
@@ -1835,6 +1903,13 @@ impl Sim {
             self.render.carrying.push(row.carrying);
             self.render.voice_firsts.push(row.voice_first);
             self.render.voice_seconds.push(row.voice_second);
+            self.render.conversation_owners.push(row.conversation_owner);
+            self.render
+                .conversation_end_lows
+                .push(row.conversation_end_low);
+            self.render
+                .conversation_end_highs
+                .push(row.conversation_end_high);
         }
         self.render.count = rows.len();
 
@@ -2428,17 +2503,12 @@ impl Sim {
         // carrying which sim IS SimId 3 would let two differently-labelled
         // worlds hash identically.
         //
-        // **`Personality` and `SimName` are deliberately NOT in the
-        // digest, each for its own reason.** `SimName` is presentation: a
-        // rename must not diverge a replay. `Personality` DOES change what
-        // a sim chooses and is excluded anyway because today it is static:
-        // derived from content at spawn and never written afterwards, so
-        // two replays from one pack cannot disagree about it, and
-        // digesting it would only restate the content. That argument
-        // EXPIRES the moment anything mutates a personality at runtime -
-        // M2e's traits are the scheduled arrival - and whoever writes the
-        // first mutation owns adding it to this digest and re-measuring
-        // both golden vectors.
+        // `SimName` is presentation: a rename must not diverge a replay.
+        // Personality multipliers and dispositions retain their historical
+        // exclusion while they are immutable during play. Runtime editing
+        // must add them to the digest. Chronotype is hashed in a sparse
+        // suffix below: historical people can have zero while new people
+        // receive authored offsets, even when both came from the same pack.
         //
         // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
         // wraps a u32 allocated monotonically from 0, so u64::MAX is
@@ -2911,6 +2981,30 @@ impl Sim {
                         }));
                         row
                     }
+                    AddHousemateWithInstinct {
+                        personality,
+                        traits,
+                        instinct,
+                        ..
+                    } => {
+                        let content = self.world.get_resource::<Content>();
+                        let mut row = vec![
+                            18,
+                            u64::from(*instinct),
+                            content
+                                .and_then(|content| {
+                                    content.0.personalities.get(*personality as usize)
+                                })
+                                .map_or(u64::MAX, |personality| id_digest(&personality.id)),
+                            traits.len() as u64,
+                        ];
+                        row.extend(traits.iter().map(|&index| {
+                            content
+                                .and_then(|content| content.0.traits.get(index as usize))
+                                .map_or(u64::MAX, |worn| id_digest(&worn.id))
+                        }));
+                        row
+                    }
                     // A purchase as `BuyObject` hashes it, then its
                     // colourway as `SetColourway` hashes one.
                     BuyObjectInColourway {
@@ -2987,6 +3081,24 @@ impl Sim {
 
         mortality::hash(&self.world, &mut hasher);
         waiting::hash(&self.world, &mut hasher);
+        let instincts = save::self_preservation::capture(&self.world);
+        if !instincts.is_empty() {
+            hasher.write_bytes(b"self-preservation-v1");
+            hasher.write_u64(instincts.len() as u64);
+            for (index, instinct) in instincts {
+                hasher.write_u64(u64::from(index));
+                hasher.write_u64(u64::from(instinct));
+            }
+        }
+        let offsets = save::chronotype::capture(&self.world);
+        if !offsets.is_empty() {
+            hasher.write_bytes(b"chronotype-offsets-v1");
+            hasher.write_u64(offsets.len() as u64);
+            for (index, offset) in offsets {
+                hasher.write_u64(u64::from(index));
+                hasher.write_u64(offset as i64 as u64);
+            }
+        }
         domestic::hash(&self.world, &mut hasher);
         hasher.finish()
     }
@@ -4197,7 +4309,14 @@ mod determinism_tests {
         sim.world_mut()
             .spawn((Position { x: 18.0, y: 14.0 }, shipped_fridge()));
         for i in 0..8 {
+            // Match the public debug-spawn API before either target ticks:
+            // each accepted spawn draws its instinct from the same RNG.
+            let instinct = sim
+                .world_mut()
+                .resource_mut::<terri_core::SimRng>()
+                .range(101) as u8;
             sim.world_mut().spawn((
+                terri_core::SelfPreservation(instinct),
                 Agent,
                 Position {
                     x: 1.0 + i as f32,
@@ -4918,9 +5037,13 @@ mod determinism_tests {
         // failing assertion.
         // Death defaults on and waiting records now contribute to the digest.
         // Measured from the native assertion after these state additions.
-        // Staged snacks change the resumed chain state and station work.
-        // This behavioral change is independently checked by release WASM.
-        const GOLDEN: u64 = 0x297e57b7cd2fb736;
+        // Varied autonomy changes selection draws and adds per-person instinct
+        // state to the digest. Native and rebuilt release WASM independently
+        // measured this value from the matching seeded debug-spawn scenario.
+        // Staged snack work and domestic state now compose with varied autonomy.
+        // This fridge-only fixture cannot prepare snacks without a counter;
+        // eligibility excludes that action and changes the selection draws.
+        const GOLDEN: u64 = 0x21c21e6232f46614;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

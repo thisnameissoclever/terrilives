@@ -95,10 +95,11 @@ speed.** A sim-hour is therefore 6 real seconds, roughly Sims pacing. Render
 runs at display refresh and interpolates entity positions between the last two
 simulation ticks.
 
-**Speed controls run more ticks per frame. They never change `dt`.** Speed 3
-means three ticks per rendered frame. Variable `dt` would destroy determinism
-and take Layer 2 multiplayer with it. Cheap to honor now, near-impossible to
-retrofit.
+**Speed controls scale elapsed time before fixed-step accumulation. They
+never change `dt`.** At 3x the shell requests 30 simulation ticks per real
+second, independent of the display refresh rate. A rendered frame may consume
+zero or several accumulated steps. Variable `dt` would break deterministic
+simulation.
 
 **The multiplier lives in the shell's `FixedStepDriver`, not in the
 simulation.** Speed is a rate at which the shell asks for full steps, not a
@@ -127,21 +128,29 @@ it cannot paint above or keep the terminal explanation unfocusable. The failed
 canvas and HUD therefore cannot remain a second keyboard interface behind the
 only useful surface.
 
-At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, the shell starts
-with a safe-area-aware status strip containing Time, Funds, and Menu. The
-roster, details, speed, and game actions are removed from layout until Menu is
-opened. `MobileHud` owns only that responsive visibility state and closes the
-two detail elements when the viewport first becomes compact. Existing DOM
-nodes and controllers continue to own every game action, projection, label,
-and focus target.
+The compact HUD separates the upper-left world controls from a bottom Sim
+dock. `CompactHud` owns only the chosen detail panel, collapse state, responsive
+mode and Build presentation snapshot. Existing panel controllers retain their
+simulation reads and commands. At 600 CSS pixels or narrower, or 480 CSS pixels
+or shorter, the same needs DOM moves into the expandable Overview panel.
+Desktop collapse uses that same route. Traits starts closed; one detail panel
+opens at a time. Critical needs stay visible in the compact identity row.
+Build suspends the dock and restores its presentation on exit. The current
+contract is [CUI-world]-[CUI-build] in
+`docs/specs/2026-09-30-control-layout-studies.md`; [CH1]-[CH4] describe the
+superseded layout.
 
-Phone portrait expands into a contiguous top sheet. Needs and People
-independently cap and scroll their content, and the outer sheet scrolls if its
-children exceed the viewport. Short screens wider than 360 pixels use the
-established 220-pixel edge column, leaving the rest of the viewport as a direct
-hit surface for the WebGPU canvas. Narrower short screens keep the horizontal
-top strip. Desktop keeps the normal sidebar and does not render the Menu
-button. See [CH1]-[CH4].
+The Overview disclosure `PersonalDetailsPanel` reads only while that section
+and its sheet are visible, at the existing need-bar cadence. Opening the
+disclosure and loading a save force a refresh. `Sim::details_of` projects
+Personality and Habituation without changing either. The WASM numeric copy
+contains one signed sleep offset, seven drain factors, seven positive-refill
+factors, then object-definition/activity-row/repetition triples; a parallel
+text copy supplies object type and activity labels. Both calls are synchronous
+with no tick between them. Numbers use f64 so signed offsets and u32 keys remain
+exact. The bridge rejects malformed columns and out-of-range values. Keyed DOM
+rows are reused, reordered and removed as the selected person changes. These
+are personal factors, not effective drain rates or lifetime satisfaction.
 
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
@@ -220,6 +229,14 @@ mutation path or allowing simulation time to leak through pause. The drain is
 associative across batch boundaries: splitting an ordered command stream across
 two rendered frames produces the same saved world as draining it in one batch.
 
+Each completed full tick and paused drain is also a Bevy ECS update boundary.
+After the schedule applies its deferred commands, `World::clear_trackers()`
+retires older component-removal records and retains the just-finished update's
+records. Standalone ECS does not perform this maintenance automatically. These
+records are runtime bookkeeping, absent from saves and the world hash. A future
+removal reader must run at every relevant boundary: a reader that runs only on
+full ticks can miss removals after multiple paused drains.
+
 1. `advance_clock` - advance the day clock.
 2. `decay_needs` - apply content-defined need decay.
 3. `start_shift` - begin a scheduled career commute after the clock advances.
@@ -235,14 +252,14 @@ two rendered frames produces the same saved world as draining it in one batch.
 6. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
 7. `advance_chains` - resume or begin the next station in a multi-step action.
-8. `wander` - a sim whose best option scores below `idle_threshold`
+8. `wander` - a sim who samples wandering among the eligible weighted choices
     walks to a random reachable LOCAL tile instead of standing still ([D-5] of
     the M1c design and [LW2] of the local-wandering spec). Both the endpoint's
     Manhattan distance and the actual A* path are capped by
     `wander_radius_tiles`, so a nearby tile behind a wall cannot become a
     cross-house detour. Failed candidates consume one of the bounded
     `wander_attempts`; the system never widens the search to the whole lot. It
-    draws x then y from the shared PRNG after useful choices have failed and
+    draws x then y and a pause length from the shared PRNG and
     processes sims in entity-index order before those draws.
 9. `follow_path` - move one deterministic step along the chosen path.
 10. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
@@ -307,9 +324,12 @@ advert is a sparse list of (need, delta) pairs and each pair is scored
 separately before summing, so an object satisfying two needs modestly can beat
 one satisfying a single need slightly better. Trait modifiers and weighted
 selection are now shipped: `select_action` samples the sorted candidates with
-softmax weights derived from `exp(score / choice_temperature)`. A low content
-temperature approaches argmax while a higher temperature permits plausible
-variation, and the simulation RNG makes the draw deterministic for a fixed seed.
+utility weights mixed with positive exploration. Eligibility depends on physical
+requirements, reachability and occupancy, not a score threshold. Targets are
+normalized separately from their eligible interactions. Temperature and exploration
+increase smoothly as the lowest need rises from 40 to 70; Fun and Social retain
+baseline appeal even at full meters. Self-preservation scales low-need urgency and
+penalties for delaying survival recovery. See [VA-choice] and [VA-instinct].
 
 Two properties matter. Adding content means adding a data file rather than
 touching AI code, so a modder's new object is used correctly on day one. And
@@ -325,24 +345,21 @@ O(agents x objects). That is fine at M1's one lot and is exactly the thing
 [D3]'s scale target breaks, so it is tracked as work for M3 rather than as a
 property the code already has.
 
-Reserved objects are scanned rather than filtered out because an agent has to be
-able to SEE a thing somebody else is using, or it cannot tell "beaten to it"
-from "nothing here at all" - and it was getting the second answer ([C3]). It
-still cannot be given one: a contested object is scored but never enters the
-draw. What the agent does about it is `contested_score_multiplier`, which
-attenuates the score a contested object contributes, so a sim that badly wants
-the thing stands and waits while one that barely wants it strolls off. The
-`Blocked` marker records that an agent's best option is somebody else's; it can
-be set alongside `Restless`, and that pair means "wanted it, not enough to
-wait". The simulation projects those markers through `stall_reason_of`, and the
-normal selected-person HUD reads the result as the reason a sim is standing
-still. A local wander for blocked sims remains a possible future behavior
-change, not an unbuilt reader required for the marker to matter. See [L56] for
-how this arrived twice.
+Reserved objects remain visible to autonomy. Their activities contribute
+waiting choices, attenuated by `contested_score_multiplier` and adjusted for
+survival risk, to the same grouped probability draw as available activities
+and wandering. Choosing one sets `Blocked` and records the relevant needs;
+it does not begin using the occupied object. `stall_reason_of` exposes that
+waiting state to the selected-person HUD. Distance fields are shared by agents
+starting on the same rounded tile during one selection pass.
 
-The cost is one extra path search per reserved object per idle agent per tick,
-which is nothing at eight objects and is part of what the M3 work above has to
-address.
+Reservation release checks current `Target` owners after preceding deferred
+commands have applied. It excludes only the departing owner's exact target;
+a replacement commitment and other owners keep the marker. Callers remove
+their own action state. This applies to completion, cancellation, changed
+orders, work departure, death and invalid-state cleanup. Admission still
+claims whole objects. This release foundation does not yet enable the double
+bed's second sleeping place; see `docs/specs/2026-10-01-bed-assignment.md`.
 
 **The travel term is wall-aware, and that is a commitment rather than an
 implementation detail.** M0 measured a straight line, which was fine in a
@@ -409,7 +426,7 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 3; the version 1 decoder and its historical optional sleep-pressure
+use version 5; the version 1 decoder and its historical optional sleep-pressure
 tail repair remain supported. V2 and V3 decoding require complete consumption
 and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
@@ -521,8 +538,8 @@ nonsense**, with the message naming the offending id:
   of zero or below (selection divides by it), a `min_interaction_ticks` of
   zero, a `wander_radius_tiles` outside `1..=i32::MAX`, a
   `duration_variance` outside `[0, 1)`, or an `idle_threshold` above
-  `action_threshold`, which would have a sim wander off while something is
-  worth doing
+  `action_threshold` (a retained historical tuning-validation contract; these
+  thresholds no longer exclude ordinary autonomous candidates)
 
 **`content/tuning.toml` is the single home for every value that governs the
 system**, as opposed to values describing one piece of content, and that is a
@@ -562,6 +579,12 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
+Short walls form a second atlas draw after opaque geometry, in the same render
+pass and submission. This small batch is sorted at geometry rebuild, tests the
+opaque depth buffer without writing it, and updates only its local fade opacity
+each frame. The entity buffer is never sorted. See
+`docs/specs/2026-09-30-cutaway-walls.md` for adjacency and build-mode rules.
+
 Edge-wall pixels use depth from the authored wall plane. Rectangular furniture
 uses the midpoint of the viewing column's intersection with its oriented
 collision footprint. Its occupied composite, foreground and indicator share
@@ -570,11 +593,14 @@ retain constant depth. This is a 2.5D ordering model for disjoint footprints,
 not a reconstruction of each sprite's 3D surfaces or overhangs. See
 `docs/assets/review-evidence/wall-clipping.md` for pixel and mutation checks.
 
-The shipped art direction is **Muted Line**, an original procedural isometric
-atlas generated from code. The renderer draws three stable baked character
-looks and a generated prop vocabulary from that atlas; per-instance tint and
-emissive strength carry the day/night treatment without a second draw. See
-TECH_STACK.md for the pipeline and the superseded alternatives.
+The shipped art direction is **Muted Line**. Its isometric atlas combines
+procedural architecture and props with reviewed offline Blender renders.
+The approved rig supplies character animation frames in three shirt colours;
+furniture exports supply consistent facings and, where implemented, matched
+occupied layers. Those models are authoring sources, not live 3D objects.
+Per-instance colour shifts and emissive strength apply to the sprite atlas
+without an extra draw. See TECH_STACK.md and the asset review evidence for
+the pipelines and their visual acceptance limits.
 
 Nighttime pools are a presentation-only tile field built from the render
 snapshot. The lamp and television spread neutral emissive strength by four-way
@@ -948,7 +974,10 @@ across a sync.
 
 JS to sim traffic is player commands only: small and infrequent, so a simple
 serialized command channel suffices. UI reads are pull-based and throttled; the
-needs panel does not need 60Hz.
+needs panel does not need 60Hz. Repeated text refreshes compare against the
+actual DOM value before assigning `textContent`: an unchanged assignment still
+replaces its text child and creates avoidable garbage. This is a write guard,
+not another cache of simulation state.
 
 The normal-play People panel follows the same projection rule. It gets the
 complete live row set from the household roster, gets sparse directional
@@ -1011,18 +1040,40 @@ Audio is presentation owned by the TypeScript shell. The Rust simulation has
 no browser audio types, nodes, volume settings, or playback state. The shell
 translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
-`sim.footstep`, household conversation and sleep cadence, personal eating,
+`sim.footstep`, recorded conversation start/end and household sleep cadence, personal eating,
 reading, and exercise cadence, source-owned object sound start and stop edges,
-and reserved door open and close events. Staged means accepted into the command
+and geometry-keyed door open and close events. Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
-Door audio events remain reserved and are not emitted by the animated portal
-renderer. Semantic events do not imply audible feedback. Routine staged
+Door audio samples the simulation-owned portal columns after fixed ticks, not
+the renderer. First observations anchor silently; closed-boundary transitions
+play bounded recorded cues. Semantic events do not imply audible feedback. Routine staged
 commands and completed controls remain silent; `command.rejected` is the only
 current routine-interface event mapped to a sound.
 
 The `AudioContext` is created or resumed only from a trusted pointer or keyboard
-gesture. Ordinary event emission never creates, resumes, or queues audio. The
-master gain is mute-only and the effects gain owns the current cue volume.
+gesture. Events before activation are dropped; emission never creates or resumes
+the context. The master gain is mute-only and the effects gain owns procedural cues, object
+recordings, and recorded conversation volume. A separate Voices gain feeds into
+Effects for conversations only. Its saved default is one, including when loading
+an older v1 preference record without that field. Changing Voices does not reset
+transport or other schedulers; even at zero, conversation playback stays bounded and
+advances normally. The simulation chooses two clip indices and
+derives their duration from compiled voice metadata; the shell owns playback.
+Each conversation has independent ownership: initiator ID, both words of its
+derived completion token, and clip indices. Both participant rows project the
+same identity. Ending one pair cancels only its playback and pending library
+start, while global lifecycle boundaries still clear all pairs. See
+`docs/specs/2026-09-30-conversation-audio-ownership.md`.
+Failed voice downloads or decoding leave retryable slots. A new conversation
+needing a missing slot may retry after a five-second monotonic cooldown; one
+batch runs at a time, and successful clips remain cached. Pending replay never
+triggers another fetch. Ended or globally invalidated conversations cannot start
+when a late download completes. See
+`docs/specs/2026-10-01-voice-download-recovery.md`.
+Interrupted voice envelopes retain their current level before fading, bounded
+by natural sample completion. Failed construction disconnects every created
+node immediately, even if that node never started. See
+`docs/specs/2026-09-30-conversation-audio.md` for rendered-sample proof.
 Crossing either master mute or zero Effects clears footstep, shared-activity,
 personal-activity, and object-sound scheduler state on both edges. The first
 audible fixed tick therefore describes the current action instead of waiting
@@ -1031,8 +1082,20 @@ Visibility changes synchronously gate emission, stop voices, clear walking
 phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
-Pause stops fixed ticks but does not stop the context or an already-playing
-cue. A successful Load reads identity from the replacement world's aligned
+While globally inaudible, fixed-tick audio frames still begin and end, but no
+observations reach their schedulers. Their normal absence handling releases
+object/conversation ownership and drops activity, stride and door history.
+An unavailable frame boundary also disposes unfinished procedural and door
+cues if they still have active sources, without resetting any open frame.
+Recording cleanup uses retained counts so object and conversation releases
+whose active owners already ended cannot survive the unavailable interval.
+Automatic return to running therefore starts only current actions, without
+requiring another gesture or replaying old motion. This samples availability
+at fixed ticks; it is not an operating-system interruption listener. See
+`docs/specs/2026-10-01-automatic-audio-recovery.md`.
+Pause stops fixed ticks and fades object loops, but does not suspend the context
+or stop an already-playing short cue or conversation. A successful Load reads
+identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually
 replaced.
 
@@ -1072,8 +1135,18 @@ source-ID-to-slot map, emits one start/change/stop edge per source, collapses
 duplicates, and fails conflicting same-frame actions closed. It creates no
 per-source JavaScript track object and grows no capacity after warm-up. Load,
 backgrounding, first unlock, mute changes, and Effects crossing zero reset its
-phase. The initial shower and stove actions are semantic bridge proof only;
-they have no procedural or sample playback yet.
+phase. Shower, stove and sink actions feed a source-owned recording
+player with at most four active loops and eight retained records including
+fades. Prepared recordings specify valid loop boundaries and gain. Its
+production catalog shares one provisional flowing-water WAV between showers
+(gain 0.6) and sinks (gain 0.35). Bathroom handwashing and kitchen washing-up
+author sink action 3; existing action codes stay unchanged. Stove action 2 plays
+a provisional first-party cooking texture at gain 0.6. Water and stove have
+independent demand-driven fetches, decoded caches and five-second failure
+cooldowns. New demand or an explicit load can retry; fixed ticks cannot.
+Late completion reconciles only still-owned sources. Every effective pause stops object loops,
+including blocking overlays; resume waits for a new fixed-tick observation.
+Short cues and conversations retain their existing finish-on-pause behavior.
 
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after
@@ -1242,6 +1315,32 @@ deliberately minimal content sync, not a real-time or authoritative game server.
 | **[R8]** | Backend cost scaling with player count | Ghost Records are KB-scale; storage-only design keeps cost near-linear and low |
 | **[R9]** | Anonymous player IDs are trivially reset, weakening retroactive bans | Reading stays anonymous; **uploading** requires a lightweight durable identity |
 
+
+## [VA-seeds] Fresh new games and saved autonomy
+
+The browser draws two words through `crypto.getRandomValues` and supplies the
+64-bit seed to `SimHandle.from_lot_with_seed` before household creation. Fixed-seed
+constructors remain for tests. Save V5 appends living-person self-preservation rows
+outside the frozen V1 snapshot. Loading validates before adopting the world;
+missing values draw from 30 through 70, inclusive, in stable entity order using
+the restored RNG. Explicit zero is preserved. Both values and generator state
+participate in the world hash. Details and tunables are in
+`docs/specs/2026-09-30-varied-autonomy.md`.
+
+## [Sleep-schedule-state] Per-person sleep timing
+
+Household creation copies the selected personality's signed chronotype offset
+into runtime state. Sleep scoring samples the daily curve at `clock - offset`:
+negative values bring the schedule forward, positive values delay it. This is
+a preference weight, not a forced bedtime.
+
+V5 appends sparse `chronotype_offsets` rows after self-preservation. Each row
+contains a living person's entity index and exact nonzero signed offset. The
+loader validates ordering, uniqueness and ownership before adopting the candidate
+world. Older saves omit the field and retain zero offsets. Frozen entity records
+remain unchanged. The world hash includes nonzero offsets and their owners in
+entity order; zero-only historical worlds retain their previous hash layout.
+See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
 ## Domestic state and presentation
 
 [Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Meal tables permit up to four terminal meal occupants, with separate adjacent endpoints and ownership-aware reservation release. Other uses remain exclusive.

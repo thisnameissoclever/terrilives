@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   GameHud,
@@ -77,6 +78,22 @@ describe('game HUD formatting', () => {
 });
 
 describe('GameHud', () => {
+  it('preserves unchanged text while applying changed state and repairing external edits', () => {
+    const view = roots();
+    const hud = new GameHud(view, 100);
+    hud.update(0, source());
+    const probes = Object.values(view).map(textWriteProbe);
+    hud.update(100, source());
+    expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0, 0, 0, 0, 0]);
+    hud.update(200, source({ funds: () => 4321 }));
+    expect(view.funds.textContent).toBe('4,321');
+    expect(probes[1].writes).toBe(1);
+    view.clock.textContent = 'External change';
+    hud.update(300, source());
+    expect(view.clock.textContent).toBe('Day 2, 01:30');
+    expect(probes[0].writes).toBe(2);
+  });
+
   it('shows the clock, funds and selected sim state together', () => {
     const view = roots();
     const hud = new GameHud(view, 100);

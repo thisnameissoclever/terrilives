@@ -40,6 +40,7 @@ export class HousemateForm {
   name = '';
   personality = 0;
   chosenTraits: number[] = [];
+  instinct: number | null = null;
   /** Whether a move-in is on its way to the drain. */
   pending = false;
   /** The drain's move-in count when this one was staged; its answer has a larger one. */
@@ -81,6 +82,7 @@ export class HousemateForm {
     this.name = '';
     this.personality = 0;
     this.chosenTraits = [];
+    this.instinct = null;
     this.relation = NO_RELATION;
     this.relative = null;
     this.pending = false;
@@ -99,6 +101,12 @@ export class HousemateForm {
     if (this.pending) return;
     if (!Number.isInteger(personality) || personality < 0 || personality >= this.personalities.length) return;
     this.personality = personality;
+    this.hooks.changed();
+  }
+
+  setInstinct(value: number | null): void {
+    if (this.pending || (value !== null && (!Number.isInteger(value) || value < 0 || value > 100))) return;
+    this.instinct = value;
     this.hooks.changed();
   }
 
@@ -176,7 +184,10 @@ export class HousemateForm {
   moveIn(): void {
     if (!this.canMoveIn()) return;
     this.stagedAfter = this.source.lastHousemateResult()?.handled ?? 0;
-    if (this.source.addHousemate(this.trimmedName(), this.personality, this.chosenTraits)) {
+    const accepted = this.instinct === null
+      ? this.source.addHousemate(this.trimmedName(), this.personality, this.chosenTraits)
+      : this.source.addHousemate(this.trimmedName(), this.personality, this.chosenTraits, this.instinct);
+    if (accepted) {
       this.pending = true;
       this.status = MOVING_IN;
     } else {
@@ -266,6 +277,9 @@ export class HousemateFormView {
   private readonly confirm: HTMLButtonElement;
   private readonly personalityRadios: HTMLInputElement[] = [];
   private readonly traitBoxes: HTMLInputElement[] = [];
+  private readonly instinctRandom: HTMLInputElement;
+  private readonly instinctSlider: HTMLInputElement;
+  private readonly instinctValue: HTMLOutputElement;
   private shownPage: HousematePage | null = null;
   private wasPending = false;
 
@@ -301,6 +315,40 @@ export class HousemateFormView {
     this.personalityPage = required('housemate-page-personality');
     this.traitsPage = required('housemate-page-traits');
     this.nameInput = required('housemate-name');
+    const instinctGroup = document.createElement('fieldset');
+    instinctGroup.className = 'instinct-controls';
+    const legend = document.createElement('legend');
+    legend.textContent = 'Self-preservation instinct';
+    const randomLabel = document.createElement('label');
+    this.instinctRandom = document.createElement('input');
+    this.instinctRandom.type = 'checkbox';
+    this.instinctRandom.checked = true;
+    const randomText = document.createElement('span');
+    randomText.textContent = ' Random';
+    randomLabel.append(this.instinctRandom, randomText);
+    const sliderLabel = document.createElement('label');
+    sliderLabel.textContent = 'Instinct: ';
+    this.instinctSlider = document.createElement('input');
+    this.instinctSlider.type = 'range';
+    this.instinctSlider.min = '0';
+    this.instinctSlider.max = '100';
+    this.instinctSlider.step = '1';
+    this.instinctSlider.value = '50';
+    this.instinctSlider.setAttribute('aria-label', 'Self-preservation instinct');
+    this.instinctSlider.setAttribute('aria-describedby', 'instinct-description');
+    this.instinctValue = document.createElement('output');
+    sliderLabel.append(this.instinctSlider, this.instinctValue);
+    const help = document.createElement('p');
+    help.id = 'instinct-description';
+    help.textContent = 'Higher values favor meeting low needs. Very low values can lead to dangerous neglect.';
+    instinctGroup.append(legend, randomLabel, sliderLabel, help);
+    const actions = this.traitsPage.querySelector('menu');
+    if (actions) actions.before(instinctGroup);
+    else this.traitsPage.append(instinctGroup);
+    this.instinctRandom.addEventListener('change', () => form.setInstinct(
+      this.instinctRandom.checked ? null : Number(this.instinctSlider.value)));
+    this.instinctSlider.addEventListener('input', () => form.setInstinct(Number(this.instinctSlider.value)));
+
     this.personalityList = required('housemate-personality-list');
     this.traitsList = required('housemate-traits');
     this.count = required('housemate-count');
@@ -368,6 +416,11 @@ export class HousemateFormView {
     const relative = form.relative === null ? '' : String(form.relative);
     if (this.relativeSelect.value !== relative) this.relativeSelect.value = relative;
     this.relativeSelect.disabled = form.relation === NO_RELATION;
+    this.instinctRandom.checked = form.instinct === null;
+    this.instinctRandom.disabled = form.pending;
+    this.instinctSlider.disabled = form.pending || form.instinct === null;
+    if (form.instinct !== null) this.instinctSlider.value = String(form.instinct);
+    this.instinctValue.textContent = form.instinct === null ? 'Random (0 to 100)' : String(form.instinct);
     const onTraits = form.page === 'traits';
     this.personalityPage.hidden = onTraits;
     this.traitsPage.hidden = !onTraits;
@@ -392,7 +445,9 @@ export class HousemateFormView {
     // A page change moves focus onto the new page, so a keyboard player is
     // never left on a control that has just been hidden.
     if (this.shownPage !== null && this.shownPage !== form.page) {
-      (onTraits ? this.traitBoxes[0] ?? this.confirm : this.nameInput).focus();
+      const traitTarget = this.traitBoxes.find((box) => !box.disabled)
+        ?? (this.confirm.disabled ? this.backButton : this.confirm);
+      (onTraits ? traitTarget : this.nameInput).focus();
     } else if (this.wasPending && !form.pending && onTraits) {
       // Move in had focus and went off while it waited; a refusal leaves the
       // player on the page with focus back where they pressed, or on Back

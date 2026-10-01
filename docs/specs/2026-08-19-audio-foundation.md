@@ -1,14 +1,12 @@
 # Audio foundation
 
-Status: the first slice was integrated into `main` on 2026-08-28 after the owner
-accepted the overall footstep character and requested slightly less bass. A
-second local slice raises isolated footsteps out of the bass-only thud range,
-replaces the exercise cue's low square pulse with a quieter high triangle
-sweep, and adds sparse fixed-tick cues for conversation and sleep. Automated
-tests cover event timing, lifecycle resets, cue bounds, and the combined
-simulation. Owner listening for the revised footstep, exercise, conversation,
-and sleep sounds remains open. Hidden-tab silence also remains an owner-required
-action.
+Status: the foundation and quieter activity cues are merged. Conversation now
+uses twelve first-party recordings, not the original procedural tone. The owner
+has adjusted their mix level through listening; the current playback gain is
+0.224. Broader sound-content acceptance and hidden-tab listening remain open.
+The dated evidence below describes the original foundation, not a fresh test
+of every later audio feature. See `ASSETS.md` for recording provenance and
+`2026-09-30-conversation-audio.md` for interrupted-voice repair evidence.
 
 ## Decision
 
@@ -23,20 +21,26 @@ tones are acceptance candidates, not a permanent sound-design commitment.
 
 ## Current player surface
 
-The HUD exposes two persistent controls:
+The Options menu exposes three persistent controls:
 
 1. `Sound: on/off` is master mute. It changes only the master gain between one
    and zero.
-2. `Effects` is a zero-to-100 percent range for current cues and footsteps. It
+2. `Effects` is a zero-to-100 percent range for all sound, including conversations. It
    previews gain during drag and writes storage once on committed change. Drag
    and release are silent.
+3. `Voices` is a zero-to-100 percent multiplier for recorded conversations only,
+   applied before Effects. Its default is 100%, preserving the existing mix.
+   Dragging previews the level; committed changes persist silently. It does not
+   change footsteps, other activity cadence or the Effects setting.
 
-Both controls remain visible in the desktop HUD and belong to the compact
-mobile HUD. The range is at least 44 CSS pixels tall. The help dialog names both
-controls. Browser storage denial leaves the current session setting usable.
+The controls live in Options on desktop and mobile. Both ranges are at least
+44 CSS pixels tall. The help dialog names the controls. Browser storage denial
+leaves the current session settings usable.
 
-The versioned preference key is `terrilives.audio-preferences.v1`. A malformed,
-partial, out-of-range, or unknown-version record is ignored in full.
+The versioned preference key remains `terrilives.audio-preferences.v1`.
+Malformed original fields or an unknown version discard the record. Existing
+valid records without `voicesLevel` keep their mute and Effects settings and
+default Voices to 100%. An invalid Voices field defaults only that field.
 
 ## Activation and browser lifecycle
 
@@ -57,26 +61,65 @@ partial, out-of-range, or unknown-version record is ignored in full.
    only for a context that was previously gesture-activated.
 8. Visibility requests are revisioned and serialized. The latest requested
    state wins even when an older browser promise settles late.
-9. Pause stops simulation ticks. It does not suspend audio or cut off an
-   already-playing cue. The Pause control itself is silent.
+9. Pause stops simulation ticks and fades object loops. It does not suspend
+   audio or cut off an already-playing short cue or conversation. Every blocking
+   overlay uses the same object-loop pause path. The Pause control is silent.
 10. Successful Load reads the replacement world's aligned stable identity and
    clears active world phase after replacement. Failed or cancelled Load
    changes no audio world state.
+11. Object stops and conversation ends cancel matching ownership even while
+    audio is suspended or otherwise inaudible. A running clock keeps normal
+    release fades; a stopped clock immediately releases the affected nodes.
+    Late decoding cannot revive an ended action. See
+    `2026-10-01-suspended-audio-cancellation.md` for cancellation evidence.
+12. While globally inaudible, fixed ticks finish every scheduler frame but
+    forward no observations. Existing object and conversation ownership ends;
+    footstep, personal, sleep and door history clears through normal absence
+    handling. At the first unavailable frame boundary, unfinished procedural
+    and door cues are stopped so their frozen tails cannot resume. The first
+    audible tick starts only current actions and silently
+    re-anchors footsteps and doors, including automatic context recovery without
+    a new gesture. Continuing recordings restart rather than preserve their
+    frozen position. See `2026-10-01-automatic-audio-recovery.md`.
+13. Unavailable frame cleanup also reclaims retained object and conversation
+    releases whose owners already ended. An active count of zero does not
+    prove those nodes are disconnected. Normal audible fades remain unchanged;
+    see `2026-10-01-interrupted-release-cleanup.md`.
+14. The controller owns its context's `onstatechange` handler. A non-running
+    event immediately clears all four player families, including release-only
+    recordings, pending ownership and every scheduler, even while simulation
+    ticks are paused. Returning to running starts nothing by itself; fresh
+    observations may restart current actions. Abandoned graph construction
+    detaches the handler before closing, and queued callbacks from that graph
+    cannot touch a later context. See `2026-10-01-audio-state-events.md`.
 
 ## Node graph and bounded playback
 
 The graph is:
 
-`procedural voice -> effects gain -> master gain -> destination`
+`recorded conversation -> voices gain -> effects gain -> master gain -> destination`
 
-The split is load-bearing. Effects may not change a future music, ambience, or
-voice bus. Mute owns the master gain only.
+`procedural cue -> effects gain -> master gain -> destination`
+
+`prepared object recording -> effects gain -> master gain -> destination`
+
+Effects retains its existing meaning: it controls cues, object recordings, and recorded conversation.
+Voices scales conversations further. Mute owns the master gain only. Changing
+Voices, including crossing zero, leaves bounded conversation transport running
+and does not reset any scheduler. Raising it therefore restores the current
+position, not a restarted clip. Master mute, Effects zero, hidden tabs and world
+replacement retain their existing stop/reset behavior. Library loads use the
+same graph and cannot bypass a zero voice gain.
 
 Each audible cue creates one oscillator and one gain envelope, then disconnects
-both nodes when ended or evicted. Rejection, footstep, conversation, and
+both nodes when ended or evicted. Rejection, footstep, and
 personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
 lasts 420 ms. At most eight voices remain active. A ninth event stops and
-disconnects the oldest voice instead of building an invisible backlog.
+disconnects the oldest voice instead of building an invisible backlog. Recorded
+conversations use two buffer sources sharing one gain, with a separate cap of
+three pairs. The scheduler tracks each conversation independently and collapses
+its two participant rows into one pair, rather than selecting one household-wide
+conversation. Starting or ending another pair does not restart an existing one.
 
 The current semantic events are:
 
@@ -86,8 +129,9 @@ The current semantic events are:
 3. `ui.confirmed`: a selected immediate control completed.
 4. `sim.footstep { simId, stepIndex }`: a stable Sim crossed one stride
    threshold.
-5. `sim.conversation { simId, phraseIndex }`: one household conversation began
-   or reached its next sparse chatter interval.
+5. `sim.conversation-started { simId, voice }` and
+   `sim.conversation-ended { voice }`: start the simulation-selected recorded
+   pair, or fade only that instance when the observed conversation ends.
 6. `sim.sleep-breath { simId, breathIndex }`: sleep began or reached its next
    slow breathing interval.
 7. `sim.eating { simId, biteIndex }`: one Sim began eating or reached its next
@@ -98,10 +142,13 @@ The current semantic events are:
    reached its next sparse motion interval.
 10. `object.sound-started { sourceId, action }` and
     `object.sound-stopped { sourceId, action }`: an exact placed object's
-    authored semantic sound state changed. These events have no audible player
-    yet.
-11. `door.opened` and `door.closed`: reserved event shapes only. No current door
-   transition emits them.
+    authored semantic sound state changed. These events drive the object-loop
+    player when a prepared recording is installed. One provisional shower-water
+    recording ships; subjective listening acceptance remains open.
+11. `door.opened` and `door.closed`: portal transitions across the closed-state
+    boundary. Geometry supplies identity; initial observations and lifecycle
+    re-anchoring are silent. These now play prepared recordings rather than
+    the dormant procedural door tones. See `2026-10-01-door-audio.md`.
 
 Canvas, keyboard, object-menu, Clear-orders, and Household-roster command
 outcomes use the same staged/rejected distinction. The distinction remains
@@ -138,21 +185,35 @@ out of alignment.
 
 The same fixed-tick sample maps authored visual actions into `conversation`,
 `sleep`, or no sustained audio activity. Two participants do not emit two
-conversation cues. The scheduler selects the lowest stable `SimId` as the
-deterministic representative and emits one household conversation voice on
-entry, then once every eight ticks while any conversation remains active.
+conversation cues. Each pair uses the initiator's stable `SimId`, an exact
+two-word completion token and its two simulation-selected clip indices. Their
+compiled durations determine conversation length. Playback schedules the second
+clip directly against the audio clock; it does not repeat a tone every eight
+ticks. Fast-forward modestly raises playback rate, then fades any remaining
+audio when the simulation ends the conversation. Simulation duration and rewards
+are not changed by the player.
 
-Sleep follows the same household-level rule. One quiet breath plays on entry,
+Both participant rows carry the same identity. Starting or ending another pair
+does not restart this one. Pending decoded-library playback is keyed the same
+way, so ending one pair cannot cancel another or revive itself after loading.
+See `2026-09-30-conversation-audio-ownership.md` for projection and verification.
+
+Missing recordings can recover after a temporary fetch or decode failure. A new
+conversation needing a missing clip triggers at most one shared retry batch per
+five seconds. Successful clips remain cached, and late recovery cannot revive
+an ended or globally invalidated pair. Explicit library loading can also retry
+missing slots. See `2026-10-01-voice-download-recovery.md` for the contract and proof.
+
+Sleep remains household-level. One quiet breath plays on entry,
 then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets
 its cadence. Load, backgrounding, the first successful audio unlock, recovery
 from an externally suspended audio context, master mute changes, and Effects
-crossing zero reset both cadences so silent intervals cannot delay or burst
-later.
+crossing zero reset shared activity state so silent intervals cannot delay or
+burst later.
 
-These rates are presentation policy at 10 fixed ticks per second: 0.8 seconds
-between conversation phrases and 3 seconds between sleep breaths. They do not
-change simulation duration, animation timing, or save data.
+Sleep's three-second cadence is presentation policy at 10 fixed ticks per second.
+It does not change simulation duration, animation timing, or save data.
 
 ## Personal activity cadence
 
@@ -232,11 +293,27 @@ Load, backgrounding, first audio unlock, mute changes, and Effects crossing
 zero clear retained source state. The next audible observation therefore begins
 fresh rather than resuming a loop whose start happened while silent.
 
-This bridge deliberately produces no oscillator placeholder and plays no
-downloaded sample. Shower and stove audio remain silent until recordings pass
-the documented CC0 intake, source review, editing, and owner listening gates.
-There is also no real door entity or door state in the current lot, so the
-reserved door event shapes are not evidence of working door audio.
+The bounded object-loop player now consumes these edges and explicit prepared
+recordings. It admits at most four active loops and retains at most eight
+records including fades. Missing clips cause no placeholder sound. The
+controller fetches the shared prepared water clip on playable shower or sink
+demand, and a separate prepared texture on cooking demand.
+Pending sources clear at lifecycle boundaries; capacity-rejected sources remain
+eligible while observed. Effective pause stops loops and resume waits for a new
+fixed tick. See `2026-10-01-object-loop-playback.md` for the playback contract
+and rendered-signal proof.
+
+The shipped catalog contains one provisional CC0 water loop, shared by showering,
+handwashing and kitchen washing-up, plus one provisional first-party synthetic
+cooking texture. Each family caches success and independently delays failed
+retries for five seconds until new demand or an explicit loader call. Ended or
+globally invalidated sources cannot revive on late decode. See
+`2026-10-01-stove-cooking-texture.md` and `2026-10-01-shower-water-recording.md` for provenance, measured
+levels and the still-unverified listening assessment.
+The sink mapping and lower gain are recorded in `2026-10-01-sink-water-audio.md`.
+Front and interior doors now supply geometry-keyed closed-boundary transitions
+to a bounded one-shot recording player. Loading never queues historical events.
+Door recordings feed Effects independently of Voices.
 
 ## Performance acceptance
 
@@ -261,10 +338,18 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
    capacity grows after warm-up. Fresh bridge view wrappers are required by
    [D11] and must not be misreported as literal zero allocation.
 7. Run three alternating enabled/disabled retained-memory pairs. Measure
-   quiescent paused endpoints after explicit garbage collection. Require the
+   quiescent paused endpoints after explicit garbage collection. Clear selection
+   through the public command and wait for the complete unselected UI projection
+   at both endpoints, including cleared career/mood text, empty panel rows,
+   unpressed roster selection and matching dock summaries. Empty moodlet/action
+   rows alone can precede the independently throttled HUD refresh. Keep Personal
+   Details closed for this scenario. Restore selection for the measured gameplay
+   interval. Let all
+   audio players finish before comparing retained listener counts. Require the
    median enabled-minus-disabled retained JavaScript delta to remain within the
    predeclared 64 KiB allowance, with zero active voices, bounded track count,
-   unchanged scheduler capacity, and no DOM or listener growth. Report broader
+   unchanged scheduler capacity, and exactly equal document, DOM-node and listener
+   counts at normalized endpoints. A decrease also fails equality. Report broader
    page and WASM growth separately instead of assigning it to audio.
 8. Separately run 40 stable walking Sims for 600 ticks so the scheduler's own
    retained state is exercised rather than inferred from autonomous stress Sims.
@@ -661,10 +746,10 @@ Restored SHA-256 values were:
 
 ## Open work
 
-1. Wire door events only after the front door has authoritative open and close
-   state.
-2. Add ambience, object loops, alarms, music, and nonverbal Sim voices.
-3. Add independent music, ambience, and voice controls without changing the
-   current Effects meaning.
+1. Complete subjective listening review for provisional shower and door recordings.
+2. Select and accept recordings for the object-loop player. Add ambience,
+   alarms, music, and non-conversation Sim voices.
+3. Add music and ambience controls when those categories have playable content.
+   Voices now has its own multiplier without changing the Effects meaning.
 4. Replace or refine procedural tones only after the event and lifecycle layer
    passes listening acceptance.

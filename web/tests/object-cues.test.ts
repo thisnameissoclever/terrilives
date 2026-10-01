@@ -23,6 +23,23 @@ function frame(
 }
 
 describe('ObjectSoundCueScheduler', () => {
+  it('tracks sink action 3 independently of shower and other sinks', () => {
+    const events: ObjectSoundCueEvent[] = [];
+    const cues = scheduler(events);
+    frame(cues, [[41, 3], [41, 3], [42, 3], [43, 1]]);
+    frame(cues, [[43, 1], [42, 3]]);
+    frame(cues, []);
+    expect(events).toEqual([
+      { type: 'object.sound-started', sourceId: 41, action: 3 },
+      { type: 'object.sound-started', sourceId: 42, action: 3 },
+      { type: 'object.sound-started', sourceId: 43, action: 1 },
+      { type: 'object.sound-stopped', sourceId: 41, action: 3 },
+      { type: 'object.sound-stopped', sourceId: 43, action: 1 },
+      { type: 'object.sound-stopped', sourceId: 42, action: 3 },
+    ]);
+    expect(cues.activeTrackCount()).toBe(0);
+  });
+
   it('emits one start edge, no unchanged replay, and one stop edge', () => {
     const events: ObjectSoundCueEvent[] = [];
     const cues = scheduler(events);

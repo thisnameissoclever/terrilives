@@ -1,0 +1,109 @@
+{
+  "state": "complete",
+  "scope": "Unreviewed green sitting checkpoint",
+  "signature": {
+    "D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\preview_armchair.py": "62ddff82a9a50835bdc52e036793c64f12381a7c42a04f7972cdb862fa79e598",
+    "D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\owner-review-pending\\armchair\\candidate-01\\armchair-authoring.blend": "e49cf1c3c08cc55c4e5626d02f4db6bba9e2178d2eefdb6eab8477239244a623",
+    "D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\owner-review-pending\\armchair\\candidate-01\\proof.json": "c355691e3c34f9793ad9d47d424f7e09f647a389293740f7792539a446560e6d"
+  },
+  "blender_version": "4.5.14 LTS",
+  "blender_build_hash": "62c1db4208e8",
+  "renders": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "path": "sit-SE-0.png",
+      "sha256": "7bc82021b191a4ebb38712df3f7b6797985d325e9d0a9db6fcbfde028eb8a90a"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "path": "sit-SE-1.png",
+      "sha256": "c645a0904460080d024f0df93841a36d790d5d88d51532eb13c18230ad5c0816"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "path": "sit-SE-2.png",
+      "sha256": "3346180cc9f0bdff526d6d10265127b10853d22a9a8fb9f6fb9fbd45c365d2b7"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "path": "sit-SE-3.png",
+      "sha256": "dd8149b8690cf1d5a17e7005383d151bf93d1cffe8dfea943a3a415a46b5efb1"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "path": "sit-NW-0.png",
+      "sha256": "f4a3f9096f1c5ce4207e83b6f729c56fe9ec9c13b0be5585a294521577558070"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "path": "sit-NW-1.png",
+      "sha256": "35c8035d9c85a0757c9822d0895e34fced6c7dbc8f80c751beb8289f8afc187e"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "path": "sit-NW-2.png",
+      "sha256": "eda340bd6b270901ef793fd338400708965c68daafcf9713258b3d47888589e3"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "path": "sit-NW-3.png",
+      "sha256": "6a6427d0ec5c442e28ba8e5e743790bf5ff08758a44b742ef2b0617dec5d9fd9"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "path": "sit-SW-0.png",
+      "sha256": "82e675ce98a7f7023af64d4b3e4309e85ed6aa63b1127743d11ec838feb9ca4a"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "path": "sit-SW-1.png",
+      "sha256": "b83fd4ab59b4b1f21ffee1cb73805c2368b76c4ef530a91e2d68d777d90c5250"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "path": "sit-SW-2.png",
+      "sha256": "494d48b7a6082752e8b4dad2a55b721ec7470e289fd2b1512bd047119d76643c"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "path": "sit-SW-3.png",
+      "sha256": "d2b4c074817ef35a5eb933f7b675bc534a010b9d95d5f63145bedc3aa47b7155"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "path": "sit-NE-0.png",
+      "sha256": "885afd90e1edf1dfa2a51d9b6129de029e830583f14dbdf6a202d1ec33b6ec9f"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "path": "sit-NE-1.png",
+      "sha256": "3c27192a6f342d15966333146bf37893f3a248338b60a402703111a379c9bd5a"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "path": "sit-NE-2.png",
+      "sha256": "7ed479f7bed535e27868ae17e829722f4510c6ffd3e4d21f80edc8ce5173d7fd"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "path": "sit-NE-3.png",
+      "sha256": "6590b25546a7bc91460d0b938bcc413a9c4dbfec4e3d30dc9f1dc7a13cf9d4c5"
+    }
+  ]
+}

@@ -54,6 +54,7 @@ impl FacingSprites {
 pub enum CompiledSoundAction {
     ShowerWater,
     StoveCooking,
+    SinkWater,
 }
 
 /// Body-pose category resolved from an authored `visual` table.
@@ -510,22 +511,7 @@ pub struct Tuning {
     /// Seed for a new simulation's PRNG. Save V1 persists the complete
     /// live PRNG state, which makes continuation after Load replayable.
     pub rng_seed: u64,
-    /// The most player-issued intents one sim may hold at once. At least
-    /// 1.
-    ///
-    /// This is the only thing rate-limiting a click. `drain_commands`
-    /// pushes one intent per `UseObject` command and nothing trims the
-    /// queue, so without it a JavaScript loop grows one agent's queue
-    /// without bound and every entry is a stretch of time that sim is
-    /// not choosing for itself. `content/tuning.toml` carries the time
-    /// budget the number is derived from and why the overflow drops the
-    /// newest intent rather than the oldest.
-    ///
-    /// The pack's byte encoding grows by appending, so a knob added
-    /// here keeps every earlier block's offset and the golden vector in
-    /// `compile.rs` stays reviewable against the annotations it already
-    /// has. `max_queued_intents` was last until `max_queued_commands`
-    /// arrived; that one is last now.
+    /// Maximum waiting player orders per sim; zero means unlimited.
     pub max_queued_intents: u32,
     /// The most commands the WASM boundary will hold between two drains.
     /// At least 1.
@@ -676,6 +662,15 @@ pub struct Tuning {
     pub waiting_mood_max_penalty: f32,
     pub satisfaction_mood_neutral_band: f32,
     pub satisfaction_mood_per_tick: f32,
+    /// Autonomous choice and self-preservation controls.
+    pub choice_comfort_temperature: f32,
+    pub choice_exploration: f32,
+    pub choice_comfort_exploration: f32,
+    pub leisure_appeal: f32,
+    pub survival_risk_penalty: f32,
+    pub choice_probability_floor: f32,
+    pub wander_pause_variance: f32,
+    pub self_preservation_curve: [(u8, f32); 6],
     /// Domestic systems are disabled in custom packs without this table.
     pub domestic: Option<DomesticTuning>,
 }
@@ -745,7 +740,7 @@ pub struct CompiledPersonality {
     /// interaction that does not exist has no representation once a pack
     /// exists.
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
-    /// Where on the circadian curve this archetype samples, in ticks -
+    /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     /// [ML-chrono]. 0 is "sleeps when everyone else does", which is the
     /// default and is what every archetype had before this existed.
     pub chronotype_offset_ticks: i32,
@@ -1241,6 +1236,22 @@ mod tests {
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
         Tuning {
+            choice_comfort_temperature: 1.0,
+            choice_exploration: 0.005,
+            choice_comfort_exploration: 0.20,
+            leisure_appeal: 0.12,
+            survival_risk_penalty: 5.0,
+            choice_probability_floor: 0.000000001,
+            wander_pause_variance: 0.4,
+            self_preservation_curve: [
+                (0, 0.02),
+                (5, 0.10),
+                (30, 0.75),
+                (50, 1.0),
+                (70, 1.4),
+                (100, 2.0),
+            ],
+
             domestic: None,
             action_threshold: 0.25,
             choice_temperature: 0.5,
@@ -1923,13 +1934,10 @@ mod tests {
         .into_iter()
         .flat_map(f32::to_le_bytes)
         .collect();
-        assert_eq!(
-            before.last(),
-            Some(&0),
-            "domestic tuning is an appended optional record"
-        );
-        assert_eq!(&before[before.len() - 61..before.len() - 1], mood_bytes);
-        let len = before.len() - 1 - 20 - 60;
+        // Seven f32 controls and six (u8, f32) anchors append 58 bytes.
+        let old_end = before.len() - 59;
+        assert_eq!(&before[old_end - 60..old_end], mood_bytes);
+        let len = old_end - 20 - 60;
         assert_eq!(
             before[len..len + 20],
             [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]

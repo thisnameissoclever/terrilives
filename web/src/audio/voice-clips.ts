@@ -28,6 +28,9 @@ export interface AudioBufferPort {
 
 export interface AudioBufferSourcePort extends AudioNodePort {
   buffer: AudioBufferPort | null;
+  loop?: boolean;
+  loopStart?: number;
+  loopEnd?: number;
   readonly playbackRate: AudioParamPort;
   onended: (() => void) | null;
   start(when?: number, offset?: number): void;
@@ -83,8 +86,12 @@ const EDGE_FADE_SECONDS = 0.012;
 export const MAX_ACTIVE_VOICE_CONVERSATIONS = 3;
 
 interface ActiveConversation {
+  readonly key: string | undefined;
   readonly gain: GainNodePort;
   readonly sources: AudioBufferSourcePort[];
+  readonly startedAt: number;
+  readonly endsAt: number;
+  readonly fadeSeconds: number;
   ended: boolean;
   /** Set once the nodes have left the graph, so teardown cannot run twice. */
   torn: boolean;
@@ -135,12 +142,12 @@ export class VoiceClipPlayer {
    * the clips play faster and a little higher, which is what fast-forward
    * uses; the pitch rise is deliberately far smaller than the speed-up,
    * because nothing here has to fit a deadline - a conversation that outlasts
-   * its fast-forwarded slot is cut by `stopAll`.
+   * its fast-forwarded slot is cut by `stopConversation`.
    *
    * Returns false when the clips are missing or the audio hardware refuses,
    * and never throws: a sound failing is not a reason for the frame to fail.
    */
-  play(first: number, second: number, rate = 1): boolean {
+  play(first: number, second: number, rate = 1, key?: string): boolean {
     const firstClip = this.clips[first];
     const secondClip = this.clips[second];
     if (firstClip === undefined || secondClip === undefined) return false;
@@ -164,22 +171,28 @@ export class VoiceClipPlayer {
       }
 
       gain = this.context.createGain();
-      gain.gain.cancelScheduledValues(now);
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(VOICE_CLIP_GAIN, now + EDGE_FADE_SECONDS);
-
       const firstSeconds = firstClip.duration / rate;
       const secondSeconds = secondClip.duration / rate;
       const totalSeconds = firstSeconds + secondSeconds;
+      // Keep attack and release ordered even for very short buffers. Shipped
+      // recordings retain the full 12 ms edges.
+      const fadeSeconds = Math.min(EDGE_FADE_SECONDS, totalSeconds / 2);
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(VOICE_CLIP_GAIN, now + fadeSeconds);
       gain.gain.linearRampToValueAtTime(
         VOICE_CLIP_GAIN,
-        now + Math.max(EDGE_FADE_SECONDS, totalSeconds - EDGE_FADE_SECONDS),
+        now + totalSeconds - fadeSeconds,
       );
       gain.gain.linearRampToValueAtTime(0, now + totalSeconds);
 
       const record: ActiveConversation = {
+        key,
         gain,
         sources: [],
+        startedAt: now,
+        endsAt: now + totalSeconds,
+        fadeSeconds,
         ended: false,
         torn: false,
         teardownAfter: 0,
@@ -192,11 +205,11 @@ export class VoiceClipPlayer {
       ];
       for (const [clip, when] of starts) {
         const source = this.context.createBufferSource();
+        record.sources.push(source);
         source.buffer = clip;
         source.playbackRate.cancelScheduledValues(now);
         source.playbackRate.setValueAtTime(rate, now);
         source.connect(gain);
-        record.sources.push(source);
         source.start(when);
         source.stop(when + clip.duration / rate);
       }
@@ -212,7 +225,16 @@ export class VoiceClipPlayer {
       return true;
     } catch {
       if (conversation !== null) {
-        this.finish(conversation, true);
+        // A failed pair has never been published to the output. Reclaim it
+        // immediately, including sources that failed before they could start.
+        for (const source of conversation.sources) {
+          try {
+            source.stop(now);
+          } catch {
+            // An unstarted source may refuse stop; it still gets disconnected.
+          }
+        }
+        this.tearDown(conversation);
       } else if (gain !== null) {
         safeDisconnect(gain);
       }
@@ -220,15 +242,18 @@ export class VoiceClipPlayer {
     }
   }
 
-  /**
-   * Stops everything, fading rather than cutting.
-   *
-   * Called when a conversation ends before its audio does, which is what
-   * fast-forward makes routine: the world runs two or three times real time
-   * while the recordings do not, so the talking finishes first.
-   */
-  stopAll(): void {
-    for (const conversation of [...this.active]) this.finish(conversation, true);
+  /** Stops only this instance when the simulation outruns its recording. */
+  stopConversation(key: string, immediate = false): void {
+    const conversation = this.active.find((record) => record.key === key);
+    if (conversation !== undefined) this.finish(conversation, true, immediate);
+  }
+
+  /** Fade active pairs by default; immediate silence also disposes existing releases. */
+  stopAll(immediate = false): void {
+    for (const conversation of [...this.active]) this.finish(conversation, true, immediate);
+    if (immediate) {
+      for (const conversation of [...this.draining]) this.finish(conversation, true, true);
+    }
   }
 
   activeConversationCount(): number {
@@ -246,22 +271,27 @@ export class VoiceClipPlayer {
     return this.active.length + this.draining.length;
   }
 
-  private finish(conversation: ActiveConversation, stop: boolean): void {
-    if (conversation.ended) return;
+  private finish(conversation: ActiveConversation, stop: boolean, immediate = false): void {
+    if (conversation.torn || (conversation.ended && !immediate)) return;
     conversation.ended = true;
 
     const index = this.active.indexOf(conversation);
     if (index >= 0) this.active.splice(index, 1);
 
-    if (!stop) {
-      // Reported ended: the audio has already played out, so the nodes can go
-      // immediately.
+    if (!stop || immediate) {
+      if (stop) {
+        for (const source of conversation.sources) {
+          try { source.stop(this.context.currentTime); }
+          catch { /* Still disconnect every node if a source refuses stop. */ }
+        }
+      }
+      // Natural completion or a stopped hardware clock needs no release fade.
       this.tearDown(conversation);
       return;
     }
 
     const now = this.context.currentTime;
-    const silentAt = now + EDGE_FADE_SECONDS;
+    const silentAt = Math.max(now, Math.min(now + EDGE_FADE_SECONDS, conversation.endsAt));
 
     // **Ramp first, disconnect LATER.** Disconnecting in this same turn would
     // remove the nodes from the graph before the ramp could reach the output,
@@ -269,6 +299,10 @@ export class VoiceClipPlayer {
     // a cut partway through a waveform is a click.
     try {
       conversation.gain.gain.cancelScheduledValues(now);
+      // Replacing a future ramp also removes its current interpolated value.
+      // Anchor the original envelope with a ramp ending now, preserving its
+      // trajectory through attack or release before scheduling the stop fade.
+      conversation.gain.gain.linearRampToValueAtTime(envelopeGainAt(conversation, now), now);
       conversation.gain.gain.linearRampToValueAtTime(0, silentAt);
     } catch {
       // A context that is already closed cannot be ramped. Tearing down at
@@ -357,6 +391,14 @@ export class VoiceClipPlayer {
   }
 }
 
+function envelopeGainAt(conversation: ActiveConversation, time: number): number {
+  const { startedAt, endsAt, fadeSeconds } = conversation;
+  if (time <= startedAt || time >= endsAt) return 0;
+  const attack = (time - startedAt) / fadeSeconds;
+  const release = (endsAt - time) / fadeSeconds;
+  return VOICE_CLIP_GAIN * Math.min(1, attack, release);
+}
+
 function safeDisconnect(node: AudioNodePort): void {
   try {
     node.disconnect();
@@ -379,8 +421,8 @@ export interface VoiceClipDecoder {
 }
 
 /**
- * Fetches and decodes the whole library, in the index order the simulation
- * uses.
+ * Fetches missing recordings in simulation index order. Previously decoded
+ * slots must belong to the same IDs in the same order.
  *
  * **A clip that fails to load leaves a hole rather than failing the load.**
  * The library is presentation: a missing recording should cost that one
@@ -395,9 +437,11 @@ export async function loadVoiceClips(
   ids: readonly string[],
   fetchBytes: VoiceClipFetcher,
   decode: VoiceClipDecoder,
+  previous: readonly (AudioBufferPort | undefined)[] = [],
 ): Promise<(AudioBufferPort | undefined)[]> {
   return Promise.all(
-    ids.map(async (id) => {
+    ids.map(async (id, index) => {
+      if (previous[index] !== undefined) return previous[index];
       try {
         return await decode(await fetchBytes(voiceClipUrl(id)));
       } catch {

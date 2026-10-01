@@ -17,6 +17,7 @@ pub(crate) struct Member<'a> {
     pub hobbies: Vec<String>,
     pub traits: &'a [u32],
     pub career: Option<u32>,
+    pub instinct: Option<u8>,
 }
 
 /// Spawns one household member with a freshly issued sim id and returns it.
@@ -30,16 +31,21 @@ pub(crate) fn spawn_member(
 ) -> Entity {
     let sim_id = world.resource_mut::<terri_core::SimIdAllocator>().issue();
     let compiled = &personalities[member.personality as usize];
-    let personality = terri_core::Personality::with_dispositions(
+    let mut personality = terri_core::Personality::with_dispositions(
         compiled.drain,
         compiled.satisfaction,
         compiled.dispositions.clone(),
     );
+    personality.chronotype_offset_ticks = compiled.chronotype_offset_ticks;
     let mut needs = terri_core::Needs::all_at(NEED_MAX);
     for id in terri_core::NeedId::ALL {
         needs.set(id, member.needs[id.index()]);
     }
+    let instinct = member
+        .instinct
+        .unwrap_or_else(|| world.resource_mut::<terri_core::SimRng>().range(101) as u8);
     let mut spawned = world.spawn((
+        terri_core::SelfPreservation(instinct),
         Agent,
         member.position,
         needs,
@@ -103,6 +109,8 @@ pub enum HousemateRefusal {
     RepeatedTrait = 6,
     /// No open floor for the newcomer to arrive on.
     NoWayIn = 7,
+    /// The chosen instinct lies outside 0 through 100.
+    BadInstinct = 8,
 }
 
 /// What the drain did with the most recent move-in.
@@ -205,8 +213,23 @@ fn arrival(world: &World) -> Result<(Position, Vec<(i32, i32)>), HousemateRefusa
 /// Revalidates and moves the newcomer in, in one exclusive command drain,
 /// then records what happened for the shell.
 pub(crate) fn commit(world: &mut World, name: &str, personality: u32, traits: &[u32]) {
-    let checked = validate_housemate(world, name, personality, traits)
-        .and_then(|name| arrival(world).map(|arrival| (name, arrival)));
+    commit_with_instinct(world, name, personality, traits, None);
+}
+
+/// Applies either a chosen instinct or a draw after all move-in checks pass.
+pub(crate) fn commit_with_instinct(
+    world: &mut World,
+    name: &str,
+    personality: u32,
+    traits: &[u32],
+    instinct: Option<u8>,
+) {
+    let checked = if instinct.is_some_and(|value| value > 100) {
+        Err(HousemateRefusal::BadInstinct)
+    } else {
+        validate_housemate(world, name, personality, traits)
+    }
+    .and_then(|name| arrival(world).map(|arrival| (name, arrival)));
     let result = match checked {
         Ok((name, (position, steps))) => {
             let content = world.resource::<Content>().0;
@@ -222,6 +245,7 @@ pub(crate) fn commit(world: &mut World, name: &str, personality: u32, traits: &[
                     hobbies: Vec::new(),
                     traits,
                     career: None,
+                    instinct,
                 },
             );
             if !steps.is_empty() {

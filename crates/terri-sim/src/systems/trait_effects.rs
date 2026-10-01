@@ -356,7 +356,7 @@ mod tests {
     /// without the trait takes it immediately. The fear is a weight on
     /// choice, not a wall: nothing here gates the attempt itself.
     #[test]
-    fn a_fear_keeps_a_sim_from_choosing_what_its_twin_takes_at_once() {
+    fn a_fear_reduces_choice_probability_without_excluding_the_action() {
         let mut lounge =
             crate::test_content::interaction("lounge", &[(terri_core::NeedId::Comfort, 30.0)], 20);
         lounge.tags = vec!["lounging".to_string()];
@@ -377,7 +377,8 @@ mod tests {
             ..base.clone()
         }));
 
-        for (worn, expect_target) in [(true, false), (false, true)] {
+        let mut probabilities = Vec::new();
+        for worn in [true, false] {
             let mut sim = crate::test_content::sim_with(8, 8, pack);
             let sofa = pack.find("sofa").expect("fixture");
             sim.world_mut().spawn((
@@ -396,21 +397,26 @@ mod tests {
             }
             let agent = spawned.id();
 
-            let mut chose = false;
-            for _ in 0..30 {
-                sim.tick();
-                if sim.world().get::<terri_core::Target>(agent).is_some()
-                    || sim.world().get::<terri_core::Eating>(agent).is_some()
-                {
-                    chose = true;
-                    break;
-                }
-            }
-            assert_eq!(
-                chose, expect_target,
-                "worn={worn}: a zero disposition must silence the only                  candidate, and its absence must leave it irresistible"
+            sim.tick();
+            let decision = sim
+                .world()
+                .resource::<crate::systems::autonomy::DecisionTelemetry>()
+                .0
+                .iter()
+                .find(|d| d.agent == agent.index_u32())
+                .unwrap();
+            probabilities.push(
+                decision
+                    .choices
+                    .iter()
+                    .filter(|(_, row, _, _, _)| *row == 0)
+                    .map(|(_, _, _, _, p)| *p)
+                    .sum::<f64>(),
             );
         }
+        assert!(
+            probabilities[0] > 0.0 && probabilities[0] < probabilities[1] && probabilities[1] < 1.0
+        );
     }
 
     /// A condition SCALES what a completed hobby pays - by the exact

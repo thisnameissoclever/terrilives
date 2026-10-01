@@ -11,6 +11,9 @@ export interface EdgeWallPanel {
    * there is window art, so the caller tints it to tell them apart.
    */
   readonly window?: boolean;
+  readonly low?: boolean;
+  /** Tiles behind this panel from the fixed southeast camera. */
+  readonly farTiles?: readonly (readonly [number, number])[];
 }
 
 interface Vertex {
@@ -18,6 +21,8 @@ interface Vertex {
   y: number;
   mask: number;
   samples: Map<string, [number, number]>;
+  low: boolean;
+  farTiles: Map<string, [number, number]>;
 }
 
 function spriteForArms(mask: number): string {
@@ -58,6 +63,7 @@ export function buildEdgeWallGeometry(
   house: readonly [number, number] = [width, height],
   showCutAway = false,
   windows: ArrayLike<number> = [],
+  shortWalls = false,
 ): EdgeWallPanel[] {
   const inHouse = (x: number, y: number): boolean => x < house[0] && y < house[1];
   // Edges never lie on the lot's own edge, so `x - 1` and `y - 1` are tiles.
@@ -67,17 +73,18 @@ export function buildEdgeWallGeometry(
   for (let i = 0; i + 1 < hinged.length; i += 2) hingedAt.add(`${hinged[i]},${hinged[i + 1]}`);
   const vertices = new Map<string, Vertex>();
   const doors: EdgeWallPanel[] = [];
-  const addArm = (x: number, y: number, arm: number, cells: [number, number][]): void => {
-    const key = `${x},${y}`;
+  const addArm = (x: number, y: number, arm: number, cells: [number, number][], low: boolean): void => {
+    const key = `${x},${y},${low}`;
     let vertex = vertices.get(key);
     if (vertex === undefined) {
-      vertex = { x, y, mask: 0, samples: new Map() };
+      vertex = { x, y, mask: 0, samples: new Map(), low, farTiles: new Map() };
       vertices.set(key, vertex);
     }
     vertex.mask |= arm;
     for (const cell of cells) vertex.samples.set(`${cell[0]},${cell[1]}`, cell);
+    if (low) vertex.farTiles.set(`${cells[0][0]},${cells[0][1]}`, cells[0]);
   };
-  const addSegment = (axis: number, x: number, y: number, door: boolean): void => {
+  const addSegment = (axis: number, x: number, y: number, door: boolean, low = false): void => {
     const vertical = axis === 0;
     const cells: [number, number][] = vertical ? [[x - 1, y], [x, y]] : [[x, y - 1], [x, y]];
     if (door) {
@@ -86,31 +93,34 @@ export function buildEdgeWallGeometry(
         x: vertical ? x - 0.5 : x,
         y: vertical ? y : y - 0.5,
         mask: 0,
-        spriteName: vertical ? 'doorwayJoinedNS' : 'doorwayJoinedEW',
+        spriteName: low ? (vertical ? 'doorwayLowNS' : 'doorwayLowEW')
+          : vertical ? 'doorwayJoinedNS' : 'doorwayJoinedEW',
         lightSamples: cells,
+        ...(low ? { low: true, farTiles: [cells[0]] } : {}),
       });
       return;
     }
-    addArm(x, y, vertical ? 4 : 2, cells);
-    addArm(x + (vertical ? 0 : 1), y + (vertical ? 1 : 0), vertical ? 1 : 8, cells);
+    addArm(x, y, vertical ? 4 : 2, cells, low);
+    addArm(x + (vertical ? 0 : 1), y + (vertical ? 1 : 0), vertical ? 1 : 8, cells, low);
   };
   for (let y = 0; y < Math.min(height, house[1]); y++) addSegment(0, 0, y, false);
   for (let x = 0; x < Math.min(width, house[0]); x++) addSegment(1, x, 0, false);
   for (let i = 0; i + 3 < edges.length; i += 4) {
-    if (!showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
-    addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1);
+    if (!shortWalls && !showCutAway && cutAway(edges[i], edges[i + 1], edges[i + 2])) continue;
+    addSegment(edges[i], edges[i + 1], edges[i + 2], edges[i + 3] === 1, shortWalls);
   }
   for (let i = 0; i + 2 < windows.length; i += 3) {
     const [axis, x, y] = [windows[i], windows[i + 1], windows[i + 2]];
-    if (!showCutAway && cutAway(axis, x, y)) continue;
+    if (!shortWalls && !showCutAway && cutAway(axis, x, y)) continue;
     const vertical = axis === 0;
     doors.push({
       x: vertical ? x - 0.5 : x,
       y: vertical ? y : y - 0.5,
       mask: 0,
-      spriteName: vertical ? 'wallNS' : 'wallEW',
+      spriteName: shortWalls ? (vertical ? 'wallLow5' : 'wallLow10') : vertical ? 'wallNS' : 'wallEW',
       lightSamples: vertical ? [[x - 1, y], [x, y]] : [[x, y - 1], [x, y]],
       window: true,
+      ...(shortWalls ? { low: true, farTiles: [vertical ? [x - 1, y] as const : [x, y - 1] as const] } : {}),
     });
   }
   const panels: EdgeWallPanel[] = [...vertices.values()]
@@ -119,9 +129,20 @@ export function buildEdgeWallGeometry(
       x: vertex.x - 0.5,
       y: vertex.y - 0.5,
       mask: vertex.mask,
-      spriteName: spriteForArms(vertex.mask),
+      spriteName: vertex.low ? `wallLow${vertex.mask}` : spriteForArms(vertex.mask),
       lightSamples: [...vertex.samples.values()].sort((a, b) => a[1] - b[1] || a[0] - b[0]),
+      ...(vertex.low ? { low: true, farTiles: [...vertex.farTiles.values()] } : {}),
     }));
   doors.sort((a, b) => a.y - b.y || a.x - b.x);
   return panels.concat(doors);
+}
+
+/** Play view: preserve the rear shell, lower every authored wall and sill. */
+export function buildShortEdgeWallGeometry(
+  width: number, height: number, edges: Uint32Array,
+  hinged: ArrayLike<number> = [],
+  house: readonly [number, number] = [width, height],
+  windows: ArrayLike<number> = [],
+): EdgeWallPanel[] {
+  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true);
 }

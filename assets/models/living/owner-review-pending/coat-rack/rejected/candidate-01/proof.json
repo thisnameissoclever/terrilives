@@ -1,0 +1,102 @@
+{
+  "state": "complete",
+  "object": "coat-rack",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_coat_rack.py": "cb1c4795a65311c6e2814e0995610aca54cd3233787f7387105746c9658ebd7a",
+    "living/coat_rack_model.py": "2e0305cdff5401509679ef0ef39f6c77a10a855532e968155150ef27940cfc43",
+    "living/coat_rack_layout.py": "a5cb496d5827c8d5864208c2a08cfbf990b181032af9c82a256e2ea850b21227",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "6364ced59097f6404e18dc1c7d111ec86657b1eebf74221a24c206a3cb47a1f8"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "ed16b19a69d2a6a8755c05c348a27a4f9ec593de5955d21a4318af7b9f5e392a"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "93a7dcae7f7c7fba349ba9ca1bb7549dd0b04dfc3d622b2e4113c169a80d6ef6"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "6364ac867766a36529c66793cbd3959f4bd52f26c5766bac9502ad83af6fe790"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "base_footprint": [
+      1,
+      1
+    ],
+    "fabric_thickness": 0.002,
+    "fabric_support": "Continuous fold over rail",
+    "cloth_simulation": false
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Base",
+    "Collar",
+    "Finial",
+    "Hanging fabric",
+    "Left end",
+    "Rail",
+    "Right end",
+    "Upright"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "59aeb6871baaec4974d14b282572f3513d678a894f230b6ba5f08cbb36f6b329"
+}

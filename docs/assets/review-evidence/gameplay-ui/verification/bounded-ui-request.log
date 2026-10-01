@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/gameplay-ui/terrilives/web
+
+ ❯ tests/action-queue.test.ts (4 tests | 1 failed) 86ms
+   × renders only the visible queue window without limiting stored orders 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/action-queue.test.ts > renders only the visible queue window without limiting stored orders
+AssertionError: expected +0 to be 12 // Object.is equality
+
+- Expected
++ Received
+
+- 12
++ 0
+
+ ❯ tests/action-queue.test.ts:44:21
+     42|   expect(() => queue.update(0, source)).not.toThrow();
+     43|   expect(rows).toHaveLength(11);
+     44|   expect(requested).toBe(12);
+       |                     ^
+     45|   expect(actions).toHaveLength(200_000);
+     46|   expect(actions.at(-1)).toBe('Order 199999');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  10:49:00
+   Duration  228ms (transform 61ms, setup 0ms, import 41ms, tests 86ms, environment 0ms)

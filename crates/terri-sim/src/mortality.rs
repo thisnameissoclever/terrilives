@@ -3,8 +3,8 @@ use crate::{Content, SaveError, Sim};
 use bevy_ecs::prelude::*;
 use terri_core::save::{DeathCause, DeathRecord, SavedMortality};
 use terri_core::{
-    Agent, ConversationVoice, Eating, IntentQueue, NeedId, Needs, Path, Reserved, SimClock, SimId,
-    SimName, Socialising, Target,
+    Agent, ConversationVoice, Eating, IntentQueue, NeedId, Needs, Path, SimClock, SimId, SimName,
+    Socialising, Target,
 };
 
 pub(crate) fn snapshot(world: &World) -> Option<SavedMortality> {
@@ -116,10 +116,16 @@ fn clear_action(world: &mut World, entity: Entity) {
 
 fn remove_person(world: &mut World, dead: Entity) {
     crate::domestic::remove_person(world, dead);
-    let own_target = world.get::<Target>(dead).map(|t| t.object);
-    let partner = world.get::<Socialising>(dead).map(|talk| talk.partner);
-    for target in own_target.into_iter().chain(partner) {
-        crate::domestic::release_station(world, target, dead);
+    let own_target = world.get::<Target>(dead).copied();
+    let partner = world.get::<Socialising>(dead).map(|talk| Target {
+        object: talk.partner,
+        interaction: talk.interaction,
+    });
+    if let Some(target) = own_target {
+        crate::reservations::release_now(world, dead, target);
+    }
+    if let Some(target) = partner {
+        crate::reservations::release_now(world, dead, target);
     }
     let mut people: Vec<_> = world.query::<Entity>().iter(world).collect();
     people.sort_unstable_by_key(|e| e.index_u32());
@@ -166,13 +172,11 @@ pub(crate) fn cleanup(world: &mut World) {
                 || (world.get::<terri_core::SmartObject>(t.object).is_none()
                     && world.get::<Agent>(t.object).is_none())
         })
-        .map(|(e, t)| (e, t.object))
+        .map(|(e, t)| (e, *t))
         .collect();
     for (entity, target) in invalid {
         clear_action(world, entity);
-        if let Ok(mut target) = world.get_entity_mut(target) {
-            target.remove::<Reserved>();
-        }
+        crate::reservations::release_now(world, entity, target);
     }
 }
 

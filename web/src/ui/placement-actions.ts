@@ -56,6 +56,8 @@ export interface KeepOut {
   /** The Options gear's box, which the pair stays below when it would overlap it. */
   readonly gearLeft: number;
   readonly gearBottom: number;
+  /** Right edge of the world controls; omitted for the legacy right-corner box. */
+  readonly gearRight?: number;
 }
 
 export const NO_KEEP_OUT: KeepOut = { left: 0, gearLeft: Number.POSITIVE_INFINITY, gearBottom: 0 };
@@ -100,12 +102,14 @@ export function placementActionsPosition(
   );
   const rightmost = viewportWidth - buttonsWidth - gap;
   const x = Math.min(Math.max(clamped.x, keepOut.left + gap), rightmost);
-  const underGear = x + buttonsWidth > keepOut.gearLeft - gap && clamped.y < keepOut.gearBottom + gap;
+  const underGear = x < (keepOut.gearRight ?? Infinity) + gap && x + buttonsWidth > keepOut.gearLeft - gap && clamped.y < keepOut.gearBottom + gap;
   if (!underGear) return { x, y: clamped.y };
   // Slide left of the gear when there is room, so the pair stays above the
   // ghost; only when there is not does it drop below the gear.
   const leftOfGear = keepOut.gearLeft - gap - buttonsWidth;
   if (leftOfGear >= keepOut.left + gap) return { x: leftOfGear, y: clamped.y };
+  const rightOfBox = (keepOut.gearRight ?? Infinity) + gap;
+  if (rightOfBox <= rightmost) return { x: rightOfBox, y: clamped.y };
   return { x, y: Math.min(keepOut.gearBottom + gap, viewportBottom - buttonsHeight - gap) };
 }
 

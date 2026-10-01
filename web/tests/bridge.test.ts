@@ -7,8 +7,6 @@ import { traitsPanelState } from '../src/ui/traits-panel.js';
 import { dispatch, dispatchMenuAction } from '../src/input.js';
 import {
   clearCommandFeedback,
-  ORDER_DISPLACED_MESSAGE,
-  ORDER_QUEUE_FULL_MESSAGE,
   reportCommandFeedback,
 } from '../src/ui/command-feedback.js';
 
@@ -399,6 +397,7 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
     bridge.spawnObject(12, 1, 'fridge');
     bridge.spawnAgent(1, 1, 20);
+    bridge.spawnObject(14, 3, 'counter');
 
     const startX = bridge.positions()[2];
     for (let i = 0; i < 40; i++) bridge.tick();
@@ -879,11 +878,11 @@ describe('SimBridge', () => {
     // no entities or walls; it tests the distinction between undefined and
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
-    // the applied migration flag and an empty waiting list.
-    expect(Array.from(legacyCells.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
+    // the applied migration flag, waiting, instincts and chronotype offsets.
+    expect(Array.from(legacyCells.slice(-17))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - 15] = 2;
+    edgeBytes[edgeBytes.length - 17] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -900,15 +899,16 @@ describe('SimBridge', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
-    // Current tail: layout and appended lists, mortality, migration, waiting.
-    expect(Array.from(valid.slice(-15))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0]);
+    // Current tail: layout and appended lists, mortality, migration,
+    // waiting, instincts and chronotypes. Each empty list costs one byte.
+    expect(Array.from(valid.slice(-17))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -4), valid.slice(0, -11), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -6), valid.slice(0, -13), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
@@ -1272,7 +1272,10 @@ describe('SimBridge', () => {
     // ([BM-hash]), an encoding change that moved this from
     // 0xc7bb_234c_419a_654cn. Measured on the rebuilt wasm32 module first,
     // then found equal to the native value.
-    expect(bridge.worldHash()).toBe(0x297e57b7cd2fb736n);
+    // Varied autonomy changes selection draws and hashes each person's instinct.
+    // With no counter, snacks are ineligible and selection draws change.
+    // Independently measured on native and rebuilt release WASM: identical.
+    expect(bridge.worldHash()).toBe(0x21c21e6232f46614n);
   });
 
   // ---- Player commands -------------------------------------------------
@@ -1396,185 +1399,45 @@ describe('SimBridge', () => {
     expect(bridge.needsOf(0)).toEqual(needsBefore);
   });
 
-  /**
-   * The per-sim order cap, mirroring `max_queued_intents` in
-   * `content/tuning.toml`. The release wasm does not expose it, so the
-   * tests below restate it; a retune shows up here as one failing number.
-   */
-  const ORDER_CAP = 10;
-
-  it('surfaces the paused Queue-mode pointer order past the cap rejected by the sim', () => {
-    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
-    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
-    bridge.spawnAgent(1, 1, 80);
-
-    for (let click = 1; click <= ORDER_CAP + 1; click += 1) {
-      expect(
-        dispatch(bridge, {
-          kind: 'use',
-          agent: 1,
-          object: 0,
-          interaction: 0,
-          placement: 'back',
-        }),
-        `pointer click ${click} must enter command staging`,
-      ).toBe(true);
+  it.each(['pointer', 'keyboard'] as const)('preserves hundreds of %s orders and a new front order', (route) => {
+    const handle = new SimHandle(8, 8);
+    try {
+      const bridge = new SimBridge(handle, wasmMemory);
+      expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
+      bridge.spawnAgent(1, 1, 80);
+      expect(bridge.select(1)).toBe(true);
+      bridge.flushCommands();
+      for (let order = 0; order < 513; order += 1) {
+        const accepted = route === 'pointer'
+          ? dispatch(bridge, { kind: 'use', agent: 1, object: 0, interaction: 0, placement: 'back' })
+          : dispatchMenuAction(bridge, { kind: 'use', object: 0, interaction: 0 }, 'back');
+        expect(accepted).toBe(true);
+        bridge.flushCommands();
+      }
+      expect(bridge.queuedOrdersOf(1)).toBe(513);
+      expect(dispatchMenuAction(bridge, { kind: 'use', object: 0, interaction: 1 }, 'front')).toBe(true);
+      bridge.flushCommands();
+      expect(bridge.queuedOrdersOf(1)).toBe(514);
+      const status = {
+        textContent: '',
+        setAttribute: (_name: string, _value: string) => {},
+        removeAttribute: (_name: string) => {},
+      };
+      expect(reportCommandFeedback(bridge, status)).toBe(0);
+      expect(status.textContent).toBe('');
+      const cards = bridge.actionQueueOf(1);
+      expect(bridge.actionQueueOf(1, 4)).toEqual(cards.slice(0, 4));
+      expect(bridge.actionQueueOf(1, 0)).toEqual([]);
+      expect(bridge.actionQueueOf(1, -1)).toEqual([]);
+      expect(bridge.actionQueueOf(1, 1.5)).toEqual([]);
+      expect(bridge.actionQueueOf(1, Infinity)).toEqual([]);
+      expect(cards).toHaveLength(515);
+      expect(cards[0]).toBe('');
+      expect(cards[1]).not.toBe(cards[2]);
+      expect(new Set(cards.slice(2)).size).toBe(1);
+    } finally {
+      handle.free();
     }
-    bridge.flushCommands();
-
-    const attributes = new Map<string, string>();
-    const status = {
-      textContent: '',
-      setAttribute: (name: string, value: string) => attributes.set(name, value),
-      removeAttribute: (name: string) => attributes.delete(name),
-    };
-    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
-    expect(reportCommandFeedback(bridge, status)).toBe(1);
-    expect(status.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
-    expect(attributes.get('data-kind')).toBe('error');
-    expect(reportCommandFeedback(bridge, status)).toBe(0);
-  });
-
-  it('surfaces the paused keyboard-menu order past the cap through the same result', () => {
-    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
-    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
-    bridge.spawnAgent(1, 1, 80);
-    expect(bridge.select(1)).toBe(true);
-    bridge.flushCommands();
-
-    for (let order = 1; order <= ORDER_CAP + 1; order += 1) {
-      expect(
-        dispatchMenuAction(
-          bridge,
-          { kind: 'use', object: 0, interaction: 0 },
-          'back',
-        ),
-        `keyboard order ${order} must enter command staging`,
-      ).toBe(true);
-    }
-    bridge.flushCommands();
-
-    const status = {
-      textContent: 'Selected Fridge',
-      setAttribute: (_name: string, _value: string) => {},
-      removeAttribute: (_name: string) => {},
-    };
-    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
-    expect(reportCommandFeedback(bridge, status)).toBe(1);
-    expect(status.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
-    expect(reportCommandFeedback(bridge, status)).toBe(0);
-  });
-
-  it('clears a rejection on an accepted order before announcing a later one', () => {
-    // The feedback lifecycle: refused, cleared by the next attempt, empty
-    // while the accepted order stands, then refused again. Clear orders
-    // makes the room in the middle, because since
-    // [I-plain-order-goes-first] a plain order onto a FULL queue is
-    // accepted by dropping the last waiting order - which is itself
-    // reported (see the test below), so it cannot play the "accepted and
-    // quiet" step here.
-    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
-    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
-    bridge.spawnAgent(1, 1, 80);
-    expect(bridge.select(1)).toBe(true);
-    bridge.flushCommands();
-
-    for (let order = 0; order < ORDER_CAP + 1; order += 1) {
-      expect(dispatchMenuAction(
-        bridge,
-        { kind: 'use', object: 0, interaction: 0 },
-        'back',
-      )).toBe(true);
-    }
-    bridge.flushCommands();
-
-    const attributes = new Map<string, string>();
-    const transitions: Array<string | null> = [];
-    let text: string | null = '';
-    const status = {
-      get textContent() {
-        return text;
-      },
-      set textContent(value: string | null) {
-        text = value;
-        transitions.push(value);
-      },
-      setAttribute: (name: string, value: string) => attributes.set(name, value),
-      removeAttribute: (name: string) => attributes.delete(name),
-    };
-    expect(reportCommandFeedback(bridge, status)).toBe(1);
-
-    expect(bridge.cancelIntents(1)).toBe(true);
-    expect(dispatchMenuAction(
-      bridge,
-      { kind: 'use', object: 0, interaction: 0 },
-      'front',
-      () => clearCommandFeedback(status),
-    )).toBe(true);
-    bridge.flushCommands();
-    expect(reportCommandFeedback(bridge, status)).toBe(0);
-    expect(bridge.queuedOrdersOf(1)).toBe(1);
-    expect(status.textContent).toBe('');
-    expect(attributes.has('data-kind')).toBe(false);
-
-    for (let order = 0; order < ORDER_CAP; order += 1) {
-      expect(dispatchMenuAction(
-        bridge,
-        { kind: 'use', object: 0, interaction: 0 },
-        'back',
-        () => clearCommandFeedback(status),
-      )).toBe(true);
-    }
-    bridge.flushCommands();
-    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
-    expect(reportCommandFeedback(bridge, status)).toBe(1);
-    // One clear for the accepted plain order, then one per refill append.
-    expect(transitions).toEqual([
-      ORDER_QUEUE_FULL_MESSAGE,
-      ...Array<string>(ORDER_CAP + 1).fill(''),
-      ORDER_QUEUE_FULL_MESSAGE,
-    ]);
-  });
-
-  it('accepts a plain order onto a full queue and reports the order it displaced', () => {
-    // [I-plain-order-goes-first]'s full-queue rule through the release
-    // wasm: the plain order is never refused, the queue stays at the cap,
-    // and the player hears that something fell off - as a DISPLACEMENT,
-    // through its own counter, never as a refusal of the order they gave.
-    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
-    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
-    bridge.spawnAgent(1, 1, 80);
-    expect(bridge.select(1)).toBe(true);
-    bridge.flushCommands();
-    for (let order = 0; order < ORDER_CAP; order += 1) {
-      expect(dispatchMenuAction(
-        bridge,
-        { kind: 'use', object: 0, interaction: 0 },
-        'back',
-      )).toBe(true);
-    }
-    bridge.flushCommands();
-    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
-    expect(bridge.takeIntentCapacityRejections()).toBe(0);
-    expect(bridge.takeIntentDisplacements()).toBe(0);
-
-    const status = {
-      textContent: '',
-      setAttribute: (_name: string, _value: string) => {},
-      removeAttribute: (_name: string) => {},
-    };
-    expect(dispatchMenuAction(
-      bridge,
-      { kind: 'use', object: 0, interaction: 0 },
-      'front',
-      () => clearCommandFeedback(status),
-    )).toBe(true);
-    bridge.flushCommands();
-
-    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
-    expect(reportCommandFeedback(bridge, status)).toBe(1);
-    expect(status.textContent).toBe(ORDER_DISPLACED_MESSAGE);
-    expect(bridge.takeIntentCapacityRejections(), 'nothing was refused').toBe(0);
   });
 
   it('encodes an entity index above 127 as a multi-byte varint', () => {
@@ -1598,15 +1461,16 @@ describe('SimBridge', () => {
 
   it('directs a sim at an object, overriding what it chose for itself', () => {
     // [D-3] through the boundary. The sim is hungry and the two objects
-    // advertise different needs, so autonomy has an unambiguous
-    // preference for the fridge; directing it at the BED is therefore an
-    // instruction it would never have given itself. A command that
+    // advertise different needs. Measure its actual first choice before
+    // directing it at the BED. A command that
     // agrees with autonomy proves nothing ([L36]).
     const build = () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
       expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
-      b.spawnAgent(8, 8, 20);
+      b.spawnAgent(8, 8, 0);
+      expect(b.spawnObject(13, 8, 'counter')).toBe(true);
+      expect(Array.from(b.needsOf(2)!)).toEqual([0, 100, 100, 100, 100, 100, 100]);
       return b;
     };
 
@@ -1614,11 +1478,18 @@ describe('SimBridge', () => {
     // than assumed - without it the assertions below could be describing
     // autonomy's own choice.
     const undirected = build();
+    undirected.tick();
+    expect(undirected.positions()[4]).toBeGreaterThan(8);
     for (let i = 0; i < 20; i++) undirected.tick();
     const undirectedX = undirected.positions()[4];
 
     const bridge = build();
+    bridge.tick();
+    const autonomousX = bridge.positions()[4];
+    expect(autonomousX).toBeGreaterThan(8);
     expect(bridge.useObject(2, 0, 0)).toBe(true);
+    bridge.tick();
+    expect(bridge.positions()[4]).toBeLessThan(autonomousX);
     for (let i = 0; i < 20; i++) bridge.tick();
     const directedX = bridge.positions()[4];
 
@@ -1655,9 +1526,7 @@ describe('SimBridge', () => {
     // and [L12] is this project's recorded instance of a check present in
     // debug and absent from what ships.
     //
-    // Every shipped object offers exactly one interaction, so the shipped
-    // game cannot show a second row doing something different. What it CAN
-    // show is the difference between an index the object has and one it does
+    // This fixture uses two objects with one interaction each. It shows the difference between an index the object has and one it does
     // not, and that is enough to rule out the dangerous wrong answer: a
     // clamp. `min(interaction, len - 1)` or a `NaN >>> 0` anywhere on the
     // path turns "the verb that is not there" into "the first verb", so the
@@ -1675,8 +1544,16 @@ describe('SimBridge', () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
       expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
-      b.spawnAgent(8, 8, 20);
+      b.spawnAgent(8, 8, 0);
+      expect(b.spawnObject(13, 8, 'counter')).toBe(true);
+      expect(Array.from(b.needsOf(2)!)).toEqual([0, 100, 100, 100, 100, 100, 100]);
+      b.tick();
+      const autonomousX = b.positions()[4];
+      expect(autonomousX).toBeGreaterThan(8);
       expect(b.useObject(2, 0, interaction)).toBe(true);
+      b.tick();
+      if (interaction === 0) expect(b.positions()[4]).toBeLessThan(autonomousX);
+      else expect(b.positions()[4]).toBeGreaterThan(autonomousX);
       for (let i = 0; i < 20; i++) b.tick();
       return b.positions()[4];
     };
@@ -1742,6 +1619,47 @@ describe('SimBridge', () => {
 
     expect(viaMethod.worldHash()).toBe(viaBytes.worldHash());
     expect(viaMethod.worldHash()).not.toBe(control.worldHash());
+  });
+
+  it('keeps conversation identity stable across ticks, load and real memory growth', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    try {
+      const rows = () => [0, 1].map((id) => Array.from(bridge.simIds()).indexOf(id));
+      const values = (column: Uint32Array) => rows().map((row) => column[row]);
+      const entities = values(bridge.ids());
+      expect(bridge.talkTo(entities[0], entities[1], 0)).toBe(true);
+      for (let tick = 0; tick < 240; tick += 1) {
+        bridge.tick();
+        if (values(bridge.voiceFirsts()).every((clip) => clip !== 0xffff_ffff)) break;
+      }
+      expect(values(bridge.activities())).toEqual([4, 4]);
+      expect(values(bridge.voiceFirsts()).every((clip) => clip !== 0xffff_ffff)).toBe(true);
+      const owners = bridge.conversationOwners();
+      const lows = bridge.conversationEndLows();
+      const highs = bridge.conversationEndHighs();
+      expect(values(owners)).toEqual([0, 0]);
+      const deadline = values(lows);
+      expect(deadline[0]).toBeGreaterThan(0);
+      expect(deadline[1]).toBe(deadline[0]);
+      expect(values(highs)).toEqual([0, 0]);
+      bridge.tick();
+      expect(values(bridge.conversationEndLows())).toEqual(deadline);
+      const saved = handle.save_bytes();
+      bridge.tick();
+      expect(handle.load_bytes(saved)).toBe(true);
+      expect(values(bridge.conversationOwners())).toEqual([0, 0]);
+      expect(values(bridge.conversationEndLows())).toEqual(deadline);
+      const held = [bridge.conversationOwners(), bridge.conversationEndLows(), bridge.conversationEndHighs()];
+      wasmMemory.grow(1);
+      expect(held.map((view) => view.length)).toEqual([0, 0, 0]);
+      expect(values(bridge.conversationOwners())).toEqual([0, 0]);
+      expect(values(bridge.conversationEndLows())).toEqual(deadline);
+      expect(values(bridge.conversationEndHighs())).toEqual([0, 0]);
+      expect(bridge.conversationOwners().buffer).toBe(wasmMemory.buffer);
+      expect(bridge.conversationEndLows().buffer).toBe(wasmMemory.buffer);
+      expect(bridge.conversationEndHighs().buffer).toBe(wasmMemory.buffer);
+    } finally { handle.free(); }
   });
 
   it('places a plain order first, with method bytes matching the hand-written wire bytes', () => {

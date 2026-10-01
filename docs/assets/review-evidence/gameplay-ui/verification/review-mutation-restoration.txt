@@ -1,0 +1,15 @@
+visible-queue-window: exit 1; restored SHA-256 4ac1e0333b616184ec0d3011c0e83106ad7f33638232b18a3c73d0839f7d653f
+menu-hide-scope: exit 1; restored SHA-256 3eff18e0e8c5ef3b257d8dcbc57f6ad9512329be78cb18be1bdcde7d6e1864dd
+scrollbar-width: exit 1; restored SHA-256 08b5191e151b72b3c1d7de35d6286507cd3fda1f5caea4d26a464fe6720b22c8
+bookcase-observed-facing: exit 1; restored SHA-256 e8699407b41cd08100567a2a864f02e3476b78c9910c9e45600db44fa3a1afb2
+sidebar-control-order: exit 1; restored SHA-256 3eff18e0e8c5ef3b257d8dcbc57f6ad9512329be78cb18be1bdcde7d6e1864dd
+sidebar-control-order: exit 1; restored SHA-256 3eff18e0e8c5ef3b257d8dcbc57f6ad9512329be78cb18be1bdcde7d6e1864dd
+queued-recipe-label: exit 101; restored SHA-256 9dec84c01ccaa5efdb535405f44e387cc03bd5c7311495ce7305da40a5213445
+active-action-precedence: exit 101; restored SHA-256 9dec84c01ccaa5efdb535405f44e387cc03bd5c7311495ce7305da40a5213445
+legacy-rng-preservation: exit 101; restored SHA-256 a7d7e8b7e17c5be442ad728aee78022a54b6e656a384ab073e6ddc3fc93bb4d7
+bounded-native-projection: exit 101; restored SHA-256 4375ef448bbaa1d63387b753d2a84754854cfb45029fa8929e8f9b46ed52cd6e
+bounded-wasm-projection: exit 101; restored SHA-256 446a8f4d9b0b0e1f6f72019844417c06bd24b61c72e4675a900532c6cff5737a
+bounded-ui-request: exit 1; restored SHA-256 ee87c600f25208d0b3f329dafafdccefd01a538122cc28cb81d3119cf4e76540
+release-legacy-tick: exit 1; restored SHA-256 c1a531de4f722828ac3bcf33ebffd9e0f2deb2437bd62b55c548f71bc2823da3
+release-rejected-load-reset: exit 1; restored SHA-256 c1a531de4f722828ac3bcf33ebffd9e0f2deb2437bd62b55c548f71bc2823da3
+bounded-bridge-projection: exit 1; restored SHA-256 aebb79971634c155dd3a6cb27b903d6c89ec4141877bb607c3ebae79a570ba06

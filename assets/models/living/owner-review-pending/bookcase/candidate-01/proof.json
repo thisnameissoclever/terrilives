@@ -1,0 +1,129 @@
+{
+  "state": "complete",
+  "object": "bookcase",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_bookcase.py": "540b1eccb20cb377b211488ea95053e6299cc712fe029478d1914df510d2391f",
+    "living/bookcase_model.py": "c3273239db45c06ad54472ed95f2feb84aa2a995f8b9c91516c70ee23cba522f",
+    "living/bookcase_layout.py": "b0b54e75b246c778ab61db43baf88573fded03b5e0224e6dc31b477fc88df9bb",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "adfe21a381781834203c42aa8df31ed9866532690f0fb3892bc1b64a38b0b62f"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "deb2b46c38bb6afb06088cf2be1190ccf67dad96949f94f24daaf1b5d32be393"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "e2a6acd7d7b6cce21537618d18be655b02f42b412bdfc31e527a7ea5b6f5b1c7"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "44daf7f34e7ad73992b4a81910f5e07246207e50fffee999defdad6c4ed14970"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "base_footprint": [
+      1,
+      1
+    ],
+    "wall_back_y": 0.5,
+    "front": "-Y",
+    "maximum_height": 1.54,
+    "book_rows": 4,
+    "books": 24,
+    "standing_read_animation_unchanged": true
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Back panel",
+    "Base",
+    "Book 0 0",
+    "Book 0 1",
+    "Book 0 2",
+    "Book 0 3",
+    "Book 0 4",
+    "Book 0 5",
+    "Book 1 0",
+    "Book 1 1",
+    "Book 1 2",
+    "Book 1 3",
+    "Book 1 4",
+    "Book 1 5",
+    "Book 2 0",
+    "Book 2 1",
+    "Book 2 2",
+    "Book 2 3",
+    "Book 2 4",
+    "Book 2 5",
+    "Book 3 0",
+    "Book 3 1",
+    "Book 3 2",
+    "Book 3 3",
+    "Book 3 4",
+    "Book 3 5",
+    "Crown",
+    "Left side",
+    "Right side",
+    "Shelf 1",
+    "Shelf 2",
+    "Shelf 3"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "9483a5f0dbf574ff7942b839c395b7c9dc89f1642b3a1ad8a174c1b870ab0ce5"
+}

@@ -72,6 +72,11 @@ gains a colourway section written only when some object has one, so every
 existing golden hash stands. The browser's storage worker writes V5 and keeps
 the V4 bytes in a recovery backup on the first V5 write over a V4 slot.
 
+The restored render buffer must already contain these colours when loading
+returns. Refresh it after all V5 fields are restored, without ticking or
+draining saved commands. Component state and world hashes alone do not prove
+that the first rendered frame uses the saved colours.
+
 ## [RC-render] The shift reaches every picture of the object
 
 The render buffer gains a colourway column. The shell passes each row's shift

@@ -176,18 +176,77 @@ than by peak. The unedited originals are preserved outside the repository.
 random selection does not jump; how loud Sims are in the game is a separate
 playback gain, and retuning it must not mean reprocessing the audio.
 
-## There are no third-party audio assets
+## Shower water recording
 
-**As of 2026-09-11 the game ships no BORROWED audio.** The Sim voice clips
-above are first-party and recorded for this project. The current Web Audio
-layer synthesizes its cues at runtime. Four compact CC0 archives are proposed
-in `docs/specs/2026-09-06-cc0-audio-intake.md`, but a proposed or downloaded
-archive is not a game asset and is not a provenance entry here.
+The first third-party audio asset is a provisional addition for shower use.
+It replaces no accepted cue. Technical playback is verified; subjective timbre,
+repetition and mix acceptance remain unverified.
 
-When an individual recording is accepted, this file must name its pack, source
-page, author, licence, archive SHA-256, exact archive entry, every material edit,
-and final runtime path. Only reviewed files used by the game belong in the
-repository; source packs remain outside it.
+1. Author: rubberduck. Pack: `rubberduck-30-sfx-loops`,
+   [30 CC0 SFX loops](https://opengameart.org/content/30-cc0-sfx-loops), CC0 1.0.
+2. Archive SHA-256: `9c013474c7e56192a0d1b2840535a1e1d8b93166948d4a9f7136bb6c3d5421cd`.
+   Exact archive entry: `water_flowing.ogg`.
+3. Unchanged source: `assets/audio/shower-water/water_flowing.ogg`, 74,344 bytes,
+   SHA-256 `1a431f77d61661becdc87a5b1832d47f83a12a5c0b001077e41a202e739797a7`.
+4. Edit: Chromium decode at 48 kHz; complementary linear 100 ms tail/head
+   crossfade; shorten by 4,800 frames; stereo PCM16 export. No normalization,
+   filtering, upward gain or dithering. Runtime gain is 0.6 before Effects.
+5. Runtime: `web/public/audio/objects/shower-water.wav`, 342,420 bytes,
+   85,594 stereo frames at 48 kHz (1.783208 seconds), SHA-256
+   `0dcbeceb5338db019627829c0b4227fb6de7232e3881df2aa622a7180476e315`.
+
+The reproducible editor, measured signal and verification limits are in
+`docs/specs/2026-10-01-shower-water-recording.md`. The complete downloaded packs
+remain outside the repository. Conversation recordings above are first-party;
+short cues other than the door recordings below remain synthesized.
+
+Bathroom handwashing and kitchen washing-up reuse this exact WAV and decoded
+buffer at gain 0.35, below the unchanged shower gain of 0.6. No duplicate asset
+or new download is added. Sink timbre and mix remain provisional. See
+`docs/specs/2026-10-01-sink-water-audio.md`.
+
+## Cooking texture
+
+`web/public/audio/objects/stove-cooking.wav` is a first-party synthetic texture,
+not a sampled or downloaded recording. Its editable source is
+`scripts/build-stove-texture.mjs`: seeded filtered noise, smoothly shaped short
+bursts, 100 ms loop overlap and PCM16 export. No third-party audio or dependency
+is used. The four-second mono 48 kHz WAV is 384,044 bytes, SHA-256
+`c126462490ce29618b9d285ffeb0d3c05883e0723d230cbca80ce3fc7b2b07a8`.
+The existing Cook step plays it at gain 0.6 before Effects. This is a provisional
+interpretation of cooking, not an accepted recording of a particular recipe.
+See `docs/specs/2026-10-01-stove-cooking-texture.md` for preparation and evidence.
+
+## Door recordings
+
+Two provisional recordings accompany actual door state changes. Author:
+rubberduck; pack: [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx),
+CC0 1.0. Archive SHA-256:
+`a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`.
+
+| Exact archive entry and retained source | Source SHA-256 | Runtime file | Runtime SHA-256 |
+| --- | --- | --- | --- |
+| `door_open.ogg`, retained in `assets/audio/doors/` | `62b42cdf0d8b25ef80c0f3bc815aa65977b78b20225481461ea134798172f59d` | `web/public/audio/doors/open.wav` | `01c05db9d4349f7da37821cc71bfaec7aa4da8486c7096406520ef8c3e1be2da` |
+| `door_close_02.ogg`, retained in `assets/audio/doors/` | `3f4ce43f7a676d8907258908c90e88caecffd4526fce43e40df6726bf67ed91b` | `web/public/audio/doors/close.wav` | `5aa47dfbe01fa785de53564e24229640dfd60cdbc231f43323882fa73e7dbd92` |
+
+Chromium decoded the originals at 48 kHz; export retains every decoded frame
+as stereo signed PCM16. No trim, normalization, filter or dithering is applied.
+Opening has 21,698 frames and closing has 41,227. Playback gain and edge fades
+are applied at runtime. The recipe and measured screening are in
+`docs/specs/2026-10-01-door-audio.md`. Subjective listening acceptance remains open.
+
+## Paper recordings for review only
+
+Four unchanged originals from rubberduck's [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx), CC0 1.0, are retained in `assets/audio/review/paper/`. Archive SHA-256 is `a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`. The source page and local archive hash were rechecked on 2026-10-01; no new pack was downloaded.
+
+| Exact archive entry | Original bytes | SHA-256 |
+| --- | ---: | --- |
+| `paper_01.ogg` | 25,529 | `b2b2b55e44761c7a45283bce0196f41f72207180fb08c970d7dcf93b705d280c` |
+| `paper_02.ogg` | 27,205 | `4d0c68b367bd3fbdf9817e764908e5524b2cad6536eb0911fc74f6ab4f60c50a` |
+| `paper_03.ogg` | 29,838 | `90147dde68b9e2082404f439165bbcb6f7c2364e88e9373d1cd1f7446a37f7b2` |
+| `paper_04.ogg` | 32,322 | `afae7236bce275fad555922cc8578882eb0c0b5d822be0a9180c9efdadf4a770` |
+
+The standalone `web/public/audio-review.html` embeds these bytes for comparison. They are not registered in the game audio catalog, and no existing cue is replaced. All four decoded as finite, unclipped stereo at 48 kHz. That is mechanical screening, not listening acceptance. The source, measurements and publication contract are in `docs/specs/2026-10-01-paper-sound-review.md`.
 
 ## What was here before, and why it is gone
 

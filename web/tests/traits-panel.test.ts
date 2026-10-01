@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   TraitsPanel,
@@ -182,7 +183,7 @@ describe('traitsPanelState', () => {
   it('shows cleanliness separately from learned skills and rejects invalid scores', () => {
     const source = new MutableTraitsSource() as MutableTraitsSource & { cleanlinessOf(): number };
     source.cleanlinessOf = () => 0.9;
-    expect(ready(traitsPanelState(source, LIBRARY))[0]).toMatchObject({ key: -1, label: 'Cleanliness', state: '90%' });
+    expect(ready(traitsPanelState(source, LIBRARY))[0]).toMatchObject({ key: -2, label: 'Cleanliness', state: '90%' });
     source.cleanlinessOf = () => Number.NaN;
     expect(traitsPanelState(source, LIBRARY)).toEqual({ kind: 'unavailable' });
   });
@@ -227,6 +228,29 @@ describe('traitsPanelState', () => {
 });
 
 describe('createTraitsPanelSurface', () => {
+  it('skips unchanged trait and empty text while reflecting changes', () => {
+    const { empty, list, surface } = surfaceParts();
+    const trait = { key: 1, label: "Can't cook", description: 'Often ruins a meal.', state: 'Skill 25%' };
+    surface.render({ kind: 'ready', traits: [trait] });
+    const label = list.nodes[0].nodes[0].nodes[0];
+    const state = list.nodes[0].nodes[0].nodes[1];
+    const description = list.nodes[0].nodes[1];
+    const probes = [label, state, description, empty].map(textWriteProbe);
+    surface.render({ kind: 'ready', traits: [trait] });
+    expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0]);
+    surface.render({ kind: 'ready', traits: [{ ...trait, state: 'Skill 27%' }] });
+    expect(state.textContent).toBe('Skill 27%');
+    expect(probes.map(probe => probe.writes)).toEqual([0, 1, 0, 0]);
+    description.textContent = 'External change';
+    surface.render({ kind: 'ready', traits: [trait] });
+    expect(description.textContent).toBe('Often ruins a meal.');
+    surface.render({ kind: 'unavailable' });
+    const writes = probes[3].writes;
+    surface.render({ kind: 'unavailable' });
+    expect(probes[3].writes).toBe(writes);
+    expect(empty.textContent).toBe('Traits unavailable');
+  });
+
   it('hides the whole block while nobody is selected, and shows it again after', () => {
     const { root, list, surface } = surfaceParts();
     surface.render({ kind: 'unselected' });
@@ -353,31 +377,52 @@ describe('the Traits block in the page', () => {
     expect(MAIN_TS).toContain(`'#${id}'`);
   });
 
-  it('starts hidden and collapsed, is named for assistive technology, and sits below the need bars', () => {
-    // [OF3]: a details element with no `open`, so every load starts closed.
+  it('starts hidden and collapsed inside its own initially closed sheet panel', () => {
     expect(INDEX_HTML).toContain('<details id="traits-block" aria-label="Traits" hidden>');
     expect(INDEX_HTML).toContain('<summary id="traits-caption" class="summary-label">Traits</summary>');
-    const needs = INDEX_HTML.indexOf('id="needs-content"');
-    const traits = INDEX_HTML.indexOf('id="traits-block"');
-    const people = INDEX_HTML.indexOf('id="people-panel"');
-    expect(needs).toBeGreaterThan(-1);
-    expect(traits).toBeGreaterThan(needs);
-    expect(people).toBeGreaterThan(traits);
-
-    // The need bars are appended to the END of #needs-content at runtime, so
-    // "below the bars" means OUTSIDE that div and after it. Between the two
-    // ids every div that opens must close, plus one more: #needs-content's.
-    const between = INDEX_HTML.slice(needs, traits);
-    const opened = between.split('<div').length - 1;
-    const closed = between.split('</div>').length - 1;
-    expect(closed - opened).toBe(1);
+    const pane = INDEX_HTML.slice(INDEX_HTML.indexOf('id="sim-traits"'), INDEX_HTML.indexOf('id="sim-household"'));
+    expect(pane).toContain('data-sim-panel="traits" aria-label="Traits" hidden');
+    expect(pane).toContain('id="traits-block"');
+    expect(pane).not.toContain('id="needs-content"');
   });
 
   it('is not a heading, so it does not file itself under the household roster', () => {
     const block = INDEX_HTML.slice(
       INDEX_HTML.indexOf('id="traits-block"'),
-      INDEX_HTML.indexOf('id="people-panel"'),
+      INDEX_HTML.indexOf('id="sim-household"'),
     );
     expect(block).not.toMatch(/<h[1-6]/);
   });
+});
+
+it('shows self-preservation separately from the optional trait slots, including zero', () => {
+  const source = new MutableTraitsSource();
+  source.worn = new Float32Array([0, 0]);
+  const withInstinct = Object.assign(source, { selfPreservationOf: () => 0 });
+  const state = traitsPanelState(withInstinct, LIBRARY);
+  expect(state.kind).toBe('ready');
+  if (state.kind !== 'ready') throw new Error('expected traits');
+  expect(state.traits.map(row => row.label)).toEqual(['Self-preservation instinct', 'Television devotee']);
+  expect(state.traits[0].state).toBe('0/100');
+  expect(traitsPanelState(Object.assign(source, { selfPreservationOf: () => 101 }), LIBRARY).kind).toBe('unavailable');
+});
+
+it('retains distinct cleanliness and self-preservation rows while either value changes', () => {
+  let cleanliness = 0.75;
+  let instinct = 30;
+  const source = Object.assign(new MutableTraitsSource(), {
+    cleanlinessOf: () => cleanliness,
+    selfPreservationOf: () => instinct,
+  });
+  const { list, surface } = surfaceParts();
+  surface.render(traitsPanelState(source, LIBRARY));
+  expect(list.nodes).toHaveLength(2);
+  const originalRows = [...list.nodes];
+  cleanliness = 0.9;
+  instinct = 70;
+  surface.render(traitsPanelState(source, LIBRARY));
+  expect(list.nodes).toEqual(originalRows);
+  expect(list.nodes.map(row => row.textContent)).toEqual([
+    expect.stringContaining('70/100'), expect.stringContaining('90%'),
+  ]);
 });

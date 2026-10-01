@@ -14,12 +14,14 @@ itself on having personality.
 | Surface | Current strings | Source |
 | --- | --- | --- |
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
-| Compact HUD | Menu; Close; Open game menu; Close game menu | `web/index.html`, `web/src/ui/mobile-hud.ts` |
+| Compact HUD | Sim details; Overview; Queue; People; Traits; Household; Collapse; Expand; Close; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
 | Placement buttons | Confirm; Buy; Cancel, over the piece being placed | `web/index.html`, `web/src/ui/placement-actions.ts` |
-| Options flyout | Options, the gear's accessible name; it holds Light, Build, Sound, Effects and the game actions | `web/index.html`, `web/src/ui/options-menu.ts` |
+| Options flyout | Options; Close Options; holds Light, Death, Sound, Effects, Voices and game actions in the upper-left world group | `web/index.html`, `web/src/ui/options-menu.ts` |
+| Build sidebar controls | Build; Exit build, in the upper-left world group on every screen size | `web/index.html`, `web/src/ui/builder-controls.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
-| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the seven refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
+| New housemate form | New housemate; {n} of {most} live here.; Name; Personality; Traits, up to {n}; Cancel; Next; Back; Move in; Give them a name.; The household is full.; Moving in…; That could not be sent.; the eight refusal lines in `housemateReason` | `web/index.html`, `web/src/ui/housemate-form.ts`, `web/src/bridge.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
+| Personality and habits | Personality factors; Need; Drain; Refill; 100% is the normal personality factor. Sleep, work and traits also affect needs.; Sleep rhythm: Usual schedule / {n} game min earlier / later; Sleep timing depends on needs and available beds.; Repeated activities; Recent repetition reduces an activity's appeal. It fades with time and is shared across objects of the same type.; No repeated activities recorded.; Select a person to see their personality and habits.; Personal details unavailable. | `web/index.html`, `web/src/ui/personal-details.ts` |
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
 | Mood | Mood; Select a person to see their mood.; Mood unavailable; No active moodlets.; Overall mood; Miserable; Low; Okay; Good; Great; {label}: {signed score} | `web/index.html`, `web/src/ui/mood-panel.ts` |
@@ -37,9 +39,9 @@ itself on having personality.
 | Buy tool | Show; Everything; {need}, a need's name from `NeedId::as_str` with its first letter capitalised; Buy; Choose something to buy; Choose something to buy.; {name} ({price}); Price: {price}; Good for: {needs}; Good for: no need on its own; Facing: {direction}; Rotate; Cancel; Ready to buy.; Buying…; {name} bought.; The purchase could not be sent.; This position is unavailable.; the keyboard help line; Choose something, then tap a tile. Drag to pan; pinch to zoom. | `web/index.html`, `web/src/ui/buy-tool.ts`, `web/src/ui/buy-tool-controls.ts` |
 | Buy tool refusals | every furniture refusal, and The household cannot afford that. | `web/src/bridge.ts` |
 | Selling | Sell; Sell for {amount}; Selling…; {name} sold.; The sale could not be sent.; Cannot sell: {refusal}, under Sell while the chosen furniture would not sell; Delete or Backspace sells, in the Furniture tool's keyboard help line | `web/index.html`, `web/src/ui/builder.ts`, `web/src/ui/builder-controls.ts` |
-| Sale refusals | That furniture is no longer available.; This lot layout does not support furniture editing.; Wait until nobody is using or approaching this object.; That furniture is not for sale.; Nothing else in the house can do its job. | `web/src/bridge.ts` |
+| Sale refusals | That furniture is no longer available.; This lot layout does not support furniture editing.; Wait until nobody is using or approaching this object.; That furniture is not for sale. | `web/src/bridge.ts` |
 | Colourways | Colour, the Furniture tool's and the Buy tool's list label; Recolouring…; {name} recoloured.; The colour change could not be sent.; That colour is not available.; the colourway names As drawn, Colour 2, Colour 3, Muted and Rich, placeholders | `web/index.html`, `web/src/ui/builder.ts`, `web/src/bridge.ts`, `content/objects.toml` |
-| Game actions | Save; Load; Clear orders; Queue; New game; Help, in the Options flyout | `web/index.html` |
+| Game actions | Save; Load; New game; Help, in Options. Clear orders and Queue mode, in Sim details / Queue; No actions queued.; upcoming-action preview explanation | `web/index.html` |
 | Save state | Starting; No save yet; Saving; Game saved; Autosaved; Loading; Saved game loaded; No saved game found; Starting new game | `web/index.html`, `web/src/ui/persistence-controller.ts` |
 | Save failures | Saved game is invalid. Starting a new game.; Saving is unavailable. Starting a new game.; Save failed. The game is still running.; Load failed. Current game kept.; Could not remove the saved game. | `web/src/ui/persistence-controller.ts` |
 | Order and selection feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added; That person's order queue is full; That person's order queue was full, so the order last in line was dropped; That person could not be selected; Selection could not be changed | dedicated `#command-feedback` live region in `web/index.html`; `web/src/main.ts`; `web/src/ui/command-feedback.ts`; `web/src/ui/keyboard-target.ts` |
@@ -80,3 +82,19 @@ authorize unrelated replacement copy.
    session.
 5. Record the owner's approval and a watched play session in
    `docs/alpha-feel-notes.md` before marking criterion 11 complete.
+
+## Gameplay UI additions (2026-09-30)
+
+Functional labels: Now, Next, Queued, Going to work, Unavailable action, and
+Not enough beds. Action cards combine existing interaction labels with object
+or person names. Build and Exit build now live in the upper-left world group.
+
+
+## Self-preservation controls (2026-09-30)
+
+The new Traits row and housemate control use `Self-preservation instinct`,
+`Random`, `Choose a whole instinct value from 0 to 100.`, and a numeric `{value}/100`. Their explanation is: "Higher values favor
+meeting low needs. Very low values can lead to dangerous neglect." These strings
+are functional descriptions of implemented mechanics. The owner authorized
+deployment after fresh-context review on 2026-09-30. The broader voice-session
+acceptance above remains separate.

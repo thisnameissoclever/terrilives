@@ -123,6 +123,7 @@ impl Placement {
             | SimCommand::SetColourway { .. }
             | SimCommand::BuyObjectInColourway { .. }
             | SimCommand::AddHousemate { .. }
+            | SimCommand::AddHousemateWithInstinct { .. }
             | SimCommand::SetFloor { .. }
             | SimCommand::SetFamilyTie { .. }
             | SimCommand::SetDeathEnabled(_) => Self::Back,
@@ -130,25 +131,9 @@ impl Placement {
     }
 }
 
-/// Puts `intent` into `queue` at `placement`, holding the queue at `cap`.
-///
-/// **An append is refused at the cap, not trimmed.** See
-/// `max_queued_intents` in content/tuning.toml for why the overflow drops
-/// the newest rather than the oldest.
-///
-/// **A front placement is never refused; the BACK intent is dropped to
-/// make room.** A plain order is the player's correction, and a full
-/// queue is the one moment it matters most that the correction lands.
-/// The dropped intent is the one that would have been served last, which
-/// is the same "newest loses" rule an append follows, and the drop is
-/// recorded as a DISPLACEMENT - not a rejection, since the new order was
-/// accepted - so the shell says out loud that an older order fell off.
-/// Without the drop a run of plain clicks would grow the queue without
-/// bound, since each one lands ahead of the last.
-///
-/// Returns the intent a front placement dropped, if any, so the caller
-/// can release the sim's commitment when the dropped intent is the one
-/// being carried out - see `place_intent`.
+/// Places an intent. A zero cap preserves every order without a count limit.
+/// With a positive cap, appends are refused when full and front placements
+/// displace the last intent. Returns that displaced intent for cleanup.
 fn place_in(
     queue: &mut IntentQueue,
     intent: Intent,
@@ -158,7 +143,7 @@ fn place_in(
 ) -> Option<Intent> {
     match placement {
         Placement::Back => {
-            if queue.len() < cap {
+            if cap == 0 || queue.len() < cap {
                 queue.push(intent);
             } else {
                 feedback.record_intent_capacity_rejection();
@@ -166,7 +151,7 @@ fn place_in(
             None
         }
         Placement::Front => {
-            let displaced = if queue.len() >= cap {
+            let displaced = if cap != 0 && queue.len() >= cap {
                 feedback.record_intent_displacement();
                 queue.pop_back()
             } else {
@@ -192,13 +177,9 @@ fn place_in(
 /// `Without<Eating>`, and the sim would freeze while its needs drained.
 /// That is [L17] reached by a button rather than by a distance metric.
 fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
-    // try_remove for the same reason `tick_interactions` uses it:
-    // `Commands::entity` does not validate, so a `Target` naming an
-    // entity that has gone away would otherwise route the removal to
-    // the command error handler.
-    let station = target.object;
-    commands
-        .queue(move |world: &mut World| crate::domestic::release_station(world, station, agent));
+    // Resolve occupancy after preceding deferred releases, keeping any
+    // other owner of the object. A vanished target is safe to release.
+    crate::reservations::release(commands, agent, target);
     commands
         .entity(agent)
         .remove::<Target>()
@@ -263,9 +244,7 @@ fn place_intent(
     } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
         place_in(staged, intent, placement, cap, feedback).filter(|d| !staged.contains(*d))
     } else {
-        // A new queue holds its first order whatever the placement asked
-        // for, and the cap is at least 1 by content validation
-        // (`ZeroQueuedIntents`), so this never trims.
+        // A new queue always holds its first order, with an unlimited or positive cap.
         let mut queue = IntentQueue::default();
         let displaced = place_in(&mut queue, intent, placement, cap, feedback);
         fresh.push((agent, queue));
@@ -345,9 +324,7 @@ pub(crate) fn drain_ordinary_commands(
     objects: Query<Entity, With<SmartObject>>,
     chains: Query<(), With<terri_core::ChainState>>,
 ) {
-    // At least 1 by content validation - `ZeroQueuedIntents` - which is
-    // what lets a fresh queue be created below without re-checking that
-    // its single entry fits.
+    // Zero means unlimited; every positive cap also admits the first order.
     let cap = content.0.tuning.max_queued_intents as usize;
 
     // Taken out of the resource in one go, which both ends the borrow on
@@ -381,6 +358,7 @@ pub(crate) fn drain_ordinary_commands(
             | SimCommand::SetColourway { .. }
             | SimCommand::BuyObjectInColourway { .. }
             | SimCommand::AddHousemate { .. }
+            | SimCommand::AddHousemateWithInstinct { .. }
             | SimCommand::SetFloor { .. }
             | SimCommand::SetFamilyTie { .. }
             | SimCommand::SetDeathEnabled(_) => {
@@ -563,10 +541,7 @@ pub(crate) fn drain_ordinary_commands(
                 commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
                 if let Some(target) = released {
                     if target.interaction == crate::systems::chain::CHAIN_STEP {
-                        let station = target.object;
-                        commands.queue(move |world: &mut World| {
-                            crate::domestic::release_station(world, station, agent)
-                        });
+                        crate::reservations::release(&mut commands, agent, target);
                         commands.entity(agent).remove::<Target>().remove::<Path>();
                     }
                 }

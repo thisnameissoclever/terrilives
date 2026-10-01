@@ -1,7 +1,13 @@
 # CC0 audio intake
 
-Status: exact pack approval is pending. No third-party audio has been accepted,
-copied into the game, or added to repository history.
+Status: the owner approved all four packs on 2026-09-30. Download and archive
+inventory are complete. Five water-related files passed browser decoding and
+level screening. One flowing-water recording is now a provisional shower asset;
+see `2026-10-01-shower-water-recording.md` and `ASSETS.md`. Listening acceptance
+and the remaining sound selection are unfinished.
+An offline five-candidate comparison can now be generated with
+`scripts/build-audio-audition.cjs`; its usage and verification limits are in the
+intake results document.
 
 ## Decision
 
@@ -12,8 +18,10 @@ common household interactions without adding a runtime audio dependency or
 committing an entire unreviewed archive.
 
 Approval to fetch these archives is not approval to ship every file. Each sound
-still needs source inspection, listening review, editing, in-game mixing, and a
-specific semantic event before it can enter the public repository.
+still needs source inspection, documented edits, measured in-game mixing, and a
+specific semantic event. The owner's autonomous selection authorization permits
+bounded additive provisional sounds with listening limitations stated. Replacing
+an accepted cue still requires human listening first.
 
 ## Exact approval set
 
@@ -74,6 +82,11 @@ the tool never extracts or commits them.
 
 ## Selection workflow
 
+The approved intake is recorded in `2026-09-30-cc0-audio-intake-results.md`.
+Do not ask again to download this exact set or to perform routine selection
+work. Keep new costs, dependencies and replacement of accepted sounds within
+their existing approval boundaries.
+
 After an approved fetch:
 
 1. Confirm each archive digest and inspect its entries without extracting
@@ -94,13 +107,15 @@ After an approved fetch:
 ## Architecture boundary
 
 The current authored actions safely identify footsteps, conversation, sleep,
-eating, reading, and exercise. They do not identify which appliance or fixture
-caused a generic interaction. Refrigerator, stove, sink, toilet, shower,
-aquarium, television, and door audio must wait for an authored semantic sound
-action plus stable source-object identity. File availability is not permission
-to infer object state from animation labels.
+eating, reading, and exercise. Shower and stove now also have an authored sound
+action plus exact source-object identity. Shower use now loads one prepared
+flowing-water loop on demand. Stove cooking now uses a separate provisional
+first-party synthetic texture, not a recording from these packs; see
+`2026-10-01-stove-cooking-texture.md`. Other appliances still need explicit semantic state.
+File availability is not permission to infer object state from animation labels.
 
 The likely first use of these packs is therefore replacement material for
 already semantic personal cues, followed by kitchen and bathroom sounds after
 the source-object contract exists. Nonverbal Sim voices remain a separate
-recording problem; the compact packs are not expected to solve them.
+recording problem; twelve first-party conversation clips now ship, while the
+compact packs are not expected to provide additional character voices.

@@ -1,5 +1,459 @@
 # Lessons Learned
 
+## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
+
+**What happened.** A browser interruption while simulation ticks were paused
+froze existing sources and release-only recordings. Native resume replayed the
+object release at `0.08399999886751175` rather than zero without a new gesture.
+
+**Root cause.** Global unavailability was observed only at fixed-tick boundaries
+and explicit gestures. A paused world supplied neither, so the player graph and
+scheduler history remained owned throughout the stopped audio clock.
+
+**Prevention rule.** Bind one controller-owned context state handler after player
+construction. Non-running events immediately dispose every player, clear pending
+ownership and reset every scheduler. Running events admit no playback. Detach
+failed graphs before close and guard callbacks by captured context identity.
+
+**How to verify.** Start positive object, conversation, door and procedural
+sources, pause or end into release, then interrupt and recover through context
+state events without a fixed tick or another gesture. Render resumed samples
+alongside ordinary-fade controls. Delete event cleanup, scheduler reset and the
+captured-context guard independently; each covering regression must fail.
+
+## [L-binary-tests-need-bounded-diffs] Compare large binary artifacts without printing every byte
+
+**What happened.** A deliberately changed audio seed caused a deep byte-array
+assertion to spend excessive time formatting hundreds of thousands of values.
+The task-owned test was stopped and the source restored.
+
+**Root cause.** The assertion requested a structural diff of a complete WAV
+when the useful evidence was whether the bytes matched.
+
+**Prevention rule.** Use byte equality plus a fixed content hash for large
+reproducible artifacts. Assert header fields and signal bounds separately.
+Keep negative CLI checks isolated from the real runtime asset.
+
+**How to verify.** Changing the seed must fail the equality assertion promptly;
+silence must fail the signal bound; removing the publication guard must fail an
+isolated differing-output test without modifying the shipped WAV.
+
+## [L-audio-retained-is-not-active] Silence boundaries must include release-only nodes
+
+**What happened.** A recording ended normally, began fading, then the browser
+suspended audio. Its remaining release resumed later despite an empty audio
+frame. Both object and conversation output reproduced the tail.
+
+**Root cause.** The scheduler had removed the owner and the player had removed
+its active record. Only the separate collection of draining nodes still held
+the release. Active counts and repeated exact-owner stops could not find it.
+
+**Prevention rule.** Global unavailable-frame cleanup must inspect retained
+records and immediately dispose active and draining nodes. Preserve default
+fades on a running audible clock and keep direct stops identity-specific.
+
+**How to verify.** End while running, suspend midway through the release,
+process an empty frame, and render the resumed samples. Require zero across
+the entire resumed tail, alongside a positive normal-fade control. Cover
+throwing stops and stale callbacks as well as retained counts.
+
+## [L-browser-cli-page-argument] Check the CLI callback signature
+
+**What happened.** Two cleanup callbacks destructured `{ page }`, received
+undefined and failed before closing their task-owned page. Explicit session
+close then closed both browsers.
+
+**Root cause.** The callback shape was borrowed from a different browser API.
+This installed CLI passes the page directly, not an object containing it.
+
+**Prevention rule.** Check `playwright-cli run-code --help` before authoring
+its callback. Use `async (page) => { try { ... } finally { await page.close(); } }`.
+Keep session close as a fallback, and never include another task's browser.
+
+**How to verify.** A task-owned `about:blank` callback returns its URL and closes
+the page in `finally` without an exception. The corrected callback passed that
+check before this lesson was recorded.
+
+## [L-audio-observations-require-playback-availability] Do not consume starts that cannot play
+
+**What happened.** An action first observed during external audio suspension
+could remain silent after the browser resumed automatically. Gesture-driven
+recovery worked and concealed the missing automatic path.
+
+**Root cause.** Playback rejected an inaudible start after the scheduler had
+already recorded it. The unchanged next action could not emit another start.
+
+**Prevention rule.** Gate observations across every scheduler family on the
+same global playback predicate, while always finishing begin/end frames. Let
+absence handling release ownership and phase. Never reset an open frame from
+inside emission. At the first unavailable frame boundary, also stop unfinished
+procedural and door cues; otherwise their frozen tails can overlap fresh audio.
+Keep direct cancellation independent of playback availability.
+
+**How to verify.** Begin and replace actions while suspended, then return to
+running without a gesture. Require current actions to start, departed actions
+to stay silent, and footsteps/doors to re-anchor without replay. Include native
+rendered samples as well as controller and nested fixed-tick sampler tests.
+
+## [L-audio-cancellation-without-playback] End ownership even when sound cannot play
+
+**What happened.** Object and conversation end events were discarded while an
+externally suspended audio context could not play. Their schedulers forgot the
+ended actions, but native loops or pending recordings could survive and resume.
+
+**Root cause.** One audibility gate controlled both playback admission and
+ownership cancellation. Gesture-driven recovery hid the missing terminal path
+in earlier tests. A normal fade also cannot finish on a suspended audio clock.
+
+**Prevention rule.** Process exact-source cancellation independently of playback
+availability. Clear pending ownership first. Preserve normal fades when the
+clock runs; release the affected nodes immediately when it does not.
+
+**How to verify.** End an action through public frame APIs during suspension,
+return to running without a gesture, and settle a late recording load. Require
+no revived source or retained nodes. Render samples across native suspension
+to distinguish real cleanup from an active-count change that hides a frozen fade.
+
+## [L-audio-decode-detaches-input] Capture encoded metadata before decoding
+
+**What happened.** A paper-recording screening report showed zero encoded bytes
+for four successfully decoded files.
+
+**Root cause.** `decodeAudioData` detached its input ArrayBuffer before the
+report read `byteLength`. The zero described the consumed buffer, not an empty
+source file.
+
+**Prevention rule.** Capture encoded byte length and hash before decoding. Keep
+source-file identity separate from decoded frames, channels and duration.
+
+**How to verify.** Compare reported byte counts and hashes with the original
+files, then check decoded sample counts and finite-value bounds separately.
+Keep the corrected measurement report rather than silently interpreting zero
+as a valid source size.
+
+## [L-audio-proof-visible-gesture] Discover visible controls before driving audio checks
+
+**What happened.** A production sink check first used the wrong preview URL
+scheme, then tried a canvas point covered by the HUD, then tried Help while its
+Options panel was closed. Three attempts failed before testing sink playback.
+
+**Root cause.** The harness guessed control reachability from DOM presence.
+The existing memory helper also relied on optional first-run Help for audio
+activation; synthetic speed changes cannot supply a trusted user gesture.
+
+**Prevention rule.** Check the server's printed URL and take a fresh UI snapshot.
+Use the shared setup to dismiss first-run Help if present, then open and close
+the visible Options control. Do not force hidden clicks or disable autoplay.
+
+**How to verify.** Test setup with and without first-run Help. In the actual
+game, require the intended sink action, exact source ID and positive loop count
+before checking stop behavior. A screenshot or zero final voices alone is insufficient.
+
+## [L-audio-catalog-status] Keep sound status accurate across summary documents
+
+**What happened.** The full-game systems summary still described shower water
+as silent and door sounds as absent after both had been integrated.
+
+**Root cause.** Detailed audio specs were updated without reconciling the
+cross-system summary. Its older statement contradicted the implementation.
+
+**Prevention rule.** When adding an audible source, search FEATURES,
+GAME-SYSTEMS, TIM-TODO, ARCHITECTURE and ASSETS for its earlier status. Keep
+technical playback, owner listening acceptance and public deployment distinct.
+
+**How to verify.** Trace each current status statement to authored content and
+the runtime catalog. A selected recording may be provisional, but must not
+still be described as missing or silent.
+
+## [L-memory-endpoints-need-equivalent-ui] Compare matching HUD and audio states
+
+**What happened.** The door-audio memory run passed its retained-heap allowance
+and scheduler bounds but failed exact DOM-node and listener comparisons.
+
+**Root cause.** The selected person's moodlets and action cards changed during
+the run, including in audio-disabled controls. Pause intentionally allowed short
+recordings to finish, so a 250 ms delay still counted door `onended` listeners.
+After those differences were removed, a tree comparison found one hidden
+` (low)` text node retained in the deselected needs panel. This was bounded
+view state, not a memory leak. The empty-panel lifecycle now clears obsolete
+warning labels; selecting a person again renders their current warnings.
+
+**Prevention rule.** At both paused measurement endpoints, clear selection through
+the public simulation command and wait for empty moodlet/action rows. Restore
+selection before the measured gameplay interval. Wait boundedly for all audio
+players to drain before collection. Retain exact node/document/listener equality;
+subtracting every connected node would hide connected leaks.
+
+**How to verify.** Enabled and disabled browser pairs must pass with equivalent
+endpoints. Negative report fixtures independently add one node, document or
+listener; deleting each equality check must fail its regression. Clone fixture
+endpoints separately so modifying the final sample cannot also change baseline.
+
+## [L-door-proof-needs-live-tracks] A bounded scheduler must also be exercised
+
+**What happened.** Independent review found that the new door memory checks
+would accept an audio-enabled run with zero door tracks throughout.
+
+**Root cause.** Upper bounds constrain growth but cannot prove the fixed-tick
+sampler ran. Omitting the sampler would satisfy every zero-friendly limit.
+
+**Prevention rule.** Require a positive observed track sample in enabled runs,
+alongside live-count, retained-capacity and voice bounds. Keep disabled controls
+silent. Test geometry coordinates independently and churn removed identities
+to distinguish reusable storage from a growing history.
+
+**How to verify.** The memory-report regression rejects all-zero enabled door
+samples. Removing that guard must fail the regression with expected false,
+received true. The actual browser run must also exercise portal tracks.
+
+## [L-provisional-audio-is-not-listening-approval] Keep evidence limits separate from authorization
+
+**What happened.** Successive audio slices left household objects silent despite
+the owner's authorization to select and deliver routine sound improvements.
+
+**Root cause.** An assistant-authored checklist expanded the human-listening
+gate for replacing accepted cues into a ban on all additive provisional sounds.
+
+**Prevention rule.** Follow the actual approval boundary. A small additive sound
+may ship under existing selection authority after provenance, editing, measured
+mixing and lifecycle checks, while explicitly retaining unverified subjective
+acceptance. Do not claim to have heard audio when only waveform data is available.
+
+**How to verify.** Trace one real game interaction to its exact source-owned
+recording, test decoded output and lifecycle silence, and document provenance
+and the listening limitation. Keep replacement of accepted cues separately gated.
+
+## [L-browser-export-return-value] Return structured data from the CLI callback
+
+**What happened.** Three water-export attempts failed: unavailable `require`, a
+large base64 command argument, and console output that was not a structured result.
+
+**Root cause.** The export assumed Node globals and console forwarding inside
+the Playwright CLI callback instead of using its supported route and return APIs.
+
+**Prevention rule.** After three similar failures, obtain fresh-context better-way
+review before another attempt. Serve the source through `page.route`, decode in
+the browser, and return the result. Do not embed binary sources in shell arguments.
+
+**How to verify.** A small sentinel return must appear under `### Result`; then
+the exported WAV must match its measured frame count and recorded SHA-256 digest.
+
+## [L-browser-proof-public-urls] Resolve served recordings as browser URLs
+
+**What happened.** The recovery browser proof retried both recordings because
+its supposed successful input never decoded. Two fixture runs failed.
+
+**Root cause.** Vite rewrote `new URL(..., import.meta.url)` as a bundled asset
+reference. Public WAV files were not in that source-relative asset map.
+
+**Prevention rule.** For a browser proof requesting served public files, resolve
+the runtime URL against the page location. Check the transformed fixture and a
+direct fetch/decode before treating a fixture failure as a production defect.
+
+**How to verify.** The recovery proof must fetch the successful WAV only once,
+retry the failed WAV once, and render nonzero samples for the surviving pair.
+
+## [L-voice-cache-holes-need-recovery] Array length does not prove recordings loaded
+
+**What happened.** A temporary download or decode failure could leave affected
+conversations silent until page reload. Even explicitly loading the library
+again made no new requests.
+
+**Root cause.** Failed recordings retained their array indices as undefined
+slots, but the controller checked array length rather than slot contents. The
+game also had no recovery trigger after initial loading.
+
+**Prevention rule.** Check decoded slots, preserve successes, and retry missing
+recordings from a bounded semantic demand path. Keep download completion separate
+from permission to play: ended or invalidated interactions must stay silent.
+
+**How to verify.** Fail one recording, recover the network, and start a new
+conversation after the cooldown. Only the missing file should be fetched again.
+Hold recovery across end, mute, Effects zero, Load, and background boundaries;
+the old conversation must not return. The browser proof in
+`docs/specs/2026-10-01-voice-download-recovery.md` also checks real decoded samples.
+
+## [L-test-cleanup-needs-owned-paths] A rejection test must not delete its target blindly
+
+**What happened.** Review found an audition-builder test that used a fixed
+repository output filename and deleted it in `finally`. If that path already
+contained an owner's file, the builder would correctly refuse to overwrite it,
+but test cleanup would delete it anyway. No owner file was deleted in this run.
+
+**Root cause.** The test treated a path it named as a file it owned, including
+when the production guard correctly prevented creation.
+
+**Prevention rule.** Create a uniquely owned temporary directory for each
+filesystem fixture and clean up only that directory. A failed operation does
+not establish ownership of its target. Never delete a fixed-path sentinel
+merely to leave a test clean.
+
+**How to verify.** The repository-output test creates an `audition-test-*`
+directory with `mkdtempSync`, registers that exact root for cleanup, and asserts
+the rejected output was never created. A separate existing-output test proves
+the builder leaves the original bytes unchanged.
+
+## [L-audio-clear-before-hardware] Invalidate pending ownership before changing browser gains
+
+**What happened.** New object-loop regression tests injected a failure into
+gain automation during mute and Effects-zero changes. The old ordering touched
+the browser gain before clearing pending playback. Both tests reproduced a
+late recording installation starting a source whose ownership should have
+been invalidated.
+
+**Root cause.** A synchronous audio hardware failure skipped the cleanup that
+followed it. The preference changed, but the pending source survived.
+
+**Prevention rule.** Clear desired and pending ownership and stop owned players
+before a fallible browser operation at a global silence boundary. Hardware
+cleanup remains failure-isolated; logical invalidation must not depend on it.
+
+**How to verify.** Inject gain-cancellation failures at mute and Effects zero,
+restore the preference, then install a previously missing recording. No source
+may start until a fresh fixed-tick observation. Also require every previously
+retained object node to be released at global silence boundaries.
+
+## [L-carry-forward-audio-approval] Execute approved routine work without reopening the decision
+
+**What happened.** Automatic continuation turns repeated the pending Voices
+slider and four-pack download questions. The owner approved both and explicitly
+asked for ordinary decisions to use judgment rather than more questions.
+
+**Root cause.** The approval state was not recorded in the intake contract, and
+continuation messages repeated the same request without a new decision to make.
+
+**Prevention rule.** Carry explicit approval into the task's current docs and
+execute the approved work. Do not ask again about the same slider design, pack
+set or routine implementation details. Keep costs, dependencies, destructive
+actions and materially different scope subject to their separate rules.
+
+**How to verify.** The intake spec records the approved set, the results identify
+the downloaded hashes, and the Voices default preserves existing preferences
+and the accepted mix without asking the owner to choose implementation details.
+
+## [L-conversation-identity-is-not-a-household-mask] Track the actual interaction instance
+
+**What happened.** A second conversation starting or ending could restart an
+unrelated recorded pair. The household-wide talker mask also collapsed IDs
+above 30, despite the allocator issuing new IDs throughout the household's life.
+
+**Root cause.** Playback inferred conversation identity from aggregate activity
+and selected clips instead of the simulation's initiator/partner relationship.
+A small maximum household size was mistaken for a bound on stable identifiers.
+
+**Prevention rule.** Project authoritative interaction identity onto both
+participants and retain it through scheduling, pending loads and playback.
+Keep wide identity integers exact across the Rust/JavaScript boundary. An
+individual end event must not invoke household-wide cleanup.
+
+**How to verify.** Run two simultaneous pairs with the same clips and end either
+without restarting the other. Repeat clips in a later instance, reorder rows,
+use IDs above 30 and completion tokens above `2^53`, then test load cancellation.
+Render real audio samples while one pair ends and the other remains active.
+See `docs/specs/2026-09-30-conversation-audio-ownership.md` for evidence.
+
+## [L-audio-envelope-needs-rendered-proof] A scheduled fade may still produce a hard cut
+
+**What happened.** Conversation stops scheduled a fade but cancelled the ramp
+that supplied its starting level. A real offline audio render exposed an
+immediate 0.149-to-zero jump. Construction failures also abandoned source nodes
+created before their registration in the cleanup list.
+
+**Root cause.** Tests inspected ramp calls rather than rendered samples, and
+the failure fixture covered gain creation but not partial source construction.
+Very short buffers also let natural attack and release endpoints overlap.
+
+**Prevention rule.** Preserve the exact envelope value and trajectory when
+cancelling automation; finish the fade before the samples end. Register nodes
+at creation, before any later operation can fail. Bound envelope edges for
+short buffers instead of assuming every input is a full-length recording.
+
+**How to verify.** Run the real `OfflineAudioContext` proof in
+`web/proofs/voice-fades.js` at attack, plateau, release and natural completion.
+Inject failures into each source-construction stage and require immediate
+disconnection. Delete the anchor, ownership, teardown, end clamp and short-edge
+bound independently; each regression must fail. Evidence and restoration hashes
+are in `docs/specs/2026-09-30-conversation-audio.md`.
+
+## [L-chronotype-lifecycle-and-sign] Test the schedule's meaning and its full lifecycle
+
+**What happened.** Content declared early-riser and night-owl offsets, but
+household creation left both at zero and saves omitted the field. Independent
+review also found that the phase calculation reversed the intended timing.
+
+**Root cause.** The compiler and curve helper had tests, but the compiled field
+was not traced through spawning, saving, loading and hashing. Arithmetic tests
+copied the implementation's plus sign instead of specifying when an early or
+late schedule should reach a known point on the curve. Old docs still called
+the enabled curve disabled.
+
+**Prevention rule.** For each behavior-bearing field, test authored input through
+the runtime lifecycle. Define the sign in player terms before testing arithmetic.
+Preserve historical defaults explicitly; do not infer missing saved state from
+current content. Recheck current configuration when updating old status notes.
+
+**How to verify.** Starters and newcomers receive exact authored offsets; V5
+retains arbitrary signed offsets and their owners, while older saves retain
+zero. Test the same evening curve point at clock ticks 1230, 1320 and 1500 for
+offsets -90, 0 and +180. Removing propagation, persistence, hash input, ordering
+validation or correct phase direction must fail a focused regression. See
+`docs/specs/2026-09-30-sleep-schedules.md` for the evidence contract.
+## [L-sprite-label-not-direction] Saved facing codes do not prove an asset's physical front
+
+**What happened.** Replacement chair art kept the NW code, passed four-view
+mapping tests and left the saved world unchanged, but faced sideways to its desk.
+
+**Root cause.** The old base sprite faced game +Y; the new model's standard SE
+export faced +X. Review checked distinct rotations and labels without tracing
+the physical front through the Blender camera and the existing game convention.
+
+**Prevention rule.** Preserve the existing physical meaning of every saved
+facing. Fix the individual model's authoring basis, not the lot placement or
+shared exporter. Derive its front from visible geometry, not a metadata label.
+
+**How to verify.** The chair's seat-to-back vector test fails on the sideways
+source, then passes after its baked -90 degree turn. Check the saved model's
+front vector under all four export rotations and inspect it beside the desk.
+An unchanged save hash proves no state change, not a correct rendered direction.
+
+## [L-hidden-support-envelope] Attached supports can still break through a visible surface
+
+**What happened.** The office chair passed every attachment test, but close
+review found a faint mark on its rear shell. The hidden spine protruded about
+0.005 model units through that face.
+
+**Root cause.** Positive overlap proves a joint exists, not that a support stays
+inside the part meant to conceal it.
+
+**Prevention rule.** Check both contact and the hidden support's outer envelope.
+Keep a deliberate clearance from the visible rear surface, including bevels.
+
+**How to verify.** The original source fails the spine-clearance test. The saved
+scene checker also rejects a rearward displacement. Inspect the rear-facing
+original images after rerendering; a passing bound is not visual acceptance.
+
+## [L-short-wall-transparency] Test the bound pipeline, not just its descriptor
+
+**What happened.** Short walls needed local transparency without reviving the
+furniture clipping problem. Review also found that a renderer early return
+ignored wall-only frames and that Load inherited the previous world's fades.
+
+**Root cause.** Opaque rendering assumptions survived the addition of a second
+layer. A single transparent wall drawn last cannot prove depth writes are off,
+and camera rebuilds are not the same lifecycle event as replacing a save.
+
+**Prevention rule.** Share an explicit pipeline layout. Draw short walls after
+opaque geometry, with depth testing but no depth writes; apply opacity after
+coverage testing. Keep the wall raster height in its depth projection. Retain
+fades through camera changes, but reset them after successful world replacement.
+
+**How to verify.** Two equal-depth 25% surfaces must yield 43.75% combined
+coverage, including with no opaque instances. Mutating the bound pipeline to
+write depth fails that GPU check. Separate actor/socket proximity tests cover
+multiple panels, interpolation, reduced motion and Load. Use the isolated
+`web/proofs/index.html` harness rather than booting another game underneath
+GPU probes, and close disposable contexts in `finally`.
+
 ## [L-release-monitor-missing-checks] A pushed PR is not a running release
 
 **What happened.** The selection fix was pushed, but its CI never appeared and
@@ -4962,11 +5416,23 @@ exact `head_sha`. Immediately before deployment, compare that SHA with the live
 `main` ref and skip it when an overlapping or re-run CI job has made the
 artifact stale. Do not substitute the newest default-branch revision.
 
-**How to verify.** Push a branch through a pull request and require CI to pass
-before merge. After merge, confirm the Pages run names that merge SHA as its
-triggering workflow revision and that the deployed HTML loads that revision's
-content-addressed assets. In a controlled test branch, force CI to fail and
+**How to verify.** Follow AGENTS.md's delivery rule: with owner merge authority,
+passing relevant local checks and no known failures, do not wait for duplicate
+remote checks before merging. Publication still requires successful main CI.
+Confirm the Pages run's triggering revision, that its actual
+`actions/deploy-pages` step ran successfully, and that the public HTML loads
+that revision's content-addressed assets. In a controlled test branch, force CI to fail and
 confirm the downstream Pages build job is skipped.
+
+**Follow-up, 2026-09-30.** PR 168's Pages run `36823477227` completed with a
+successful workflow conclusion but skipped publication: PR 169 had advanced
+main from `8ea22167` to `9496d9ac` while it built. An initial delivery update
+mistook the workflow conclusion for deployment. The public HTML check caught
+the mismatch before closeout. A successful workflow, build, environment record
+or enclosing job is not proof that its conditional publication step ran.
+Read the step outcome and live assets, and follow the newer tested revision
+when the stale-artifact guard skips the old one. Never redeploy the stale
+artifact to make its status look complete.
 
 ## [L-seated-state-needs-a-seated-silhouette] A socket position cannot make straight legs read as sitting
 
@@ -5813,10 +6279,17 @@ footstep lifecycle. Two explicit scheduler lists evolved independently: the
 audible re-entry branch and the browser proof's diagnostics. Each list was
 partially updated, so neither represented the complete controller contract.
 
-**Prevention rule.** Every transition from inaudible to audible must call the
-controller's single all-scheduler reset. Every bounded-state proof must sample
+**Prevention rule.** Explicit global lifecycle boundaries use the controller's
+single all-scheduler reset. Fixed-tick observations must also apply the same
+availability gate to every scheduler, so automatic context recovery cannot
+retain silent history. Every bounded-state proof must sample
 and constrain every retained scheduler's live count and capacity. Adding a
 scheduler requires updating both contracts in the same change.
+
+A category gain adjustment is different: Voices can reach zero while the global
+audio context and simulation remain active. Keep its bounded transport running
+and do not reset unrelated footsteps or personal activity. Master mute, Effects
+zero, backgrounding and world replacement still use the global lifecycle.
 
 **How to verify.** Populate footstep, personal-activity, and object-sound state;
 externally suspend the context; continue sampling while inaudible; then recover
@@ -7033,7 +7506,10 @@ than by not building.
 **Prevention rule:** build with exactly the command CI runs,
 `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
 from the repository root, before every web test run that follows a Rust
-change.
+change. Wait for that command to finish successfully before starting Vitest,
+type checking or Vite. Starting them concurrently still reads the previous
+binary: the cutaway-wall integration hit six stale-binding/save-tail failures
+after merging newer autonomy code because its web suite ran before WASM finished.
 
 **How to verify:** after the build, the timestamp of
 `web/src/wasm/terri_wasm_bg.wasm` is newer than the last Rust edit, and a web
@@ -7278,3 +7754,608 @@ interval while active participants gather. Exclude player interruptions and
 busy guests; urgent needs and insufficient free seats must release the group.
 Verify a sustained four-person eating interval, save/load during gathering,
 and each release condition. A one-tick overlap is not an adequate assertion.
+
+## [L-autonomy-positive-choices] Random seeds do not fix deterministic eligibility
+
+**What happened.** New games repeated because startup used a constant seed, while
+threshold gates and per-target argmax choices also excluded alternatives.
+
+**Root cause.** Weighted selection happened after irreversible deterministic
+filtering. A random generator cannot select a choice that never enters its pool.
+
+**Prevention.** Keep physical eligibility separate from utility. Normalize targets
+and their interactions separately, retain positive exploration, and reserve an RNG
+bucket for microscopic probabilities so rounding cannot exclude them.
+
+**Verification.** Compare traces across seeds and after save/load; sample both
+interactions on one object; measure survival and comfortable choice diversity.
+
+## [L-mutation-compile-baseline] A compiler error is not a caught mutation
+
+**What happened.** A mutation harness attempted three deletions while newly added
+fixtures failed to compile, producing no executed assertion evidence.
+
+**Root cause.** A nonzero cargo exit was treated as sufficient detection.
+
+**Prevention.** Require a compiling, passing baseline; abort on compilation errors.
+Accept detection only when the named test actually fails with an assertion.
+Restore original bytes in a finally block and verify them after each deletion.
+
+**Verification.** Record the failing test and assertion, plus byte restoration,
+for every mutation. Compilation failure remains unverified evidence.
+
+
+## [L-autonomy-causal-fixtures] Saved state and traces must survive varied decisions
+
+**What happened.** Wider autonomous sampling invalidated fixtures that relied on
+an incidental selected action. Appended save data moved hard-coded tail offsets;
+legacy migration intentionally consumed restored RNG draws. A low-instinct trace
+also crashed while auditing a person who had already died.
+
+**Root cause.** Tests treated one old random sequence as a state guarantee, and
+trace diagnostics assumed every initially recorded person remained alive.
+
+**Prevention.** Explicitly command the action a persistence fixture needs. Derive
+serialized suffix boundaries where possible, distinguish current-save continuation
+from legacy migration, and query live components before auditing an original ID.
+Use probability assertions for eligibility and record the seed for exact choices.
+
+**Verification.** Run replay and save/load tests, including zero and failed loads;
+complete traces through a death. Count short completion transitions separately
+from occupied-target waits when diagnosing apparent stillness.
+## [L-roadmap-status-reconciliation] A shipped slice must leave the future-work lists
+
+**What happened.** The roadmap audit on 2026-09-30 found floors, windows, sales,
+colourways, the yard and street still listed as future work in parts of
+FEATURES.md and GAME-SYSTEMS.md, despite their individual entries recording merges.
+The restart list still prioritised older acceptance work, and the systems summary
+still called the save format V3 when the writer was V5.
+
+**Root cause.** Delivery updated individual feature paragraphs without reconciling
+the overview tables, milestone bullets, remaining-work lists and suggested order.
+Subjective completion percentages concealed which slices had actually shipped.
+
+The same omission affected audio: TIM-TODO.md still called recorded voices
+unbuilt and described merged source identity as a candidate branch. After PR152,
+the audio foundation's graph section and FEATURES.md also retained the former
+household-wide conversation limit despite their more detailed ownership contract.
+
+**Prevention.** After a merge, update the feature entry and every current status or
+dependency claim that names it. Mark the delivered slice complete while keeping
+the larger system partial when extensions remain. Keep historical evidence dated
+and separate from current priorities; keep owner acceptance separate from code status.
+
+**Verification.** Compare the roadmap with merged PRs, the live command enum,
+save-version constant and content. Search both roadmap files for the feature's
+name and ID, stale branch references and future-tense claims, including TIM-TODO.md
+and the current specification's overview sections. Ensure summary and
+detail agree, and run `python check-doc-ids.py` after the documentation update.
+## [L-furniture-preview-replacement] Furniture previews must replace their source at every destination
+
+**What happened.** Moving furniture to a separate tile left the original visible,
+so the piece appeared duplicated. Confirm also kept the piece selected.
+
+**Root cause.** Replacement was conditional on a valid overlapping footprint.
+The successful placement path refreshed selection instead of clearing it.
+
+**Prevention rule.** Any drawable move preview owns the piece's presentation.
+Hide its old base, foreground and marker until the preview ends. Keep simulation
+state unchanged until Confirm succeeds, then clear selection.
+
+**How to verify.** Builder tests cover non-overlapping and refused previews,
+foreground layers, unchanged saved bytes on Cancel, successful deselection, and
+selection handoff. Inspect a moved piece in the running game before confirming.
+
+## [L-powershell-source-search-correction] PowerShell source-search correction (2026-09-30)
+
+**What happened.** Three searches passed wildcard paths to ripgrep and failed.
+**Root cause.** PowerShell left the wildcard in the literal path argument.
+**Prevention rule.** Apply the existing lesson at the first failure: pass a real
+folder and use ripgrep's `-g` filter. The fresh-context review confirmed this.
+**How to verify.** `rg --files web/tests -g '*frame*'` returns the matching files.
+
+## [L-append-corrected-bookcase-art] Preserve historical atlas records when replacing live furniture art
+
+**What happened.** Replacing four bookcase records broke historical prefix checks.
+**Root cause.** Those tests preserve old atlas identities and decoded pixels, not
+just the objects currently using them. Replacing records after one validation
+pass still changed the final atlas that other historical tests inspect.
+**Prevention rule.** Append corrected art under new sprite names, and point the
+object's presentation at them. Keep old records unchanged and retain the existing
+fingerprint and save compatibility checks.
+**How to verify.** Run the complete sprite generator suite, the atlas freshness
+check, content compilation, and save compatibility tests. Check all four facings.
+
+
+## [L-screenshot-errors-are-unfinished-verification] Resolve visible errors before presenting proof
+
+**What happened.** A UI screenshot contained Load failed, but the result treated
+that visible failure as an incidental limitation. The owner had to point it out.
+**Root cause.** A previous voice change appended an option inside every saved
+entity without versioning that row. The old V1 bytes no longer decoded.
+**Prevention rule.** Investigate visible runtime errors before presenting a
+screenshot as proof. Freeze historical row types; appending inside repeated rows
+requires explicit migration rather than a default on the new field.
+**How to verify.** Load the captured bytes through the public loader, compare all
+saved entities and replay after resaving, reject malformed and unknown formats,
+and reload the browser origin without clearing its saved file.
+
+## [L-last-provider-sales-respect-owner-choice] Handle missing stations instead of denying sales
+
+**What happened.** A last-provider sale restriction blocked removal of the only
+fridge or stove without the owner's request.
+**Root cause.** The recipe runtime waited indefinitely for a missing station,
+and the sale validator hid that flaw behind a gameplay restriction.
+**Prevention rule.** Do not impose that restriction. Abandon impossible unfinished
+recipes without payout and exclude incomplete recipes from autonomous selection.
+**How to verify.** Sell the only appliances, save and load the result, and test
+missing future stations separately from existing stations that are reserved.
+
+## [L-action-cards-project-live-state-and-visible-rows] Verify projections against their source
+
+**What happened.** Review found queued recipes labelled unavailable, suspended
+recipes masking active actions, and an unrestricted card list that could throw
+when spread into a DOM call. Bookcase and menu tests also passed mutations that
+restored their defects; the save test compared two already-migrated copies.
+**Root cause.** Labels omitted the recipe menu rows and preferred persistent
+recipe state over active commitments. Rendering ignored the viewport boundary.
+Tests substituted expected facing, inspected only the first matching media
+block, or omitted a direct comparison with the decoded historical source.
+**Prevention rule.** Follow the actual menu indices and active components.
+Preserve all stored orders while formatting and transferring only the bounded
+visible window. Limiting DOM rows after fetching the whole queue leaves the
+hidden work proportional to queue length. Observe
+the transform actually sent to drawing and every containing CSS scope. Compare
+every retained save field with its historical source before migration.
+**How to verify.** Recipe and interruption tests, a 200,000-order render test,
+all retained historical fields, and actual drawing-facing assertions are backed
+by recorded failing mutations and byte-identical restoration. Browser checks
+cover expanded menus on phone portrait and short landscape viewports.
+
+The final played pass also exposed stale Help and string-inventory references
+to Build under Options. Moving a control requires updating its navigation
+instructions and inventory as well as its layout. Verify the actual Help text
+and search all current control-location references before delivery.
+
+## [L-heavy-verification-runs-stay-sequential] Keep target copying away from timed file tests
+
+**What happened.** Two atlas file tests exceeded their five-second timeout while
+a mutation run was copying the existing Cargo target directory. Their assertion
+checks had not failed. A quiet rerun passed all 14 atlas tests in 112 milliseconds;
+the subsequent full web run passed all 1,232 tests.
+**Root cause.** Heavy verification jobs overlapped on a shared host. The observed
+timing points to file I/O contention; it does not establish an atlas defect.
+**Prevention rule.** Run heavy build and test gates sequentially. Use a separate
+mutation build without copying the large target directory. Do not increase test
+timeouts to conceal an overloaded verification run.
+**How to verify.** Complete the ordinary web suite before starting mutation
+compilation, and retain both the failure and the quiet-run result.
+
+## [L-autonomy-tests-cover-order-and-startup-wiring] Test the path that can actually regress
+
+**What happened.** Fresh-context review found two coverage gaps despite passing
+unit tests: migration fixtures already used sorted storage, and fresh-game tests
+bypassed the production constructor call.
+**Root cause.** Fixtures made the sorting mechanism unnecessary, while separate
+helper and constructor tests left their connection untested.
+**Prevention rule.** Deliberately scramble storage when ordering matters. Exercise
+the production connection as well as each endpoint when randomness crosses layers.
+**How to verify.** Removing the migration sort and replacing startup seeds with
+constants each produce the intended assertion failure. Restore exact source bytes
+and rerun both tests; evidence is in `docs/autonomy-mutation-evidence.md`.
+
+## [L-control-mockups-need-a-space-budget] Size the controls before polishing the mock-up
+
+**What happened.** The first desktop and mobile control mock-ups devoted too
+much screen space to panels. The owner preferred the household console's
+organization but rejected its bulk and unused space.
+
+**Root cause.** The review prioritized grouping and visual polish without
+holding the result to a measured share of the game viewport. Stating pixel
+targets in an image prompt did not ensure the resulting geometry met them.
+
+**Prevention rule.** Define the default panel footprint before drawing it.
+Keep frequent readouts visible and put secondary detail behind explicit
+disclosures. Remove duplicate content and excess padding first; use separate
+desktop control sizes and mobile touch targets. Treat pixel labels in a
+concept as intentions until the rendered geometry is checked.
+
+**How to verify.** Measure the bottom strip, world controls and uninterrupted
+canvas at each target viewport. Compare collapsed and expanded states, check
+44px mobile hit areas, and verify that world selection still reaches the
+canvas outside the controls. The compact console revision targets a 96px
+desktop strip at 1440 by 900; its image is not implementation evidence.
+
+
+## [L-compact-hud-collapse-and-css-coverage] Folding UI must preserve warnings and test coverage
+
+The compact HUD's first pass hid the household roster on Collapse and retained
+only the selected Sim's critical-needs summary. That lost another household
+member's death warning. Moving responsive rules into a new stylesheet also
+left the existing Build guards reading only index.html. Adversarial review
+caught both before delivery.
+
+Root cause: presentation boundaries moved without moving every dependent
+warning and test boundary. Preserve household-wide warnings outside the
+collapsible body, independent of selection. Scan every shipped stylesheet when
+a guard claims to protect a CSS invariant; keep exceptions limited to exact
+legitimate selectors. Opening panels must coordinate on activation, not depend
+on an incidental pointerdown that keyboard activation never sends.
+
+Verify with a non-selected endangered member and no selection while collapsed;
+keyboard activation from Options into Sim details; and deliberate illegal flex
+and hidden-state rules injected into the additional stylesheet. Each guard must
+fail, then the exact original bytes must be restored. The compact HUD evidence
+records those failures and the final passing suite.
+
+## Dining table support and picking checks (2026-09-30)
+
+Adversarial in-memory mutations showed that a grounded leg could still extend
+through the tabletop while passing contact tests. Positive contact alone does
+not establish a part's correct dimensions. The table checks now pin every
+leg's evaluated dimensions and reject widened and taller saved-scene copies,
+as well as detached parts and a wrong authored basis. Verify by running the
+dining layout suite and `check_table_scene.py`; the latter must catch eight
+damaged copies and reload the byte-identical clean model.
+
+A picking test clicked above the entire wide image, so it did not test blank
+padding inside that image. The corrected point is within the registered canvas
+but above the visible art. Deliberately extending only the top content bound
+must now make the test fail in every facing. Test the claimed boundary, not a
+point the outer rectangle would reject anyway.
+
+## Sofa rotation and supported-part positions (2026-09-30)
+
+The old long sofa reused one front for SE/NW and another for SW/NE. Replacing
+it with a real rotating model cannot preserve those incorrect opposing views.
+Trace the shipped default's physical front and game coordinate transform;
+preserve facing values, footprint and origin, then document which old pictures
+were wrong. Verify all four actual placements and saved rotations, not merely
+four differently named PNGs.
+
+Independent review also found that dimension and contact checks would allow a
+cushion to slide into its neighbor while remaining supported. Pin the saved
+part centers as well. `check_sofa_scene.py` must reject an overlapping-cushion
+copy, alongside disconnected, oversized, rotated and missing parts. Keep the
+clean source byte-identical. Interaction labels are not animation evidence:
+execute the actual action and inspect the body's visual code before claiming
+that a sofa provides a reclining pose.
+
+## Media support graphs and meaningful rejection tests (2026-10-01)
+
+The first media validator checked exact coordinates before physical contact.
+Detached-part tests therefore passed without proving the contact guard worked.
+Check semantic floor/contact rules first and require the intended rejection
+message. Deleting either guard must then break the negative-test proof, not
+merely reveal another assertion that the harness accepts as equivalent.
+
+Nonempty support lists and pairwise overlap also failed to establish ground
+support. An independent in-memory mutation floated a cyclic radio assembly
+above its feet while every initial pure test passed. Pin the cabinet's four
+foot supports and recursively reject cycles. Verify both the deliberately
+floating graph and a separate grille/rib cycle fail; reload the clean saved
+model and require byte-identical source afterward.
+
+Browser visual proofs need a separate document if they replace page contents.
+Replacing the live game's body leaves its animation loop updating missing UI
+nodes, and its viewport CSS can clip a review board. Use an isolated HTML
+harness for GPU captures, then ordinary production controls for played proof.
+Read control types from the current DOM: Light is a button, not a select.
+Committed-facing evidence must wait for the actual simulation facing, not
+only the Build preview label. Active-action evidence must check the first
+queue entry; finding the action later in the queue proves only that it waits.
+
+## Armchair fit and finite support neighborhoods (2026-10-01)
+
+Two chair candidates looked plausible in stills while their evaluated solids
+intersected the unchanged sitting body. The first collided at arms, trousers
+and hips; the second still buried the hip bridge slightly in the cushion.
+Fit the furniture to the approved pose, then test all visible body geometry
+against every chair solid. Do not hide limbs, offset the Sim or exempt a
+colliding body part. Candidate 03 clears both triangle-crossing and containment
+checks; raised-seat and raised-arm copies must fail those same guards.
+
+Support proximity and exact coplanarity are different questions for a rounded
+rigid hip above a nearly flat cushion. A tiny closest gap can coexist with a
+wider near-support neighborhood. Independently review those tolerances and
+state that they approximate visual support, not simulated compression. Do not
+infer area from X/Y extents alone: diagonal collinear points have both extents.
+Require a finite projected hull area and test diagonal and duplicate samples.
+Verify every seated sample and retain failed candidate evidence. Describe the
+unchanged shoe-floor gap honestly rather than calling it exact floor contact.
+
+When replacement art retires the last shipped foreground overlay, keep generic
+foreground tests with explicit fixtures. Do not give their body and foreground
+the same sprite ID: that lets a cross-wired pointer or reconstruction pass.
+Independent review caught this in the first migrated armchair fixtures. Use
+distinct valid IDs and assert their difference. Verify the foreground tests
+still pass, and delete preview foreground suppression to prove the browser
+fixture catches the resulting duplicate layer.
+
+## [L-floor-lamp-solids-and-verifier-contract] Inspect hidden construction and the current browser contract
+
+**What happened.** A floor-lamp render passed visual review while its base
+contained an internal wire edge and its stand continued through the bulb.
+The saved-scene and code reviews caught these separately. Browser proof
+also failed after assuming a clock accessor name, clicking behind the help
+dialog and reading the original object row during a Build preview.
+
+**Root cause.** Revolving zero-radius profile rings produced degenerate
+geometry. A convenient continuous stand hid incorrect construction inside
+the shade. The browser helper guessed interface behavior instead of reading
+the actual bridge and controls.
+
+**Prevention.** Use single axis vertices, check closed meshes and evaluated
+contacts, and require intentional clearance around internal parts. Keep
+source-art acceptance separate from physical and runtime acceptance. Read
+the clock and control contracts before scripting: `clockTick()` reads time,
+`tick()` advances it, confirmation clears furniture selection, and the help
+dialog intercepts clicks. Preview art replaces the original object instance;
+inspect the live output, not its suppressed row. After repeated helper
+failures, obtain a fresh-context approach review before another attempt.
+
+**Verify.** Lift the lamp base, detach supports, and cap the shade opening;
+each saved-scene check must fail for its intended cause. Deleting ground,
+contact and opening guards must break that rejection proof. In the browser,
+reselect before each rotation, wait for the applied command, and compare
+paused save bytes after a complete turn. Use the natural clock for the played
+pass and always close task-owned pages.
+
+## [L-coat-rack-facing-and-contact] Preserve the authored direction and measure surface contact
+
+**What happened.** The coat rack's first model rotated its crossbar 90 degrees
+relative to the old SE sprite. A saved-scene checker then rejected a supported
+upright at an almost exact base joint. The GPU proof also confused received
+room light with an object's own emission.
+
+**Root cause.** The shared exporter rotates its authored basis; a one-tile
+footprint does not expose that mismatch. Bounds differed by a floating-point
+seam before the old contact check could apply its inside tolerance. The
+instance light field combines emission and received illumination.
+
+**Prevention.** Trace the old physical direction before authoring, and bake
+needed corrections into the model rather than changing saved facings. Accept
+exact joints through evaluated surface-distance evidence, not loose bounds.
+Check a drape's whole fold and connectivity as well as interior support
+samples. Compare source emission separately from the final light value.
+
+**Verify.** Inspect all four source views and the played room. Lift the base,
+detach the rail, float or penetrate the fabric, overhang its edge, and add a
+disconnected scrap; require each rejection. Delete the corresponding guards
+to prove that the negative tests notice. Preserve the original model bytes.
+
+## [L-plant-containment-and-instance-identity] Check container fill and distinguish shared sprites
+
+**What happened.** A plausible plant render hid soil floating above its pot's
+floor. Independent review then identified that contact alone could allow soil
+to shift through the wall. Two placed plants also made the prior sprite-only
+GPU lookup unsuitable. The first connectivity check needed an explicit Blender
+vertex lookup table, and a preview test guessed the wrong suppression value.
+
+**Root cause.** Visible appearance did not establish internal support. Connected
+objects can still intersect the wrong surface. A sprite is shared artwork,
+not a unique instance identifier. Blender mesh indices and renderer suppression
+both have explicit contracts that the new tests initially missed.
+
+**Prevention.** Fit fill geometry to the actual container and verify floor
+support separately from containment. For this convex planter, test evaluated
+soil vertices against the evaluated outer hull; do not generalize that hull
+test to concave vessels. Build mesh lookup tables before indexed access. Resolve
+GPU rows by entity ID; previews park the replaced row off-screen and append a
+new body, while the other plant must stay unchanged.
+
+**Verify.** Lift the soil, move it sideways, detach a branch or leaf, and delete
+the corresponding guards. Require specific failures, not unrelated exceptions.
+Rotate and recolour both plants independently, test preview suppression, and
+compare the paused save after a complete turn through production controls.
+
+## [L-restored-render-state-must-match-components] Check the load boundary before a frame repairs it
+
+**What happened.** Ottoman recolour tests found that V5 loading retained the
+saved colour component and world hash but exposed colourway zero through the
+render buffer. The Build preview used the component and disagreed with the
+normal object until a frame refreshed the buffer.
+
+**Root cause.** Base restoration prepared rendering before the V5 loader added
+colourways. Existing save tests checked components and hashes; subsequent ticks
+or paused-frame flushes concealed the stale derived data.
+
+**Prevention.** Refresh the complete candidate's render metadata at the end of
+V5 restoration, after validating and restoring every field. Do not tick or drain
+saved commands to repair a load. Compare component and rendered state directly
+at the API return boundary, before normal frame processing.
+
+**Verify.** Save differently recoloured objects with a pending recolour command.
+Load and immediately compare component values, render columns, save bytes, world
+hash and clock. The pending command must remain pending. Native and real-WASM
+tests must fail when the final metadata refresh is removed.
+
+## [L-shelf-support-does-not-prove-clearance] Check both sides of a fitted object
+
+**What happened.** Independent bookcase review made a supported book taller
+in memory. The layout tests still passed although it entered the shelf above.
+The candidate itself had 0.002 clearance and needed no art change. An initial
+reading test also incorrectly treated a socket-only render column as a general
+gameplay target, and two proposed picking points missed the intended padding.
+
+**Root cause.** Support and source-derived dimensions do not independently
+establish fit. Render columns and picking bounds have narrower contracts than
+their names suggest.
+
+**Prevention.** Check the actual free space above every supported book as well
+as contact beneath it. Read the projection contract before asserting a target:
+standing reading has no socket. Choose negative picking points inside the
+registered canvas but outside the actual facing's content bounds.
+
+**Verify.** Raise a book's top while preserving its supported bottom; require
+the explicit overhead-clearance failure. Delete that guard and require the
+negative proof to notice. Test standing reading with its exact active queue,
+visual action, activity and ordinary adjacent position. Test front and rear
+padding separately because their projected bounds differ.
+
+## [L-mutation-budget-must-span-prs] Bound mutation runners across the repository
+
+**What happened.** Several PRs each started an eight-shard mutation sweep.
+Their combined runner use delayed main CI and Pages for roughly two hours.
+Review of the fix also found that a manual sweep on main shared its outer
+workflow group with push CI, so waiting mutation jobs could still hold up
+deployment after runner use was bounded.
+
+**Root cause.** Per-PR cancellation removes obsolete heads of that PR; it does
+not bound work across different PRs. A shared group with the default pending
+queue would cancel another PR's waiting shard. Grouping manual and push runs
+together also serializes work that has different delivery responsibilities.
+
+**Prevention.** Share one mutation group per shard across the repository, use
+`queue: max` with cancellation disabled in those groups, and separate events
+in the outer workflow group. Keep all eight shards and all mutation gates.
+The queue holds at most 100 pending jobs per group; cancellation at that limit
+is incomplete evidence. Existing dispatched runs retain their configuration.
+
+**Verify.** Run the CI script tests. Remove the shared budget, make it unique
+per run, replace pending jobs, enable cancellation, add a ninth shard, stop
+invoking the guards, cancel main runs, or remove event isolation. Each fault
+must fail a named assertion, and the original workflow bytes must be restored.
+Check that GitHub accepts the updated workflow. This validates configuration;
+it does not measure account-wide runner availability or promise a queue delay.
+
+## [L-dom-fault-parent-ownership] A DOM fault probe needs real parent ownership
+
+**What happened.** A Sim details fault intended to stop reordering existing
+habit rows initially passed. The fault checked `parentElement`, but the test
+double exposed only its internal `parent` field. It therefore appended every
+row on every render, which happened to produce the right order.
+
+**Root cause.** The probe was different in the test double from a real DOM.
+Its passing result did not establish that the intended defect was covered.
+
+**Prevention.** Keep ownership properties used by a fault faithful to browser
+semantics. Record an uncaught probe as incomplete evidence, inspect the cause,
+and fix the fixture or the probe before claiming detection.
+
+**Verify.** `personal-details.test.ts` now exposes `parentElement` from actual
+parent ownership. Replacing ordered insertion with append-only-when-unparented
+fails the named row-reuse and ordering assertion. Production bytes were
+restored exactly, then the full web suite passed. Browser scrolling and Sim
+switching provide separate evidence for the actual DOM.
+
+## [L-dialog-focus-visible-return] A hidden opener cannot receive modal focus
+
+**What happened.** Escape or Keep playing in Load and New game closed the
+dialog but left keyboard focus on the document body. Returning to Traits
+after selecting the maximum traits could likewise target a disabled checkbox.
+
+**Root cause.** Options hid the original modal openers. Only confirmed storage
+operations had an explicit visible focus return; cancellation relied on the
+browser. The Traits page assumed its first checkbox remained enabled.
+
+**Prevention.** Test cancellation separately from confirmation and choose a
+visible, enabled return target after a disclosure or page change. A confirmed
+operation retains its pause and focus ownership until it settles. Preserve
+focus that the player deliberately moves elsewhere.
+
+**Verify.** Execute the actual Load and New game close listeners, checking
+cancelled and pending operations independently. Fill Traits without selecting
+its first row, go Back, then Next. Removing either focus return or either
+operation guard, and restoring unconditional first-row focus, each caused a
+named assertion failure. All five faults were restored byte-for-byte before
+the full web suite passed.
+
+## [L-save-presence-boundary-after-later-fields] Padding rules belong to a field boundary
+
+**What happened.** Review of the planned bed-save format caught a rule rejecting
+every padded decode whose sleeping-place record was present. That works while
+the record is last, but would refuse complete bed-era saves after another
+feature appends fields.
+
+**Root cause.** The rule used total padding as a proxy for whether padding
+completed this particular field.
+
+**Prevention rule.** Track the historical presence boundary of each appended
+record. Padding only later fields may retain an earlier, physically complete
+record; padding must never manufacture that record from a truncated payload.
+
+**How to verify.** Test a complete bed-era payload after appending later fields,
+as well as every interior truncation of the grouped bed record. This was a
+documentation correction before implementation, not a shipped loader defect.
+
+## [L-unchanged-text-node-churn] Unchanged text assignments still replace nodes
+
+**What happened.** The cooking-audio memory check failed exact DOM equality in
+an audio-disabled control: 1,435 nodes became 1,434. Paused HUD panels repeatedly
+assigned the same text, despite a comment claiming those writes were no-ops.
+
+**Root cause.** Assigning an element's `textContent` replaces its text child even
+when the string is unchanged. A render between garbage collection and the DOM
+counter sample exposed the detached old node. A focused probe reproduced the
+one-node difference using only the `needs-caption` writer.
+
+**Prevention.** Compare the actual DOM text before assigning. Do not add a second
+cached UI state, change the memory allowance, or accept a failed equality check
+because its count declined. Text refreshes must still repair changed DOM values.
+Include open disclosures in the writer inventory. Personal details retained
+redundant writes after the always-visible HUD was fixed: 20 unchanged public
+refreshes replaced 23 text children and emitted 460 native text mutations.
+The shared text guard reduced both to zero while still repairing changed text.
+
+**Verify.** Check text-child identity across repeated unchanged public updates,
+then change the source value and verify the text updates. The causal diagnostic
+had 250/250 stable samples when unchanged writes were suppressed; production
+acceptance also requires the unchanged whole-game memory check after the repair.
+
+## [L-memory-endpoints-need-complete-projection] Await the whole UI projection before measuring
+
+**What happened.** After redundant text writes were fixed, the memory proof
+still saw one fewer DOM node at an audio-disabled endpoint. Its baseline had
+the selected person's `Office clerk` career text; the final endpoint did not.
+
+**Root cause.** Clearing simulation selection does not synchronously update
+independently throttled panels. The normalizer checked only rows and warnings
+which could already be empty, accepting a partially updated presentation.
+
+**Prevention.** Establish the complete semantic endpoint before collecting:
+all selected-person fields and rows cleared, derived summaries updated, and
+audio drained. Do not repair an invalid baseline by relaxing exact equality,
+freezing the page, or adding a delay that merely makes the race less likely.
+
+**Verify.** A fixture with the old subset ready and stale career text must stay
+unready. Reject each other incomplete panel and missing required node. Retained
+node, document and listener changes in either direction must still fail the
+unchanged acceptance calculation. Then exercise the actual browser transition.
+
+The ECS lifecycle browser check repeated this timing mistake with the selected
+name: one frame applied the command before the throttled panel refreshed. Wait
+for the displayed name to match the clicked person before asserting the panel,
+while separately checking that paused simulation time stayed fixed.
+
+## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
+
+**What happened.** Separating the New housemate instinct labels fixed their
+run-together text, but an initial non-wrapping flex row failed at 320px with
+the fieldset text doubled from 13px to 26px. The full random-value label
+overflowed the dialog and reduced the slider to zero width.
+
+**Root cause.** The output could not shrink, while the slider could shrink
+without a lower bound. Ordinary phone text fit and concealed the failure.
+
+**Prevention.** Give an interactive slider a useful minimum width and let
+long labels wrap. Check both automatic and manual values with enlarged text;
+their output lengths differ substantially.
+
+**Verify.** In a local doubled-text fixture at 320 by 568, the corrected
+random-value row kept a 150px slider without horizontal overflow. The manual
+value 100 retained a 102px by 44px slider and accepted keyboard input. The
+fixture changes only the fieldset font size; it is separate from the shipped
+page and is not a claim about browser or operating-system text scaling.
+
+## [L-standalone-ecs-removal-history] Standalone ECS needs an update boundary
+
+**What happened.** A matched 1,037-entity workload grew WebAssembly capacity from 5,308,416 bytes at tick 60 to 118,095,872 at tick 1,680 without a browser or audio. A native allocation counter found 71,003,186 live requested bytes and 2,482,699 retained component-removal messages at the final checkpoint.
+
+**Root cause.** The game uses Bevy ECS without Bevy App. Neither the full-tick schedule nor the paused command schedule maintained the world's trackers. Repeated marker removals appended lifecycle messages indefinitely. Save size and world hashes omitted that bookkeeping, so stable saves did not establish stable memory use.
+
+**Prevention.** Call `World::clear_trackers()` once after each completed full or paused schedule, after deferred commands have applied. Preserve the newest removal window. Future readers must respect those boundaries; a reader running only on full ticks can miss removals during repeated paused drains.
+
+**Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
+
+The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.

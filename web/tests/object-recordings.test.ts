@@ -1,0 +1,46 @@
+import { describe, expect, it, vi } from 'vitest';
+import { loadObjectRecordings } from '../src/audio/object-recordings.js';
+
+describe('object recordings', () => {
+  it('decodes water once for shower and quieter sink loops', async () => {
+    const bytes = new ArrayBuffer(16);
+    const buffer = { duration: 7.25 };
+    const fetchBytes = vi.fn(async () => bytes);
+    const decode = vi.fn(async () => buffer);
+    const clips = await loadObjectRecordings(fetchBytes, decode);
+    expect(fetchBytes.mock.calls).toEqual([['audio/objects/shower-water.wav']]);
+    expect(decode).toHaveBeenCalledWith(bytes);
+    expect(decode).toHaveBeenCalledTimes(1);
+    expect([...clips]).toEqual([
+      [1, { buffer, gain: 0.6, loopStart: 0, loopEnd: 7.25 }],
+      [3, { buffer, gain: 0.35, loopStart: 0, loopEnd: 7.25 }],
+    ]);
+    expect(clips.get(3)?.buffer).toBe(clips.get(1)?.buffer);
+  });
+
+  it('loads only the stove recording for the stove family', async () => {
+    const bytes = new ArrayBuffer(24);
+    const buffer = { duration: 4 };
+    const fetchBytes = vi.fn(async () => bytes);
+    const decode = vi.fn(async () => buffer);
+    const clips = await loadObjectRecordings(fetchBytes, decode, 'stove');
+    expect(fetchBytes.mock.calls).toEqual([['audio/objects/stove-cooking.wav']]);
+    expect(decode.mock.calls).toEqual([[bytes]]);
+    expect([...clips]).toEqual([[2, { buffer, gain: 0.6, loopStart: 0, loopEnd: 4 }]]);
+  });
+
+  it.each(['fetch', 'decode'] as const)('rejects a %s failure without fabricating a clip', async failure => {
+    const fetchBytes = vi.fn(async () => {
+      if (failure === 'fetch') throw new Error('unavailable');
+      return new ArrayBuffer(16);
+    });
+    const decode = vi.fn(async () => { throw new Error('invalid recording'); });
+    await expect(loadObjectRecordings(fetchBytes, decode)).rejects.toThrow();
+    expect(decode).toHaveBeenCalledTimes(failure === 'fetch' ? 0 : 1);
+  });
+
+  it.each([0, -1, NaN, Infinity])('rejects invalid decoded duration %s', async duration => {
+    const clips = await loadObjectRecordings(async () => new ArrayBuffer(16), async () => ({ duration }));
+    expect(clips.size).toBe(0);
+  });
+});

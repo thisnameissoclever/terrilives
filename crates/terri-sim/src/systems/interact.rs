@@ -1,7 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{
-    Eating, Habituation, IntentQueue, NeedId, Needs, Personality, Reserved, SimRng, Target,
-};
+use terri_core::{Eating, Habituation, IntentQueue, NeedId, Needs, Personality, SimRng, Target};
 
 use crate::Content;
 
@@ -271,17 +269,9 @@ pub fn tick_interactions(
                 .entity(entity)
                 .remove::<Eating>()
                 .remove::<Target>();
-            // try_remove, not remove: `Commands::entity` deliberately
-            // does not validate, so a `Target` pointing at an entity
-            // that no longer exists routes the queued removal to the
-            // command error handler. `try_remove` silences it instead,
-            // which keeps the failure a no-op rather than something
-            // whose severity depends on the configured handler.
-            //
-            // Death releases the owner's reservation before despawn.
-            // mortality::cleanup also releases actions when their agent loses
-            // Needs or their target loses SmartObject before movement.
-            commands.entity(target.object).try_remove::<Reserved>();
+            // Check ownership after deferred target removals, so one
+            // completion cannot free an object another person still uses.
+            crate::reservations::release(&mut commands, entity, *target);
         }
     }
 }
@@ -536,10 +526,14 @@ mod tests {
     }
 
     #[test]
-    fn satisfied_sim_does_not_seek_food() {
+    fn satisfied_sim_retains_food_and_wander_alternatives() {
         let mut sim = Sim::new_with_lot(16, 16);
         sim.world_mut()
             .spawn((Position { x: 10.0, y: 8.0 }, test_content::shipped_fridge()));
+        sim.world_mut().spawn((
+            Position { x: 12.0, y: 8.0 },
+            SmartObject(terri_data::pack().find("counter").unwrap()),
+        ));
         let sim_entity = sim
             .world_mut()
             .spawn((
@@ -549,14 +543,22 @@ mod tests {
             ))
             .id();
 
-        for _ in 0..5 {
-            sim.tick();
-        }
-
-        assert!(
-            sim.world().get::<Target>(sim_entity).is_none(),
-            "a full sim should not target the fridge"
-        );
+        sim.tick();
+        let decision = sim
+            .world()
+            .resource::<crate::systems::autonomy::DecisionTelemetry>()
+            .0
+            .iter()
+            .find(|d| d.agent == sim_entity.index_u32())
+            .unwrap();
+        assert!(decision
+            .choices
+            .iter()
+            .any(|(_, row, _, _, p)| *row == 0 && *p > 0.0));
+        assert!(decision
+            .choices
+            .iter()
+            .any(|(_, row, _, _, p)| *row == u32::MAX && *p > 0.0));
     }
 
     #[test]

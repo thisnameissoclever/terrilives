@@ -6,8 +6,8 @@ use bevy_ecs::prelude::*;
 use std::collections::{BTreeSet, VecDeque};
 use terri_core::{
     save::*, Agent, AtWork, ChainState, Commuting, Eating, IntentQueue, NeedId, Needs, Path,
-    Personality, Position, Relationships, Reserved, SimClock, SimId, SimRng, SmartObject,
-    Socialising, StepWork, Target, TileGrid,
+    Personality, Position, Relationships, SimClock, SimId, SimRng, SmartObject, Socialising,
+    StepWork, Target, TileGrid,
 };
 
 #[cfg(test)]
@@ -1310,18 +1310,6 @@ pub(crate) fn surface_in_use(world: &World, surface: u32) -> bool {
 
 pub(crate) fn hidden_chain(id: &str) -> bool {
     id == SNACK || id == SHARED
-}
-
-pub(crate) fn release_station(world: &mut World, station: Entity, departing: Entity) {
-    let occupied = world
-        .query::<(Entity, &Target)>()
-        .iter(world)
-        .any(|(person, target)| person != departing && target.object == station);
-    if !occupied {
-        if let Ok(mut item) = world.get_entity_mut(station) {
-            item.remove::<Reserved>();
-        }
-    }
 }
 
 pub(crate) fn meal_label(tick: u64, day: u32) -> &'static str {

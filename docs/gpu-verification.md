@@ -1,5 +1,11 @@
 # GPU and Browser Verification
 
+Current short-wall transparency proof (2026-09-30): see
+[cutaway walls](assets/review-evidence/cutaway-walls.md). It adds a second
+depth-tested draw without depth writes for short walls, after opaque sprites.
+The record distinguishes real GPU blend/depth probes, targeted mutations,
+played screenshots and the unchanged legacy atlas prefix.
+
 Current wall/furniture clipping proof (2026-09-21): see
 [wall clipping correction](assets/review-evidence/wall-clipping.md).
 It records real GPU pixel regressions, mutation failures, doorway samples and

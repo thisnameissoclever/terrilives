@@ -58,6 +58,11 @@ pub struct SaveSnapshotV5 {
     pub death_default_applied: bool,
     /// Person index, occupied item index, and the activity's relevant need bits.
     pub waiting_needs: Vec<(u32, u32, u8)>,
+    /// Living person index and instinct, in ascending entity order.
+    pub self_preservation: Vec<(u32, u8)>,
+    /// Person index and exact nonzero sleep-schedule offset, ascending by index.
+    /// Missing entries retain the historical zero; never infer them from content.
+    pub chronotype_offsets: Vec<(u32, i32)>,
     /// Food, dishes, cleanup claims and room visits. Older saves append None.
     pub domestic: Option<SavedDomestic>,
 }
@@ -438,6 +443,13 @@ pub enum SavedCommand {
         relation: Option<crate::layout::Relation>,
     },
     SetDeathEnabled(bool),
+    /// A move-in with a chosen integer instinct. Earlier wire variants stay fixed.
+    AddHousemateWithInstinct {
+        name: String,
+        personality: Option<String>,
+        traits: Vec<Option<String>>,
+        instinct: u8,
+    },
 }
 
 /// One permanent record, ordered by death tick then SimId.

@@ -65,21 +65,10 @@ pub struct Target {
     pub interaction: u32,
 }
 
-/// Marks an agent for which **nothing at all is worth doing** - every
-/// candidate it can reach scored at or below `idle_threshold`.
-///
-/// It is not the same as "took no action". An agent whose best option
-/// scores between `idle_threshold` and `action_threshold` also takes no
-/// action, and it deliberately does NOT get this marker: something is
-/// mildly worth doing, so the sim stays put rather than strolling away
-/// from it. That band is the whole reason the two knobs are separate,
-/// per [D-5], and collapsing them would delete it.
-///
-/// `select_action` is the only writer, because it is the only system
-/// that scores. `idle::wander` is the only reader. Keeping the marker
-/// rather than re-scoring in the wander system is what stops the same
-/// A*-per-candidate sweep running twice a tick, and what stops the two
-/// copies of the scoring rule drifting apart.
+/// Marks an agent that sampled wandering rather than another activity.
+/// `select_action` owns this decision; `idle::wander` draws its destination
+/// and pause without repeating the candidate scoring and pathfinding sweep.
+/// A committed stroll and pause finish before ordinary selection resumes.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Restless;
 
@@ -108,51 +97,12 @@ pub struct SleepPressure {
     pub ticks: u32,
 }
 
-/// Marks an agent whose **best option is held by somebody else** - the
-/// highest-scoring thing it could see is reserved by another agent, or
-/// was claimed by one earlier on the same tick.
-///
-/// # It is not the opposite of `Restless`, and the two co-occur
-///
-/// [`Restless`] asks "was anything worth doing at all"; this asks "was
-/// the best thing available". An agent can carry both, and that pair is
-/// informative rather than contradictory: **it wanted a contested thing,
-/// but not enough to wait for it.** A contested object's score is
-/// attenuated by `contested_score_multiplier`, so an agent that only
-/// mildly wanted the thing falls under `idle_threshold` and strolls off,
-/// while one that wanted it badly stays put. That knob is the dial
-/// between the two, and before it existed every outbid sim waited.
-///
-/// # Two writers, deliberately, unlike `Restless`
-///
-/// `select_action` sets it for an agent choosing for itself.
-/// `serve_intents` sets it for an agent the player has directed at an
-/// object somebody else is using, which is the case this name most
-/// obviously describes.
-///
-/// That is a departure from `Restless`'s single writer, and it is cheap
-/// for a reason that does not apply there. `Restless` has one writer to
-/// stop the A*-per-candidate scoring sweep running twice a tick, and to
-/// stop two copies of the scoring rule drifting apart. `serve_intents`
-/// needs no scoring at all to know the object it was told to use is
-/// reserved, so there is no rule here to duplicate - only a fact. The two
-/// cannot disagree about one agent on one tick either, because
-/// `select_action` filters directed agents out before it scores anything.
-///
-/// # Its reader explains state; it does not drive the simulation
-///
-/// [L41] says a mechanism nothing depends on is dead code and should be
-/// deleted rather than tested. **That rule is about a GUARD** - a second
-/// line enforcing a rule an earlier line already enforces, where defence
-/// in depth and untested code are indistinguishable from inside the
-/// suite. This is not a guard. The sim projects it through
-/// `stall_reason_of`, and the normal selected-person HUD uses that projection
-/// to explain why somebody is standing still. No decision depends on the
-/// marker, so it still cannot silently change simulation behavior.
-///
-/// The selection UI reader is shipped. A future local-wander behavior could
-/// also consume the marker, but that would be a separate design change rather
-/// than the reason this diagnostic fact exists.
+/// Marks an agent waiting for an occupied object or conversation partner.
+/// Autonomy can sample waiting, weighted by contested utility, alongside
+/// available activities and wandering. Player orders also set this marker
+/// when their requested target is occupied.
+/// `stall_reason_of` projects it to the selected-person HUD; the marker is
+/// diagnostic and does not determine which activity the Sim chooses next.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Blocked;
 
@@ -163,10 +113,9 @@ pub struct Blocked;
 /// gap BETWEEN wanders rather than a cooldown that expires mid-walk,
 /// which is what stops a sim pacing every single tick.
 ///
-/// Owned entirely by `idle::wander`. It persists across an interruption,
-/// so a sim that gets hungry mid-pause keeps its remaining count, which
-/// costs nothing and avoids a second component whose only job would be to
-/// forget.
+/// `idle::wander` draws the pause from the simulation generator. Selection
+/// clears it when critical needs interrupt or another activity takes ownership;
+/// player commands replace a stroll or pause immediately.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Wander {
     pub pause_ticks: u32,
@@ -769,6 +718,10 @@ impl SimIdAllocator {
 #[derive(Component, Debug, Clone, PartialEq, Eq)]
 pub struct SimName(pub String);
 
+/// The person's instinct for meeting needs before they become dangerous.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SelfPreservation(pub u8);
+
 /// Who this sim is, as numbers - [H3].
 ///
 /// Two dense arrays indexed by `NeedId::index`, plus a per-interaction
@@ -803,7 +756,7 @@ pub struct Personality {
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
     dispositions: Vec<(ObjectDefId, u32, f32)>,
-    /// Where on the circadian curve this sim samples, in ticks -
+    /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     /// [ML-chrono]. Public because selection reads it directly, and 0 -
     /// "sleeps when everyone else does" - is what every sim had before
     /// the rhythm existed.
@@ -828,8 +781,8 @@ impl Personality {
     /// A personality with the given dispositions, sorted here so no caller
     /// can construct an unsorted one: `disposition` binary-searches, and
     /// the list's iteration order must be deterministic for anything that
-    /// ever walks it - including `world_hash`, IF personality ever enters
-    /// it. It does not today; see the exclusion note on `Sim::world_hash`.
+    /// ever walks it. The world hash currently includes only the separate
+    /// chronotype field, not these static multipliers or dispositions.
     pub fn with_dispositions(
         drain: [f32; NEED_COUNT],
         satisfaction: [f32; NEED_COUNT],

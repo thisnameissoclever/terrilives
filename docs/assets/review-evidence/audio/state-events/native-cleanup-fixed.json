@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-10-01T12:42:07.983Z",
+  "passed": true,
+  "pageErrors": [],
+  "result": [
+    {
+      "label": "first-hold assertion reaches caller",
+      "expected": "forced first-hold ordinary-fade assertion: expected 0, rendered 1",
+      "actual": "forced first-hold ordinary-fade assertion: expected 0, rendered 1"
+    },
+    {
+      "label": "both scheduled suspensions drained before rejection",
+      "expected": "closed",
+      "actual": "closed"
+    }
+  ]
+}

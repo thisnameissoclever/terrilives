@@ -1,0 +1,57 @@
+crates/terri-sim/src/action_queue.rs:13:9: replace Sim::action_queue_of -> Vec<String> with vec![]
+crates/terri-sim/src/action_queue.rs:13:9: replace Sim::action_queue_of -> Vec<String> with vec![String::new()]
+crates/terri-sim/src/action_queue.rs:13:9: replace Sim::action_queue_of -> Vec<String> with vec!["xyzzy".into()]
+crates/terri-sim/src/action_queue.rs:18:9: replace Sim::action_queue_window_of -> Vec<String> with vec![]
+crates/terri-sim/src/action_queue.rs:18:9: replace Sim::action_queue_window_of -> Vec<String> with vec![String::new()]
+crates/terri-sim/src/action_queue.rs:18:9: replace Sim::action_queue_window_of -> Vec<String> with vec!["xyzzy".into()]
+crates/terri-sim/src/action_queue.rs:18:21: replace == with != in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:24:76: replace == with != in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:35:37: replace < with == in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:35:37: replace < with > in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:35:37: replace < with <= in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:41:61: replace == with != in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:42:34: replace - with + in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:42:34: replace - with / in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:65:50: replace == with != in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:92:35: replace == with != in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:115:33: replace >= with < in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:118:29: replace && with || in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:118:20: delete ! in Sim::action_queue_window_of
+crates/terri-sim/src/action_queue.rs:118:45: replace == with != in Sim::action_queue_window_of
+crates/terri-sim/src/mood.rs:43:5: replace derive_mood -> Option<MoodSnapshot> with None
+crates/terri-sim/src/mood.rs:144:46: replace && with || in derive_mood
+crates/terri-sim/src/mood.rs:147:20: delete - in derive_mood
+crates/terri-sim/src/mood.rs:237:5: replace has_bed_shortage -> bool with true
+crates/terri-sim/src/mood.rs:237:5: replace has_bed_shortage -> bool with false
+crates/terri-sim/src/mood.rs:261:12: replace > with == in has_bed_shortage
+crates/terri-sim/src/mood.rs:261:12: replace > with < in has_bed_shortage
+crates/terri-sim/src/mood.rs:261:12: replace > with >= in has_bed_shortage
+crates/terri-sim/src/save.rs:1209:5: replace validate_entity -> Result<(), SaveError> with Ok(())
+crates/terri-sim/src/save.rs:1262:13: replace && with || in validate_entity
+crates/terri-sim/src/save.rs:1261:43: replace != with == in validate_entity
+crates/terri-sim/src/systems/action.rs:871:5: replace select_action with ()
+crates/terri-sim/src/systems/chain.rs:78:5: replace advance_chains with ()
+crates/terri-sim/src/systems/chain.rs:99:13: delete ! in advance_chains
+crates/terri-sim/src/systems/command.rs:141:5: replace place_in -> Option<Intent> with None
+crates/terri-sim/src/systems/command.rs:143:25: replace || with && in place_in
+crates/terri-sim/src/systems/command.rs:143:20: replace == with != in place_in
+crates/terri-sim/src/systems/command.rs:143:40: replace < with == in place_in
+crates/terri-sim/src/systems/command.rs:143:40: replace < with > in place_in
+crates/terri-sim/src/systems/command.rs:143:40: replace < with <= in place_in
+crates/terri-sim/src/systems/command.rs:151:41: replace && with || in place_in
+crates/terri-sim/src/systems/command.rs:151:36: replace != with == in place_in
+crates/terri-sim/src/systems/command.rs:151:56: replace >= with < in place_in
+crates/terri-sim/src/systems/command.rs:241:5: replace place_intent with ()
+crates/terri-wasm/src/lib.rs:287:5: replace decode_save_payload -> Option<terri_core::SaveSnapshotV1> with None
+crates/terri-wasm/src/lib.rs:1883:9: replace SimHandle::action_queue_of -> Vec<String> with vec![]
+crates/terri-wasm/src/lib.rs:1883:9: replace SimHandle::action_queue_of -> Vec<String> with vec![String::new()]
+crates/terri-wasm/src/lib.rs:1883:9: replace SimHandle::action_queue_of -> Vec<String> with vec!["xyzzy".into()]
+crates/terri-wasm/src/lib.rs:1888:9: replace SimHandle::action_queue_window_of -> Vec<String> with vec![]
+crates/terri-wasm/src/lib.rs:1888:9: replace SimHandle::action_queue_window_of -> Vec<String> with vec![String::new()]
+crates/terri-wasm/src/lib.rs:1888:9: replace SimHandle::action_queue_window_of -> Vec<String> with vec!["xyzzy".into()]
+crates/terri-wasm/src/save_before_voice.rs:6:5: replace decode -> Option<SaveSnapshotV1> with None
+crates/terri-wasm/src/save_before_voice.rs:10:8: delete ! in decode
+crates/terri-wasm/src/save_before_voice.rs:21:9: delete match arm Ok((snapshot, [])) in decode
+crates/terri-wasm/src/save_before_voice.rs:24:9: delete match arm Err(postcard::Error::DeserializeUnexpectedEnd) in decode
+crates/terri-wasm/src/save_before_voice.rs:28:39: replace match guard snapshot.sleep_pressure.is_empty() with true in decode
+crates/terri-wasm/src/save_before_voice.rs:28:39: replace match guard snapshot.sleep_pressure.is_empty() with false in decode

@@ -18,7 +18,7 @@ function draw() {
     const suffix = ['', 'NW', 'SW', 'NE'][facing];
     const sx = 165 + facing * 300, sy = 155 + row * 185;
     const x = ((sx-640)/32 + sy/21)/2/scale, y = (sy/21-(sx-640)/32)/2/scale;
-    positions.push(x,y); sprites.push(spriteIndex((row === 2 ? 'table' : 'offlineCounter') + suffix));
+    positions.push(x,y); sprites.push(spriteIndex((row === 2 ? 'offlineDiningTable' : 'offlineCounter') + suffix));
     kinds.push(1); widths.push(row === 2 && facing < 2 ? 2 : 1); depths.push(row === 2 && facing >= 2 ? 2 : 1);
     dirty.push(row === 0 ? 1 : row === 1 ? 3 : 4); food.push(row === 1 ? 3 : 0);
     if (people) for (const offset of [-.8,.8]) {

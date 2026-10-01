@@ -59,6 +59,12 @@ fn main() {
         }
     }
     assert!(reached, "cook never reached plating");
+    for (guest, _) in people.iter().filter(|(index, _)| *index != cook) {
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::CancelIntents { agent: *guest });
+    }
+    sim.flush_commands();
     let mut saved = sim.save_snapshot_v5();
     let mut hungry = Needs::all_at(100.0);
     hungry.set(NeedId::Hunger, 30.0);
@@ -122,18 +128,26 @@ fn main() {
                 person.chain = None;
                 person.step_work_ticks = None;
                 person.carrying = None;
+                person.intents = None;
+                person.wander_pause_ticks = None;
+                person.restless = false;
+                person.blocked = false;
+                person.reserved = false;
+                person.fumbled_delta_scale = None;
                 guest += 1;
             }
         }
     }
-    for (station, _, _) in &stations {
-        saved
-            .world
-            .entities
-            .iter_mut()
-            .find(|entity| entity.index == *station)
-            .unwrap()
-            .reserved = true;
+    let occupied: Vec<_> = saved
+        .world
+        .entities
+        .iter()
+        .filter_map(|entity| entity.target.map(|target| target.object))
+        .collect();
+    for entity in &mut saved.world.entities {
+        if entity.smart_object.is_some() {
+            entity.reserved = occupied.contains(&entity.index);
+        }
     }
     sim.load_snapshot_v5(saved).unwrap();
     sim.tick();

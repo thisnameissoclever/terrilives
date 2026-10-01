@@ -10,6 +10,7 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
     InvalidDomesticTuning,
+    InvalidAutonomyTuning,
     EmptyObjectText {
         object: String,
         field: &'static str,
@@ -318,19 +319,14 @@ pub enum ContentError {
         idle: f32,
         action: f32,
     },
-    /// A cap of zero is not "no queueing"; it is a game in which clicking
-    /// an object never does anything at all, because `drain_commands`
-    /// refuses every intent that would take a queue past this. That is
-    /// the silent-nothing case [D9] exists to convert into a build
-    /// failure - the game would run, the sim would behave, and directing
-    /// it would simply have no effect.
+    /// Retained for source compatibility; zero now means unlimited.
+    #[allow(dead_code)]
     ZeroQueuedIntents,
     /// A cap of zero on the staging queue is a game that accepts no
     /// player input at all: `SimHandle::enqueue_command` refuses every
     /// command that would take the queue past this, so at zero it
-    /// refuses the first one. Same silent-nothing shape as
-    /// `ZeroQueuedIntents` and the same reason for being a build
-    /// failure - the page would load, the sim would behave, and nothing
+    /// refuses the first one. This is a build failure because the page
+    /// would load, the sim would behave, and nothing
     /// the player did would reach it.
     ZeroQueuedCommands,
     /// Two archetypes with one id: the household resolves by name, so the
@@ -1718,7 +1714,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "'{object}' interaction '{interaction}' declares unknown sound action \
-                 '{action}'; the current vocabulary is shower_water, stove_cooking"
+                 '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
             ),
             ContentError::SocialSoundAction {
                 interaction,
@@ -1772,7 +1768,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "chain '{chain}' step {step} declares unknown sound action \
-                 '{action}'; the current vocabulary is shower_water, stove_cooking"
+                 '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
             ),
             ContentError::InvalidVisualContract {
                 owner,
@@ -2218,6 +2214,7 @@ impl fmt::Display for ContentError {
                 f,
                 "two floor coverings are both named {name}; a player choosing                  one could not tell which floor they were choosing"
             ),
+            ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
             ContentError::InvalidMortalityTuning => write!(f, "death requires a positive duration and an earlier warning; grief requires positive ordered durations and finite ordered scores, with a hatred cutoff from -1 up to but excluding 0"),
             ContentError::DaylightReachOutOfRange { value } => write!(

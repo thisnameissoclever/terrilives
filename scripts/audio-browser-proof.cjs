@@ -71,6 +71,9 @@ async function waitForStress(page) {
 async function closeHelpAndSetThreeTimes(page) {
   const close = page.locator('#close-help');
   if (await close.isVisible()) await close.click();
+  // Always deliver a real gesture, even when first-run Help is already closed.
+  await page.locator('#options-toggle').click();
+  await page.locator('#options-close').click();
   await setSpeed(page, 3);
   await page.waitForTimeout(250);
 }
@@ -268,6 +271,11 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         objectSoundCapacity: stress.audio.objectSoundCapacity,
         conversationVoices: stress.audio.conversationVoices,
         retainedConversationVoices: stress.audio.retainedConversationVoices,
+        objectLoopVoices: stress.audio.objectLoopVoices,
+        retainedObjectLoopVoices: stress.audio.retainedObjectLoopVoices,
+        doorVoices: stress.audio.doorVoices,
+        doorTracks: stress.audio.doorTracks,
+        doorCapacity: stress.audio.doorCapacity,
       };
     }),
   ]);
@@ -303,9 +311,15 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
 
     const samples = [];
     await setSpeed(page, 0);
-    await page.waitForTimeout(250);
+    const selected = await normalizeMemoryHud(page);
+    await waitForAudioDrain(page);
     samples.push(await collectMemorySample(page, cdp, true));
     const baselineTick = samples[0].tick;
+    await page.evaluate(entity => {
+      const sim = globalThis.__terriStress.sim;
+      if (!sim.select(entity)) throw new Error('Could not restore memory-run selection');
+      sim.flushCommands();
+    }, selected);
     await setSpeed(page, 3);
     await page.waitForTimeout(250);
     for (
@@ -326,13 +340,80 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
       { polling: 100, timeout: 30_000 },
     );
     await setSpeed(page, 0);
-    await page.waitForTimeout(250);
+    await normalizeMemoryHud(page);
+    await waitForAudioDrain(page);
     samples.push(await collectMemorySample(page, cdp, true));
 
     return { repetition, audioEnabled, samples };
   } finally {
     await context.close();
   }
+}
+
+async function normalizeMemoryHud(page) {
+  const selected = await page.evaluate(() => {
+    const sim = globalThis.__terriStress.sim;
+    const previous = sim.selectedIndex();
+    if (!sim.select(null)) throw new Error('Could not clear memory-run selection');
+    sim.flushCommands();
+    return previous;
+  });
+  // Compare identical empty selected-person panels, while the measured
+  // interval still renders normal changing moodlets and action cards.
+  await page.waitForFunction(memoryHudIsDeselected, undefined, { polling: 50, timeout: 5000 });
+  return selected;
+}
+
+/** Self-contained for Playwright: every selected-person producer must finish its render. */
+function memoryHudIsDeselected() {
+  if (globalThis.__terriStress.sim.selectedIndex() !== null) return false;
+  const matches = (selector, check) => {
+    const node = document.querySelector(selector);
+    return node !== null && check(node);
+  };
+  const expectedText = [
+    ['#needs-caption', 'Select a person'],
+    ['#satisfaction-value', 'unavailable'],
+    ['#activity-value', 'Nothing selected'],
+    ['#orders-value', '0'],
+    ['#people-caption', 'People'],
+    ['#people-empty', 'Select a person to see how they feel about the household.'],
+    ['#traits-empty', 'No traits.'],
+    ['#mood-empty', 'Select a person to see their mood.'],
+  ];
+  const hidden = ['#needs-content', '#career-row', '#orders-row', '#action-queue',
+    '#people-list', '#traits-block', '#trait-list', '#mood-content', '#moodlet-list'];
+  const visible = ['#needs-empty', '#people-empty', '#traits-empty', '#mood-empty',
+    '#dock-traits-empty', '#queue-empty'];
+  const empty = ['#career-value', '#action-queue', '#people-list', '#trait-list',
+    '#moodlet-list', '#mood-label'];
+  const panelsReady = expectedText.every(([selector, text]) => matches(selector, node => node.textContent === text)) &&
+    hidden.every(selector => matches(selector, node => node.hidden === true)) &&
+    visible.every(selector => matches(selector, node => node.hidden === false)) &&
+    empty.every(selector => matches(selector, node => node.childNodes.length === 0));
+
+  const warnings = document.querySelectorAll('#needs-content .need-state');
+  const warningsReady = warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
+  const members = document.querySelectorAll('#household-roster-members .household-member');
+  const rosterReady = document.querySelector('#household-roster-members') !== null &&
+    members.length > 0 && Array.from(members).every(button => button.getAttribute('aria-pressed') === 'false');
+  const dockReady = matches('#dock-activity', node =>
+    node.textContent === document.querySelector('#activity-value')?.textContent && node.dataset.urgent === 'false') &&
+    matches('#needs-caption', node => node.title === node.textContent);
+  // Closed personal details intentionally do not refresh; assert the scenario, not their stale contents.
+  const detailsClosed = matches('#personal-details', node => node.open === false);
+  return panelsReady && warningsReady && rosterReady && dockReady && detailsClosed;
+}
+
+async function waitForAudioDrain(page) {
+  // Pause allows short cues and conversations to finish. Their onended
+  // listeners are live ownership, not leaked listeners.
+  await page.waitForFunction(() => {
+    const audio = globalThis.__terriStress.audio;
+    return audio.activeVoices === 0 && audio.doorVoices === 0 &&
+      audio.conversationVoices === 0 && audio.retainedConversationVoices === 0 &&
+      audio.objectLoopVoices === 0 && audio.retainedObjectLoopVoices === 0;
+  }, undefined, { polling: 50, timeout: 10_000 });
 }
 
 function growth(run, field) {
@@ -378,7 +459,11 @@ function analyseMemory(runs) {
         sample.activityCapacity === baseline.activityCapacity &&
         sample.activityTracks <= 3 &&
         sample.objectSoundCapacity === baseline.objectSoundCapacity &&
-        sample.objectSoundTracks <= 2 &&
+        // Three household Sims can each use one of the shower, stove or sinks.
+        sample.objectSoundTracks <= 3 &&
+        sample.doorCapacity === baseline.doorCapacity &&
+        sample.doorTracks <= 4 &&
+        sample.doorVoices <= 4 &&
         sample.activeVoices <= 8 &&
         // The recorded conversation voices are a retained scheduler like the
         // rest, and `activeVoices` cannot see them: that counts oscillators
@@ -397,18 +482,18 @@ function analyseMemory(runs) {
         // gate fail the day more than one conversation may sound at once,
         // which is the flake this check already had to have removed once.
         sample.conversationVoices <= 3 &&
-        sample.retainedConversationVoices <= 6,
+        sample.retainedConversationVoices <= 6 &&
+        sample.objectLoopVoices <= 4 &&
+        sample.retainedObjectLoopVoices <= 8,
     );
     return (
       boundedLiveState &&
-      baseline.activeVoices === 0 &&
-      final.activeVoices === 0 &&
-      // **No assertion that nothing is SOUNDING.** Pausing does not stop a
-      // conversation's recordings - `main.ts` says so where it handles speed
-      // - and a pair runs six to seven seconds, so a healthy run sampled just
-      // after a pause can legitimately still be playing one. Bounding the
-      // retained count is the claim that holds; demanding silence here would
-      // fail at random.
+      (!run.audioEnabled || run.samples.some(sample => sample.doorTracks > 0)) &&
+      // Intermediate samples may be sounding. Endpoints wait for natural
+      // completion so listener comparisons measure retained ownership.
+      [baseline, final].every(sample => ['activeVoices', 'objectLoopVoices',
+        'doorVoices', 'conversationVoices', 'retainedConversationVoices',
+        'retainedObjectLoopVoices'].every(field => sample[field] === 0)) &&
       final.domDocuments === baseline.domDocuments &&
       final.domNodes === baseline.domNodes &&
       final.eventListeners === baseline.eventListeners
@@ -522,7 +607,9 @@ async function main() {
   if (!pass) process.exitCode = 1;
 }
 
-main().catch((error) => {
+module.exports = { analyseMemory, closeHelpAndSetThreeTimes, memoryHudIsDeselected, normalizeMemoryHud };
+
+if (require.main === module) main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

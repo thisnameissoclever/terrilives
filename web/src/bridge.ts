@@ -1,5 +1,18 @@
 import type { SimHandle } from './wasm/terri_wasm.js';
 
+/** Personal factors and recent repetition, read together without advancing time. */
+export interface SimDetails {
+  readonly sleepOffsetTicks: number;
+  readonly drain: readonly number[];
+  readonly refill: readonly number[];
+  readonly repeated: readonly {
+    key: string;
+    object: string;
+    activity: string;
+    repetition: number;
+  }[];
+}
+
 /**
  * `SimCommand`'s variant indices, which are **wire format** rather than
  * an internal detail. They are the numbers postcard writes for the enum
@@ -47,6 +60,7 @@ const HOUSEMATE_REASONS: Readonly<Record<number, string>> = {
   5: 'That trait is not available.',
   6: 'Each trait once.',
   7: 'There is no way in for them.',
+  8: 'Choose a whole instinct value from 0 to 100.',
 };
 
 export function housemateReason(code: number): string | null {
@@ -69,7 +83,6 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   13: 'Keep the front-door landing clear and reachable.',
   14: 'The household cannot afford that.',
   15: 'That furniture is not for sale.',
-  16: 'Nothing else in the house can do its job.',
   17: 'That colour is not available.',
 };
 
@@ -667,8 +680,8 @@ export class SimBridge {
   }
 
   /**
-   * Authored object-sound action per row: 0 none, 1 shower water, and
-   * 2 stove cooking. These codes describe current semantic state, not a cue
+   * Authored object-sound action per row: 0 none, 1 shower water,
+   * 2 stove cooking, 3 sink water. These codes describe current semantic state, not a cue
    * filename or a guess from the visible body pose.
    */
   soundActions(): Uint32Array {
@@ -694,9 +707,8 @@ export class SimBridge {
 
   /**
    * The voice clip each row's conversation plays first, or u32::MAX when the
-   * row is not in one. Both talkers carry the pair, so whichever row the
-   * audio scheduler speaks for finds it. Re-create this view after every
-   * fixed tick and memory growth.
+   * row is not in one. Both talkers carry the pair and the same instance
+   * identity. Re-create this view after every fixed tick and memory growth.
    */
   voiceFirsts(): Uint32Array {
     return new Uint32Array(
@@ -711,6 +723,33 @@ export class SimBridge {
     return new Uint32Array(
       this.memory.buffer,
       this.handle.voice_seconds_ptr(),
+      this.count,
+    );
+  }
+
+  /** Initiator's stable Sim ID on both participants, or u32::MAX when absent. */
+  conversationOwners(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.conversation_owners_ptr(),
+      this.count,
+    );
+  }
+
+  /** Low word of the exact completion token; re-read after every fixed tick. */
+  conversationEndLows(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.conversation_end_lows_ptr(),
+      this.count,
+    );
+  }
+
+  /** High word kept separate to avoid JavaScript number rounding. */
+  conversationEndHighs(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.conversation_end_highs_ptr(),
       this.count,
     );
   }
@@ -1252,6 +1291,26 @@ export class SimBridge {
     return this.handle.cleanliness_of(entityIndex) ?? null;
   }
 
+  simDetailsOf(entityIndex: number): SimDetails | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.sim_details_of(entityIndex);
+    if (values.length < 15 || (values.length - 15) % 3 !== 0) return null;
+    const labels = this.handle.sim_details_labels_of(entityIndex);
+    if (labels.length !== (values.length - 15) / 3 * 2) return null;
+    const sleepOffsetTicks = values[0];
+    if (!Number.isInteger(sleepOffsetTicks) || sleepOffsetTicks < -2_147_483_648 || sleepOffsetTicks > 2_147_483_647) return null;
+    const factors = Array.from(values.slice(1, 15));
+    if (factors.some(value => !Number.isFinite(value) || value < 0)) return null;
+    const repeated: SimDetails['repeated'][number][] = [];
+    for (let offset = 15, row = 0; offset < values.length; offset += 3, row += 1) {
+      const [object, activity, repetition] = values.slice(offset, offset + 3);
+      if (!isU32(object) || !isU32(activity) || !Number.isFinite(repetition) || repetition < 0 || repetition > 1) return null;
+      repeated.push({ key: `${object}:${activity}`, object: labels[row * 2],
+        activity: labels[row * 2 + 1], repetition });
+    }
+    return { sleepOffsetTicks, drain: factors.slice(0, 7), refill: factors.slice(7), repeated };
+  }
+
   /**
    * Interleaved [simId, feeling, ...] pairs in key order, or empty.
    * Same copy-and-cadence contract as `personalityOf`.
@@ -1305,6 +1364,13 @@ export class SimBridge {
     if (!isU32(entityIndex)) return null;
     const reason = this.handle.stall_reason_of(entityIndex);
     return reason === '' ? null : reason;
+  }
+
+  /** Current action (or an empty first entry), then unserved orders in order. */
+  actionQueueOf(entityIndex: number, maxRows?: number): string[] {
+    if (!isU32(entityIndex) || (maxRows !== undefined && !isU32(maxRows))) return [];
+    return maxRows === undefined ? this.handle.action_queue_of(entityIndex)
+      : this.handle.action_queue_window_of(entityIndex, maxRows);
   }
 
   /** How many player orders the sim still has waiting; 0 for none. */
@@ -1377,8 +1443,16 @@ export class SimBridge {
   }
 
   /** Stages a move-in ([CS-command]); queue acceptance only, read the outcome from `lastHousemateResult`. */
-  addHousemate(name: string, personality: number, traits: readonly number[]): boolean {
-    return this.handle.add_housemate(name, personality, Float64Array.from(traits));
+  addHousemate(name: string, personality: number, traits: readonly number[], instinct: number | null = null): boolean {
+    if (instinct === null) return this.handle.add_housemate(name, personality, Float64Array.from(traits));
+    if (!Number.isInteger(instinct) || instinct < 0 || instinct > 100) return false;
+    return this.handle.add_housemate_with_instinct(name, personality, Float64Array.from(traits), instinct);
+  }
+
+  selfPreservationOf(entity: number): number | null {
+    if (!isU32(entity)) return null;
+    const value = this.handle.self_preservation_of(entity);
+    return Number.isInteger(value) && value >= 0 && value <= 100 ? value : null;
   }
 
   /** The drain's answer to the last move-in, or null before the first. */

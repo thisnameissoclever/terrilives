@@ -54,7 +54,7 @@ it('clears an automatic selection handoff on Load before subsequent placement', 
   builder.resetAfterLoad();
   builder.select(15); builder.moveTo(7, 0); builder.confirm();
   source.flushCommands(); builder.afterCommands();
-  expect(builder.selected).toBe(15);
+  expect(builder.selected).toBeNull();
   expect(builder.pending).toBe(false);
   handle.free();
 });
@@ -165,11 +165,27 @@ it('waits for the drained result and refreshes a moved object on lot revision', 
   expect(builder.status).toBe('Furniture placed.');
   expect(source.lotRevision()).toBe(before + 1);
   expect(builder.afterCommands()).toBe(false);
-  expect(builder.selected).toBe(15);
-  expect(builder.preview).toMatchObject({ x: 7, y: 0, valid: true });
+  expect(builder.selected).toBeNull();
+  expect(builder.preview).toBeNull();
+  const movedRow = Array.from(source.ids()).indexOf(15);
+  expect(Array.from(source.positions().slice(movedRow * 2, movedRow * 2 + 2))).toEqual([7, 0]);
   const newLight = buildLightField(source, handle.lot_width(), handle.lot_height(), source.wallTiles(), true, source.wallEdges());
   expect(sampleLight(newLight, 7, 0)).toBeGreaterThan(oldDestinationLight);
   handle.free();
+});
+
+it('deselects an unchanged placement after Confirm without changing its position', () => {
+  const { handle, source, builder } = fixture();
+  try {
+    builder.enter(); builder.select(15);
+    const row = Array.from(source.ids()).indexOf(15);
+    const before = Array.from(source.positions().slice(row * 2, row * 2 + 2));
+    expect(builder.confirm()).toBe(true);
+    source.flushCommands(); builder.afterCommands();
+    expect(builder.selected).toBeNull();
+    expect(builder.preview).toBeNull();
+    expect(Array.from(source.positions().slice(row * 2, row * 2 + 2))).toEqual(before);
+  } finally { handle.free(); }
 });
 
 it('keeps invalid previews visible and handles refusal after a previously valid preview', () => {
@@ -244,7 +260,7 @@ it('routes keyboard edits once and appends preview instances without changing or
   expect(builder.preview!.x).toBe(x + 1);
   const base = instanceCount(source, 26);
   const count = instanceCount(source, 26, undefined, builder.preview);
-  expect(count).toBe(base + 2);
+  expect(count).toBe(base + 1);
   const instances = buildInstances(source, 0.37, 100, 100, 16, 26, 1, true, 0, null, undefined, builder.preview);
   expect(instances.length).toBeGreaterThanOrEqual(count * STRIDE);
   expect(instances[(count - 1) * STRIDE + 3]).toBe(builder.preview!.sprite);
@@ -259,16 +275,25 @@ it('routes keyboard edits once and appends preview instances without changing or
   handle.free();
 });
 
-it('replaces only valid in-place furniture presentation, retains its marker and restores it on Cancel', () => {
+it('replaces furniture at every preview destination and restores it on Cancel', () => {
   const { handle, source, builder } = fixture();
   const saved = source.saveBytes();
+  // Exercise the optional overlay even when no shipped object currently uses one.
+  const foregroundObject = 12;
+  const foreground = spriteIndex('loungeChairForeground');
+  const originalForegrounds = source.foregroundSprites.bind(source);
+  source.foregroundSprites = () => {
+    const rows = originalForegrounds().slice();
+    rows[Array.from(source.ids()).indexOf(foregroundObject)] = foreground;
+    return rows;
+  };
+  const originalPreview = source.placementPreview.bind(source);
+  source.placementPreview = (id, x, y, facing) => {
+    const preview = originalPreview(id, x, y, facing);
+    return id === foregroundObject ? { ...preview, foreground } : preview;
+  };
   builder.enter();
-  const foregroundObject = Array.from(source.ids()).find(id => {
-    builder.select(id);
-    return builder.preview?.valid && builder.preview.foreground !== null;
-  });
-  expect(foregroundObject).toBeDefined();
-  for (const id of [26, foregroundObject!]) {
+  for (const id of [26, foregroundObject]) {
     builder.select(id);
     if (builder.canRotate) builder.rotate();
     const preview = builder.preview!;
@@ -279,25 +304,22 @@ it('replaces only valid in-place furniture presentation, retains its marker and 
       .slice(0, baseCount * STRIDE));
     const extra = placementInstanceCount(preview);
     const count = instanceCount(source, id, undefined, preview);
-    expect(count).toBe(baseCount + extra - (source.foregroundSprites()[row] === 0xffffffff ? 0 : 1));
+    expect(count).toBe(baseCount + extra - 1 - (source.foregroundSprites()[row] === 0xffffffff ? 0 : 1));
     const rendered = buildInstances(source, 0.37, 100, 100, 16, id, 1, true, 0, null, undefined, preview);
     expect(Array.from(rendered.slice(row * STRIDE, row * STRIDE + 2))).toEqual([-1e6, -1e6]);
     for (let other = 0; other < source.count; other += 1) {
       if (other !== row) expect(Array.from(rendered.slice(other * STRIDE, (other + 1) * STRIDE)))
         .toEqual(original.slice(other * STRIDE, (other + 1) * STRIDE));
     }
-    expect(rendered[(count - extra - 1) * STRIDE + 3]).toBe(spriteIndex('selectionRing'));
     expect(rendered[(count - 1) * STRIDE + 3]).toBe(preview.foreground ?? preview.sprite);
     const refused = { ...preview, valid: false };
-    expect(instanceCount(source, id, undefined, refused)).toBe(baseCount + extra);
+    expect(instanceCount(source, id, undefined, refused)).toBe(count);
     const refusedRows = buildInstances(source, 0.37, 100, 100, 16, id, 1, true, 0, null, undefined, refused);
-    expect(Array.from(refusedRows.slice(row * STRIDE, (row + 1) * STRIDE)))
-      .toEqual(original.slice(row * STRIDE, (row + 1) * STRIDE));
+    expect(Array.from(refusedRows.slice(row * STRIDE, row * STRIDE + 2))).toEqual([-1e6, -1e6]);
     const moved = { ...preview, x: preview.x + source.footprintWidths()[row] };
-    expect(instanceCount(source, id, undefined, moved)).toBe(baseCount + extra);
+    expect(instanceCount(source, id, undefined, moved)).toBe(count);
     const movedRows = buildInstances(source, 0.37, 100, 100, 16, id, 1, true, 0, null, undefined, moved);
-    expect(Array.from(movedRows.slice(row * STRIDE, (row + 1) * STRIDE)))
-      .toEqual(original.slice(row * STRIDE, (row + 1) * STRIDE));
+    expect(Array.from(movedRows.slice(row * STRIDE, row * STRIDE + 2))).toEqual([-1e6, -1e6]);
     builder.cancel();
     expect(Array.from(buildInstances(source, 0.37, 100, 100, 16, id, 1, true)
       .slice(0, baseCount * STRIDE))).toEqual(original);
@@ -462,6 +484,7 @@ it('does not take an earlier move for a colour change on its way', () => {
   expect(builder.confirm()).toBe(true);
   source.flushCommands(); builder.afterCommands();
   expect(builder.status).toBe('Furniture placed.');
+  builder.select(15);
   expect(builder.recolour(1)).toBe(true);
   expect(builder.recolour(2)).toBe(true);
   expect(builder.shownColourway).toBe(2);

@@ -65,6 +65,8 @@ pub(crate) fn restore_v5(
         mortality,
         death_default_applied,
         waiting_needs,
+        self_preservation,
+        chronotype_offsets,
         domestic,
     } = snapshot;
     if object_colourways
@@ -144,14 +146,18 @@ pub(crate) fn restore_v5(
     candidate.world.insert_resource(family);
     crate::mortality::restore(&mut candidate.world, mortality)?;
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
+    super::self_preservation::restore(&mut candidate.world, self_preservation)?;
+    super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
     crate::domestic::restore(&mut candidate.world, domestic)?;
-    candidate.sync_render_buffer();
     if !death_default_applied {
         candidate
             .world
             .resource_mut::<terri_core::save::SavedMortality>()
             .enabled = true;
     }
+    // The base loader projected before V5 added colourways and other state.
+    // Refresh the complete candidate without draining commands or advancing time.
+    candidate.sync_render_buffer_after_commands();
     Ok(candidate)
 }
 

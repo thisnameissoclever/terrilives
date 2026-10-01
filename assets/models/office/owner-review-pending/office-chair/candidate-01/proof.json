@@ -1,0 +1,129 @@
+{
+  "state": "complete",
+  "object": "office-chair",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "office/render_chair.py": "c346a3b3f4a47bf70109dcd82bfb5b671ac6a97ba4b652b2c8311991b0dc3c3a",
+    "office/chair_model.py": "c8c3cb8c0ac281dd1a1d49b103f6054b93a3a56c5c865e3cb6784f98aa8cb46e",
+    "office/chair_layout.py": "e660935de83d22157453e37544322e08998447af31df84171cb7f4325dd1487e",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "2700f011f5655f28a0802e480b107ae0cbe1c8b52b51d6d13f5962f038fa6a6b"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "9e85996c8730a1ff40d031f49ed8a5af41b4311831142c5f55eb34530ff66da1"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "a6f64ddd7ac040fcbfc4d59d29fa2a179183a211d196dc6b5a59ccb289a35179"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "b593826cbeee33788991bbc1f4944f140c0869b4a0583644f441cd158088d2e2"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "front": "-Y",
+    "seat_height": 0.5675,
+    "casters": 5,
+    "footprint": [
+      1,
+      1
+    ],
+    "seated_animation_proven": false
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Back cushion",
+    "Back shell",
+    "Back spine",
+    "Base hub",
+    "Base spoke 0",
+    "Base spoke 1",
+    "Base spoke 2",
+    "Base spoke 3",
+    "Base spoke 4",
+    "Caster axle 0",
+    "Caster axle 1",
+    "Caster axle 2",
+    "Caster axle 3",
+    "Caster axle 4",
+    "Caster fork 0",
+    "Caster fork 1",
+    "Caster fork 2",
+    "Caster fork 3",
+    "Caster fork 4",
+    "Caster wheel 0 -1",
+    "Caster wheel 0 1",
+    "Caster wheel 1 -1",
+    "Caster wheel 1 1",
+    "Caster wheel 2 -1",
+    "Caster wheel 2 1",
+    "Caster wheel 3 -1",
+    "Caster wheel 3 1",
+    "Caster wheel 4 -1",
+    "Caster wheel 4 1",
+    "Gas lift",
+    "Seat adjustment grip",
+    "Seat adjustment lever",
+    "Seat cushion",
+    "Seat pan"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "b7016439d5ebf0ac09dc8b14519fd7800e31349c9f00b582366a07cb87f4117b"
+}

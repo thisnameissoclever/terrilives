@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "name": "offlineFloorLamp",
+      "directory": "living/owner-review-pending/floor-lamp/candidate-02",
+      "proof_sha256": "fed005e72796ac4773710f01f83b3e0fc1da61ee18a3e8d37ea8f8ae4ec7e015",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineCoatRack",
+      "directory": "living/owner-review-pending/coat-rack/candidate-02",
+      "proof_sha256": "a58bd9b333f07152c36d014aa15c9a6d3b5901563e2f73ed7332817cd9782dd4",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlinePottedPlant",
+      "directory": "living/owner-review-pending/potted-plant/candidate-02",
+      "proof_sha256": "a85664527ed38b04d809fef1d7c06e257b94147d1eb805e7e9e2ab0c28828f25",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineOttoman",
+      "directory": "living/owner-review-pending/ottoman/candidate-01",
+      "proof_sha256": "af10c666ee106d2265e7b27bd19f26e5cef10a0def5fb5bb8bd77aae9d62e61e",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineTrashcan",
+      "directory": "kitchen/owner-review-pending/trashcan/candidate-01",
+      "proof_sha256": "aa16ddca687c5429b804febfa973b774acc79f9a0350b5bcbde1d009e4b74030",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineBookcase",
+      "directory": "living/owner-review-pending/bookcase/candidate-01",
+      "proof_sha256": "bbe22a421bc086416d86506d579241d7200d7498f97f63532472cff1b55da7ae",
+      "review_status": "accepted-independent-review"
+    }
+  ]
+}

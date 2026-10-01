@@ -1,0 +1,137 @@
+{
+  "proof": {
+    "pass": true,
+    "validation": null,
+    "errors": [],
+    "atlas": "atlas-7db5617af8b9ead864546355f9b23c4fffee8809faa0afe34f10d7c87e429049.png",
+    "records": [
+      {
+        "label": "SE",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "SE: midnight",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "SW",
+        "facing": 1,
+        "sprite": 1352,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "SW: midnight",
+        "facing": 1,
+        "sprite": 1352,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "NW",
+        "facing": 2,
+        "sprite": 1351,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "NW: midnight",
+        "facing": 2,
+        "sprite": 1351,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "NE",
+        "facing": 3,
+        "sprite": 1353,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "NE: midnight",
+        "facing": 3,
+        "sprite": 1353,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "As drawn",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "Colour 2",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 1,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "Colour 3",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 2,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "Muted",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 3,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "Rich",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 4,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      },
+      {
+        "label": "Build preview",
+        "facing": 0,
+        "sprite": 1350,
+        "colourway": 0,
+        "sourceEmissive": 0,
+        "renderedLight": 0.11999999731779099,
+        "tileLight": 0.11999999731779099
+      }
+    ]
+  },
+  "pageErrors": []
+}

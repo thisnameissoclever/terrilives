@@ -4,8 +4,9 @@ Status: **seven of nine roadmap items shipped.** [ML-gen], [ML-ci],
 [ML-sprites], [ML-ambient], [ML-tint], [ML-chars], and [ML-pools] are in the
 running game. PR #45 merged [ML-pools] at `ef9f86c`; the corresponding GitHub
 Pages deployment and public desktop and mobile browser pass succeeded.
-The circadian schema and scoring mechanism are built but the authored curve is
-**switched off** pending [ML-feel]. [B7] and [ML-feel] remain open. See
+The circadian schema, scoring mechanism and authored curve are enabled, with
+an exhaustion ramp. Further watched sleep-balance tuning [ML-feel] remains
+open; the old disabled-curve account below is historical. See
 `docs/FEATURES.md` for the concise current-state account.
 
 Originally: **implementation plan, agreed art direction, nothing built.** The
@@ -310,6 +311,10 @@ as a screensaver. Add `chronotype_offset_ticks` to `personalities.toml`,
 shifting where a sim samples the curve: an early bird at -90, a night owl
 at +180.
 
+The offset is a schedule displacement: sample at `clock - offset`, wrapped
+within the day. Negative values move the evening rise and morning fall earlier;
+positive values move both later. It biases choices, not a fixed bedtime.
+
 This is the single highest-value line in Part 3. A house where one person
 is still up when the others have gone to bed is a house; a house where
 everyone lies down together is a barracks.
@@ -341,7 +346,11 @@ determinism test covers it, and the existing note about `score_advertisement`
 cubing urgency identically on every target applies to the interpolation too:
 one lerp helper, used everywhere, no target-dependent fused multiply-add.
 
-### The rhythm is built and switched off, and why
+### Historical disabled-curve decision
+
+This subsection records the earlier decision, not the current state. The
+curve and exhaustion ramp are now enabled. Current tests and mutation time
+bounds are described in `docs/testing-protocol.md`.
 
 Everything in Part 3 above ships except the authored curve: the schema,
 the compile-time validation, `systems/circadian.rs` and its tests, the

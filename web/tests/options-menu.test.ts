@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { runInNewContext } from 'node:vm';
+import { describe, expect, it, vi } from 'vitest';
 import { OptionsMenu, attachOptionsMenu } from '../src/ui/options-menu.js';
+import { restorePersistenceFocus } from '../src/ui/persistence-controller.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -140,7 +142,7 @@ describe('attachOptionsMenu', () => {
 });
 
 describe('the Options flyout in the page', () => {
-  it('holds only the gear and its panel, closing before the sidebar opens', () => {
+  it('holds only the gear and its panel, without owning other HUD surfaces', () => {
     // Walk the div tags from the wrapper's opening to its matching close,
     // with comments blanked out so a tag named in one cannot end the walk.
     const page = INDEX_HTML.replace(/<!--[\s\S]*?-->/g, (comment) => ' '.repeat(comment.length));
@@ -162,65 +164,46 @@ describe('the Options flyout in the page', () => {
     }
   });
 
-  it('comes first in the page, outside the sidebar, before the right-click flyout', () => {
+  it('belongs to the world controls before the separate Sim dock', () => {
     const options = INDEX_HTML.indexOf('<div id="options">');
-    expect(options).toBeGreaterThan(-1);
-    expect(INDEX_HTML.indexOf('<div id="hud" ')).toBeGreaterThan(options);
-    expect(INDEX_HTML.indexOf('id="object-menu"')).toBeGreaterThan(options);
+    expect(options).toBeGreaterThan(INDEX_HTML.indexOf('<div id="world-actions">'));
+    expect(options).toBeLessThan(INDEX_HTML.indexOf('id="sim-dock"'));
   });
 
-  it.each(['lighting-mode', 'build-toggle', 'audio-controls', 'audio-mute', 'effects-volume',
-    'game-actions', 'save-game', 'load-game', 'stop-orders', 'queue-mode', 'new-game', 'show-help'])(
+  it.each(['lighting-mode', 'audio-controls', 'audio-mute', 'effects-volume',
+    'game-actions', 'save-game', 'load-game', 'death-enabled', 'new-game', 'show-help'])(
     'holds #%s in the panel',
     (id) => {
       expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
-      expect(between('options-panel', 'hud')).toContain(`id="${id}"`);
+      expect(between('options-panel', 'sim-dock')).toContain(`id="${id}"`);
     },
   );
 
   it.each(['save-status', 'command-feedback', 'keyboard-target'])(
     'keeps the live region #%s in the always-shown household status',
     (id) => {
-      expect(between('household-summary', 'builder-desktop')).toContain(`id="${id}"`);
+      expect(between('household-summary', 'time-controls')).toContain(`id="${id}"`);
     },
   );
 
   it('names the gear, ties it to its panel, and starts the panel hidden', () => {
-    const gear = INDEX_HTML.slice(INDEX_HTML.indexOf('id="options-toggle"'), INDEX_HTML.indexOf('<svg'));
+    const gear = INDEX_HTML.slice(INDEX_HTML.indexOf('id="options-toggle"'), INDEX_HTML.indexOf('id="options-panel"'));
     expect(gear).toContain('aria-label="Options"');
     expect(gear).toContain('aria-controls="options-panel"');
     expect(gear).toContain('aria-expanded="false"');
     expect(INDEX_HTML).toContain('<div id="options-panel" role="group" aria-label="Options" hidden>');
-    expect(INDEX_HTML).toMatch(/<svg aria-hidden="true" focusable="false"/);
+    expect(gear).toContain('Options</button>');
   });
 
-  it('is fixed to the top right, inside the safe area, between the dock and the menus', () => {
-    const body = rule('      #options');
-    expect(body).toContain('position: fixed');
-    expect(body).toContain('env(safe-area-inset-top)');
-    expect(body).toContain('env(safe-area-inset-right)');
-    const z = Number(/z-index:\s*(\d+)/.exec(body)?.[1]);
-    expect(z).toBeGreaterThan(2);
-    expect(z).toBeLessThan(9);
-    expect(rule('      .options-toggle')).toContain('min-height: 44px');
+  it('bounds the Options panel to the viewport and obeys its hidden state', () => {
+    expect(rule('      #options-panel')).toContain('overflow-y: auto');
+    expect(rule('      #options-panel')).toContain('100dvh');
     expect(INDEX_HTML).toMatch(/#options-panel\[hidden\]\s*\{\s*display:\s*none;\s*\}/);
   });
 
-  it('leaves no Light or Build row in any compact status strip', () => {
-    const areas = [...INDEX_HTML.matchAll(/#household-summary \{[^}]*grid-template-areas:([^;]*);/g)]
-      .map((match) => match[1]);
-    expect(areas.length).toBeGreaterThanOrEqual(3);
-    for (const area of areas) {
-      expect(area).toMatch(/'status status( status)?'/);
-      expect(area).not.toMatch(/lighting|build/);
-    }
-  });
-
-  it('keeps the phone sidebar and the debug overlay clear of the gear, and fits 320 pixels', () => {
-    expect(INDEX_HTML).toContain('right: calc(max(8px, env(safe-area-inset-right)) + 52px);');
-    expect(INDEX_HTML).toContain('top: calc(max(8px, env(safe-area-inset-top)) + 52px);');
-    expect(INDEX_HTML).toContain('minmax(0, 2fr) minmax(0, 1fr) minmax(64px, auto);');
-    expect(INDEX_HTML).not.toContain('minmax(125px, 2fr)');
+  it.each(['queue-mode', 'stop-orders'])('keeps #%s in the Queue panel, exactly once', id => {
+    expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
+    expect(between('sim-queue', 'sim-people')).toContain(`id="${id}"`);
   });
 
   it('keeps an empty status line in the page, at no height', () => {
@@ -254,18 +237,77 @@ describe('the Options flyout wired into main.ts', () => {
     expect(handler(opening)).toMatch(/^[^\n]*\n\s*optionsMenu\.close\(\);/);
   });
 
-  it('closes the panel when Build starts and when it ends, then focuses the gear', () => {
-    expect(MAIN_TS).toContain('    enter() {\n      optionsMenu.close();');
-    expect(MAIN_TS).toMatch(/mobileHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*optionsToggle\.focus\(\);/);
+  it('closes Options when Build starts and restores focus to Build when it ends', () => {
+    expect(MAIN_TS).toMatch(/enter\(\) \{\r?\n\s*optionsMenu\.close\(\);/);
+    expect(MAIN_TS).toMatch(/compactHud\.endEditing\(\);[^}]*optionsMenu\.close\(\);\s*document\.querySelector<HTMLButtonElement>\('#build-toggle'\)\?\.focus\(\);/);
   });
 
   it('returns focus to the gear, which leads the fallbacks, after Load, New game and Help', () => {
-    expect(MAIN_TS.split(/restorePersistenceFocus\(\s*document,\s*\w+,\s*optionsToggle,/)).toHaveLength(3);
+    for (const opening of [
+      "confirmLoadGame.addEventListener('click', (event) => {",
+      "confirmNewGame.addEventListener('click', (event) => {",
+    ]) {
+      expect(handler(opening)).toMatch(/restorePersistenceFocus\(\s*document,\s*\w+,\s*optionsToggle,/);
+    }
     expect(MAIN_TS).toMatch(/const persistenceFocusFallbacks = \[\s*optionsToggle,/);
     expect(handler("helpButton.addEventListener('click', () => {")).toContain('helpReturnTarget = optionsToggle;');
   });
 
-  it('folds the Traits panel with Needs and People on a phone', () => {
-    expect(MAIN_TS).toMatch(/new MobileHud\(hudRoot, mobileHudButton, \[\s*needsRoot,\s*peopleRoot,\s*traitsBlock,\s*\]\)/);
+  describe.each([
+    ['loadGameDialog', 'loadingGame', 'load-game'],
+    ['newGameDialog', 'clearingForNewGame', 'new-game'],
+  ])('%s cancellation', (dialogName, busyName, owner) => {
+    function close(busy = false, deliberateFocus = false) {
+      const body = {};
+      const elsewhere = {};
+      const source = { body, activeElement: deliberateFocus ? elsewhere : body };
+      const toggle = { disabled: false, focus: vi.fn() };
+      const resume = vi.fn();
+      let listener: (() => void) | undefined;
+      const dialog = {
+        open: false,
+        contains: () => false,
+        addEventListener: (type: string, callback: () => void) => {
+          expect(type).toBe('close');
+          listener = callback;
+        },
+      };
+      // Execute the real bootstrap listener, including its busy-operation guard.
+      // Native Escape and method=dialog cancellation both dispatch this close.
+      runInNewContext(`${handler(`${dialogName}.addEventListener('close', () => {`)}\n  });`, {
+        [dialogName]: dialog,
+        [busyName]: busy,
+        document: source,
+        optionsToggle: toggle,
+        persistenceFocusFallbacks: [],
+        restorePersistenceFocus,
+        overlayPause: { resume },
+      });
+      expect(listener).toBeTypeOf('function');
+      listener!();
+      return { toggle, resume };
+    }
+
+    it('returns stranded focus to visible Options and releases its pause', () => {
+      const { toggle, resume } = close();
+      expect(toggle.focus).toHaveBeenCalledTimes(1);
+      expect(resume).toHaveBeenCalledExactlyOnceWith(owner);
+    });
+
+    it('leaves a confirmed operation in charge of focus and its pause', () => {
+      const { toggle, resume } = close(true);
+      expect(toggle.focus).not.toHaveBeenCalled();
+      expect(resume).not.toHaveBeenCalled();
+    });
+
+    it('preserves deliberate focus elsewhere after cancellation', () => {
+      const { toggle, resume } = close(false, true);
+      expect(toggle.focus).not.toHaveBeenCalled();
+      expect(resume).toHaveBeenCalledExactlyOnceWith(owner);
+    });
+  });
+
+  it('wires the shared compact HUD with a queue capacity refresh', () => {
+    expect(MAIN_TS).toContain('createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close())');
   });
 });

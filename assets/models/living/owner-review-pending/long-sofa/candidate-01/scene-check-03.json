@@ -1,0 +1,163 @@
+{
+  "state": "passed",
+  "parts": 14,
+  "contacts": {
+    "Upholstered base / Foot front left": [
+      -0.33000001311302185,
+      -0.7940000295639038,
+      0.17499998211860657
+    ],
+    "Upholstered base / Foot front right": [
+      -0.33000001311302185,
+      0.7059999704360962,
+      0.17499998211860657
+    ],
+    "Upholstered base / Foot rear left": [
+      0.25,
+      -0.7940000295639038,
+      0.17499998211860657
+    ],
+    "Upholstered base / Foot rear right": [
+      0.25,
+      0.7059999704360962,
+      0.17499998211860657
+    ],
+    "Upholstered back / Upholstered base": [
+      0.25450000166893005,
+      -0.7120000123977661,
+      0.33000001311302185
+    ],
+    "Arm left / Upholstered base": [
+      -0.335999995470047,
+      -0.9160000085830688,
+      0.22099998593330383
+    ],
+    "Arm left / Upholstered back": [
+      0.2535000145435333,
+      -0.8700000047683716,
+      0.39800000190734863
+    ],
+    "Arm right / Upholstered base": [
+      -0.335999995470047,
+      0.8040000200271606,
+      0.22099998593330383
+    ],
+    "Arm right / Upholstered back": [
+      0.2535000145435333,
+      0.800000011920929,
+      0.3540000021457672
+    ],
+    "Seat cushion 0 / Upholstered base": [
+      -0.33900001645088196,
+      -0.7239999771118164,
+      0.382999986410141
+    ],
+    "Back cushion 0 / Upholstered back": [
+      0.24250000715255737,
+      -0.7239999771118164,
+      0.5649999976158142
+    ],
+    "Back cushion 0 / Seat cushion 0": [
+      0.12449999153614044,
+      -0.7239999771118164,
+      0.5509999990463257
+    ],
+    "Seat cushion 1 / Upholstered base": [
+      -0.33900001645088196,
+      -0.20399999618530273,
+      0.382999986410141
+    ],
+    "Back cushion 1 / Upholstered back": [
+      0.24250000715255737,
+      -0.20399999618530273,
+      0.5649999976158142
+    ],
+    "Back cushion 1 / Seat cushion 1": [
+      0.12449999153614044,
+      -0.20399999618530273,
+      0.5509999990463257
+    ],
+    "Seat cushion 2 / Upholstered base": [
+      -0.33900001645088196,
+      0.31599998474121094,
+      0.382999986410141
+    ],
+    "Back cushion 2 / Upholstered back": [
+      0.24250000715255737,
+      0.31599998474121094,
+      0.5649999976158142
+    ],
+    "Back cushion 2 / Seat cushion 2": [
+      0.12449999153614044,
+      0.31599998474121094,
+      0.5509999990463257
+    ]
+  },
+  "grounded": [
+    "Foot front left",
+    "Foot front right",
+    "Foot rear left",
+    "Foot rear right"
+  ],
+  "runtime_spans": {
+    "SE": [
+      1.8600000143051147,
+      0.8650000989437103
+    ],
+    "NW": [
+      1.8600000143051147,
+      0.8650000393390656
+    ],
+    "SW": [
+      0.8650000095367432,
+      1.8600000143051147
+    ],
+    "NE": [
+      0.8650001883506775,
+      1.8600001335144043
+    ]
+  },
+  "caught_mutations": [
+    {
+      "mutation": "lift foot",
+      "rejection": "Foot front left lost floor contact"
+    },
+    {
+      "mutation": "detach arm",
+      "rejection": "Arm left detached from Upholstered base"
+    },
+    {
+      "mutation": "float seat",
+      "rejection": "Seat cushion 1 detached from Upholstered base"
+    },
+    {
+      "mutation": "detach back pad",
+      "rejection": "Back cushion 1 detached from Upholstered back"
+    },
+    {
+      "mutation": "oversized foot",
+      "rejection": "Foot rear right dimensions changed"
+    },
+    {
+      "mutation": "unequal cushion",
+      "rejection": "Seat cushion 0 dimensions changed"
+    },
+    {
+      "mutation": "overlapping cushions",
+      "rejection": "Seat cushion 1 center changed"
+    },
+    {
+      "mutation": "wrong source rotation",
+      "rejection": "Authored sofa basis changed"
+    },
+    {
+      "mutation": "shift root",
+      "rejection": "Sofa root moved"
+    },
+    {
+      "mutation": "missing foot",
+      "rejection": "Sofa inventory changed"
+    }
+  ],
+  "model_sha256": "075abd2472f09d3933e541a7024f2bf9fb3b2dd67cc5b79d8c4a976f83041b76"
+}

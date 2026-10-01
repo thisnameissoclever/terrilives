@@ -1,5 +1,11 @@
 # Collapsible compact HUD
 
+Current layout: [CUI-world]-[CUI-build] in
+[the compact control layout](2026-09-30-control-layout-studies.md) supersedes
+this document's control positions. The record below describes the earlier
+shipped layout. Options is now at the upper left; Sim information is in the
+bottom dock, and Queue mode/Clear orders are inside Queue.
+
 Status: implemented and locally acceptance-tested. Merge, public deployment,
 and physical-phone acceptance remain open. Section ids are stable and must not
 be renumbered.

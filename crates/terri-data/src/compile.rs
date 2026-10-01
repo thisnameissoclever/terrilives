@@ -1533,6 +1533,7 @@ fn compile_sound_action(
     let compiled = match action {
         "shower_water" => CompiledSoundAction::ShowerWater,
         "stove_cooking" => CompiledSoundAction::StoveCooking,
+        "sink_water" => CompiledSoundAction::SinkWater,
         unknown => {
             return Err(match owner {
                 SoundOwner::Object {
@@ -2390,8 +2391,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             return Err(ContentError::InvalidMoodTuning);
         }
     }
-    if tuning.mood_critical_need_level > tuning.mood_low_need_level
-        || tuning.mood_low_need_level > tuning.mood_needs_met_level
+    if tuning.mood_critical_need_level <= 0.0
+        || tuning.mood_critical_need_level > tuning.mood_low_need_level
+        || tuning.mood_low_need_level >= tuning.mood_needs_met_level
         || tuning.mood_needs_met_level > 100.0
         || tuning.mood_relationship_radius == 0.0
         || tuning.mood_relationship_min_affinity > 1.0
@@ -2431,9 +2433,6 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         return Err(ContentError::WanderRadiusTooLarge {
             value: tuning.wander_radius_tiles,
         });
-    }
-    if tuning.max_queued_intents == 0 {
-        return Err(ContentError::ZeroQueuedIntents);
     }
     if tuning.max_queued_commands == 0 {
         return Err(ContentError::ZeroQueuedCommands);
@@ -2671,8 +2670,46 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         }
     };
 
+    let positives = [
+        tuning.choice_comfort_temperature,
+        tuning.leisure_appeal,
+        tuning.survival_risk_penalty,
+        tuning.choice_probability_floor,
+    ];
+    let fractions = [tuning.choice_exploration, tuning.choice_comfort_exploration];
+    if positives.iter().any(|v| !v.is_finite() || *v <= 0.0)
+        || fractions
+            .iter()
+            .any(|v| !v.is_finite() || *v <= 0.0 || *v >= 1.0)
+        || tuning.choice_comfort_temperature < tuning.choice_temperature
+        || tuning.choice_comfort_exploration < tuning.choice_exploration
+        || tuning.choice_probability_floor >= tuning.choice_exploration
+        || !tuning.wander_pause_variance.is_finite()
+        || !(0.0..1.0).contains(&tuning.wander_pause_variance)
+        || tuning.self_preservation_curve.first().unwrap().0 != 0
+        || tuning.self_preservation_curve.last().unwrap().0 != 100
+        || tuning
+            .self_preservation_curve
+            .iter()
+            .any(|(_, v)| !v.is_finite() || *v <= 0.0)
+        || tuning
+            .self_preservation_curve
+            .windows(2)
+            .any(|p| p[0].0 >= p[1].0 || p[0].1 >= p[1].1)
+    {
+        return Err(ContentError::InvalidAutonomyTuning);
+    }
+
     Ok((
         Tuning {
+            choice_comfort_temperature: tuning.choice_comfort_temperature,
+            choice_exploration: tuning.choice_exploration,
+            choice_comfort_exploration: tuning.choice_comfort_exploration,
+            leisure_appeal: tuning.leisure_appeal,
+            survival_risk_penalty: tuning.survival_risk_penalty,
+            choice_probability_floor: tuning.choice_probability_floor,
+            wander_pause_variance: tuning.wander_pause_variance,
+            self_preservation_curve: tuning.self_preservation_curve,
             domestic: tuning.domestic,
             habituation_per_use: tuning.habituation_per_use,
             habituation_decay_per_tick: tuning.habituation_decay_per_tick,
@@ -3667,114 +3704,6 @@ mod tests {
     #[rustfmt::skip]
     // Appending domestic tuning adds one None byte after the mood rates.
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **Portal presentation appended one final field.** This fixture's
-        // coordinate-only lot compiles no portal rows, so the last byte is the
-        // new empty-vector length. The byte immediately before it remains the
-        // empty voice list. The golden test separately checks the established
-        // prefix before asserting the complete vector.
-        //
-        // **The voice library appended one field, now the penultimate
-        // trailing `0`.** `ContentPack` gained `voice_clips`, and this
-        // fixture lists no recordings, so postcard writes an empty sequence
-        // as a single zero-length byte after the sleep tag. Every byte
-        // before it kept its offset, which is the appending rule on
-        // `ContentPack::lot` doing its job again; this vector was
-        // regenerated from the failing assertion rather than hand-edited.
-        //
-        // A pack WITH clips is deliberately not pinned here. The shipped
-        // clip lengths are read out of WAV files, so a vector carrying them
-        // would fail every time a recording was re-cut - an asset change
-        // rather than a determinism regression. `pack.rs`'s round-trip test
-        // covers the encoding of a populated list instead.
-        //
-        // **[ML-curve] appended one field before that.** `ContentPack` gained
-        // `circadian: Option<Circadian>`, and
-        // this fixture authors no rhythm, so postcard writes `None` as one
-        // byte at the very end. Every byte before it is unchanged, which
-        // is the whole point of the appending rule on `ContentPack::lot`
-        // and is what makes this vector reviewable rather than opaque.
-        //
-        // **The alpha acceptance pass appended one tuning field**,
-        // `at_work_decay_scale` - [X2] in
-        // docs/specs/2026-08-01-alpha-acceptance-findings.md. The four
-        // bytes `154, 153, 25, 63` near the end are the fixture's 0.6
-        // as a little-endian f32, sitting where `CompiledTuning` gained
-        // it; every byte before them is unchanged, which is what an
-        // append is supposed to look like. Read off the failing
-        // assertion per the standing rule.
-        //
-        // **M2f PR 1 moved it four ways, all appends.** `CompiledObject`
-        // gained a trailing `roles` list - the new 0 immediately after
-        // the fixture object's `1, 1` footprint, its empty list - and
-        // `ContentPack` gained three trailing vocabularies (roles,
-        // item_kinds, chains), the three new 0s at the very end. The
-        // object one sits mid-pack, so the lot and tuning bytes after
-        // it shifted by one; the non-empty round trips live in
-        // pack.rs's `three_objects`.
-        //
-        // **The eating action contract now exercises the presentation option
-        // on this object interaction.** After the authored label ending in
-        // `117, 112` come an empty tags list, four zero satisfaction bytes,
-        // then `1, 1, 1, 0`: Some, Eat, Object, TowardAnchor. The following
-        // `1, 1, 0` remains the 1x1 footprint and empty role list. These values
-        // were read from the failing assertion after the append-only enums
-        // gained their eating variants.
-        //
-        // **Action sockets append three empty slots in this old-world
-        // fixture.** The first `0` follows TowardAnchor and is the established
-        // eat visual's appended `socket = None`. The second follows the
-        // object's empty role list and is its empty action-socket list. The
-        // third follows the placement sprite and is its empty resolved-socket
-        // list. Every prior field retains its value and order.
-        //
-        // **Foreground sprites append two more optional presentation slots.**
-        // This fixture declares neither, so the object and placement each add
-        // one `0` immediately after their action-socket list.
-        //
-        // **Moved three times at M2e PR 3, all appends.** `Tuning`
-        // gained a trailing `day_ticks` - the lone `19` near the end -
-        // and `ContentPack` a trailing `careers` list, one more
-        // empty-vec 0 at the very end (this fixture holds no careers;
-        // the round trip that exercises non-empty ones lives in
-        // pack.rs). `CompiledLot` also gained a trailing `front_door`
-        // option: the extra 0 immediately after the placement's sprite
-        // `2`, this fixture's None. That one sits mid-pack because the
-        // lot block does, so the tuning bytes after it shifted by one;
-        // everything before it kept its offset, which is what the
-        // append discipline buys.
-        //
-        // **Selling appended one tuning field ([SL-pay]).** The four bytes
-        // `0, 0, 208, 62` after the `29` are the fixture's `resale_fraction`,
-        // 0.40625 in little-endian binary32, read from the failing golden
-        // assertion: the only insertion, at the end of the `Tuning` record.
-        //
-        // **Local idle wandering appended one tuning field.** The lone
-        // `29` after `asleep_decay_scale`'s four bytes is the fixture's
-        // `wander_radius_tiles`. It is at the end of the `Tuning` record,
-        // immediately before the following empty personality list. Every
-        // established tuning byte is unchanged. This byte was read from the
-        // failing golden assertion after reviewing that exact one-byte
-        // insertion; `pack.rs` separately proves it is the final tuning slot.
-        //
-        // **Regenerated wholesale at M2e PR 2**: `ContentPack` gained a
-        // trailing `traits` list (empty in this fixture), and
-        // `CompiledHouseholdMember` a trailing trait-index list; this
-        // fixture has no household, so the whole movement is one byte
-        // of empty-vec length at the tail. The PR 1 annotations (tags
-        // after the label, the tuning trio) and the object-block
-        // annotations in the doc comment above remain valid;
-        // predecessors are one `git log -p` away.
-        //
-        // **Object sound metadata appends one presentation byte.** The zero
-        // after the eating visual's socket `None` is this fixture's absent
-        // `sound_action`. The following `1, 1` remains the object's 1x1
-        // footprint. The value came from the failing golden assertion after
-        // reviewing that single insertion.
-        //
-        // **Buy mode appends one object byte.** The zero immediately before
-        // `1, 5, 3, 2` is the fixture object's absent `price`, the last slot
-        // of its record after `base_facing`. Read from the failing golden
-        // assertion after reviewing that one-byte insertion.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
@@ -3791,8 +3720,11 @@ mod tests {
         224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160, 65,
         0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160, 65,
         0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76, 61,
-        0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
+        0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 128, 63,
+        10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112, 137, 48,
+        205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64, 63, 50,
+        0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3922,6 +3854,22 @@ mod tests {
     /// what lets every other test in this module ignore decay entirely.
     fn full_tuning() -> TuningFile {
         TuningFile {
+            choice_comfort_temperature: 1.0,
+            choice_exploration: 0.005,
+            choice_comfort_exploration: 0.20,
+            leisure_appeal: 0.12,
+            survival_risk_penalty: 5.0,
+            choice_probability_floor: 0.000000001,
+            wander_pause_variance: 0.4,
+            self_preservation_curve: [
+                (0, 0.02),
+                (5, 0.10),
+                (30, 0.75),
+                (50, 1.0),
+                (70, 1.4),
+                (100, 2.0),
+            ],
+
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -4187,13 +4135,19 @@ mod tests {
 
     #[test]
     fn compiles_object_sound_actions_and_rejects_unknown_vocabulary() {
-        let mut shower = snack();
-        shower.sound_action = Some("shower_water".to_string());
-        let pack = compile_objects(full_needs(), one_object(shower)).expect("valid sound action");
-        assert_eq!(
-            pack.objects[0].interactions[0].sound_action,
-            Some(CompiledSoundAction::ShowerWater)
-        );
+        for (name, discriminant) in [("shower_water", 0), ("stove_cooking", 1), ("sink_water", 2)] {
+            let mut interaction = snack();
+            interaction.sound_action = Some(name.to_string());
+            let pack =
+                compile_objects(full_needs(), one_object(interaction)).expect("valid sound action");
+            let sound = pack.objects[0].interactions[0]
+                .sound_action
+                .expect("authored sound");
+            assert_eq!(postcard::to_allocvec(&sound).unwrap(), vec![discriminant]);
+            let bytes = postcard::to_allocvec(&pack).unwrap();
+            let restored: ContentPack = postcard::from_bytes(&bytes).unwrap();
+            assert_eq!(restored, pack);
+        }
 
         let mut unknown = snack();
         unknown.sound_action = Some("bathroom_noise".to_string());
@@ -4208,7 +4162,7 @@ mod tests {
         );
         assert!(error
             .to_string()
-            .contains("the current vocabulary is shower_water, stove_cooking"));
+            .contains("the current vocabulary is shower_water, stove_cooking, sink_water"));
     }
 
     /// The accepting half of the sprite rule: a name that IS in the atlas
@@ -5504,25 +5458,15 @@ mod tests {
         );
     }
 
-    /// A queue cap of zero is not "no queueing"; `drain_commands` refuses
-    /// any intent that would take the queue past this, so at zero every
-    /// `UseObject` command is refused and directing a sim never succeeds.
-    /// The shell now reports that capacity rejection, but the game would
-    /// still run while every object order failed, which is the shape [D9]
-    /// exists to convert into a build failure rather than a puzzled hour.
-    ///
-    /// One is asserted legal on the other side of the boundary, so the
-    /// rule cannot be "at least 2" and pass this test.
+    /// Both unlimited and finite queue configurations compile.
     #[test]
-    fn rejects_zero_max_queued_intents() {
-        assert_eq!(
-            compile_tuned(tuning_where(|t| t.max_queued_intents = 0)).unwrap_err(),
-            ContentError::ZeroQueuedIntents
-        );
-
-        let pack = compile_tuned(tuning_where(|t| t.max_queued_intents = 1))
-            .expect("a single queued intent is legal, if an impatient sim it is not");
-        assert_eq!(pack.tuning.max_queued_intents, 1);
+    fn zero_max_queued_intents_means_unlimited() {
+        let unlimited = compile_tuned(tuning_where(|t| t.max_queued_intents = 0))
+            .expect("zero permits an unlimited player queue");
+        assert_eq!(unlimited.tuning.max_queued_intents, 0);
+        let finite = compile_tuned(tuning_where(|t| t.max_queued_intents = 1))
+            .expect("positive finite caps remain legal");
+        assert_eq!(finite.tuning.max_queued_intents, 1);
     }
 
     /// The staging queue's cap, which bounds a different failure from
@@ -5809,6 +5753,27 @@ mod tests {
     /// guard at all. Asserting `NonFiniteValue` specifically is what
     /// pins the finiteness check running FIRST.
     #[test]
+    fn autonomy_denominators_and_positive_exploration_are_validated() {
+        let setters: &[fn(&mut TuningFile)] = &[
+            |t| t.mood_critical_need_level = 0.0,
+            |t| t.mood_low_need_level = t.mood_needs_met_level,
+            |t| t.choice_comfort_temperature = f32::NAN,
+            |t| t.choice_exploration = 0.0,
+            |t| t.choice_comfort_exploration = 1.0,
+            |t| t.choice_probability_floor = 0.0,
+            |t| t.leisure_appeal = -1.0,
+            |t| t.survival_risk_penalty = f32::INFINITY,
+            |t| t.wander_pause_variance = 1.0,
+            |t| t.self_preservation_curve[1].1 = 0.0,
+            |t| t.self_preservation_curve[5].0 = 99,
+        ];
+        for set in setters {
+            assert!(compile_tuned(tuning_where(set)).is_err());
+        }
+        assert!(compile_tuned(full_tuning()).is_ok());
+    }
+
+    #[test]
     fn rejects_a_non_finite_tuning_value() {
         type Setter = fn(&mut TuningFile, f32);
         const KNOBS: [(&str, Setter); 5] = [
@@ -5866,10 +5831,6 @@ mod tests {
             (
                 tuning_where(|t| t.idle_threshold = 0.5),
                 "tuning.toml has idle_threshold 0.5 above action_threshold 0.25; a sim would wander off while something is worth doing",
-            ),
-            (
-                tuning_where(|t| t.max_queued_intents = 0),
-                "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1",
             ),
             (
                 tuning_where(|t| t.max_queued_commands = 0),
@@ -10610,13 +10571,18 @@ mod tests {
 
     #[test]
     fn compiles_chain_step_sound_actions_and_rejects_unknown_vocabulary() {
-        let mut chain = a_chain("cook_dinner");
-        chain.step[0].sound_action = Some("stove_cooking".to_string());
-        let pack = compile_chain_world(vec![chain]).expect("valid sound action");
-        assert_eq!(
-            pack.chains[0].steps[0].sound_action,
-            Some(CompiledSoundAction::StoveCooking)
-        );
+        for (name, discriminant) in [("shower_water", 0), ("stove_cooking", 1), ("sink_water", 2)] {
+            let mut chain = a_chain("cook_dinner");
+            chain.step[0].sound_action = Some(name.to_string());
+            let pack = compile_chain_world(vec![chain]).expect("valid sound action");
+            let sound = pack.chains[0].steps[0]
+                .sound_action
+                .expect("authored sound");
+            assert_eq!(postcard::to_allocvec(&sound).unwrap(), vec![discriminant]);
+            let bytes = postcard::to_allocvec(&pack).unwrap();
+            let restored: ContentPack = postcard::from_bytes(&bytes).unwrap();
+            assert_eq!(restored, pack);
+        }
 
         let mut unknown = a_chain("cook_dinner");
         unknown.step[0].sound_action = Some("kitchen_noise".to_string());
@@ -10631,7 +10597,7 @@ mod tests {
         );
         assert!(error
             .to_string()
-            .contains("the current vocabulary is shower_water, stove_cooking"));
+            .contains("the current vocabulary is shower_water, stove_cooking, sink_water"));
     }
 
     /// Chain-step diagnostics name the chain and zero-based step rather than

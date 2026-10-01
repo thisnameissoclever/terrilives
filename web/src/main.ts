@@ -1,3 +1,4 @@
+import { newGameSeed } from './new-game-seed.js';
 import { DeathControls } from './ui/death-controls.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
 // crosses into JavaScript through the zero-copy bridge, and the renderer
@@ -36,6 +37,7 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { householdMembers } from './ui/household-roster.js';
+import { WallFade } from './render/wall-fade.js';
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
@@ -48,6 +50,7 @@ import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
+import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
@@ -59,6 +62,8 @@ import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { PlacementActions, createPlacementActionsSurface, type KeepOut } from './ui/placement-actions.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
+import { ActionQueue } from './ui/action-queue.js';
+import { observeHudScrollbar } from './ui/hud-scrollbar.js';
 import { GameHud } from './ui/game-hud.js';
 import { OptionsMenu, attachOptionsMenu, type OptionsDocument } from './ui/options-menu.js';
 import { HelpPanel } from './ui/help-panel.js';
@@ -88,13 +93,14 @@ import {
 import { OverlayPauseController } from './ui/overlay-pause.js';
 import {
   COMPACT_HUD_MEDIA_QUERY,
-  MobileHud,
-} from './ui/mobile-hud.js';
+  createCompactHud,
+  householdWarningText,
+} from './ui/compact-hud.js';
 import {
   AudioController,
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
-import { sampleSimAudioAfterTick } from './audio/frame-audio.js';
+import { sampleSimAudioAfterTick, samplePortalAudioAfterTick, withObjectSoundPause } from './audio/frame-audio.js';
 import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
@@ -148,6 +154,11 @@ export interface StressHandle {
     readonly conversationVoices: number;
     /** Conversations still holding audio nodes, sounding or fading out. */
     readonly retainedConversationVoices: number;
+    readonly objectLoopVoices: number;
+    readonly doorVoices: number;
+    readonly doorTracks: number;
+    readonly doorCapacity: number;
+    readonly retainedObjectLoopVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -281,7 +292,8 @@ async function main(): Promise<void> {
   // `handle` is kept alongside the bridge because the lot's dimensions
   // are simulation state rather than a memory view, and the bridge's job
   // is the zero-copy views.
-  const handle = SimHandle.from_lot();
+  const [seedLow, seedHigh] = newGameSeed();
+  const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
   // The names of the conversation recordings come from the compiled content
   // pack, so this is the first moment they exist. The controller decides WHEN
@@ -398,9 +410,11 @@ async function main(): Promise<void> {
       if (footstepSampling) {
         if (footstepSamplerTimer === null) {
           sampleSimAudioAfterTick(sim, audio);
+          samplePortalAudioAfterTick(sim, audio);
         } else {
           const sampleStartedMs = performance.now();
           sampleSimAudioAfterTick(sim, audio);
+          samplePortalAudioAfterTick(sim, audio);
           footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
         }
       }
@@ -410,7 +424,7 @@ async function main(): Promise<void> {
     },
   };
   const overlayPause = new OverlayPauseController(
-    driver,
+    withObjectSoundPause(driver, audio),
     (ticksPerFrame) => sim.setSpeed(ticksPerFrame),
     START_SPEED,
   );
@@ -436,7 +450,7 @@ async function main(): Promise<void> {
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
   const menuRoot = document.querySelector<HTMLElement>('#object-menu');
   if (
-    !(needsRoot instanceof HTMLDetailsElement) ||
+    !needsRoot ||
     !needsEmpty ||
     !needsContent ||
     !moodEmpty ||
@@ -499,6 +513,20 @@ async function main(): Promise<void> {
     sim.needBarRefreshMs(),
   );
   const peopleRoot = document.querySelector('#people-panel');
+  const personalDetails = document.querySelector<HTMLDetailsElement>('#personal-details');
+  const personalDetailsEmpty = document.querySelector<HTMLElement>('#personal-details-empty');
+  const personalDetailsContent = document.querySelector<HTMLElement>('#personal-details-content');
+  const simOverview = document.querySelector<HTMLElement>('#sim-overview');
+  const simSheet = document.querySelector<HTMLElement>('#sim-sheet');
+  if (!personalDetails || !personalDetailsEmpty || !personalDetailsContent || !simOverview || !simSheet) {
+    throw new Error('missing personal details markup');
+  }
+  const personalDetailsPanel = new PersonalDetailsPanel(sim, sim.needNames(),
+    createPersonalDetailsSurface(document, personalDetailsEmpty, personalDetailsContent), sim.needBarRefreshMs(),
+    () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
+  personalDetails.addEventListener('toggle', () => {
+    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);
+  });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
   const peopleList = document.querySelector<HTMLElement>('#people-list');
@@ -527,9 +555,7 @@ async function main(): Promise<void> {
     '#household-roster-members',
   );
   const hudRoot = document.querySelector<HTMLElement>('#hud');
-  const mobileHudButton = document.querySelector<HTMLButtonElement>(
-    '#mobile-hud-toggle',
-  );
+  const actionQueueRoot = document.querySelector<HTMLElement>('#action-queue');
   if (
     !clockValue ||
     !fundsValue ||
@@ -541,18 +567,34 @@ async function main(): Promise<void> {
     !ordersValue ||
     !householdRosterRoot ||
     !hudRoot ||
-    !mobileHudButton
+    !actionQueueRoot
   ) {
     throw new Error('missing player status markup');
   }
   const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
-  const mobileHud = new MobileHud(hudRoot, mobileHudButton, [
-    needsRoot,
-    peopleRoot,
-    traitsBlock,
-  ]);
-  mobileHud.setCompact(compactHudQuery.matches);
-  mobileHudButton.addEventListener('click', () => mobileHud.toggle());
+  const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
+  const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close());
+  compactHud.setCompact(compactHudQuery.matches);
+  const dockActivity = document.getElementById('dock-activity');
+  const dockTraitsEmpty = document.getElementById('dock-traits-empty');
+  const queueEmpty = document.getElementById('queue-empty');
+  const dockAlert = document.getElementById('dock-alert');
+  if (!dockActivity || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
+  const needMeters = Array.from(needsContent.querySelectorAll<HTMLElement>('[role="meter"]'));
+  const syncDockSummary = () => {
+    const critical = needsContent.hidden ? [] : needMeters
+      .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
+      .map(meter => meter.getAttribute('aria-label'));
+    const activity = critical.length ? `Critical: ${critical.join(', ')}`
+      : [activityValue.textContent, moodContent.hidden ? '' : moodLabel.textContent].filter(Boolean).join(' / ');
+    dockActivity.dataset.urgent = String(critical.length > 0);
+    if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
+    dockTraitsEmpty.hidden = !traitsBlock.hidden;
+    queueEmpty.hidden = !actionQueueRoot.hidden;
+    const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
+    if (dockAlert.textContent !== warning) dockAlert.textContent = warning;
+    if (needsCaption.title !== needsCaption.textContent) needsCaption.title = needsCaption.textContent ?? '';
+  };
   // [OF2] in docs/specs/2026-09-22-options-flyout.md. Its Escape is caught
   // in the capture phase, so an open panel takes it before the game view
   // and Build do.
@@ -561,6 +603,10 @@ async function main(): Promise<void> {
   const optionsPanel = document.querySelector<HTMLElement>('#options-panel');
   if (!optionsRoot || !optionsToggle || !optionsPanel) throw new Error('missing the Options flyout');
   const optionsMenu = new OptionsMenu(optionsToggle, optionsPanel);
+  optionsToggle.addEventListener('click', () => compactHud.close());
+  const optionsClose = document.getElementById('options-close');
+  if (!optionsClose) throw new Error('missing Options close button');
+  optionsClose.addEventListener('click', () => { optionsMenu.close(); optionsToggle.focus(); });
   const deathInput = document.querySelector<HTMLInputElement>('#death-enabled');
   if (!deathInput) throw new Error('missing death setting');
   const deathControls = new DeathControls(sim, deathInput);
@@ -577,12 +623,13 @@ async function main(): Promise<void> {
       || (target instanceof Element && target.closest('dialog') !== null),
   );
   compactHudQuery.addEventListener('change', (event) => {
-    mobileHud.setCompact(event.matches);
+    compactHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
   });
+  observeHudScrollbar(hudRoot);
   const gameHud = new GameHud(
     {
       clock: clockValue,
@@ -615,6 +662,7 @@ async function main(): Promise<void> {
   peoplePanel.update(initialHudMs, true);
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
+  personalDetailsPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -696,6 +744,10 @@ async function main(): Promise<void> {
   const effectsVolumeValue = document.querySelector<HTMLOutputElement>(
     '#effects-volume-value',
   );
+  const voicesVolume = document.querySelector<HTMLInputElement>('#voices-volume');
+  const voicesVolumeValue = document.querySelector<HTMLOutputElement>(
+    '#voices-volume-value',
+  );
   if (
     !saveButton ||
     !loadButton ||
@@ -714,7 +766,9 @@ async function main(): Promise<void> {
     !confirmLoadGame ||
     !audioMuteButton ||
     !effectsVolume ||
-    !effectsVolumeValue
+    !effectsVolumeValue ||
+    !voicesVolume ||
+    !voicesVolumeValue
   ) {
     throw new Error('missing game action markup');
   }
@@ -725,6 +779,8 @@ async function main(): Promise<void> {
     audioMuteButton,
     effectsVolume,
     effectsVolumeValue,
+    voicesVolume,
+    voicesVolumeValue,
   );
   // Every other fallback may sit in the closed Options panel ([OF2]).
   const persistenceFocusFallbacks = [
@@ -766,6 +822,12 @@ async function main(): Promise<void> {
     audioControls.setEffectsPercent(effectsVolume.value);
     audio.emit({ type: 'ui.confirmed' });
   });
+  voicesVolume.addEventListener('input', () => {
+    audioControls.previewVoicesPercent(voicesVolume.value);
+  });
+  voicesVolume.addEventListener('change', () => {
+    audioControls.setVoicesPercent(voicesVolume.value);
+  });
   saveButton.addEventListener('click', () => {
     const saving = persistence.save();
     syncPersistenceButtons();
@@ -778,7 +840,9 @@ async function main(): Promise<void> {
     loadGameDialog.showModal();
   });
   loadGameDialog.addEventListener('close', () => {
-    if (!loadingGame) overlayPause.resume('load-game');
+    if (loadingGame) return;
+    restorePersistenceFocus(document, loadGameDialog, optionsToggle, persistenceFocusFallbacks);
+    overlayPause.resume('load-game');
   });
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
@@ -793,6 +857,7 @@ async function main(): Promise<void> {
     void loading
       .then((loaded) => {
         if (loaded) {
+          wallFade.reset();
           lotWidth = handle.lot_width();
           lotHeight = handle.lot_height();
           depthScale = Math.max(lotWidth, lotHeight);
@@ -829,6 +894,7 @@ async function main(): Promise<void> {
           peoplePanel.update(nowMs, true);
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
+          personalDetailsPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -882,7 +948,9 @@ async function main(): Promise<void> {
     newGameDialog.showModal();
   });
   newGameDialog.addEventListener('close', () => {
-    if (!clearingForNewGame) overlayPause.resume('new-game');
+    if (clearingForNewGame) return;
+    restorePersistenceFocus(document, newGameDialog, optionsToggle, persistenceFocusFallbacks);
+    overlayPause.resume('new-game');
   });
   confirmNewGame.addEventListener('click', (event) => {
     // Same ordering rule as Load: close first, then acquire and publish the
@@ -1064,6 +1132,7 @@ async function main(): Promise<void> {
    * centre steady across a buffer resize by shifting half the delta.
    */
   let cameraInitialised = false;
+  const wallFade = new WallFade();
   function applyCamera(): void {
     if (lightingDirty) {
       lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges, lot.windows);
@@ -1107,7 +1176,8 @@ async function main(): Promise<void> {
       lightingMode.isFlat() ? null : lighting,
       sky,
     );
-    renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
+    wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
+    renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
     cameraDirty = false;
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
@@ -1198,17 +1268,15 @@ async function main(): Promise<void> {
   if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
     throw new Error('missing the placement buttons');
   }
-  const optionsGear = document.querySelector<HTMLElement>('#options-toggle');
-  if (!optionsGear) throw new Error('missing the Options gear');
   // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
-  // and of the gear. On a phone the sidebar folds to its strip and the dock
-  // bounds the bottom instead.
+  // and of the compact world controls. The Build dock bounds the bottom.
   const placementKeepOut = (): KeepOut => {
-    const gear = optionsGear.getBoundingClientRect();
+    const gear = hudRoot.getBoundingClientRect();
     return {
       left: compactHudQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
       gearLeft: gear.left,
       gearBottom: gear.bottom,
+      gearRight: gear.right,
     };
   };
   const dockTop = (): number => {
@@ -1227,18 +1295,16 @@ async function main(): Promise<void> {
       canvas.focus();
       menu.close();
       keyboardTargets.clear();
-      mobileHud.beginEditing();
+      compactHud.beginEditing();
       cameraDirty = true;
     },
     exit() {
       wallTool.exit();
       roomTool.exit();
       buyTool.exit();
-      mobileHud.endEditing();
-      // Exit build is pressed inside the Options panel; closing it returns
-      // focus to the gear, the one control always in view ([OF2]).
+      compactHud.endEditing();
       optionsMenu.close();
-      optionsToggle.focus();
+      document.querySelector<HTMLButtonElement>('#build-toggle')?.focus();
       cameraDirty = true;
     },
   });
@@ -1521,6 +1587,7 @@ async function main(): Promise<void> {
     const ambient = lightingMode.isFlat()
       ? AMBIENT_NEUTRAL
       : ambientFor(sim.clockTick(), sim.dayTicks());
+    wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
     renderer.draw(
       instances,
       instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
@@ -1535,14 +1602,17 @@ async function main(): Promise<void> {
     // panel is work the frame does, and a periodic cost measured outside
     // the budget is a budget that does not describe the frame ([L19]).
     // On five frames in six this is two comparisons and a return.
-    needsPanel.update(nowMs, sim);
+    const needsUpdated = needsPanel.update(nowMs, sim);
     gameHud.update(nowMs, sim);
+    actionQueue.update(nowMs, sim);
     householdRoster.update(nowMs);
     deathControls.update();
     syncNewHousemateButton();
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
+    personalDetailsPanel.update(nowMs);
+    if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
 
@@ -1578,6 +1648,15 @@ async function main(): Promise<void> {
         },
         get retainedConversationVoices() {
           return audio.retainedConversationVoiceCount();
+        },
+        get objectLoopVoices() {
+          return audio.activeObjectLoopCount();
+        },
+        get doorVoices() { return audio.activeDoorVoiceCount(); },
+        get doorTracks() { return audio.doorTrackCount(); },
+        get doorCapacity() { return audio.doorTrackCapacity(); },
+        get retainedObjectLoopVoices() {
+          return audio.retainedObjectLoopCount();
         },
         get footstepTracks() {
           return audio.activeFootstepTrackCount();

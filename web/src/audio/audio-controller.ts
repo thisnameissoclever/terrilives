@@ -6,6 +6,7 @@ import {
 } from './procedural-cues.js';
 import {
   ActivityCueScheduler,
+  conversationVoiceKey,
   type ActivityCueEvent,
   type ConversationVoicePair,
   type SimActivityAudioState,
@@ -19,16 +20,36 @@ import {
 import { FootstepScheduler } from './footsteps.js';
 import {
   ObjectSoundCueScheduler,
+  type ObjectSoundAction,
   type ObjectSoundCueEvent,
 } from './object-cues.js';
+import { ObjectLoopPlayer, prepareObjectLoopClips, type ObjectLoopClips } from './object-loops.js';
+import {
+  loadObjectRecordings,
+  objectRecordingFamily,
+  OBJECT_RECORDING_FAMILIES,
+  type ObjectRecordingFamily,
+} from './object-recordings.js';
+import { PortalAudioScheduler } from './portal-audio.js';
+import { RecordedDoorPlayer } from './recorded-doors.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
 export const DEFAULT_EFFECTS_LEVEL = 0.7;
+export const DEFAULT_VOICES_LEVEL = 1;
+const VOICE_RETRY_COOLDOWN_MS = 5000;
+const OBJECT_RECORDING_RETRY_COOLDOWN_MS = 5000;
+
+interface ObjectRecordingState {
+  fetching: Promise<void> | null;
+  retryAt: number;
+  clips?: ObjectLoopClips;
+}
 
 export interface AudioPreferences {
   readonly muted: boolean;
   readonly effectsLevel: number;
+  readonly voicesLevel: number;
 }
 
 interface StoredAudioPreferences extends AudioPreferences {
@@ -45,6 +66,8 @@ export interface BrowserAudioContext
     VoiceAudioContext {
   readonly destination: unknown;
   readonly state: AudioContextState;
+  /** Exclusively owned by the controller for the context it creates. */
+  onstatechange: ((event: Event) => void) | null;
   close(): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
@@ -105,27 +128,41 @@ export function browserAudioPreferenceStore(): AudioPreferenceStore | undefined 
 export class AudioController implements GameAudioEventSink {
   private mutedPreference: boolean;
   private effectsLevelPreference: number;
+  private voicesLevelPreference: number;
   private context: BrowserAudioContext | null = null;
   private masterGain: GainNodePort | null = null;
   private effectsGain: GainNodePort | null = null;
+  private voicesGain: GainNodePort | null = null;
   private player: ProceduralCuePlayer | null = null;
   private voices: VoiceClipPlayer | null = null;
-  /** Decoded once and reinstalled on every context rebuild. */
+  private objectLoops: ObjectLoopPlayer | null = null;
+  private objectLoopClips: ObjectLoopClips = new Map();
+  private readonly objectRecordings = new Map<ObjectRecordingFamily, ObjectRecordingState>();
+  private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
+  private objectSoundsPaused = false;
+  private doors: RecordedDoorPlayer | null = null;
+  private readonly doorClips: Partial<Record<'opened' | 'closed', AudioBufferPort>> = {};
+  private doorFetch: Promise<void> | null = null;
+  private nextDoorRetryAt = 0;
+  private doorDemandObserved = false;
+  private readonly portals: PortalAudioScheduler;
+  /** Successful decodes survive retries and context rebuilds. */
   private voiceClips: readonly (AudioBufferPort | undefined)[] = [];
   private voiceClipIds: readonly string[] = [];
   /** The player's chosen speed, so conversations can follow it. */
   private gameSpeed = 1;
   /**
-   * A conversation that asked to be played before it could be.
+   * Conversations waiting for their recordings to decode.
    *
    * The recordings are fetched after a gesture and decoded asynchronously,
    * so the first conversation of a session can easily begin while the
    * library is still arriving. Without this it would be recorded as playing,
    * never retried, and stay silent for its whole length.
    */
-  private pendingVoice: ConversationVoicePair | null = null;
+  private readonly pendingVoices = new Map<string, ConversationVoicePair>();
   /** The in-flight library fetch, so two callers cannot both download it. */
   private voiceFetch: Promise<(AudioBufferPort | undefined)[]> | null = null;
+  private nextVoiceRetryAt = 0;
   private hasUnlocked = false;
   private backgrounded = false;
   private contextStateRevision = 0;
@@ -142,15 +179,18 @@ export class AudioController implements GameAudioEventSink {
     const preferences = readPreferences(store);
     this.mutedPreference = preferences.muted;
     this.effectsLevelPreference = preferences.effectsLevel;
+    this.voicesLevelPreference = preferences.voicesLevel;
     this.footsteps = new FootstepScheduler(this);
     this.activities = new ActivityCueScheduler(this);
     this.objectSounds = new ObjectSoundCueScheduler(this);
+    this.portals = new PortalAudioScheduler(this);
   }
 
   preferences(): AudioPreferences {
     return {
       muted: this.mutedPreference,
       effectsLevel: this.effectsLevelPreference,
+      voicesLevel: this.voicesLevelPreference,
     };
   }
 
@@ -178,9 +218,9 @@ export class AudioController implements GameAudioEventSink {
     const changed = this.mutedPreference !== muted;
     this.mutedPreference = muted;
     if (changed) this.resetSchedulers();
+    if (muted) this.stopEveryPlayer();
     this.applyMasterGain();
     this.persist();
-    if (muted) this.stopEveryPlayer();
   }
 
   isMuted(): boolean {
@@ -199,15 +239,47 @@ export class AudioController implements GameAudioEventSink {
     if (wasSilent !== (this.effectsLevelPreference === 0)) {
       this.resetSchedulers();
     }
-    this.applyEffectsGain();
     if (this.effectsLevelPreference === 0) this.stopEveryPlayer();
+    this.applyEffectsGain();
   }
 
   effectsLevel(): number {
     return this.effectsLevelPreference;
   }
 
+  setVoicesLevel(level: number): void {
+    this.previewVoicesLevel(level);
+    this.persist();
+  }
+
+  /** Changes the mix without restarting conversation or movement state. */
+  previewVoicesLevel(level: number): void {
+    this.voicesLevelPreference = Number.isFinite(level)
+      ? Math.min(1, Math.max(0, level)) : DEFAULT_VOICES_LEVEL;
+    this.applyVoicesGain();
+  }
+
+  voicesLevel(): number {
+    return this.voicesLevelPreference;
+  }
+
   emit(event: GameAudioEvent): void {
+    // Ownership ends even when hardware cannot play. A stopped audio clock
+    // cannot render a release fade, so release only this owner's nodes now.
+    if (event.type === 'object.sound-stopped') {
+      if (this.desiredObjectLoops.get(event.sourceId) === event.action) {
+        this.desiredObjectLoops.delete(event.sourceId);
+      }
+      this.objectLoops?.stop(event.sourceId, event.action, this.context?.state !== 'running');
+      return;
+    }
+    if (event.type === 'sim.conversation-ended') {
+      const key = conversationVoiceKey(event.voice);
+      this.pendingVoices.delete(key);
+      this.voices?.stopConversation(key, this.context?.state !== 'running');
+      return;
+    }
+
     if (
       !this.isUnlocked() ||
       this.mutedPreference ||
@@ -217,18 +289,38 @@ export class AudioController implements GameAudioEventSink {
     }
 
     if (event.type === 'sim.conversation-started') {
+      const alreadyPending = this.pendingVoices.has(conversationVoiceKey(event.voice));
       this.startConversationVoice(event.voice);
-      return;
-    }
-    if (event.type === 'sim.conversation-ended') {
-      this.pendingVoice = null;
-      // Only reached when the world outran its own audio, which is what
-      // fast-forward makes routine. At normal speed the recordings finish on
-      // the tick the talking does and have already torn themselves down.
-      this.voices?.stopAll();
+      const missingClip = [event.voice.first, event.voice.second].some(
+        (index) => this.voiceClipIds[index] !== undefined && this.voiceClips[index] === undefined,
+      );
+      if (!alreadyPending && missingClip && performance.now() >= this.nextVoiceRetryAt) {
+        void this.fetchVoiceLibrary();
+      }
       return;
     }
 
+    if (event.type === 'door.opened' || event.type === 'door.closed') {
+      if (this.objectSoundsPaused) return;
+      this.doorDemandObserved = true;
+      const opened = event.type === 'door.opened';
+      const clip = this.doorClips[opened ? 'opened' : 'closed'];
+      if (clip !== undefined && this.doors?.play(clip)) this.playedCueCounts[opened ? 6 : 7]++;
+      void this.loadDoorRecordings();
+      return;
+    }
+
+    if (event.type === 'object.sound-started') {
+      if (this.objectSoundsPaused) return;
+      const alreadyDesired = this.desiredObjectLoops.get(event.sourceId) === event.action;
+      this.desiredObjectLoops.set(event.sourceId, event.action);
+      this.objectLoops?.play(event.sourceId, event.action);
+      const family = objectRecordingFamily(event.action);
+      if (!alreadyDesired && family !== undefined) {
+        void this.loadObjectRecordingFamily(family);
+      }
+      return;
+    }
     const cue = cueForEvent(event);
     if (cue === null) return;
     const pitchScale = pitchScaleForEvent(event);
@@ -245,11 +337,75 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginFootstepFrame(): void {
+    this.prepareWorldAudioFrame();
     this.footsteps.beginFrame();
   }
 
+  beginPortalFrame(): void {
+    this.prepareWorldAudioFrame();
+    this.portals.beginFrame();
+  }
+  observePortal(x: number, y: number, farX: number, farY: number, state: number): void {
+    if (this.worldAudioAvailable()) this.portals.observe(x, y, farX, farY, state);
+  }
+  endPortalFrame(): void {
+    this.portals.endFrame();
+    if (!this.doorDemandObserved && this.portals.activeTrackCount() > 0 && this.doorsAudible()) {
+      this.doorDemandObserved = true;
+      void this.loadDoorRecordings();
+    }
+  }
+  activeDoorVoiceCount(): number { return this.doors?.activeVoiceCount() ?? 0; }
+  doorTrackCount(): number { return this.portals.activeTrackCount(); }
+  doorTrackCapacity(): number { return this.portals.trackCapacity(); }
+
+  /** Demand only; a decode never replays the event that requested it. */
+  async loadDoorRecordings(): Promise<void> {
+    if (this.doorFetch !== null) { await this.doorFetch; return; }
+    const context = this.context;
+    if (context === null || !this.doorsAudible() || !this.doorDemandObserved ||
+      performance.now() < this.nextDoorRetryAt ||
+      (this.doorClips.opened !== undefined && this.doorClips.closed !== undefined)) return;
+    const fetching = this.fetchDoorClips(context);
+    this.doorFetch = fetching;
+    try { await fetching; }
+    finally { if (this.doorFetch === fetching) this.doorFetch = null; }
+  }
+
+  private async fetchDoorClips(context: BrowserAudioContext): Promise<void> {
+    await Promise.all((['opened', 'closed'] as const).map(async kind => {
+      if (this.doorClips[kind] !== undefined) return;
+      try {
+        const response = await fetch(`audio/doors/${kind === 'opened' ? 'open' : 'close'}.wav`);
+        if (!response.ok) throw new Error(`door recording: ${response.status}`);
+        const clip = await context.decodeAudioData(await response.arrayBuffer());
+        if (!Number.isFinite(clip.duration) || clip.duration < 0.024) throw new Error('invalid door recording');
+        this.doorClips[kind] = clip;
+      } catch {
+        this.nextDoorRetryAt = performance.now() + 5000;
+      }
+    }));
+  }
+
+  private doorsAudible(): boolean {
+    return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0 && !this.objectSoundsPaused;
+  }
+
+  private worldAudioAvailable(): boolean {
+    return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0;
+  }
+
+  private prepareWorldAudioFrame(): void {
+    if (this.worldAudioAvailable()) return;
+    // Discard frozen sources, including releases whose scheduler owner is already gone.
+    if ((this.player?.activeVoiceCount() ?? 0) > 0) this.player?.stopAll();
+    if ((this.doors?.activeVoiceCount() ?? 0) > 0) this.doors?.stopAll();
+    if ((this.objectLoops?.retainedLoopCount() ?? 0) > 0) this.objectLoops?.stopAll(true);
+    if ((this.voices?.retainedConversationCount() ?? 0) > 0) this.voices?.stopAll(true);
+  }
+
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void {
-    this.footsteps.observe(simId, x, y, walking);
+    if (this.worldAudioAvailable()) this.footsteps.observe(simId, x, y, walking);
   }
 
   endFootstepFrame(): void {
@@ -257,6 +413,7 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginActivityFrame(): void {
+    this.prepareWorldAudioFrame();
     this.activities.beginFrame();
   }
 
@@ -271,7 +428,7 @@ export class AudioController implements GameAudioEventSink {
     // drops every conversation's clips - which is exactly what it did until a
     // run in the browser showed two Sims talking with the pair reaching the
     // render buffer and nothing playing.
-    this.activities.observe(simId, activity, voice);
+    if (this.worldAudioAvailable()) this.activities.observe(simId, activity, voice);
   }
 
   endActivityFrame(): void {
@@ -279,16 +436,106 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginObjectSoundFrame(): void {
+    this.prepareWorldAudioFrame();
     this.objectSounds.beginFrame();
   }
 
   observeObjectSound(sourceId: number, action: number): void {
-    this.objectSounds.observe(sourceId, action);
+    if (this.worldAudioAvailable()) this.objectSounds.observe(sourceId, action);
   }
 
   endObjectSoundFrame(): void {
     this.objectSounds.endFrame();
+    this.reconcileObjectLoops();
   }
+
+  /** Installs prepared decoded recordings; this boundary never fetches assets. */
+  installObjectLoopClips(clips: ObjectLoopClips): void {
+    this.objectLoopClips = prepareObjectLoopClips(clips);
+    this.objectLoops?.setClips(this.objectLoopClips);
+    this.reconcileObjectLoops();
+  }
+
+  /** Loads missing demanded families independently. Ticks never retry failures. */
+  async loadObjectRecordings(): Promise<void> {
+    await Promise.all(OBJECT_RECORDING_FAMILIES.map(family => this.loadObjectRecordingFamily(family)));
+  }
+
+  private async loadObjectRecordingFamily(family: ObjectRecordingFamily): Promise<void> {
+    let state = this.objectRecordings.get(family);
+    if (state?.fetching) {
+      await state.fetching;
+      return;
+    }
+    const context = this.context;
+    if (context === null || !this.isUnlocked() || this.mutedPreference ||
+      this.effectsLevelPreference === 0 || this.objectSoundsPaused ||
+      ![...this.desiredObjectLoops.values()].some(action =>
+        objectRecordingFamily(action) === family && !this.objectLoopClips.has(action))) return;
+
+    if (state?.clips) {
+      this.installObjectLoopClips(new Map([...state.clips, ...this.objectLoopClips]));
+      return;
+    }
+    if (state && performance.now() < state.retryAt) return;
+    if (!state) {
+      state = { fetching: null, retryAt: 0 };
+      this.objectRecordings.set(family, state);
+    }
+
+    const fetching = this.fetchObjectRecordings(context, family, state);
+    state.fetching = fetching;
+    try { await fetching; }
+    finally {
+      if (state.fetching === fetching) state.fetching = null;
+    }
+  }
+
+  private async fetchObjectRecordings(
+    context: BrowserAudioContext,
+    family: ObjectRecordingFamily,
+    state: ObjectRecordingState,
+  ): Promise<void> {
+    try {
+      const clips = await loadObjectRecordings(async url => {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`object recording ${url}: ${response.status}`);
+        return response.arrayBuffer();
+      }, bytes => context.decodeAudioData(bytes), family);
+      if (clips.size === 0) throw new Error(`invalid ${family} recording`);
+      state.clips = clips;
+      // A manual installation during the request keeps its selected recordings.
+      this.installObjectLoopClips(new Map([...clips, ...this.objectLoopClips]));
+    } catch {
+      // Failed sound must not interrupt the game or retry on every fixed tick.
+      state.retryAt = performance.now() + OBJECT_RECORDING_RETRY_COOLDOWN_MS;
+    }
+  }
+
+  /** Effective simulation pause affects sustained objects, not existing short cues. */
+  setObjectSoundsPaused(paused: boolean): void {
+    if (this.objectSoundsPaused === paused) return;
+    this.objectSoundsPaused = paused;
+    this.portals.reset();
+    this.doorDemandObserved = false;
+    this.objectSounds.reset();
+    this.desiredObjectLoops.clear();
+    if (paused) this.objectLoops?.stopAll();
+  }
+
+  private reconcileObjectLoops(): void {
+    this.objectLoops?.sweep();
+    if (this.objectLoopClips.size === 0 || !this.isUnlocked() || this.mutedPreference || this.effectsLevelPreference === 0 || this.objectSoundsPaused) return;
+    this.desiredObjectLoops.forEach(this.startDesiredObjectLoop);
+  }
+
+  // Map.forEach avoids allocating an entry array for every source on every tick.
+  private readonly startDesiredObjectLoop = (action: ObjectSoundAction, sourceId: number): void => {
+    this.objectLoops?.play(sourceId, action);
+  };
+
+  activeObjectLoopCount(): number { return this.objectLoops?.activeLoopCount() ?? 0; }
+  retainedObjectLoopCount(): number { return this.objectLoops?.retainedLoopCount() ?? 0; }
 
   /**
    * Gates sound synchronously, then serializes hardware suspend or resume.
@@ -301,9 +548,7 @@ export class AudioController implements GameAudioEventSink {
     // Clear on both edges. Hidden fixed ticks may still sample positions after
     // the first reset; the foreground reset makes the first audible tick a new
     // anchor instead of completing a stride travelled while inaudible.
-    this.footsteps.reset();
-    this.activities.reset();
-    this.objectSounds.reset();
+    this.resetSchedulers();
     if (backgrounded) {
       this.stopEveryPlayer();
     }
@@ -346,9 +591,7 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
     this.stopEveryPlayer();
-    this.footsteps.reset();
-    this.activities.reset();
-    this.objectSounds.reset();
+    this.resetSchedulers();
   }
 
   /**
@@ -370,9 +613,12 @@ export class AudioController implements GameAudioEventSink {
     // held, and the library landing a moment later would start a conversation
     // the player has already silenced: against a muted master gain, or
     // against a suspended clock that plays it on return to the tab.
-    this.pendingVoice = null;
+    this.pendingVoices.clear();
+    this.desiredObjectLoops.clear();
+    this.doors?.stopAll();
+    this.objectLoops?.stopAll(true);
     this.player?.stopAll();
-    this.voices?.stopAll();
+    this.voices?.stopAll(true);
   }
 
   /**
@@ -427,22 +673,19 @@ export class AudioController implements GameAudioEventSink {
   private async fetchVoiceLibrary(): Promise<void> {
     const context = this.context;
     if (context === null || this.voiceClipIds.length === 0) return;
-    // One fetch at a time, defensively. The cache check below only sees a
-    // FINISHED load, so any second caller arriving mid-flight would fetch the
-    // whole library again. No current path does: the context is built once
-    // and only cleared when construction itself fails. This costs one field
-    // and removes the question.
+    // Initial load, explicit calls and conversation demand share one batch.
     if (this.voiceFetch !== null) {
       await this.voiceFetch;
       return;
     }
-    if (this.voiceClips.length === this.voiceClipIds.length) {
+    if (this.voiceClipIds.every((_, index) => this.voiceClips[index] !== undefined)) {
       // Already decoded. A rebuilt context reinstalls these buffers rather
       // than pulling them down a second time.
       this.voices?.setClips(compactClips(this.voiceClips));
       this.retryPendingVoice();
       return;
     }
+    this.nextVoiceRetryAt = performance.now() + VOICE_RETRY_COOLDOWN_MS;
     const fetching = loadVoiceClips(
       this.voiceClipIds,
       async (url) => {
@@ -451,6 +694,7 @@ export class AudioController implements GameAudioEventSink {
         return response.arrayBuffer();
       },
       (bytes) => context.decodeAudioData(bytes),
+      this.voiceClips,
     );
     this.voiceFetch = fetching;
     try {
@@ -475,9 +719,8 @@ export class AudioController implements GameAudioEventSink {
    * conversation whose audio runs a moment past it.
    */
   private retryPendingVoice(): void {
-    const voice = this.pendingVoice;
-    if (voice === null) return;
-    this.pendingVoice = null;
+    const voices = [...this.pendingVoices.values()];
+    this.pendingVoices.clear();
     // The same gate `emit` applies. Reaching the player directly from the
     // library's load would otherwise bypass every reason the game has for
     // being silent right now.
@@ -493,7 +736,7 @@ export class AudioController implements GameAudioEventSink {
     ) {
       return;
     }
-    this.startConversationVoice(voice);
+    for (const voice of voices) this.startConversationVoice(voice);
   }
 
   /** Ids the shell last handed over, so a rebuilt context can reload them. */
@@ -520,29 +763,28 @@ export class AudioController implements GameAudioEventSink {
   }
 
   private startConversationVoice(voice: ConversationVoicePair): void {
+    const key = conversationVoiceKey(voice);
     const voices = this.voices;
     if (voices === null) {
-      this.pendingVoice = voice;
+      this.pendingVoices.set(key, voice);
       return;
     }
     try {
-      // One conversation at a time from this scheduler: it tracks a single
-      // household-wide conversation, so a new pair replaces the old rather
-      // than layering on top of it.
-      voices.stopAll();
       const played = voices.play(
         voice.first,
         voice.second,
         voiceRateForSpeed(this.gameSpeed),
+        key,
       );
       // Held rather than dropped. The usual reason a play fails is that the
       // library has not finished decoding, and that resolves on its own
       // moments later while this conversation is still going.
-      this.pendingVoice = played ? null : voice;
+      if (played) this.pendingVoices.delete(key);
+      else this.pendingVoices.set(key, voice);
     } catch {
       // Sound is presentation. A node failure may drop one conversation but
       // may never terminate the simulation frame that observed it.
-      this.pendingVoice = voice;
+      this.pendingVoices.set(key, voice);
     }
   }
 
@@ -574,7 +816,7 @@ export class AudioController implements GameAudioEventSink {
     return this.objectSounds.trackCapacity();
   }
 
-  /** Successful procedural cue starts, exposed through `?stress=N` only. */
+  /** Successful cue starts, exposed through `?stress=N` only. */
   cuePlayCounts(): AudioCuePlayCounts {
     return {
       rejected: this.playedCueCounts[0] ?? 0,
@@ -592,6 +834,8 @@ export class AudioController implements GameAudioEventSink {
     this.footsteps.reset();
     this.activities.reset();
     this.objectSounds.reset();
+    this.portals.reset();
+    this.doorDemandObserved = false;
   }
 
   private async resumeFromGesture(): Promise<boolean> {
@@ -599,36 +843,53 @@ export class AudioController implements GameAudioEventSink {
       let context: BrowserAudioContext | null = null;
       let masterGain: GainNodePort | null = null;
       let effectsGain: GainNodePort | null = null;
+      let voicesGain: GainNodePort | null = null;
       try {
         context = this.createContext();
         masterGain = context.createGain();
         effectsGain = context.createGain();
+        voicesGain = context.createGain();
+        voicesGain.connect(effectsGain);
         effectsGain.connect(masterGain);
         masterGain.connect(context.destination);
         this.context = context;
         this.masterGain = masterGain;
         this.effectsGain = effectsGain;
+        this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
-        // Same bus as the cues: `Effects` governs both, and `Sound`
-        // governs the master gain above it. Voices must never hang off
-        // the master directly, or muting effects would leave Sims
-        // talking over silence.
-        const voices = new VoiceClipPlayer(context, effectsGain);
+        this.doors = new RecordedDoorPlayer(context, effectsGain);
+        this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
+        this.objectLoops.setClips(this.objectLoopClips);
+        // Voices adjusts recordings only; Effects and Sound still govern all audio.
+        const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
+        const ownedContext = context;
+        ownedContext.onstatechange = () => {
+          if (this.context !== ownedContext || ownedContext.state === 'running') return;
+          // A paused world has no tick to observe a frozen source or release.
+          this.stopEveryPlayer();
+          this.resetSchedulers();
+        };
         // The ids usually arrived before any gesture could create this
         // context, so this is the first moment the bytes can be decoded.
         void this.fetchVoiceLibrary();
         this.applyMasterGain();
         this.applyEffectsGain();
+        this.applyVoicesGain();
       } catch {
+        if (context !== null) context.onstatechange = null;
+        safelyDisconnect(voicesGain);
         safelyDisconnect(effectsGain);
         safelyDisconnect(masterGain);
         this.context = null;
         this.masterGain = null;
         this.effectsGain = null;
+        this.voicesGain = null;
         this.player = null;
         this.voices = null;
+        this.objectLoops = null;
+        this.doors = null;
         if (context !== null) {
           try {
             await context.close();
@@ -664,6 +925,7 @@ export class AudioController implements GameAudioEventSink {
       this.hasUnlocked = true;
       this.resetSchedulers();
     } else if (running && resumedContext) {
+      this.stopEveryPlayer();
       this.resetSchedulers();
     }
     return running;
@@ -685,11 +947,21 @@ export class AudioController implements GameAudioEventSink {
     );
   }
 
+  private applyVoicesGain(): void {
+    if (this.voicesGain === null || this.context === null) return;
+    this.voicesGain.gain.cancelScheduledValues(this.context.currentTime);
+    this.voicesGain.gain.setValueAtTime(
+      this.voicesLevelPreference,
+      this.context.currentTime,
+    );
+  }
+
   private persist(): void {
     const value: StoredAudioPreferences = {
       version: AUDIO_PREFERENCES_VERSION,
       muted: this.mutedPreference,
       effectsLevel: this.effectsLevelPreference,
+      voicesLevel: this.voicesLevelPreference,
     };
     try {
       this.store?.setItem(AUDIO_PREFERENCES_KEY, JSON.stringify(value));
@@ -762,9 +1034,8 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
     case 'object.sound-stopped':
       return null;
     case 'door.opened':
-      return 'door-opened';
     case 'door.closed':
-      return 'door-closed';
+      return null;
   }
 }
 
@@ -825,7 +1096,7 @@ function clampLevel(value: number): number {
 }
 
 function readPreferences(store: AudioPreferenceStore | undefined): AudioPreferences {
-  const fallback = { muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL };
+  const fallback = { muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, voicesLevel: DEFAULT_VOICES_LEVEL };
   try {
     const raw = store?.getItem(AUDIO_PREFERENCES_KEY);
     if (raw === undefined || raw === null) return fallback;
@@ -840,7 +1111,10 @@ function readPreferences(store: AudioPreferenceStore | undefined): AudioPreferen
     ) {
       return fallback;
     }
-    return { muted: parsed.muted, effectsLevel: parsed.effectsLevel };
+    const voicesLevel = typeof parsed.voicesLevel === 'number' &&
+      Number.isFinite(parsed.voicesLevel) && parsed.voicesLevel >= 0 && parsed.voicesLevel <= 1
+      ? parsed.voicesLevel : DEFAULT_VOICES_LEVEL;
+    return { muted: parsed.muted, effectsLevel: parsed.effectsLevel, voicesLevel };
   } catch {
     return fallback;
   }

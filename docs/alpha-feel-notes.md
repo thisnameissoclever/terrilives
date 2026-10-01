@@ -1,5 +1,119 @@
 # Alpha Feel Notes
 
+## [A-door-recordings] Quiet recordings on physical door transitions
+
+Inspected the production build at 1280x720 on isolated port 5201, Day 1,
+00:01 through 05:41. The kitchen doorway appeared open during movement and
+closed later. The roster and needs dock remained readable against the night
+tint. Audio diagnostics recorded five openings and six closings with four
+tracked portals and capacity four. Pause cleared live portal tracks, stopped
+the shower loop and retained reusable capacity; resume continued play.
+
+No browser warning or error was observed. Tim still stood beside the shower
+partition during use, an existing animation limitation outside this sound
+slice. The page closed in a finally block. This check does not establish
+subjective listening acceptance or a watched complete sleep or conversation
+cycle. Signal evidence and tests are in `specs/2026-10-01-door-audio.md`.
+
+The final build's empty needs panel clears hidden warning labels. At Day 1,
+02:07, deselection showed the compact selection prompt and seven empty warning
+spans. Selecting Bill restored his current needs and floor ring. The kitchen
+door was visibly open beside him. No browser warning or error appeared. This
+second task-owned page also closed in a finally block.
+
+## [A-shower-water-integration] Prepared recording on actual shower use
+
+Production build on isolated port 5199, 1280x720, after main `44d443ba`.
+Selecting Casey and directing Take a shower produced Using object in the dock,
+authored sound action 1 at source entity 30, and exactly one active and retained
+object loop. The room, roster and needs dock remained readable at night. The
+Sim still stood beside the shower partition; this is an existing action-animation
+limitation, not repaired or accepted by the sound change. The test page was closed.
+
+The production interaction confirms routing, not physical-device listening.
+Real decoded offline rendering separately proves nonzero output and lifecycle
+silence. A semantic Pause selector failed in the game UI, so this pass does not
+claim an additional in-game pause observation.
+
+## [A-independent-conversation-audio] Directed Chat on the rebuilt audio bridge
+
+2026-09-30, 1280x720, a fresh household on the isolated local port 5198. Bill
+walked to Casey for a directed Chat. Both participants visibly faced one another
+beside the desk, with conversation indicators and the dock's Talking state.
+Pause held them in place; after resuming, they finished and returned to separate
+activities. The scene and compact needs dock remained readable in daylight.
+
+Evidence: `docs/assets/review-evidence/audio-independent-conversation.jpg`.
+This was the development shell with rebuilt release WASM. A separate production
+bundle smoke check also loaded and advanced the household. Both pages reported
+no browser warnings/errors, then were paused and closed with their servers.
+
+Visual findings remain separate from audio acceptance: the aquarium obscured
+Casey's lower body and intercepted the first right-click, while the visible
+head correctly opened Casey's menu. This is depth-consistent but makes small
+targets harder to select. A standing-looking sleeper beside the bed remained
+visible earlier in the run. Neither issue is changed by audio ownership.
+Concurrent recordings were verified with real offline audio samples and
+integration tests, not a displayed four-person scene or subjective listening.
+
+After integrating main `627259f5`, the final production pass showed the new
+four-legged dining table aligned between its chairs and normal household
+activity. `docs/assets/review-evidence/audio-ownership-integrated.jpg` records
+that build. No missing atlas regions or new layout failures were visible in
+this brief pass; it does not replace the table's separate art review. The
+browser diagnostics were empty, and the owned page and server were closed.
+
+## [A-conversation-audio-fades] Audio repair on the integrated household build
+
+2026-09-30, production build after main `5e9335a8`, 1280x720. The saved four-person
+household loaded and continued through nighttime into daylight. The new compact
+dock leaves the interior visible; the table/chair arrangement and rounded desk
+chair remain readable. Options exposed Sound and Effects, and Pause, roster
+selection and the Chat menu worked.
+
+The selected Sim's critical-hunger warning replaced the dock's ordinary action
+text; the expanded Overview revealed At work and one queued order. Therefore
+staging Chat is not counted as a completed conversation. Existing standing sleep
+poses with Z indicators remain visible, and hunger reached zero during work in
+this test save. These are separate simulation/animation findings, not repaired
+by changing audio envelopes. No full world-visual or listening approval is made.
+
+Evidence: `docs/assets/review-evidence/audio-conversation-fades.jpg`. The browser
+reported no warnings/errors during this pass. The page was paused and closed;
+its owned server was stopped. Rendered audio-sample assertions, rather than this
+screenshot, establish the interruption fix.
+
+## [A-sleep-schedule-lifecycle] Authored timing survives a played save, 2026-09-30
+
+The displayed local build created a night-owl housemate, saved, reloaded, and
+continued into the next day. The roster, action card and needs remained readable
+at 1280 by 720. A sleeping Sim and its Z indicator were visible in the loaded
+household capture. The newcomer's later sleep status and subsequent restored
+energy were observed through the HUD; the later capture shows cooking, not sleep.
+Exact offset timing and continued-state equality are covered by automated tests,
+not inferred from the screenshots.
+
+The short walls made the kitchen, living area and bathroom readable. The left
+HUD still overlays part of the far-left room at this framing, and most household
+members share a similar silhouette; neither is introduced or fixed by this
+sleep-state change. No complete conversation was watched in this pass, so this
+is not a full visual or animation acceptance of the game.
+
+Evidence: `docs/assets/review-evidence/sleep-schedules/loaded-household.jpg`
+and `next-day-cooking.jpg`. The browser error-log query returned empty, but the
+Vite server reported two `ResizeObserver loop completed with undelivered
+notifications` warnings during the session. No broken layout or stopped game
+was observed. Keep that as an unresolved UI diagnostic, not a clean-console
+claim. The isolated test page was muted and closed; its server was stopped.
+
+After integrating the office-chair update, a production-bundle check loaded the
+same four-person save and continued activities. `production-loaded.jpg` records
+the rounded wheeled desk chair, nighttime room lighting and working pause
+control. A sleep indicator can still appear beside a standing-looking figure;
+sleep pose quality is not accepted by this timing fix. The brief production
+console query was empty, not proof that the development warning is resolved.
+This second owned page and server were also closed.
+
 M1c set out to stop the sims reading as robots. This is the record of
 watching one for twenty minutes of simulated time and writing down what it
 actually did, plus the three knobs that were turned as a result and the
@@ -39,6 +153,34 @@ establish local integration, not public deployment or final owner approval.
 Exact checkpoints and images are in
 `docs/assets/review-evidence/furniture-builder/README.md`.
 
+
+## [A-desk-chair-rounded] Registered desk chair beside the working surface
+
+2026-09-30, local production build, neutral lighting, 1600x1050. The rounded
+slate chair now has a five-spoke wheeled base rather than the old square seat
+and cross-shaped support. Its back faces the camera while the seat points
+toward the desk. The low divider behind it leaves the chair and desk visible.
+The four actual renderer views agree on upholstery, shell and attached casters.
+
+The ordinary Build controls cycled all four previews and confirmed the original
+position without changing the saved world hash. This observation establishes
+static placement and appearance, not a seated Work animation. Screenshots,
+the rejected rear-shell defect and exact checks are in
+`docs/assets/review-evidence/office/chair.md`.
+
+## [A-dining-chair-wood] Rounded wooden dining chairs keep their table-facing positions
+
+2026-09-30, local production build, neutral lighting, 1600x1050. Both replacement
+chairs face the table's ends. Rounded seats, even horizontal back rails and
+supported legs fit the kitchen's existing scale. The far chair is partly hidden
+by the tabletop, while its exposed back remains selectable. The table itself
+still uses older art and is the next visual improvement, not part of this pass.
+
+The actual renderer shows four consistent rotations. Build controls selected
+the exposed chair back, cycled all facings and restored its original placement
+without changing the world hash. No seated meal animation was added; that
+remaining gap is not resolved by these empty-chair screenshots. Evidence and
+check boundaries are in `docs/assets/review-evidence/dining/chair.md`.
 
 ## [A-household-rig-shirts] Approved character and household shirt colors
 
@@ -3653,3 +3795,102 @@ A second bed queue produced the [visible waiting capture](evidence/mood-waiting/
 **Not proven here.** These accelerated checks do not establish long-term balance or the feel of a crowded six-person household. The positive mood contribution, old-save migration and paused cancellation are covered by causal tests; ordinary play also includes activity payouts, so its rising satisfaction cannot isolate the positive mood contribution. The attempted paused cancellation check missed the Options control after the wait had already ended and is not counted as play evidence. No new death, phone layout or grief-duration check was performed in this follow-up; [A-death] records the earlier death slice.
 
 The follow-up's 60 manual mutation checks each produced a failing test, then restored the changed source byte for byte. They cover death defaults and one-time migration, occupied-item and active-action guards, relevant need bits, save ordering and validation, command batching, autonomous ranking, directed and chain reachability, mood timing after death, signed accumulation, tuning validation and copying, and truncated-save padding. These targeted checks are separate from the full mutation sweep run by GitHub.
+
+## [A-gameplay-ui-corrections] Furniture previews and selected-person action cards
+
+Checked the production preview on 2026-09-30 at 1280 by 720, 390 by 844 and
+800 by 400. Build appeared below Time and Funds. Moving and rotating the bookcase
+showed one preview; successful Confirm removed the selection and disabled its
+placement controls. The bookcase's back met the wall after rotation. All four
+current atlas facings were also inspected in the contact sheet.
+
+With Bill selected and repeated reading orders queued, the larger Now card led
+seven waiting cards. At 720 pixels tall, fading began at 237.6 pixels and the
+card region ended at 396 pixels. On the phone, the queue began at 133 pixels,
+below the summary's 124.4-pixel bottom; it disappeared when Menu opened. Exit
+build remained reachable above the compact editing dock. At 800 by 400, the
+scrolling sidebar measured 235 pixels outside and 220 usable pixels inside.
+
+Two layout defects found during this pass were fixed: cards initially overlapped
+the taller phone status summary, and compact Build needed an explicit grid row
+for Exit build. Screenshots in `docs/assets/review-evidence/gameplay-ui/` show the
+final desktop queue, phone controls, phone card, short-screen HUD and current
+bookcase facings. The test page was closed and its preview server stopped.
+
+The preview reported that loading its existing save failed and kept saving
+paused. Checks used its default household without clearing saved data. This pass
+does not verify browser persistence, a full need cycle or a complete conversation;
+those are outside the observations above. Bed shortage and recovery were checked
+through simulation tests, not a watched household play cycle. Visual approval
+by the owner remains open.
+
+
+Follow-up on 2026-09-30 fixed that load error. The captured browser file used
+pre-voice V1 entity rows. The rebuilt preview reported Saved game loaded, and
+the original file retained its exact length and SHA-256. The load regression
+preserves all 37 entities and compares 300 ticks after resaving through V5.
+
+A fresh local origin started with No save yet. The controls queued 51 reading
+orders, and all 51 survived Save and reload. Both the only fridge and only stove
+sold, paying 150 and 130 Funds. The resulting household loaded without them.
+Exit build returned to play through the left button. Desktop cards now measure
+192 pixels rather than 240; on the phone they measure 118.55 pixels and start
+below the summary. Updated proof is `desktop-queue-smaller.png`,
+`phone-queue-smaller.png`, `phone-exit-build.png`, `sell-only-fridge.png` and
+`save-loaded.png` in the same evidence folder. All task-owned pages and preview
+servers were closed. Owner visual approval remains open.
+
+The final control-order check put simulation speed immediately below Time and
+Funds, and Build after the household and person panels. At 1280 by 720, the
+collapsed person panels left Build visible at 403 pixels from the top. The
+192-pixel cards showed a 77.4-pixel current card and 50.4-pixel waiting cards.
+At 390 by 844, the expanded menu kept the same order and hid the cards; Build
+opened the editing dock, and Exit build returned to play. The same round trip
+worked at 812 by 375, where the scrolling menu measured 235 pixels outside and
+220 usable pixels inside, including a 15-pixel scrollbar. The game was muted
+and paused for these checks. The separate test origin reported No save yet;
+these captures do not repeat the earlier persistence verification.
+
+Proof is `desktop-controls-final.png`, `phone-controls-final.png`,
+`phone-exit-build-final.png` and `landscape-controls-final.png` in
+`docs/assets/review-evidence/gameplay-ui/`. The task tab closed in a finally
+block, its preview server stopped, and the viewport override was reset.
+
+## [A-short-walls] One-third walls and local fading, 2026-09-30
+
+Interior and front walls now leave the kitchen, bathroom and office visible.
+The two rear walls stay tall. Walls and Room tools restore the full shell;
+Furniture restores the short view. Switching those tools left the integrated
+simulation hash unchanged. A directed walk toward the shower crossed the
+short-wall area; a separate two-actor fixture checked fading on both axes.
+Reduced motion, multiple actors and load-reset behavior have focused tests.
+
+Primary and independent reviewers inspected the retained screenshots. No new
+visual blocker was found. Full-height door leaves and frames remain deliberate;
+this pass did not redesign them. It did not watch a complete need cycle or
+conversation, and it does not establish public deployment. Detailed scope,
+GPU evidence and production-build images are in
+`docs/assets/review-evidence/cutaway-walls.md`. All owned pages and both local
+servers were closed after verification.
+
+## [A-personality-and-habits] Compact personal details, 2026-09-30
+
+Played the running game at 1280x800, 360x640 and 640x400. Overview's new
+Personality and habits section began collapsed and left the closed dock's
+footprint unchanged. Enter and Space opened and closed it; Escape closed the
+sheet and focused Sim details. The existing scroll area reached every habit
+row at phone and short-screen sizes without horizontal page overflow.
+
+Tim, Bill and Casey showed different personal need factors and sleep rhythms.
+Switching people replaced the factors and removed old habits. During play,
+Casey accumulated television, dishwashing, sleep, shower, toilet, handwashing
+and sitting history; their visible repetition changed with activity and time.
+Loading the earlier local save restored Bill at Day 1, 03:07 with his usual
+sleep schedule and no recorded repetition, clearing Casey's later rows.
+
+No new visual blocker or browser warning/error was observed. The new need
+labels were capitalized to match the existing meters. This was a displayed
+browser viewport pass, not physical-phone or spoken screen-reader acceptance.
+It did not watch a complete conversation. Task-owned game pages and the
+preview server were closed. Details, test counts and retained evidence paths
+are in `docs/specs/2026-09-30-sim-details.md`.

@@ -273,7 +273,7 @@ fn after_two_sales_a_save_and_a_load_the_next_purchase_matches_continuous_play()
         assert_eq!(last(&playing).unwrap().reason, None);
     }
     let mut loaded = Sim::new_from_shipped_lot();
-    loaded.load_snapshot_v4(playing.save_snapshot_v4()).unwrap();
+    loaded.load_snapshot_v5(playing.save_snapshot_v5()).unwrap();
     assert_eq!(loaded.world_hash(), playing.world_hash());
     assert_eq!(
         loaded.world().resource::<RetiredIndices>(),
@@ -455,52 +455,34 @@ fn placed(sim: &Sim, id: &str) -> Vec<Entity> {
     found
 }
 
-/// [SL-rules] step 6: the last object that can fill a role a chain needs is
-/// not sold, or a sim part way through that chain waits for a station that
-/// no longer exists. In the shipped house the stove
-/// is the only hob; the counters and the kitchen sink are all prep surfaces,
-/// so the counters sell and then the sink is the last.
+/// The player may remove the final station for any household function.
 #[test]
-fn the_last_object_a_chain_needs_is_not_sold() {
+fn the_last_fridge_stove_and_prep_surface_can_be_sold() {
     let mut sim = Sim::new_from_shipped_lot();
     let stoves = placed(&sim, "stove");
-    assert_eq!(stoves.len(), 1, "the shipped house has one hob");
-    refused(&mut sim, stoves[0], PlacementRefusal::LastForAChain);
+    assert_eq!(stoves.len(), 1);
+    sell(&mut sim, stoves[0]);
+    assert_eq!(last(&sim).unwrap().reason, None);
     let sinks = placed(&sim, "kitchen_sink");
-    assert_eq!(sinks.len(), 1);
     let counters = placed(&sim, "counter");
     assert!(!counters.is_empty());
     for counter in counters {
         sell(&mut sim, counter);
-        assert_eq!(
-            last(&sim).unwrap().reason,
-            None,
-            "the sink is a prep surface too"
-        );
+        assert_eq!(last(&sim).unwrap().reason, None);
     }
-    refused(&mut sim, sinks[0], PlacementRefusal::LastForAChain);
-
-    // In the test house the second fridge lets the first go, and then the
-    // last one stays. An object in use is refused as in use first.
-    let (mut house, fridge, _) = house(0);
-    sell(&mut house, fridge);
-    assert_eq!(last(&house).unwrap().reason, None);
-    let world = house.world();
-    let mut query = world.try_query::<(Entity, &SmartObject)>().unwrap();
-    let spare = query
-        .iter(world)
-        .find(|(entity, _)| world.get::<Position>(*entity) == Some(&Position { x: 6.0, y: 6.0 }))
-        .map(|(entity, _)| entity)
-        .unwrap();
-    house.world_mut().entity_mut(spare).insert(Reserved);
-    refused(&mut house, spare, PlacementRefusal::InUse);
-    house.world_mut().entity_mut(spare).remove::<Reserved>();
-    refused(&mut house, spare, PlacementRefusal::LastForAChain);
+    sell(&mut sim, sinks[0]);
+    assert_eq!(last(&sim).unwrap().reason, None);
+    let fridges = placed(&sim, "fridge");
+    assert_eq!(fridges.len(), 1);
+    sell(&mut sim, fridges[0]);
+    assert_eq!(last(&sim).unwrap().reason, None);
+    let saved = sim.save_snapshot_v5();
+    let mut restored = Sim::new_from_shipped_lot();
+    restored.load_snapshot_v5(saved.clone()).unwrap();
+    assert_eq!(restored.save_snapshot_v5(), saved);
 }
 
-/// [SL-rules] step 6 guards only roles a chain needs. The only object with a
-/// role no chain uses still sells, or every object given a role for a future
-/// chain would be stuck in the house.
+/// Unused authored roles do not prevent the final object's sale either.
 #[test]
 fn the_only_object_with_a_role_no_chain_uses_sells() {
     let (mut sim, _, rack) = house_with(0, |pack| {

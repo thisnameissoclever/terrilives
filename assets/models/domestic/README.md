@@ -20,7 +20,8 @@ per logical pixel. Raw cleanup renders remain local; runtime frames, receipts
 and editable models are retained.
 
 `assets/sprites/gen/surface_items.py` projects slots from the actual counter
-camera and the shared legacy tabletop definition. Props continue the owner's
+camera and the current dining table's model geometry and export camera. Legacy
+table sprites retain their original support definition. Props continue the owner's
 depth field and use the same local light. The renderer fixture is
 `web/review/domestic.html`; played evidence and independent visual review are
 recorded in `docs/assets/review-evidence/domestic/README.md`.

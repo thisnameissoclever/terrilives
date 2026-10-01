@@ -2,193 +2,22 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  COMPACT_HUD_MEDIA_QUERY,
-  MobileHud,
-  type MobileHudButton,
-  type MobileHudDetails,
-  type MobileHudRoot,
-} from '../src/ui/mobile-hud.js';
-
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-
-interface RecordedRoot extends MobileHudRoot {
-  readonly attributes: Map<string, string>;
-}
-
-interface RecordedButton extends MobileHudButton {
-  readonly attributes: Map<string, string>;
-}
-
-function root(): RecordedRoot {
-  const attributes = new Map<string, string>();
-  return {
-    attributes,
-    setAttribute(name, value) {
-      attributes.set(name, value);
-    },
-  };
-}
-
-function button(): RecordedButton {
-  const attributes = new Map<string, string>();
-  return {
-    attributes,
-    hidden: false,
-    textContent: '',
-    setAttribute(name, value) {
-      attributes.set(name, value);
-    },
-  };
-}
-
-function details(open = true): MobileHudDetails {
-  return { open };
-}
+const DOCK_CSS = readFileSync(new URL('../src/ui/compact-hud.css', import.meta.url), 'utf8');
+const ALL_STYLES = INDEX_HTML + DOCK_CSS;
 
 /** The rules of the first `@media` block whose condition matches `condition`. */
-function mediaBlock(condition: RegExp): string {
-  const start = INDEX_HTML.search(condition);
+function mediaBlock(condition: RegExp, source = INDEX_HTML): string {
+  const start = source.search(condition);
   if (start < 0) return '';
   let depth = 0;
-  for (let at = INDEX_HTML.indexOf('{', start); at < INDEX_HTML.length; at += 1) {
-    if (INDEX_HTML[at] === '{') depth += 1;
-    if (INDEX_HTML[at] === '}') depth -= 1;
-    if (depth === 0) return INDEX_HTML.slice(start, at);
+  for (let at = source.indexOf('{', start); at < source.length; at += 1) {
+    if (source[at] === '{') depth += 1;
+    if (source[at] === '}') depth -= 1;
+    if (depth === 0) return source.slice(start, at);
   }
   return '';
 }
-
-function openingTagFor(id: string): string {
-  const tag = INDEX_HTML.match(new RegExp(`<[^>]+\\bid="${id}"[^>]*>`))?.[0];
-  if (!tag) {
-    throw new Error(`missing opening tag for #${id}`);
-  }
-  return tag;
-}
-
-function attributeValue(tag: string, name: string): string {
-  const value = tag.match(new RegExp(`\\b${name}\\s*=\\s*"([^"]*)"`))?.[1];
-  if (value === undefined) {
-    throw new Error(`missing ${name} attribute in ${tag}`);
-  }
-  return value;
-}
-
-describe('MobileHud', () => {
-  it('collapses editing details and restores desktop state without reopening compact panels', () => {
-    const panels = [details(true), details(false)];
-    const hud = new MobileHud(root(), button(), panels);
-    hud.beginEditing(); hud.beginEditing();
-    expect(panels.map(panel => panel.open)).toEqual([false, false]);
-    hud.endEditing();
-    expect(panels.map(panel => panel.open)).toEqual([true, false]);
-    hud.beginEditing(); hud.setCompact(true); hud.endEditing();
-    expect(panels.map(panel => panel.open)).toEqual([false, false]);
-  });
-  it('uses the same compact threshold as the responsive stylesheet', () => {
-    expect(COMPACT_HUD_MEDIA_QUERY).toBe(
-      '(max-width: 600px), (max-height: 480px)',
-    );
-    expect(INDEX_HTML).toMatch(
-      /@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/,
-    );
-  });
-
-  it('removes every secondary HUD surface from closed compact layout', () => {
-    expect(INDEX_HTML).toMatch(
-      /#hud\[data-mobile-open='false'\]\s*>\s*:not\(#household-summary\)\s*\{\s*display:\s*none\s*;/,
-    );
-    expect(openingTagFor('hud')).toMatch(/\bdata-mobile-open\s*=\s*"false"/);
-    const controlledIds = attributeValue(
-      openingTagFor('mobile-hud-toggle'),
-      'aria-controls',
-    )
-      .split(/\s+/)
-      .sort();
-    expect(controlledIds).toEqual(
-      // Light, sound and the game actions live in the Options flyout
-      // ([OF3]), which has its own gear.
-      ['household-roster', 'needs-panel', 'people-panel', 'time-controls'].sort(),
-    );
-  });
-
-  it('uses the placed safe-area insets as the portrait sheet height boundary', () => {
-    expect(INDEX_HTML).toMatch(
-      /max-height:\s*calc\(\s*100dvh\s*-\s*max\(8px,\s*env\(safe-area-inset-top\)\)\s*-\s*max\(8px,\s*env\(safe-area-inset-bottom\)\)\s*\)/,
-    );
-  });
-
-  it('collapses the HUD and its detail panels when the viewport becomes compact', () => {
-    const hudRoot = root();
-    const toggle = button();
-    const needs = details();
-    const people = details();
-    const hud = new MobileHud(hudRoot, toggle, [needs, people]);
-
-    hud.setCompact(true);
-
-    expect(hudRoot.attributes.get('data-mobile-open')).toBe('false');
-    expect(toggle.hidden).toBe(false);
-    expect(toggle.textContent).toBe('Menu');
-    expect(toggle.attributes.get('aria-expanded')).toBe('false');
-    expect(toggle.attributes.get('aria-label')).toBe('Open game menu');
-    expect(needs.open).toBe(false);
-    expect(people.open).toBe(false);
-  });
-
-  it('opens and closes the same compact HUD without reopening detail panels', () => {
-    const hudRoot = root();
-    const toggle = button();
-    const needs = details();
-    const people = details();
-    const hud = new MobileHud(hudRoot, toggle, [needs, people]);
-    hud.setCompact(true);
-
-    expect(hud.toggle()).toBe(true);
-    expect(hudRoot.attributes.get('data-mobile-open')).toBe('true');
-    expect(toggle.textContent).toBe('Close');
-    expect(toggle.attributes.get('aria-expanded')).toBe('true');
-    expect(toggle.attributes.get('aria-label')).toBe('Close game menu');
-    expect(needs.open).toBe(false);
-    expect(people.open).toBe(false);
-
-    expect(hud.toggle()).toBe(false);
-    expect(hudRoot.attributes.get('data-mobile-open')).toBe('false');
-    expect(toggle.textContent).toBe('Menu');
-  });
-
-  it('hides the toggle and exposes the normal HUD outside compact mode', () => {
-    const hudRoot = root();
-    const toggle = button();
-    const hud = new MobileHud(hudRoot, toggle, [details(), details()]);
-
-    hud.setCompact(false);
-
-    expect(toggle.hidden).toBe(true);
-    expect(hudRoot.attributes.get('data-mobile-open')).toBe('false');
-    expect(hud.toggle()).toBe(false);
-  });
-
-  it('closes again after leaving and re-entering compact mode', () => {
-    const hudRoot = root();
-    const toggle = button();
-    const needs = details(false);
-    const people = details(false);
-    const hud = new MobileHud(hudRoot, toggle, [needs, people]);
-    hud.setCompact(true);
-    hud.toggle();
-    needs.open = true;
-    people.open = true;
-
-    hud.setCompact(false);
-    hud.setCompact(true);
-
-    expect(hudRoot.attributes.get('data-mobile-open')).toBe('false');
-    expect(needs.open).toBe(false);
-    expect(people.open).toBe(false);
-  });
-});
 
 // [B-phone-build-dock] in docs/FEATURES.md: each Build tool holds a region of
 // choices and a footer of its status and the buttons that act on it. On a
@@ -275,8 +104,13 @@ describe('the phone Build dock', () => {
   // The person and How they feel toggles share this block and are flex
   // boxes by design, so their rules are set aside before the check.
   it('leaves the short panel to scroll whole', () => {
-    const withoutToggles = mediaBlock(COMPACT).replace(/\.needs-caption[^{}]*\{[^}]*\}/g, '');
-    expect(withoutToggles).not.toMatch(/display:\s*flex/);
+    const matches = [...ALL_STYLES.matchAll(new RegExp(COMPACT.source, 'g'))];
+    expect(matches.length).toBeGreaterThanOrEqual(2);
+    for (const match of matches) {
+      const block = mediaBlock(COMPACT, ALL_STYLES.slice(match.index));
+      const withoutToggles = block.replace(/\.needs-caption[^{}]*\{[^}]*\}/g, '');
+      expect(withoutToggles).not.toMatch(/display:\s*flex/);
+    }
   });
 
   // On a desktop the choices join the tool's own grid and the help lines
@@ -299,11 +133,11 @@ describe('the phone Build dock', () => {
     for (const tool of ['furniture', 'wall', 'room', 'buy']) {
       expect(INDEX_HTML).toContain(`<div id="${tool}-tool" class="builder-tool"`);
     }
-    const uncommented = INDEX_HTML.replace(/\/\*[\s\S]*?\*\//g, '');
+    const uncommented = ALL_STYLES.replace(/\/\*[\s\S]*?\*\//g, '');
     const important = [...uncommented.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
       .filter(([, , body]) => /display:[^;}]*!important/.test(body))
       .map(([, selector]) => selector.trim());
-    expect(important).toEqual(['#builder-controls[hidden], .builder-tool[hidden]']);
+    expect(important).toEqual(['#builder-controls[hidden], .builder-tool[hidden]', '#sim-dock [hidden], #sim-dock[hidden]']);
   });
 
   it('puts the tools back two by two below 301 pixels wide', () => {
@@ -352,8 +186,7 @@ describe('the compact Needs and People toggles', () => {
     expect(INDEX_HTML.match(/\.needs-caption::-webkit-details-marker/g) ?? []).toHaveLength(1);
   });
 
-  it('are the summaries of both panels', () => {
-    expect(INDEX_HTML).toContain('<summary id="needs-caption" class="needs-caption">');
+  it('keeps the People disclosure keyboard reachable', () => {
     expect(INDEX_HTML).toContain('<summary id="people-caption" class="needs-caption">');
   });
 });

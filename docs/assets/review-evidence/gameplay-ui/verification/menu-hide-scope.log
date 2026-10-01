@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/gameplay-ui/terrilives/web
+
+ ❯ tests/mobile-hud.test.ts (29 tests | 1 failed) 168ms
+     × hides action cards for expanded compact menus at any width 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/mobile-hud.test.ts > MobileHud > hides action cards for expanded compact menus at any width
+AssertionError: menu visibility rule must be outside every media block: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/mobile-hud.test.ts:93:77
+     91|       .replace(/\/\*[\s\S]*?\*\//g, '');
+     92|     const depth = [...prefix].reduce((value, char) => value + (char ==…
+     93|     expect(depth, 'menu visibility rule must be outside every media bl…
+       |                                                                             ^
+     94|   });
+     95|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 28 passed (29)
+   Start at  10:12:53
+   Duration  309ms (transform 24ms, setup 0ms, import 33ms, tests 168ms, environment 0ms)

@@ -297,12 +297,10 @@ still uses one draw and one submit per frame. The remaining device boundary is
 to look at the darkest floor on a physical phone in daylight; desktop contrast
 measurement does not answer that question.
 
-**One tuning decision needs you, and it is small.** The circadian rhythm is
-built and switched off: `content/tuning.toml` carries the `[circadian]` block
-commented out because the CURVE is not tuned, and tuning it wants a watched
-run rather than another guess from me. Uncommenting it turns on sims
-sleeping at night; the numbers beside it are a first draft, not a
-recommendation.
+The circadian rhythm is enabled in `content/tuning.toml`, with an exhaustion
+ramp that keeps daytime tiredness from indefinitely losing to the clock.
+Further tuning needs a watched run. The earlier instruction to uncomment the
+curve was obsolete; enabling it again is not a remaining task.
 
 The first paper's five options were rejected whole, and correctly: each one
 restyled the existing sprites, and a grade over borrowed art is still
@@ -438,12 +436,12 @@ The old Kenney Furniture Kit is downloaded and recorded in `ASSETS.md`, but no
 pack art remains in the shipped alpha. Muted Line replaced it with generated
 original sprites.
 
-The first audio shortlist is now exact and ready for approval in
-`docs/specs/2026-09-06-cc0-audio-intake.md`: four CC0 OpenGameArt archives,
-approximately 23.7 MB combined. `scripts/fetch-cc0-audio.cjs --list` reports the
-fixed IDs and sources without network access. The download flag is deliberately
-approval-gated. No pack is approved or accepted into the game merely because it
-appears in that list.
+The owner approved the four CC0 OpenGameArt archives on 2026-09-30. They are
+downloaded and inventoried; five water candidates passed mechanical screening.
+The procedure is `docs/specs/2026-09-06-cc0-audio-intake.md`, and the exact hashes
+and remaining selection work are in `docs/specs/2026-09-30-cc0-audio-intake-results.md`.
+Do not ask for that download approval again. One prepared flowing-water clip now
+ships provisionally for showers; subjective suitability remains unverified.
 
 ### [T5] Confirm the repository should stay public `[APPROVE]`
 
@@ -486,18 +484,33 @@ the TODO, while `FEATURES.md` owns their scope and implementation status.
 
 On 2026-09-21 you asked for more systems: skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a fuller build mode. Building all of them is mine. [GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the one place that lists every system, started or not. It gives a build status for everything except the new proposals, names the main dependencies, and suggests a build order for your requests; `FEATURES.md` points to it under [B-game-systems].
 
-The first [A-audio-voices] foundation is now implemented: gesture-gated native
-Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master
-mute, and Effects volume. Ambience, object loops, alarms, music, category
-controls beyond Effects, and Sim voices remain mine to build. The current door
-event types are reserved plumbing, not a functioning door sound. A candidate
-second pass also adds household-scoped conversation and sleep cues plus
-per-Sim eating, reading, and exercise cues; owner listening remains open.
-The candidate branch also carries authored source identity for shower water and
-stove cooking. It proves both ordinary-interaction and cooking-chain routes and
-deduplicates state by exact placed object. Sample selection, editing, looping,
-and audible playback remain mine after the CC0 download approval and listening
-gates; the bridge does not generate a fake procedural appliance sound.
+The [A-audio-voices] foundation is implemented: gesture-gated native Web Audio,
+quiet rejected-command feedback, fixed-tick distance footsteps, master mute,
+and Effects volume. Voices now has a separate saved volume multiplier beneath
+Effects, defaulting to the unchanged mix. Routine buttons, menus and slider releases are silent.
+Twelve recorded conversation clips play in pairs. Each conversation now starts
+and stops independently, with at most three pairs sounding at once. Sleep cues
+remain household-scoped; eating, reading and exercise cues have per-Sim cadence.
+Failed conversation downloads now have bounded, demand-driven recovery without
+refetching successful clips or reviving cancelled playback. The evidence is in
+`docs/specs/2026-10-01-voice-download-recovery.md`.
+The playback repairs are merged; remaining owner listening checks are still open.
+
+Authored source identity for shower water, sink water and stove cooking is implemented.
+It covers ordinary interactions and cooking chains and deduplicates state by
+exact placed object. The bounded loop player now handles source ownership,
+fades, capacity, and effective-pause cleanup. Shower use now has one prepared CC0
+water loop with on-demand loading and bounded failure recovery. Handwashing and
+kitchen washing-up reuse that decoded recording at lower gain, with independent
+source ownership. Its timbre and
+mix still need listening acceptance. Stove cooking now uses a provisional
+first-party synthetic texture with independent demand loading; its listening
+acceptance also remains open. Door opening
+and closing now have quiet provisional recorded cues tied to authoritative portal
+state. Ambience, alarms, music, non-conversation voices
+and music/ambience controls remain unbuilt. The current contract and evidence are in
+`docs/specs/2026-08-19-audio-foundation.md` and
+`docs/specs/2026-10-01-object-loop-playback.md`.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 
@@ -555,13 +568,9 @@ A new housemate ([CS-slice-housemate] in `docs/specs/2026-09-22-create-a-sim.md`
 
 You asked on 2026-09-29 for sims who can be women ([B-gender] in `docs/FEATURES.md`). Every sim today is drawn from one body model, `assets/models/sims/sim-01`. What is needed: women's body models with faces and hairstyles, and more clothing, including more feminine clothing such as dresses and skirts. Every outfit has to fit every body, because no clothing is locked to a gender. Tell me whether to draft them with the generator for you to accept or reject, or whether you would rather supply them. The gender choice and outfit mechanism can be built with the existing art meanwhile.
 
-### [T-selling-the-last-stove] What selling the last stove should do `[YOURS]`
+### [T-selling-the-last-stove] Selling the last appliance `[RESOLVED]`
 
-Selling furniture refuses to sell the last object that can fill a role a
-chain needs, such as the shipped house's only stove, the only hob Cook dinner
-can use: "Nothing else in the house can do its job." Without that, sims part
-way through cooking would wait for the stove forever and go hungry. The other
-choice is to let the sale go through and have sims give up the meal and the
-chain stop being offered until a new stove is bought. The refusal is what the
-game does now; tell me if you would rather have the other behaviour. Nothing is
-blocked meanwhile.
+The owner requested unrestricted removal of the last appliance on 2026-09-30.
+The local gameplay-ui change allows selling it. Sims abandon unfinished recipes
+whose remaining stations are absent, and autonomy skips incomplete recipes.
+Active use and queued orders still prevent a sale until that commitment ends.

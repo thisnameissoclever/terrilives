@@ -6,7 +6,9 @@ use terri_core::{
     Socialising, Target, TileDistanceField, TileGrid,
 };
 
-use super::advertise::{benefit_scale, relationship_scale, scaled_delta, score_advertisement};
+#[cfg(test)]
+use super::advertise::score_advertisement;
+use super::advertise::{benefit_scale, relationship_scale, scaled_delta};
 
 #[cfg(test)]
 thread_local! {
@@ -22,6 +24,24 @@ fn build_distance_field(grid: &TileGrid, from: (i32, i32)) -> Option<TileDistanc
         counts.set((fields + 1, paths));
     });
     grid.distance_field(from)
+}
+
+fn chain_travel(chain: &terri_data::CompiledChain, role_positions: &[Vec<(f32, f32)>]) -> f32 {
+    chain
+        .steps
+        .windows(2)
+        .map(|pair| {
+            role_positions[pair[0].role as usize]
+                .iter()
+                .flat_map(|(ax, ay)| {
+                    role_positions[pair[1].role as usize]
+                        .iter()
+                        .map(move |(bx, by)| (ax - bx).abs() + (ay - by).abs())
+                })
+                .fold(f32::INFINITY, f32::min)
+        })
+        .filter(|distance| distance.is_finite())
+        .sum()
 }
 
 fn reconstruct_winning_path(
@@ -49,6 +69,10 @@ fn path_search_counts() -> (usize, usize) {
 }
 use crate::Content;
 
+/// Legacy public softmax primitive, retained for existing callers and tests.
+/// Live autonomy uses `autonomy::grouped_probabilities` and its positive bucket
+/// sampler to retain tiny alternatives and normalize interactions per target.
+///
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
 /// - the softmax of [D-2].
 ///
@@ -478,7 +502,13 @@ pub fn serve_intents(
         // there and send a sim that is waiting its turn off for a
         // stroll. Removing a component an entity does not have is a
         // no-op and does not move it between archetypes.
-        commands.entity(agent).remove::<Restless>();
+        commands
+            .entity(agent)
+            .remove::<Restless>()
+            .remove::<terri_core::Wander>();
+        if target.is_none() {
+            commands.entity(agent).remove::<Path>();
+        }
         // `Blocked` is cleared for every directed agent here and put back
         // below only if this one turns out to still be waiting.
         // `Commands` are a queue applied in order, so an insert queued
@@ -554,10 +584,7 @@ pub fn serve_intents(
             };
             if let Some(target) = target {
                 if target.object != intent.object {
-                    let station = target.object;
-                    commands.queue(move |world: &mut World| {
-                        crate::domestic::release_station(world, station, agent)
-                    });
+                    crate::reservations::release(&mut commands, agent, *target);
                 }
             }
             // BOTH parties into the claimed list. The partner so no
@@ -570,7 +597,11 @@ pub fn serve_intents(
             claimed.push(intent.object);
             claimed.push(agent);
             commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
-            commands.entity(intent.object).insert(Reserved);
+            commands
+                .entity(intent.object)
+                .remove::<terri_core::Wander>()
+                .remove::<Restless>()
+                .insert(Reserved);
             commands
                 .entity(agent)
                 .remove::<Eating>()
@@ -641,10 +672,7 @@ pub fn serve_intents(
                     continue;
                 }
                 if let Some(target) = target {
-                    let station = target.object;
-                    commands.queue(move |world: &mut World| {
-                        crate::domestic::release_station(world, station, agent)
-                    });
+                    crate::reservations::release(&mut commands, agent, *target);
                 }
                 commands
                     .entity(agent)
@@ -714,14 +742,8 @@ pub fn serve_intents(
         // must not hand it to somebody else in between.
         if let Some(target) = target {
             if target.object != intent.object {
-                // try_remove for the same reason `tick_interactions`
-                // uses it: `Commands::entity` does not validate, so a
-                // stale `Target` would otherwise route a removal to the
-                // command error handler.
-                let station = target.object;
-                commands.queue(move |world: &mut World| {
-                    crate::domestic::release_station(world, station, agent)
-                });
+                // Release this commitment while retaining other owners.
+                crate::reservations::release(&mut commands, agent, *target);
             }
         }
         claimed.push(intent.object);
@@ -730,8 +752,12 @@ pub fn serve_intents(
         // reserve a sim already walking away - the deferred-Target
         // blindness again.
         claimed.push(agent);
-        commands.entity(intent.object).insert(Reserved);
         commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
+        commands
+            .entity(intent.object)
+            .remove::<terri_core::Wander>()
+            .remove::<Restless>()
+            .insert(Reserved);
         // BOTH kinds of running interaction are preempted, and forgetting
         // the second was a measured deadlock rather than a hypothetical: a
         // command aimed at a sim mid-conversation left `Socialising`
@@ -768,11 +794,8 @@ pub fn serve_intents(
 ///
 /// The invariant, stated once: **a contested object is never worth more
 /// than the same object free.** `min` says exactly that, and says it
-/// without branching on the sign - which matters because such a branch is
-/// unreachable at any threshold a designer would author, so its mutants
-/// would survive every possible test and settle into the mutation
-/// baseline as permanent noise. Same reasoning, and the same idiom, as
-/// the `f32::max` folds either side of the call site.
+/// without branching on the sign. Negative choices remain eligible in
+/// weighted autonomy, so this also preserves their intended disadvantage.
 ///
 /// `multiplier` is in `[0, 1]` by content validation, so this does not
 /// re-check it.
@@ -797,12 +820,9 @@ pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
-    // The hour, for the circadian sleep drive ([ML-tag]). Selection is
-    // the only place it is read: the drive weighs a CHOICE, so it belongs
-    // beside the other multipliers rather than anywhere near the need
-    // decay that makes a sim tired in the first place.
     clock: Res<SimClock>,
     mut rng: ResMut<SimRng>,
+    mortality: Res<terri_core::save::SavedMortality>,
     agents: Query<
         (
             Entity,
@@ -814,54 +834,20 @@ pub fn select_action(
             Option<&Relationships>,
             Option<&terri_core::Traits>,
             Option<&terri_core::SleepPressure>,
+            Option<&terri_core::SelfPreservation>,
+            Option<&terri_core::Wander>,
+            Option<&Path>,
         ),
-        // `Without<Reserved>` is new with [H4] and applies to the AGENT:
-        // a sim somebody reserved on an earlier tick is spoken for, and
-        // "stands still" is implemented as never entering selection at
-        // all. Within-tick reservations cannot use this filter - they
-        // are deferred commands - so the loop below carries a `claimed`
-        // guard for the same rule.
         (
             With<Agent>,
             Without<Target>,
             Without<Eating>,
             Without<Reserved>,
-            // The rabbit hole - [E4]. A working sim is gone, and a
-            // commuting one is spoken for by the clock: without the
-            // second filter, a commuter (Path, no Target - the wander
-            // shape) would select something and overwrite its commute.
             Without<terri_core::AtWork>,
             Without<terri_core::Commuting>,
-            // Resume outranks adverts - [K4]. A sim mid-chain never
-            // re-enters selection; advance_chains owns it until the
-            // terminal completion or an explicit cancel. The player
-            // can still redirect: serve_intents does not score.
             Without<terri_core::ChainState>,
         ),
     >,
-    // Every sim that could be TALKED TO - [H4]/[H10]. Only an idle sim
-    // is a valid target: no walk, no meal, no conversation of its own.
-    //
-    // `&SimId` is REQUIRED here while the agents query above never reads
-    // one, and the asymmetry is quietly load-bearing: a sim without an
-    // identity can initiate but can never be a target. That is the only
-    // reason the world-hash golden scenario's eight plain agents have no
-    // social behaviour, which is what makes its "M2d moved the digest by
-    // encoding, not behaviour" note honest - give `build_scenario` sims
-    // SimIds and that vector moves for a second, behavioural reason.
-    // `Has<Reserved>` rather than `Without`, for exactly the [C3] reason
-    // the objects query gives: a reserved person still has to reach
-    // `best_seen`, so a sim whose only company is spoken for waits by
-    // them instead of being told nothing is worth doing.
-    //
-    // `Without<Path>` excludes wanderers, deliberately, and it is a
-    // narrower rule than "idle" sounds: a strolling sim's tile changes
-    // every tick, so a path planned to it this tick is stale by
-    // arrival. Reserving mid-stride and having the walker freeze is
-    // [H10]'s "stands still" applied one tick early - rejected because
-    // the initiator's path is already planned against the OLD tile by
-    // the time the freeze lands. A sim that has paused between wander
-    // legs has no Path and is a legal target standing on a stable tile.
     people: Query<
         (Entity, &Position, &SimId, Has<Reserved>),
         (
@@ -870,32 +856,9 @@ pub fn select_action(
             Without<Eating>,
             Without<Socialising>,
             Without<Path>,
-            // Invisible to other sims' people loops while working -
-            // [E4]. A commuter is already excluded by Without<Path>,
-            // so this is the one addition the career needs here.
             Without<terri_core::AtWork>,
         ),
     >,
-    // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per
-    // object below instead.**
-    //
-    // This query used to carry `Without<Reserved>`, which looks like the
-    // obvious way to say "you cannot have what somebody else has" and is
-    // wrong for one specific reason: an object filtered out here is invisible
-    // to `best_seen` as well as to the candidate list, and `best_seen` is
-    // what decides whether the agent is told **nothing is worth doing**. A
-    // sim waiting for the only fridge in the house was therefore marked
-    // `Restless` and sent for a stroll, for the whole of the other sim's walk
-    // and meal.
-    //
-    // The two questions are genuinely different and the filter conflated
-    // them: "may I have this?" is answered by the reservation, "is anything
-    // here worth wanting?" is not. Availability is now applied at the one
-    // place it belongs - whether the object enters `candidates` - and the
-    // score still reaches `best_seen` either way. [C3] in
-    // docs/alpha-feel-notes.md is the report;
-    // `an_agent_waiting_on_an_object_reserved_earlier_waits_rather_than_wandering_off`
-    // is what fails if the filter comes back.
     objects: Query<(
         Entity,
         &Position,
@@ -904,49 +867,25 @@ pub fn select_action(
         Option<&ObjectFacing>,
     )>,
 ) {
-    // Where every station stands, by role index - the chain cost
-    // estimate's input, built once per run ([K2]). Positions rather
-    // than entities because the estimate is geometry: the legs are
-    // walked at STEP time against live reservations, and this only has
-    // to make a far kitchen cost more than a near one.
     let mut role_positions: Vec<Vec<(f32, f32)>> = vec![Vec::new(); content.0.roles.len()];
     for (_, position, placed, _, _) in objects.iter() {
-        for role in &content.0.object(placed.0).roles {
+        let definition = content.0.object(placed.0);
+        for role in &definition.roles {
+            if content.0.roles[*role as usize] == "prep_surface"
+                && definition
+                    .roles
+                    .iter()
+                    .any(|role| content.0.roles[*role as usize] == "dish_sink")
+            {
+                continue;
+            }
             role_positions[*role as usize].push((position.x, position.y));
         }
     }
 
-    // Below this score nothing is worth doing, so the agent stays idle.
-    //
-    // Read from the pack rather than held in a `const` here, per [D-1]:
-    // every value governing the SYSTEM lives in `content/tuning.toml`,
-    // so a tuning pass is one file rather than a hunt through Rust. The
-    // pack's copy is validated at build time, so nothing here re-checks
-    // it.
-    let action_threshold = content.0.tuning.action_threshold;
-    let temperature = content.0.tuning.choice_temperature;
-    // The OTHER threshold, and it is deliberately a second knob rather
-    // than a second use of the first - [D-5]. `action_threshold` answers
-    // "is anything worth doing"; this one answers "is nothing worth
-    // doing enough that I should mill about". Between them sits a band
-    // where an agent neither acts nor wanders, which is a sim that has
-    // noticed something mildly interesting and is staying near it.
-    // Collapsing the two deletes that band and the knob with it.
     let idle_threshold = content.0.tuning.idle_threshold;
-    // How much of its score an object somebody else is holding keeps.
-    // [C3] made a contested object visible again; this decides what the
-    // agent does about it. An attenuated score still has to clear
-    // `idle_threshold` for the agent to stand its ground rather than
-    // stroll off, so the knob sets how badly a sim must want a thing
-    // before it will queue for it. At 1.0 every outbid sim waits, which
-    // is how this behaved before the knob existed.
     let contested_multiplier = content.0.tuning.contested_score_multiplier;
 
-    // Collect and sort so iteration order cannot vary between runs.
-    //
-    // The whole `Needs` component is carried rather than one deficit,
-    // because an advert is a sparse list of (need, delta) pairs: which
-    // needs get scored is a property of the candidate, not of the agent.
     let mut idle: Vec<(
         Entity,
         Position,
@@ -956,53 +895,31 @@ pub fn select_action(
         Relationships,
         Option<terri_core::Traits>,
         Option<terri_core::SleepPressure>,
+        u8,
     )> = agents
         .iter()
-        // **A directed sim does not choose for itself** - [D-3]. This is
-        // the whole autonomy override: a player-issued intent suppresses
-        // selection until it completes or is cancelled, because a
-        // directed action that autonomy could talk the sim out of would
-        // make clicking feel ignored.
-        //
-        // It is a filter on emptiness rather than a `Without<IntentQueue>`
-        // in the query, and the difference matters: the component stays
-        // on an agent whose queue has run dry, so "has an IntentQueue"
-        // and "is under orders" are different questions. `is_none_or`
-        // covers the agents that have never been directed at all and
-        // therefore carry no queue.
-        //
-        // Filtering here rather than skipping inside the loop below also
-        // means a directed agent never has `Restless` written for it,
-        // which is what leaves `serve_intents` the single writer of that
-        // marker for such an agent instead of the two of them fighting.
-        //
-        // **Most of the time this filter is redundant, and the exceptions
-        // are what it is for.** `serve_intents` runs first and normally
-        // converts the intent into a `Target`, which this query's
-        // `Without<Target>` already excludes - so on almost every tick
-        // the suppression is achieved twice over and deleting this line
-        // would change nothing. Two windows are left, both of which leave
-        // an agent with no target, no interaction and an instruction it
-        // still means to carry out:
-        //
-        //   - it is WAITING for an object somebody else has reserved;
-        //   - `serve_intents` dropped an unservable front intent and the
-        //     queue still holds the next one, which it considers on the
-        //     following tick.
-        //
-        // `a_sim_waiting_for_a_reserved_object_does_not_fall_back_to_autonomy`
-        // covers the first and is the test that fails without this line.
-        // See [L41]: a guard normally shadowed by another guard is only
-        // observable on the input where the shadow is absent, so that
-        // fixture had to be built deliberately rather than found.
-        .filter(|(_, _, _, queue, _, _, _, _, _)| queue.is_none_or(|queue| queue.is_empty()))
-        // Cloned rather than borrowed because the loop below takes `commands`
-        // mutably; both Vecs are single digits long. A sim with no
-        // `Personality` gets the neutral one - all multipliers 1.0 - which
-        // is what keeps every fixture and golden vector predating M2c
-        // behaving exactly as it did.
+        .filter(|(_, _, needs, queue, _, _, _, _, _, _, wander, path)| {
+            queue.is_none_or(|queue| queue.is_empty())
+                && (wander.is_none_or(|w| path.is_none() && w.pause_ticks == 0)
+                    || NeedId::ALL
+                        .iter()
+                        .any(|id| needs.get(*id) <= content.0.tuning.mood_critical_need_level))
+        })
         .map(
-            |(e, pos, needs, _, hab, personality, relationships, traits, pressure)| {
+            |(
+                e,
+                pos,
+                needs,
+                _,
+                hab,
+                personality,
+                relationships,
+                traits,
+                pressure,
+                instinct,
+                _,
+                _,
+            )| {
                 (
                     e,
                     *pos,
@@ -1010,40 +927,15 @@ pub fn select_action(
                     hab.cloned().unwrap_or_default(),
                     personality.cloned().unwrap_or_default(),
                     relationships.cloned().unwrap_or_default(),
-                    // An Option rather than a defaulted clone, because the
-                    // trait helpers already read absence as neutral and an
-                    // empty Traits would be an allocation restating that.
                     traits.cloned(),
-                    // Copied rather than cloned: a u32 in a marker. Absent
-                    // reads as no pressure, which is what every fixture
-                    // predating the ramp has.
                     pressure.copied(),
+                    instinct.map_or(50, |value| value.0),
                 )
             },
         )
         .collect();
     idle.sort_by_key(|(e, ..)| e.index());
 
-    // **The objects are sorted for the same reason, and that became
-    // load-bearing at M1c rather than being tidiness.**
-    //
-    // Until selection became probabilistic this query iterated unsorted,
-    // and that was safe only because the argmax was unique regardless of
-    // order: the score comparison plus its entity-index tiebreak left no
-    // room for iteration order to decide anything. Weighted sampling
-    // removes that protection. `sample_softmax` lays the candidates'
-    // probabilities end to end and takes one draw, so **the order sets
-    // the bucket boundaries** and the same draw picks a different object
-    // depending on which one came first.
-    //
-    // Query iteration is archetype order, and an object leaves and
-    // re-enters the unreserved archetype every time it is claimed and
-    // released - leaving swap-removes it from its table and re-entering
-    // appends it at the back. So without this line the outcome of a die
-    // roll becomes a function of which objects have been used recently,
-    // which is a silent determinism break of exactly the class [D-3] and
-    // [L5] are about. `tied_scores_resolve_by_object_index_not_archetype_order`
-    // is what pins it; deleting this line must fail that test.
     let mut placed_objects: Vec<(Entity, Position, SmartObject, bool, terri_core::Footprint)> =
         objects
             .iter()
@@ -1059,159 +951,58 @@ pub fn select_action(
             .collect();
     placed_objects.sort_by_key(|(e, ..)| e.index());
 
-    // The people who could be talked to, sorted for the same
-    // bucket-order reason as the objects. Collected once, before the
-    // loop, so every agent this tick scores the same field of
-    // candidates; who is actually still available is `claimed`'s job.
     let mut company: Vec<(Entity, Position, SimId, bool)> = people
         .iter()
         .map(|(e, pos, id, reserved)| (e, *pos, *id, reserved))
         .collect();
     company.sort_by_key(|(e, ..)| e.index());
 
-    // One shortest-distance traversal per occupied source tile, not one A*
-    // per agent and candidate. The cache lives only for this immutable-grid
-    // system invocation, so a later wall or build change cannot leave stale
-    // navigation state behind. The existing A* still reconstructs the one
-    // winning route, preserving its deterministic path shape.
     let mut distance_fields: std::collections::HashMap<(i32, i32), Option<TileDistanceField>> =
         std::collections::HashMap::new();
 
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, needs, habituation, personality, relationships, traits, pressure) in idle
+    let mut decisions = Vec::new();
+    for (
+        agent,
+        agent_pos,
+        needs,
+        habituation,
+        personality,
+        relationships,
+        traits,
+        pressure,
+        instinct,
+    ) in idle
     {
-        // Reserved WITHIN this tick, by a lower-indexed initiator. The
-        // query filter above handles reservations from earlier ticks;
-        // commands are deferred, so this tick's are visible only here.
-        // Standing still includes not being marked restless - a sim
-        // about to be talked at has something happening to it - and the
-        // stale-marker removal matches the else branch below.
         if claimed.contains(&agent) {
-            // Both markers, for the same staleness reason: this sim skips
-            // the publication below entirely, and a sim somebody just
-            // chose to talk to is neither bored nor beaten to anything -
-            // a stale `Blocked` here would be the marker's second reader
-            // finding the lie the Restless comment warns about.
             commands
                 .entity(agent)
                 .remove::<Restless>()
+                .remove::<terri_core::Wander>()
                 .remove::<Blocked>();
             continue;
         }
-        // One candidate per object, in object-index order. An object
-        // offers a LIST of interactions and an agent performs ONE of
-        // them, so the interactions are resolved against each other
-        // first and the object enters the draw once, carrying whichever
-        // of its interactions this agent would pick. Entering every
-        // (object, interaction) pair separately would instead give an
-        // object weight in proportion to how many ways it can be used.
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
+        let mut risks = Vec::new();
+        let deprivation = mortality
+            .counts
+            .binary_search_by_key(&agent.index_u32(), |row| row.0)
+            .map_or(0, |at| mortality.counts[at].1);
+        let (temperature, exploration) =
+            super::autonomy::choice_parameters(&needs, &content.0.tuning);
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
         let distances = distance_fields
             .entry(from)
             .or_insert_with(|| build_distance_field(&grid, from))
             .as_ref();
 
-        // The best score this agent saw ANYWHERE, whether or not it
-        // cleared the action threshold, and the only reason it is
-        // tracked separately from `candidates`: a candidate list is
-        // filtered at `action_threshold`, so it cannot answer the
-        // weaker question `idle_threshold` asks.
-        //
-        // Negative infinity rather than zero, because a score may be
-        // negative - an interaction whose costs outweigh its benefits -
-        // and because an agent with no reachable object at all must come
-        // out of this loop restless rather than merely uninterested.
-        let mut best_seen = f32::NEG_INFINITY;
-
-        // The best score among objects the agent could actually TAKE.
-        //
-        // A second fold rather than a flag recording which object produced
-        // `best_seen`, because a flag needs a comparison inside the hot
-        // loop and the fold above deliberately has none. The two differ
-        // exactly when the best thing the agent saw belongs to somebody
-        // else, which is what `Blocked` means.
-        let mut best_available = f32::NEG_INFINITY;
-        // Track potential item scores, including available items. The final
-        // strict comparison with best_available proves that waiting actually
-        // lost to contention, rather than merely failing the action threshold.
-        let mut waiting_item: Option<(f32, crate::waiting::WaitingNeeds)> = None;
+        let mut waiting_rows: Vec<(Entity, f32, Option<crate::waiting::WaitingNeeds>)> = Vec::new();
 
         for (object, object_pos, placed, reserved, footprint) in &placed_objects {
             let object = *object;
-            // **Contested, not absent.** An object somebody else already
-            // holds is still scored, and its score still reaches `best_seen`;
-            // what it does not do is enter `candidates`. See the note on the
-            // `objects` query above for why those are two different
-            // questions, and [C3] for what conflating them looked like.
-            //
-            // Two ways to be contested and they cover different spans:
-            // `reserved` is a claim made on an earlier tick, which lasts the
-            // holder's whole walk and interaction, and `claimed` is a claim
-            // made by a lower-indexed agent inside this very tick.
             let contested = *reserved || claimed.contains(&object);
-            // **Distance here is WALL-AWARE by contract.** The reusable
-            // breadth-first field and the A* that reconstructs the winner
-            // produce the same shortest length; the metric is the commitment
-            // and either search is only an implementation of it.
-            //
-            // M0 used Euclidean distance and said to revisit it "when
-            // walls become common". They are: M1b's lot has a walled
-            // bathroom, and a straight line scores the shower as one tile
-            // away through its wall. The agent then walks round to the
-            // door, so its ranking disagrees with its own movement -
-            // which reads on screen as a sim that wants something and
-            // then changes its mind, not as a distance-metric bug.
-            //
-            // The old implementation performed one A* per idle-agent/object
-            // pair. The current five-room lot and stress harness turned that
-            // into roughly 34,000 searches on one selection tick. A field is
-            // now built once per occupied source tile and scores every object,
-            // including contested ones, without constructing candidate paths.
-            //
-            // **Do not "optimise" this back to a straight line.** [D7]
-            // plans room and portal graph distance for exactly this
-            // problem at scale, and a room-graph length is wall-aware too,
-            // so balance tuned against A* length survives that swap.
-            // Balance tuned against a straight line would survive
-            // neither. The metric is the commitment; the implementation
-            // is not.
             let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
-            // An object with no path to it is UNAVAILABLE, not free and
-            // not adjacent: skipping it here is what lets the agent fall
-            // back to the best object it can actually reach. Scoring it
-            // instead would hand the highest score in the world to
-            // something the agent then cannot walk to, and the agent
-            // would stand still forever while its needs decayed - [L17]'s
-            // failure with a wall in place of an out-of-bounds
-            // coordinate.
-            //
-            // **Beside it, not on it** - `find_path_adjacent`, whose docs carry
-            // the reasoning. The distance this yields is therefore the walk to
-            // the tile the sim will actually stand on, which is one less than
-            // the old metric on an open approach; every balance number
-            // measured before that change shifted slightly with it, and
-            // `docs/alpha-feel-notes.md` carries the re-measurement.
-            //
-            // **It does NOT change the [C5] repeat-use effect, and an earlier
-            // version of this comment said it did.** The field returns zero
-            // for an agent that is already adjacent, so
-            // an agent that has just finished an interaction scores that object
-            // at distance 0 - the same maximum score it got when the agent
-            // stood on top of it. The distance term did not move, and the
-            // measurement agrees: repeat use went 5.8% to 5.6%. See the note on
-            // `find_path_adjacent` itself.
-            //
-            // **Beside the whole RECTANGLE**, not beside the origin tile -
-            // [F4]. That makes the distance term the walk to the tile the sim
-            // will really stand on for a multi-tile object too: approaching a
-            // 2x1 bed from the east used to be scored as a walk all the way
-            // round to its origin, so the bed read as further away than it is
-            // and the sim's ranking disagreed with its own movement. Same
-            // class of error as scoring a walled-off object by straight-line
-            // distance, one object-width smaller. The rectangle is the
-            // ORIENTED one, so a turned bed is scored where it now lies.
             let Some(distance) =
                 distances.and_then(|field| field.distance_to_adjacent(to, *footprint))
             else {
@@ -1219,185 +1010,91 @@ pub fn select_action(
             };
             let distance = distance as f32;
 
-            // An object offers a list of interactions and an agent
-            // performs one of them, so each is scored separately and the
-            // winner is carried forward; see `Target::interaction`.
-            let mut best: Option<(u32, f32)> = None;
             for (index, advert) in content.0.object(placed.0).interactions.iter().enumerate() {
-                // Summing the per-need scores is a design decision, not
-                // an implementation detail. An object that satisfies two
-                // needs modestly should be able to beat one that
-                // satisfies a single need slightly better, which a max
-                // or a first-advert-wins rule would not allow.
-                // `an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta`
-                // is what pins it.
-                // **Habituation scales the BENEFIT and never a cost** - [S2].
-                //
-                // The multiplier runs from 1.0 for something never done to
-                // `habituation_floor` for something done to death, and it is
-                // applied only to POSITIVE deltas. A fourth shower in a row is
-                // less refreshing but it does not become less tiring, and
-                // scaling its `energy = -12` toward zero would make a
-                // habituated shower cheaper and therefore MORE attractive -
-                // the mechanic running backwards.
-                //
-                // Read from a per-agent component, which is the first thing in
-                // scoring that is not a property of the world alone. That is
-                // the shape `2026-07-29-satisfaction-and-traits-design.md` [S4]
-                // asks for: dispositions and per-sim affinities compose into
-                // this same multiplier rather than each getting a mechanism.
-                //
-                // The two lines of arithmetic live in `advertise.rs` rather
-                // than here, and that is not tidiness: inline, they were
-                // unconstrained by the whole suite and the M2b sweep found
-                // seven survivors across them. See `benefit_scale` for why no
-                // existing test could see it.
-                // **Personality composes into the same multiplier** - [S4]'s
-                // one-mechanism rule, now with its second and third sources.
-                // The disposition is per-interaction like habituation; the
-                // satisfaction multiplier is per-NEED, so it joins inside
-                // the advert loop. All of them scale BENEFITS only, through
-                // `scaled_delta`, and for the same reason: a sim that fears
-                // the couch is not exempt from the couch's costs, and a sim
-                // that gets little from eating still gets tired walking.
-                //
-                // A disposition of 0 - the authored "fear" - zeroes every
-                // benefit and leaves every cost, so the net score cannot
-                // clear `action_threshold` and the sim never chooses it on
-                // its own. A COMMAND still works: `serve_intents` does not
-                // score.
+                let snack = (advert.id == "grab_snack")
+                    .then(|| {
+                        content
+                            .0
+                            .chains
+                            .iter()
+                            .find(|chain| chain.id == crate::domestic::SNACK)
+                    })
+                    .flatten();
+                if snack.is_some_and(|chain| {
+                    chain
+                        .steps
+                        .iter()
+                        .any(|step| role_positions[step.role as usize].is_empty())
+                }) {
+                    continue;
+                }
+                let duration = snack.map_or(advert.duration_ticks, |chain| {
+                    chain.steps.iter().map(|step| step.duration_ticks).sum()
+                });
+                let travel =
+                    distance + snack.map_or(0.0, |chain| chain_travel(chain, &role_positions));
+                let benefits = snack.map_or(&advert.advertises, |chain| &chain.advertises);
+                let chain_tags = snack.map(super::chain::chain_tags);
+                let tags = chain_tags.as_ref().unwrap_or(&advert.tags);
                 let hab = habituation.get(placed.0, index as u32);
-                // The FOURTH source into the one multiplier ([S4]):
-                // trait dispositions, keyed by TAG so one fear covers
-                // every couch-shaped route, beside the archetype
-                // dispositions keyed by (object, interaction). Two
-                // lookup keys, one slot.
-                // The FIFTH source into the one multiplier ([S4]): the
-                // circadian sleep drive, keyed by TAG like the trait
-                // dispositions beside it, and per-sim through the
-                // chronotype offset so the household does not go to bed
-                // on the same tick.
-                //
-                // It scales BENEFITS only, like every other source, and
-                // for the same reason: a sim who is not sleepy yet still
-                // pays the full walk to the bedroom.
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, index as u32)
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),
                         content.0,
-                        &advert.tags,
+                        tags,
                     )
                     * super::circadian::sleep_drive(
                         content.0,
                         &clock,
                         personality.chronotype_offset_ticks,
-                        &advert.tags,
+                        tags,
                         pressure.map_or(0, |p| p.ticks),
                     );
                 let mut score = 0.0;
-                for (need_index, delta) in &advert.advertises {
+                for (need_index, delta) in benefits {
                     let satisfaction = personality.satisfaction[*need_index as usize];
                     let delta = scaled_delta(*delta, scale * satisfaction);
-                    // In range by construction: content validation
-                    // rejects an advert naming a need rustc does not
-                    // know, so a compiled pack cannot hold a bad index.
                     let id = NeedId::ALL[*need_index as usize];
-                    score += score_advertisement(
-                        needs.deficit(id),
+                    score += super::autonomy::need_score(
+                        &needs,
+                        id,
                         delta,
-                        advert.duration_ticks,
-                        distance,
+                        duration,
+                        travel,
+                        instinct,
+                        &content.0.tuning,
                     );
                 }
-                // Every score is offered to `best_seen`, including ones
-                // no candidate list will ever hold. That is the whole
-                // point of tracking it: `idle_threshold` asks a weaker
-                // question than `action_threshold`, so it has to see the
-                // scores the action filter throws away.
-                //
-                // `f32::max` rather than `if score > best_seen`, and the
-                // reason is mutation coverage rather than brevity. That
-                // comparison relaxed to `>=` is an EQUIVALENT mutant -
-                // reassigning a value equal to the one already held
-                // changes nothing - so it would survive every possible
-                // test and land in the baseline as permanent noise. A
-                // baseline that only ever grows becomes a permission
-                // slip, so the better fix is code with no comparison to
-                // mutate. Same idiom, and the same reasoning, as the
-                // fold in `sample_softmax`; `f32` is not `Ord`, which is
-                // why this is a method rather than `std::cmp::max`.
-                //
-                // A contested object is offered here ATTENUATED. It is
-                // still the best thing this agent can see, so it still
-                // answers `idle_threshold`'s question - but it is worth
-                // less than the same object free, because the agent
-                // cannot have it yet, and how much less is the knob.
+                let risk = super::autonomy::survival_penalty(
+                    content.0,
+                    &needs,
+                    &personality,
+                    instinct,
+                    benefits,
+                    duration,
+                    travel,
+                    tags.contains(&content.0.sleep_tag),
+                    deprivation,
+                    mortality.enabled,
+                    snack.is_some(),
+                );
+                score -= risk;
                 let waiting_score = contested_score(score, contested_multiplier);
-                if waiting_item
-                    .as_ref()
-                    .is_none_or(|(best, _)| waiting_score > *best)
-                {
-                    waiting_item = Some((
+                if contested {
+                    waiting_rows.push((
+                        object,
                         waiting_score,
-                        crate::waiting::advertised_needs(object, &advert.advertises),
+                        Some(crate::waiting::advertised_needs(object, benefits)),
                     ));
                 }
-                best_seen = best_seen.max(if contested {
-                    contested_score(score, contested_multiplier)
-                } else {
-                    score
-                });
-                if !contested {
-                    best_available = best_available.max(score);
-                }
 
-                // STRICTLY greater, and that is the mechanism rather
-                // than a default: two interactions on the same object
-                // that score equally must resolve to the EARLIER one, or
-                // which interaction an agent performs starts depending on
-                // declaration order in content with nothing saying so.
-                // Relaxed to `>=` the later one takes over, which is what
-                // `a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
-                // fails on.
-                //
-                // The entity-index clause that used to sit here settled
-                // ties between OBJECTS as well, and that half is gone
-                // because the argmax it protected is gone: under weighted
-                // sampling two tied objects both enter the draw, and what
-                // decides which of them occupies the first probability
-                // bucket is the sort above. [D-3] is where that handover
-                // is written down.
-                let better = match &best {
-                    Some((_, best_score)) => score > *best_score,
-                    None => true,
-                };
-                if score > action_threshold && better {
-                    best = Some((index as u32, score));
+                if !contested {
+                    candidates.push((object, index as u32, score));
+                    risks.push(risk);
                 }
             }
 
-            // **The one place availability is applied.** The score above has
-            // already reached `best_seen`, which is the whole point: the agent
-            // now knows something here was worth wanting even though it cannot
-            // have this one, so it waits instead of being told the house is
-            // boring.
-            if let Some((interaction, score)) = best {
-                if !contested {
-                    candidates.push((object, interaction, score));
-                }
-            }
-
-            // **The object's CHAINS, costed whole** - [K2]. A chain is
-            // a candidate at its advertiser under the flyout row
-            // `interactions.len() + position`, scored with the same
-            // scalar over the TERMINAL deltas against the whole
-            // errand: every step's duration plus an estimated leg
-            // between consecutive stations (cheapest pair, manhattan -
-            // real pathing happens per leg at step time). Habituation
-            // and the archetype disposition key on the same row, and
-            // trait dispositions read the union of step tags, so all
-            // four sources reach the one multiplier slot unchanged.
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
             let mut chain_row = 0u32;
             for chain in content.0.chains.iter() {
@@ -1406,27 +1103,18 @@ pub fn select_action(
                 }
                 let row = interactions_len + chain_row;
                 chain_row += 1;
-                if crate::domestic::hidden_chain(&chain.id) || chain.id == crate::domestic::CLEANUP
+                if crate::domestic::hidden_chain(&chain.id)
+                    || chain.id == crate::domestic::CLEANUP
+                    || chain
+                        .steps
+                        .iter()
+                        .any(|step| role_positions[step.role as usize].is_empty())
                 {
                     continue;
                 }
 
                 let total_duration: u32 = chain.steps.iter().map(|s| s.duration_ticks).sum();
-                let mut legs = 0.0f32;
-                for pair in chain.steps.windows(2) {
-                    let from = &role_positions[pair[0].role as usize];
-                    let to = &role_positions[pair[1].role as usize];
-                    let mut shortest = f32::INFINITY;
-                    for (ax, ay) in from {
-                        for (bx, by) in to {
-                            let leg = (ax - bx).abs() + (ay - by).abs();
-                            shortest = shortest.min(leg);
-                        }
-                    }
-                    if shortest.is_finite() {
-                        legs += shortest;
-                    }
-                }
+                let legs = chain_travel(chain, &role_positions);
 
                 let tags = super::chain::chain_tags(chain);
                 let hab = habituation.get(placed.0, row);
@@ -1442,74 +1130,52 @@ pub fn select_action(
                     let satisfaction = personality.satisfaction[*need_index as usize];
                     let delta = scaled_delta(*delta, scale * satisfaction);
                     let id = NeedId::ALL[*need_index as usize];
-                    score += score_advertisement(
-                        needs.deficit(id),
+                    score += super::autonomy::need_score(
+                        &needs,
+                        id,
                         delta,
                         total_duration,
                         distance + legs,
+                        instinct,
+                        &content.0.tuning,
                     );
                 }
+                let risk = super::autonomy::survival_penalty(
+                    content.0,
+                    &needs,
+                    &personality,
+                    instinct,
+                    &chain.advertises,
+                    total_duration,
+                    distance + legs,
+                    false,
+                    deprivation,
+                    mortality.enabled,
+                    true,
+                );
+                score -= risk;
                 let waiting_score = contested_score(score, contested_multiplier);
-                if waiting_item
-                    .as_ref()
-                    .is_none_or(|(best, _)| waiting_score > *best)
-                {
-                    waiting_item = Some((
+                if contested {
+                    waiting_rows.push((
+                        object,
                         waiting_score,
-                        crate::waiting::advertised_needs(object, &chain.advertises),
+                        Some(crate::waiting::advertised_needs(object, &chain.advertises)),
                     ));
                 }
-                best_seen = best_seen.max(if contested {
-                    contested_score(score, contested_multiplier)
-                } else {
-                    score
-                });
                 if !contested {
-                    best_available = best_available.max(score);
-                    if score > action_threshold {
-                        candidates.push((object, row, score));
-                    }
+                    candidates.push((object, row, score));
+                    risks.push(risk);
                 }
             }
         }
 
-        // **The other sims, scored with the same arithmetic** - [H4]. A
-        // person enters the draw exactly as a fridge does: pathed to,
-        // scored per advertised need, filtered at the same thresholds.
-        // They append AFTER the objects, so the bucket order stays a
-        // function of world state - objects by entity index, then people
-        // by entity index - and a tied draw between a person and an
-        // object resolves the way tied objects already do, by list
-        // position.
-        //
-        // What replaces the object-side multipliers: no habituation and
-        // no disposition ([H7] - the cubed urgency of a FILLED social
-        // need is the brake on talk loops), and in their place the
-        // relationship toward this specific person, through
-        // `relationship_scale` ([H8]). Satisfaction still joins per
-        // need, because a personality that enjoys company less is
-        // harder to top up in conversation too.
         for (other, other_pos, other_id, reserved) in &company {
             let other = *other;
-            // A sim does not talk to itself, and the exclusion is by
-            // ENTITY rather than by SimId on purpose: entity identity is
-            // what reservation and pathing run on, and a SimId
-            // comparison would quietly do the wrong thing if an id were
-            // ever duplicated by a bug rather than loudly double-booking.
             if other == agent {
                 continue;
             }
-            // Contested for [C3]'s reasons, spans and all: `reserved` is
-            // an earlier tick's claim, `claimed` is this tick's - which
-            // also covers a lower-indexed agent that CHOSE anything this
-            // tick, initiators included, since choosing makes a sim no
-            // longer idle and [H10] says only idle sims are targets.
             let contested = *reserved || claimed.contains(&other);
             let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
-            // Beside the person, 1x1: a sim occupies one tile and blocks
-            // none, so the whole-rectangle form collapses to this. An
-            // unreachable person is skipped for [L17]'s reason, same as
-            // an unreachable object.
             let Some(distance) = distances
                 .and_then(|field| field.distance_to_adjacent(to, terri_core::Footprint::SINGLE))
             else {
@@ -1521,12 +1187,7 @@ pub fn select_action(
                 relationships.feeling(*other_id),
                 content.0.tuning.relationship_delta_scale,
             );
-            let mut best: Option<(u32, f32)> = None;
             for (index, advert) in content.0.social.iter().enumerate() {
-                // Trait dispositions weigh people-candidates exactly as
-                // they weigh objects - the vocabulary is tagged, so a
-                // sim who loves company scores every chat up through
-                // the same one slot ([S4]).
                 let scale = relationship
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),
@@ -1538,115 +1199,131 @@ pub fn select_action(
                     let satisfaction = personality.satisfaction[*need_index as usize];
                     let delta = scaled_delta(*delta, scale * satisfaction);
                     let id = NeedId::ALL[*need_index as usize];
-                    score += score_advertisement(
-                        needs.deficit(id),
+                    score += super::autonomy::need_score(
+                        &needs,
+                        id,
                         delta,
                         advert.duration_ticks,
                         distance,
+                        instinct,
+                        &content.0.tuning,
                     );
                 }
-                // A PERSON follows the contested-waiting rule exactly as
-                // an object does: a spoken-for sim still answers
-                // `idle_threshold`'s question, attenuated by the same
-                // knob, and an available one feeds `best_available` so
-                // `Blocked` cannot fire on an agent whose best option is
-                // a person it can actually walk up to. One rule, two
-                // kinds of candidate - anything else and the merge of
-                // the waiting knob and [H4] would have made "worth
-                // waiting for" mean different things for a fridge and a
-                // friend.
-                best_seen = best_seen.max(if contested {
-                    contested_score(score, contested_multiplier)
-                } else {
-                    score
-                });
-                if !contested {
-                    best_available = best_available.max(score);
+                let risk = super::autonomy::survival_penalty(
+                    content.0,
+                    &needs,
+                    &personality,
+                    instinct,
+                    &advert.advertises,
+                    advert.duration_ticks,
+                    distance,
+                    advert.tags.contains(&content.0.sleep_tag),
+                    deprivation,
+                    mortality.enabled,
+                    false,
+                );
+                score -= risk;
+                if contested {
+                    waiting_rows.push((other, contested_score(score, contested_multiplier), None));
                 }
-                let better = match &best {
-                    Some((_, best_score)) => score > *best_score,
-                    None => true,
-                };
-                if score > action_threshold && better {
-                    best = Some((index as u32, score));
-                }
-            }
-
-            if let Some((interaction, score)) = best {
                 if !contested {
-                    candidates.push((other, interaction, score));
+                    candidates.push((other, index as u32, score));
+                    risks.push(risk);
                 }
             }
         }
 
-        // Publish restlessness before returning, whichever way this goes.
-        // `idle::wander` is the only reader; this system is the only
-        // writer, because it is the only one that scores anything.
-        //
-        // The condition needs no `candidates.is_empty()` clause and
-        // deliberately does not have one: any candidate at all scored
-        // above `action_threshold`, and content validation forbids
-        // `idle_threshold` from exceeding it, so a non-empty candidate
-        // list already implies `best_seen > idle_threshold`. Adding the
-        // clause would be a second statement of the same fact, and the
-        // two could later disagree.
-        if best_seen <= idle_threshold {
-            commands.entity(agent).insert(Restless);
-        } else {
-            // Removed rather than left stale. Nothing depends on that
-            // today - `wander`'s filters exclude an agent that has a
-            // target - but a marker that means "nothing is worth doing"
-            // sitting on a sim walking to the fridge is a lie waiting
-            // for its second reader.
-            commands.entity(agent).remove::<Restless>();
+        // Waiting targets and their interactions are sampled like available targets.
+        let mut waiting_choices = Vec::new();
+        for (target, score, waiting) in waiting_rows {
+            let risk = super::autonomy::survival_penalty(
+                content.0,
+                &needs,
+                &personality,
+                instinct,
+                &[],
+                1,
+                0.0,
+                false,
+                deprivation,
+                mortality.enabled,
+                false,
+            );
+            waiting_choices.push((candidates.len(), waiting));
+            candidates.push((target, u32::MAX - 1, score - risk));
+            risks.push(risk);
         }
-
-        // And publish whether the best thing it saw was somebody else's.
-        //
-        // STRICTLY greater, and both halves of that matter. Equal means
-        // something the agent can have is just as good as the thing it
-        // cannot, so it is not blocked by anybody. And an agent that saw
-        // no object at all leaves both maxima at negative infinity, which
-        // relaxed to `>=` would mark it blocked in an empty room -
-        // `an_agent_in_an_empty_room_is_restless_but_not_blocked` is what
-        // that fails.
-        //
-        // This can be true at the same time as `Restless` above, and the
-        // pair is the design rather than a contradiction: it wanted a
-        // contested thing, but not enough to wait for it. See `Blocked`.
-        if best_seen > best_available {
-            commands.entity(agent).insert(Blocked);
-        } else {
-            commands.entity(agent).remove::<Blocked>();
+        let wander_risk = super::autonomy::survival_penalty(
+            content.0,
+            &needs,
+            &personality,
+            instinct,
+            &[],
+            content.0.tuning.wander_pause_ticks + content.0.tuning.wander_radius_tiles * 4,
+            0.0,
+            false,
+            deprivation,
+            mortality.enabled,
+            false,
+        );
+        candidates.push((agent, u32::MAX, idle_threshold - wander_risk));
+        risks.push(wander_risk);
+        let probabilities = super::autonomy::grouped_probabilities(
+            &candidates,
+            &risks,
+            temperature,
+            exploration,
+            content.0.tuning.choice_probability_floor,
+        );
+        let picked = super::autonomy::sample(&probabilities, &mut rng);
+        decisions.push(super::autonomy::Decision {
+            agent: agent.index_u32(),
+            instinct,
+            lowest_need: NeedId::ALL
+                .iter()
+                .map(|id| needs.get(*id))
+                .fold(100.0, f32::min),
+            chosen: picked,
+            choices: candidates
+                .iter()
+                .zip(&risks)
+                .zip(&probabilities)
+                .map(|(((target, interaction, score), risk), probability)| {
+                    (
+                        target.index_u32(),
+                        *interaction,
+                        *score,
+                        *risk,
+                        *probability,
+                    )
+                })
+                .collect(),
+        });
+        let (object, interaction, _) = candidates[picked];
+        commands.entity(agent).remove::<Blocked>();
+        if object != agent {
+            // A critical-need replacement releases the previous targetless stroll.
+            commands
+                .entity(agent)
+                .remove::<Path>()
+                .remove::<terri_core::Wander>();
         }
-
-        if candidates.is_empty() {
-            if let Some((score, needs)) = waiting_item {
-                if score > idle_threshold && score > best_available && score >= best_seen {
-                    commands.entity(agent).insert(needs);
-                }
+        if interaction == u32::MAX - 1 {
+            commands.entity(agent).remove::<Restless>().insert(Blocked);
+            if let Some((_, Some(waiting))) = waiting_choices.iter().find(|(at, _)| *at == picked) {
+                commands.entity(agent).insert(*waiting);
             }
             continue;
         }
+        if object == agent {
+            commands.entity(agent).insert(Restless);
+            continue;
+        }
+        commands
+            .entity(agent)
+            .remove::<Restless>()
+            .remove::<terri_core::Wander>();
 
-        // The draw. **Nothing between building `candidates` and this line
-        // may reorder it**: its order is the bucket order `sample_softmax`
-        // documents, and it is the object-index order the sort above
-        // established. The `swap_remove` afterwards does reorder it, which
-        // is harmless only because the vector is dropped on the next
-        // iteration - move it above the draw and the determinism goes with
-        // it.
-        let scores: Vec<f32> = candidates.iter().map(|(_, _, score)| *score).collect();
-        let picked = sample_softmax(&scores, temperature, &mut rng);
-        let (object, interaction, _) = candidates.swap_remove(picked);
-
-        // **A chain row commits a COUNTER, not a walk** - the winner's
-        // row past its object's interactions names a chain, and
-        // advance_chains (next in the schedule) does all targeting and
-        // reserving, so there is exactly one station-picking code
-        // path. The agent is claimed (it chose, so it is not idle);
-        // the advertiser is not - the chain may well start there, but
-        // that is the station picker's call against live reservations.
         if let Ok((_, _, placed, _, _)) = objects.get(object) {
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
             if content
@@ -1709,18 +1386,12 @@ pub fn select_action(
         };
 
         claimed.push(object);
-        // The INITIATOR is claimed as well as the winner, and it matters
-        // only when the winner list holds people: this agent just chose
-        // something, so it is no longer idle, and [H10] says a
-        // later-indexed agent must not plan a conversation with it. Its
-        // `Target` says the same thing, but that is a deferred command
-        // this tick's iterations cannot see. Harmless for the object
-        // half - the object loop only ever compares object entities.
         claimed.push(agent);
-        // `Reserved` works unchanged whether the winner is a fridge or a
-        // person - [H4]'s whole contention decision is this one line
-        // reusing the existing mechanism, including the [C3] fix.
-        commands.entity(object).insert(Reserved);
+        commands
+            .entity(object)
+            .remove::<terri_core::Wander>()
+            .remove::<Restless>()
+            .insert(Reserved);
         commands.entity(agent).insert((
             Target {
                 object,
@@ -1728,6 +1399,73 @@ pub fn select_action(
             },
             Path { steps, cursor: 0 },
         ));
+    }
+    commands.insert_resource(super::autonomy::DecisionTelemetry(decisions));
+}
+
+#[cfg(test)]
+mod staged_snack_tests {
+    use super::tests::{spawn_agent_with, spawn_object};
+    use super::*;
+    use crate::{test_content, Sim};
+
+    fn snack_choice(counter_x: Option<f32>, death_enabled: bool) -> Option<(f32, f32)> {
+        let pack = terri_data::pack();
+        let mut sim: Sim = test_content::sim_with(16, 16, pack);
+        let fridge = spawn_object(&mut sim, 2.0, 1.0, pack.find("fridge").unwrap());
+        if let Some(x) = counter_x {
+            spawn_object(&mut sim, x, 1.0, pack.find("counter").unwrap());
+        }
+        let mut needs = Needs::all_at(100.0);
+        needs.set(NeedId::Hunger, 0.0);
+        let agent = spawn_agent_with(&mut sim, 1.0, 1.0, needs);
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::SelfPreservation(100));
+        sim.world_mut()
+            .insert_resource(terri_core::save::SavedMortality {
+                enabled: death_enabled,
+                counts: vec![(agent.index_u32(), pack.tuning.death_after_ticks - 20)],
+                deaths: vec![],
+            });
+        sim.tick();
+        let decision = &sim
+            .world()
+            .resource::<super::super::autonomy::DecisionTelemetry>()
+            .0[0];
+        let choices: Vec<_> = decision
+            .choices
+            .iter()
+            .filter(|choice| choice.0 == fridge.index_u32() && choice.1 == 0)
+            .collect();
+        assert!(choices.len() <= 1, "snacks have one visible candidate");
+        choices.first().map(|choice| (choice.2, choice.3))
+    }
+
+    #[test]
+    fn staged_snack_risk_waits_for_terminal_recovery_and_includes_counter_travel() {
+        let near = snack_choice(Some(6.0), true).unwrap();
+        let far = snack_choice(Some(14.0), true).unwrap();
+        assert!(
+            near.1 > 0.0,
+            "adjacent fridge cannot feed a Sim before prep and eating finish"
+        );
+        assert!(
+            far.1 > near.1,
+            "travel to the preparation counter delays recovery further"
+        );
+        let harmless = snack_choice(Some(6.0), false).unwrap();
+        assert_eq!(harmless.1, 0.0);
+        assert!(
+            harmless.0 > near.0,
+            "the late recovery penalty lowers the actual candidate score"
+        );
+    }
+
+    #[test]
+    fn staged_snack_is_ineligible_without_a_preparation_counter() {
+        assert!(snack_choice(None, false).is_none());
+        assert!(snack_choice(Some(6.0), false).is_some());
     }
 }
 
@@ -2737,6 +2475,9 @@ mod tests {
     fn decisive_tuning() -> Tuning {
         Tuning {
             choice_temperature: DECISIVE_TEMPERATURE,
+            choice_comfort_temperature: DECISIVE_TEMPERATURE,
+            choice_exploration: 1e-8,
+            choice_comfort_exploration: 1e-8,
             ..test_content::tuning()
         }
     }
@@ -2821,15 +2562,8 @@ mod tests {
         );
     }
 
-    /// The threshold `select_action` actually compares against.
-    ///
-    /// Read from content rather than restated as `0.05`, because the
-    /// threshold is TUNING now: it lives in `content/tuning.toml` per
-    /// [D-1], and `test_content::pack` copies the shipped knobs into
-    /// every fixture in this module, so this is the same number the
-    /// system used on the tick each test just ran. A literal here would
-    /// leave every precondition below green while silently no longer
-    /// testing the real threshold, from the first time anybody tunes it.
+    /// Historical score boundary used to compare fixture strengths.
+    /// Autonomy no longer filters candidates at this compatibility value.
     pub(super) fn action_threshold() -> f32 {
         test_content::tuning().action_threshold
     }
@@ -3182,25 +2916,9 @@ mod tests {
         (sim, fridge, winner, loser)
     }
 
-    /// **An agent outbid WITHIN a tick must not be told nothing is worth
-    /// doing.**
-    ///
-    /// `Restless` means "nothing this agent can reach scored above
-    /// `idle_threshold`", and `idle::wander` reads it as permission to send
-    /// the sim for a stroll. An agent that wanted the fridge and lost it to
-    /// a lower-indexed agent this tick has a false claim written about it,
-    /// and the visible result is a sim walking away from the thing it
-    /// wanted rather than waiting near it.
-    ///
-    /// The cause is ordering inside the candidate loop: a `claimed` object
-    /// was skipped by `continue` *before* its score could be folded into
-    /// `best_seen`, so the loser came out with `best_seen` still at
-    /// negative infinity - the value that means "no reachable object at
-    /// all".
-    ///
-    /// Recorded as [C3] in `docs/alpha-feel-notes.md`, and noted there as
-    /// unobservable on the shipped page because it has one sim. This test
-    /// is the two-sim world that observes it.
+    /// Same-tick claims remain visible as weighted waiting alternatives.
+    /// This cold fixture chooses the contested fridge, so the loser waits
+    /// without starting a stroll. Recorded ordering regression [C3].
     #[test]
     fn an_agent_outbid_within_a_tick_waits_rather_than_wandering_off() {
         let (mut sim, fridge, winner, loser) = one_object_two_agents();
@@ -3415,9 +3133,8 @@ mod tests {
              and stroll, rather than standing and staring at it"
         );
         assert!(
-            sim.world().get::<Blocked>(loser).is_some(),
-            "it is still true that the best thing it saw was taken; Blocked \
-             and Restless together mean 'wanted it, not enough'"
+            sim.world().get::<Blocked>(loser).is_none(),
+            "a sampled stroll has no simultaneous occupied-item wait"
         );
     }
 
@@ -3893,10 +3610,8 @@ mod tests {
                     "a rested agent must still prefer the costly object; \
                      {costly_score} vs {cheap_score}"
                 );
-                // Only the rested run is a choice between two candidates.
-                // In the exhausted run the costly object scores below the
-                // action threshold, so it never enters the draw at all -
-                // which the `costly_score < 0.0` assertion below states.
+                // Both candidates remain eligible. The cold fixture makes
+                // the utility difference decisive for this fixed draw.
                 assert_decisive(costly_score, cheap_score);
                 (
                     costly,
@@ -3935,9 +3650,8 @@ mod tests {
         //   - scoring all of them but recording a constant index.
         //
         // The strong interaction is deliberately SECOND, and the weak one
-        // is deliberately below the action threshold on its own, so
-        // "scores the first and stops" produces no selection at all
-        // rather than a wrong one.
+        // is weaker than the historical action threshold. This cold fixture
+        // overwhelmingly selects the stronger row, while both stay eligible.
         const WEAK_DELTA: f32 = 0.5;
         const STRONG_DELTA: f32 = 40.0;
         const DURATION: u32 = 15;
@@ -4009,6 +3723,9 @@ mod tests {
     /// "keep the last" and "keep the worst" all produce index 0 and fail.
     #[test]
     fn the_better_of_two_worthwhile_interactions_on_one_object_is_the_one_recorded() {
+        // Historical argmax rationale above describes the original regression.
+        // Today both rows are sampled; this fixed cold draw chooses the feast.
+
         const SNACK_DELTA: f32 = 20.0;
         const FEAST_DELTA: f32 = 40.0;
         const DURATION: u32 = 15;
@@ -4060,6 +3777,9 @@ mod tests {
 
     #[test]
     fn a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object() {
+        // The old name records its argmax regression. Current equal rows both
+        // have positive probability; this assertion pins only this seeded draw.
+
         // `object.index() < best_e.index()` does two jobs now that an
         // object offers a list of interactions, and only one of them was
         // tested.
@@ -4128,132 +3848,33 @@ mod tests {
     }
 
     #[test]
-    fn a_score_exactly_at_the_action_threshold_selects_nothing() {
-        // The threshold comparison is `score > action_threshold`. The
-        // only input that can tell `>` from `>=` is a score that lands
-        // exactly on the tuned value, so this test constructs one bit
-        // exactly rather than approaching it.
-        //
-        // Every term is chosen to be exact in binary32: hunger decays to
-        // exactly 50.0 on the first tick, giving deficit 0.5 and urgency
-        // 0.125; two tiles of travel at 0.25 tiles per tick is 8 ticks,
-        // plus 7 ticks of interaction plus 1 is a denominator of exactly
-        // 16. 6.4, 0.8 and 0.05 share a mantissa, so 0.125 * 6.4 / 16 is
-        // 0.05f32 with no rounding anywhere.
-        //
-        // **The object sits THREE tiles away and the agent walks two**,
-        // because selection paths to a neighbour of the object rather than
-        // onto it. That is the one term the adjacency change moved: it was
-        // placed two tiles out and walked two, and re-deriving meant pushing
-        // the placement out by one so the walk - which is what the score
-        // divides by - stays at two and the denominator stays at exactly 16.
-        // Re-derived rather than relaxed, exactly as the note below demands.
-        //
-        // **The deltas below stay literal, and 0.05 stays the authored
-        // `action_threshold`.** This is the one test in the module whose
-        // fixture is arithmetic rather than an inequality, so it is also
-        // the one that cannot follow a tuned value: a threshold that is
-        // not exactly representable, or that no product of these terms
-        // lands on, breaks the construction rather than shifting it. The
-        // bit-equality precondition below is what says so out loud, and
-        // it is deliberately an equality of BIT PATTERNS rather than an
-        // ordinary inequality - the moment it relaxes, this test stops
-        // being able to tell `>` from `>=` at all. If a tuning pass ever
-        // fails it, re-derive the fixture against the new value; do not
-        // weaken the assertion.
-        //
-        // **Summing across needs does not move this arithmetic**, and
-        // that is a property of the fixture rather than luck: the
-        // boundary object advertises exactly ONE need, so the sum in
-        // `select_action` has a single term. The agent's other six needs
-        // are not advertised by it at all - which is not the same as
-        // being advertised at zero - so they cannot perturb the total
-        // however they decay. The bit-equality precondition below is what
-        // would catch it if that ever stopped being true.
-        //
-        // Task 7 tested that claim by making all seven needs decay, and
-        // this test stayed green: the other six now fall every tick and
-        // the score is unchanged, because none of them is advertised.
-        // Only hunger's own rate can move this arithmetic, and it did not
-        // change.
-        //
-        // The above and below cases are not decoration: without them
-        // "selects nothing" would also be satisfied by a world that can
-        // never select anything.
-        const EXACT_DELTA: f32 = 6.4;
-        const ABOVE_DELTA: f32 = 6.5;
-        const BELOW_DELTA: f32 = 6.3;
-        const AGENT_AT: (f32, f32) = (5.0, 5.0);
-        const OBJECT_AT: (f32, f32) = (8.0, 5.0);
-        const DURATION: u32 = 7;
-
-        /// Builds a one-object world, ticks once, and reports whether the
-        /// agent selected anything.
-        fn selects(delta: f32) -> bool {
-            let content = test_content::pack(vec![test_content::object(
-                "boundary",
+    fn scores_below_at_and_above_the_old_threshold_remain_eligible() {
+        for delta in [6.3, 6.4, 6.5] {
+            let content = decisive_pack(vec![test_content::object(
+                "choice",
                 &[(NeedId::Hunger, delta)],
-                DURATION,
+                7,
             )]);
             let mut sim = test_content::sim_with(16, 16, content);
-            let object = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "boundary"));
-            // Decay runs before selection, so start one tick's worth
-            // above the level the arithmetic below assumes.
-            let agent = spawn_agent(
-                &mut sim,
-                AGENT_AT.0,
-                AGENT_AT.1,
-                50.0 + test_content::decay_per_tick(NeedId::Hunger),
-            );
-
+            let object = spawn_object(&mut sim, 8.0, 5.0, def(content, "choice"));
+            let agent = spawn_agent(&mut sim, 5.0, 5.0, 50.0);
             sim.tick();
-
-            assert_eq!(
-                deficit_after_tick(&sim, agent, NeedId::Hunger),
-                0.5,
-                "the deficit scoring saw must be exactly 0.5 or the \
-                 boundary arithmetic below does not land on the constant"
-            );
-            match sim.world().get::<Target>(agent) {
-                Some(target) => {
-                    assert_eq!(
-                        target.object, object,
-                        "the only object in the world must be the one selected"
-                    );
-                    true
-                }
-                None => false,
-            }
+            let decisions = &sim
+                .world()
+                .resource::<super::super::autonomy::DecisionTelemetry>()
+                .0;
+            let decision = decisions
+                .iter()
+                .find(|d| d.agent == agent.index_u32())
+                .unwrap();
+            assert!(decision
+                .choices
+                .iter()
+                .any(
+                    |(target, _, _, _, probability)| *target == object.index_u32()
+                        && *probability > 0.0
+                ));
         }
-
-        // Precondition: the middle case really is the boundary, bitwise.
-        // Against the TUNED threshold, not against a second copy of
-        // 0.05 - the fixture is derived from the authored value, and
-        // this is what fails loudly if that value ever moves.
-        let exact =
-            score_advertisement(0.5, EXACT_DELTA, DURATION, walk_tiles(AGENT_AT, OBJECT_AT));
-        assert_eq!(
-            exact.to_bits(),
-            action_threshold().to_bits(),
-            "the boundary case must score bit-identically to the tuned \
-             action_threshold or it tests an ordinary inequality; got \
-             {exact} against {}",
-            action_threshold()
-        );
-
-        assert!(
-            selects(ABOVE_DELTA),
-            "a score above the threshold must be acted on"
-        );
-        assert!(
-            !selects(EXACT_DELTA),
-            "the threshold is strict: a score exactly equal to \
-             action_threshold is not worth doing"
-        );
-        assert!(
-            !selects(BELOW_DELTA),
-            "a score below the threshold must be ignored"
-        );
     }
 
     #[test]
@@ -4697,10 +4318,10 @@ mod tests {
             sim.tick();
 
             deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
-            let target = sim
-                .world()
-                .get::<Target>(agent)
-                .expect("the agent must choose one of the two objects");
+            let Some(target) = sim.world().get::<Target>(agent) else {
+                assert!(sim.world().get::<terri_core::Wander>(agent).is_some());
+                continue;
+            };
             if target.object == better {
                 wins.0 += 1;
             } else {
@@ -4728,10 +4349,9 @@ mod tests {
             better_score > worse_score,
             "the better object must score higher; {better_score} vs {worse_score}"
         );
-        assert_eq!(
-            u64::from(wins.0 + wins.1),
-            RUNS,
-            "every run must have produced a choice: {wins:?}"
+        assert!(
+            u64::from(wins.0 + wins.1) >= RUNS * 95 / 100,
+            "urgent recovery must dominate the broader pool: {wins:?}"
         );
 
         assert!(

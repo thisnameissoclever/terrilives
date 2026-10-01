@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 import {
   NeedsPanel,
   levelPercent,
@@ -109,6 +110,49 @@ describe('levelPercent', () => {
 });
 
 describe('NeedsPanel', () => {
+  it('skips unchanged captions and warnings in selected and empty states', () => {
+    const title = caption();
+    const stateText = { textContent: '' };
+    const panel = new NeedsPanel({ hidden: false }, title, [{ ...bar(), stateText }], 0, 100);
+    const source = new CountingSource(3, new Float32Array([12]));
+    panel.update(0, source);
+    const captionProbe = textWriteProbe(title);
+    const stateProbe = textWriteProbe(stateText);
+    panel.update(1, source);
+    expect([captionProbe.writes, stateProbe.writes]).toEqual([0, 0]);
+    source.name = 'Casey';
+    source.levels[0] = 35;
+    panel.update(2, source);
+    expect(title.textContent).toBe('Casey');
+    expect(stateText.textContent).toBe(' (low)');
+    source.selected = null;
+    panel.update(3, source);
+    panel.update(4, source);
+    expect([captionProbe.writes, stateProbe.writes]).toEqual([2, 2]);
+    expect(title.textContent).toBe('Select a person');
+    expect(stateText.textContent).toBe('');
+    title.textContent = 'External change';
+    panel.update(5, source);
+    expect(title.textContent).toBe('Select a person');
+  });
+
+  it.each(['deselected', 'no-needs'])('clears obsolete warning labels when %s and restores them on selection', emptyKind => {
+    const fills = [12, 35, 80].map(() => ({...bar(), stateText: {textContent: ''}}));
+    const panel = new NeedsPanel({hidden: false}, caption(), fills, 0, 100,
+      {hidden: true}, {hidden: false});
+    const source = new CountingSource(3, new Float32Array([12, 35, 80]));
+    panel.update(0, source);
+    expect(fills.map(fill => fill.stateText.textContent)).toEqual([' (critical)', ' (low)', '']);
+    if (emptyKind === 'deselected') source.selected = null;
+    else source.levels = new Float32Array(0);
+    panel.update(1, source);
+    expect(fills.map(fill => fill.stateText.textContent)).toEqual(['', '', '']);
+    source.selected = 3;
+    source.levels = new Float32Array([80, 15, 35]);
+    panel.update(2, source);
+    expect(fills.map(fill => fill.stateText.textContent)).toEqual(['', ' (critical)', ' (low)']);
+  });
+
   it('reads at the throttled rate rather than every frame or once', () => {
     // Two degenerate alternatives, and the samples below are chosen to
     // exclude both (docs/testing-protocol.md rule 7). A panel that reads

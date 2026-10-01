@@ -1,3 +1,5 @@
+import { setTextIfChanged } from './set-text-if-changed.js';
+
 export interface HouseholdRosterSource {
   readonly count: number;
   ids(): Uint32Array;
@@ -133,7 +135,7 @@ export function createHouseholdRosterSurface(
           button.addEventListener('click', () => select?.(member.simId));
           buttons.set(member.simId, button);
         }
-        button.textContent = member.warning ?? member.name;
+        setTextIfChanged(button, member.warning ?? member.name);
         button.setAttribute('data-death-warning', String(Boolean(member.warning)));
         button.setAttribute(
           'aria-pressed',

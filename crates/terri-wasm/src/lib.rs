@@ -8,12 +8,20 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+mod save_before_voice;
+
 #[cfg(test)]
 mod placement_tests;
 #[cfg(test)]
+mod save_before_voice_tests;
+#[cfg(test)]
 mod save_v3_tests;
 #[cfg(test)]
+mod sim_details_tests;
+#[cfg(test)]
 mod spawn_boundary_tests;
+#[cfg(test)]
+mod unlimited_queue_tests;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
 /// the range would do; what matters is that it is finite and in range.
@@ -225,13 +233,13 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 7;
+    const APPENDED_LISTS: usize = 9;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
                 // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: waiting, migration flag, mortality, SimId
+                // From the tail: chronotypes, instincts, waiting, migration flag, mortality, SimId
                 // ties, legacy ties, floors. Asking every appended field
                 // to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
@@ -252,16 +260,31 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
                 let domestic = usize::from(snapshot.domestic.is_some());
+                let instinct = snapshot.self_preservation.len();
+                let chronotype = snapshot.chronotype_offsets.len();
                 let invented = match pad {
                     0 => 0,
                     1 => domestic,
-                    2 => domestic + waiting,
-                    3 => domestic + waiting + migrated,
-                    4 => domestic + waiting + migrated + mortality,
-                    5 => domestic + waiting + migrated + mortality + family,
-                    6 => domestic + waiting + migrated + mortality + family + by_index,
+                    2 => domestic + chronotype,
+                    3 => domestic + chronotype + instinct,
+                    4 => domestic + chronotype + instinct + waiting,
+                    5 => domestic + chronotype + instinct + waiting + migrated,
+                    6 => domestic + chronotype + instinct + waiting + migrated + mortality,
+                    7 => domestic + chronotype + instinct + waiting + migrated + mortality + family,
+                    8 => {
+                        domestic
+                            + chronotype
+                            + instinct
+                            + waiting
+                            + migrated
+                            + mortality
+                            + family
+                            + by_index
+                    }
                     _ => {
                         domestic
+                            + chronotype
+                            + instinct
                             + waiting
                             + migrated
                             + mortality
@@ -279,9 +302,9 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     None
 }
 
-/// Decodes frozen V1, including only the historical missing sleep-pressure list.
+/// Decodes V1 with its historical entity-row and empty-tail migrations.
 fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
-    match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
+    let current = match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
         Ok((snapshot, rest)) => rest.is_empty().then_some(snapshot),
         Err(_) => {
             let mut padded = payload.to_vec();
@@ -291,7 +314,8 @@ fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
                 _ => None,
             }
         }
-    }
+    };
+    current.or_else(|| save_before_voice::decode(payload))
 }
 
 #[wasm_bindgen]
@@ -324,6 +348,30 @@ impl SimHandle {
         };
         handle.sim.sync_render_buffer();
         handle
+    }
+
+    /// Constructs a new world with a 64-bit seed supplied as two unsigned halves.
+    pub fn from_lot_with_seed(low: u32, high: u32) -> SimHandle {
+        let seed = u64::from(low) | (u64::from(high) << 32);
+        let mut handle = SimHandle {
+            sim: Sim::new_from_shipped_lot_with_seed(seed),
+        };
+        handle.sim.sync_render_buffer();
+        handle
+    }
+
+    /// The living person's integer instinct, or -1 when unavailable.
+    pub fn self_preservation_of(&self, entity: u32) -> f64 {
+        self.sim
+            .world()
+            .try_query::<(terri_core::Entity, &Agent, &terri_core::SelfPreservation)>()
+            .and_then(|mut query| {
+                query
+                    .iter(self.sim.world())
+                    .find(|(person, _, _)| person.index_u32() == entity)
+                    .map(|(_, _, instinct)| f64::from(instinct.0))
+            })
+            .unwrap_or(-1.0)
     }
 
     /// The lot's width in tiles. The page needs it to place the camera
@@ -920,6 +968,43 @@ impl SimHandle {
         self.enqueue_command(&bytes)
     }
 
+    /// Stages a housemate with a chosen integer instinct from 0 through 100.
+    pub fn add_housemate_with_instinct(
+        &mut self,
+        name: &str,
+        personality: f64,
+        traits: &[f64],
+        instinct: f64,
+    ) -> bool {
+        let Some(instinct) = placement_u32(instinct).filter(|value| *value <= 100) else {
+            return false;
+        };
+        let Some(personality) = placement_u32(personality) else {
+            return false;
+        };
+        let Some(traits) = traits
+            .iter()
+            .map(|&index| placement_u32(index))
+            .collect::<Option<Vec<u32>>>()
+        else {
+            return false;
+        };
+        let tuning = self.sim.world().resource::<Content>().0.tuning;
+        if name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+            || traits.len() > tuning.housemate_max_traits as usize
+        {
+            return false;
+        }
+        let bytes = postcard::to_allocvec(&SimCommand::AddHousemateWithInstinct {
+            name: name.to_string(),
+            personality,
+            traits,
+            instinct: instinct as u8,
+        })
+        .expect("a move-in serializes");
+        self.enqueue_command(&bytes)
+    }
+
     /// `[refusal, sim, handled]` of the last move-in a drain handled -
     /// [CS-command]: refusal zero when the housemate moved in, `sim` the
     /// newcomer's entity index or `u32::MAX` when nobody did, and how many
@@ -1251,7 +1336,13 @@ impl SimHandle {
         // only one anything advertises against. The other six start
         // satisfied, which is what keeps a spawned agent's behaviour
         // identical to the single-need version.
+        let instinct = self
+            .sim
+            .world_mut()
+            .resource_mut::<terri_core::SimRng>()
+            .range(101) as u8;
         self.sim.world_mut().spawn((
+            terri_core::SelfPreservation(instinct),
             Agent,
             Position { x, y },
             Needs::with(NeedId::Hunger, hunger),
@@ -1487,10 +1578,8 @@ impl SimHandle {
     /// The voice clip each row's conversation plays first, or `u32::MAX`
     /// when the row is not in one. Resolves against `voice_clip_ids()`.
     ///
-    /// Both participants carry the pair, so whichever row the audio layer
-    /// picks to speak for a conversation finds the clips on it. Zero-copy per
-    /// frame; re-read after every sync or memory growth like every other
-    /// column pointer.
+    /// Both participants carry the pair and one shared instance identity.
+    /// Re-read after every sync or memory growth like every zero-copy column.
     pub fn voice_firsts_ptr(&self) -> *const u32 {
         self.sim.render_buffer().voice_firsts.as_ptr()
     }
@@ -1499,6 +1588,21 @@ impl SimHandle {
     /// caching hazard and the same resolution as `voice_firsts_ptr`.
     pub fn voice_seconds_ptr(&self) -> *const u32 {
         self.sim.render_buffer().voice_seconds.as_ptr()
+    }
+
+    /// Initiator's stable Sim ID on both participants, or `u32::MAX`.
+    pub fn conversation_owners_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_owners.as_ptr()
+    }
+
+    /// Low word of the conversation completion token, aligned with every row.
+    pub fn conversation_end_lows_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_end_lows.as_ptr()
+    }
+
+    /// High word of the completion token. Re-read after sync or memory growth.
+    pub fn conversation_end_highs_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().conversation_end_highs.as_ptr()
     }
 
     /// One id per voice clip, in the index order the voice columns use.
@@ -1638,6 +1742,22 @@ impl SimHandle {
         };
         if !rest.is_empty() {
             return false;
+        }
+
+        if let SimCommand::AddHousemateWithInstinct {
+            name,
+            traits,
+            instinct,
+            ..
+        } = &command
+        {
+            let tuning = self.sim.world().resource::<Content>().0.tuning;
+            if *instinct > 100
+                || name.trim().chars().count() > tuning.housemate_name_max_chars as usize
+                || traits.len() > tuning.housemate_max_traits as usize
+            {
+                return false;
+            }
         }
 
         // Read before the queue is borrowed mutably. `Tuning` is `Copy`
@@ -1886,6 +2006,17 @@ impl SimHandle {
         self.sim.stall_reason_of(entity_index).unwrap_or_default()
     }
 
+    /// Current action followed by every waiting order, in display order.
+    pub fn action_queue_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim.action_queue_of(entity_index)
+    }
+
+    /// A bounded display prefix; unseen orders are not formatted or transferred.
+    pub fn action_queue_window_of(&self, entity_index: u32, max_rows: u32) -> Vec<String> {
+        self.sim
+            .action_queue_window_of(entity_index, max_rows as usize)
+    }
+
     /// How many player orders the sim still has waiting.
     pub fn queued_orders_of(&self, entity_index: u32) -> usize {
         self.sim.queued_orders_of(entity_index)
@@ -1902,6 +2033,42 @@ impl SimHandle {
 
     pub fn cleanliness_of(&self, entity_index: u32) -> Option<f32> {
         self.sim.cleanliness_of(entity_index)
+    }
+
+    /// Signed sleep offset, seven drain factors, seven refill factors, then
+    /// [object definition, activity row, repetition] triples. f64 preserves IDs
+    /// and signed tick offsets exactly. Missing people have an empty projection.
+    pub fn sim_details_of(&self, entity_index: f64) -> Vec<f64> {
+        let Some(details) =
+            placement_u32(entity_index).and_then(|index| self.sim.details_of(index))
+        else {
+            return Vec::new();
+        };
+        std::iter::once(f64::from(details.sleep_offset_ticks))
+            .chain(details.drain.into_iter().map(f64::from))
+            .chain(details.refill.into_iter().map(f64::from))
+            .chain(details.repeated.into_iter().flat_map(|row| {
+                [
+                    f64::from(row.object),
+                    f64::from(row.interaction),
+                    f64::from(row.repetition),
+                ]
+            }))
+            .collect()
+    }
+
+    /// Object type and activity label pairs aligned with sim_details_of's rows.
+    pub fn sim_details_labels_of(&self, entity_index: f64) -> Vec<String> {
+        placement_u32(entity_index)
+            .and_then(|index| self.sim.details_of(index))
+            .map(|details| {
+                details
+                    .repeated
+                    .into_iter()
+                    .flat_map(|row| [row.object_label.to_owned(), row.activity_label.to_owned()])
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     /// Interleaved `[sim_id, feeling, ...]` pairs, or empty. See
@@ -2078,6 +2245,25 @@ mod boundary_tests {
     //! out of the world it was spawned into.
 
     use super::*;
+
+    // Historical schemas omit instincts. Their other world fields stay exact;
+    // migration consumes one restored-RNG draw per living Sim in index order.
+    fn after_legacy_instinct_migration(
+        mut snapshot: terri_core::SaveSnapshotV1,
+    ) -> terri_core::SaveSnapshotV1 {
+        let mut agents: Vec<_> = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .map(|entity| entity.index)
+            .collect();
+        agents.sort_unstable();
+        for _ in agents {
+            snapshot.rng.range(41);
+        }
+        snapshot
+    }
+
     use terri_core::{Relationships, SimClock, SimId, SimName, Traits, NEED_COUNT};
 
     // Independent fixture for the published cell-wall house, not the current pack.
@@ -2290,7 +2476,10 @@ mod boundary_tests {
         // And it is the same game, not merely a game.
         let mut expected = original.sim.save_snapshot();
         set_legacy_walls(&mut expected, false);
-        assert_eq!(house_part(resumed.sim.save_snapshot()), expected);
+        assert_eq!(
+            house_part(resumed.sim.save_snapshot()),
+            after_legacy_instinct_migration(expected)
+        );
         assert_eq!(resumed.wall_layout_kind(), 1);
         assert_eq!(resumed.wall_edges().len(), (34 + 28) * 4);
 
@@ -2406,15 +2595,19 @@ mod boundary_tests {
         expected.blocked_tiles[10 * 16 + 14] = true;
         set_legacy_walls(&mut expected, false);
         assert_eq!(
-            snapshot, expected,
-            "migration must preserve every unrelated field"
+            snapshot,
+            after_legacy_instinct_migration(expected),
+            "migration preserves unrelated fields and advances RNG for missing instincts"
         );
         assert!(!snapshot.blocked_tiles[9 * 16 + 15]);
         assert!(snapshot.blocked_tiles[10 * 16 + 14]);
         assert_eq!(snapshot.entities, old.entities);
         assert_eq!(snapshot.funds, old.funds);
         assert_eq!(snapshot.tick, old.tick);
-        assert_eq!(snapshot.rng, old.rng);
+        assert_eq!(
+            snapshot.rng,
+            after_legacy_instinct_migration(old.clone()).rng
+        );
         let tub = snapshot
             .entities
             .iter()
@@ -2473,7 +2666,10 @@ mod boundary_tests {
                 .count(),
             30
         );
-        assert_eq!(house_part(migrated.sim.save_snapshot()), expected);
+        assert_eq!(
+            house_part(migrated.sim.save_snapshot()),
+            after_legacy_instinct_migration(expected)
+        );
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&migrated.save_bytes()));
         for _ in 0..300 {
@@ -2676,7 +2872,7 @@ mod boundary_tests {
             "a save from before the yard must load"
         );
         let current = loaded.sim.save_snapshot_v5();
-        let mut expected = old.world.clone();
+        let mut expected = after_legacy_instinct_migration(old.world.clone());
         expected.content_fingerprint = 0x85a2_d140_0dff_9da1;
         for person in &mut expected.entities {
             if let Some(chain) = &mut person.chain {
@@ -2759,7 +2955,8 @@ mod boundary_tests {
             let mut expected = old.world.clone();
             expected.content_fingerprint = current.world.content_fingerprint;
             assert_eq!(
-                current.world, expected,
+                current.world,
+                after_legacy_instinct_migration(expected),
                 "only the digest may differ after a load"
             );
             assert_ne!(
@@ -2852,7 +3049,10 @@ mod boundary_tests {
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
         expected_world.content_fingerprint = 0x85a2_d140_0dff_9da1;
-        assert_eq!(house_part(current.world.clone()), expected_world);
+        assert_eq!(
+            house_part(current.world.clone()),
+            after_legacy_instinct_migration(expected_world)
+        );
         assert_eq!(current.layout, grown_layout(&prior.layout));
         assert_eq!(migrated.wall_layout_kind(), 1);
         assert_eq!(migrated.wall_edges().len(), (34 + 28) * 4);
@@ -2941,7 +3141,9 @@ mod boundary_tests {
                 vec![0, 2, 1, 0, 1, 3, 2, 1]
             };
             assert_eq!(restored.wall_edges(), expected);
-            assert_eq!(restored.sim.save_snapshot_v2(), snapshot);
+            let mut expected = snapshot;
+            expected.world = after_legacy_instinct_migration(expected.world);
+            assert_eq!(restored.sim.save_snapshot_v2(), expected);
             assert_eq!(restored.save_bytes(), source.save_bytes());
             let grid = restored.sim.world().resource::<TileGrid>();
             assert_eq!(grid.can_cross((1, 1), (2, 1)), edges.is_empty());
@@ -2993,7 +3195,10 @@ mod boundary_tests {
         old.blocked_tiles[16] = true;
         let mut loaded = SimHandle::from_lot();
         assert!(loaded.load_bytes(&encode_save(&old)));
-        assert_eq!(loaded.sim.save_snapshot(), old);
+        assert_eq!(
+            loaded.sim.save_snapshot(),
+            after_legacy_instinct_migration(old)
+        );
         assert_eq!(loaded.wall_layout_kind(), 0);
         assert!(loaded.wall_edges().is_empty());
         let expected: Vec<_> = LEGACY_WALLS.iter().flat_map(|&(x, y)| [x, y]).collect();
@@ -3095,7 +3300,7 @@ mod boundary_tests {
         set_legacy_walls(&mut expected, false);
         assert_eq!(
             house_part(resumed.sim.save_snapshot()),
-            expected,
+            after_legacy_instinct_migration(expected),
             "the bridge must preserve household state and queues while rotating the bathtub, opening old wall cells and updating the digest"
         );
     }
@@ -3764,6 +3969,113 @@ mod boundary_tests {
     }
 
     #[test]
+    fn conversation_identity_columns_survive_load_and_render_growth() {
+        use terri_core::{
+            Agent, ConversationVoice, Entity, Reserved, SimClock, SimId, Socialising, Target,
+        };
+        let mut handle = SimHandle::from_lot();
+        let mut people: Vec<_> = handle
+            .sim
+            .world_mut()
+            .query::<(Entity, &SimId)>()
+            .iter(handle.sim.world())
+            .map(|(entity, id)| (entity, id.0))
+            .collect();
+        people.sort_by_key(|(_, id)| *id);
+        let (partner, _) = people[0];
+        let (initiator, owner) = people[1];
+        assert_eq!(owner, 1);
+        // Save validation requires a real unobstructed conversation contact.
+        let (x, y) = {
+            let grid = handle.sim.world().resource::<TileGrid>();
+            (0..grid.height() as i32)
+                .flat_map(|y| (0..grid.width() as i32 - 1).map(move |x| (x, y)))
+                .find(|&(x, y)| grid.can_step((x, y), (x + 1, y)))
+                .unwrap()
+        };
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(initiator)
+            .insert(terri_core::Position {
+                x: x as f32,
+                y: y as f32,
+            });
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(partner)
+            .insert(terri_core::Position {
+                x: (x + 1) as f32,
+                y: y as f32,
+            });
+        handle.sim.world_mut().resource_mut::<SimClock>().tick = 0x0020_0001_ffff_fffc;
+        handle.sim.world_mut().entity_mut(initiator).insert((
+            Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 10,
+            },
+            ConversationVoice {
+                first: 0,
+                second: 1,
+            },
+            Target {
+                object: partner,
+                interaction: 0,
+            },
+        ));
+        handle.sim.world_mut().entity_mut(partner).insert(Reserved);
+        handle.sim.sync_render_buffer();
+        let snapshot = handle.sim.save_snapshot_v5();
+        handle
+            .sim
+            .load_snapshot_v5(snapshot)
+            .expect("the projection fixture must be loadable");
+        let bytes = handle.save_bytes();
+        assert!(
+            handle.load_bytes(&bytes),
+            "voice identity must derive from an unchanged save"
+        );
+        assert_eq!(handle.save_bytes(), bytes);
+        let before = handle.entity_count();
+        for _ in 0..48 {
+            handle
+                .sim
+                .world_mut()
+                .spawn((Agent, terri_core::Position { x: 0.0, y: 1.0 }));
+        }
+        handle.sim.sync_render_buffer();
+        assert_eq!(handle.entity_count(), before + 48);
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let owners = addressed(
+            handle.conversation_owners_ptr(),
+            rows,
+            "conversation_owners_ptr",
+        );
+        let lows = addressed(
+            handle.conversation_end_lows_ptr(),
+            rows,
+            "conversation_end_lows_ptr",
+        );
+        let highs = addressed(
+            handle.conversation_end_highs_ptr(),
+            rows,
+            "conversation_end_highs_ptr",
+        );
+        for (row, id) in ids.iter().enumerate() {
+            let expected = if *id == initiator.index_u32() || *id == partner.index_u32() {
+                (1, 6, 0x0020_0002)
+            } else {
+                (u32::MAX, 0, 0)
+            };
+            assert_eq!((owners[row], lows[row], highs[row]), expected, "row {row}");
+        }
+    }
+
+    #[test]
     fn positions_ptr_addresses_the_current_frame_coordinates() {
         let mut handle = SimHandle::new(16, 16);
         handle.spawn_agent(3.5, 6.25, 50.0);
@@ -3816,23 +4128,39 @@ mod boundary_tests {
 
     #[test]
     fn sound_pointers_address_loaded_authored_action_after_growth() {
+        for (object_id, interaction_id, expected_action) in [
+            ("shower", "take_shower", 1),
+            ("sink", "wash_hands", 3),
+            ("kitchen_sink", "wash_up", 3),
+        ] {
+            assert_sound_pointers_after_growth(object_id, interaction_id, expected_action);
+        }
+    }
+
+    fn assert_sound_pointers_after_growth(
+        object_id: &str,
+        interaction_id: &str,
+        expected_action: u32,
+    ) {
         let mut source = SimHandle::from_lot();
-        let (shower_entity, shower_def, take_shower) = {
+        let (object_entity, object_def, interaction_index) = {
             let pack = source.sim.world().resource::<Content>().0;
-            let shower = pack.find("shower").expect("shipped shower");
+            let definition = pack
+                .find(object_id)
+                .expect("shipped sound-producing object");
             let interaction = pack
-                .object(shower)
+                .object(definition)
                 .interactions
                 .iter()
-                .position(|interaction| interaction.id == "take_shower")
-                .expect("shipped shower interaction") as u32;
+                .position(|interaction| interaction.id == interaction_id)
+                .expect("shipped sound-producing interaction") as u32;
             let world = source.sim.world_mut();
             let mut objects = world.query::<(terri_core::Entity, &terri_core::SmartObject)>();
             let entity = objects
                 .iter(world)
-                .find_map(|(entity, object)| (object.0 == shower).then_some(entity))
-                .expect("the shipped lot places a shower");
-            (entity, shower, interaction)
+                .find_map(|(entity, object)| (object.0 == definition).then_some(entity))
+                .expect("the shipped lot places the sound-producing object");
+            (entity, definition, interaction)
         };
         let agent = {
             let world = source.sim.world_mut();
@@ -3843,16 +4171,16 @@ mod boundary_tests {
                 .next()
                 .expect("the shipped lot has a Sim")
         };
-        // Reach the shower through the public command path. Inserting Eating
+        // Reach the object through the public command path. Inserting Eating
         // on a Sim still standing in another room creates an invalid V2 save.
         let command = postcard::to_allocvec(&SimCommand::UseObject {
             agent: agent.index_u32(),
-            object: shower_entity.index_u32(),
-            interaction: take_shower,
+            object: object_entity.index_u32(),
+            interaction: interaction_index,
         })
         .unwrap();
         assert!(source.enqueue_command(&command));
-        let mut reached_shower = false;
+        let mut reached_object = false;
         for _ in 0..600 {
             source.tick();
             if source
@@ -3860,18 +4188,44 @@ mod boundary_tests {
                 .world()
                 .get::<terri_core::Eating>(agent)
                 .is_some_and(|action| {
-                    action.object == shower_def && action.interaction == take_shower
+                    action.object == object_def && action.interaction == interaction_index
                 })
             {
-                reached_shower = true;
+                reached_object = true;
                 break;
             }
         }
         assert!(
-            reached_shower,
-            "the commanded Sim must start the authored shower action"
+            reached_object,
+            "the commanded Sim must start {object_id}/{interaction_id}"
         );
         let bytes = source.save_bytes();
+
+        let mut completed = false;
+        for _ in 0..600 {
+            source.tick();
+            if source
+                .sim
+                .world()
+                .get::<terri_core::Eating>(agent)
+                .is_none()
+            {
+                let buffer = source.sim.render_buffer();
+                let row = buffer
+                    .ids
+                    .iter()
+                    .position(|&id| id == agent.index_u32())
+                    .unwrap();
+                assert_eq!(
+                    (buffer.sound_actions[row], buffer.sound_sources[row]),
+                    (0, u32::MAX),
+                    "completed {object_id}"
+                );
+                completed = true;
+                break;
+            }
+        }
+        assert!(completed, "{object_id} must complete");
 
         let mut handle = SimHandle::new(2, 2);
         assert!(handle.load_bytes(&bytes));
@@ -3891,11 +4245,8 @@ mod boundary_tests {
             .position(|&id| id == agent.index_u32())
             .expect("the loaded active Sim has a render row");
 
-        assert_eq!(
-            actions[row],
-            terri_sim::render_buffer::sound_action::SHOWER_WATER
-        );
-        assert_eq!(sources[row], shower_entity.index_u32());
+        assert_eq!(actions[row], expected_action, "{object_id}");
+        assert_eq!(sources[row], object_entity.index_u32());
         assert!(
             actions.iter().enumerate().any(|(index, &action)| {
                 index != row && action == terri_sim::render_buffer::sound_action::NONE
@@ -3907,6 +4258,21 @@ mod boundary_tests {
                 index != row && source == terri_sim::render_buffer::NO_SOUND_SOURCE
             }),
             "unrelated rows distinguish the source column from entity ids"
+        );
+        let cancel = postcard::to_allocvec(&SimCommand::CancelIntents {
+            agent: agent.index_u32(),
+        })
+        .unwrap();
+        assert!(handle.enqueue_command(&cancel));
+        handle.flush_commands();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let row = ids.iter().position(|&id| id == agent.index_u32()).unwrap();
+        let actions = addressed(handle.sound_actions_ptr(), rows, "sound_actions_ptr");
+        let sources = addressed(handle.sound_sources_ptr(), rows, "sound_sources_ptr");
+        assert_eq!(
+            (actions[row], sources[row]),
+            (0, u32::MAX),
+            "cancelled {object_id}"
         );
     }
 
@@ -3949,8 +4315,9 @@ mod boundary_tests {
         // object's reads NONE - two different values, which is what
         // rules out a zeroed sibling column as well as a null.
         let mut handle = SimHandle::new(16, 16);
-        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
-        handle.spawn_agent(12.0, 2.0, 20.0);
+        assert!(handle.spawn_object(2.0, 2.0, "sink"));
+        let agent = spawn_agent_at(&mut handle, 12.0, 2.0, 20.0);
+        assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
         handle.tick();
         handle.tick();
 
@@ -4720,7 +5087,7 @@ mod boundary_tests {
             .world_mut()
             .entity_mut(carrier)
             .insert(terri_core::Carrying(1));
-        handle.tick();
+        handle.flush_commands();
 
         assert_eq!(
             addressed(handle.carrying_ptr(), handle.entity_count(), "carrying_ptr"),
@@ -4856,19 +5223,23 @@ mod boundary_tests {
     #[test]
     fn foreground_sprites_ptr_addresses_the_optional_layer_after_growth() {
         let mut handle = SimHandle::new(96, 96);
+        let mut fixture = handle.sim.world().resource::<Content>().0.clone();
+        let chair = fixture.find("armchair").expect("fixture armchair");
+        let expected = fixture.object(fixture.find("floor_lamp").unwrap()).sprite;
+        assert_ne!(expected, fixture.object(chair).sprite);
+        fixture.objects[chair.0 as usize].foreground_sprite = Some(expected);
+        fixture.objects[chair.0 as usize]
+            .facing_foreground_sprites
+            .0 = [Some(expected); 4];
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(Content(Box::leak(Box::new(fixture))));
         assert!(handle.spawn_object(1.0, 1.0, "armchair"));
         for index in 0..48 {
             handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
         }
 
-        let pack = handle.sim.world().resource::<Content>().0;
-        let bed = pack.object(
-            pack.find("armchair")
-                .expect("shipped content has an armchair"),
-        );
-        let expected = bed
-            .foreground_sprite
-            .expect("the shipped armchair declares a foreground");
         let layers = addressed(
             handle.foreground_sprites_ptr(),
             handle.entity_count(),
@@ -5274,6 +5645,20 @@ mod boundary_tests {
     }
 
     /// The per-sim order cap enforced by the simulation drain.
+    fn use_finite_intent_cap(handle: &mut SimHandle) {
+        let mut pack = handle
+            .sim
+            .world()
+            .resource::<terri_sim::Content>()
+            .0
+            .clone();
+        pack.tuning.max_queued_intents = 10;
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_sim::Content(Box::leak(Box::new(pack))));
+    }
+
     fn intent_cap(handle: &SimHandle) -> usize {
         handle
             .sim
@@ -5373,10 +5758,10 @@ mod boundary_tests {
     #[test]
     fn paused_flush_reports_exactly_the_order_past_the_cap_rejected_by_the_simulation() {
         let mut handle = SimHandle::new(8, 8);
+        use_finite_intent_cap(&mut handle);
         assert!(handle.spawn_object(4.0, 4.0, "fridge"));
         let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
-        // Read from content rather than restated, so the fixture tracks
-        // the shipped value whatever it is tuned to.
+        // Exercise an explicitly finite fixture rather than the unlimited shipped queue.
         let cap = intent_cap(&handle);
 
         for click in 1..=cap + 1 {
@@ -5483,6 +5868,7 @@ mod boundary_tests {
     #[test]
     fn a_front_placement_onto_a_full_queue_reports_a_displacement_not_a_rejection() {
         let mut handle = SimHandle::new(8, 8);
+        use_finite_intent_cap(&mut handle);
         assert!(handle.spawn_object(4.0, 4.0, "fridge"));
         let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
         let cap = intent_cap(&handle);
@@ -5517,8 +5903,10 @@ mod boundary_tests {
     #[test]
     fn flush_commands_preserves_an_in_flight_interpolation_pair() {
         let mut handle = SimHandle::new(8, 8);
-        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
-        handle.spawn_agent(1.0, 4.0, 0.0);
+        assert!(handle.spawn_object(4.0, 4.0, "sink"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 4.0, 0.0);
+        assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
+        handle.tick();
         handle.tick();
 
         let before_previous = handle.sim.render_buffer().prev_positions.clone();
@@ -6846,10 +7234,11 @@ mod boundary_tests {
                 "Low spirits",
                 "Uneasy around Bob",
                 "Comforted by Alice",
+                "Not enough beds",
             ]
         );
         assert_eq!(scores.len(), labels.len(), "the boundary columns align");
-        let expected = [-53.5, -25.0, -12.0, -18.0, -6.0, 7.5];
+        let expected = [-73.5, -25.0, -12.0, -18.0, -6.0, 7.5, -20.0];
         for (index, (actual, expected)) in scores.iter().zip(expected).enumerate() {
             assert!(
                 (*actual - expected).abs() < 1e-5,
@@ -7276,15 +7665,15 @@ mod boundary_tests {
         // returning `false` for every byte it is given.
         //
         // The sim is HUNGRY and the two objects advertise different
-        // needs, so autonomy has an unambiguous preference for the
-        // fridge. Directing it at the BED is therefore an instruction it
-        // would never have given itself - a script whose commands agree
+        // needs. Measure autonomy's eastward first step before directing
+        // it at the BED; a script whose commands agree
         // with autonomy proves nothing ([L36]).
         let mut handle = SimHandle::new(16, 16);
         assert!(handle.spawn_object(2.0, 8.0, "bed"));
         assert!(handle.spawn_object(11.0, 8.0, "fridge"));
         let bed = 0;
-        let agent = spawn_agent_at(&mut handle, 8.0, 8.0, 20.0);
+        let agent = spawn_agent_at(&mut handle, 8.0, 8.0, 0.0);
+        assert!(handle.spawn_object(13.0, 8.0, "counter"));
         assert_eq!(
             (bed, agent),
             (0, 2),
@@ -7298,8 +7687,18 @@ mod boundary_tests {
         let mut autonomous = SimHandle::new(16, 16);
         assert!(autonomous.spawn_object(2.0, 8.0, "bed"));
         assert!(autonomous.spawn_object(11.0, 8.0, "fridge"));
-        spawn_agent_at(&mut autonomous, 8.0, 8.0, 20.0);
+        spawn_agent_at(&mut autonomous, 8.0, 8.0, 0.0);
+        assert!(autonomous.spawn_object(13.0, 8.0, "counter"));
         autonomous.tick();
+        let autonomous_x = addressed(
+            autonomous.positions_ptr(),
+            autonomous.entity_count() * 2,
+            "positions_ptr",
+        )[agent as usize * 2];
+        assert!(
+            autonomous_x > 8.0,
+            "the control must first choose the fridge"
+        );
         let undirected = autonomous.world_hash();
 
         assert!(handle.enqueue_command(&use_object_bytes(agent, bed, 0)));
@@ -7320,7 +7719,7 @@ mod boundary_tests {
         for _ in 0..20 {
             handle.tick();
         }
-        assert_eq!(handle.entity_count(), 3);
+        assert_eq!(handle.entity_count(), 4);
         let rows = addressed(
             handle.positions_ptr(),
             handle.entity_count() * 2,
@@ -7352,6 +7751,22 @@ mod boundary_tests {
             agent,
             "the caller names the agent by literal index"
         );
+        assert!(handle.spawn_object(13.0, 8.0, "counter"));
+        let entity = {
+            let world = handle.sim.world_mut();
+            world
+                .query::<terri_core::Entity>()
+                .iter(world)
+                .find(|entity| entity.index_u32() == agent)
+                .unwrap()
+        };
+        let mut needs = terri_core::Needs::all_at(100.0);
+        needs.set(terri_core::NeedId::Hunger, 0.0);
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(entity)
+            .insert((needs, terri_core::SelfPreservation(100)));
         assert!(
             handle.enqueue_command(command),
             "the command must be accepted, or the two runs differ in \
@@ -7471,5 +7886,116 @@ mod boundary_tests {
             "the two pointers must address different buffers; aliasing them \
              would interpolate every entity from itself and freeze motion"
         );
+    }
+}
+
+#[cfg(test)]
+mod instinct_boundary_tests {
+    use super::*;
+
+    #[test]
+    fn self_preservation_seed_halves_and_projection_match_sim() {
+        let handle = SimHandle::from_lot_with_seed(0x89ab_cdef, 0x1234_5678);
+        let expected = Sim::new_from_shipped_lot_with_seed(0x1234_5678_89ab_cdef);
+        assert_eq!(handle.world_hash(), expected.world_hash());
+        for (person, instinct) in expected.save_snapshot_v5().self_preservation {
+            assert_eq!(handle.self_preservation_of(person), f64::from(instinct));
+        }
+        assert_eq!(handle.self_preservation_of(0), -1.0);
+        assert_eq!(handle.self_preservation_of(u32::MAX), -1.0);
+    }
+
+    #[test]
+    fn self_preservation_boundary_rejects_nonintegers_and_outside_range() {
+        let mut handle = SimHandle::from_lot();
+        let hash = handle.world_hash();
+        for value in [
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            -1.0,
+            0.5,
+            100.5,
+            101.0,
+        ] {
+            assert!(!handle.add_housemate_with_instinct("Ann", 0.0, &[], value));
+            assert_eq!(handle.world_hash(), hash);
+        }
+        let invalid = postcard::to_allocvec(&SimCommand::AddHousemateWithInstinct {
+            name: "Ann".into(),
+            personality: 0,
+            traits: vec![],
+            instinct: 101,
+        })
+        .unwrap();
+        assert!(!handle.enqueue_command(&invalid));
+        assert_eq!(handle.world_hash(), hash);
+        for instinct in [0.0, 100.0] {
+            assert!(handle.add_housemate_with_instinct("Ann", 0.0, &[], instinct));
+            let saved = handle.save_bytes();
+            let mut restored = SimHandle::from_lot();
+            assert!(restored.load_bytes(&saved));
+            assert_eq!(handle.world_hash(), restored.world_hash());
+            handle.flush_commands();
+            restored.flush_commands();
+            let result = handle.last_housemate_result();
+            assert_eq!(result[0], 0);
+            assert_eq!(handle.self_preservation_of(result[1]), instinct);
+            assert_eq!(restored.self_preservation_of(result[1]), instinct);
+            assert_eq!(handle.world_hash(), restored.world_hash());
+        }
+    }
+
+    #[test]
+    fn self_preservation_debug_spawn_uses_rng_and_refused_spawn_draws_nothing() {
+        let mut handle = SimHandle::new(4, 4);
+        let mut reference = handle.sim.world().resource::<terri_core::SimRng>().clone();
+        let expected = reference.range(101) as u8;
+        handle.spawn_agent(1.0, 1.0, 50.0);
+        assert_eq!(handle.self_preservation_of(0), f64::from(expected));
+        assert_eq!(
+            handle.sim.world().resource::<terri_core::SimRng>(),
+            &reference
+        );
+        let mut lot = SimHandle::from_lot();
+        let rng = lot.sim.world().resource::<terri_core::SimRng>().clone();
+        lot.spawn_agent(5000.0, 5000.0, 50.0);
+        assert_eq!(lot.sim.world().resource::<terri_core::SimRng>(), &rng);
+    }
+
+    #[test]
+    fn self_preservation_appended_tail_loads_old_v5_and_refuses_truncated_rows() {
+        let source = SimHandle::from_lot();
+        let mut snapshot = source.sim.save_snapshot_v5();
+        snapshot.self_preservation.clear();
+        snapshot.chronotype_offsets.clear();
+        snapshot.domestic = None;
+        let mut payload = postcard::to_allocvec(&snapshot).unwrap();
+        assert_eq!(payload.pop(), Some(0));
+        assert_eq!(payload.pop(), Some(0));
+        assert_eq!(payload.pop(), Some(0));
+        let decoded = decode_v5(&payload).unwrap();
+        assert!(decoded.self_preservation.is_empty());
+        let mut loaded = SimHandle::from_lot();
+        let mut bytes = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        bytes.extend(payload);
+        assert!(loaded.load_bytes(&bytes));
+        assert!(loaded
+            .sim
+            .save_snapshot_v5()
+            .self_preservation
+            .iter()
+            .all(|(_, instinct)| (30..=70).contains(instinct)));
+        let mut current = source.sim.save_snapshot_v5();
+        current.chronotype_offsets.clear();
+        current.domestic = None;
+        let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        truncated.extend(postcard::to_allocvec(&current).unwrap());
+        truncated.pop();
+        truncated.pop();
+        truncated.pop();
+        let before = loaded.save_bytes();
+        assert!(!loaded.load_bytes(&truncated));
+        assert_eq!(before, loaded.save_bytes());
     }
 }

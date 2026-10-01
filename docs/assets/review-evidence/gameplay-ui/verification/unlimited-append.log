@@ -1,0 +1,25 @@
+
+running 1 test
+test unlimited_queue_tests::hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load ... FAILED
+
+failures:
+
+---- unlimited_queue_tests::hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load stdout ----
+
+thread 'unlimited_queue_tests::hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load' (29488) panicked at crates\terri-wasm\src\unlimited_queue_tests.rs:32:5:
+assertion `left == right` failed
+  left: 0
+ right: 513
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    unlimited_queue_tests::hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 134 filtered out; finished in 0.08s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\gameplay-ui\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.69s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-dd3bb79986d069a6.exe)
+error: test failed, to rerun pass `-p terri-wasm --lib`

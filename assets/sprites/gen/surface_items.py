@@ -1,5 +1,6 @@
 """Model-registered dishes and authored furniture support points."""
 import hashlib
+import importlib.util
 import json
 import math
 from pathlib import Path
@@ -38,9 +39,23 @@ def project_model(point, proof):
             round(-sum(matrix[i][1] * point[i] for i in range(3)) * density, 6)]
 
 
+def dining_table_places(root):
+    """Read the supporting top from the same geometry used to build the table."""
+    path = Path(root) / 'assets/models/dining/table_layout.py'
+    spec = importlib.util.spec_from_file_location('domestic_table_layout', path)
+    model = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(model)
+    top = next(part for part in model.parts() if part['name'] == 'Tabletop')
+    x, y, z = top['center']
+    width, depth, height = top['size']
+    return [(x + side * (width/2-.22), y + end * (depth/2-.38), z+height/2)
+            for side, end in ((-1,-1),(1,1),(-1,1),(1,-1))]
+
+
 def layouts(root, sprites):
     indices = {sprite[0]: i for i, sprite in enumerate(sprites)}
     counter = json.loads((Path(root) / 'assets/models/kitchen/owner-review-pending/counter/candidate-01/proof.json').read_text())
+    table = json.loads((Path(root) / 'assets/models/dining/owner-review-pending/dining-table/candidate-01/proof.json').read_text())
     result = {}
     for facing, degrees in FACINGS.items():
         suffix = '' if facing == 'SE' else facing
@@ -62,4 +77,8 @@ def layouts(root, sprites):
             # Legacy emit includes the inclusive bottom raster row in its canvas.
             points.append([round((x-y)*32, 6), round((x+y)*21-height*38-1, 6)])
         result[indices['table' + suffix]] = dict(kind='table', points=points, props=props)
+        points = [project_model((x*math.cos(angle)-y*math.sin(angle),
+                                 x*math.sin(angle)+y*math.cos(angle), z), table)
+                  for x,y,z in dining_table_places(root)]
+        result[indices['offlineDiningTable' + suffix]] = dict(kind='table', points=points, props=props)
     return result

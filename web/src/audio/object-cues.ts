@@ -1,9 +1,11 @@
 export const OBJECT_SOUND_ACTION_SHOWER_WATER = 1;
 export const OBJECT_SOUND_ACTION_STOVE_COOKING = 2;
+export const OBJECT_SOUND_ACTION_SINK_WATER = 3;
 
 export type ObjectSoundAction =
   | typeof OBJECT_SOUND_ACTION_SHOWER_WATER
-  | typeof OBJECT_SOUND_ACTION_STOVE_COOKING;
+  | typeof OBJECT_SOUND_ACTION_STOVE_COOKING
+  | typeof OBJECT_SOUND_ACTION_SINK_WATER;
 
 export type ObjectSoundCueEvent =
   | {
@@ -188,7 +190,8 @@ function isSoundSource(sourceId: number): boolean {
 function isObjectSoundAction(action: number): action is ObjectSoundAction {
   return (
     action === OBJECT_SOUND_ACTION_SHOWER_WATER ||
-    action === OBJECT_SOUND_ACTION_STOVE_COOKING
+    action === OBJECT_SOUND_ACTION_STOVE_COOKING ||
+    action === OBJECT_SOUND_ACTION_SINK_WATER
   );
 }
 

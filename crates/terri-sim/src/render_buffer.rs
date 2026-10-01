@@ -138,12 +138,9 @@ pub struct RenderBuffer {
     /// The voice clip played first by the conversation this row is in, or
     /// [`NO_VOICE_CLIP`].
     ///
-    /// **Both participants carry the pair, not just the initiator.** The
-    /// simulation keeps one record of a conversation and hangs it on whoever
-    /// started it, but the shell picks which row speaks for a conversation by
-    /// its own rule, and that rule has no reason to land on the initiator.
-    /// Filling one row would leave the audio silently unable to find the
-    /// clips whenever it picked the other one.
+    /// Both participants carry the pair and the same conversation identity.
+    /// The simulation keeps one record on the initiator; the shell deduplicates
+    /// the projected rows by that identity, independent of render-row order.
     ///
     /// An index into the pack's voice clips rather than a file name, for the
     /// same reason every other column is an index: a name would make each row
@@ -153,6 +150,13 @@ pub struct RenderBuffer {
     /// column rather than a pair packed into one, so JavaScript can view each
     /// directly as a `Uint32Array` - the reasoning on `footprint_depths`.
     pub voice_seconds: Vec<u32>,
+    /// Initiator's stable Sim ID on both conversation rows, or [`NO_SIM_ID`].
+    pub conversation_owners: Vec<u32>,
+    /// Low word of the wrapping fixed-tick completion token. Combined with
+    /// owner, high word and clip pair, this identifies a conversation instance.
+    pub conversation_end_lows: Vec<u32>,
+    /// High word of the completion token; zero on inactive rows.
+    pub conversation_end_highs: Vec<u32>,
     pub count: usize,
 }
 
@@ -177,6 +181,7 @@ pub mod sound_action {
     pub const NONE: u32 = 0;
     pub const SHOWER_WATER: u32 = 1;
     pub const STOVE_COOKING: u32 = 2;
+    pub const SINK_WATER: u32 = 3;
 }
 
 /// The `activities` codes, named. `u32` like every other column so the
@@ -247,6 +252,22 @@ pub mod facing {
 
 #[cfg(test)]
 mod tests {
+    fn neutral_instincts(sim: &mut Sim) {
+        let people: Vec<_> = sim
+            .world_mut()
+            .query_filtered::<Entity, (
+                bevy_ecs::query::With<Agent>,
+                bevy_ecs::query::Without<terri_core::SelfPreservation>,
+            )>()
+            .iter(sim.world())
+            .collect();
+        for person in people {
+            sim.world_mut()
+                .entity_mut(person)
+                .insert(terri_core::SelfPreservation(50));
+        }
+    }
+
     use super::NO_FOREGROUND_SPRITE;
     use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
@@ -397,6 +418,7 @@ mod tests {
         assert_eq!(super::sound_action::NONE, 0);
         assert_eq!(super::sound_action::SHOWER_WATER, 1);
         assert_eq!(super::sound_action::STOVE_COOKING, 2);
+        assert_eq!(super::sound_action::SINK_WATER, 3);
         assert_eq!(super::NO_SOUND_SOURCE, u32::MAX);
     }
 
@@ -454,14 +476,58 @@ mod tests {
     }
 
     #[test]
+    fn sink_sound_projects_each_exact_target_and_clears_when_use_stops() {
+        for (object_id, interaction_id) in [("sink", "wash_hands"), ("kitchen_sink", "wash_up")] {
+            let definition = terri_data::pack().find(object_id).expect("shipped sink");
+            let interaction = shipped_interaction_index(definition, interaction_id);
+            let mut sim = Sim::new_with_lot(24, 24);
+            let decoy = sim.spawn_object(Position { x: 4.0, y: 4.0 }, definition);
+            let exact = sim.spawn_object(Position { x: 12.0, y: 4.0 }, definition);
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x: 11.0, y: 4.0 },
+                    Eating {
+                        object: definition,
+                        interaction,
+                        remaining_ticks: 10,
+                    },
+                    Target {
+                        object: exact,
+                        interaction,
+                    },
+                ))
+                .id();
+            sim.sync_render_buffer();
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), agent),
+                (3, exact.index_u32()),
+                "{object_id}"
+            );
+            assert_ne!(exact.index_u32(), decoy.index_u32());
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), decoy),
+                (0, super::NO_SOUND_SOURCE)
+            );
+            sim.world_mut().entity_mut(agent).remove::<Eating>();
+            sim.sync_render_buffer();
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), agent),
+                (0, super::NO_SOUND_SOURCE)
+            );
+        }
+    }
+
+    #[test]
     fn non_authored_and_malformed_object_use_emit_no_sound_source() {
         let pack = terri_data::pack();
         let shower = pack.find("shower").expect("shipped shower");
-        let sink = pack.find("sink").expect("shipped sink");
+        let bookshelf = pack.find("bookshelf").expect("shipped bookshelf");
         let take_shower = shipped_interaction_index(shower, "take_shower");
-        let wash_hands = shipped_interaction_index(sink, "wash_hands");
+        let read = shipped_interaction_index(bookshelf, "read");
         let mut sim = Sim::new_with_lot(24, 24);
-        let sink_target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, sink);
+        let bookshelf_target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, bookshelf);
         let shower_target = sim.spawn_object(Position { x: 12.0, y: 8.0 }, shower);
         let no_smart_object = sim.world_mut().spawn(Position { x: 10.0, y: 8.0 }).id();
         let generic = sim
@@ -470,13 +536,13 @@ mod tests {
                 Agent,
                 Position { x: 7.0, y: 8.0 },
                 Eating {
-                    object: sink,
-                    interaction: wash_hands,
+                    object: bookshelf,
+                    interaction: read,
                     remaining_ticks: 10,
                 },
                 Target {
-                    object: sink_target,
-                    interaction: wash_hands,
+                    object: bookshelf_target,
+                    interaction: read,
                 },
             ))
             .id();
@@ -1144,7 +1210,8 @@ mod tests {
             ))
             .id();
         sim.sync_render_buffer();
-        let snapshot = sim.save_snapshot();
+        neutral_instincts(&mut sim);
+        let snapshot = sim.save_snapshot_v5();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer_after_commands();
@@ -1157,13 +1224,13 @@ mod tests {
             ((position.x, position.y), (position.x, position.y)),
             "a paused metadata refresh has no position delta from which Web could infer facing"
         );
-        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.save_snapshot_v5(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot(snapshot.clone())
-            .expect("walking Save V1 state is valid");
+            .load_snapshot_v5(snapshot.clone())
+            .expect("walking current save state is valid");
         assert_eq!(
             projection_of(restored.render_buffer(), agent),
             (visual_action::WALK, facing::POSITIVE_X, activity::WALKING)
@@ -1173,7 +1240,7 @@ mod tests {
             ((position.x, position.y), (position.x, position.y)),
             "Load reseeds both samples, so the path-derived facing is the only directional signal"
         );
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(restored.save_snapshot_v5(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 
@@ -1625,8 +1692,9 @@ mod tests {
                 spawn_shipped_fish_watcher(&mut sim, aquarium_position, position);
             watchers.push((watcher, position, expected_facing));
         }
+        neutral_instincts(&mut sim);
         let before_hash = sim.world_hash();
-        let before_save = sim.save_snapshot();
+        let before_save = sim.save_snapshot_v5();
 
         sim.sync_render_buffer();
 
@@ -1687,14 +1755,14 @@ mod tests {
                 "watching fish must face the aquarium without entering it"
             );
         }
-        assert_eq!(sim.save_snapshot(), before_save);
+        assert_eq!(sim.save_snapshot_v5(), before_save);
         assert_eq!(sim.world_hash(), before_hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot(before_save.clone())
+            .load_snapshot_v5(before_save.clone())
             .expect("the active aquarium and bike state must load");
-        assert_eq!(restored.save_snapshot(), before_save);
+        assert_eq!(restored.save_snapshot_v5(), before_save);
         assert_eq!(restored.world_hash(), before_hash);
         assert_eq!(
             projection_of(restored.render_buffer(), exerciser),
@@ -2548,7 +2616,8 @@ mod tests {
                 },
             ))
             .id();
-        let snapshot = sim.save_snapshot();
+        neutral_instincts(&mut sim);
+        let snapshot = sim.save_snapshot_v5();
         let hash = sim.world_hash();
 
         sim.sync_render_buffer();
@@ -2565,13 +2634,13 @@ mod tests {
             displayed_position_of(sim.render_buffer(), agent).0,
             (18.0, 12.0)
         );
-        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.save_snapshot_v5(), snapshot);
         assert_eq!(sim.world_hash(), hash);
 
         let mut restored = Sim::new_with_lot(1, 1);
         restored
-            .load_snapshot(snapshot.clone())
-            .expect("the active bookshelf interaction is valid Save V1 state");
+            .load_snapshot_v5(snapshot.clone())
+            .expect("the active bookshelf interaction is valid current save state");
         restored.sync_render_buffer();
         assert_eq!(
             projection_of(restored.render_buffer(), agent),
@@ -2586,7 +2655,7 @@ mod tests {
             ((18.0, 12.0), (18.0, 12.0)),
             "Load reconstructs standing reading from saved simulation state at the ordinary tile"
         );
-        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(restored.save_snapshot_v5(), snapshot);
         assert_eq!(restored.world_hash(), hash);
     }
 
@@ -3243,6 +3312,253 @@ mod tests {
             (buffer.voice_firsts[idle], buffer.voice_seconds[idle]),
             (NO_VOICE_CLIP, NO_VOICE_CLIP),
             "a sim who is not talking must carry no clips"
+        );
+    }
+
+    fn conversation_identity(buffer: &super::RenderBuffer, entity: Entity) -> (u32, u32, u32) {
+        let row = buffer
+            .ids
+            .iter()
+            .position(|id| *id == entity.index_u32())
+            .unwrap();
+        (
+            buffer.conversation_owners[row],
+            buffer.conversation_end_lows[row],
+            buffer.conversation_end_highs[row],
+        )
+    }
+
+    #[test]
+    fn conversation_identity_names_the_initiator_on_both_rows() {
+        use terri_core::{ConversationVoice, Reserved, SimClock, Socialising};
+        let pack = crate::test_content::pack_with_social(
+            Vec::new(),
+            vec![authored_talk_interaction("chat")],
+            crate::test_content::tuning(),
+        );
+        let mut sim = crate::test_content::sim_with(20, 20, pack);
+        let initiator = sim
+            .world_mut()
+            .spawn((Agent, SimId(101), Position { x: 3.0, y: 4.0 }))
+            .id();
+        let partner = sim
+            .world_mut()
+            .spawn((Agent, SimId(3), Position { x: 4.0, y: 4.0 }, Reserved))
+            .id();
+        let idle = sim
+            .world_mut()
+            .spawn((Agent, SimId(32), Position { x: 9.0, y: 9.0 }))
+            .id();
+        sim.world_mut().resource_mut::<SimClock>().tick = 0x0020_0001_ffff_fffc;
+        sim.world_mut().entity_mut(initiator).insert((
+            Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 10,
+            },
+            ConversationVoice {
+                first: 7,
+                second: 3,
+            },
+        ));
+
+        sim.sync_render_buffer();
+
+        let buffer = sim.render_buffer();
+        assert_eq!(
+            conversation_identity(buffer, initiator),
+            (101, 6, 0x0020_0002)
+        );
+        assert_eq!(
+            conversation_identity(buffer, partner),
+            (101, 6, 0x0020_0002)
+        );
+        assert_eq!(conversation_identity(buffer, idle), (u32::MAX, 0, 0));
+        assert_eq!(buffer.conversation_owners.len(), buffer.count);
+        assert_eq!(buffer.conversation_end_lows.len(), buffer.count);
+        assert_eq!(buffer.conversation_end_highs.len(), buffer.count);
+    }
+
+    fn conversation_projection_fixture() -> Sim {
+        let pack = crate::test_content::pack_with_voice(
+            Vec::new(),
+            vec![authored_talk_interaction("chat")],
+            crate::test_content::tuning(),
+            &[25, 30],
+        );
+        let mut sim = crate::test_content::sim_with(20, 20, pack);
+        sim.world_mut()
+            .insert_resource(terri_core::SimIdAllocator::resumed(102));
+        sim.world_mut().resource_mut::<terri_core::SimClock>().tick = 100;
+        sim
+    }
+
+    fn spawn_projection_conversation(sim: &mut Sim, ids: (u32, u32), y: f32) -> (Entity, Entity) {
+        use terri_core::{ConversationVoice, Reserved, SelfPreservation, Socialising};
+        let initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(ids.0),
+                Position { x: 3.0, y },
+                Needs::all_at(100.0),
+                SelfPreservation(50),
+            ))
+            .id();
+        let partner = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(ids.1),
+                Position { x: 4.0, y },
+                Reserved,
+                Needs::all_at(100.0),
+                SelfPreservation(50),
+            ))
+            .id();
+        sim.world_mut().entity_mut(initiator).insert((
+            Target {
+                object: partner,
+                interaction: 0,
+            },
+            Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 8,
+            },
+            ConversationVoice {
+                first: 0,
+                second: 1,
+            },
+        ));
+        (initiator, partner)
+    }
+
+    #[test]
+    fn conversation_identity_is_stable_until_the_same_clips_restart() {
+        let mut sim = conversation_projection_fixture();
+        let (initiator, partner) = spawn_projection_conversation(&mut sim, (101, 3), 4.0);
+        sim.sync_render_buffer();
+        assert_eq!(
+            conversation_identity(sim.render_buffer(), initiator),
+            (101, 108, 0)
+        );
+        for _ in 0..2 {
+            sim.tick();
+            sim.sync_render_buffer();
+            assert_eq!(
+                conversation_identity(sim.render_buffer(), initiator),
+                (101, 108, 0)
+            );
+            assert_eq!(
+                conversation_identity(sim.render_buffer(), partner),
+                (101, 108, 0)
+            );
+        }
+        // The same two Sims start another instance with the same clips.
+        sim.world_mut()
+            .get_mut::<terri_core::Socialising>(initiator)
+            .unwrap()
+            .remaining_ticks = 8;
+        sim.sync_render_buffer();
+        assert_eq!(
+            conversation_identity(sim.render_buffer(), initiator),
+            (101, 110, 0)
+        );
+        assert_eq!(
+            conversation_identity(sim.render_buffer(), partner),
+            (101, 110, 0)
+        );
+    }
+
+    #[test]
+    fn conversation_identity_separates_simultaneous_pairs_and_clears_old_rows() {
+        let mut sim = conversation_projection_fixture();
+        let (a, b) = spawn_projection_conversation(&mut sim, (31, 4), 4.0);
+        let (c, d) = spawn_projection_conversation(&mut sim, (32, 5), 8.0);
+        sim.sync_render_buffer();
+        for entity in [a, b] {
+            assert_eq!(
+                conversation_identity(sim.render_buffer(), entity),
+                (31, 108, 0)
+            );
+        }
+        for entity in [c, d] {
+            assert_eq!(
+                conversation_identity(sim.render_buffer(), entity),
+                (32, 108, 0)
+            );
+        }
+        sim.world_mut()
+            .entity_mut(a)
+            .remove::<terri_core::Socialising>();
+        sim.sync_render_buffer();
+        for entity in [a, b] {
+            assert_eq!(
+                conversation_identity(sim.render_buffer(), entity),
+                (u32::MAX, 0, 0)
+            );
+        }
+        for entity in [c, d] {
+            assert_eq!(
+                conversation_identity(sim.render_buffer(), entity),
+                (32, 108, 0)
+            );
+        }
+        sim.world_mut().despawn(a);
+        sim.sync_render_buffer();
+        let buffer = sim.render_buffer();
+        assert_eq!(buffer.count, 3);
+        assert_eq!(buffer.conversation_owners.len(), 3);
+        assert_eq!(buffer.conversation_end_lows.len(), 3);
+        assert_eq!(buffer.conversation_end_highs.len(), 3);
+        assert_eq!(conversation_identity(buffer, c), (32, 108, 0));
+        assert_eq!(conversation_identity(buffer, d), (32, 108, 0));
+    }
+
+    #[test]
+    fn conversation_identity_wraps_the_completion_token_without_losing_the_owner() {
+        let mut sim = conversation_projection_fixture();
+        let (initiator, partner) = spawn_projection_conversation(&mut sim, (101, 3), 4.0);
+        sim.world_mut().resource_mut::<terri_core::SimClock>().tick = u64::MAX - 7;
+        sim.sync_render_buffer();
+        assert_eq!(
+            conversation_identity(sim.render_buffer(), initiator),
+            (101, 0, 0)
+        );
+        assert_eq!(
+            conversation_identity(sim.render_buffer(), partner),
+            (101, 0, 0)
+        );
+    }
+
+    #[test]
+    fn conversation_identity_survives_save_without_mutating_world_or_rng() {
+        let mut sim = conversation_projection_fixture();
+        let (initiator, partner) = spawn_projection_conversation(&mut sim, (101, 3), 4.0);
+        let saved = sim.save_snapshot_v5();
+        let hash = sim.world_hash();
+        let rng = sim.world().resource::<terri_core::SimRng>().clone();
+        sim.sync_render_buffer();
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(sim.save_snapshot_v5(), saved);
+        assert_eq!(sim.world_hash(), hash);
+        assert_eq!(*sim.world().resource::<terri_core::SimRng>(), rng);
+
+        let mut loaded = conversation_projection_fixture();
+        loaded
+            .load_snapshot_v5(saved.clone())
+            .expect("the voiced conversation is valid save state");
+        assert_eq!(loaded.save_snapshot_v5(), saved);
+        assert_eq!(loaded.world_hash(), hash);
+        assert_eq!(*loaded.world().resource::<terri_core::SimRng>(), rng);
+        assert_eq!(
+            conversation_identity(loaded.render_buffer(), initiator),
+            (101, 108, 0)
+        );
+        assert_eq!(
+            conversation_identity(loaded.render_buffer(), partner),
+            (101, 108, 0)
         );
     }
 

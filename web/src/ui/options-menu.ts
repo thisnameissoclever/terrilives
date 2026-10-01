@@ -1,15 +1,15 @@
 /**
  * The Options flyout - [OF2] in `docs/specs/2026-09-22-options-flyout.md`.
- * A gear at the window's top right opens one panel holding Light, Build, the
- * sound controls and the game actions, on every screen size.
+ * The upper-left Options button opens world preferences and game actions.
+ * See [CUI-world] for the current layout on desktop and compact screens.
  *
- * This is presentation state only, like `MobileHud`: opening it pauses
+ * This is presentation state only, like `CompactHud`: opening it pauses
  * nothing and sends no command. The controls inside keep their own
  * controllers. Escape and a pointer-down outside close it, the way the
  * right-click flyout closes.
  */
 
-/** The gear button: only its expanded state is written. */
+/** The Options button: only its expanded state is written. */
 export interface OptionsToggle {
   setAttribute(name: string, value: string): void;
 }

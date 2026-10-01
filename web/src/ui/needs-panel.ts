@@ -1,3 +1,5 @@
+import { setTextIfChanged } from './set-text-if-changed.js';
+
 /**
  * The need bars: one labelled bar per need for whichever sim the
  * SIMULATION says is selected.
@@ -167,12 +169,12 @@ export class NeedsPanel {
 
     // Re-read like everything else, not cached on selection change: a
     // future rename - sims will have editable names eventually - must
-    // reach the caption without the panel being told. The write is
-    // throttled with the bars, and an unchanged string is a no-op for
-    // the browser. An empty name - a stress filler agent - captions as
+    // reach the caption without the panel being told. Compare against
+    // the live DOM before writing; assigning unchanged textContent still
+    // replaces text nodes. An empty name - a stress filler agent - captions as
     // empty rather than as the previous sim's name, which is the stale
     // caption this placement exists to prevent.
-    this.caption.textContent = source.simName(selected);
+    setTextIfChanged(this.caption, source.simName(selected));
 
     for (let i = 0; i < this.bars.length; i++) {
       // A bar past the levels the simulation reported reads empty rather
@@ -189,14 +191,17 @@ export class NeedsPanel {
       const state = percent <= 20 ? 'critical' : percent <= 40 ? 'low' : 'steady';
       bar.setAttribute?.('aria-valuetext', `${percent}% full, ${state}`);
       if (bar.stateText) {
-        bar.stateText.textContent = state === 'steady' ? '' : ` (${state})`;
+        setTextIfChanged(bar.stateText, state === 'steady' ? '' : ` (${state})`);
       }
     }
     return true;
   }
 
   private showEmptyState(): void {
-    this.caption.textContent = 'Select a person';
+    setTextIfChanged(this.caption, 'Select a person');
+    for (const bar of this.bars) {
+      if (bar.stateText) setTextIfChanged(bar.stateText, '');
+    }
     if (this.emptyState && this.content) {
       this.root.hidden = false;
       this.emptyState.hidden = false;
@@ -240,7 +245,7 @@ export function buildNeedBars(
 
     const label = doc.createElement('span');
     label.className = 'need-label';
-    label.textContent = name;
+    setTextIfChanged(label, name);
 
     const stateText = doc.createElement('span');
     stateText.className = 'need-state';

@@ -1,0 +1,60 @@
+{
+  "before": {
+    "tick": 0,
+    "hash": "3236361234682576283",
+    "saveSha": "f616dfc86c09e9f8282fc281ee9a4c22f4fb48502ca29011fd52cdac3f937427",
+    "facing": 0,
+    "colourway": 0
+  },
+  "after": {
+    "tick": 0,
+    "hash": "3236361234682576283",
+    "saveSha": "f616dfc86c09e9f8282fc281ee9a4c22f4fb48502ca29011fd52cdac3f937427",
+    "facing": 0,
+    "colourway": 0
+  },
+  "rotations": [
+    {
+      "facing": 1,
+      "result": {
+        "object": 14,
+        "reason": null
+      }
+    },
+    {
+      "facing": 2,
+      "result": {
+        "object": 14,
+        "reason": null
+      }
+    },
+    {
+      "facing": 3,
+      "result": {
+        "object": 14,
+        "reason": null
+      }
+    },
+    {
+      "facing": 0,
+      "result": {
+        "object": 14,
+        "reason": null
+      }
+    }
+  ],
+  "played": {
+    "tick": 241,
+    "hash": "13485053602728015730",
+    "saveSha": "4492a50491502af246080ae1fbb04d1777ddc157b5181aa7e469cb71420768a9",
+    "facing": 0,
+    "colourway": 0
+  },
+  "errors": [],
+  "resources": [
+    "http://127.0.0.1:4183/assets/index-DdD-YaQD.js",
+    "http://127.0.0.1:4183/assets/index-CHOU2kqH.css",
+    "http://127.0.0.1:4183/assets/terri_wasm_bg-DucfSu6R.wasm",
+    "http://127.0.0.1:4183/atlas-7db5617af8b9ead864546355f9b23c4fffee8809faa0afe34f10d7c87e429049.png"
+  ]
+}

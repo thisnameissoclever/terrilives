@@ -11,6 +11,7 @@ pub mod layout;
 pub mod needs;
 pub mod rng;
 pub mod save;
+mod save_before_voice;
 
 /// Re-exported because it appears in this crate's own public API -
 /// `Target::object`, `Intent::object` - so a consumer that names those
@@ -20,7 +21,6 @@ pub mod save;
 pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
-pub use components::Colourway;
 pub use components::ObjectFacing;
 pub use components::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice, Eating,
@@ -28,6 +28,7 @@ pub use components::{
     Relationships, Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName,
     SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
 };
+pub use components::{Colourway, SelfPreservation};
 pub use facing::Facing;
 pub use grid::{Footprint, TileDistanceField, TileGrid};
 pub use hash::FnvHasher;
@@ -40,3 +41,5 @@ pub use save::{
     SavedHabituation, SavedIntent, SavedPath, SavedPersonality, SavedPosition, SavedSocialising,
     SavedTarget, SavedTraitState, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
 };
+
+pub use save_before_voice::SaveSnapshotV1BeforeVoice;

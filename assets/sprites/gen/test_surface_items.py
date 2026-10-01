@@ -5,7 +5,7 @@ from pathlib import Path
 import tomllib
 import unittest
 
-from surface_items import layouts, load_dishes, project_model
+from surface_items import layouts, load_dishes, project_model, dining_table_places
 from objects import table_surface
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -50,6 +50,27 @@ class SurfaceItemsTests(unittest.TestCase):
         self.assertAlmostEqual(point[0],0,places=4)
         self.assertAlmostEqual(point[1],-29.367,places=2)
         self.assertGreater(abs(point[1]+.86*38),3)
+
+    def test_current_table_places_follow_model_geometry_and_registered_camera(self):
+        places = dining_table_places(ROOT)
+        proof = json.loads((ROOT / 'assets/models/dining/owner-review-pending/dining-table/candidate-01/proof.json').read_text())
+        rows = tomllib.loads((ROOT / 'assets/sprites/atlas.toml').read_text())['sprite']
+        entries = layouts(ROOT, [(r['name'],None,0,0) for r in rows])
+        for x,y,z in places:
+            self.assertLessEqual(abs(x)+.15, .44-.05)
+            self.assertLessEqual(abs(y)+.15, .93-.05)
+            self.assertEqual(z, proof['model_checks']['top_height'])
+        for i,a in enumerate(places):
+            for b in places[i+1:]:
+                self.assertGreater(math.dist(a,b), .40)
+        for facing,degrees in {'SE':90,'NW':270,'SW':0,'NE':180}.items():
+            angle=math.radians(degrees)
+            name='offlineDiningTable'+('' if facing=='SE' else facing)
+            index=next(i for i,r in enumerate(rows) if r['name']==name)
+            expected=[project_model((x*math.cos(angle)-y*math.sin(angle),
+                                     x*math.sin(angle)+y*math.cos(angle),z),proof)
+                      for x,y,z in places]
+            self.assertEqual(entries[index]['points'],expected)
 
 
 if __name__ == '__main__':

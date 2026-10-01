@@ -115,6 +115,7 @@ satisfaction = 0.0
   [[chain.step]]
   role = "dish_sink"
   label = "Wash dishes"
+  sound_action = "sink_water"
   duration_ticks = 25
   visual = { action = "wash", anchor = "station", facing = "toward_anchor" }
 

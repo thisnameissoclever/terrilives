@@ -24,8 +24,8 @@ function inEveryDirection(base: string): ReadonlySet<number> {
 }
 
 /** The frame activity code is intentionally absent: agents are ignored by kind. */
-const LAMP_SPRITES = inEveryDirection('lampRoundFloor');
-const TELEVISION_SPRITES = inEveryDirection('televisionVintage');
+const LAMP_SPRITES = inEveryDirection('offlineFloorLamp');
+const TELEVISION_SPRITES = inEveryDirection('offlineTelevision');
 
 /** Graph-distance strengths, including the emitting object's own tile. */
 const LAMP_PROFILE: readonly number[] = [0.35, 0.22, 0.1, 0.04];

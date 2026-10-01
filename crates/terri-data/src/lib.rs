@@ -892,12 +892,12 @@ mod tests {
     #[test]
     fn decorative_chairs_face_their_table_and_desk() {
         let p = pack();
-        // These legacy chair models face +Y in their base SE artwork.
+        // These chair sprites face +Y in their base SE artwork.
         // NE points +X, SW points -X, and NW points -Y.
         for (id, x, y, sprite) in [
-            ("chair", 1.0, 3.0, 258),
-            ("chair", 4.0, 3.0, 256),
-            ("desk_chair", 6.0, 7.0, 299),
+            ("chair", 1.0, 3.0, 1253),
+            ("chair", 4.0, 3.0, 1252),
+            ("desk_chair", 6.0, 7.0, 1247),
         ] {
             let object = p.find(id).expect("existing decorative chair");
             let placement = p
@@ -1571,17 +1571,23 @@ mod tests {
 
     #[test]
     fn the_fingerprint_allows_foreground_sprite_presentation_changes() {
-        let original = pack().clone();
-        let base = content_fingerprint(&original);
+        let mut original = pack().clone();
         let bed = original
             .find("armchair")
-            .expect("the split armchair exists");
+            .expect("the fixture armchair exists");
         let placement = original
             .lot
             .placements
             .iter()
             .position(|candidate| candidate.object == bed)
-            .expect("the shipped lot places the split armchair");
+            .expect("the shipped lot places the armchair");
+        // Optional foregrounds remain supported even when no shipped object uses one.
+        let foreground = original.object(original.find("floor_lamp").unwrap()).sprite;
+        assert_ne!(foreground, original.object(bed).sprite);
+        original.objects[bed.0 as usize].foreground_sprite = Some(foreground);
+        original.objects[bed.0 as usize].facing_foreground_sprites.0 = [Some(foreground); 4];
+        original.lot.placements[placement].foreground_sprite = Some(foreground);
+        let base = content_fingerprint(&original);
         assert!(original.object(bed).foreground_sprite.is_some());
         assert!(original.lot.placements[placement]
             .foreground_sprite
@@ -1589,11 +1595,14 @@ mod tests {
 
         let mut presentation_only = original;
         presentation_only.objects[bed.0 as usize].foreground_sprite = None;
+        presentation_only.objects[bed.0 as usize]
+            .facing_foreground_sprites
+            .0 = [None; 4];
         presentation_only.lot.placements[placement].foreground_sprite = None;
         assert_eq!(
             base,
             content_fingerprint(&presentation_only),
-            "foreground bedding is reconstructed presentation and must not invalidate Save V1"
+            "foreground layers are reconstructed presentation and must not invalidate Save V1"
         );
     }
 
@@ -1635,6 +1644,26 @@ mod tests {
     fn the_fingerprint_allows_object_and_chain_sound_presentation_changes() {
         let original = pack().clone();
         let base = content_fingerprint(&original);
+
+        for (object_id, interaction_id) in [("sink", "wash_hands"), ("kitchen_sink", "wash_up")] {
+            let mut changed = original.clone();
+            let definition = changed.find(object_id).expect("shipped sink");
+            let interaction = changed.objects[definition.0 as usize]
+                .interactions
+                .iter_mut()
+                .find(|interaction| interaction.id == interaction_id)
+                .expect("shipped sink interaction");
+            assert!(
+                interaction.sound_action.is_some(),
+                "{object_id} must carry sound metadata before removing it"
+            );
+            interaction.sound_action = None;
+            assert_eq!(
+                base,
+                content_fingerprint(&changed),
+                "{object_id} sound must not affect save compatibility"
+            );
+        }
 
         let mut presentation_only = original.clone();
         let shower = presentation_only
@@ -2533,7 +2562,7 @@ mod tests {
         assert_eq!(t.duration_variance, 0.4);
         assert_eq!(t.min_interaction_ticks, 12);
         assert_eq!(t.rng_seed, 20260728);
-        assert_eq!(t.max_queued_intents, 10);
+        assert_eq!(t.max_queued_intents, 0);
         assert_eq!(t.max_queued_commands, 64);
         assert_eq!(t.need_bar_refresh_ms, 100);
         assert_eq!(t.contested_score_multiplier, 0.75);

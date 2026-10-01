@@ -5,7 +5,7 @@ Status: [CS-slice-housemate] shipped in PR 110 at merge `31c4edb`; its played ch
 This is the Create-a-sim bullet of M1 in `docs/FEATURES.md`, and the start of
 [S-create-a-sim], [S-household-size] and [F-entity-lifecycle] in
 `docs/GAME-SYSTEMS.md`. The household is fixed when a new game starts: three
-people from `content/household.toml`, and nobody can join or leave. Every
+people from `content/household.toml`; New housemate can add a person during play, and death can remove one. Every
 system that wants people to come and go (visitors, a partner, a baby, a pet,
 a death) needs the household to change during play first.
 
@@ -58,6 +58,10 @@ Added 2026-09-22 at the owner's request, after they found a drop-down of persona
 
 Next is off until the name is complete, and Move in is only on page 2, so a newcomer cannot be sent without a name. Back keeps every choice, and opening the form again starts on page 1, empty. Every button is `type="button"`: nothing submits the dialog's form, and Enter in the name box moves on to page 2 rather than closing the dialog. A page change moves keyboard focus onto the new page.
 
+Returning to Traits focuses its first enabled checkbox. A full selection
+disables unchecked boxes, so the first row is not necessarily focusable.
+With no enabled checkbox, focus goes to enabled Move in, otherwise Back.
+
 ## [CS-personality] A personality says what it is like
 
 Each archetype in `content/personalities.toml` gains a `description`, one or two plain sentences read from its numbers, appended last to the compiled personality. The compile step refuses a blank one. Its verbs follow [TL-affinity] in `docs/specs/2026-09-21-trait-library-and-traits-panel.md`: the correspondent's desk weight of 1.7 is "Loves", the settled's desk weight of 0.45 is "hates". Personalities are in no save and not in the save digest, so the new field changes neither. The names stay the content ids in words ("The correspondent") until the owner names them ([T22]).
@@ -101,3 +105,18 @@ so every newcomer wears the green one until there are more looks
 
 Ages, babies, partners, visitors and pets. Each builds on people arriving and
 leaving.
+
+
+## [VA-creation] Self-preservation on the traits page
+
+The traits page includes Self-preservation instinct, Random selected by default,
+and a manual integer slider from 0 through 100. This numeric value occupies no
+optional trait slot. Random and the manual slider have separate labelled rows
+with at least 44px labelled row height. The slider keeps at least 80px of width;
+long output text wraps onto another line when needed. The original
+`AddHousemate` command keeps its encoding and
+draws uniformly from 0 through 100 only after arrival validation succeeds.
+`AddHousemateWithInstinct` appends wire code 18 with an explicit validated integer;
+zero is a valid override. The boundary rejects invalid values before staging.
+Starter household and accepted random arrivals use the simulation generator, so
+a saved command and restored RNG reproduce the same value.

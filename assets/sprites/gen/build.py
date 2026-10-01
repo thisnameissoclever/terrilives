@@ -35,6 +35,8 @@ from iso import canvas, emit                                    # noqa: E402
 from offline_sims import load_export, runtime_tables             # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
+from offline_props import load_props                           # noqa: E402
+from offline_armchair import load_reviewed_armchair             # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -1144,6 +1146,52 @@ def main():
     # Endpoint endcaps append after every imported asset; all prior indices stay fixed.
     sprites.extend(render_sprites(objects.WALL_HALF_SPRITES))
     append_front_door_sprites(sprites)
+    # Corrections append new records so historical atlas indices and pixels stay fixed.
+    import bookcase
+    for facing in ("se", "sw", "nw", "ne"):
+        name = "wallBookcase" + ("" if facing == "se" else facing.upper())
+        image, drawing = canvas()
+        bookcase.draw(drawing, facing)
+        crop, width, height = emit(image)
+        sprites.append((name, crop, width, height))
+    import cutaway_walls
+    sprites.extend(render_sprites(cutaway_walls.SPRITES, exact=cutaway_walls.EXACT))
+    # Earlier static catalogs precede published procedural walls. This tail
+    # catalog follows them so adding furniture cannot shift those wall indices.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-03.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
+    # Occupied armchair art follows the full published static tail.
+    armchair = load_reviewed_armchair(
+        os.path.join(ROOT, 'assets', 'models', 'living', 'armchair-reviewed.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    sprites.extend(armchair.sprites)
+    more_anchors, more_tops, more_bounds, more_density, more_pairs, more_profiles = furniture_tables(armchair, sprites)
+    anchors.update(more_anchors)
+    tops.update(more_tops)
+    bounds.update(more_bounds)
+    densities.update(more_density)
+    pairs.update(more_pairs)
+    interactions.update(more_profiles)
+    # This static tail follows the occupied armchair records already published.
+    props, prop_anchors, prop_density, prop_bounds = load_props(
+        os.path.join(ROOT, 'assets', 'models', 'static-props-04.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    for sprite in props:
+        index = len(sprites)
+        sprites.append(sprite)
+        anchors[index] = prop_anchors[sprite[0]]
+        densities[index] = prop_density[sprite[0]]
+        bounds[index] = prop_bounds[sprite[0]]
     domestic_registration = None
     for variant in ("green", "blue", "red"):
         domestic = load_export(

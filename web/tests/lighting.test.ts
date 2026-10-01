@@ -8,8 +8,8 @@ import {
   type LightingSource,
 } from '../src/render/lighting.js';
 
-const LAMP = spriteIndex('lampRoundFloor');
-const TELEVISION = spriteIndex('televisionVintage');
+const LAMP = spriteIndex('offlineFloorLamp');
+const TELEVISION = spriteIndex('offlineTelevision');
 const CHAIR = spriteIndex('chair');
 
 class Rows implements LightingSource {
@@ -157,8 +157,8 @@ describe('tile light profiles', () => {
   // television, which draws it with another direction's sprite. Each
   // direction lights the room and glows exactly as the default one does.
   it.each(['SW', 'NW', 'NE'])('lights the room from a lamp or television turned to %s', (turn) => {
-    const lamp = spriteIndex(`lampRoundFloor${turn}`);
-    const television = spriteIndex(`televisionVintage${turn}`);
+    const lamp = spriteIndex(`offlineFloorLamp${turn}`);
+    const television = spriteIndex(`offlineTelevision${turn}`);
     const lampField = buildLightField(rows([[4, 3, 1, lamp]]), 10, 7, NO_WALLS, true);
     expect([0, 1, 2, 3, 4].map((step) => sampleLight(lampField, 4 - step, 3)))
       .toEqual([0.35, 0.22, 0.1, 0.04, 0].map((value) => expect.closeTo(value)));
@@ -167,6 +167,13 @@ describe('tile light profiles', () => {
       .toEqual([0.25, 0.12, 0.04, 0].map((value) => expect.closeTo(value)));
     expect(emissiveForSprite(lamp)).toBeCloseTo(0.85);
     expect(emissiveForSprite(television)).toBeCloseTo(0.85);
+  });
+
+  it.each(['', 'SW', 'NW', 'NE'])('keeps the radio unlit in facing %s', turn => {
+    const radio = spriteIndex(`offlineRadio${turn}`);
+    const field = buildLightField(rows([[4, 3, 1, radio]]), 10, 7, NO_WALLS, true);
+    expect([...field.values].every(value => value === 0)).toBe(true);
+    expect(emissiveForSprite(radio)).toBe(0);
   });
 });
 

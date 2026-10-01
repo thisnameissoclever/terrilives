@@ -1826,7 +1826,7 @@ describe('buildInstances', () => {
     // [ML-ambient] made every fragment darken as the hour turns, which
     // for the two things lighting the room is exactly backwards. Without
     // this the house at midnight contains an unlit lamp.
-    const lamp = spriteIndex('lampRoundFloor');
+    const lamp = spriteIndex('offlineFloorLamp');
     const view = new FakeEntities();
     view.set([
       [0, 0, 0, 0, 1, lamp],
@@ -2355,8 +2355,9 @@ describe('buildInstances over a real SimBridge', () => {
     // `a + (b - a) * 0`, which is exactly `a`, and both sides of each
     // comparison run the identical projection over identical inputs.
     const bridge = new SimBridge(new SimHandle(GRID, GRID), wasmMemory);
-    bridge.spawnObject(12, 2, 'fridge');
+    bridge.spawnObject(12, 2, 'sink');
     bridge.spawnAgent(1, 1, 20);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
     for (let i = 0; i < 5; i++) bridge.tick();
 
     const at = (alpha: number): number[] =>
@@ -2386,8 +2387,9 @@ describe('buildInstances over a real SimBridge', () => {
 
   it('rebuilds walking facing and distance phase from the saved tick position', () => {
     const bridge = new SimBridge(new SimHandle(GRID, GRID), wasmMemory);
-    bridge.spawnObject(12, 2, 'fridge');
+    bridge.spawnObject(12, 2, 'sink');
     bridge.spawnAgent(1, 1, 20);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
 
     let walkingRow = -1;
     for (let tick = 0; tick < 40 && walkingRow < 0; tick++) {
