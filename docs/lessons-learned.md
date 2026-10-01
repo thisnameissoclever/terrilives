@@ -8824,3 +8824,241 @@ animation evidence.
 **Prevention.** In the retention test, wait within a bound for both collections and keep the table locked throughout. Then hold the completed state for an additional interval to prove retention. Keep exact ownership, carrying, step, Load and eventual delivery assertions. Complete synthetic sleep actions with their ownership marker and require completion to remove it.
 
 **Verify.** Both collections must complete within the route/work bound, the table remains unclaimed, and both portions remain uneaten during the subsequent 180 ticks. The original fixed-bound checkpoint remains in the diagnostic log; increasing a timeout alone does not establish retention.
+## [L-pose-pole-is-not-elbow-position] Measure solved joints and complete garments
+
+**What happened.** Two proposed narrower double-bed poses retained essentially
+the original body width. A third narrowed the body but still missed its lane
+margin and failed the bone-scale assertion at the next breathing sample.
+
+**Root cause.** A two-link limb solver projects its bend pole around the
+shoulder-to-wrist axis. Reducing pole X does not necessarily reduce elbow X.
+The second failure came from hand scale channels exceeding the existing
+tolerance, not a comparable measured change in bone length. An unchanged-pose
+trace subsequently located a small distortion in the saved rest matrices;
+absolute-matrix assignment redistributed it through parent-relative scale
+channels. A new rotation-only adapter preserves the saved rig and passes the
+control without loosening the scale limit.
+
+**Prevention.** Solve and inspect the joint geometry before interpreting a pole
+coordinate as a body bound. Measure every visible cuff and sleeve at every
+sample. Keep length, scale-channel and evaluated-surface checks separate; do
+not relax a failed limit or omit a garment to make a candidate pass. Preserve
+rejected studies and obtain a fresh architectural review after three failures.
+Save the measurements before asserting the acceptance bound. Otherwise a
+rejected pose records only a failure and requires an avoidable diagnostic replay
+to identify which part exceeded the limit. A successful width screen also says
+nothing about whether the posture looks relaxed or the hands actually rest on
+the body.
+
+When solving contact, include raised details in the actual support surface.
+The double-bed trial brought a palm onto the shirt body but through its breast
+pocket. Symmetric wrist targets cannot be presumed valid for asymmetric
+clothing. Keep contact-only records separate from collision-cleared survivors,
+and verify the final root residual: a changing ray-hit set can create a sign
+bracket without a converged contact solution.
+
+Contact-frame axes have an order of authority. A hand support frame can make
+the surface normal primary, but a bone frame must preserve the exact joint
+direction and project its roll reference around that direction. Reusing the
+surface-first frame for a forearm moved both wrists away from otherwise valid
+inverse-kinematics targets. Test oblique direction/normal inputs, assert the
+authored joint positions before surface checks, and keep rejected receipts
+immutable. Width and bone-length checks alone did not detect this error.
+
+A candidate selector must include every coupled screening constraint that
+determines its parameter. The first evaluated elbow-height diagnostic selected
+lower endpoints because the forearms cleared the garments, even though cuffs
+or full-arm lane bounds still failed. The root algorithm was functioning; its
+objective was incomplete. Use named residuals for shaft clearance, cuff
+clearance and complete arm bounds, retain the limiting residual, and leave
+continuous-surface collision and visual review as separate acceptance gates.
+Do not require sleeves to clear their own designed shoulder attachment, or
+use that attachment to excuse new pocket, collar or opposite-arm collisions.
+Evaluate the actual modifier stack, including blended elbow and wrist ends;
+skinning an averaged smooth surface is not equivalent to smoothing after skinning.
+
+**Verify.** The preserved double-bed studies and bone diagnostic in
+`docs/plans/2026-10-01-double-bed-pilot.md` identify the rejected configurations,
+exact failed channels and unchanged sources. No pose or joint compositing
+acceptance follows from these screening results.
+
+## [L-trial-evidence-before-evaluation] Retain failed measurements before validating them
+
+**What happened.** A bedside-arm probe rejected a hand outside the bedding
+projection but lost the offending raw samples. An earlier runner had the same
+problem with a missing-hit assertion. Later, the corrected evidence runner
+stopped on a Windows denial while replacing its status file; that failure
+retained its numbered raw trials and final failure record.
+
+**Root cause.** The first probes kept samples in local variables and attached
+them to the report only after the calculation returned successfully. An outer
+exception handler could not save data it never received. The later file-access
+denial has no confirmed cause; concurrent reading is a possible sharing conflict,
+not proof of a permission configuration defect or geometry failure.
+
+**Prevention.** Attach a trial and all named point coordinates before evaluation.
+Retain hit, miss and unfinished states, explicit null gaps on misses, counts,
+parameters and tracebacks. Persist raw evidence before classifying the result,
+and rethrow failures. Keep numbered raw files and hashes instead of repeatedly
+rewriting every large array. Persistence itself can fail; do not convert such
+failures into a rejected geometric family, accepted result or silent retry.
+
+**Verify.** Inject two hits and one miss, a callback exception midway through
+sampling, and an assertion after measured bounds. Each must retain the completed
+and pending evidence and still fail. A supported control must complete. The
+four controls in `output/test_bed_trial_evidence.py` pass and received independent
+review. They do not prove filesystem durability after process termination.
+
+When progress evidence has readers, give every persistence revision its own
+exclusively created path and write the terminal receipt once. Wait for the
+actual writer process to exit before reading its terminal manifest and hashes.
+An open reader cannot block replacement of an older revision if no replacement
+is attempted. This is an ownership protocol, not a retry or permission change;
+creation failures must still propagate. Partial or missing terminal evidence
+must remain incomplete. Keep sample-before-classification and terminal-failure
+revisions separately, and test publication failures as well as in-memory
+callbacks. Apply the same record-before-evaluate boundary inside side-ray and
+per-object surface helpers, not only in their caller.
+
+## [L-deformed-mesh-internal-contacts] Check within each changed mesh as well as between parts
+
+**What happened.** A static two-person bed pose passed an early source-image
+review and complete interbody separation. Its full audit then reported hundreds
+of internal sleeve contacts, while both forearms had none. A follow-up source
+comparison stopped because the retained rest and posed triangle lists differed.
+The cause and acceptable attachment classification remain unresolved.
+
+**Root cause.** Tests between named objects do not inspect a mesh folding through
+itself. A visually plausible garment and unchanged weights do not prove that its
+deformed surface is valid. Triangle numbering also cannot be assumed stable
+between evaluated poses without checking the actual topology and tessellation.
+
+**Prevention.** Inspect internal contacts in each changed blended mesh before
+accepting a pose. Keep normal shared-edge contacts distinct from unexpected
+crossings. Establish source polygon and vertex correspondence before comparing
+contacts across poses; stop on mismatched topology rather than borrowing indices.
+Use a shared invertible-transform replay to classify eligible rigid inherited
+joins, not a blanket exception for connected parts. Keep early visual acceptance
+separate from full contact acceptance.
+
+**Verify.** The static pilot retains all four internal sleeve/forearm checks,
+39 complete rigid-part replays and the failed source comparison in the output
+directories listed in `docs/plans/2026-10-01-double-bed-pilot.md`. Resolve the
+reported sleeve contacts against a verified source before proceeding to accepted
+animation or compositing work.
+
+The independent replay subsequently traced these folds to the orientation
+convention: the upper arm's prescribed world roll was nearly 180 degrees from
+the torso-inherited rest orientation. The small apparent change in joint
+direction hid a large axial twist inside the blended sleeve. Construct a limb's
+orientation relative to its parent's deformed rest frame, not an unrelated world
+normal. Carry the roll convention through the chain; fixing only the shoulder
+can transfer the twist to the elbow. Re-solve surface contact after changing roll,
+because identical joint positions do not imply identical palm or cuff surfaces.
+
+## [L-sleep-silhouette-before-certification] Review the whole sleeping posture first
+
+**What happened.** Detailed arm/contact work continued on a double-bed pose whose
+knees were drawn up conspicuously. The owner rejected the cramped posture after
+earlier independent reviews had accepted its early visual appearance.
+
+**Root cause.** Review concentrated on the recently changed arms and numerical
+fit. The inherited folded legs escaped a whole-body naturalness check. Passing
+separation and mattress bounds does not establish a plausible sleeping posture.
+
+**Prevention.** Before extensive contact certification, render the whole body
+from at least two useful facings and assess head, torso, hips, knees and feet
+together. For a relaxed back-sleeping baseline, start with mostly extended legs
+and a slight bend. Measure the complete body against the mattress. Do not force
+an implausible curl to conceal a proportion mismatch or silently resize approved
+art. Preserve rejected poses and distinguish visual rejection from physical fit.
+
+**Verify.** Retain the straight-leg and slight-bend bounds, corresponding source
+images and independent whole-body review under the double-bed pilot. Neither an
+arm-only pass nor an old interbody certificate transfers to a changed full pose.
+
+## [L-occupied-bedding-replaces-flat-duvet] Lift the existing blanket over the sleeper
+
+**What happened.** An occupied-bed draft added a shaped blanket over the Sim but
+left the existing flat green duvet underneath. Its first foot edge also left
+the shoes exposed. The owner correctly identified two blankets where one was
+intended.
+
+**Root cause.** The static bedding was treated as an immutable support layer
+rather than the unoccupied form of the duvet. The first occupied surface only
+covered the body from above and did not continue down around the foot end.
+
+**Prevention.** Establish which visible bed parts are mattress, pillow, sheet
+and duvet before authoring occupancy. Replace the flat duvet and its folded
+edge with one occupied form. Fit the body to the remaining mattress and pillows;
+hiding a supporting layer invalidates its previous contact evidence. Continue
+the cloth over the feet and sides. Do not solve the appearance by leaving a
+floating body concealed underneath.
+
+**Verify.** Retain uncovered and covered views of the same pose. Check that the
+flat duvet objects are absent from occupied rendering, the mattress remains,
+feet are covered, and the new support and blanket-clearance measurements are
+explicitly distinguished from full physical acceptance.
+
+## [L-sleep-contributions-linear-filtering] Compose visible contributions before display transfer
+
+**What happened.** A three-owner bed draft added separately display-transformed
+RGB layers and then applied the outline. It looked close but differed by up to
+32 channel levels at source resolution. A plausible beauty-colored partition
+also failed an explicit fractional-filtering counterexample.
+
+**Root cause.** The Standard sRGB display transfer is nonlinear. Applying it
+to each contribution before addition changes mixed edges. Applying an ink-over
+product after filtering also does not commute with filtering the original
+joint scene. Matching texel centers is not sufficient.
+
+**Prevention.** Convert genuine owner RGB to scene-linear space, premultiply by
+measured coverage, and bake shared ink attenuation into fills before filtering.
+The outline remains a separate visible additive contribution. Sum contributions,
+unpremultiply once and apply display transfer once. Keep independent furniture
+recoloring in its existing display-color semantics, without coloring Sims or
+ink. Preserve true pre-ink fill coverage separately for picking.
+
+**Verify.** Repeat a complete scene to measure noise, compare no-ink and ink
+controls in both color spaces, and sample fractional coordinates. The bounded
+test reduced the source discrepancy to under two levels; 8-bit game-size
+encoding had maximum display-premultiplied error four and p95 one. Seventy-two
+fractional cases had maximum 3.021 and p95 below 0.645. These are pilot results,
+not a certificate for unrendered facings or the runtime shader. Retain negative
+tests for missing ink, swapped owners and the old filtering formula.
+
+## [L-render-witness-pixel-footprint] A visible triangle point is not an interior pixel
+
+**What happened.** A body triangle centroid passed a camera ray test but landed
+on a duvet boundary in the raster image. The raw owner-coverage check correctly
+rejected it rather than accepting an ambiguous label.
+
+**Root cause.** World-point visibility does not establish that the whole pixel
+footprint belongs to the same surface. Antialiasing included the neighboring
+duvet even though the centroid's ray hit the shirt.
+
+**Prevention.** Trace the actual pixel center and surrounding footprint through
+the registered orthographic camera. Select interior surface witnesses; do not
+relax an ownership threshold to accommodate a bad probe.
+
+**Verify.** Require the unchanged raw coverage validator to pass the stronger
+geometry probes, and independently swap owner image labels to demonstrate
+rejection. A commutative RGB sum cannot detect an owner-label swap itself.
+
+## [L-render-entrypoint-collision] Check tracked names before adding an exporter
+
+**What happened.** An occupied-bed exporter initially reused the tracked
+empty-bed renderer's filename. The collision was found before commit and the
+original entrypoint was restored byte-for-byte.
+
+**Root cause.** A plausible new filename was treated as unused without checking
+tracked files and documentation references first.
+
+**Prevention.** Check the repository inventory before creating a source file.
+Keep static empty-bed and occupied-bed entrypoints distinct. Preserve the safe
+terminal-publication protocol when promoting an experimental helper; copying
+its purpose without its synchronization and rename steps is not equivalent.
+
+**Verify.** The empty-bed renderer has no diff against its original. The new
+publisher's forced fsync failure leaves no terminal receipt, and a second
+writer cannot replace an existing terminal result.
