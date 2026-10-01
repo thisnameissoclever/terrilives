@@ -1,5 +1,21 @@
 # Lessons Learned
 
+## [L-floor-help-viewport-transition] Compact floor help must follow viewport changes
+
+**What happened.** The played renderer check changed a desktop viewport to 390px
+and found keyboard instructions still visible in the floor tool.
+
+**Root cause.** Floor controls received the initial compact state, but the shared
+media-query change listener updated the other build controls without them.
+
+**Prevention rule.** Wire every responsive build control into both initial state
+and the existing viewport-change listener. Keep instruction text unchanged.
+
+**How to verify.** Run floor-control and compact-HUD tests, then resize the running
+game from desktop to a small viewport and back. Verify touch help replaces keyboard
+help on the small viewport and keyboard help returns on desktop. The live transition
+check remains separate from unit tests of setCompact.
+
 ## [L-packed-instance-count] The packer must publish the draw count
 
 **What happened.** Floor-tool highlights were packed into the instance array but

@@ -627,6 +627,7 @@ async function main(): Promise<void> {
     wallControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
+    floorControls?.setCompact(event.matches);
   });
   observeHudScrollbar(hudRoot);
   const gameHud = new GameHud(
