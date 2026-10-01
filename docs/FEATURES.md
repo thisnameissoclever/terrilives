@@ -997,8 +997,8 @@ for eight. The current candidate aligns both at eight ticks and
 replaces it with a quieter 520 to 340 Hz triangle sweep, but that correction
 also remains owner-listening evidence rather than accepted sound design.
 
-This is not the complete audio feature. Front and interior door transitions now
-play two quiet provisional recordings, keyed by physical portal geometry with
+This is not the complete audio feature. Front and interior doors open silently
+and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
 `specs/2026-10-01-door-audio.md`. Routine controls
 are silent by design rather than waiting for blanket click sounds. Room and
@@ -1009,7 +1009,9 @@ Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water and door recordings are now integrated.
+downloaded and inventoried; selected water recordings and a filtered closing-door
+thunk are now integrated. Door opening is silent; the original door recordings
+remain preserved but are not fetched by gameplay.
 The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 
