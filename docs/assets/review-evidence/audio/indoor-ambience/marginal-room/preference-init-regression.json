@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-10-01T13:18:54.889Z",
+  "tests": [
+    {
+      "guarded": false,
+      "blankErrors": [
+        {
+          "url": "about:blank",
+          "message": "SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+        }
+      ],
+      "errors": [
+        {
+          "url": "about:blank",
+          "message": "SecurityError: Failed to read the 'localStorage' property from 'Window': Access is denied for this document."
+        }
+      ],
+      "saved": {},
+      "pass": true
+    },
+    {
+      "guarded": true,
+      "blankErrors": [],
+      "errors": [],
+      "saved": {
+        "version": 1,
+        "muted": false,
+        "effectsLevel": 0.7,
+        "voicesLevel": 1,
+        "ambienceLevel": 0.25
+      },
+      "pass": true
+    }
+  ],
+  "pass": true
+}

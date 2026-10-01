@@ -1,0 +1,424 @@
+{
+  "diagnosticOnly": true,
+  "acceptanceClaimed": false,
+  "conditions": {
+    "room-25": {
+      "samples": {
+        "baseline": {
+          "GainNode": {
+            "count": 4,
+            "shallowBytes": 576,
+            "ids": [
+              63443,
+              63451,
+              63453,
+              63455
+            ]
+          },
+          "AudioBuffer": {
+            "count": 16,
+            "shallowBytes": 1024,
+            "ids": [
+              63447,
+              63503,
+              63505,
+              127299,
+              127301,
+              127303,
+              127305,
+              127307,
+              127309,
+              127311,
+              127313,
+              127315,
+              127317,
+              127319,
+              127321,
+              176051
+            ]
+          },
+          "AudioContext": {
+            "count": 1,
+            "shallowBytes": 888,
+            "ids": [
+              63449
+            ]
+          },
+          "AudioDestinationNode": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17414
+            ]
+          },
+          "AudioWorklet": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17416
+            ]
+          },
+          "AudioListener": {
+            "count": 1,
+            "shallowBytes": 112,
+            "ids": [
+              17418
+            ]
+          },
+          "AudioParam": {
+            "count": 13,
+            "shallowBytes": 1040,
+            "ids": [
+              17420,
+              17422,
+              17424,
+              17426,
+              17428,
+              17430,
+              17432,
+              17434,
+              17436,
+              17438,
+              17440,
+              17442,
+              17444
+            ]
+          }
+        },
+        "final": {
+          "GainNode": {
+            "count": 4,
+            "shallowBytes": 576,
+            "ids": [
+              63443,
+              63451,
+              63453,
+              63455
+            ]
+          },
+          "AudioBuffer": {
+            "count": 16,
+            "shallowBytes": 1024,
+            "ids": [
+              63447,
+              63503,
+              63505,
+              176051,
+              127299,
+              127301,
+              127303,
+              127305,
+              127307,
+              127309,
+              127311,
+              127313,
+              127315,
+              127317,
+              127319,
+              127321
+            ]
+          },
+          "AudioContext": {
+            "count": 1,
+            "shallowBytes": 888,
+            "ids": [
+              63449
+            ]
+          },
+          "AudioDestinationNode": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17414
+            ]
+          },
+          "AudioWorklet": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17416
+            ]
+          },
+          "AudioListener": {
+            "count": 1,
+            "shallowBytes": 112,
+            "ids": [
+              17418
+            ]
+          },
+          "AudioParam": {
+            "count": 13,
+            "shallowBytes": 1040,
+            "ids": [
+              17420,
+              17422,
+              17424,
+              17426,
+              17428,
+              17430,
+              17432,
+              17434,
+              17436,
+              17438,
+              17440,
+              17442,
+              17444
+            ]
+          }
+        }
+      },
+      "surviving": {
+        "GainNode": {
+          "before": 4,
+          "after": 4,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioBuffer": {
+          "before": 16,
+          "after": 16,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioContext": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioDestinationNode": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioWorklet": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioListener": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioParam": {
+          "before": 13,
+          "after": 13,
+          "addedIds": [],
+          "removedIds": []
+        }
+      }
+    },
+    "room-0": {
+      "samples": {
+        "baseline": {
+          "GainNode": {
+            "count": 4,
+            "shallowBytes": 576,
+            "ids": [
+              63485,
+              63491,
+              63493,
+              63495
+            ]
+          },
+          "AudioContext": {
+            "count": 1,
+            "shallowBytes": 888,
+            "ids": [
+              63489
+            ]
+          },
+          "AudioBuffer": {
+            "count": 15,
+            "shallowBytes": 960,
+            "ids": [
+              63545,
+              63547,
+              165647,
+              165649,
+              165651,
+              165653,
+              165655,
+              165657,
+              165659,
+              165661,
+              165663,
+              165665,
+              165667,
+              165669,
+              174581
+            ]
+          },
+          "AudioDestinationNode": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17386
+            ]
+          },
+          "AudioWorklet": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17388
+            ]
+          },
+          "AudioListener": {
+            "count": 1,
+            "shallowBytes": 112,
+            "ids": [
+              17390
+            ]
+          },
+          "AudioParam": {
+            "count": 13,
+            "shallowBytes": 1040,
+            "ids": [
+              17392,
+              17394,
+              17396,
+              17398,
+              17400,
+              17402,
+              17404,
+              17406,
+              17408,
+              17410,
+              17412,
+              17414,
+              17416
+            ]
+          }
+        },
+        "final": {
+          "GainNode": {
+            "count": 4,
+            "shallowBytes": 576,
+            "ids": [
+              63485,
+              63491,
+              63493,
+              63495
+            ]
+          },
+          "AudioContext": {
+            "count": 1,
+            "shallowBytes": 888,
+            "ids": [
+              63489
+            ]
+          },
+          "AudioBuffer": {
+            "count": 15,
+            "shallowBytes": 960,
+            "ids": [
+              63545,
+              63547,
+              165647,
+              165649,
+              165651,
+              165653,
+              165655,
+              165657,
+              165659,
+              165661,
+              165663,
+              165665,
+              165667,
+              165669,
+              174581
+            ]
+          },
+          "AudioDestinationNode": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17386
+            ]
+          },
+          "AudioWorklet": {
+            "count": 1,
+            "shallowBytes": 120,
+            "ids": [
+              17388
+            ]
+          },
+          "AudioListener": {
+            "count": 1,
+            "shallowBytes": 112,
+            "ids": [
+              17390
+            ]
+          },
+          "AudioParam": {
+            "count": 13,
+            "shallowBytes": 1040,
+            "ids": [
+              17392,
+              17394,
+              17396,
+              17398,
+              17400,
+              17402,
+              17404,
+              17406,
+              17408,
+              17410,
+              17412,
+              17414,
+              17416
+            ]
+          }
+        }
+      },
+      "surviving": {
+        "GainNode": {
+          "before": 4,
+          "after": 4,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioContext": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioBuffer": {
+          "before": 15,
+          "after": 15,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioDestinationNode": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioWorklet": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioListener": {
+          "before": 1,
+          "after": 1,
+          "addedIds": [],
+          "removedIds": []
+        },
+        "AudioParam": {
+          "before": 13,
+          "after": 13,
+          "addedIds": [],
+          "removedIds": []
+        }
+      }
+    }
+  }
+}

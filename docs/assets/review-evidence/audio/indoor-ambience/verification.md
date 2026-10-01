@@ -276,3 +276,18 @@ and causal evidence rather than repeating or relaxing the test. PR 184 and
 the separate PR 178 remain held. No 120 Hz, listening or ambience deployment
 acceptance is claimed. All task-owned browser contexts and preview server
 5221 were closed after verification.
+
+## Follow-up attribution, without another acceptance sweep
+
+Fresh adversarial review found that the earlier identity analysis omitted
+compiled-code identities. The [offline follow-up](compiled-code-review.md)
+uses the existing snapshots to distinguish replaced renderer code from
+surviving Sim/portal sampler code. It does not establish a code-size plateau.
+
+A separately predeclared single [marginal room diagnostic](marginal-room-review.md)
+kept all audio sampling enabled and changed only Ambience 25% versus 0%.
+It captured all four snapshots but exited 1 because the test initializer
+accessed storage on blank documents. A focused fixture reproduced and corrected
+that setup defect without rerunning the pair. The preserved game measurements
+and snapshots offer qualified attribution evidence, not a clean pass or waiver.
+The release hold and 94,496-byte failed median remain unchanged.

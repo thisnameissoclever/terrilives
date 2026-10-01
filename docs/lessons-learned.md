@@ -1,5 +1,42 @@
 # Lessons Learned
 
+## [L-code-growth-needs-identity-attribution] Track the category that actually grew
+
+**What happened.** Audio memory diagnostics found that compiled code dominated
+growth, but the identity-cohort helper tracked only objects, arrays, closures
+and native nodes. It could not establish whether code was replaced or accumulated.
+
+**Root cause.** Aggregate category totals were mistaken for sufficient evidence
+about the identities and ownership of the largest category.
+
+**Prevention.** Include code IDs and same-ID size changes when investigating
+code growth. Keep IDs scoped to each browser context. Trace nearest function
+owners without continuing through their shared enclosing context and naming
+unrelated functions as owners. Never subtract code from a raw memory contract.
+
+**Verify.** Reconcile births minus deaths plus surviving size changes with the
+aggregate delta. Follow a suspected function's Code/InstructionStream and
+SharedFunctionInfo identities across samples. State the observation window
+and distinguish replacement, finite survival and proven unbounded growth.
+
+## [L-browser-preference-init-origin] Seed preferences only on the intended origin
+
+**What happened.** A diagnostic captured its game snapshots but failed its clean
+browser check because the initialization script also accessed localStorage on
+the browser's initial `about:blank` document.
+
+**Root cause.** Context-wide initialization scripts run before navigation too;
+an opaque origin does not have the game's storage access.
+
+**Prevention.** Check the exact intended origin before accessing storage. Do not
+catch and suppress a storage error on the actual app origin. Use isolated test
+contexts, never the owner's saved settings.
+
+**Verify.** A focused native-browser fixture must reproduce the original blank
+document error, then show no error with the origin guard and the exact intended
+preferences on the routed app-origin page. Preserve the failed diagnostic and
+its limitations rather than reporting a clean run after the fact.
+
 ## [L-audio-memory-pairs-need-the-same-world] Equal entity counts do not make matched workloads
 
 **What happened.** Indoor ambience passed native output and ownership checks,
