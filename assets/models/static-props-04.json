@@ -12,6 +12,12 @@
       "directory": "living/owner-review-pending/coat-rack/candidate-02",
       "proof_sha256": "a58bd9b333f07152c36d014aa15c9a6d3b5901563e2f73ed7332817cd9782dd4",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlinePottedPlant",
+      "directory": "living/owner-review-pending/potted-plant/candidate-02",
+      "proof_sha256": "a85664527ed38b04d809fef1d7c06e257b94147d1eb805e7e9e2ab0c28828f25",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

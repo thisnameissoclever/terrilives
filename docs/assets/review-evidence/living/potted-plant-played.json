@@ -1,0 +1,375 @@
+{
+  "pass": true,
+  "initialUI": "Time\nDay 1, 00:00\nFunds\n0\n\nNo save yet\n\nPause\n1x\n2x\n3x\nBuild\nOptions\nTim\nDeciding what to do\nSim details\nQueue\nHousehold\nCollapse\n\nTim\nBill\nCasey\nHunger\nEnergy\nHygiene\nBladder\nSocial\nFun\nComfort\nHow to play\n\nGame time is paused while this guide is open.\n\nChoose a person under Household to select them and see their needs.\nTap or click an object to give the selected person its default action.\nLong-press or right-click for more actions, including talking to another person.\nDrag to move the camera. Pinch or use the mouse wheel to zoom.\nBuild in the upper-left world controls pauses the household. Move or rotate furniture, then Confirm or choose another item. Choosing another item commits a valid move and cancels an invalid one. Cancel leaves it unchanged; Exit build returns to play.\nIn Build, Walls turns the line between two floor tiles into a wall, a doorway, a window or nothing. A window stops people and lets the daylight through. Remove clears the line; the status line says why when a change is not allowed.\nIn Build, Room builds a whole room at once: choose two opposite corner tiles, then a line of the outline for its doorway, and press Build room.\nIn Build, Buy lists everything for sale with its price. Choose something, point at the floor, turn it with Rotate, and press Buy; the price comes out of Funds. Items the household cannot afford are greyed out.\nIn Build, Floors lays a floor: choose Boards, Tiles or Carpet, then click a tile. Remove puts the tile back to how the house came.\nA new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.\nUse Clear orders to stop the action you gave the selected person and remove their waiting actions.\nWith the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.\nOpen Sim details for needs, mood, career and life satisfaction. Choose Traits to see their traits; Close returns to the compact dock.\nChoose People inside Sim details to see how the selected person feels about everyone else. Household contains New housemate.\nOpen Options in the upper-left world controls for Light, Sound, Death",
+  "before": {
+    "tick": 0,
+    "worldHash": "14358444542929377430",
+    "saveSha256": "4126d07e3a4650acb70c43945c18e22151d16184121d74671fc81ad55a115a07",
+    "plants": [
+      {
+        "id": 13,
+        "position": [
+          15,
+          0
+        ],
+        "sprite": 1354,
+        "facing": 0,
+        "colourway": 0
+      },
+      {
+        "id": 28,
+        "position": [
+          10,
+          11
+        ],
+        "sprite": 1354,
+        "facing": 0,
+        "colourway": 0
+      }
+    ]
+  },
+  "rotations": [
+    {
+      "id": 13,
+      "facing": 1,
+      "result": {
+        "object": 13,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "11727562339299908557",
+        "saveSha256": "168bdadfb5fccaa125261f05f5db8c905007265152ec5c934e328aadf386f042",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1356,
+            "facing": 1,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "facing": 2,
+      "result": {
+        "object": 13,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "5935808351097219190",
+        "saveSha256": "64803f97f65419b8187b46d52aacf4c1a110fad526e38dd844c90c2913c8cc17",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1355,
+            "facing": 2,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "facing": 3,
+      "result": {
+        "object": 13,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "18333892030730752395",
+        "saveSha256": "cc2bc57839414542b36e1ef7bc5d123b79572654746910531766714e3a8f9f90",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1357,
+            "facing": 3,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "facing": 0,
+      "result": {
+        "object": 13,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "14358444542929377430",
+        "saveSha256": "4126d07e3a4650acb70c43945c18e22151d16184121d74671fc81ad55a115a07",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "facing": 1,
+      "result": {
+        "object": 28,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "712448900574936422",
+        "saveSha256": "fd0511550a848fef91fb4615e400a90a0d5e042d6d6e9ed372515cd09b30f906",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1356,
+            "facing": 1,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "facing": 2,
+      "result": {
+        "object": 28,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "6268740498354499141",
+        "saveSha256": "d6dbaea3a95a65165b8dcae8426ae8cb8fed8858cd999fb80623431581b163ad",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1355,
+            "facing": 2,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "facing": 3,
+      "result": {
+        "object": 28,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "7767615432048009340",
+        "saveSha256": "faeffec86b20cb28845acf7995cddceb8ab8636f5ec396805afceb714fa3d1d6",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1357,
+            "facing": 3,
+            "colourway": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "facing": 0,
+      "result": {
+        "object": 28,
+        "reason": null
+      },
+      "state": {
+        "tick": 0,
+        "worldHash": "14358444542929377430",
+        "saveSha256": "4126d07e3a4650acb70c43945c18e22151d16184121d74671fc81ad55a115a07",
+        "plants": [
+          {
+            "id": 13,
+            "position": [
+              15,
+              0
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          },
+          {
+            "id": 28,
+            "position": [
+              10,
+              11
+            ],
+            "sprite": 1354,
+            "facing": 0,
+            "colourway": 0
+          }
+        ]
+      }
+    }
+  ],
+  "restored": {
+    "tick": 0,
+    "worldHash": "14358444542929377430",
+    "saveSha256": "4126d07e3a4650acb70c43945c18e22151d16184121d74671fc81ad55a115a07",
+    "plants": [
+      {
+        "id": 13,
+        "position": [
+          15,
+          0
+        ],
+        "sprite": 1354,
+        "facing": 0,
+        "colourway": 0
+      },
+      {
+        "id": 28,
+        "position": [
+          10,
+          11
+        ],
+        "sprite": 1354,
+        "facing": 0,
+        "colourway": 0
+      }
+    ]
+  },
+  "played": {
+    "tick": 241,
+    "worldHash": "5743935100530473196",
+    "saveSha256": "8ec6bb49d4e81cf85d4ae091081204de3fb1fcd76c7716d9d40d58eb22d7f7d0",
+    "plants": [
+      {
+        "id": 13,
+        "position": [
+          15,
+          0
+        ],
+        "sprite": 1354,
+        "facing": 0,
+        "colourway": 0
+      },
+      {
+        "id": 28,
+        "position": [
+          10,
+          11
+        ],
+        "sprite": 1354,
+        "facing": 0,
+        "colourway": 0
+      }
+    ]
+  },
+  "resources": [
+    "http://127.0.0.1:4183/assets/index-DrbD9DS_.js",
+    "http://127.0.0.1:4183/assets/index-CHOU2kqH.css",
+    "http://127.0.0.1:4183/assets/terri_wasm_bg-BuQVIoIE.wasm",
+    "http://127.0.0.1:4183/atlas-398b58facd5c78ce2c43a88d8e2a43fb49e85ea39131163af00a8b4f5be3a545.png"
+  ],
+  "errors": [],
+  "consoleErrors": []
+}

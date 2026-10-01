@@ -1,0 +1,116 @@
+{
+  "state": "passed",
+  "closed_connected_parts": 21,
+  "contacts": {
+    "Soil / Planter": {
+      "crossing_faces": 40,
+      "contained_point": null
+    },
+    "Trunk / Soil": {
+      "crossing_faces": 64,
+      "contained_point": null
+    },
+    "Branch 01 / Trunk": {
+      "crossing_faces": 82,
+      "contained_point": null
+    },
+    "Leaf 01 / Branch 01": {
+      "crossing_faces": 64,
+      "contained_point": null
+    },
+    "Branch 02 / Trunk": {
+      "crossing_faces": 82,
+      "contained_point": null
+    },
+    "Leaf 02 / Branch 02": {
+      "crossing_faces": 60,
+      "contained_point": null
+    },
+    "Branch 03 / Trunk": {
+      "crossing_faces": 84,
+      "contained_point": null
+    },
+    "Leaf 03 / Branch 03": {
+      "crossing_faces": 68,
+      "contained_point": null
+    },
+    "Branch 04 / Trunk": {
+      "crossing_faces": 84,
+      "contained_point": null
+    },
+    "Leaf 04 / Branch 04": {
+      "crossing_faces": 72,
+      "contained_point": null
+    },
+    "Branch 05 / Trunk": {
+      "crossing_faces": 84,
+      "contained_point": null
+    },
+    "Leaf 05 / Branch 05": {
+      "crossing_faces": 68,
+      "contained_point": null
+    },
+    "Branch 06 / Trunk": {
+      "crossing_faces": 82,
+      "contained_point": null
+    },
+    "Leaf 06 / Branch 06": {
+      "crossing_faces": 72,
+      "contained_point": null
+    },
+    "Branch 07 / Trunk": {
+      "crossing_faces": 84,
+      "contained_point": null
+    },
+    "Leaf 07 / Branch 07": {
+      "crossing_faces": 76,
+      "contained_point": null
+    },
+    "Branch 08 / Trunk": {
+      "crossing_faces": 81,
+      "contained_point": null
+    },
+    "Leaf 08 / Branch 08": {
+      "crossing_faces": 80,
+      "contained_point": null
+    },
+    "Branch 09 / Trunk": {
+      "crossing_faces": 84,
+      "contained_point": null
+    },
+    "Leaf 09 / Branch 09": {
+      "crossing_faces": 113,
+      "contained_point": null
+    }
+  },
+  "open_planter_floor": 0.05500000715255737,
+  "soil_bottom": 0.05000000074505806,
+  "soil_top": 0.27799999713897705,
+  "caught_mutations": [
+    {
+      "mutation": "raised planter",
+      "rejection": "Planter floats"
+    },
+    {
+      "mutation": "floating soil",
+      "rejection": "Soil floats above planter floor"
+    },
+    {
+      "mutation": "detached trunk",
+      "rejection": "Trunk detached from Soil"
+    },
+    {
+      "mutation": "detached branch",
+      "rejection": "Branch 01 detached from Trunk"
+    },
+    {
+      "mutation": "detached leaf",
+      "rejection": "Leaf 01 detached from Branch 01"
+    },
+    {
+      "mutation": "shifted root",
+      "rejection": "Root moved"
+    }
+  ],
+  "model_sha256": "566bcf2d16e19ba14a6760bc125c41bd5299c98b7f0eba7c94d86c1a83a0f986"
+}

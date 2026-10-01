@@ -185,3 +185,33 @@ with thickness, a continuous fold and two unequal tails, not a cloth simulation.
 
 Candidate 01 is rejected for its orientation. Candidate 02's evidence is in
 `../../../docs/assets/review-evidence/living/coat-rack.md`.
+
+## Potted plant
+
+`plant_layout.py` defines the tapered square planter, fitted soil volume and
+nine leaves. `plant_model.py` builds connected stems and curved, thin leaf
+surfaces. Keep the compact terracotta-and-green identity, both saved placements
+and the one-tile footprint. The two plants share artwork, not instance state.
+
+1. Run the living-model tests, then hidden background Blender with
+   `render_plant.py -- NEW_ABSOLUTE_DIR`. The approved Sim supplies the camera,
+   lighting and toon material family; do not change those shared sources.
+2. Run `check_plant_scene.py -- ABSOLUTE_MODEL NEW_RESULT`. Require closed,
+   connected meshes, an open planter, grounded soil inside its outer shell,
+   and evaluated contact through every stem and leaf. Damaged copies and
+   deleted guards must fail. The convex outer-envelope test is specific to
+   this planter's convex profile, not a general test for arbitrary containers.
+3. Produce the four-facing board with `../kitchen/review_fridge.py DIR LABEL`.
+   Inspect originals and reduced art, then obtain independent visual review.
+   Candidate 01 and its original model scripts remain under `rejected`.
+4. Append accepted art to `../static-props-04.json`; preserve all previous
+   sprite indices, decoded pixels and registration/interaction tables.
+5. Run `pottedPlantProof()` from `web/proofs/potted-plant.js`. Identify the
+   target by entity row, not a shared sprite number. During preview, verify
+   its old row is suppressed and the other plant remains unchanged.
+6. Rotate both plants through the production Build controls, compare the
+   restored paused save, and inspect day/night room scale and normal playback.
+   Close owned browser contexts and stop owned preview servers afterward.
+
+Candidate 02's source and runtime evidence is recorded in
+`../../../docs/assets/review-evidence/living/potted-plant.md`.

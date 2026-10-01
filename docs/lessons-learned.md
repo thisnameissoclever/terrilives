@@ -7728,3 +7728,28 @@ samples. Compare source emission separately from the final light value.
 detach the rail, float or penetrate the fabric, overhang its edge, and add a
 disconnected scrap; require each rejection. Delete the corresponding guards
 to prove that the negative tests notice. Preserve the original model bytes.
+
+## [L-plant-containment-and-instance-identity] Check container fill and distinguish shared sprites
+
+**What happened.** A plausible plant render hid soil floating above its pot's
+floor. Independent review then identified that contact alone could allow soil
+to shift through the wall. Two placed plants also made the prior sprite-only
+GPU lookup unsuitable. The first connectivity check needed an explicit Blender
+vertex lookup table, and a preview test guessed the wrong suppression value.
+
+**Root cause.** Visible appearance did not establish internal support. Connected
+objects can still intersect the wrong surface. A sprite is shared artwork,
+not a unique instance identifier. Blender mesh indices and renderer suppression
+both have explicit contracts that the new tests initially missed.
+
+**Prevention.** Fit fill geometry to the actual container and verify floor
+support separately from containment. For this convex planter, test evaluated
+soil vertices against the evaluated outer hull; do not generalize that hull
+test to concave vessels. Build mesh lookup tables before indexed access. Resolve
+GPU rows by entity ID; previews park the replaced row off-screen and append a
+new body, while the other plant must stay unchanged.
+
+**Verify.** Lift the soil, move it sideways, detach a branch or leaf, and delete
+the corresponding guards. Require specific failures, not unrelated exceptions.
+Rotate and recolour both plants independently, test preview suppression, and
+compare the paused save after a complete turn through production controls.
