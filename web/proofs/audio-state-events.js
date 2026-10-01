@@ -14,6 +14,29 @@ function near(actual, expected, label) {
 // The first hold only schedules an ordinary fade; the second exposes suspension.
 // Offline rendering is controlled-clock evidence, not an OS interruption test.
 export async function proveAudioStateEvents(kinds = ['object', 'conversation']) {
+  return renderAudioStateEvents(kinds);
+}
+
+const FIRST_HOLD_FAILURE = 'forced first-hold ordinary-fade assertion: expected 0, rendered 1';
+
+export async function proveAudioStateEventsFailureCleanup() {
+  let cleanedState;
+  let receivedError;
+  try {
+    await renderAudioStateEvents(['object'], true, state => { cleanedState = state; });
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== FIRST_HOLD_FAILURE) throw error;
+    receivedError = error.message;
+  }
+  if (receivedError !== FIRST_HOLD_FAILURE) throw new Error('Forced first-hold assertion did not reach the caller');
+  if (cleanedState !== 'closed') throw new Error(`Forced failure cleanup did not finish rendering: ${cleanedState}`);
+  return [
+    { label: 'first-hold assertion reaches caller', expected: FIRST_HOLD_FAILURE, actual: receivedError },
+    { label: 'both scheduled suspensions drained before rejection', expected: 'closed', actual: cleanedState },
+  ];
+}
+
+async function renderAudioStateEvents(kinds, forceFirstHoldFailure = false, afterCleanup) {
   const results = [];
   for (const kind of kinds) {
     for (const interrupt of [false, true]) {
@@ -22,6 +45,7 @@ export async function proveAudioStateEvents(kinds = ['object', 'conversation']) 
       buffer.getChannelData(0).fill(1);
       let scheduling = true;
       let rendered;
+      const suspensions = [];
       const port = {
         get currentTime() { return offline.currentTime; },
         get state() { return scheduling || !interrupt ? 'running' : offline.state; },
@@ -76,12 +100,15 @@ export async function proveAudioStateEvents(kinds = ['object', 'conversation']) 
         frame(true);
         if (retained() !== 1) throw new Error(`${kind}: positive source was not exercised`);
         const beginRelease = offline.suspend(0.128);
+        suspensions.push(beginRelease);
         const duringRelease = offline.suspend(0.136);
+        suspensions.push(duringRelease);
         const firstSuspendedEvent = stateEvent('suspended');
         rendered = offline.startRendering();
         await beginRelease;
         await firstSuspendedEvent;
         frame(false);
+        if (forceFirstHoldFailure) near(retained(), 0, 'forced first-hold ordinary-fade assertion');
         if (retained() !== 1) throw new Error(`${kind}: ordinary fade was cut early`);
         scheduling = false;
         const runningEvent = stateEvent('running');
@@ -111,8 +138,16 @@ export async function proveAudioStateEvents(kinds = ['object', 'conversation']) 
         globalThis.fetch = originalFetch;
         controller.reset('load');
         offline.onstatechange = null;
-        if (rendered && offline.state === 'suspended') await offline.resume();
-        if (rendered) await rendered;
+        if (rendered) {
+          // An early assertion leaves later native holds queued. Drain each
+          // before awaiting the render so cleanup cannot hide that assertion.
+          for (const suspension of suspensions) {
+            await suspension;
+            if (offline.state === 'suspended') await offline.resume();
+          }
+          await rendered;
+        }
+        afterCleanup?.(offline.state);
       }
     }
   }
