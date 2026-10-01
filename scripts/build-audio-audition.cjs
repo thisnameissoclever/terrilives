@@ -13,13 +13,26 @@ const CANDIDATES = [
   page: `https://opengameart.org/content/${slug}`,
 }));
 
-function buildReview({ intake, output, candidates = CANDIDATES }) {
+const DEFAULT_METADATA = {
+  title: 'Household sound review',
+  introduction: 'Five unedited candidates, not approved game sounds. This file works offline. Nothing plays until you press Play.',
+  instructions: 'Compare water character, background voices or music, unexpected knocks, distortion, and repetition seams. Boiling water may suit a pot, but not every cooking action. A keeper still needs editing and an in-game mix check.',
+};
+
+function buildReview({ intake, output, candidates = CANDIDATES, metadata }) {
   const repository = fs.realpathSync(path.resolve(__dirname, '..'));
   const destination = path.join(fs.realpathSync(path.dirname(path.resolve(output))), path.basename(output));
   const relative = path.relative(repository, destination);
   if (!relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)) {
     throw new Error('Review output must be outside the repository');
   }
+  const html = renderReview({ intake, candidates, metadata });
+  fs.writeFileSync(destination, html, { flag: 'wx' });
+  return destination;
+}
+
+// Rendering always validates original source files; callers cannot supply embedded records.
+function renderReview({ intake, candidates = CANDIDATES, metadata = DEFAULT_METADATA }) {
   const sourceRoot = fs.realpathSync(intake);
   const records = candidates.map(candidate => {
     if (path.basename(candidate.file) !== candidate.file || /[\\/:]/.test(candidate.file)) {
@@ -31,6 +44,9 @@ function buildReview({ intake, output, candidates = CANDIDATES }) {
       throw new Error('Candidate must be a file no larger than 5 MiB');
     }
     const bytes = fs.readFileSync(source);
+    if (candidate.bytes !== undefined && bytes.length !== candidate.bytes) {
+      throw new Error(`Original size mismatch: ${candidate.file}`);
+    }
     if (createHash('sha256').update(bytes).digest('hex') !== candidate.sha256) {
       throw new Error(`SHA-256 mismatch: ${candidate.file}`);
     }
@@ -38,8 +54,17 @@ function buildReview({ intake, output, candidates = CANDIDATES }) {
   });
   const template = fs.readFileSync(path.join(__dirname, 'audio-audition.html'), 'utf8');
   const json = JSON.stringify(records).replaceAll('<', '\\u003c');
-  fs.writeFileSync(destination, template.replace('__CANDIDATES__', () => json), { flag: 'wx' });
-  return destination;
+  const text = { ...DEFAULT_METADATA, ...metadata };
+  const escape = value => {
+    if (typeof value !== 'string') throw new Error('Review metadata must contain text');
+    return value.replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[char]);
+  };
+  const replacements = { TITLE: escape(text.title), INTRODUCTION: escape(text.introduction),
+    INSTRUCTIONS: escape(text.instructions), CANDIDATES: json };
+  return template.replace(/__(TITLE|INTRODUCTION|INSTRUCTIONS|CANDIDATES)__/g,
+    (_, field) => replacements[field]);
 }
 
 if (require.main === module) {
@@ -52,4 +77,4 @@ if (require.main === module) {
     catch (error) { console.error(error.message); process.exitCode = 1; }
   }
 }
-module.exports = { buildReview };
+module.exports = { buildReview, renderReview };

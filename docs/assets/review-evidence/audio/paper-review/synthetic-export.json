@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "createdAt": "2026-10-01T08:58:47.282Z",
+  "scope": "Candidate listening notes only; not runtime acceptance or proof of hearing.",
+  "volumePercent": 25,
+  "candidates": [
+    {
+      "file": "paper_01.ogg",
+      "bytes": 25529,
+      "sha256": "b2b2b55e44761c7a45283bce0196f41f72207180fb08c970d7dcf93b705d280c",
+      "author": "rubberduck",
+      "license": "CC0-1.0",
+      "pack": "rubberduck-100-sfx",
+      "page": "https://opengameart.org/content/100-cc0-sfx",
+      "decision": "keep",
+      "notes": "AUTOMATED EXPORT TEST ONLY. No listening judgment or shipping approval.",
+      "completedOriginal": true,
+      "completedRepeat": false
+    },
+    {
+      "file": "paper_02.ogg",
+      "bytes": 27205,
+      "sha256": "4d0c68b367bd3fbdf9817e764908e5524b2cad6536eb0911fc74f6ab4f60c50a",
+      "author": "rubberduck",
+      "license": "CC0-1.0",
+      "pack": "rubberduck-100-sfx",
+      "page": "https://opengameart.org/content/100-cc0-sfx",
+      "decision": "unreviewed",
+      "notes": "",
+      "completedOriginal": true,
+      "completedRepeat": false
+    },
+    {
+      "file": "paper_03.ogg",
+      "bytes": 29838,
+      "sha256": "90147dde68b9e2082404f439165bbcb6f7c2364e88e9373d1cd1f7446a37f7b2",
+      "author": "rubberduck",
+      "license": "CC0-1.0",
+      "pack": "rubberduck-100-sfx",
+      "page": "https://opengameart.org/content/100-cc0-sfx",
+      "decision": "unreviewed",
+      "notes": "",
+      "completedOriginal": true,
+      "completedRepeat": true
+    },
+    {
+      "file": "paper_04.ogg",
+      "bytes": 32322,
+      "sha256": "afae7236bce275fad555922cc8578882eb0c0b5d822be0a9180c9efdadf4a770",
+      "author": "rubberduck",
+      "license": "CC0-1.0",
+      "pack": "rubberduck-100-sfx",
+      "page": "https://opengameart.org/content/100-cc0-sfx",
+      "decision": "unreviewed",
+      "notes": "",
+      "completedOriginal": true,
+      "completedRepeat": false
+    }
+  ]
+}
