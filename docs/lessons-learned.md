@@ -8842,3 +8842,12 @@ source fingerprint, and share fixed-station/capacity/seat rules. Refresh routing
 snapshots after claims change; retain the incident baseline for same-tick ordering.
 Verify authentic historical bytes, transactional interior-cut rejection, owned pickup,
 distinct dining seats, cleanup interruption and full-tick diagnostic clamping.
+## [L-public-changelog-is-for-players] Release history must explain the player experience
+
+**What happened.** The first public changelog included PR references, development details and a visual layout the owner rejected. The owner requested mockups before further design work and approved the compact accordion with dark and light themes, dark by default.
+
+**Root cause.** The maintenance guide explicitly asked for PR links. Repository activity was treated as public release copy, and the appearance was shipped without an approved visual direction.
+
+**Prevention.** Describe what a player can do or notice, preserve feature restrictions, and keep implementation and review evidence in internal documentation. Consolidate same-day changes. The generator rejects common development references and duplicate dates. These checks supplement editorial review; they cannot decide whether a sentence matters to a player. Respect an explicit mockup approval boundary before implementing a new design.
+
+**Verify.** Build the real history with no PR or commit references. Deliberately remove the copy and date guards and confirm their tests fail. Inspect the approved accordion on desktop and phone in both themes, confirm dark is the fresh default and light persists, and open both current and historical links.

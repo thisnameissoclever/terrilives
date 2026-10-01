@@ -6,20 +6,26 @@ The public page is [Changelog](https://thisnameissoclever.github.io/terrilives/c
 
 Every significant player-facing change must have a note in `docs/changelog/` in the same change as the implementation. Follow the [maintenance skill](../.agents/skills/maintain-changelog/SKILL.md). Include new controls or mechanics, changes to save behavior, visible or audible art changes, and fixes players can notice. Internal refactors, tests and CI edits need a note only when they change the player's experience.
 
-Use one Markdown file per meaningful batch: `YYYY-MM-DD-short-slug.md`. Use the intended delivery date for new work. If delivery moves to a later date, update the filename before publication. Historical backfill uses the repository's recorded change dates and groups related merges; these dates do not claim a separately verified deployment time. The backfill covers merged changes through PR #191. Bed assignment's foundations are merged, but the assignment interface and two-person sleeping are still pending, so they have no released-feature note. Domestic meals have a separate delivery entry. Proposed Edit Sims, ambience and held audio work remain excluded.
+Use one Markdown file per date: `YYYY-MM-DD-short-slug.md`. Add same-day changes to the existing entry and adjust its title and summary to cover the whole update. Use the intended delivery date for new work. If delivery moves to a later date, update the filename before publication. Historical backfill uses recorded change dates; these dates do not claim a separately verified deployment time. Only describe implemented features and include restrictions players need to understand. Shared meals and individual sleeping-place assignments are available; seated dining and improved occupied-bed poses remain unfinished.
 
-Each file starts with one `# Title`, followed by one summary paragraph, then one or more of `## Features & changes`, `## Bug fixes`, or `## Art & sound`. Put changes in `- ` list items. Indented continuation lines are supported. Inline bold, code and HTTPS links are supported; raw HTML is escaped. Keep titles plain. Unsupported block structure, missing summaries, empty sections and invalid filenames fail the build.
+Each file starts with one `# Title`, followed by one short summary paragraph, then one or more of `## New`, `## Improved`, `## Fixed`, `## Art`, or `## Sound`. Put changes in short `- ` list items. Indented continuation lines are supported. Inline bold, code and HTTPS links are supported; raw HTML is escaped. Keep titles plain and avoid a repeated bold headline on every bullet. Unsupported block structure, missing summaries, empty sections, invalid filenames and duplicate dates fail the build.
 
 ```markdown
 # Clearer furniture placement
 
 Furniture placement shows why a position is unavailable.
 
-## Bug fixes
-- **Placement refusals explain the problem.** The preview identifies blocked access before you confirm the move.
+## Fixed
+- Furniture placement explains blocked access before you confirm the move.
 ```
 
-Describe the player action and result. Preserve restrictions and distinguish implemented behavior from future plans. Add a PR or commit link when available; do not invent version numbers, approval, listening acceptance or publication evidence. Keep separate same-day batches in separate files with distinct slugs. The page sorts filenames newest first, with a deterministic slug order within a date.
+Describe what players can do or notice. Preserve restrictions and distinguish implemented behavior from future plans. Never include PR references, commit links, test results, CI details or implementation terminology in public entries. Keep development evidence in internal documentation. Do not invent version numbers, approval, listening acceptance or publication evidence. The generator rejects common development references, but human review must still check relevance and accuracy.
+
+## Presentation and links
+
+The owner approved the compact accordion design with both themes. Dark is the default, regardless of the device theme. The theme control saves a light or dark preference when browser storage is available. A blocked preference store does not prevent reading or switching themes. Only the newest update starts expanded. Older rows show their date and title; Expand all and Collapse all control the full history.
+
+Each update has a stable `#update-YYYY-MM-DD` link. Opening a link expands the relevant entry. `web/changelog/legacy-anchors.json` preserves the original links from before same-day consolidation; retain those aliases when changing titles or filenames. Each current filename also gets an alias automatically. New entries do not need a legacy-list addition unless an already-published filename changes.
 
 ## Generation and publication
 
@@ -29,6 +35,6 @@ CI's classifier reports `code` for game checks and `site` for published content.
 
 Pages runs after successful push CI on main and checks out that run's exact SHA. A successful `web` or `changelog` job enables the site build. The build includes the game and changelog in one Pages artifact. The deployment check compares all published content, including notes, with current main; a newer changelog makes an older artifact stale. Other Markdown documentation remains eligible for the existing no-deploy path.
 
-Validate notes with `node --test scripts/build-changelog.test.mjs` and `node scripts/build-changelog.mjs`. The latter writes `web/dist/changelog/index.html` by default. Validate workflow routing with `python -B -m unittest discover -s .github/scripts -p 'test_*.py'`. Validate the skill mirrors with `npm --prefix web test -- --maxWorkers=1 tests/agent-skill-mirrors.test.ts`. Use the regular web typecheck, suite and production build for presentation or game-link changes. Inspect desktop and phone layouts, a collapsed entry, a permalink, the theme control and the Options link. Close task-owned game tabs and preview servers afterward.
+Validate notes with `node --test scripts/build-changelog.test.mjs` and `node scripts/build-changelog.mjs`. The latter writes `web/dist/changelog/index.html` by default. Validate workflow routing with `python -B -m unittest discover -s .github/scripts -p 'test_*.py'`. Validate the skill mirrors with `npm --prefix web test -- --maxWorkers=1 tests/agent-skill-mirrors.test.ts`. Use the regular web typecheck, suite and production build for presentation or game-link changes. Inspect desktop and phone layouts in both themes, the dark default, saved preferences, individual and global disclosures, keyboard focus, current and old permalinks, and the Options link. Close task-owned game tabs and preview servers afterward.
 
 Publication happens after the implementation reaches main and main CI succeeds. A local build or a successful Pages workflow that skipped its deploy step does not establish that the page is live.
