@@ -136,7 +136,7 @@ def run():
     output.mkdir(parents=True, exist_ok=True)
     inputs = [Path(__file__), BASE.parent/'furniture/build_parts.py',
               BASE.parent/'furniture/geometry.py', SIM/'sim-01-rigged.blend']
-    hashes = {str(path.relative_to(BASE.parent)): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
+    hashes = {path.relative_to(BASE.parent).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
     bpy.ops.wm.open_mainfile(filepath=str(SIM / 'sim-01-rigged.blend'))
     root, frame, leaf = build()
     scene = bpy.context.scene
@@ -184,9 +184,9 @@ def run():
             (output / 'manifest.json').write_text(json.dumps({'records': records, 'density': DENSITY,
                 'canvas': [WIDTH, HEIGHT], 'inputs': hashes}, indent=2))
             if len(records) >= limit:
-                assert hashes == {str(path.relative_to(BASE.parent)): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
+                assert hashes == {path.relative_to(BASE.parent).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
                 return
-    assert hashes == {str(path.relative_to(BASE.parent)): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
+    assert hashes == {path.relative_to(BASE.parent).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
 
 
 if __name__ == '__main__':

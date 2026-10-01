@@ -18,6 +18,10 @@ The Microsoft Store installation uses `blender-launcher.exe` with these same arg
 
 The manifest pins the exporter, shared geometry helpers and source scene by SHA-256, plus every colour/depth PNG. Atlas generation validates those hashes and appends the records without changing historical sprite identities. Raw `*-depth.npy` intermediates are ignored; the PNGs, manifest and editable scene are delivery assets.
 
+Manifest input references use forward slashes on every host. The asset tests
+interpret these references as portable relative paths and verify their hashes;
+native Windows path formatting would fail the Linux publication build.
+
 ## Surface depth
 
 Each `Depth.png` encodes model-space game X+Y in red and green: `(R * 256 + G) / 65535 * 4 - 2`. Blue marks only the flush floor threshold. Alpha is opaque data, not colour coverage. The colour sprite supplies coverage. Nearest surface data extends four physical texels beyond the solid for filtered outlines.
