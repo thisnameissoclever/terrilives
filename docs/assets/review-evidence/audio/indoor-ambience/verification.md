@@ -202,3 +202,23 @@ The separate lifecycle correction can be evaluated against main's existing
 audio without importing ambience or PR 178. No failed gate is cleared by that
 separation. All diagnostic browsers and the native-proof development server
 were closed after their checks.
+
+## Refresh after the existing-audio repair shipped
+
+PR 185 merged the main-only lifecycle repair at `26145f4f`. This held branch
+merged that exact main in `f613be61`, preserving one Event-compatible context
+handler, room cleanup, context replacement and both parents' unique tests.
+The [merge report](main-refresh-report.md) records 435 passing focused tests,
+typecheck, syntax and documentation checks. No Rust build or memory sweep ran.
+
+Root ran `node web/output/playwright/verify-merged-audio-native.cjs`, exit 0.
+The [native result](native-main-refresh.json) has no page errors and passes ten
+room checks, eighteen existing-source checks and the forced-failure cleanup
+check. The full-level room peak remains `0.020989106968045235`; interrupted
+tails remain zero. This verifies the merged audio wiring, not subjective sound
+quality or memory acceptance. The task-owned browser and server were closed.
+
+The separate simulation-removal-history correction is still being verified in
+another worktree. Its artifact is not included here. The latest comparable raw
+memory median remains 123,972 bytes against the unchanged 65,536-byte allowance.
+Original failures and snapshots remain preserved; PR 184 stays draft and held.

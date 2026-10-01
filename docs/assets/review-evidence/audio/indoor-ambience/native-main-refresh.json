@@ -1,0 +1,176 @@
+{
+  "generatedAt": "2026-10-01T12:53:07.617Z",
+  "passed": true,
+  "pageErrors": [],
+  "result": {
+    "room": {
+      "checks": [
+        {
+          "label": "Independent quarter Ambience",
+          "actual": 0.0010877102496094128,
+          "expected": 0.0010877102496094128
+        },
+        {
+          "label": "Voices bypass",
+          "actual": 0.004350840998437651,
+          "expected": 0.004350840998437651
+        },
+        {
+          "label": "Effects routing",
+          "actual": 0.0021754204992188255,
+          "expected": 0.0021754204992188255
+        },
+        {
+          "label": "Ambience zero",
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "label": "Effects zero",
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "label": "Master mute",
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "label": "Pause drained",
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "label": "suspended resumed tail",
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "label": "release-suspended resumed tail",
+          "actual": 0,
+          "expected": 0
+        },
+        {
+          "label": "toggles resumed tail",
+          "actual": 0,
+          "expected": 0
+        }
+      ],
+      "rms": 0.004350840998437651,
+      "rmsEffectsLevel": 0.7,
+      "peak": 0.020989106968045235,
+      "peakEffectsLevel": 1,
+      "peakAmbienceLevel": 1,
+      "counts": {
+        "active": 1,
+        "retained": 1,
+        "starts": 1
+      },
+      "subjectiveListening": "not claimed"
+    },
+    "existing": [
+      {
+        "label": "object, ordinary fade control: positive playing signal",
+        "expected": 0.14,
+        "actual": 0.14000000059604645
+      },
+      {
+        "label": "object, ordinary fade control: fade before suspension",
+        "expected": 0.11200000000000002,
+        "actual": 0.1120000034570694
+      },
+      {
+        "label": "object, ordinary fade control: first resumed sample",
+        "expected": 0.084,
+        "actual": 0.08399999886751175
+      },
+      {
+        "label": "object, ordinary fade control: endpoint remains silent",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "object, state-event interruption: positive playing signal",
+        "expected": 0.14,
+        "actual": 0.14000000059604645
+      },
+      {
+        "label": "object, state-event interruption: fade before suspension",
+        "expected": 0.11200000000000002,
+        "actual": 0.1120000034570694
+      },
+      {
+        "label": "object, state-event interruption: first resumed sample",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "object, state-event interruption: entire resumed tail",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "object, state-event interruption: endpoint remains silent",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "conversation, ordinary fade control: positive playing signal",
+        "expected": 0.1568,
+        "actual": 0.15680000185966492
+      },
+      {
+        "label": "conversation, ordinary fade control: fade before suspension",
+        "expected": 0.10453333333333334,
+        "actual": 0.10453326255083084
+      },
+      {
+        "label": "conversation, ordinary fade control: first resumed sample",
+        "expected": 0.05226666666666667,
+        "actual": 0.05226665362715721
+      },
+      {
+        "label": "conversation, ordinary fade control: endpoint remains silent",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "conversation, state-event interruption: positive playing signal",
+        "expected": 0.1568,
+        "actual": 0.15680000185966492
+      },
+      {
+        "label": "conversation, state-event interruption: fade before suspension",
+        "expected": 0.10453333333333334,
+        "actual": 0.10453326255083084
+      },
+      {
+        "label": "conversation, state-event interruption: first resumed sample",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "conversation, state-event interruption: entire resumed tail",
+        "expected": 0,
+        "actual": 0
+      },
+      {
+        "label": "conversation, state-event interruption: endpoint remains silent",
+        "expected": 0,
+        "actual": 0
+      }
+    ],
+    "cleanup": [
+      {
+        "label": "first-hold assertion reaches caller",
+        "expected": "forced first-hold ordinary-fade assertion: expected 0, rendered 1",
+        "actual": "forced first-hold ordinary-fade assertion: expected 0, rendered 1"
+      },
+      {
+        "label": "both scheduled suspensions drained before rejection",
+        "expected": "closed",
+        "actual": "closed"
+      }
+    ]
+  }
+}
