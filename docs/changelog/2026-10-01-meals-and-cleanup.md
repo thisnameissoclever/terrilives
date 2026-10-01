@@ -13,9 +13,12 @@ Shared meals, bathroom boundaries, developing relationships and everyday fixes.
 - Find New housemate and Changelog in Options. The changelog groups updates by date and remembers your choice of dark or light mode.
 - Housemates usually find another option or wait when someone is using a toilet, shower or bath. Urgent needs and player orders keep priority; shyness changes avoidance and annoyance.
 - Walking in during bathroom use annoys its user. Starting beside someone already present annoys that person. The furniture's room defines the boundary.
-- Friendships and grudges fade more slowly without interaction.
 - Pleasant company and mutually enjoyable reading, exercise or aquarium watching improve relationships. Opposing interests cause friction; shared meals and TV do not yet receive this activity bonus.
 - Conversations initiated while someone's needs are low or critical can reduce their opinion of the initiator.
+
+## Improved
+- Dirty dishes have a smaller effect on relationships; their mood effects stay the same.
+- Friendships and grudges fade more slowly without interaction.
 
 ## Fixed
 - Floor previews show the whole selected tile, with instructions that adapt between desktop and phone controls.
