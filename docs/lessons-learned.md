@@ -8364,3 +8364,330 @@ page and is not a claim about browser or operating-system text scaling.
 **Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
 
 The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
+## [L-seat-contact-and-garment-occupancy] A plausible seated render can conceal bad contact
+
+**What happened.** The shared sitting clip hovered above the ottoman and
+intersected its front. A separate fitted pose cleared the furniture but still
+put both palms into the trousers. A nearest-face-normal containment test also
+reported a shirt point inside a forearm whose entire bounds lay below it.
+
+**Root cause.** Furniture clearance does not test body/body contact. A shoe's
+lowest point does not establish a supported sole. One nearest triangle normal
+does not establish containment at edges or vertices. The approved shirt also
+has an intentional open neckline, so it cannot be treated as a closed solid.
+
+**Prevention.** Author a target-specific action without altering approved source
+geometry or shared clips. Test finite hip and floor-support patches and the
+relevant nonadjacent body pairs. Keep original-triangle crossings, closed-volume
+crossings and component containment separate. For this shirt only, validate
+the exact inherited neck loop and use a temporary cap to define torso occupancy.
+Do not save or render that cap, seal arbitrary holes, or exempt actual collisions.
+
+**Verify.** Retain the bad pose and false-containment witness. Reject palm/thigh
+crossings, enclosed solids, extra or warped garment openings, and an arm entering
+through the neck cap without crossing cloth. Disjoint concave solids must pass.
+Delete containment and cap-crossing guards separately and observe their fixtures
+fail. Bind rejected fixture models as well as scripts to before/after hashes.
+Source-contact proof still does not establish full-clip or played acceptance.
+
+## [L-preview-cadence-must-come-from-action] Review the authored timing, not a convenient delay
+
+**What happened.** The ottoman review animation used 300 ms per sample while
+the saved action specified two samples per second. The reviewer saw the right
+poses at the wrong speed.
+
+**Root cause.** The preview exporter hard-coded a display delay instead of
+reading the action's timing metadata.
+
+**Prevention.** Read the sample count and rate from the saved action. Keep
+source-frame acceptance separate from playback timing and runtime acceptance.
+Retain superseded evidence with a clear explanation rather than silently
+replacing the basis of an earlier review.
+
+**Verify.** Decode the corrected animation and check every sample's duration
+and pixels. Here all four frames remain byte-identical after decoding, each
+lasts 500 ms, and hashes bind the saved model, cadence receipt and preview.
+
+## [L-mutation-restore-must-fail-closed] Stop mutation checks when restoration differs
+
+**What happened.** A temporary mutation deleted an exact-target guard. Its inverse
+patch had no location context and inserted the guard at the top of the Rust file.
+The runner reported a hash mismatch but continued. Five later checks failed to
+compile, so none established that their named tests detected the mutations.
+
+**Root cause.** Restoration was treated as diagnostic output instead of a required
+transaction boundary. The runner also treated any nonzero test exit as a killed
+mutation, including compilation errors.
+
+**Prevention.** Give every forward and inverse patch nonempty, unique surrounding
+context. After each mutation, restore and require the original file hashes before
+doing anything else. Stop on a restoration mismatch, compilation error, missing
+test execution or unexpected assertion. Preserve invalid attempts as invalid;
+never count them as successful test evidence.
+
+**Verify.** Check that the intended named test actually ran and failed its expected
+assertion. Confirm byte-identical restoration, then run the unmodified focused
+tests successfully. Here the original file hash was restored and all four ottoman
+tests passed; the five compilation failures remain excluded from the proof.
+
+## [L-render-journal-versus-replay-dependencies] Hash journals do not prove import completeness
+
+**What happened.** The ottoman's accepted render journal bound 25 files, but a
+replay audit found two more import-time requirements: `armchair_layout.py` and
+`render_provenance.py`. Neither contributes called functions on this path, yet
+Python must still import them. Running from the original worktree hid that gap.
+
+**Prevention.** Inspect transitive imports before promoting a temporary recipe.
+Retain the original journal unchanged and record newly measured dependencies
+separately. Resolve historical paths through an explicit, hash-checked mapping;
+never fall back to the local temporary directory. Copy each replay stage into a
+fresh root and exclude that stage's output journals from its seeded inputs.
+
+**Verify.** Run archived pure tests from copied inputs without the original
+`PYTHONPATH`. Check missing and changed sources, path aliases, symlink escapes
+and byte-identical copies. The ottoman source-test replay passes 19 tests; this
+does not establish Blender replay or audit embedded model resource paths.
+
+## [L-receipt-binding-must-pin-inputs] Require hashes and pin the starting receipt
+
+**What happened.** Independent review found that a JSON null dependency hash
+could reach a resolver whose optional hash parameter disabled verification.
+A separate final validation could also accept a different, internally valid
+receipt substituted while an original-image verification was running.
+
+**Root cause.** The caller did not enforce its stronger requirement before using
+a general-purpose resolver. Final validity was mistaken for proof that the
+verification had used the same inputs throughout.
+
+**Prevention.** Require every receipt dependency hash to be a lowercase 64-digit
+hexadecimal string. Pin the catalog and bundle hashes before reading inputs,
+require the same hashes at successful completion, and record them in the result.
+Revalidate mapped file bytes without accepting a replacement catalog.
+
+**Verify.** Re-sign negative fixtures so that digest validation does not hide the
+semantic defect under test. Test null hashes in every dependency map and replace
+the starting receipt with another valid, re-signed receipt during verification.
+Both must fail for their intended reason. The ottoman proof detects the deleted
+guards, restores unchanged sources and passes the complete focused suite.
+
+## [L-mutation-proof-needs-specific-failure] Match the assertion and record runtime errors
+
+**What happened.** The first ottoman renderer proof classified any assertion in
+the selected test as a detected defect. Independent review demonstrated that an
+unrelated setup failure, or an intended assertion accompanied by a runtime
+error, could satisfy that rule.
+
+**Root cause.** A failed test name did not identify the failing mechanism. The
+installed Vitest JSON reporter also omitted unhandled errors, so checking an
+invented report field could not establish their absence.
+
+**Prevention.** Give each load-bearing expectation a specific failure marker.
+Require that marker and an assertion failure, reject failed suite setup, and
+capture the runner's explicit unhandled-error report through its reporter hook.
+Keep those fields with the proof rather than inferring them from exit code 1.
+
+**Verify.** Feed the classifier unrelated assertions, missing error reports and
+an intended assertion plus a runtime error. All must fail. Delete the marker
+and runtime-error guards independently, then require those regression tests to
+fail before restoring and passing the focused suite.
+
+## [L-detached-replay-needs-pinned-inventory] Bind completion to the complete source job
+
+**What happened.** The ottoman replay interface assumed a synchronous executable,
+but this machine's approved Store launcher detaches. A separate receipt-based
+collector initially accepted a self-consistent request that omitted a source
+model, or seven copies of one passing occupancy case. Independent review
+reproduced both false-success paths without modifying the real evidence.
+
+**Root cause.** Launcher exit was the wrong execution boundary. The initial
+collector also used the request itself as the authority for required inputs and
+used a count instead of regression-case identity.
+
+**Prevention.** Use a fresh job identity, an exclusive start marker and an atomic
+script result. Pin the engine and background mode. Derive exact input paths and
+hashes from the accepted bundle, not the request being checked. Require full
+expected outputs and regression cases, unchanged source bytes and the accepted
+contact measurements. A missing result is unobserved completion; verify the
+actual process before waiting, declaring failure or considering another launch.
+
+**Verify.** Remove inputs and re-sign the request; duplicate one case seven times;
+alter a measurement and re-sign its output. Each must fail its intended assertion.
+Here 14 completion-guard removals fail, all three restored tests pass, and the
+real copied-source job reproduces four contact samples plus seven cases. Source
+replay remains separate from render and played-game acceptance.
+
+## [L-pose-pole-is-not-elbow-position] Measure solved joints and complete garments
+
+**What happened.** Two proposed narrower double-bed poses retained essentially
+the original body width. A third narrowed the body but still missed its lane
+margin and failed the bone-scale assertion at the next breathing sample.
+
+**Root cause.** A two-link limb solver projects its bend pole around the
+shoulder-to-wrist axis. Reducing pole X does not necessarily reduce elbow X.
+The second failure came from hand scale channels exceeding the existing
+tolerance, not a comparable measured change in bone length. An unchanged-pose
+trace subsequently located a small distortion in the saved rest matrices;
+absolute-matrix assignment redistributed it through parent-relative scale
+channels. A new rotation-only adapter preserves the saved rig and passes the
+control without loosening the scale limit.
+
+**Prevention.** Solve and inspect the joint geometry before interpreting a pole
+coordinate as a body bound. Measure every visible cuff and sleeve at every
+sample. Keep length, scale-channel and evaluated-surface checks separate; do
+not relax a failed limit or omit a garment to make a candidate pass. Preserve
+rejected studies and obtain a fresh architectural review after three failures.
+Save the measurements before asserting the acceptance bound. Otherwise a
+rejected pose records only a failure and requires an avoidable diagnostic replay
+to identify which part exceeded the limit. A successful width screen also says
+nothing about whether the posture looks relaxed or the hands actually rest on
+the body.
+
+When solving contact, include raised details in the actual support surface.
+The double-bed trial brought a palm onto the shirt body but through its breast
+pocket. Symmetric wrist targets cannot be presumed valid for asymmetric
+clothing. Keep contact-only records separate from collision-cleared survivors,
+and verify the final root residual: a changing ray-hit set can create a sign
+bracket without a converged contact solution.
+
+Contact-frame axes have an order of authority. A hand support frame can make
+the surface normal primary, but a bone frame must preserve the exact joint
+direction and project its roll reference around that direction. Reusing the
+surface-first frame for a forearm moved both wrists away from otherwise valid
+inverse-kinematics targets. Test oblique direction/normal inputs, assert the
+authored joint positions before surface checks, and keep rejected receipts
+immutable. Width and bone-length checks alone did not detect this error.
+
+A candidate selector must include every coupled screening constraint that
+determines its parameter. The first evaluated elbow-height diagnostic selected
+lower endpoints because the forearms cleared the garments, even though cuffs
+or full-arm lane bounds still failed. The root algorithm was functioning; its
+objective was incomplete. Use named residuals for shaft clearance, cuff
+clearance and complete arm bounds, retain the limiting residual, and leave
+continuous-surface collision and visual review as separate acceptance gates.
+Do not require sleeves to clear their own designed shoulder attachment, or
+use that attachment to excuse new pocket, collar or opposite-arm collisions.
+Evaluate the actual modifier stack, including blended elbow and wrist ends;
+skinning an averaged smooth surface is not equivalent to smoothing after skinning.
+
+**Verify.** The preserved double-bed studies and bone diagnostic in
+`docs/plans/2026-10-01-double-bed-pilot.md` identify the rejected configurations,
+exact failed channels and unchanged sources. No pose or joint compositing
+acceptance follows from these screening results.
+
+## [L-trial-evidence-before-evaluation] Retain failed measurements before validating them
+
+**What happened.** A bedside-arm probe rejected a hand outside the bedding
+projection but lost the offending raw samples. An earlier runner had the same
+problem with a missing-hit assertion. Later, the corrected evidence runner
+stopped on a Windows denial while replacing its status file; that failure
+retained its numbered raw trials and final failure record.
+
+**Root cause.** The first probes kept samples in local variables and attached
+them to the report only after the calculation returned successfully. An outer
+exception handler could not save data it never received. The later file-access
+denial has no confirmed cause; concurrent reading is a possible sharing conflict,
+not proof of a permission configuration defect or geometry failure.
+
+**Prevention.** Attach a trial and all named point coordinates before evaluation.
+Retain hit, miss and unfinished states, explicit null gaps on misses, counts,
+parameters and tracebacks. Persist raw evidence before classifying the result,
+and rethrow failures. Keep numbered raw files and hashes instead of repeatedly
+rewriting every large array. Persistence itself can fail; do not convert such
+failures into a rejected geometric family, accepted result or silent retry.
+
+**Verify.** Inject two hits and one miss, a callback exception midway through
+sampling, and an assertion after measured bounds. Each must retain the completed
+and pending evidence and still fail. A supported control must complete. The
+four controls in `output/test_bed_trial_evidence.py` pass and received independent
+review. They do not prove filesystem durability after process termination.
+
+When progress evidence has readers, give every persistence revision its own
+exclusively created path and write the terminal receipt once. Wait for the
+actual writer process to exit before reading its terminal manifest and hashes.
+An open reader cannot block replacement of an older revision if no replacement
+is attempted. This is an ownership protocol, not a retry or permission change;
+creation failures must still propagate. Partial or missing terminal evidence
+must remain incomplete. Keep sample-before-classification and terminal-failure
+revisions separately, and test publication failures as well as in-memory
+callbacks. Apply the same record-before-evaluate boundary inside side-ray and
+per-object surface helpers, not only in their caller.
+
+## [L-deformed-mesh-internal-contacts] Check within each changed mesh as well as between parts
+
+**What happened.** A static two-person bed pose passed an early source-image
+review and complete interbody separation. Its full audit then reported hundreds
+of internal sleeve contacts, while both forearms had none. A follow-up source
+comparison stopped because the retained rest and posed triangle lists differed.
+The cause and acceptable attachment classification remain unresolved.
+
+**Root cause.** Tests between named objects do not inspect a mesh folding through
+itself. A visually plausible garment and unchanged weights do not prove that its
+deformed surface is valid. Triangle numbering also cannot be assumed stable
+between evaluated poses without checking the actual topology and tessellation.
+
+**Prevention.** Inspect internal contacts in each changed blended mesh before
+accepting a pose. Keep normal shared-edge contacts distinct from unexpected
+crossings. Establish source polygon and vertex correspondence before comparing
+contacts across poses; stop on mismatched topology rather than borrowing indices.
+Use a shared invertible-transform replay to classify eligible rigid inherited
+joins, not a blanket exception for connected parts. Keep early visual acceptance
+separate from full contact acceptance.
+
+**Verify.** The static pilot retains all four internal sleeve/forearm checks,
+39 complete rigid-part replays and the failed source comparison in the output
+directories listed in `docs/plans/2026-10-01-double-bed-pilot.md`. Resolve the
+reported sleeve contacts against a verified source before proceeding to accepted
+animation or compositing work.
+
+The independent replay subsequently traced these folds to the orientation
+convention: the upper arm's prescribed world roll was nearly 180 degrees from
+the torso-inherited rest orientation. The small apparent change in joint
+direction hid a large axial twist inside the blended sleeve. Construct a limb's
+orientation relative to its parent's deformed rest frame, not an unrelated world
+normal. Carry the roll convention through the chain; fixing only the shoulder
+can transfer the twist to the elbow. Re-solve surface contact after changing roll,
+because identical joint positions do not imply identical palm or cuff surfaces.
+
+## [L-sleep-silhouette-before-certification] Review the whole sleeping posture first
+
+**What happened.** Detailed arm/contact work continued on a double-bed pose whose
+knees were drawn up conspicuously. The owner rejected the cramped posture after
+earlier independent reviews had accepted its early visual appearance.
+
+**Root cause.** Review concentrated on the recently changed arms and numerical
+fit. The inherited folded legs escaped a whole-body naturalness check. Passing
+separation and mattress bounds does not establish a plausible sleeping posture.
+
+**Prevention.** Before extensive contact certification, render the whole body
+from at least two useful facings and assess head, torso, hips, knees and feet
+together. For a relaxed back-sleeping baseline, start with mostly extended legs
+and a slight bend. Measure the complete body against the mattress. Do not force
+an implausible curl to conceal a proportion mismatch or silently resize approved
+art. Preserve rejected poses and distinguish visual rejection from physical fit.
+
+**Verify.** Retain the straight-leg and slight-bend bounds, corresponding source
+images and independent whole-body review under the double-bed pilot. Neither an
+arm-only pass nor an old interbody certificate transfers to a changed full pose.
+
+## [L-occupied-bedding-replaces-flat-duvet] Lift the existing blanket over the sleeper
+
+**What happened.** An occupied-bed draft added a shaped blanket over the Sim but
+left the existing flat green duvet underneath. Its first foot edge also left
+the shoes exposed. The owner correctly identified two blankets where one was
+intended.
+
+**Root cause.** The static bedding was treated as an immutable support layer
+rather than the unoccupied form of the duvet. The first occupied surface only
+covered the body from above and did not continue down around the foot end.
+
+**Prevention.** Establish which visible bed parts are mattress, pillow, sheet
+and duvet before authoring occupancy. Replace the flat duvet and its folded
+edge with one occupied form. Fit the body to the remaining mattress and pillows;
+hiding a supporting layer invalidates its previous contact evidence. Continue
+the cloth over the feet and sides. Do not solve the appearance by leaving a
+floating body concealed underneath.
+
+**Verify.** Retain uncovered and covered views of the same pose. Check that the
+flat duvet objects are absent from occupied rendering, the mattress remains,
+feet are covered, and the new support and blanket-clearance measurements are
+explicitly distinguished from full physical acceptance.
