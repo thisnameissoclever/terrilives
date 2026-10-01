@@ -8,6 +8,9 @@ COLORS = {'plaster': (.69,.62,.50), 'trim': (.80,.74,.62),
           'bronze': (.31,.235,.15), 'glass': (.25,.40,.49),
           'oak': (.43,.25,.12), 'sage': (.34,.43,.34),
           'charcoal': (.105,.13,.14), 'neutral': (1,1,1)}
+MATERIAL_ROLES = {'plaster': 'wall', 'glass': 'glazing', 'trim': 'trim',
+                  **{key: 'frame' for key in ('cream','steel','bronze','oak','sage','charcoal')},
+                  **{'floor-'+key: 'floor' for key in ('boards','tiles','carpet','neutral','grass','street')}}
 PATTERNS = {
     'wall.plaster': {'role': 'wall', 'period': [1,1], 'resource': 'plaster'},
     'floor.boards': {'role': 'floor', 'period': [4,4], 'resource': 'boards'},
@@ -42,11 +45,26 @@ def relative_content_look(current, authored):
     return [current[0]-authored[0],current[1]/authored[1],current[2]-authored[2]]
 
 
-def validate_catalogue(data):
+def material_role(material_key):
+    """The exporter uses this classification for physical surface ownership."""
+    assert material_key in MATERIAL_ROLES, 'unknown physical material'
+    return ROLES[MATERIAL_ROLES[material_key]]
+
+
+def carrier_material(material_key):
+    """Neutralize only finish-owned surfaces; preserve each independent material."""
+    return 'neutral' if material_role(material_key) in (1,2) else material_key
+
+
+def validate_catalogue(data, resources=None, *, require_shipped=False):
     for key, pattern in data['patterns'].items():
         assert pattern['role'] in ('wall','floor'), 'unknown pattern role'
         assert len(pattern['period']) == 2 and all(math.isfinite(n) and n > 0 for n in pattern['period']), 'invalid repeat period'
         assert pattern['resource'], 'missing pattern resource'
+        if resources is not None:
+            assert pattern['resource'] in resources, 'unknown pattern resource'
+            if require_shipped:
+                assert resources[pattern['resource']]['shipped'] is True, 'pattern resource is not shipped'
     for palette in data['palettes'].values():
         assert len(palette['multiply']) == 3 and all(math.isfinite(n) and n >= 0 for n in palette['multiply']), 'invalid palette'
     for finish in data['finishes'].values():

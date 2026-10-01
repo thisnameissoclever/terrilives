@@ -19,7 +19,7 @@ from render_review import material, joined_mesh, bvh_for, SIM, DENSITY
 from windows import Prism, window_cases, model_parts, MODELS
 from walls import wall_cases, owner_arm
 from floors import floor_cases, pattern_rgb, PATTERN_SIZE
-from materials import COLORS, ROLES, catalogue
+from materials import COLORS, catalogue, material_role, carrier_material
 from check_scene import validate_case, part_record
 
 
@@ -51,10 +51,12 @@ def mesh_objects(parts,zscale,materials,seam_axis=None):
     return objects
 
 
+def material_key_for(obj):
+    return obj.name.split('Architecture ',1)[1].split('.')[0]
+
+
 def role_for(obj):
-    key=obj.name.split('Architecture ',1)[1].split('.')[0]
-    return ROLES['wall' if key=='plaster' else 'floor' if key.startswith('floor-') else
-                 'glazing' if key=='glass' else 'trim' if key=='trim' else 'frame']
+    return material_role(material_key_for(obj))
 
 
 def surfaces(scene,objects,width,height,zscale,case):
@@ -182,7 +184,7 @@ def run(directory):
             depth,roles,owners,normal_checks=surfaces(scene,objects,width*2,height*2,zscale,case)
             depth.tofile(directory/(name+'.r16f')); roles.tofile(directory/(name+'.roles')); owners.tofile(directory/(name+'.owners'))
             for obj in objects:
-                if role_for(obj) in (1,2): obj.data.materials[0]=materials['neutral']
+                obj.data.materials[0]=materials[carrier_material(material_key_for(obj))]
             scene.render.filepath=str(directory/(name+'.carrier.png')); bpy.ops.render.render(write_still=True)
             record={k:v for k,v in case.items() if k!='parts'}
             record.update(widthPixels=width*2,heightPixels=height*2,origin=list(target),pixelDensity=2,

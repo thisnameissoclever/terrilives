@@ -6,7 +6,8 @@ from windows import MODELS, model_parts, window_cases, Prism
 from walls import junction, owner_arm
 from floors import phase, pattern_rgb
 from materials import (catalogue,fixture_catalogue,validate_catalogue,resource_budget,
-                       reconstruct,repeat_coordinates,relative_content_look)
+                       reconstruct,repeat_coordinates,relative_content_look,
+                       material_role,carrier_material)
 from check_scene import validate_case,validate_window_geometry,part_record
 
 
@@ -18,13 +19,46 @@ class FullArchitectureGeometry(unittest.TestCase):
         self.assertTrue(any(isinstance(p,Prism) for p in model_parts(3)))
         self.assertEqual(sum(p.name=='Casement crossbar' for p in model_parts(6)),2)
 
-    def test_detached_sill_and_bars_are_rejected(self):
+    def test_detached_sill_is_rejected(self):
         clean=[part_record(p) for p in model_parts(1)]
         bad=copy.deepcopy(clean)
         sill=next(p for p in bad if p['name']=='Stone sill')
         sill['lower'][2]+=.1; sill['upper'][2]+=.1
         with self.assertRaisesRegex(AssertionError,'detached sill'): validate_window_geometry(1,bad)
         validate_window_geometry(1,clean)
+
+    def test_every_authored_bar_rejects_displacement_outside_frame_joints(self):
+        expected={'Vertical bar','Meeting rail','Overlapping center rail',
+                  'Upper light rail','Horizontal bar','Casement crossbar'}
+        seen=set()
+        for model_id in MODELS:
+            clean=[part_record(p) for p in model_parts(model_id)]
+            for index,part in enumerate(clean):
+                if part['name']=='Frame rail' or not ('bar' in part['name'].lower() or 'rail' in part['name'].lower()):
+                    continue
+                seen.add(part['name'])
+                for axis,lower,upper in ((2,1.90,1.94),(1,.09,.11),
+                                         (0,MODELS[model_id][1]/2-.08,MODELS[model_id][1]/2-.04)):
+                    with self.subTest(model=model_id,bar=part['name'],axis=axis):
+                        bad=copy.deepcopy(clean)
+                        bad[index]['lower'][axis]=lower; bad[index]['upper'][axis]=upper
+                        with self.assertRaisesRegex(AssertionError,'bar outside authored frame joints'):
+                            validate_window_geometry(model_id,bad)
+                        validate_window_geometry(model_id,clean)
+        self.assertEqual(seen,expected)
+
+    def test_production_surface_roles_keep_glazing_frame_and_trim_independent(self):
+        for material,role in (('plaster',1),('floor-boards',2),('glass',4),('cream',3),('trim',5)):
+            self.assertEqual(material_role(material),role,material)
+        with self.assertRaisesRegex(AssertionError,'unknown physical material'):
+            material_role('unknown')
+
+    def test_production_carrier_selection_preserves_independent_materials(self):
+        for material in ('glass','trim','cream','steel','bronze','oak','sage','charcoal'):
+            self.assertEqual(carrier_material(material),material)
+        for material in ('plaster','floor-boards','floor-tiles','floor-carpet',
+                         'floor-neutral','floor-grass','floor-street'):
+            self.assertEqual(carrier_material(material),'neutral')
 
     def test_mixed_height_union_has_conforming_cut_plane(self):
         for p in junction((0,1,1,2)):

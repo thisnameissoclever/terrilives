@@ -59,7 +59,7 @@ def validate_manifest(data,proof):
     assert len(source_by_name)==174, 'duplicate source geometry'
     w,h=data['width'],data['height']
     assert type(w) is int and type(h) is int and 0<w<=8192 and 0<h<=8192, 'architecture texture size limit'
-    validate_catalogue(data['catalogue'])
+    validate_catalogue(data['catalogue'],data['patternResources'],require_shipped=True)
     names=set(); coverage={}; rectangles=[]
     for entry in data['sprites']:
         assert entry['name'] not in names, 'duplicate architecture sprite'
@@ -87,8 +87,9 @@ def validate_manifest(data,proof):
         assert all(math.isfinite(n) for n in entry['origin']), 'invalid origin'
         assert entry['anchor']==[entry['origin'][0],entry['origin'][1]+21], 'anchor changed'
         owner=tuple(entry['ownedSpan']) if isinstance(entry['ownedSpan'],list) else entry['ownedSpan']
-        assert owner not in coverage.setdefault(entry['source'],set()), 'overlapping split ownership'
-        coverage[entry['source']].add(owner)
+        source_owners=coverage.setdefault(entry['source'],set())
+        assert owner not in source_owners, 'overlapping split ownership'
+        source_owners.add(owner)
     assert set(coverage)==set(source_by_name), 'missing split source'
     for key,source in source_by_name.items():
         expected_owners=({(x,y) for y in range(4) for x in range(4)} if source['kind']=='floor-patch' else
@@ -151,6 +152,7 @@ def generated_files(batch,historical_count):
     data=batch.manifest
     resources={key:f"architecture-{sha}.{ 'png' if key in ('color','carrier') else 'r16f' if key=='depth' else 'r8'}" for key,sha in data['hashes'].items()}
     patterns={key:{**value,'url':f"architecture-pattern-{value['sha256']}.png"} for key,value in data['patternResources'].items() if value['shipped']}
+    validate_catalogue(data['catalogue'],patterns,require_shipped=True)
     descriptor={'schema':1,'baseSpriteId':historical_count,'width':data['width'],'height':data['height'],
                 'resources':resources,'hashes':data['hashes'],'patterns':patterns,'catalogue':data['catalogue'],
                 'budgets':data['budgets'],

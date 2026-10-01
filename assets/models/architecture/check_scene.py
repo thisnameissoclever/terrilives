@@ -35,8 +35,11 @@ def validate_window_geometry(model_id, records):
         if p['material']=='glass':
             assert p['lower'][2]>=z0+.054 and p['upper'][2]<=z1-.054, 'glazing outside frame joints'
             assert p['lower'][0]>=-width/2+.19 and p['upper'][0]<=width/2-.19, 'glazing outside side joints'
-        if p['name'] in ('Vertical bar','Meeting rail','Overlapping center rail','Upper light rail','Horizontal bar'):
-            assert p['lower'][2]>=z0+.04 and p['upper'][2]<=z1-.04, 'bar outside authored frame joints'
+        if p['name'] in ('Vertical bar','Meeting rail','Overlapping center rail',
+                         'Upper light rail','Horizontal bar','Casement crossbar'):
+            assert (p['lower'][2]>=z0+.04 and p['upper'][2]<=z1-.04
+                    and p['lower'][0]>=-width/2+.18 and p['upper'][0]<=width/2-.18
+                    and p['lower'][1]>=-.048 and p['upper'][1]<=.048), 'bar outside authored frame joints'
 
 
 def validate_case(case):
