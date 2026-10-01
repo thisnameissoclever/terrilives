@@ -5251,11 +5251,23 @@ exact `head_sha`. Immediately before deployment, compare that SHA with the live
 `main` ref and skip it when an overlapping or re-run CI job has made the
 artifact stale. Do not substitute the newest default-branch revision.
 
-**How to verify.** Push a branch through a pull request and require CI to pass
-before merge. After merge, confirm the Pages run names that merge SHA as its
-triggering workflow revision and that the deployed HTML loads that revision's
-content-addressed assets. In a controlled test branch, force CI to fail and
+**How to verify.** Follow AGENTS.md's delivery rule: with owner merge authority,
+passing relevant local checks and no known failures, do not wait for duplicate
+remote checks before merging. Publication still requires successful main CI.
+Confirm the Pages run's triggering revision, that its actual
+`actions/deploy-pages` step ran successfully, and that the public HTML loads
+that revision's content-addressed assets. In a controlled test branch, force CI to fail and
 confirm the downstream Pages build job is skipped.
+
+**Follow-up, 2026-09-30.** PR 168's Pages run `36823477227` completed with a
+successful workflow conclusion but skipped publication: PR 169 had advanced
+main from `8ea22167` to `9496d9ac` while it built. An initial delivery update
+mistook the workflow conclusion for deployment. The public HTML check caught
+the mismatch before closeout. A successful workflow, build, environment record
+or enclosing job is not proof that its conditional publication step ran.
+Read the step outcome and live assets, and follow the newer tested revision
+when the stale-artifact guard skips the old one. Never redeploy the stale
+artifact to make its status look complete.
 
 ## [L-seated-state-needs-a-seated-silhouette] A socket position cannot make straight legs read as sitting
 
