@@ -45,8 +45,8 @@ The existing short-walk limitation remains documented in the interior-door spec.
 
 All commands below exited 0. The full workspace suite passed before adding
 one further interpolation test; the entire simulation crate then passed
-again with that test. Remote CI and the full remote mutation sweep have not
-run because this change has not been submitted.
+again with that test. These checks describe the original reviewed build before
+integration with subsequent main releases. Final integration checks are below.
 
 | Check | Command or browser entry | Result |
 | --- | --- | --- |
@@ -109,3 +109,34 @@ casing, edge-on and threshold-visibility checks above. A later evidence check
 caught a truncated vertical capture; the final production capture extends
 through closing and was reviewed again without a new production finding.
 The owner approved the reviewed visuals and authorized delivery on 2026-10-01.
+
+## Release integration, 2026-10-01
+
+Integrated main through `ef383246`, preserving the released meals, beds,
+relationships and Build controls. The shared atlas was regenerated from both
+sets of source assets. The unchanged bed prefix pixel and metadata checks
+continue to pass; its total-count assertion now permits appended records.
+The final atlas contains 1,913 sprites at 8192 by 7449 and has SHA-256
+`23e04108112fe504622641ea611060395126aeed63ffa7962d065d59cb7e8c85`.
+
+The combined native workspace passes 1,405 tests. Rust lint, formatting,
+release WebAssembly, TypeScript and the production bundle pass. All 1,778 web
+tests pass in 125 files, all 135 generator tests pass, atlas freshness passes,
+all 864 GPU door cases pass, and the 12 changelog tests, generated page and
+document-ID check pass. Commands remain the corresponding commands listed
+above. Fresh-context integration review found no production regressions in
+the shared shader, interpolation, loader reset, horizontal-door refreshes or
+combined release notes.
+
+An earlier web run hit three five-second source-hash timeouts during Rust
+checks. The unchanged atlas tests passed in 125ms after the heavy checks
+finished, followed by the complete passing web suite. No timeout setting or
+assertion was changed. Timed asset checks should follow heavy compilation.
+
+The combined production browser pass captures 26 crossing frames: vertical
+ticks 40 through 52 and horizontal ticks 117 through 129, both ending closed.
+Night lighting, reduced motion and 390 by 844 layout remain clean, with six
+portal rows, no page errors and no horizontal overflow. See the
+[combined room](../assets/review-evidence/solid-doors/integrated-house.png) and
+[combined play receipt](../assets/review-evidence/solid-doors/integrated-played.json).
+The task-owned browser and preview server were closed after inspection.
