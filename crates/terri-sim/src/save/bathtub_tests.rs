@@ -631,6 +631,7 @@ fn bathtub_rotation_rejects_a_custom_active_object_layout_transactionally() {
 #[test]
 fn bathtub_rotation_loads_sampled_real_source_world_states() {
     let mut source_pack = destination().clone();
+    source_pack.lot = crate::test_content::historical_lot(&source_pack);
     let tub = source_pack.find("bathtub").unwrap();
     source_pack.objects[tub.0 as usize].footprint = terri_data::Footprint { width: 2, depth: 1 };
     source_pack.objects[tub.0 as usize].base_facing = terri_core::Facing::SouthEast;

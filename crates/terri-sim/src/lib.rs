@@ -1290,7 +1290,7 @@ impl Sim {
                 .filter(|edge| edge.in_bounds(width, height))
                 .copied()
                 .collect(),
-            ..pack.lot.clone()
+            ..test_content::historical_lot(pack)
         };
         let mut sim = Self::new_from_lot(&lot, &pack.objects);
         sim.world
@@ -3705,18 +3705,18 @@ mod lot_tests {
         // **The double bed is the 2x2 object, and all four of its tiles are
         // solid.** Literal coordinates for the same reason as the doorways
         // above. The depth axis matters as much as the width: a rule that
-        // walked `width` twice would leave (0, 7) and (1, 7) walkable and a
+        // walked `width` twice would leave (0, 9) and (1, 9) walkable and a
         // sim would path straight through the bed, which is the transposition
         // trap in [L34] wearing a footprint.
-        for tile in [(0, 6), (1, 6), (0, 7), (1, 7)] {
+        for tile in [(0, 8), (1, 8), (0, 9), (1, 9)] {
             assert!(
                 !grid.is_walkable(tile.0, tile.1),
                 "the double bed covers {tile:?} and it must be solid"
             );
         }
         assert!(
-            grid.is_walkable(2, 7),
-            "(2, 7) is beside the bed and is where a sim sleeps from"
+            grid.is_walkable(1, 7) && grid.is_walkable(1, 10),
+            "both sleeping sides need a walkable approach"
         );
     }
 }

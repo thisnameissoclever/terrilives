@@ -8319,3 +8319,31 @@ copies can agree while both freeze or restart the same countdown.
 surviving partner's place, and omit admission's place insertion. Each fault must
 fail its named lifecycle assertion. Restore source bytes and rerun the suite.
 Freezing only the partner's timer must also fail the full-tick handoff test.
+
+## [L-bed-access-needs-the-shipped-house] Check place access in the actual starting lot
+
+**What happened.** Isolated navigation and full-tick fixtures passed, but the
+release-WASM household could use only one double-bed place. Its north-side
+approach crossed the bedroom wall. Moving the bed down one tile then isolated
+a floor pocket behind the nightstand; moving it right as well covered Bill's
+spawn. The content compiler rejected both trial positions.
+
+**Root cause.** The authored per-place access policy had been verified against
+test geometry without checking the starting furniture, walls and household
+spawns together. The first layout corrections considered those constraints
+one at a time.
+
+**Prevention.** Before moving furniture, map the complete footprint, solid wall
+edges, spawns and reachable contact tiles. Include the unmodified starting
+household in behavior tests. Keep historical fixture positions independent of
+new-game layout changes; a source fixture must not acquire today's furniture
+positions while claiming yesterday's save format. Use the shared frozen
+placement manifest for historical constructor inputs and expected grown
+worlds; keep the production source validator independent. Check exported wall
+tiles against actual runtime furniture, not current prefab placements.
+
+**Verify.** The actual shipped household must naturally admit and sleep two
+ordered Sims at distinct places, preserve exact assignments, and replay after
+save/load. Returning the bed to `(0, 6)` must fail that check. Load actual bytes
+captured before the layout change and require identical re-saved bytes and
+world hash. Keep the frozen bathtub source at its historical bed position.

@@ -2349,6 +2349,13 @@ mod boundary_tests {
         let current = SimHandle::from_lot();
         let pack = current.sim.world().resource::<Content>().0;
         let mut lot = pack.lot.clone();
+        let origins = include!("../../test-fixtures/pre-yard-placements.rs");
+        assert_eq!(lot.placements.len(), origins.len());
+        for (placement, (id, x, y, facing)) in lot.placements.iter_mut().zip(origins) {
+            assert_eq!(pack.object(placement.object).id, id);
+            (placement.x, placement.y) = (x, y);
+            placement.facing = facing;
+        }
         // The cell-wall house stood on the lot before the yard ([OS-grow]).
         (lot.width, lot.height) = lot.house;
         lot.wall_edges.clear();
@@ -2619,7 +2626,7 @@ mod boundary_tests {
 
     #[test]
     fn rotated_bathtub_loads_public_v1_bytes_and_resaves_idempotently() {
-        let mut old = SimHandle::from_lot().sim.save_snapshot();
+        let mut old = legacy_cell_handle().sim.save_snapshot();
         before_the_yard(&mut old);
         set_legacy_walls(&mut old, true);
         old.content_fingerprint = 0xa020_602a_6acd_3a90;
@@ -3258,7 +3265,7 @@ mod boundary_tests {
 
     #[test]
     fn a_legacy_fingerprint_crosses_the_public_byte_loader_and_migrates_names() {
-        let source = SimHandle::from_lot();
+        let source = legacy_cell_handle();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         before_the_yard(&mut snapshot);
@@ -3318,7 +3325,7 @@ mod boundary_tests {
 
     #[test]
     fn the_prior_structural_fingerprint_crosses_the_public_byte_loader_without_renaming() {
-        let source = SimHandle::from_lot();
+        let source = legacy_cell_handle();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         before_the_yard(&mut snapshot);
@@ -5353,16 +5360,27 @@ mod boundary_tests {
             "the legacy wall export must not become empty"
         );
 
-        let pack = handle.sim.world().resource::<Content>().0;
+        let world = handle.sim.world();
+        let pack = world.resource::<Content>().0;
         let mut covered = 0usize;
-        for placement in &pack.lot.placements {
-            let object = pack.object(placement.object);
-            let footprint = object.footprint;
+        let mut objects = world
+            .try_query::<(
+                &Position,
+                &terri_core::SmartObject,
+                Option<&terri_core::ObjectFacing>,
+            )>()
+            .unwrap();
+        let mut object_count = 0;
+        for (position, smart, facing) in objects.iter(world) {
+            object_count += 1;
+            let object = pack.object(smart.0);
+            let footprint =
+                object.footprint_at(facing.map_or(object.base_facing, |facing| facing.0));
             for dx in 0..footprint.width {
                 for dy in 0..footprint.depth {
                     let tile = (
-                        placement.x.round() as u32 + dx,
-                        placement.y.round() as u32 + dy,
+                        position.x.floor() as u32 + dx,
+                        position.y.floor() as u32 + dy,
                     );
                     covered += 1;
                     assert!(
@@ -5378,7 +5396,7 @@ mod boundary_tests {
         // wider than a single tile - otherwise the multi-tile half of this is
         // untested and the whole thing could pass on an empty lot.
         assert!(
-            covered > 8,
+            object_count > 0 && covered > object_count,
             "expected more tiles than objects; got {covered}"
         );
     }
