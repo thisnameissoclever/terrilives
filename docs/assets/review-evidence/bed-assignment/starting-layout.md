@@ -135,3 +135,10 @@ check, CI run `36850487052` was still running and the latest completed Pages
 deployment was `2705d8bf`, from PR 182. This records that observation, not a
 production claim for PR 183 or the unpublished bed feature. Occupied-bed
 visual acceptance still governs publication of this branch.
+
+The subsequent production check confirmed CI `36850487052` and Pages
+`36851010577` completed successfully for main `6df7c045`. The live page returned
+HTTP 200 and referenced `assets/index-DaUoiP-c.js`, which also returned 200 and
+contained the cooking WAV reference. `audio/objects/stove-cooking.wav` returned
+200, `audio/wav`, and 384,044 bytes. This verifies PR 183's deployed artifacts;
+listening acceptance and publication of the bed branch remain separate.

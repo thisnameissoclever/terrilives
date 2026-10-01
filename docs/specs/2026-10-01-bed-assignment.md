@@ -100,6 +100,11 @@ spawns otherwise stay as authored. Existing saves retain their own positions;
 the content fingerprint does not include these prefab placement coordinates.
 See `docs/assets/review-evidence/bed-assignment/starting-layout.md`.
 
+Four-day release-WASM runs at three seeds also verify autonomous assigned-place
+use, shared sleeping across the seed set, and exact replay after rewinding a
+second world. The old-layout counterfactual fails assigned-place use as intended.
+See `docs/assets/review-evidence/bed-assignment/autonomy.md` for results and limits.
+
 Resolve reachable free place options before scoring. Compute each option's
 normal utility and survival risk using its actual distance. Collapse them to
 one object/interaction candidate, prioritizing lower survival risk, then

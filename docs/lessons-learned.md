@@ -8404,3 +8404,8 @@ ordered Sims at distinct places, preserve exact assignments, and replay after
 save/load. Returning the bed to `(0, 6)` must fail that check. Load actual bytes
 captured before the layout change and require identical re-saved bytes and
 world hash. Keep the frozen bathtub source at its historical bed position.
+For autonomous runs, require actual shared-sleep observations across the seed
+set and count sleep exits without calling them completed actions. A place map
+can hide duplicate claimants; require every sleeping Sim to appear exactly once
+in its occupancy projection. Reload a deliberately advanced twin to prove that
+loading restores state, rather than merely accepting an identical snapshot.
