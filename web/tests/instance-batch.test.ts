@@ -63,7 +63,7 @@ it('publishes exact combined writer rows including hidden fixed rows and the fin
   expect(batch.count).toBe(14);
   expect(rows(batch.instances, batch.count)).toEqual([
     simBodySprite(100, 2, 1, 37, true, 2, 2), box, 0,
-    box, ring, foreground, spriteIndex('indicatorEat'), spriteIndex('heldSnack'),
+    box, ring, foreground, spriteIndex('activityEat'), spriteIndex('heldSnack'),
     ring, ring, box, foreground, ring, ring,
   ]);
   expect(batch.instances[2 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).toBe(-1e6);
@@ -156,6 +156,6 @@ it('publishes highlight-only, null and empty-highlight frames and exactly one he
   buildInstanceBatch(f.source, 1, 0, 0, 16);
   expect(batch.count).toBe(3);
   expect(rows(batch.instances, 3)).toEqual([
-    simBodySprite(100, 2, 1, 0, false, 2, 2), spriteIndex('indicatorEat'), spriteIndex('carried_dinner'),
+    simBodySprite(100, 2, 1, 0, false, 2, 2), spriteIndex('activityEat'), spriteIndex('carried_dinner'),
   ]);
 });
