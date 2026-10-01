@@ -124,6 +124,37 @@ function player(context = new FakeContext()): {
 }
 
 describe('VoiceClipPlayer', () => {
+  it.each([undefined, 0, 1, 2, 3])(
+    'immediately disposes active and draining pairs despite stop failure at source %s', failedSource => {
+      const { context, player: voices } = player();
+      voices.play(0, 1, 1, 'draining');
+      voices.play(0, 1, 1, 'active');
+      context.currentTime = 10.1;
+      voices.stopConversation('draining');
+      const staleCallbacks = context.sources.map(source => source.onended);
+      expect(voices.activeConversationCount()).toBe(1);
+      expect(voices.retainedConversationCount()).toBe(2);
+      context.currentTime = 10.105;
+      if (failedSource !== undefined) context.sources[failedSource].failNextStop = true;
+      expect(() => voices.stopAll(true)).not.toThrow();
+      expect(voices.activeConversationCount()).toBe(0);
+      expect(voices.retainedConversationCount()).toBe(0);
+      expect(context.sources.every(source => source.disconnected && source.onended === null)).toBe(true);
+      expect(context.gains.every(gain => gain.disconnected)).toBe(true);
+      for (const [index, source] of context.sources.entries()) {
+        if (index !== failedSource) expect(source.stops.at(-1)).toBe(10.105);
+      }
+      const stops = context.sources.map(source => [...source.stops]);
+      voices.stopAll(true);
+      expect(context.sources.map(source => source.stops)).toEqual(stops);
+      voices.play(0, 1, 1, 'draining');
+      for (const callback of staleCallbacks) callback?.();
+      expect(voices.activeConversationCount()).toBe(1);
+      expect(voices.retainedConversationCount()).toBe(1);
+      expect(context.sources.slice(4).every(source => !source.disconnected)).toBe(true);
+    },
+  );
+
   it('immediately releases only the requested identity despite a source stop failure', () => {
     const { context, player: voices } = player();
     voices.play(0, 1, 1, 'ended');

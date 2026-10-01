@@ -1524,6 +1524,42 @@ describe('AudioController gesture and cue lifecycle', () => {
     } finally { fetcher.mockRestore(); }
   });
 
+  it.each(['object', 'conversation'] as const)(
+    'disposes a release-only %s tail when suspension follows its running-frame end', async kind => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+      try {
+        await controller.unlockFromGesture();
+        controller.installObjectLoopClips(OBJECT_CLIPS);
+        await controller.loadVoiceLibrary(['a', 'b']);
+        if (kind === 'object') objectSoundFrame(controller, [[41, 2]]);
+        else activityFrame(controller, [[4, 'conversation', { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 }]]);
+        context.currentTime = 4.1;
+        objectSoundFrame(controller, []);
+        activityFrame(controller, []);
+        expect(controller.activeObjectLoopCount()).toBe(0);
+        expect(controller.activeConversationVoiceCount()).toBe(0);
+        expect(controller.retainedObjectLoopCount() + controller.retainedConversationVoiceCount()).toBe(1);
+        expect(context.bufferSources.every(source => !source.disconnected)).toBe(true);
+        context.currentTime = 4.105;
+        context.state = 'suspended';
+        controller.beginFootstepFrame();
+        controller.endFootstepFrame();
+        expect(controller.retainedObjectLoopCount() + controller.retainedConversationVoiceCount()).toBe(0);
+        expect(context.bufferSources.every(source => source.disconnected && source.onended === null)).toBe(true);
+        expect(context.bufferSources.every(source => (source.stops.at(-1) ?? Infinity) <= 4.105)).toBe(true);
+        const sourceCount = context.bufferSources.length;
+        context.state = 'running';
+        objectSoundFrame(controller, []);
+        activityFrame(controller, []);
+        expect(context.bufferSources).toHaveLength(sourceCount);
+        expect(controller.retainedObjectLoopCount() + controller.retainedConversationVoiceCount()).toBe(0);
+        expect(context.resumeCalls).toBe(1);
+      } finally { fetcher.mockRestore(); }
+    },
+  );
+
   it('recovers an object first observed while externally suspended without another gesture', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);

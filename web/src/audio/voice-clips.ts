@@ -248,9 +248,12 @@ export class VoiceClipPlayer {
     if (conversation !== undefined) this.finish(conversation, true, immediate);
   }
 
-  /** Lifecycle silence: stop every pair, fading rather than cutting. */
-  stopAll(): void {
-    for (const conversation of [...this.active]) this.finish(conversation, true);
+  /** Fade active pairs by default; immediate silence also disposes existing releases. */
+  stopAll(immediate = false): void {
+    for (const conversation of [...this.active]) this.finish(conversation, true, immediate);
+    if (immediate) {
+      for (const conversation of [...this.draining]) this.finish(conversation, true, true);
+    }
   }
 
   activeConversationCount(): number {
@@ -269,7 +272,7 @@ export class VoiceClipPlayer {
   }
 
   private finish(conversation: ActiveConversation, stop: boolean, immediate = false): void {
-    if (conversation.ended) return;
+    if (conversation.torn || (conversation.ended && !immediate)) return;
     conversation.ended = true;
 
     const index = this.active.indexOf(conversation);
