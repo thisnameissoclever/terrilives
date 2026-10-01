@@ -9062,3 +9062,32 @@ its purpose without its synchronization and rename steps is not equivalent.
 **Verify.** The empty-bed renderer has no diff against its original. The new
 publisher's forced fsync failure leaves no terminal receipt, and a second
 writer cannot replace an existing terminal result.
+## [L-sleep-projection-must-reach-render-buffer] Test authored visual opt-ins through the native bridge
+
+**What happened.** The compiler accepted an explicit sleeping visual, but the native projection still emitted the ordinary body code. Synthetic renderer rows could exercise the art without revealing that the played game never selected it.
+
+**Root cause.** Compiler acceptance and native visual projection used separate action mappings.
+
+**Prevention.** Trace a new authored visual through compilation, native projection and a freshly built WebAssembly bridge. Keep semantic sleeping identity independent of visual identity.
+
+**Verify.** The shipped-interaction assertion requires sleep activity 5 and visual 9 for the explicitly authored bed. Removing its projection arm fails that assertion; restoration passes. See the covered-bed runtime evidence.
+
+## [L-additive-alpha-filter-before-clamp] Preserve additive alpha through CPU filtering
+
+**What happened.** An eight-bit CPU sum clamped bed alpha before bilinear filtering, while the shader filtered each contribution before summing. Picking could disagree with the visible discard boundary.
+
+**Root cause.** Clamping and filtering do not commute. Additive reconstruction weights can sum above one even when final output alpha is bounded.
+
+**Prevention.** Retain unclamped summed alpha in a wider representation. Filter before clamping. Divide reconstructed RGB by actual summed alpha and clamp only output alpha. Keep grayscale owner masks separate from reconstruction alpha.
+
+**Verify.** The boundary test fails when CPU alpha is clamped. A controlled texture through the production shader fails when the denominator is clamped. Real-art image comparisons alone did not detect the denominator fault; retain the numeric control.
+
+## [L-shared-scene-picking-uses-draw-row] Pick against the entity row that draws a shared scene
+
+**What happened.** Shared bed owners retained separate logical rows, but only one row drew the scene. Picking used the selected logical row's layer and order, producing a different tie with nearby entities than the renderer.
+
+**Root cause.** Logical ownership was mistaken for physical draw order after multiple entities became one scene.
+
+**Prevention.** Retain each owner's semantic identity and raw coverage. Also retain the actual shared draw row and use its layer and order when comparing unrelated entities.
+
+**Verify.** The overlapping-entity test fails when it uses logical row depth instead of actual draw row depth. Restoring the mechanism passes. Check both visible owners and a remaining sleeper after the other leaves.

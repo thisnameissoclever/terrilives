@@ -59,6 +59,7 @@ assets/models/sims/sim-01/exercise-*-status.json
 # docs/assets/review-evidence/ first, without account balances or provider
 # identifiers.
 .tmp/
+web/proofs/.covered-bed-reference.json
 .scratch/
 assets/models/sims/sim-01/domestic-status.json
 assets/models/sims/sim-01/export/domestic/*/raw-*.png

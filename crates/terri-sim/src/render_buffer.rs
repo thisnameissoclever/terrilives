@@ -3828,7 +3828,7 @@ mod tests {
                 "double_bed",
                 "sleep_properly",
                 activity::SLEEPING,
-                visual_action::NONE,
+                visual_action::SLEEP,
             ),
             (
                 "moving_box",

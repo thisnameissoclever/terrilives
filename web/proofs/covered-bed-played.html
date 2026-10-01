@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Sleeping household fixture</title><body>
+<p>Prepare the task-owned localhost save slot with two assigned sleepers. Existing saves cause this fixture to stop.</p>
+<button id="prepare">Prepare sleeping household</button><pre id="result"></pre><a href="/">Open the game</a>
+<script type="module">
+import init,{SimHandle} from '../src/wasm/terri_wasm.js';
+import {SimBridge} from '../src/bridge.ts';
+import {createSaveStore} from '../src/storage/save-store.ts';
+document.querySelector('#prepare').addEventListener('click',async()=>{
+ const store=createSaveStore();let handle;
+ try {
+  if(await store.load())throw Error('An existing save occupies this origin. Use a fresh task-owned preview origin.');
+  const {memory}=await init();handle=SimHandle.from_lot_with_seed(2301,0);const sim=new SimBridge(handle,memory);
+  const people=Array.from(sim.ids()).filter((_,row)=>sim.kinds()[row]===0),bed=sim.bedPlacesOf(people[0]).find(place=>place.ordinal===1).bed;
+  for(const [ordinal,person]of people.slice(0,2).entries()){sim.setBedAssignment(person,{bed,ordinal});sim.useObjectFirst(person,bed,0);}
+  sim.flushCommands();let tick;
+  for(tick=0;tick<600;tick++){sim.tick();if(people.slice(0,2).every(person=>sim.sleepingBeds()[Array.from(sim.ids()).indexOf(person)]===bed))break;}
+  if(tick===600)throw Error('Both sleepers did not arrive.');
+  sim.setSpeed(0);sim.flushCommands();const saved=sim.saveBytes();await store.save(saved);
+  document.querySelector('#result').textContent=JSON.stringify({pass:true,tick:sim.clockTick(),bed,people,bytes:saved.length});
+ }catch(error){document.querySelector('#result').textContent=JSON.stringify({pass:false,error:String(error)});}
+ finally{handle?.free();store.close();}
+});
+</script></body></html>

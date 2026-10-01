@@ -40,9 +40,9 @@ it('projects real double-bed sleeping through load, memory growth and independen
       expect(pair(source, person)).toEqual([bed, ordinal]);
       const row = source.ids().indexOf(person);
       expect(source.activities()[row]).toBe(5);
-      expect(source.visualActions()[row]).toBe(0);
+      expect(source.visualActions()[row]).toBe(9);
       expect(source.interactionTargets()[row]).toBe(0xffffffff);
-      expect(source.facings()[row]).toBe(0);
+      expect(source.facings()[row]).toBe(ordinal === 0 ? 3 : 4);
       expect(source.positions()[row * 2 + 1]).toBe(ordinal === 0 ? 7 : 10);
     }
     const saved = handle.save_bytes();

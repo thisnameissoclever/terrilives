@@ -1,17 +1,14 @@
 # Sleeping places and bed assignment
 
-Status: implementation in progress. This document records the bounded plan for
-the accepted `[S-bed-assignment]` roadmap item. Two-person sleeping and the
-assignment interface are not shipped.
-
-The local implementation now includes shared admission, assignment commands,
-V1 through V5 save migration and validation, hashing, lifecycle cleanup and the
-assignment control inside the existing Sim details disclosure. Its label is
-now Personality, habits and bed. Keyboard focus, same-Sim Load and responsive
-control checks have passed, as have the native and web suites. This remains
-unpublished: per-place navigation is implemented locally; the occupied double-bed
-composite is still required before shared sleeping can ship. See
-`docs/assets/review-evidence/bed-assignment/runtime-ui.md` for this checkpoint.
+Status: implemented for the accepted `[S-bed-assignment]` roadmap item.
+Shared admission, assignment commands, V1 through V5 save compatibility,
+lifecycle cleanup, per-place navigation and the covered double-bed renderer
+are integrated. Assignment remains inside Personality, habits and bed in the
+existing Sim details disclosure. The dock gains no additional controls.
+See `docs/assets/review-evidence/bed-assignment/runtime-ui.md` for the interface
+checks and `covered-bed-runtime.md` in the same evidence directory for final
+rendering and release verification. Publication is recorded separately from
+local checks.
 
 The reservation-release foundation is implemented with 20 new tests. All
 1,241 native tests, strict Clippy, formatting and the WASM build passed before
@@ -21,8 +18,8 @@ Thirteen deliberate faults failed named assertions and were restored
 byte-for-byte. Independent review
 found no blockers in this foundation. See
 `docs/assets/review-evidence/bed-assignment/reservation-release.md` for fault
-evidence. Admission, persistence and visuals require separate implementation
-and review.
+evidence. Admission, persistence and visuals have separate integration checks
+and independent reviews.
 
 ## Player behavior
 
@@ -44,10 +41,10 @@ and review.
 
 ## Runtime boundary
 
-The existing `Reserved` marker claims an entire object. Authored `slots` and
-the household bed-shortage count do not currently create separate runtime
-places. First establish owner-aware release, then introduce place admission.
-Do not enable two sleepers merely by ignoring the marker.
+The existing `Reserved` marker retains whole-object exclusivity for ordinary
+furniture. Beds use owner-aware place admission and release. Authored sleep
+capacity also controls household bed-shortage counting. Shared sleeping does
+not bypass reservation checks.
 
 An active sleep place belongs to the Sim's current `Target`, including the
 walk to it. Alternative sleep interactions on one bed share physical places.
@@ -89,8 +86,8 @@ facing, world X runs from head to foot. Ordinal zero uses approach tiles
 ordinal one uses `(0, 2)` and `(1, 2)`, corresponding to model-local negative X.
 Rotate those offsets with the placed footprint. The initial proposal used
 the wrong world axis and was corrected before navigation implementation.
-This establishes side correspondence only; occupied pose fit and compositing
-remain unproved.
+The approved covered export and native GPU checks establish occupied pose fit
+and compositing for all four facings and occupancy states.
 
 The new-game double bed moves from `(0, 6)` to `(0, 8)`, retaining its SE facing
 and 2x2 footprint. At the former origin, place zero's approach crossed a solid
@@ -231,9 +228,10 @@ Keep the established non-bed pair path unchanged.
 CPU picking uses the separate raw visible owner-fill masks. Reconstruction
 weights, lane rectangles and shared outlines do not define Sim ownership.
 Furniture-only pixels select the bed; outline-only pixels do not select a Sim.
-Actual fractional-zoom GPU colourways, distinct owner picking, a sleeper leaving,
-played sleeping and publication require runtime proof. The approved export and
-its CPU comparisons do not establish those runtime gates.
+Fractional-zoom GPU colourways, distinct owner picking, a sleeper leaving and
+played sleeping are verified in the dated runtime evidence linked above.
+Publication remains a separate check against an executed deployment and its
+public assets. Export comparisons alone do not establish runtime acceptance.
 
 ### Runtime identity before visual integration
 
@@ -250,26 +248,27 @@ chain progress and an action awaiting its zero-tick completion remain valid.
 Assignments alone do not project occupancy. Tags and visual metadata are
 independent, so this pair does not override the existing activity or body art.
 
-The double bed currently has no authored body-art socket. Keeping this pair
-separate from socket-only `interaction_targets` preserves existing positions,
-facings and visual-action codes while occupied-art verification continues.
+The double bed uses explicit `sleep/object/toward_anchor` visual authoring,
+projected as action 9. Semantic ownership stays separate from socket-only
+`interaction_targets` and preserves gameplay positions. Sleep tags do not
+override independently authored visual actions.
 See `docs/assets/review-evidence/bed-assignment/projection.md` for native,
 release-bridge, mutation and replay evidence.
 
 ### Renderer integration after the visual proof
 
-A read-only impact review identified the following seams. These preserve
-runtime identity and do not approve an unproved image format.
+A read-only impact review identified the following seams, implemented with the
+approved covered export and checked in the actual renderer.
 
 1. Use the validated bed/place pair alongside the accepted body-art contract.
    Travelling leases remain walking; permanent assignment alone must never
    create a sleeping visual. Keep action 9, activity 5 and facing codes stable.
-2. `InteractionSelection.update` currently picks one owner per target by raw
-   entity ID. Add a bed-specific group beside that path, keyed by exact target
-   and physical place. Preserve both logical Sim rows, stable shirt identities
-   while drawing shared furniture once. The approved static sample is zero.
+2. `InteractionSelection.update` keeps the ordinary single-owner path and a
+   separate bed group keyed by exact target and physical place. It preserves
+   both logical Sim rows and stable shirt identities while drawing shared
+   furniture once. The approved static sample is zero.
    Keep duplicate-owner rejection for ordinary single-user furniture.
-3. `buildInstances` returns the reusable instance array and exact packed count
+3. `buildInstanceBatch` returns the reusable instance array and exact packed count
    together. Preserve that boundary; do not revive a second count traversal. The proven asset contract must define any
    changes to sprite pairs, the instance layout and shader together; ordinary
    alpha-over of two existing paired sprites is not an acceptable substitute.
@@ -281,11 +280,13 @@ runtime identity and do not approve an unproved image format.
    rule for partial pixels, and an explicit outline-picking policy. No lane
    shortcut may replace that evidence when bodies cross the assumed intervals.
 
-A three-owner contribution route must combine both bodies and furniture in
-premultiplied colour, then apply the shared outline once. The current shader
-supports only one body with its furniture and outline. Neither three-owner
-composition nor CPU owner-map picking is implemented yet. Their atlas, memory
-and rendering costs belong in the bounded pilot before runtime integration.
+The bed branch sums both visible bodies, furniture and shared ink in linear
+premultiplied colour. A separate startup storage table retains the historical
+sprite-table stride. Sixty-nine physical layers and sixty-four scene aliases
+produce an 8192 by 6096 atlas. All 1700 preceding sprite crops and metadata
+remain unchanged. CPU picking filters raw owner masks and the actual summed
+scene alpha; it retains sums above 255 until after interpolation. Shared-scene
+picks use the actual draw row against unrelated equal-depth entities.
 
 Regression coverage must include empty, either single occupant and both;
 independent palettes/samples; all facings; furniture colourways; both selections;
