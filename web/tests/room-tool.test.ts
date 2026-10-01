@@ -455,6 +455,6 @@ describe('the Room tool in the page', () => {
       "{ tool: roomTool, button: 'build-tool-room', panel: 'room-tool' }"]) {
       expect(MAIN_TS).toContain(wiring);
     }
-    expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(3);
+    expect(MAIN_TS.split('wallTool.highlight() ?? roomTool.highlight()')).toHaveLength(2);
   });
 });

@@ -1,5 +1,28 @@
 # Lessons Learned
 
+## [L-packed-instance-count] The packer must publish the draw count
+
+**What happened.** Floor-tool highlights were packed into the instance array but
+left outside the uploaded live prefix. Wall and room highlights still drew.
+
+**Root cause.** Main rebuilt the draw count in a second traversal with a separate
+highlight argument list that omitted the floor tool. Counting also repeated world
+column reads and interaction selection after packing had already done that work.
+
+**Prevention rule.** Publish the final written slot from the packer, including the
+last highlight writer. Draw the borrowed array with that count immediately. Update
+count on every frame and the pointer on growth; reuse the result object. Keep legacy
+verification helpers outside the production draw path.
+
+**How to verify.** Execute main's actual packing and draw statements with a floor
+highlight and assert two uploaded ring rows with no recount. Test independent exact
+counts and rows, one real interaction update, growth followed by shrink and empty
+frames, and the legacy wrapper. Delete each publishing mechanism and reintroduce
+the production recount separately; each covering test must fail an assertion.
+Update production-wiring assertions that counted the old duplicate call sites;
+they must require one preview/highlight argument list rather than preserving the
+removed recount as a test expectation.
+
 ## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
 
 **What happened.** A browser interruption while simulation ticks were paused
@@ -512,6 +535,10 @@ reversed projection, width/depth swaps, anchor omission, wrong occupied ownershi
 stale row fields and missing indicator projection. Review close-up played images.
 
 ## [L-builder-preview-overlap] Preview geometry and drawing must agree
+
+**Superseded.** [L-furniture-preview-replacement] replaces this overlap-only
+presentation rule. Drawable move previews hide their original even when refused
+or nonoverlapping; the following account records the earlier behavior.
 
 **What happened.** The first played builder pass showed old chair arms behind
 a rotated candidate, and old table artwork beneath a partially overlapping
@@ -4627,6 +4654,11 @@ work and merely makes an invalid test look stable.
 **How to verify.** Draw a frame with extras, then a smaller frame without them.
 Assert the second `instanceCount` and its live prefix. Permit any value beyond
 that prefix, and verify the draw call receives the same live count.
+
+The current production API is `buildInstanceBatch`: its reused result publishes
+the written count with the borrowed array. Calls through either building API
+invalidate both fields. Production consumes that count instead of the legacy
+`instanceCount` helper.
 
 ## [L-save-presentation-boundary] Tick state and presentation state are different save boundaries
 

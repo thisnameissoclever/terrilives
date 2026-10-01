@@ -30,8 +30,7 @@ import { SpriteRenderer } from './render/sprites.js';
 import {
   FixedStepDriver,
   advanceSimulationFrame,
-  buildInstances,
-  instanceCount,
+  buildInstanceBatch,
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
@@ -1562,7 +1561,7 @@ async function main(): Promise<void> {
     placementButtons.frame(camera, stage.width, stage.height);
     // Editing marks the original furniture; play mode marks the selected Sim.
     const selected = builder.active ? builder.selected : sim.selectedIndex();
-    const instances = buildInstances(
+    const batch = buildInstanceBatch(
       sim,
       alpha,
       camera.originX,
@@ -1589,9 +1588,8 @@ async function main(): Promise<void> {
       : ambientFor(sim.clockTick(), sim.dayTicks());
     wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
     renderer.draw(
-      instances,
-      instanceCount(sim, selected, undefined, buyTool.ghost() ?? builder.preview,
-        wallTool.highlight() ?? roomTool.highlight()),
+      batch.instances,
+      batch.count,
       camera.scale,
       ambient,
       // [OS-daylight]: the sky shades the house by day; flat light is even.
