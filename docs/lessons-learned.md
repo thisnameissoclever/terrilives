@@ -9430,9 +9430,9 @@ writer cannot replace an existing terminal result.
 
 **Root cause.** Updating the sound contract did not update every maintained description of the same behavior.
 
-**Prevention.** Search maintained documentation when changing sound timing, source or gain. Check each claim against the actual playback transition. Keep proposed sound content distinct from released behavior.
+**Prevention.** Search maintained documentation when changing sound timing, source or gain. Check each claim against the actual playback transition. Compare fixed-tick availability checks with browser audio-context state-event cleanup, including while paused. Keep proposed sound content distinct from released behavior.
 
-**Verify.** Search for the old behavior and inspect each remaining reference. Historical evidence may retain its original claim; maintained task and feature descriptions must match current playback.
+**Verify.** Search for the old behavior and inspect each remaining reference. Historical evidence may retain its original claim; maintained task and feature descriptions must match current playback. Exercise browser state changes while paused before claiming interruption cleanup; preserve the distinction from directly verified operating-system events.
 
 ## [L-calibration-load-and-rate-composition] Verify timed checks without unrelated simulation load
 

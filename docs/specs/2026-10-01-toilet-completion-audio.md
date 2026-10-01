@@ -1,6 +1,6 @@
 # Toilet completion audio
 
-Status: implemented on `twcx/toilet-completion-audio`, not merged. The owner accepted the selected recording and requested its inclusion. In-game mix acceptance remains separate. Earlier local checks and playback proofs passed, but the full-audio retained-memory check failed and 120 Hz coverage remains unverified. Current-main integration and endpoint-matched reassessment are recorded below; no failed acceptance requirement is silently replaced.
+The owner accepted the selected recording and directs delivery after relevant local checks and fresh-context adversarial review. This authorization permits release despite the failed whole-audio retained-memory assessment and unavailable 120 Hz calibration. Neither result becomes a pass, and authorization to release does not claim a separate in-game listening review. The completion and playback contract remains unchanged.
 
 ## Contract
 
@@ -33,11 +33,6 @@ Selected 02: its shorter duration reduces overlap and its final partial second f
 
 `scripts/prepare-toilet-audio.ps1` validates that hash and frame count, then uses the existing task-owned Playwright CLI proof page and shared PCM encoder. It preserves all samples without filtering, trimming, normalization or dithering. Output `web/public/audio/toilet/flush.wav` has 791,988 bytes, stereo PCM16 at 48 kHz, SHA-256 `b0e3384721432cb34733619b6e415c1de78f06f4b5f11bb0486f863088d4fbb5`. The script refuses to overwrite an existing output. At gain 0.08 the rendered peak stays below 0.06050 for one source or 0.24200 for four aligned sources before Effects gain, including PCM16 quantization and browser conversion.
 
-## Progress
-
-1. Investigation complete: no existing exact-target completion stream. `tick_interactions` is the completion authority; active-sound disappearance is insufficient.
-2. Recording comparison, reproducible export and implementation complete. Asset regression failed on the absent source before preparation, then passed against the original and exported samples. Integrated results and the delivery hold are recorded below.
-
 ## Verification evidence
 
 1. `npx vitest run tests/audio-memory-report.test.js tests/toilet-audio-assets.test.js --maxWorkers=1`: eight tests passed, exit 0. The memory tests first failed because excess and undrained flush voices were accepted. Removing each new report guard separately failed its regression, exit 1; restoration SHA-256 was `ea952bf07136c2511391d8f0cadebe85b97771ebc0855add67c5e3ff8392e5cd`. One-byte mutations to the original OGG and runtime WAV each failed the asset regression and were restored to their recorded hashes.
@@ -58,7 +53,7 @@ Selected 02: its shorter duration reduces overlap and its final partial second f
 16. One predefined four-condition causal diagnostic compared pre-feature `c3ba226b` with the current build, without retries. Pre-feature raw JS growth was 40,544 bytes disabled and 97,868 enabled, a 57,324-byte differential. Current growth was 48,316 disabled and 39,756 enabled, a -8,560-byte differential. Current minus pre-feature was -65,884 bytes. All conditions matched baseline tick 60/hash `15673571512124383760` and final tick 600/hash `13352472879687521638`, with unchanged DOM/listener counts and no page errors. Current enabled playback recorded four measured flushes. This single sample identifies no positive feature-specific regression; it neither proves lower memory use nor clears the failed acceptance check. Its frame-timestamp wrapper and omission of intermediate heap samples make it diagnostic-only. No compiler memory was subtracted, and no allowance changed.
 17. One finite passive natural-ending proof passed with the actual player and decoded 197,986-frame recording. A single source and then four distinct sources each produced one trusted native `ended` event. Direct inspection found the ownership Map empty, each `onended` handler cleared and each source/gain disconnected exactly once. No cleanup getter, pause, stop or subsequent play ran before inspection. Native disconnect wrappers delegated unchanged to the actual methods; proof references and wrappers were released afterward. Browser and proof server closed in `finally`. This establishes natural callback cleanup for those cases, not whole-page memory acceptance. The [raw natural-ending report](../assets/review-evidence/audio/toilet/natural-ending.json) records hashes and instrumentation limits.
 
-## Delivery hold
+## Integration evidence and release authorization
 
 ### Main integration and interruption repair
 
@@ -107,18 +102,24 @@ failed whole-page retained-memory check; no causal link was established.
 
 ### Release decision
 
-The feature remains unreleased. The latest endpoint-matched whole-audio memory
-assessment failed the unchanged allowance. Bounded ownership and playback checks
-passed, but those checks do not replace the failed raw-memory requirement. A
-finite comparison with current main does not identify a specific runtime defect
-or establish memory acceptance. Do not repeat the unchanged assessment to seek a
-passing result. Merge requires an explicit release exception or an agreed
-acceptance-contract change. The separate 120 Hz evidence gap must remain visible.
-A draft pull request preserves the work without representing it as shipped.
+On 2026-10-01 the owner directs completion and merge after relevant local checks
+and fresh-context adversarial review, without waiting for duplicate GitHub checks
+or review. This is a feature-specific release exception for the failed raw-memory
+assessment and unavailable 120 Hz calibration, not a changed allowance or a claim
+that those checks passed. The whole-audio measurement does not establish a
+flush-specific leak. Preserve the failed reports and diagnostic limits. Do not
+repeat the unchanged assessment to seek a favorable sample. Correct valid source
+findings before delivery. Keep recording acceptance separate from subjective
+acceptance of the in-game mix.
 
 The dated [current-main verification record](../assets/review-evidence/audio/toilet/2026-10-01-verification.md)
 contains the inspected revisions, exact measurements, playback evidence, review
 findings and unavailable checks. Quieter footsteps and cancellation of indoor
 background noise are delivered separately; neither depends on releasing this feature.
+
+The [authorized release record](../assets/review-evidence/audio/toilet/2026-10-01-release.md)
+records current-main integration, local verification, fresh review and the owner's
+release exception. Historical evidence above retains its inspected revisions and
+original outcomes.
 
 Durable raw reports are [matched memory](../assets/review-evidence/audio/toilet/memory-matched.json), [causal comparison](../assets/review-evidence/audio/toilet/causal-comparison.json), and [performance](../assets/review-evidence/audio/toilet/performance.json). Task-local scripts, fixture saves, failed earlier runs and snapshots remain under `.tmp/toilet-*`; the temporary pre-feature checkout has been archived. Diagnostic browsers and production servers are closed.

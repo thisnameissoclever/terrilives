@@ -1018,7 +1018,7 @@ also remains owner-listening evidence rather than accepted sound design.
 This is not the complete audio feature. Front and interior doors open silently
 and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
-`specs/2026-10-01-door-audio.md`. The unreleased toilet-audio branch plays a
+`specs/2026-10-01-door-audio.md`. Toilet audio plays a
 recorded flush from a separate exact-target completion event rather than an
 action stopping. Cancellation and Load never fabricate a completion. The cue
 stops on pause and cannot replay after late decoding; technical and listening

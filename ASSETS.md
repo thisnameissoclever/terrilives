@@ -260,7 +260,8 @@ page identifies two toilet-flushing recordings. Archive SHA-256 is
 `scripts/prepare-toilet-audio.ps1` reproduces the export and refuses existing
 outputs. The shorter of two candidates was selected to limit overlap, not on
 claimed listening evidence. Technical contract and measurements are in
-`docs/specs/2026-10-01-toilet-completion-audio.md`; owner listening remains open.
+`docs/specs/2026-10-01-toilet-completion-audio.md`. The owner accepted the source
+recording; separate in-game mix listening remains unverified.
 
 ## Paper recordings for review only
 

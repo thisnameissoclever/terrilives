@@ -1127,16 +1127,20 @@ trusted gesture remains armed in case an automatic foreground resume is denied.
 While globally inaudible, fixed-tick audio frames still begin and end, but no
 observations reach their schedulers. Their normal absence handling releases
 object/conversation ownership and drops activity, stride and door history.
-An unavailable frame boundary also disposes unfinished procedural and door
+An unavailable frame boundary also disposes unfinished procedural, door and toilet
 cues if they still have active sources, without resetting any open frame.
 Recording cleanup uses retained counts so object and conversation releases
 whose active owners already ended cannot survive the unavailable interval.
 Automatic return to running therefore starts only current actions, without
-requiring another gesture or replaying old motion. This samples availability
-at fixed ticks; it is not an operating-system interruption listener. See
+requiring another gesture or replaying old motion. Fixed-tick boundaries sample
+availability. A browser audio-context state event also stops every player and
+resets schedulers immediately when the context stops running, including while
+the world is paused. This observes browser state, not operating-system events
+directly. See
 `docs/specs/2026-10-01-automatic-audio-recovery.md`.
-Pause stops fixed ticks and fades object loops, but does not suspend the context
-or stop an already-playing short cue or conversation. A successful Load reads
+Pause stops fixed ticks, fades object loops and stops an active toilet flush.
+It does not suspend the context or stop an already-playing short cue or
+conversation. A successful Load reads
 identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually
 replaced.

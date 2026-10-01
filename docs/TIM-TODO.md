@@ -502,7 +502,7 @@ mix still need listening acceptance. Stove cooking now uses a provisional
 first-party synthetic texture with independent demand loading; its listening
 acceptance also remains open. Doors open silently and close with a filtered thunk
 tied to authoritative portal state. Footsteps use a quieter peak amplitude without
-changing pitch or cadence. The unreleased toilet-audio branch plays a recorded
+changing pitch or cadence. Toilet audio plays a recorded
 flush after completed use; cancellation, loading and late decoding do not
 trigger one. The owner accepted the recording;
 in-game mixing and technical release evidence belong in
