@@ -43,6 +43,12 @@ were recorded. The owned page was closed in a finally block and its preview
 server was stopped. This proves the ordinary release flow in the built game,
 not two simultaneous sleeping places or a new double-bed pose.
 
+After integrating main `522260d0` (door recordings), the combined web
+typecheck, all 1,535 web tests and production build passed. That integration
+changed no Rust, compiled game content or Cargo files, so the native checks
+above still cover the exact simulation source. Document IDs and whitespace
+checks passed again for the combined tree.
+
 The first assertion output for each fault follows.
 
 ### ignore-other-owner
