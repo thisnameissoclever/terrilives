@@ -1009,7 +1009,9 @@ Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water and door recordings are now integrated.
+downloaded and inventoried; selected water recordings and a filtered closing-door
+thunk are now integrated. Door opening is silent; the original door recordings
+remain preserved but are not fetched by gameplay.
 The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 

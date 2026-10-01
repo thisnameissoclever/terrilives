@@ -2,6 +2,11 @@
 
 ## [A-door-recordings] Quiet recordings on physical door transitions
 
+The following observation predates the owner's rejection of the squeak. Current
+door opening is silent and closing uses only the filtered 0.32-second thunk.
+The old opening counters and signal evidence do not establish acceptance of
+that replacement; see `specs/2026-10-01-door-audio.md` for the current contract.
+
 Inspected the production build at 1280x720 on isolated port 5201, Day 1,
 00:01 through 05:41. The kitchen doorway appeared open during movement and
 closed later. The roster and needs dock remained readable against the night
