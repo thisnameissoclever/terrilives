@@ -1,5 +1,26 @@
 # Alpha Feel Notes
 
+## [A-door-recordings] Quiet recordings on physical door transitions
+
+Inspected the production build at 1280x720 on isolated port 5201, Day 1,
+00:01 through 05:41. The kitchen doorway appeared open during movement and
+closed later. The roster and needs dock remained readable against the night
+tint. Audio diagnostics recorded five openings and six closings with four
+tracked portals and capacity four. Pause cleared live portal tracks, stopped
+the shower loop and retained reusable capacity; resume continued play.
+
+No browser warning or error was observed. Tim still stood beside the shower
+partition during use, an existing animation limitation outside this sound
+slice. The page closed in a finally block. This check does not establish
+subjective listening acceptance or a watched complete sleep or conversation
+cycle. Signal evidence and tests are in `specs/2026-10-01-door-audio.md`.
+
+The final build's empty needs panel clears hidden warning labels. At Day 1,
+02:07, deselection showed the compact selection prompt and seven empty warning
+spans. Selecting Bill restored his current needs and floor ring. The kitchen
+door was visibly open beside him. No browser warning or error appeared. This
+second task-owned page also closed in a finally block.
+
 ## [A-shower-water-integration] Prepared recording on actual shower use
 
 Production build on isolated port 5199, 1280x720, after main `44d443ba`.

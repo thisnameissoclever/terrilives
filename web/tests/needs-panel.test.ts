@@ -109,6 +109,23 @@ describe('levelPercent', () => {
 });
 
 describe('NeedsPanel', () => {
+  it.each(['deselected', 'no-needs'])('clears obsolete warning labels when %s and restores them on selection', emptyKind => {
+    const fills = [12, 35, 80].map(() => ({...bar(), stateText: {textContent: ''}}));
+    const panel = new NeedsPanel({hidden: false}, caption(), fills, 0, 100,
+      {hidden: true}, {hidden: false});
+    const source = new CountingSource(3, new Float32Array([12, 35, 80]));
+    panel.update(0, source);
+    expect(fills.map(fill => fill.stateText.textContent)).toEqual([' (critical)', ' (low)', '']);
+    if (emptyKind === 'deselected') source.selected = null;
+    else source.levels = new Float32Array(0);
+    panel.update(1, source);
+    expect(fills.map(fill => fill.stateText.textContent)).toEqual(['', '', '']);
+    source.selected = 3;
+    source.levels = new Float32Array([80, 15, 35]);
+    panel.update(2, source);
+    expect(fills.map(fill => fill.stateText.textContent)).toEqual(['', ' (critical)', ' (low)']);
+  });
+
   it('reads at the throttled rate rather than every frame or once', () => {
     // Two degenerate alternatives, and the samples below are chosen to
     // exclude both (docs/testing-protocol.md rule 7). A panel that reads

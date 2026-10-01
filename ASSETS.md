@@ -198,7 +198,25 @@ repetition and mix acceptance remain unverified.
 The reproducible editor, measured signal and verification limits are in
 `docs/specs/2026-10-01-shower-water-recording.md`. The complete downloaded packs
 remain outside the repository. Conversation recordings above are first-party;
-other short cues remain synthesized.
+short cues other than the door recordings below remain synthesized.
+
+## Door recordings
+
+Two provisional recordings accompany actual door state changes. Author:
+rubberduck; pack: [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx),
+CC0 1.0. Archive SHA-256:
+`a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`.
+
+| Exact archive entry and retained source | Source SHA-256 | Runtime file | Runtime SHA-256 |
+| --- | --- | --- | --- |
+| `door_open.ogg`, retained in `assets/audio/doors/` | `62b42cdf0d8b25ef80c0f3bc815aa65977b78b20225481461ea134798172f59d` | `web/public/audio/doors/open.wav` | `01c05db9d4349f7da37821cc71bfaec7aa4da8486c7096406520ef8c3e1be2da` |
+| `door_close_02.ogg`, retained in `assets/audio/doors/` | `3f4ce43f7a676d8907258908c90e88caecffd4526fce43e40df6726bf67ed91b` | `web/public/audio/doors/close.wav` | `5aa47dfbe01fa785de53564e24229640dfd60cdbc231f43323882fa73e7dbd92` |
+
+Chromium decoded the originals at 48 kHz; export retains every decoded frame
+as stereo signed PCM16. No trim, normalization, filter or dithering is applied.
+Opening has 21,698 frames and closing has 41,227. Playback gain and edge fades
+are applied at runtime. The recipe and measured screening are in
+`docs/specs/2026-10-01-door-audio.md`. Subjective listening acceptance remains open.
 
 ## What was here before, and why it is gone
 

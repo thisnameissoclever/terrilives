@@ -120,8 +120,10 @@ The current semantic events are:
     authored semantic sound state changed. These events drive the object-loop
     player when a prepared recording is installed. One provisional shower-water
     recording ships; subjective listening acceptance remains open.
-11. `door.opened` and `door.closed`: reserved event shapes only. No current door
-   transition emits them.
+11. `door.opened` and `door.closed`: portal transitions across the closed-state
+    boundary. Geometry supplies identity; initial observations and lifecycle
+    re-anchoring are silent. These now play prepared recordings rather than
+    the dormant procedural door tones. See `2026-10-01-door-audio.md`.
 
 Canvas, keyboard, object-menu, Clear-orders, and Household-roster command
 outcomes use the same staged/rejected distinction. The distinction remains
@@ -280,8 +282,9 @@ cached; failures retry only on new shower demand after five seconds. Ended or
 globally invalidated sources cannot revive on late decode. Stove cooking remains
 silent. See `2026-10-01-shower-water-recording.md` for provenance, measured
 levels and the still-unverified listening assessment.
-The front door now has authoritative animated portal state, but no producer
-currently emits the reserved door sound events. Door audio remains unbuilt.
+Front and interior doors now supply geometry-keyed closed-boundary transitions
+to a bounded one-shot recording player. Loading never queues historical events.
+Door recordings feed Effects independently of Voices.
 
 ## Performance acceptance
 
@@ -306,7 +309,10 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
    capacity grows after warm-up. Fresh bridge view wrappers are required by
    [D11] and must not be misreported as literal zero allocation.
 7. Run three alternating enabled/disabled retained-memory pairs. Measure
-   quiescent paused endpoints after explicit garbage collection. Require the
+   quiescent paused endpoints after explicit garbage collection. Clear selection
+   through the public command and wait for empty moodlet/action rows at both
+   endpoints; restore selection for the measured gameplay interval. Let all
+   audio players finish before comparing retained listener counts. Require the
    median enabled-minus-disabled retained JavaScript delta to remain within the
    predeclared 64 KiB allowance, with zero active voices, bounded track count,
    unchanged scheduler capacity, and no DOM or listener growth. Report broader
@@ -706,8 +712,7 @@ Restored SHA-256 values were:
 
 ## Open work
 
-1. Wire door events to the existing authoritative portal transitions, with
-   sound selection and listening review.
+1. Complete subjective listening review for provisional shower and door recordings.
 2. Select and accept recordings for the object-loop player. Add ambience,
    alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.
