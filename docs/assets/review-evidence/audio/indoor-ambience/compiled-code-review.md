@@ -15,7 +15,8 @@ the independent enabled and disabled contexts.
 The first helper draft traversed past function owners into their enclosing
 contexts and therefore listed unrelated functions as additional ancestors.
 The corrected search stops at the nearest function depth. The final report is
-`compiled-code-identity-v3.json`; earlier local draft reports remain preserved
+[`compiled-code-identity.json`](compiled-code-identity.json), copied from the
+local `compiled-code-identity-v3.json`; earlier local draft reports remain preserved
 but are not the basis for the owner conclusions below. Its identity arithmetic
 self-test passes, including same-ID size changes. Every real interval also
 asserts that births minus deaths plus surviving size changes equals net growth.
