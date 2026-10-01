@@ -1,0 +1,16 @@
+[
+  {
+    "mutation": "lot_edit_reverse_commands",
+    "exitCode": 101,
+    "failure": "\nrunning 1 test\ntest ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks ... FAILED\n\nfailures:\n\n---- ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks stdout ----\n\nthread 'ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks' (33012) panicked at crates\\terri-sim\\src\\ecs_lifecycle_tests.rs:84:5:\nassertion `left == right` failed\n  left: Some(0)\n right: Some(1)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 720 filtered out; finished in 0.00s\n\n",
+    "restoredSha256": "44eff6275100c8e787d6d8f70555414e53e10a404a425df583f017581d03149d",
+    "byteIdentical": true
+  },
+  {
+    "mutation": "command_reverse_commands",
+    "exitCode": 101,
+    "failure": "\nrunning 1 test\ntest ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks ... FAILED\n\nfailures:\n\n---- ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks stdout ----\n\nthread 'ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks' (30448) panicked at crates\\terri-sim\\src\\ecs_lifecycle_tests.rs:84:5:\nassertion `left == right` failed\n  left: Some(0)\n right: Some(1)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 720 filtered out; finished in 0.00s\n\n",
+    "restoredSha256": "abf72b076c5134419f485d50dc6ed7c5333a8532e4a4a35c65c5405ab185705c",
+    "byteIdentical": true
+  }
+]

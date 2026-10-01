@@ -8350,6 +8350,10 @@ the raw allowance, workload and previous failed reports.
 fail focused tests. Restore byte-identical files. Verify equal seeds, ticks 60
 and 600, and equal hashes in a real pair before full acceptance. Browser proof
 and the corrected full memory result remain separate from unit-test success.
+The ECS lifecycle browser check repeated this timing mistake with the selected
+name: one frame applied the command before the throttled panel refreshed. Wait
+for the displayed name to match the clicked person before asserting the panel,
+while separately checking that paused simulation time stayed fixed.
 
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 
@@ -8395,3 +8399,14 @@ and no restart until fresh world observation. Deleting event cleanup must fail
 all five family regressions; deleting stale-context protection must silence the
 replacement in its regression. Verify maximum rendered peak at both Effects and
 Ambience 100%; label old Effects-70% evidence accurately.
+## [L-standalone-ecs-removal-history] Standalone ECS needs an update boundary
+
+**What happened.** A matched 1,037-entity workload grew WebAssembly capacity from 5,308,416 bytes at tick 60 to 118,095,872 at tick 1,680 without a browser or audio. A native allocation counter found 71,003,186 live requested bytes and 2,482,699 retained component-removal messages at the final checkpoint.
+
+**Root cause.** The game uses Bevy ECS without Bevy App. Neither the full-tick schedule nor the paused command schedule maintained the world's trackers. Repeated marker removals appended lifecycle messages indefinitely. Save size and world hashes omitted that bookkeeping, so stable saves did not establish stable memory use.
+
+**Prevention.** Call `World::clear_trackers()` once after each completed full or paused schedule, after deferred commands have applied. Preserve the newest removal window. Future readers must respect those boundaries; a reader running only on full ticks can miss removals during repeated paused drains.
+
+**Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
+
+The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.

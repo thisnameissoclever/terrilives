@@ -1,0 +1,11 @@
+tick,live_bytes,removed_messages,current_messages,archetypes,tables,table_capacity,decisions,choice_len,telemetry_capacity_bytes,world_hash
+60,1625354,796,0,44,44,4904,399,8778,235248,1689968484302009063
+600,1969282,1131,0,90,90,5264,565,12995,361032,6672627640496136405
+1140,2245358,1925,0,90,90,5456,958,22992,600960,10010906560745498215
+1680,2373362,1924,0,116,116,5672,959,23015,601512,17615774119548958193
+removed,<Enable the debug feature to see the name>,963,1206003
+removed,<Enable the debug feature to see the name>,2,18837
+removed,<Enable the debug feature to see the name>,955,1218559
+removed,<Enable the debug feature to see the name>,2,18597
+removed,<Enable the debug feature to see the name>,2,17556
+after_drop_live_bytes,27570
