@@ -1,5 +1,37 @@
 # Lessons Learned
 
+## [L-provisional-audio-is-not-listening-approval] Keep evidence limits separate from authorization
+
+**What happened.** Successive audio slices left household objects silent despite
+the owner's authorization to select and deliver routine sound improvements.
+
+**Root cause.** An assistant-authored checklist expanded the human-listening
+gate for replacing accepted cues into a ban on all additive provisional sounds.
+
+**Prevention rule.** Follow the actual approval boundary. A small additive sound
+may ship under existing selection authority after provenance, editing, measured
+mixing and lifecycle checks, while explicitly retaining unverified subjective
+acceptance. Do not claim to have heard audio when only waveform data is available.
+
+**How to verify.** Trace one real game interaction to its exact source-owned
+recording, test decoded output and lifecycle silence, and document provenance
+and the listening limitation. Keep replacement of accepted cues separately gated.
+
+## [L-browser-export-return-value] Return structured data from the CLI callback
+
+**What happened.** Three water-export attempts failed: unavailable `require`, a
+large base64 command argument, and console output that was not a structured result.
+
+**Root cause.** The export assumed Node globals and console forwarding inside
+the Playwright CLI callback instead of using its supported route and return APIs.
+
+**Prevention rule.** After three similar failures, obtain fresh-context better-way
+review before another attempt. Serve the source through `page.route`, decode in
+the browser, and return the result. Do not embed binary sources in shell arguments.
+
+**How to verify.** A small sentinel return must appear under `### Result`; then
+the exported WAV must match its measured frame count and recorded SHA-256 digest.
+
 ## [L-browser-proof-public-urls] Resolve served recordings as browser URLs
 
 **What happened.** The recovery browser proof retried both recordings because

@@ -2,11 +2,12 @@
 
 ## Scope and acceptance boundary
 
-This slice connects the existing shower and stove sound state to a bounded
-recording player. It does not select or ship a recording. The production clip
-catalog remains empty until the CC0 intake, editing, and listening review are
-complete. No placeholder oscillator, automatic download, or new dependency is
-introduced. The audible household mix is unchanged with an empty catalog.
+This slice connected shower and stove sound state to a bounded recording player,
+initially with an empty catalog. The subsequent
+[shower recording slice](2026-10-01-shower-water-recording.md) adds one prepared
+flowing-water loop, fetched only on playable shower demand. Stove cooking stays
+silent. No placeholder oscillator or new dependency is introduced. Historical
+empty-catalog checks below describe this player's original delivery.
 
 The owner requested autonomous sound improvements and approved routine selection
 work. That does not turn a decoded waveform into an acoustically accepted asset.

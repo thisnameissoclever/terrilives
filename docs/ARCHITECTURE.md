@@ -1118,8 +1118,10 @@ backgrounding, first unlock, mute changes, and Effects crossing zero reset its
 phase. The initial shower and stove actions feed a source-owned recording
 player with at most four active loops and eight retained records including
 fades. Prepared recordings specify valid loop boundaries and gain. Its
-production catalog remains empty pending recording acceptance; no placeholder
-or automatic download is used. Every effective pause stops object loops,
+production catalog contains one provisional shower-water WAV. A playable shower
+start triggers one cached fetch/decode; failures wait five seconds and a new
+semantic demand before retrying. Late completion reconciles only still-owned
+sources. Stove cooking remains silent. Every effective pause stops object loops,
 including blocking overlays; resume waits for a new fixed-tick observation.
 Short cues and conversations retain their existing finish-on-pause behavior.
 

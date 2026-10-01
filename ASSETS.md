@@ -176,18 +176,29 @@ than by peak. The unedited originals are preserved outside the repository.
 random selection does not jump; how loud Sims are in the game is a separate
 playback gain, and retuning it must not mean reprocessing the audio.
 
-## There are no third-party audio assets
+## Shower water recording
 
-**As of 2026-09-11 the game ships no BORROWED audio.** The Sim voice clips
-above are first-party and recorded for this project. The current Web Audio
-layer synthesizes its cues at runtime. Four compact CC0 archives are proposed
-in `docs/specs/2026-09-06-cc0-audio-intake.md`, but a proposed or downloaded
-archive is not a game asset and is not a provenance entry here.
+The first third-party audio asset is a provisional addition for shower use.
+It replaces no accepted cue. Technical playback is verified; subjective timbre,
+repetition and mix acceptance remain unverified.
 
-When an individual recording is accepted, this file must name its pack, source
-page, author, licence, archive SHA-256, exact archive entry, every material edit,
-and final runtime path. Only reviewed files used by the game belong in the
-repository; source packs remain outside it.
+1. Author: rubberduck. Pack: `rubberduck-30-sfx-loops`,
+   [30 CC0 SFX loops](https://opengameart.org/content/30-cc0-sfx-loops), CC0 1.0.
+2. Archive SHA-256: `9c013474c7e56192a0d1b2840535a1e1d8b93166948d4a9f7136bb6c3d5421cd`.
+   Exact archive entry: `water_flowing.ogg`.
+3. Unchanged source: `assets/audio/shower-water/water_flowing.ogg`, 74,344 bytes,
+   SHA-256 `1a431f77d61661becdc87a5b1832d47f83a12a5c0b001077e41a202e739797a7`.
+4. Edit: Chromium decode at 48 kHz; complementary linear 100 ms tail/head
+   crossfade; shorten by 4,800 frames; stereo PCM16 export. No normalization,
+   filtering, upward gain or dithering. Runtime gain is 0.6 before Effects.
+5. Runtime: `web/public/audio/objects/shower-water.wav`, 342,420 bytes,
+   85,594 stereo frames at 48 kHz (1.783208 seconds), SHA-256
+   `0dcbeceb5338db019627829c0b4227fb6de7232e3881df2aa622a7180476e315`.
+
+The reproducible editor, measured signal and verification limits are in
+`docs/specs/2026-10-01-shower-water-recording.md`. The complete downloaded packs
+remain outside the repository. Conversation recordings above are first-party;
+other short cues remain synthesized.
 
 ## What was here before, and why it is gone
 
