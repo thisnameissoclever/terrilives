@@ -1,5 +1,21 @@
 # Lessons Learned
 
+## [L-enlarged-text-needs-measured-fonts] Verify the controls actually grew
+
+**What happened.** Increasing the root font size left fixed-pixel window labels
+unchanged. Doubling their computed sizes then exposed a clipped Build tab.
+
+**Root cause.** The test assumed root-relative sizing, while some controls used
+fixed font sizes and fixed column counts.
+
+**Prevention.** Measure representative computed font sizes before accepting an
+enlarged-text check. Let control rows wrap according to their labels and available
+width. Inspect both the scrollable choices and the actions needed to use them.
+
+**Verify.** Double the original computed font sizes, including fixed-size labels.
+At narrow and desktop widths, reach every choice and action, read complete labels,
+and confirm that keyboard focus remains usable after an action hides its control.
+
 ## [L-resource-readiness-needs-coherent-frames] Keep static and moving objects in the same view
 
 **What happened.** Delaying a material load stopped static camera updates while

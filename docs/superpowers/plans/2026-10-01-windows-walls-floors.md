@@ -498,29 +498,39 @@ continues to use the original covering and save contracts.
 **Files:** Create `web/src/ui/window-tool.ts`, `window-tool-controls.ts`,
 `web/tests/window-tool.test.ts` and `window-tool-controls.test.ts`; modify
 `ui/wall-tool.ts`, `ui/wall-tool-controls.ts`, `ui/build-tools.ts`,
-`render/placement-preview.ts`, `main.ts` and `web/index.html` for shell markup/styles.
+`render/placement-preview.ts`, `render/tiles.ts`, `bridge.ts`, `main.ts` and
+`web/index.html` for shell markup/styles. Keep any candidate-layout helper focused
+on presentation; Rust continues to own validation and simulation edits.
 
 **Consumes:** Task 5 bridge and Task 6 art mappings.
 **Produces:** A Windows chooser within Build > Walls with previews and safe edits.
 
-- [ ] Show all nine models grouped by width, using the actual exported thumbnail,
+- [x] Show all nine models grouped by width, using a thumbnail composited from
+  the actual exported model pieces with their registered origins and proportions,
   literal model label and a visible 1/2/3-unit badge. Keep floor controls separate.
   Reuse current responsive dock behavior; do not add a second mobile interface.
-- [ ] `N` selects the window tool and retains the last chosen model in transient
+  Share one atlas decode across the thumbnails and release it after composition.
+- [x] `N` selects the window tool and retains the last chosen model in transient
   UI state. Preserve arrows, V/H orientation, Escape cancellation and focus rules.
   Clicking an existing span selects its whole owner and exposes replacement and
   **Remove window**. Window controls distinguish it from **Remove wall**.
-- [ ] Ask Rust for a preview for the full candidate. Highlight all affected
+- [x] Ask Rust for a preview for the full candidate. Highlight all affected
   lines, including restored wall from narrower replacement; draw one ghost model.
   Hide the old window visual during its replacement preview, while leaving the
   simulation unchanged until commit.
-- [ ] Disable edits while blocked/loading or while an edit result is pending.
+  Construct a visual-only candidate from authoritative affected lines and
+  placement, rebuilding the existing junctions and restored tail. Preserve
+  neighboring owners and prove the source layout stays unchanged.
+  When a refused Rust preview returns no plan, mark the attempted span and old
+  owner in red and show the refusal. Do not fabricate candidate geometry from
+  that refusal; retain the current wall and window geometry.
+- [x] Disable edits while blocked/loading or while an edit result is pending.
   Consume the authoritative result before showing success. On refusal retain
   the selected window and show the exact literal reason.
-- [ ] Test middle/end selection, widths in both axes, touch, keyboard focus,
+- [x] Test middle/end selection, widths in both axes, touch, keyboard focus,
   viewport changes, invalid third line, model switching, exit/re-entry while a
   command is pending, and Load into a differently sized lot.
-- [ ] Run focused controller/control tests and typecheck; inspect controls in
+- [x] Run focused controller/control tests and typecheck; inspect controls in
   the production build at desktop, 390px width and 200% text size.
 
 **Exit:** The player can discover, preview, place, replace and remove every model
