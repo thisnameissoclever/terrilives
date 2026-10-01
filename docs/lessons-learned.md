@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-binary-tests-need-bounded-diffs] Compare large binary artifacts without printing every byte
+
+**What happened.** A deliberately changed audio seed caused a deep byte-array
+assertion to spend excessive time formatting hundreds of thousands of values.
+The task-owned test was stopped and the source restored.
+
+**Root cause.** The assertion requested a structural diff of a complete WAV
+when the useful evidence was whether the bytes matched.
+
+**Prevention rule.** Use byte equality plus a fixed content hash for large
+reproducible artifacts. Assert header fields and signal bounds separately.
+Keep negative CLI checks isolated from the real runtime asset.
+
+**How to verify.** Changing the seed must fail the equality assertion promptly;
+silence must fail the signal bound; removing the publication guard must fail an
+isolated differing-output test without modifying the shipped WAV.
+
 ## [L-audio-retained-is-not-active] Silence boundaries must include release-only nodes
 
 **What happened.** A recording ended normally, began fading, then the browser
@@ -8195,6 +8212,46 @@ record; padding must never manufacture that record from a truncated payload.
 **How to verify.** Test a complete bed-era payload after appending later fields,
 as well as every interior truncation of the grouped bed record. This was a
 documentation correction before implementation, not a shipped loader defect.
+
+## [L-unchanged-text-node-churn] Unchanged text assignments still replace nodes
+
+**What happened.** The cooking-audio memory check failed exact DOM equality in
+an audio-disabled control: 1,435 nodes became 1,434. Paused HUD panels repeatedly
+assigned the same text, despite a comment claiming those writes were no-ops.
+
+**Root cause.** Assigning an element's `textContent` replaces its text child even
+when the string is unchanged. A render between garbage collection and the DOM
+counter sample exposed the detached old node. A focused probe reproduced the
+one-node difference using only the `needs-caption` writer.
+
+**Prevention.** Compare the actual DOM text before assigning. Do not add a second
+cached UI state, change the memory allowance, or accept a failed equality check
+because its count declined. Text refreshes must still repair changed DOM values.
+
+**Verify.** Check text-child identity across repeated unchanged public updates,
+then change the source value and verify the text updates. The causal diagnostic
+had 250/250 stable samples when unchanged writes were suppressed; production
+acceptance also requires the unchanged whole-game memory check after the repair.
+
+## [L-memory-endpoints-need-complete-projection] Await the whole UI projection before measuring
+
+**What happened.** After redundant text writes were fixed, the memory proof
+still saw one fewer DOM node at an audio-disabled endpoint. Its baseline had
+the selected person's `Office clerk` career text; the final endpoint did not.
+
+**Root cause.** Clearing simulation selection does not synchronously update
+independently throttled panels. The normalizer checked only rows and warnings
+which could already be empty, accepting a partially updated presentation.
+
+**Prevention.** Establish the complete semantic endpoint before collecting:
+all selected-person fields and rows cleared, derived summaries updated, and
+audio drained. Do not repair an invalid baseline by relaxing exact equality,
+freezing the page, or adding a delay that merely makes the race less likely.
+
+**Verify.** A fixture with the old subset ready and stale career text must stay
+unready. Reject each other incomplete panel and missing required node. Retained
+node, document and listener changes in either direction must still fail the
+unchanged acceptance calculation. Then exercise the actual browser transition.
 
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 

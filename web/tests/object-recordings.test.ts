@@ -18,6 +18,17 @@ describe('object recordings', () => {
     expect(clips.get(3)?.buffer).toBe(clips.get(1)?.buffer);
   });
 
+  it('loads only the stove recording for the stove family', async () => {
+    const bytes = new ArrayBuffer(24);
+    const buffer = { duration: 4 };
+    const fetchBytes = vi.fn(async () => bytes);
+    const decode = vi.fn(async () => buffer);
+    const clips = await loadObjectRecordings(fetchBytes, decode, 'stove');
+    expect(fetchBytes.mock.calls).toEqual([['audio/objects/stove-cooking.wav']]);
+    expect(decode.mock.calls).toEqual([[bytes]]);
+    expect([...clips]).toEqual([[2, { buffer, gain: 0.6, loopStart: 0, loopEnd: 4 }]]);
+  });
+
   it.each(['fetch', 'decode'] as const)('rejects a %s failure without fabricating a clip', async failure => {
     const fetchBytes = vi.fn(async () => {
       if (failure === 'fetch') throw new Error('unavailable');

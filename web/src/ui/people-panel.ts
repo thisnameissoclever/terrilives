@@ -1,4 +1,5 @@
 import { relationWord } from '../bridge.js';
+import { setTextIfChanged } from './set-text-if-changed.js';
 import {
   householdMembers,
   type HouseholdMember,
@@ -208,12 +209,12 @@ export function createPeoplePanelSurface(
 
   return {
     render(view) {
-      caption.textContent = view === null ? 'People' : `How ${view.selectedName} feels`;
+      setTextIfChanged(caption, view === null ? 'People' : `How ${view.selectedName} feels`);
       empty.hidden = view !== null && view.people.length > 0;
-      empty.textContent =
+      setTextIfChanged(empty,
         view === null
           ? 'Select a person to see how they feel about the household.'
-          : 'There is nobody else in the household.';
+          : 'There is nobody else in the household.');
       list.hidden = view === null || view.people.length === 0;
 
       const people = view?.people ?? [];
@@ -234,10 +235,10 @@ export function createPeoplePanelSurface(
         row.root.dataset.tone = person.tone;
         // [FM-show]: the tie beside the name, so the row reads as who they
         // are as well as how they are getting on.
-        row.name.textContent = person.tie === null
+        setTextIfChanged(row.name, person.tie === null
           ? person.name
-          : `${person.name}, their ${person.tie}`;
-        row.state.textContent = person.label;
+          : `${person.name}, their ${person.tie}`);
+        setTextIfChanged(row.state, person.label);
         row.meter.setAttribute(
           'aria-label',
           `${view?.selectedName ?? ''}'s feeling about ${person.name}`,

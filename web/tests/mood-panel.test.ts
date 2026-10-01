@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   MoodPanel,
@@ -375,6 +376,26 @@ describe('MoodPanel', () => {
 });
 
 describe('createMoodPanelSurface', () => {
+  it('skips unchanged overall, moodlet and empty text while reflecting changes', () => {
+    const fixture = createFixture();
+    const state = ready('Content', 35, [{ key: 'meal', label: 'Good meal', score: 25 }]);
+    fixture.surface.render(state);
+    const label = fixture.list.nodes[0].find('moodlet-label')!;
+    const score = fixture.list.nodes[0].find('moodlet-score')!;
+    const probes = [fixture.overallLabel, label, score, fixture.empty].map(textWriteProbe);
+    fixture.surface.render(state);
+    expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0]);
+    fixture.surface.render(ready('Calm', 15, [{ key: 'meal', label: 'Meal', score: 15 }]));
+    expect([fixture.overallLabel.textContent, label.textContent, score.textContent]).toEqual(['Calm', 'Meal', '+15']);
+    fixture.surface.render({ kind: 'unselected' });
+    const writes = probes.map(probe => probe.writes);
+    fixture.surface.render({ kind: 'unselected' });
+    expect(probes.map(probe => probe.writes)).toEqual(writes);
+    fixture.empty.textContent = 'External change';
+    fixture.surface.render({ kind: 'unselected' });
+    expect(fixture.empty.textContent).toBe('Select a person to see their mood.');
+  });
+
   it('renders the overall accessible meter and moodlet tone rows', () => {
     const fixture = createFixture();
 
