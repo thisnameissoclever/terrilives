@@ -69,3 +69,92 @@ files, record edits and exact source entries in `ASSETS.md` for any selected
 runtime clip, and test playback against authoritative source-object state.
 
 The intake browser and loopback server were closed after the measurements.
+
+## Offline candidate comparison
+
+`scripts/build-audio-audition.cjs` builds a self-contained HTML review from the
+five extracted originals. It does not download, trim, normalize, accept, or
+install recordings. It verifies the entry hashes above, embeds the original
+bytes, refuses existing output files, and requires output outside the repository.
+Input entries must resolve directly inside the supplied audition directory.
+
+```powershell
+node scripts/build-audio-audition.cjs `
+  "<intake-directory>/audition" `
+  "$env:TEMP/household-sound-review.html"
+```
+
+Use a new output filename if it already exists. Open the generated HTML in a
+browser. The review starts silent at 25% volume. Each candidate has an original
+one-shot and a 15-second native-buffer repeat, with no seam repair or filtering.
+Only one sample plays at a time. Stop all, page exit, and hidden-page events
+cancel playback and invalidate pending decoding. Repetition is bounded by the
+audio clock, not a JavaScript timer. These are audition controls, not a second
+implementation of the game's source-owned recording player.
+
+Decisions and notes remain in the page until downloaded as JSON. Closing or
+reloading without downloading loses them. The export includes exact file hashes,
+provenance, review volume, and which playback modes finished. Finished playback
+does not prove anyone heard the recording. "Keep for editing" does not approve
+shipping or replace the in-game mixing check.
+
+The generated local comparison is
+`C:/Users/myema/AppData/Local/Temp/terrilives-household-audition-20261001/index.html`.
+It contains no saved judgments. The separate `automated-export-check.json` in
+that directory is a test fixture explicitly labeled as such, not owner feedback.
+No candidate has passed listening review in this run.
+
+### Cooking semantics
+
+The only current `stove_cooking` authoring site is the `Cook` step in
+`content/chains.toml`, using the `hob` station to turn ingredients into dinner.
+There is no authored boiling, frying, or baking distinction. The stove has no
+standalone interaction. `water_boiling.ogg` remains a boiling-water candidate,
+not a proven match for every cooking action. No new sound category is needed to
+audition it; choosing a runtime match still requires deliberate content and
+listening judgment.
+
+### Comparison checks
+
+1. Real Chromium decoded and started all five candidates. Switching recordings
+   retained at most one started source. The repeat ended after 15,012 ms, and
+   natural completion released its source.
+2. With browser networking disabled after document load, an original completed
+   and JSON export retained all five entries, the exact hash, typed notes,
+   decision, and separate original/repeat completion flags.
+3. An injected hidden-page event stopped playback. A delayed real decode
+   completed after Stop all without reviving playback.
+4. Native background behavior remains unverified: both headless Chromium and
+   the in-app browser reported the audition page as visible after opening a
+   second tab. This is not evidence of a successful native visibility test.
+5. The page was visually inspected. These controls and signal tests provide no
+   judgment of timbre, unwanted room sounds, loop quality, or the in-game mix.
+
+Final local commands passed: `npm run typecheck`,
+`npm test -- --maxWorkers=1` (1,434 tests in 103 files), `npm run build`,
+`node --check scripts/build-audio-audition.cjs`, `python check-doc-ids.py`, and
+`git diff --check`. Commands exited 0. The new four-test file passed again
+after mutation restoration. No runtime source, dependency, Rust, WASM, or asset
+inputs changed; native tests and the game performance sweep were not rerun.
+
+Three deliberate generator mutations each made the focused suite exit 1:
+
+1. Disable the SHA-256 guard: `rejects changed candidate bytes before publishing
+   a review` failed with `expected [Function] to throw an error`.
+2. Disable the repository-output guard: the rejection assertion failed with
+   `expected [Function] to throw an error`.
+3. Change exclusive `wx` publication to `w`: the existing-output assertion failed
+   with `expected [Function] to throw an error`.
+
+All three were restored. The generator SHA-256 before and after mutation was
+`1D4788AC0F526421A51605F3CE90B1EFB5055F68F3A57B5120E393B90C92D2C2`.
+Independent review found an unsafe fixed-path test cleanup, corrected before
+delivery and documented in lesson L-test-cleanup-needs-owned-paths. The follow-up
+review confirmed the correction. Test pages and the loopback server were closed;
+the self-contained HTML remains available without that server.
+
+PR 165's CI and Pages deployment both succeeded. The live game was inspected
+at `https://thisnameissoclever.github.io/terrilives/`: its saved household loaded,
+the isometric scene and controls rendered, and application logs had no warnings
+or errors. No save, reset, object placement, or preference change was made during
+that inspection, and the task-owned game tab was closed.

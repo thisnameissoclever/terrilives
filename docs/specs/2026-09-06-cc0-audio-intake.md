@@ -4,6 +4,9 @@ Status: the owner approved all four packs on 2026-09-30. Download and archive
 inventory are complete. Five water-related files passed browser decoding and
 level screening; listening and sound selection remain unfinished. No third-party
 audio has been copied into the game or added to repository history.
+An offline five-candidate comparison can now be generated with
+`scripts/build-audio-audition.cjs`; its usage and verification limits are in the
+intake results document.
 
 ## Decision
 

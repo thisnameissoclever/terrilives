@@ -1,5 +1,25 @@
 # Lessons Learned
 
+## [L-test-cleanup-needs-owned-paths] A rejection test must not delete its target blindly
+
+**What happened.** Review found an audition-builder test that used a fixed
+repository output filename and deleted it in `finally`. If that path already
+contained an owner's file, the builder would correctly refuse to overwrite it,
+but test cleanup would delete it anyway. No owner file was deleted in this run.
+
+**Root cause.** The test treated a path it named as a file it owned, including
+when the production guard correctly prevented creation.
+
+**Prevention rule.** Create a uniquely owned temporary directory for each
+filesystem fixture and clean up only that directory. A failed operation does
+not establish ownership of its target. Never delete a fixed-path sentinel
+merely to leave a test clean.
+
+**How to verify.** The repository-output test creates an `audition-test-*`
+directory with `mkdtempSync`, registers that exact root for cleanup, and asserts
+the rejected output was never created. A separate existing-output test proves
+the builder leaves the original bytes unchanged.
+
 ## [L-audio-clear-before-hardware] Invalidate pending ownership before changing browser gains
 
 **What happened.** New object-loop regression tests injected a failure into

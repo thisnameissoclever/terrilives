@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Household sound review</title>
+<style>
+:root{font:16px system-ui;color:#e6e9e8;background:#192122;color-scheme:dark}
+body{max-width:850px;margin:32px auto;padding:0 20px;line-height:1.5}
+h1{font-size:1.7rem}article{border:1px solid #596967;border-radius:8px;padding:18px;margin:20px 0}
+h2{font-size:1.05rem;overflow-wrap:anywhere}button,select{padding:9px;margin:4px 8px 4px 0;font:inherit}
+textarea{display:block;width:100%;box-sizing:border-box;min-height:80px;font:inherit}
+label{display:block;margin:12px 0}small{display:block;overflow-wrap:anywhere;color:#aebfbd}
+a{color:#a9d9e7}.toolbar{position:sticky;top:0;background:#192122;padding:12px 0;border-bottom:1px solid #596967}
+#status{min-height:1.5em}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f7c46b}
+</style>
+<h1>Household sound review</h1>
+<p>Five unedited candidates, not approved game sounds. This file works offline. Nothing plays until you press Play.</p>
+<p>Compare water character, background voices or music, unexpected knocks, distortion, and repetition seams. Boiling water may suit a pot, but not every cooking action. A keeper still needs editing and an in-game mix check.</p>
+<div class="toolbar">
+<button id="stop">Stop all</button><button id="export">Download review notes</button>
+<label>Review volume <input id="volume" type="range" min="0" max="100" value="25"> <output id="level">25%</output></label>
+<div id="status" role="status">Stopped. Notes are not saved until downloaded.</div>
+</div>
+<main id="candidates"></main>
+<script>
+const candidates = __CANDIDATES__;
+const root = document.querySelector('#candidates');
+const status = document.querySelector('#status');
+const volume = document.querySelector('#volume');
+const results = candidates.map(({ data, ...source }) => ({
+  ...source, decision: 'unreviewed', notes: '', completedOriginal: false, completedRepeat: false,
+}));
+let context, active = null, generation = 0;
+const decoded = new Map();
+function stop() {
+  generation++;
+  if (active) {
+    active.source.onended = null;
+    try { active.source.stop(); } catch { /* It may have ended naturally. */ }
+    active.source.disconnect(); active.gain.disconnect(); active = null;
+  }
+  status.textContent = 'Stopped. Notes are not saved until downloaded.';
+}
+async function play(index, repeat) {
+  stop();
+  const token = generation;
+  status.textContent = `Loading ${candidates[index].file}...`;
+  try {
+    context ||= new AudioContext();
+    await context.resume();
+    if (!decoded.has(index)) {
+      const bytes = Uint8Array.from(atob(candidates[index].data.split(',')[1]), c => c.charCodeAt(0));
+      decoded.set(index, context.decodeAudioData(bytes.buffer));
+    }
+    const buffer = await decoded.get(index);
+    if (token !== generation || document.hidden) return;
+    const source = context.createBufferSource();
+    const gain = context.createGain();
+    active = { source, gain };
+    source.buffer = buffer; source.loop = repeat; source.loopStart = 0; source.loopEnd = buffer.duration;
+    gain.gain.value = Number(volume.value) / 100;
+    source.connect(gain); gain.connect(context.destination);
+    source.onended = () => {
+      if (token !== generation) return;
+      results[index][repeat ? 'completedRepeat' : 'completedOriginal'] = true;
+      stop();
+      status.textContent = `Finished ${candidates[index].file}. Playback completion is not an approval.`;
+    };
+    // The audio clock bounds repetition even if browser timers are throttled.
+    source.start(0, 0, repeat ? 15 : buffer.duration);
+    status.textContent = `Playing ${candidates[index].file}: ${repeat ? '15-second native loop' : 'original once'} (${buffer.duration.toFixed(3)} s source).`;
+  } catch (error) {
+    if (token !== generation) return;
+    stop(); decoded.delete(index);
+    status.textContent = `Could not play ${candidates[index].file}: ${error.message}`;
+  }
+}
+document.querySelector('#stop').onclick = stop;
+volume.oninput = () => {
+  document.querySelector('#level').textContent = `${volume.value}%`;
+  if (active) active.gain.gain.setTargetAtTime(Number(volume.value) / 100, context.currentTime, 0.01);
+};
+document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+window.addEventListener('pagehide', stop);
+document.querySelector('#export').onclick = () => {
+  const report = { schema: 1, createdAt: new Date().toISOString(),
+    scope: 'Candidate listening notes only; not runtime acceptance or proof of hearing.',
+    volumePercent: Number(volume.value), candidates: results };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a'); link.href = url; link.download = 'household-sound-review.json'; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+for (const [index, candidate] of candidates.entries()) {
+  const article = document.createElement('article');
+  const heading = document.createElement('h2');
+  heading.textContent = `${index + 1}. ${candidate.file}`;
+  article.append(heading);
+  const source = document.createElement('a');
+  source.href = candidate.page; source.textContent = `${candidate.pack} / ${candidate.author} / ${candidate.license || 'test fixture'}`;
+  source.target = '_blank'; source.rel = 'noreferrer'; article.append(source);
+  const hash = document.createElement('small'); hash.textContent = `SHA-256 ${candidate.sha256}`; article.append(hash);
+  for (const [label, repeat] of [['Play original', false], ['Repeat for 15 seconds', true]]) {
+    const button = document.createElement('button'); button.textContent = label;
+    button.onclick = () => play(index, repeat); article.append(button);
+  }
+  const decision = document.createElement('label'); decision.textContent = 'Decision ';
+  const select = document.createElement('select');
+  for (const [value, text] of [['unreviewed', 'Not reviewed'], ['keep', 'Keep for editing'], ['reject', 'Reject']]) {
+    select.add(new Option(text, value));
+  }
+  select.onchange = () => { results[index].decision = select.value; };
+  decision.append(select); article.append(decision);
+  const notes = document.createElement('label'); notes.textContent = 'Listening notes and possible use';
+  const field = document.createElement('textarea');
+  field.oninput = () => { results[index].notes = field.value; };
+  notes.append(field); article.append(notes);
+  root.append(article);
+}
+</script>
+</html>
