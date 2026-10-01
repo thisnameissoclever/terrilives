@@ -70,3 +70,58 @@ on. The radio emits no light, but nearby lights can illuminate it. Neither
 object has media audio, an animated screen, a power state or seated-use art.
 See `../../../docs/assets/review-evidence/living/media.md` for evidence and
 the unchanged living-room arrangement limitation.
+
+## Low-backed armchair
+
+The armchair is separate from the tall reading chair. Its local front is -X;
+the centered seat remains SW in content, the action remains Sit (wire value 8),
+and the existing rig supplies four samples. Rotating the body 90 degrees less
+than the chair root aligns their different authored fronts. Do not reuse the
+book-reading body or retain the old procedural armchair foreground over the
+new occupied composition.
+
+1. Run the living-model unit suite. `armchair_layout.py` pins four grounded
+   feet and a connected, low-backed frame. The recessed front clears the
+   unchanged seated trousers; cushion top is 0.404 model units.
+2. Run hidden background Blender with `render_armchair.py -- NEW_ABSOLUTE_DIR`.
+   Require four complete 768x960 RGBA views and a byte-bound editable model.
+3. Run `preview_armchair.py -- ABSOLUTE_DIR` for all sixteen green occupied
+   source views. `review_armchair.py DIR` arranges the twenty originals without
+   repainting them. Require primary and independent source-art review.
+4. Run `check_armchair_scene.py -- ABSOLUTE_MODEL NEW_ABSOLUTE_RESULT` in
+   background Blender. Require all four samples, every visible body part,
+   surface-crossing and containment checks, twelve structural contacts, four
+   grounded chair feet and correctly attributed damaged-scene rejections.
+5. Hip proximity has two separate limits: closest gap 0..0.003, and a wider
+   near-support neighborhood within 0.01 model units. The latter needs width,
+   depth and positive hull area, not merely diagonal point extents. This is
+   visual support for a rounded rigid hip, not cloth or cushion simulation.
+   No body/chair penetration is allowed. The unchanged shoe soles sit about
+   0.01915 above the model floor; do not report exact planted-foot contact.
+6. Run `render_armchair_contributions.py -- ABSOLUTE_MODEL NEW_ABSOLUTE_DIR`.
+   Require 196 originals: four empty views and 48 occupied groups, each with
+   full-scene, body, furniture and outline passes. Three shirt palettes must
+   retain identical evaluated contact and alpha coverage. Resume only with
+   identical source hashes and Blender build.
+7. Run `export_armchair.py RAW_DIR NEW_EXPORT_DIR`. Fully decode every original
+   and compare all 48 reconstructed composites with their full-scene renders
+   using the established error limits. Encode at 192x240, with the existing
+   96x120 logical canvas and registered anchor. Runtime acceptance remains a
+   separate step: append-only atlas integration, all facing/color/action
+   states, actual GPU composition, picking, save/load and played-room review.
+
+8. `armchair-reviewed.json` binds the accepted source, contact journal, raw
+   receipt, comparison and export. The atlas imports it through
+   `offline_armchair.py`, after all earlier sprites. Run the full original-file
+   verification locally; clean builds validate retained evidence and exports
+   without requiring ignored originals or Blender.
+9. Run `armchairProof()` from `web/proofs/armchair.js` in the isolated
+   `web/proofs/index.html` document, then play the production build separately.
+   Require target-bound Sit, four facing commits, all shirts and samples,
+   pause/reduced-motion/save/cancel/picking checks, and independent review.
+
+Candidate 01 is rejected for arm, trouser and hip intersections. Candidate 02
+fixes the arm/base fit but still intersects the hips. Candidate 03 has passed
+source, contact, contribution, GPU and played review. See
+`../../../docs/assets/review-evidence/living/armchair.md`; local acceptance does
+not itself prove a source merge or public deployment.

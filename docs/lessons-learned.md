@@ -7649,3 +7649,30 @@ Read control types from the current DOM: Light is a button, not a select.
 Committed-facing evidence must wait for the actual simulation facing, not
 only the Build preview label. Active-action evidence must check the first
 queue entry; finding the action later in the queue proves only that it waits.
+
+## Armchair fit and finite support neighborhoods (2026-10-01)
+
+Two chair candidates looked plausible in stills while their evaluated solids
+intersected the unchanged sitting body. The first collided at arms, trousers
+and hips; the second still buried the hip bridge slightly in the cushion.
+Fit the furniture to the approved pose, then test all visible body geometry
+against every chair solid. Do not hide limbs, offset the Sim or exempt a
+colliding body part. Candidate 03 clears both triangle-crossing and containment
+checks; raised-seat and raised-arm copies must fail those same guards.
+
+Support proximity and exact coplanarity are different questions for a rounded
+rigid hip above a nearly flat cushion. A tiny closest gap can coexist with a
+wider near-support neighborhood. Independently review those tolerances and
+state that they approximate visual support, not simulated compression. Do not
+infer area from X/Y extents alone: diagonal collinear points have both extents.
+Require a finite projected hull area and test diagonal and duplicate samples.
+Verify every seated sample and retain failed candidate evidence. Describe the
+unchanged shoe-floor gap honestly rather than calling it exact floor contact.
+
+When replacement art retires the last shipped foreground overlay, keep generic
+foreground tests with explicit fixtures. Do not give their body and foreground
+the same sprite ID: that lets a cross-wired pointer or reconstruction pass.
+Independent review caught this in the first migrated armchair fixtures. Use
+distinct valid IDs and assert their difference. Verify the foreground tests
+still pass, and delete preview foreground suppression to prove the browser
+fixture catches the resulting duplicate layer.

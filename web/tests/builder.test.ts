@@ -278,13 +278,22 @@ it('routes keyboard edits once and appends preview instances without changing or
 it('replaces furniture at every preview destination and restores it on Cancel', () => {
   const { handle, source, builder } = fixture();
   const saved = source.saveBytes();
+  // Exercise the optional overlay even when no shipped object currently uses one.
+  const foregroundObject = 12;
+  const foreground = spriteIndex('loungeChairForeground');
+  const originalForegrounds = source.foregroundSprites.bind(source);
+  source.foregroundSprites = () => {
+    const rows = originalForegrounds().slice();
+    rows[Array.from(source.ids()).indexOf(foregroundObject)] = foreground;
+    return rows;
+  };
+  const originalPreview = source.placementPreview.bind(source);
+  source.placementPreview = (id, x, y, facing) => {
+    const preview = originalPreview(id, x, y, facing);
+    return id === foregroundObject ? { ...preview, foreground } : preview;
+  };
   builder.enter();
-  const foregroundObject = Array.from(source.ids()).find(id => {
-    builder.select(id);
-    return builder.preview?.valid && builder.preview.foreground !== null;
-  });
-  expect(foregroundObject).toBeDefined();
-  for (const id of [26, foregroundObject!]) {
+  for (const id of [26, foregroundObject]) {
     builder.select(id);
     if (builder.canRotate) builder.rotate();
     const preview = builder.preview!;

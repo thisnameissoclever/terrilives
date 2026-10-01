@@ -1,0 +1,20 @@
+{
+  "review_status": "accepted-independent-review",
+  "manifest": {
+    "sha256": "a3f61265b320b1e13801c3db286ee795a981095afc4063a07ef7952d51f82a1b",
+    "path": "armchair-export/manifest.json"
+  },
+  "raw_proof": {
+    "sha256": "7fb0fd7c604a02a6bad8e15e0e8a78251d04e0136b4db91351c58f91db7633db",
+    "path": "owner-review-pending/armchair/candidate-03/contributions-01/raw-proof.json"
+  },
+  "contact_checker_sha256": "64d21476335de0186e8b859cee863a159b3c925ca167678893efcd1a676b2d19",
+  "contact_check": {
+    "sha256": "358cb6daa30eb71301315fb37e27298db8987a9c02b761b3a3517c27546147c7",
+    "path": "owner-review-pending/armchair/candidate-03/contact-check-02.json"
+  },
+  "comparison": {
+    "sha256": "5e96f3378006ceefe100cecf87ca971d6a1028769277ec12acc13329fcf82a29",
+    "path": "owner-review-pending/armchair/candidate-03/contributions-01/export-comparison.json"
+  }
+}

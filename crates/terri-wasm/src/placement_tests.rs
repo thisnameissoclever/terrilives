@@ -13,7 +13,19 @@ fn object_index(handle: &SimHandle, name: &str) -> u32 {
 
 #[test]
 fn placement_preview_distinguishes_absent_and_present_foreground_layers() {
-    let handle = SimHandle::from_lot();
+    let mut handle = SimHandle::from_lot();
+    let mut fixture = handle.sim.world().resource::<Content>().0.clone();
+    let chair = fixture.find("armchair").expect("fixture armchair");
+    let foreground = fixture.object(fixture.find("floor_lamp").unwrap()).sprite;
+    assert_ne!(foreground, fixture.object(chair).sprite);
+    fixture.objects[chair.0 as usize].foreground_sprite = Some(foreground);
+    fixture.objects[chair.0 as usize]
+        .facing_foreground_sprites
+        .0 = [Some(foreground); 4];
+    handle
+        .sim
+        .world_mut()
+        .insert_resource(Content(Box::leak(Box::new(fixture))));
     let before = handle.save_bytes();
     for (name, has_foreground) in [("floor_lamp", false), ("armchair", true)] {
         let object = object_index(&handle, name);

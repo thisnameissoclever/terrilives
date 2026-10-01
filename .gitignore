@@ -74,3 +74,8 @@ assets/models/bedroom/owner-review-pending/bunk/candidate-03/contributions-*/*.p
 assets/models/bedroom/owner-review-pending/bunk/candidate-01/*.blend
 assets/models/office/owner-review-pending/office-chair/candidate-01/*.blend
 assets/models/office/owner-review-pending/office-chair/candidate-02/*.blend
+# Keep rejected chair originals and notes, but only the accepted editable model.
+assets/models/living/owner-review-pending/armchair/candidate-01/*.blend
+assets/models/living/owner-review-pending/armchair/candidate-02/*.blend
+# Full-size reciprocal passes remain local; track their receipt and runtime export.
+assets/models/living/owner-review-pending/armchair/candidate-03/contributions-01/*.png
