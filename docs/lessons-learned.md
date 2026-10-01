@@ -1,5 +1,39 @@
 # Lessons Learned
 
+## [L-audio-proof-visible-gesture] Discover visible controls before driving audio checks
+
+**What happened.** A production sink check first used the wrong preview URL
+scheme, then tried a canvas point covered by the HUD, then tried Help while its
+Options panel was closed. Three attempts failed before testing sink playback.
+
+**Root cause.** The harness guessed control reachability from DOM presence.
+The existing memory helper also relied on optional first-run Help for audio
+activation; synthetic speed changes cannot supply a trusted user gesture.
+
+**Prevention rule.** Check the server's printed URL and take a fresh UI snapshot.
+Use the shared setup to dismiss first-run Help if present, then open and close
+the visible Options control. Do not force hidden clicks or disable autoplay.
+
+**How to verify.** Test setup with and without first-run Help. In the actual
+game, require the intended sink action, exact source ID and positive loop count
+before checking stop behavior. A screenshot or zero final voices alone is insufficient.
+
+## [L-audio-catalog-status] Keep sound status accurate across summary documents
+
+**What happened.** The full-game systems summary still described shower water
+as silent and door sounds as absent after both had been integrated.
+
+**Root cause.** Detailed audio specs were updated without reconciling the
+cross-system summary. Its older statement contradicted the implementation.
+
+**Prevention rule.** When adding an audible source, search FEATURES,
+GAME-SYSTEMS, TIM-TODO, ARCHITECTURE and ASSETS for its earlier status. Keep
+technical playback, owner listening acceptance and public deployment distinct.
+
+**How to verify.** Trace each current status statement to authored content and
+the runtime catalog. A selected recording may be provisional, but must not
+still be described as missing or silent.
+
 ## [L-memory-endpoints-need-equivalent-ui] Compare matching HUD and audio states
 
 **What happened.** The door-audio memory run passed its retained-heap allowance

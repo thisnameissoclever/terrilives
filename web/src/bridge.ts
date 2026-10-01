@@ -668,8 +668,8 @@ export class SimBridge {
   }
 
   /**
-   * Authored object-sound action per row: 0 none, 1 shower water, and
-   * 2 stove cooking. These codes describe current semantic state, not a cue
+   * Authored object-sound action per row: 0 none, 1 shower water,
+   * 2 stove cooking, 3 sink water. These codes describe current semantic state, not a cue
    * filename or a guess from the visible body pose.
    */
   soundActions(): Uint32Array {

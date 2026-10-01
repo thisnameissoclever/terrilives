@@ -21,6 +21,7 @@ import { FootstepScheduler } from './footsteps.js';
 import {
   ObjectSoundCueScheduler,
   OBJECT_SOUND_ACTION_SHOWER_WATER,
+  OBJECT_SOUND_ACTION_SINK_WATER,
   type ObjectSoundAction,
   type ObjectSoundCueEvent,
 } from './object-cues.js';
@@ -288,7 +289,8 @@ export class AudioController implements GameAudioEventSink {
       const alreadyDesired = this.desiredObjectLoops.get(event.sourceId) === event.action;
       this.desiredObjectLoops.set(event.sourceId, event.action);
       this.objectLoops?.play(event.sourceId, event.action);
-      if (!alreadyDesired && event.action === OBJECT_SOUND_ACTION_SHOWER_WATER) {
+      if (!alreadyDesired && (event.action === OBJECT_SOUND_ACTION_SHOWER_WATER ||
+        event.action === OBJECT_SOUND_ACTION_SINK_WATER)) {
         void this.loadObjectRecordings();
       }
       return;
@@ -426,7 +428,7 @@ export class AudioController implements GameAudioEventSink {
     this.reconcileObjectLoops();
   }
 
-  /** Loads on shower demand only. Success is cached; failures wait for new demand. */
+  /** Loads missing water clips on demand. Success is cached; failures wait for new demand. */
   async loadObjectRecordings(): Promise<void> {
     if (this.objectRecordingFetch !== null) {
       await this.objectRecordingFetch;
@@ -435,8 +437,9 @@ export class AudioController implements GameAudioEventSink {
     const context = this.context;
     if (context === null || !this.isUnlocked() || this.mutedPreference ||
       this.effectsLevelPreference === 0 || this.objectSoundsPaused ||
-      this.objectLoopClips.has(OBJECT_SOUND_ACTION_SHOWER_WATER) ||
-      ![...this.desiredObjectLoops.values()].includes(OBJECT_SOUND_ACTION_SHOWER_WATER) ||
+      ![...this.desiredObjectLoops.values()].some(action =>
+        (action === OBJECT_SOUND_ACTION_SHOWER_WATER || action === OBJECT_SOUND_ACTION_SINK_WATER) &&
+        !this.objectLoopClips.has(action)) ||
       performance.now() < this.nextObjectRecordingRetryAt) return;
 
     const fetching = this.fetchObjectRecordings(context);
@@ -454,7 +457,9 @@ export class AudioController implements GameAudioEventSink {
         if (!response.ok) throw new Error(`object recording ${url}: ${response.status}`);
         return response.arrayBuffer();
       }, bytes => context.decodeAudioData(bytes));
-      if (!clips.has(OBJECT_SOUND_ACTION_SHOWER_WATER)) throw new Error('invalid shower recording');
+      if (!clips.has(OBJECT_SOUND_ACTION_SHOWER_WATER) || !clips.has(OBJECT_SOUND_ACTION_SINK_WATER)) {
+        throw new Error('invalid water recording');
+      }
       // A manual installation during the request keeps its selected recordings.
       this.installObjectLoopClips(new Map([...clips, ...this.objectLoopClips]));
     } catch {

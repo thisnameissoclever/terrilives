@@ -54,6 +54,7 @@ impl FacingSprites {
 pub enum CompiledSoundAction {
     ShowerWater,
     StoveCooking,
+    SinkWater,
 }
 
 /// Body-pose category resolved from an authored `visual` table.

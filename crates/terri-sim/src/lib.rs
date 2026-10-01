@@ -567,6 +567,7 @@ fn sound_action_code(action: terri_data::CompiledSoundAction) -> u32 {
     match action {
         terri_data::CompiledSoundAction::ShowerWater => render_buffer::sound_action::SHOWER_WATER,
         terri_data::CompiledSoundAction::StoveCooking => render_buffer::sound_action::STOVE_COOKING,
+        terri_data::CompiledSoundAction::SinkWater => render_buffer::sound_action::SINK_WATER,
     }
 }
 

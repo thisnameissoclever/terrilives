@@ -1,6 +1,23 @@
 import { expect, test } from 'vitest';
 import proof from '../../scripts/audio-browser-proof.cjs';
 
+test.each([true, false])('memory setup unlocks through visible controls with first-run Help %s', async helpVisible => {
+  const calls = [];
+  const page = {
+    locator: selector => ({
+      isVisible: async () => helpVisible,
+      click: async () => calls.push(selector),
+    }),
+    evaluate: async (_callback, speed) => calls.push(`speed:${speed}`),
+    waitForTimeout: async delay => calls.push(`wait:${delay}`),
+  };
+  await proof.closeHelpAndSetThreeTimes(page);
+  expect(calls).toEqual([
+    ...(helpVisible ? ['#close-help'] : []),
+    '#options-toggle', '#options-close', 'speed:3', 'wait:250',
+  ]);
+});
+
 function runsWithDoors(doorTracks) {
   return [0, 1, 2].flatMap(repetition => [true, false].map(audioEnabled => {
     const common = {
@@ -33,6 +50,14 @@ test('equivalent endpoint HUD states still reject node, document and listener le
     leak[0].samples[2][field]++;
     expect(proof.analyseMemory(leak).structuralPass, field).toBe(false);
   }
+});
+
+test('memory acceptance allows three simultaneous object users but rejects a fourth track', () => {
+  const runs = runsWithDoors(4);
+  runs[0].samples[1].objectSoundTracks = 3;
+  expect(proof.analyseMemory(runs).structuralPass).toBe(true);
+  runs[0].samples[1].objectSoundTracks = 4;
+  expect(proof.analyseMemory(runs).structuralPass).toBe(false);
 });
 
 test('both memory endpoints require fully drained players even with equal listener counts', () => {

@@ -1571,6 +1571,26 @@ mod tests {
         let original = pack().clone();
         let base = content_fingerprint(&original);
 
+        for (object_id, interaction_id) in [("sink", "wash_hands"), ("kitchen_sink", "wash_up")] {
+            let mut changed = original.clone();
+            let definition = changed.find(object_id).expect("shipped sink");
+            let interaction = changed.objects[definition.0 as usize]
+                .interactions
+                .iter_mut()
+                .find(|interaction| interaction.id == interaction_id)
+                .expect("shipped sink interaction");
+            assert!(
+                interaction.sound_action.is_some(),
+                "{object_id} must carry sound metadata before removing it"
+            );
+            interaction.sound_action = None;
+            assert_eq!(
+                base,
+                content_fingerprint(&changed),
+                "{object_id} sound must not affect save compatibility"
+            );
+        }
+
         let mut presentation_only = original.clone();
         let shower = presentation_only
             .find("shower")

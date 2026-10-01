@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { loadObjectRecordings } from '../src/audio/object-recordings.js';
 
 describe('object recordings', () => {
-  it('loads only shower water with the authored gain and full edited loop', async () => {
+  it('decodes water once for shower and quieter sink loops', async () => {
     const bytes = new ArrayBuffer(16);
     const buffer = { duration: 7.25 };
     const fetchBytes = vi.fn(async () => bytes);
@@ -10,7 +10,12 @@ describe('object recordings', () => {
     const clips = await loadObjectRecordings(fetchBytes, decode);
     expect(fetchBytes.mock.calls).toEqual([['audio/objects/shower-water.wav']]);
     expect(decode).toHaveBeenCalledWith(bytes);
-    expect([...clips]).toEqual([[1, { buffer, gain: 0.6, loopStart: 0, loopEnd: 7.25 }]]);
+    expect(decode).toHaveBeenCalledTimes(1);
+    expect([...clips]).toEqual([
+      [1, { buffer, gain: 0.6, loopStart: 0, loopEnd: 7.25 }],
+      [3, { buffer, gain: 0.35, loopStart: 0, loopEnd: 7.25 }],
+    ]);
+    expect(clips.get(3)?.buffer).toBe(clips.get(1)?.buffer);
   });
 
   it.each(['fetch', 'decode'] as const)('rejects a %s failure without fabricating a clip', async failure => {

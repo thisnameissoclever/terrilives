@@ -1113,11 +1113,13 @@ source-ID-to-slot map, emits one start/change/stop edge per source, collapses
 duplicates, and fails conflicting same-frame actions closed. It creates no
 per-source JavaScript track object and grows no capacity after warm-up. Load,
 backgrounding, first unlock, mute changes, and Effects crossing zero reset its
-phase. The initial shower and stove actions feed a source-owned recording
+phase. Shower, stove and sink actions feed a source-owned recording
 player with at most four active loops and eight retained records including
 fades. Prepared recordings specify valid loop boundaries and gain. Its
-production catalog contains one provisional shower-water WAV. A playable shower
-start triggers one cached fetch/decode; failures wait five seconds and a new
+production catalog shares one provisional flowing-water WAV between showers
+(gain 0.6) and sinks (gain 0.35). Bathroom handwashing and kitchen washing-up
+author sink action 3; existing action codes stay unchanged. A playable water
+start with a missing clip triggers one cached fetch/decode; failures wait five seconds and a new
 semantic demand before retrying. Late completion reconciles only still-owned
 sources. Stove cooking remains silent. Every effective pause stops object loops,
 including blocking overlays; resume waits for a new fixed-tick observation.

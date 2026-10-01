@@ -5,6 +5,10 @@ owner authorized autonomous sound improvements and routine recording selection.
 No accepted cue is replaced. Final timbre and mix acceptance remain unverified:
 the agent can measure decoded samples but cannot hear them in this runtime.
 
+The later [sink addition](2026-10-01-sink-water-audio.md) shares this same asset
+at gain 0.35. The shower-only demand rules below describe this slice's original
+delivery; current loading accepts either water action and leaves shower gain unchanged.
+
 ## Delivery decision
 
 The previous empty-catalog rule turned a listening checklist into a publication

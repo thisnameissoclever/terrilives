@@ -957,7 +957,7 @@ equivalents. Stable Sim identity travels as an aligned render column, so
 fixed-tick audio sampling makes no per-row identity query.
 
 An authored object-sound identity bridge is also implemented for the shower's
-ordinary interaction and the stove hob's cooking-chain step. Rust exports each
+ordinary interaction, both sink interactions and the stove hob's cooking-chain step. Rust exports each
 active action with the exact target object entity; the Web scheduler collapses
 duplicate observations into source-owned start and stop edges. Load,
 backgrounding, first unlock, mute changes, and Effects crossing zero clear that
@@ -965,7 +965,9 @@ retained state. A source-owned player now accepts prepared decoded loops with
 independent fades, a four-active/eight-retained cap, and effective-pause cleanup.
 Shower use now loads a prepared CC0 flowing-water loop on audible demand, with
 cached success and bounded recovery after download failure. It is a provisional
-addition, not owner-listening acceptance. Stove cooking remains silent. See
+addition, not owner-listening acceptance. Handwashing and kitchen washing-up
+share that recording at lower gain with independent object ownership. See
+`specs/2026-10-01-sink-water-audio.md`. Stove cooking remains silent. See
 `specs/2026-10-01-shower-water-recording.md` and the source-owned playback spec.
 
 The original foundation's production proof ran in visible Chrome on a display
@@ -1006,7 +1008,8 @@ Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried, not yet integrated as runtime sound. The detailed contract is
+downloaded and inventoried; selected water and door recordings are now integrated.
+The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 
 Interrupted recorded voices now retain their current envelope level before

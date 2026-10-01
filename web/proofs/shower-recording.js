@@ -7,6 +7,14 @@ const NO_STORAGE = {getItem: () => null, setItem: () => {}};
 // Real shipped WAV, fetch, decoder and playback graph. No speaker output.
 // The running-state adapter deliberately does not test browser autoplay.
 export async function proveShowerRecording() {
+  return proveWaterRecording(1, 0.6);
+}
+
+export async function proveSinkRecording() {
+  return proveWaterRecording(3, 0.35);
+}
+
+async function proveWaterRecording(action, gain) {
   const results = [];
   for (const boundary of [null, 'four-sources', 'load', 'mute', 'effects', 'background', 'pause']) {
     const offline = new OfflineAudioContext(2, RATE * 5, RATE);
@@ -32,7 +40,7 @@ export async function proveShowerRecording() {
       controller.setEffectsLevel(1);
       const count = boundary === 'four-sources' ? 4 : 1;
       for (let sourceId = 1; sourceId <= count; sourceId++) {
-        controller.emit({type:'object.sound-started', sourceId, action:1});
+        controller.emit({type:'object.sound-started', sourceId, action});
       }
       await controller.loadObjectRecordings();
       if (requests !== 1 || controller.activeObjectLoopCount() !== count) throw new Error('Load or source ownership failed');
@@ -61,9 +69,9 @@ export async function proveShowerRecording() {
           for (let i = 2000; i < 4000; i++) repeatError = Math.max(repeatError, Math.abs(data[i] - data[i + LOOP_FRAMES]));
         }
       }
-      if (peak < 0.001 || peak > count * 0.06421 * 0.6 || repeatError > 0.00001 ||
+      if (peak < 0.001 || peak > count * 0.06421 * gain || repeatError > 0.00001 ||
           (stops ? tailPeak !== 0 : tailPeak < 0.001)) throw new Error(`Invalid rendered output: ${boundary}, ${peak}, ${tailPeak}, ${repeatError}`);
-      results.push({boundary: boundary ?? 'one-source', requests, sources:count, peak, tailPeak, repeatError});
+      results.push({action, boundary: boundary ?? 'one-source', requests, sources:count, peak, tailPeak, repeatError});
     } finally {
       controller.reset('load');
       globalThis.fetch = originalFetch;

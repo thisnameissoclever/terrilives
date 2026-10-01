@@ -176,6 +176,7 @@ pub mod sound_action {
     pub const NONE: u32 = 0;
     pub const SHOWER_WATER: u32 = 1;
     pub const STOVE_COOKING: u32 = 2;
+    pub const SINK_WATER: u32 = 3;
 }
 
 /// The `activities` codes, named. `u32` like every other column so the
@@ -409,6 +410,7 @@ mod tests {
         assert_eq!(super::sound_action::NONE, 0);
         assert_eq!(super::sound_action::SHOWER_WATER, 1);
         assert_eq!(super::sound_action::STOVE_COOKING, 2);
+        assert_eq!(super::sound_action::SINK_WATER, 3);
         assert_eq!(super::NO_SOUND_SOURCE, u32::MAX);
     }
 
@@ -466,14 +468,58 @@ mod tests {
     }
 
     #[test]
+    fn sink_sound_projects_each_exact_target_and_clears_when_use_stops() {
+        for (object_id, interaction_id) in [("sink", "wash_hands"), ("kitchen_sink", "wash_up")] {
+            let definition = terri_data::pack().find(object_id).expect("shipped sink");
+            let interaction = shipped_interaction_index(definition, interaction_id);
+            let mut sim = Sim::new_with_lot(24, 24);
+            let decoy = sim.spawn_object(Position { x: 4.0, y: 4.0 }, definition);
+            let exact = sim.spawn_object(Position { x: 12.0, y: 4.0 }, definition);
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x: 11.0, y: 4.0 },
+                    Eating {
+                        object: definition,
+                        interaction,
+                        remaining_ticks: 10,
+                    },
+                    Target {
+                        object: exact,
+                        interaction,
+                    },
+                ))
+                .id();
+            sim.sync_render_buffer();
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), agent),
+                (3, exact.index_u32()),
+                "{object_id}"
+            );
+            assert_ne!(exact.index_u32(), decoy.index_u32());
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), decoy),
+                (0, super::NO_SOUND_SOURCE)
+            );
+            sim.world_mut().entity_mut(agent).remove::<Eating>();
+            sim.sync_render_buffer();
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), agent),
+                (0, super::NO_SOUND_SOURCE)
+            );
+        }
+    }
+
+    #[test]
     fn non_authored_and_malformed_object_use_emit_no_sound_source() {
         let pack = terri_data::pack();
         let shower = pack.find("shower").expect("shipped shower");
-        let sink = pack.find("sink").expect("shipped sink");
+        let bookshelf = pack.find("bookshelf").expect("shipped bookshelf");
         let take_shower = shipped_interaction_index(shower, "take_shower");
-        let wash_hands = shipped_interaction_index(sink, "wash_hands");
+        let read = shipped_interaction_index(bookshelf, "read");
         let mut sim = Sim::new_with_lot(24, 24);
-        let sink_target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, sink);
+        let bookshelf_target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, bookshelf);
         let shower_target = sim.spawn_object(Position { x: 12.0, y: 8.0 }, shower);
         let no_smart_object = sim.world_mut().spawn(Position { x: 10.0, y: 8.0 }).id();
         let generic = sim
@@ -482,13 +528,13 @@ mod tests {
                 Agent,
                 Position { x: 7.0, y: 8.0 },
                 Eating {
-                    object: sink,
-                    interaction: wash_hands,
+                    object: bookshelf,
+                    interaction: read,
                     remaining_ticks: 10,
                 },
                 Target {
-                    object: sink_target,
-                    interaction: wash_hands,
+                    object: bookshelf_target,
+                    interaction: read,
                 },
             ))
             .id();

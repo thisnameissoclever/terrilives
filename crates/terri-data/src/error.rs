@@ -1712,7 +1712,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "'{object}' interaction '{interaction}' declares unknown sound action \
-                 '{action}'; the current vocabulary is shower_water, stove_cooking"
+                 '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
             ),
             ContentError::SocialSoundAction {
                 interaction,
@@ -1766,7 +1766,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "chain '{chain}' step {step} declares unknown sound action \
-                 '{action}'; the current vocabulary is shower_water, stove_cooking"
+                 '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
             ),
             ContentError::InvalidVisualContract {
                 owner,
