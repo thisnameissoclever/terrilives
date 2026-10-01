@@ -1,0 +1,1999 @@
+{
+  "diagnosticOnly": true,
+  "modes": {
+    "enabled": {
+      "byType": {
+        "synthetic": {
+          "bytes": 0,
+          "count": 0
+        },
+        "native": {
+          "bytes": 12990860,
+          "count": 463
+        },
+        "string": {
+          "bytes": 944,
+          "count": 57
+        },
+        "object shape": {
+          "bytes": 84,
+          "count": 11
+        },
+        "code": {
+          "bytes": 298064,
+          "count": 1339
+        },
+        "array": {
+          "bytes": 4512,
+          "count": 39
+        },
+        "number": {
+          "bytes": 84,
+          "count": 9
+        },
+        "symbol": {
+          "bytes": 0,
+          "count": 0
+        },
+        "concatenated string": {
+          "bytes": 2000,
+          "count": 100
+        },
+        "object": {
+          "bytes": 40,
+          "count": 2
+        },
+        "closure": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "largestGrowth": [
+        {
+          "key": "native: system / JSArrayBufferData",
+          "countBefore": 31,
+          "countAfter": 31,
+          "countDelta": 0,
+          "byteDelta": 12910592
+        },
+        {
+          "key": "code: system / InstructionStream",
+          "countBefore": 518,
+          "countAfter": 694,
+          "countDelta": 176,
+          "byteDelta": 175744
+        },
+        {
+          "key": "native: system / CppGCManaged (WasmNativeModule)",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 83775
+        },
+        {
+          "key": "code: system / TrustedByteArray",
+          "countBefore": 1285,
+          "countAfter": 1680,
+          "countDelta": 395,
+          "byteDelta": 67968
+        },
+        {
+          "key": "code: system / ProtectedFixedArray",
+          "countBefore": 73,
+          "countAfter": 177,
+          "countDelta": 104,
+          "byteDelta": 28660
+        },
+        {
+          "key": "native: system / WeakArrayList",
+          "countBefore": 164,
+          "countAfter": 422,
+          "countDelta": 258,
+          "byteDelta": 14092
+        },
+        {
+          "key": "code: system / Code",
+          "countBefore": 518,
+          "countAfter": 694,
+          "countDelta": 176,
+          "byteDelta": 12672
+        },
+        {
+          "key": "code: system / FeedbackVector",
+          "countBefore": 465,
+          "countAfter": 529,
+          "countDelta": 64,
+          "byteDelta": 4580
+        },
+        {
+          "key": "array: ",
+          "countBefore": 1047,
+          "countAfter": 1085,
+          "countDelta": 38,
+          "byteDelta": 4480
+        },
+        {
+          "key": "code: system / TrustedWeakFixedArray",
+          "countBefore": 73,
+          "countAfter": 177,
+          "countDelta": 104,
+          "byteDelta": 4356
+        },
+        {
+          "key": "concatenated string: (concatenated string)",
+          "countBefore": 198,
+          "countAfter": 298,
+          "countDelta": 100,
+          "byteDelta": 2000
+        },
+        {
+          "key": "code: system / LoadHandler",
+          "countBefore": 891,
+          "countAfter": 1005,
+          "countDelta": 114,
+          "byteDelta": 1868
+        },
+        {
+          "key": "native: system / ProtectedFixedArray",
+          "countBefore": 75,
+          "countAfter": 179,
+          "countDelta": 104,
+          "byteDelta": 1772
+        },
+        {
+          "key": "code: system / CodeWrapper",
+          "countBefore": 3046,
+          "countAfter": 3222,
+          "countDelta": 176,
+          "byteDelta": 1408
+        },
+        {
+          "key": "native: blink::CSSNumericLiteralValue",
+          "countBefore": 285,
+          "countAfter": 332,
+          "countDelta": 47,
+          "byteDelta": 1128
+        },
+        {
+          "key": "native: blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::IdentityExtractor, blink::HashTraits<cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HashTraits<cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HeapAllocator>>",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 960
+        },
+        {
+          "key": "native: system / SharedFunctionInfoWrapper",
+          "countBefore": 73,
+          "countAfter": 177,
+          "countDelta": 104,
+          "byteDelta": 832
+        },
+        {
+          "key": "native: DOMRectReadOnly",
+          "countBefore": 8,
+          "countAfter": 18,
+          "countDelta": 10,
+          "byteDelta": 560
+        },
+        {
+          "key": "native: LayoutShift",
+          "countBefore": 2,
+          "countAfter": 5,
+          "countDelta": 3,
+          "byteDelta": 456
+        },
+        {
+          "key": "native: blink::ComputedGridTrackList",
+          "countBefore": 15,
+          "countAfter": 17,
+          "countDelta": 2,
+          "byteDelta": 432
+        },
+        {
+          "key": "code: system / WeakArrayList",
+          "countBefore": 3,
+          "countAfter": 17,
+          "countDelta": 14,
+          "byteDelta": 392
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMisc4Data",
+          "countBefore": 54,
+          "countAfter": 56,
+          "countDelta": 2,
+          "byteDelta": 368
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMisc3Data",
+          "countBefore": 16,
+          "countAfter": 18,
+          "countDelta": 2,
+          "byteDelta": 336
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMisc1Data",
+          "countBefore": 61,
+          "countAfter": 63,
+          "countDelta": 2,
+          "byteDelta": 320
+        },
+        {
+          "key": "native: blink::ComputedStyle",
+          "countBefore": 340,
+          "countAfter": 344,
+          "countDelta": 4,
+          "byteDelta": 288
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleInheritedData",
+          "countBefore": 121,
+          "countAfter": 123,
+          "countDelta": 2,
+          "byteDelta": 272
+        },
+        {
+          "key": "native: blink::CachedMatchedProperties",
+          "countBefore": 192,
+          "countAfter": 194,
+          "countDelta": 2,
+          "byteDelta": 272
+        },
+        {
+          "key": "native: LayoutShiftAttribution",
+          "countBefore": 4,
+          "countAfter": 9,
+          "countDelta": 5,
+          "byteDelta": 200
+        },
+        {
+          "key": "code: system / StoreHandler",
+          "countBefore": 58,
+          "countAfter": 67,
+          "countDelta": 9,
+          "byteDelta": 180
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMiscData",
+          "countBefore": 134,
+          "countAfter": 136,
+          "countDelta": 2,
+          "byteDelta": 176
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleBoxData",
+          "countBefore": 148,
+          "countAfter": 149,
+          "countDelta": 1,
+          "byteDelta": 176
+        },
+        {
+          "key": "native: PerformanceLongAnimationFrameTiming",
+          "countBefore": 2,
+          "countAfter": 3,
+          "countDelta": 1,
+          "byteDelta": 176
+        },
+        {
+          "key": "native: blink::Font",
+          "countBefore": 49,
+          "countAfter": 50,
+          "countDelta": 1,
+          "byteDelta": 168
+        },
+        {
+          "key": "object shape: system / Map",
+          "countBefore": 3058,
+          "countAfter": 3062,
+          "countDelta": 4,
+          "byteDelta": 160
+        },
+        {
+          "key": "code: system / WeakFixedArray",
+          "countBefore": 98,
+          "countAfter": 102,
+          "countDelta": 4,
+          "byteDelta": 152
+        }
+      ],
+      "audio": [
+        {
+          "key": "string: AudioData",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: setAmbiencePercent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: get onended",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioEncoder",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-build",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would cut off the front-door landing.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaStreamAudioSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audioWorklet",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: build-tool-room",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: #audio-mute",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: OscillatorNode",
+          "countBefore": 2,
+          "countAfter": 2,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-status",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would cut off the front door.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: BaseAudioContext",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: applyAmbiencePercent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceClip",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceSlider",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would cut through furniture.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaElementAudioSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: last_room_result",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: simhandle_last_room_result",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquareNW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-cancel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSinkSW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would leave furniture out of reach.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: worldAudioAvailable",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would block someone's way.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Building the room…",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioParamMap",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceGain",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: roomEditPreview",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSinkNE",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: activeAmbienceCount",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceDemand",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room_edit_preview",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/objects/stove-cooking.wav",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceVoices",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: build_room",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: simhandle_build_room",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioWorkletNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSinkNW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Missing room controls: ",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Keep the room inside the lot.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: clearAmbience",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioWorklet",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: buildRoom",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Choose a corner tile of the room.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: EncodedAudioChunk",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: activity audio frame is not open",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room could not be sent.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Invalid room ambience duration",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquareNE",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaStreamTrackAudioStats",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: applyAmbienceGain",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceLevelPreference",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceStartCount",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioProcessingEvent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: lastRoomResult",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/objects/shower-water.wav",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSink",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioDestinationNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquareSW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/ambience/indoor-air.wav",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/doors/",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: previewAmbienceLevel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: roomForOne",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Room ambience request failed",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: startAmbience",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: GainNode",
+          "countBefore": 2,
+          "countAfter": 2,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquare",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioScheduledSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceFetch",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: OfflineAudioCompletionEvent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceAvailable",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Someone is standing on the room's outline.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceStarts",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: RTCEncodedAudioFrame",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: createOscillator",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: activity audio frame is already open",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: retainedAmbienceVoices",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaStreamAudioDestinationNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: simhandle_room_edit_preview",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: setAmbienceLevel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: OfflineAudioContext",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: This room is already built.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceValue",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-touch-help",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: set onended",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: createBufferSource",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: #ambience-volume-value",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: prepareWorldAudioFrame",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: previewAmbiencePercent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioBufferSourceNode",
+          "countBefore": 2,
+          "countAfter": 2,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: retainedAmbienceCount",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioBuffer",
+          "countBefore": 2,
+          "countAfter": 2,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/voice/",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: get audioWorklet",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceLevel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        }
+      ]
+    },
+    "disabled": {
+      "byType": {
+        "synthetic": {
+          "bytes": 0,
+          "count": 0
+        },
+        "native": {
+          "bytes": 12999228,
+          "count": 459
+        },
+        "string": {
+          "bytes": 888,
+          "count": 49
+        },
+        "object shape": {
+          "bytes": 128,
+          "count": 16
+        },
+        "code": {
+          "bytes": 208416,
+          "count": 1106
+        },
+        "array": {
+          "bytes": 4512,
+          "count": 39
+        },
+        "number": {
+          "bytes": 24,
+          "count": 4
+        },
+        "symbol": {
+          "bytes": 0,
+          "count": 0
+        },
+        "object": {
+          "bytes": 48,
+          "count": 3
+        },
+        "concatenated string": {
+          "bytes": 1800,
+          "count": 90
+        },
+        "closure": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "largestGrowth": [
+        {
+          "key": "native: system / JSArrayBufferData",
+          "countBefore": 31,
+          "countAfter": 31,
+          "countDelta": 0,
+          "byteDelta": 12910592
+        },
+        {
+          "key": "code: system / InstructionStream",
+          "countBefore": 431,
+          "countAfter": 581,
+          "countDelta": 150,
+          "byteDelta": 121088
+        },
+        {
+          "key": "native: system / CppGCManaged (WasmNativeModule)",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 84727
+        },
+        {
+          "key": "code: system / TrustedByteArray",
+          "countBefore": 1060,
+          "countAfter": 1396,
+          "countDelta": 336,
+          "byteDelta": 45952
+        },
+        {
+          "key": "code: system / ProtectedFixedArray",
+          "countBefore": 68,
+          "countAfter": 155,
+          "countDelta": 87,
+          "byteDelta": 20796
+        },
+        {
+          "key": "code: system / Code",
+          "countBefore": 431,
+          "countAfter": 581,
+          "countDelta": 150,
+          "byteDelta": 10800
+        },
+        {
+          "key": "native: system / WeakArrayList",
+          "countBefore": 130,
+          "countAfter": 340,
+          "countDelta": 210,
+          "byteDelta": 10604
+        },
+        {
+          "key": "code: (constant elements)",
+          "countBefore": 1752,
+          "countAfter": 1952,
+          "countDelta": 200,
+          "byteDelta": 5076
+        },
+        {
+          "key": "array: ",
+          "countBefore": 1038,
+          "countAfter": 1076,
+          "countDelta": 38,
+          "byteDelta": 4480
+        },
+        {
+          "key": "native: blink::AXNodeObject",
+          "countBefore": 671,
+          "countAfter": 714,
+          "countDelta": 43,
+          "byteDelta": 4472
+        },
+        {
+          "key": "code: system / TrustedWeakFixedArray",
+          "countBefore": 68,
+          "countAfter": 155,
+          "countDelta": 87,
+          "byteDelta": 3500
+        },
+        {
+          "key": "code: system / FeedbackVector",
+          "countBefore": 376,
+          "countAfter": 438,
+          "countDelta": 62,
+          "byteDelta": 3452
+        },
+        {
+          "key": "native: blink::HeapVectorBacking<blink::PaintChunk>",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 2560
+        },
+        {
+          "key": "concatenated string: (concatenated string)",
+          "countBefore": 198,
+          "countAfter": 288,
+          "countDelta": 90,
+          "byteDelta": 1800
+        },
+        {
+          "key": "native: system / ProtectedFixedArray",
+          "countBefore": 70,
+          "countAfter": 157,
+          "countDelta": 87,
+          "byteDelta": 1420
+        },
+        {
+          "key": "code: system / CodeWrapper",
+          "countBefore": 2959,
+          "countAfter": 3109,
+          "countDelta": 150,
+          "byteDelta": 1200
+        },
+        {
+          "key": "native: blink::CSSNumericLiteralValue",
+          "countBefore": 285,
+          "countAfter": 329,
+          "countDelta": 44,
+          "byteDelta": 1056
+        },
+        {
+          "key": "code: system / LoadHandler",
+          "countBefore": 681,
+          "countAfter": 746,
+          "countDelta": 65,
+          "byteDelta": 1044
+        },
+        {
+          "key": "native: system / SharedFunctionInfoWrapper",
+          "countBefore": 68,
+          "countAfter": 155,
+          "countDelta": 87,
+          "byteDelta": 696
+        },
+        {
+          "key": "native: DOMRectReadOnly",
+          "countBefore": 8,
+          "countAfter": 18,
+          "countDelta": 10,
+          "byteDelta": 560
+        },
+        {
+          "key": "native: blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>, blink::IdentityExtractor, blink::HashTraits<cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HashTraits<cppgc::internal::BasicMember<blink::GPUTexture, cppgc::internal::WeakMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::HeapAllocator>>",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 512
+        },
+        {
+          "key": "native: LayoutShift",
+          "countBefore": 2,
+          "countAfter": 5,
+          "countDelta": 3,
+          "byteDelta": 456
+        },
+        {
+          "key": "native: blink::ComputedGridTrackList",
+          "countBefore": 15,
+          "countAfter": 17,
+          "countDelta": 2,
+          "byteDelta": 432
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMisc4Data",
+          "countBefore": 54,
+          "countAfter": 56,
+          "countDelta": 2,
+          "byteDelta": 368
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMisc3Data",
+          "countBefore": 16,
+          "countAfter": 18,
+          "countDelta": 2,
+          "byteDelta": 336
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMisc1Data",
+          "countBefore": 61,
+          "countAfter": 63,
+          "countDelta": 2,
+          "byteDelta": 320
+        },
+        {
+          "key": "native: blink::ComputedStyle",
+          "countBefore": 339,
+          "countAfter": 343,
+          "countDelta": 4,
+          "byteDelta": 288
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleInheritedData",
+          "countBefore": 121,
+          "countAfter": 123,
+          "countDelta": 2,
+          "byteDelta": 272
+        },
+        {
+          "key": "native: blink::CachedMatchedProperties",
+          "countBefore": 192,
+          "countAfter": 194,
+          "countDelta": 2,
+          "byteDelta": 272
+        },
+        {
+          "key": "code: system / WeakArrayList",
+          "countBefore": 5,
+          "countAfter": 14,
+          "countDelta": 9,
+          "byteDelta": 252
+        },
+        {
+          "key": "native: LayoutShiftAttribution",
+          "countBefore": 4,
+          "countAfter": 9,
+          "countDelta": 5,
+          "byteDelta": 200
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleMiscData",
+          "countBefore": 134,
+          "countAfter": 136,
+          "countDelta": 2,
+          "byteDelta": 176
+        },
+        {
+          "key": "native: blink::ComputedStyleBase::StyleBoxData",
+          "countBefore": 148,
+          "countAfter": 149,
+          "countDelta": 1,
+          "byteDelta": 176
+        },
+        {
+          "key": "native: PerformanceLongAnimationFrameTiming",
+          "countBefore": 2,
+          "countAfter": 3,
+          "countDelta": 1,
+          "byteDelta": 176
+        },
+        {
+          "key": "native: blink::Font",
+          "countBefore": 49,
+          "countAfter": 50,
+          "countDelta": 1,
+          "byteDelta": 168
+        }
+      ],
+      "audio": [
+        {
+          "key": "string: AudioData",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: setAmbiencePercent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: get onended",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioEncoder",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-build",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would cut off the front-door landing.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaStreamAudioSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audioWorklet",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: build-tool-room",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: #audio-mute",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: OscillatorNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-status",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would cut off the front door.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: BaseAudioContext",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: applyAmbiencePercent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceClip",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceSlider",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would cut through furniture.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaElementAudioSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: last_room_result",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: simhandle_last_room_result",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquareNW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-cancel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSinkSW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would leave furniture out of reach.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: worldAudioAvailable",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room would block someone's way.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Building the room…",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioParamMap",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceGain",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: roomEditPreview",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSinkNE",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: activeAmbienceCount",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceDemand",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room_edit_preview",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/objects/stove-cooking.wav",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceVoices",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: build_room",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: simhandle_build_room",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioWorkletNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSinkNW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Missing room controls: ",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Keep the room inside the lot.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: clearAmbience",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioWorklet",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: buildRoom",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Choose a corner tile of the room.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: EncodedAudioChunk",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: The room could not be sent.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquareNE",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaStreamTrackAudioStats",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: applyAmbienceGain",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceLevelPreference",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceStartCount",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioProcessingEvent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: lastRoomResult",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/objects/shower-water.wav",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: offlineBathroomSink",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioDestinationNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquareSW",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: previewAmbienceLevel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: roomForOne",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: startAmbience",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: GainNode",
+          "countBefore": 2,
+          "countAfter": 2,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: bathroomSinkSquare",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioScheduledSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceFetch",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: OfflineAudioCompletionEvent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceAvailable",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Someone is standing on the room's outline.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceStarts",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: RTCEncodedAudioFrame",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: createOscillator",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: retainedAmbienceVoices",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: MediaStreamAudioDestinationNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: simhandle_room_edit_preview",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: setAmbienceLevel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: OfflineAudioContext",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: This room is already built.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceValue",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-touch-help",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: set onended",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: createBufferSource",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: #ambience-volume-value",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: prepareWorldAudioFrame",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: previewAmbiencePercent",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioBufferSourceNode",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: retainedAmbienceCount",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioBuffer",
+          "countBefore": 2,
+          "countAfter": 2,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: audio/voice/",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: get audioWorklet",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceLevel",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambienceRetryAt",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: ambience",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: room-tool",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: AudioParam",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Choose the doorway on the room's outline.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        },
+        {
+          "key": "string: Someone is using something across the room's outline.",
+          "countBefore": 1,
+          "countAfter": 1,
+          "countDelta": 0,
+          "byteDelta": 0
+        }
+      ]
+    }
+  }
+}

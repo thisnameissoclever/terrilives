@@ -1,6 +1,9 @@
 # Match audio memory workloads
 
-Status: harness correction implemented locally. Browser comparability and corrected full acceptance remain unverified. Indoor ambience and PR 178 remain held.
+Status: implemented and independently task-reviewed. Root verified matched
+worlds in all three browser pairs; corrected raw memory acceptance still fails.
+Indoor ambience and PR 178 remain held. See the
+[root evidence](../assets/review-evidence/audio/indoor-ambience/verification.md#matched-protocol-and-failed-acceptance).
 
 ## Purpose and authority
 

@@ -32,7 +32,8 @@ unchanged 65,536-byte allowance by 3,584. All structural checks passed:
 one document, 1,446 nodes and 159 listeners at every paused endpoint; enabled
 room playback was positive, disabled starts were zero, and room sources drained.
 
-There was no second uninstrumented acceptance run.
+There was no repeat of this unmatched acceptance run. The corrected protocol's
+first acceptance result is recorded below.
 
 ## Ownership diagnostic
 
@@ -76,6 +77,62 @@ artifacts, not repository assets. SHA-256 identities:
 3. `enabled-baseline.heapsnapshot`: `f7d47093fa2f5a5b69fc84aa3ab5c857c10c0dfdf446a9d6bda792303425d028`
 4. `enabled-final.heapsnapshot`: `6a111554ce9664efeb4288830f92f93b5d90131610a3455409fd895b0631f92b`
 
-Next technical work is an explicitly matched seed/tick comparison with world-hash
-verification. It must preserve the workload length, raw allowance and structural
-checks, and must not select a seed because it produces a passing result.
+## Matched protocol and failed acceptance
+
+Commit `1ae3a702` repairs seed and tick matching without changing the workload,
+allowance, rendering, optimization settings or source bounds. Its
+[implementation report](matched-implementation-report.md) records 1,768 passing
+tests, a later 70-test focused run including one additional seed-fixture test,
+typecheck/build/doc checks and five assertion-failing guard deletions with exact
+byte restoration. Independent task review approved the implementation.
+
+`node web/output/playwright/verify-matched-audio-pair.cjs` passed, exit 0.
+The [single-pair report](matched-pair.json) records seed `(104729,130363)`, ticks
+60 and 600, baseline hash `1689968484302009063` and final hash
+`6672627640496136405` in both modes. No page errors occurred; paused sources
+drained. Root inspected both [enabled](matched-enabled.png) and
+[disabled](matched-disabled.png) stress-world screenshots. These show the
+deliberately crowded test population, not the ordinary three-person household.
+
+`node scripts/audio-browser-proof.cjs memory --url http://127.0.0.1:5221/ --output web/output/playwright/indoor-ambience/memory-matched.json`
+then failed, exit 1. The [six-run result](memory-matched.json) has comparable
+seeds, exact endpoints and equal hashes in every pair, plus passing structural
+checks. Raw differences are 218,048, 123,972 and 81,996 bytes. Median 123,972
+exceeds the unchanged 65,536-byte limit. There was no repeat acceptance run.
+This feature and the separate PR 178 remain release-held.
+
+## Matched ownership diagnostic
+
+One separate instrumented pair used the first predeclared seed and captured
+baseline/final heap snapshots. It is diagnostic, not acceptance. Commands:
+
+1. `node web/output/playwright/diagnose-indoor-heap.cjs matched-heap-diagnostic`
+2. `node web/output/playwright/summarize-indoor-heap.cjs matched-heap-diagnostic`
+3. `node web/output/playwright/trace-indoor-heap.cjs matched-heap-diagnostic`
+
+All exited 0. The [run](matched-heap-diagnostic/diagnostic.json) matched the same
+ticks and hashes as the first protocol check. [Grouped changes](matched-heap-diagnostic/ownership-summary.json)
+show code self-size growth of 298,064 bytes enabled versus 208,416 disabled;
+ordinary objects 40 versus 48; closures zero in both; arrays 4,512 in both.
+There was no net growth in the audio-named groups selected by the diagnostic.
+Those group totals do not prove absence of all leaks.
+
+[Retaining paths](matched-heap-diagnostic/retaining-paths.json) identify the
+largest new enabled instruction streams as `buildInstances` (47,616 bytes),
+`sampleSimAudioAfterTick` (20,352) and `instanceCount` (12,864). Names were
+resolved against production bundle `index-DqfSuUCT.js`. Pre-snapshot heap
+growth was 331,320 versus 174,752 bytes; it does not exactly equal the later
+snapshot aggregates. Instrumentation and compilation timing remain relevant.
+No compiled-code category was subtracted from acceptance.
+
+Raw snapshots remain local under
+`web/output/playwright/indoor-ambience/matched-heap-diagnostic/`:
+
+1. `disabled-baseline.heapsnapshot`: `d65e85748f31be4a6f544ebfba3522c8e4e51f916e0eb1e86f0d12e437b93373`
+2. `disabled-final.heapsnapshot`: `a562209e8a887abf40a815c7251efcfd378b9165af0b9cba2175b78c0b73a184`
+3. `enabled-baseline.heapsnapshot`: `258eff3993de87ca6a78abe53aa4b5c20810451db4153ac26b881a1440d647e0`
+4. `enabled-final.heapsnapshot`: `9c94f3afb905f2bc8517555d95c53c1abbc2a164a3649342722f8932552f34ea`
+
+Every diagnostic browser context closed in a finally block. The next decision
+must follow ownership evidence and independent review, not another unchanged
+acceptance attempt or a relaxed limit.
