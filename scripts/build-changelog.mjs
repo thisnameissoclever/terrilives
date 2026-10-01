@@ -3,7 +3,13 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const SECTIONS = new Set(['Features & changes', 'Bug fixes', 'Art & sound']);
+const SECTIONS = new Set(['New', 'Improved', 'Fixed', 'Art', 'Sound']);
+
+function validatePlayerCopy(filename, source) {
+  if (/\bPRs?\b|\bpull[ -]requests?\b|\bcommits?\b|\b(?:CI|WASM|WebGPU|ECS)\b|https?:\/\/(?:www\.)?github\.com\//i.test(source)) {
+    throw new Error(`${filename}: write for players; keep development references in internal documentation`);
+  }
+}
 
 function escapeHtml(text) {
   return text.replace(/[&<>"']/g, (character) => ({
@@ -32,6 +38,7 @@ function inline(text) {
 
 /** Read one dated entry. Refuse malformed notes rather than silently omit them. */
 export function parseEntry(filename, source) {
+  validatePlayerCopy(filename, source);
   const match = /^(\d{4}-\d{2}-\d{2})-([a-z0-9]+(?:-[a-z0-9]+)*)\.md$/.exec(filename);
   if (!match || new Date(`${match[1]}T00:00:00Z`).toISOString().slice(0, 10) !== match[1]) {
     throw new Error(`${filename}: use a real YYYY-MM-DD date and a lowercase slug`);
@@ -73,13 +80,16 @@ export function parseEntry(filename, source) {
   return { id: filename.slice(0, -3), date: match[1], title, summary: summary.join(' '), sections };
 }
 
-function entryHtml(entry, index) {
+function entryHtml(entry, index, legacyAnchors) {
   const date = new Intl.DateTimeFormat('en-US', {
     month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
   }).format(new Date(`${entry.date}T00:00:00Z`));
   const title = escapeHtml(entry.title);
-  return `<article class="entry" id="${entry.id}">
-    <details${index < 2 ? ' open' : ''}>
+  const id = `update-${entry.date}`;
+  const aliases = [...new Set([entry.id, ...legacyAnchors.filter((anchor) => anchor.startsWith(entry.date + '-'))])];
+  return `<article class="entry" id="${id}">
+    ${aliases.map((alias) => `<span class="entry-anchor" id="${escapeHtml(alias)}" aria-hidden="true"></span>`).join('')}
+    <details${index === 0 ? ' open' : ''}>
       <summary>
         <span class="entry-heading"><span class="entry-meta"><time datetime="${entry.date}">${date}</time>${index === 0 ? '<span class="latest">Latest</span>' : ''}</span><h2>${title}</h2></span>
         <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
@@ -88,7 +98,7 @@ function entryHtml(entry, index) {
         `<h3>${escapeHtml(section.heading)}</h3><ul>${section.items.map((item) => `<li>${inline(item)}</li>`).join('')}</ul>`,
       ).join('')}</div>
     </details>
-    <a class="permalink" href="#${entry.id}" aria-label="Permalink to ${title}" title="Permalink"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 4-4m-6 6-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 3 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0"/></svg></a>
+    <a class="permalink" href="#${id}" aria-label="Link to ${title}">Link to this update<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 13 4-4m-6 6-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 3 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0"/></svg></a>
   </article>`;
 }
 
@@ -100,17 +110,23 @@ export function buildChangelog(root = ROOT) {
     .sort().reverse()
     .map((name) => parseEntry(name, readFileSync(join(folder, name), 'utf8')));
   if (!entries.length) throw new Error('The changelog must contain at least one dated entry');
+  if (new Set(entries.map((entry) => entry.date)).size !== entries.length) {
+    throw new Error('Use one changelog entry per date; add same-day changes to the existing entry');
+  }
+  const legacyAnchors = JSON.parse(readFileSync(join(root, 'web/changelog/legacy-anchors.json'), 'utf8'));
+  if (!Array.isArray(legacyAnchors) || legacyAnchors.some((id) => typeof id !== 'string' || !/^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/.test(id))) {
+    throw new Error('Legacy changelog anchors must be dated lowercase slugs');
+  }
   const template = readFileSync(join(root, 'web/changelog/template.html'), 'utf8');
   const replacements = new Map([
-    ['{{COUNT}}', String(entries.length)],
-    ['{{ENTRIES}}', entries.map(entryHtml).join('\n')],
+    ['{{ENTRIES}}', entries.map((entry, index) => entryHtml(entry, index, legacyAnchors)).join('\n')],
     ['{{STYLE}}', readFileSync(join(root, 'web/changelog/style.css'), 'utf8')],
     ['{{SCRIPT}}', readFileSync(join(root, 'web/changelog/controls.js'), 'utf8')],
   ]);
   for (const token of replacements.keys()) {
     if (!template.includes(token)) throw new Error(`Changelog template is missing ${token}`);
   }
-  return template.replace(/\{\{(?:COUNT|ENTRIES|STYLE|SCRIPT)\}\}/g, (token) => replacements.get(token));
+  return template.replace(/\{\{(?:ENTRIES|STYLE|SCRIPT)\}\}/g, (token) => replacements.get(token));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

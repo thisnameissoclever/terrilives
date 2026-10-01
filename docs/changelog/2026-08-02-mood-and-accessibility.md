@@ -1,10 +1,11 @@
 # Mood and safer keyboard controls
 
-Sim details shows mood and its contributing conditions. Dialogs pause game time, and keyboard targeting and startup failures are easier to use.
+See how your housemates feel and take your time reading the controls.
 
-## Features & changes
-- **Mood and moodlets are visible.** The selected person's needs, traits and nearby relationships contribute to their displayed mood. [PR #31](https://github.com/thisnameissoclever/terrilives/pull/31)
-- **Reading a modal pauses the game.** Help and other modal surfaces suspend game time while open and manage keyboard focus. [PR #30](https://github.com/thisnameissoclever/terrilives/pull/30)
+## New
+- Sim details shows mood and the needs, traits and relationships affecting it.
+- Help and other dialogs pause the game while open.
 
-## Bug fixes
-- **Keyboard targeting is safer.** Target selection handles changing world objects without directing actions to stale targets. Startup failures explain what prevents the game from running. [PR #32](https://github.com/thisnameissoclever/terrilives/pull/32) and [PR #33](https://github.com/thisnameissoclever/terrilives/pull/33)
+## Fixed
+- Keyboard actions keep the correct target when objects change.
+- Startup messages explain why the game cannot run.
