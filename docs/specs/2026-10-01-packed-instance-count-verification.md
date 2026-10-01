@@ -201,3 +201,11 @@ bytes remained identical, 3159 bytes. All three `activity-integrated-*.png`
 screenshots were inspected; the owned page and server closed. This is renderer
 integration evidence, not a replacement for PR 190's separate full activity
 pairing review or either held audio feature's memory acceptance.
+
+Both scoped integration reviews approved merge with no Critical, Important or
+Minor findings. Reports are retained beside the screenshots as
+`dock-integration-review.md` and `activity-integration-review.md`; the complete
+implementation/check record is `implementation-report.md`. The final integration
+review compares shipped main `46e6b0a7` with `07fdd9b9`. Root accepts the already
+shipped PR 189/190 evidence for their standalone work, not a fresh certification
+of those features here. All other declined boundaries remain as recorded above.
