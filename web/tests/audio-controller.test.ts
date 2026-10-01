@@ -239,6 +239,171 @@ const OBJECT_CLIPS: ObjectLoopClips = new Map([
   [2, { buffer: { duration: 2 }, gain: 0.2, loopStart: 0, loopEnd: 2 }],
 ]);
 
+describe('AudioController shower recording demand', () => {
+  it.each(['locked', 'muted', 'effects-zero', 'background', 'pause'] as const)(
+    'does not request a recording while %s, then loads on fresh audible demand', async boundary => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, memoryStore());
+      const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+      try {
+        if (boundary !== 'locked') await controller.unlockFromGesture();
+        if (boundary === 'muted') controller.setMuted(true);
+        if (boundary === 'effects-zero') controller.setEffectsLevel(0);
+        if (boundary === 'background') await controller.setBackgrounded(true);
+        if (boundary === 'pause') controller.setObjectSoundsPaused(true);
+        objectSoundFrame(controller, [[41, 1]]);
+        await controller.loadObjectRecordings();
+        expect(fetcher).not.toHaveBeenCalled();
+        if (boundary === 'locked') await controller.unlockFromGesture();
+        if (boundary === 'muted') controller.setMuted(false);
+        if (boundary === 'effects-zero') controller.setEffectsLevel(0.7);
+        if (boundary === 'background') await controller.setBackgrounded(false);
+        if (boundary === 'pause') controller.setObjectSoundsPaused(false);
+        objectSoundFrame(controller, [[41, 1]]);
+        await controller.loadObjectRecordings();
+        expect(fetcher).toHaveBeenCalledTimes(1);
+        expect(controller.activeObjectLoopCount()).toBe(1);
+      } finally { fetcher.mockRestore(); }
+    },
+  );
+
+  it.each(['ended', 'load', 'muted', 'effects-zero', 'background', 'pause', 'context-recovery'] as const)(
+    'does not revive pending shower ownership after %s, and caches the late success', async boundary => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, memoryStore());
+      let resolve!: (response: Response) => void;
+      const response = new Promise<Response>(done => { resolve = done; });
+      const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response);
+      try {
+        await controller.unlockFromGesture();
+        objectSoundFrame(controller, [[41, 1]]);
+        const loading = controller.loadObjectRecordings();
+        expect(fetcher).toHaveBeenCalledTimes(1);
+        if (boundary === 'ended') objectSoundFrame(controller, []);
+        if (boundary === 'load') controller.reset('load');
+        if (boundary === 'muted') controller.setMuted(true);
+        if (boundary === 'effects-zero') controller.setEffectsLevel(0);
+        if (boundary === 'background') await controller.setBackgrounded(true);
+        if (boundary === 'pause') controller.setObjectSoundsPaused(true);
+        if (boundary === 'context-recovery') {
+          context.state = 'suspended';
+          await controller.unlockFromGesture();
+        }
+        resolve(new Response(new ArrayBuffer(16)));
+        await loading;
+        expect(context.bufferSources).toHaveLength(0);
+        if (boundary === 'muted') controller.setMuted(false);
+        if (boundary === 'effects-zero') controller.setEffectsLevel(0.7);
+        if (boundary === 'background') await controller.setBackgrounded(false);
+        if (boundary === 'pause') controller.setObjectSoundsPaused(false);
+        expect(controller.activeObjectLoopCount()).toBe(0);
+        objectSoundFrame(controller, [[42, 1]]);
+        await controller.loadObjectRecordings();
+        expect(controller.activeObjectLoopCount()).toBe(1);
+        expect(fetcher).toHaveBeenCalledTimes(1);
+        expect(context.decodedByteLengths).toEqual([16]);
+      } finally { fetcher.mockRestore(); }
+    },
+  );
+
+  it('keeps manually installed clips without requests or an in-flight overwrite', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    let resolve!: (response: Response) => void;
+    const response = new Promise<Response>(done => { resolve = done; });
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(() => response);
+    try {
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[41, 1]]);
+      const loading = controller.loadObjectRecordings();
+      controller.installObjectLoopClips(OBJECT_CLIPS);
+      expect(context.bufferSources[0]!.buffer).toBe(OBJECT_CLIPS.get(1)!.buffer);
+      resolve(new Response(new ArrayBuffer(16)));
+      await loading;
+      expect(context.bufferSources).toHaveLength(1);
+      controller.reset('load');
+      objectSoundFrame(controller, [[42, 1], [43, 2]]);
+      await controller.loadObjectRecordings();
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      expect(context.bufferSources[1]!.buffer).toBe(OBJECT_CLIPS.get(1)!.buffer);
+      expect(context.bufferSources[2]!.buffer).toBe(OBJECT_CLIPS.get(2)!.buffer);
+      const preinstalled = new AudioController(() => new FakeContext(), memoryStore());
+      preinstalled.installObjectLoopClips(OBJECT_CLIPS);
+      await preinstalled.unlockFromGesture();
+      objectSoundFrame(preinstalled, [[41, 1]]);
+      await preinstalled.loadObjectRecordings();
+      expect(fetcher).toHaveBeenCalledTimes(1);
+    } finally { fetcher.mockRestore(); }
+  });
+
+  it.each(['fetch', 'decode'] as const)('bounds %s failure retries by new shower demand, monotonic cooldown, and one batch', async failure => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    let now = 0;
+    const clock = vi.spyOn(performance, 'now').mockImplementation(() => now);
+    let failing = true;
+    let resolve!: (response: Response) => void;
+    const response = new Promise<Response>(done => { resolve = done; });
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      if (!failing) return response;
+      return failure === 'fetch' ? new Response(null, { status: 503 }) : new Response(new ArrayBuffer(16));
+    });
+    const decode = vi.spyOn(context, 'decodeAudioData').mockImplementation(async () => {
+      if (failing && failure === 'decode') throw new Error('decode failed');
+      return { duration: 3 };
+    });
+    try {
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[41, 1]]);
+      await controller.loadObjectRecordings();
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      expect(controller.activeObjectLoopCount()).toBe(0);
+      now = 4999;
+      objectSoundFrame(controller, [[42, 1]]);
+      await controller.loadObjectRecordings();
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      now = 6000;
+      objectSoundFrame(controller, [[42, 1]]);
+      controller.emit({ type: 'object.sound-started', sourceId: 42, action: 1 });
+      controller.emit({ type: 'ui.confirmed' });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      objectSoundFrame(controller, [[42, 1], [43, 2]]);
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      failing = false;
+      objectSoundFrame(controller, [[44, 1]]);
+      const loading = controller.loadObjectRecordings();
+      expect(fetcher).toHaveBeenCalledTimes(2);
+      now = 20000;
+      objectSoundFrame(controller, [[44, 1], [45, 1], [46, 1]]);
+      expect(fetcher).toHaveBeenCalledTimes(2);
+      resolve(new Response(new ArrayBuffer(16)));
+      await loading;
+      expect(controller.activeObjectLoopCount()).toBe(3);
+      expect(context.bufferSources).toHaveLength(3);
+    } finally { fetcher.mockRestore(); clock.mockRestore(); decode.mockRestore(); }
+  });
+
+  it('loads and plays the default shower only on audible shower demand, leaving existing cues intact', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new ArrayBuffer(16)));
+    try {
+      objectSoundFrame(controller, [[41, 1]]);
+      expect(fetcher).not.toHaveBeenCalled();
+      await controller.unlockFromGesture();
+      expect(fetcher).not.toHaveBeenCalled();
+      objectSoundFrame(controller, [[42, 2]]);
+      expect(fetcher).not.toHaveBeenCalled();
+      objectSoundFrame(controller, [[41, 1]]);
+      await vi.waitFor(() => expect(controller.activeObjectLoopCount()).toBe(1));
+      expect(fetcher.mock.calls).toEqual([['audio/objects/shower-water.wav']]);
+      expect(context.bufferSources[0]!.buffer?.duration).toBe(1);
+      controller.emit({ type: 'command.rejected' });
+      expect(controller.cuePlayCounts().rejected).toBe(1);
+    } finally { fetcher.mockRestore(); }
+  });
+});
+
 describe('AudioController object loops', () => {
   it.each(['mute', 'effects'] as const)('clears pending loops before a %s hardware gain failure', async boundary => {
     const context = new FakeContext();

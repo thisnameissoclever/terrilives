@@ -1,5 +1,19 @@
 # Alpha Feel Notes
 
+## [A-shower-water-integration] Prepared recording on actual shower use
+
+Production build on isolated port 5199, 1280x720, after main `44d443ba`.
+Selecting Casey and directing Take a shower produced Using object in the dock,
+authored sound action 1 at source entity 30, and exactly one active and retained
+object loop. The room, roster and needs dock remained readable at night. The
+Sim still stood beside the shower partition; this is an existing action-animation
+limitation, not repaired or accepted by the sound change. The test page was closed.
+
+The production interaction confirms routing, not physical-device listening.
+Real decoded offline rendering separately proves nonzero output and lifecycle
+silence. A semantic Pause selector failed in the game UI, so this pass does not
+claim an additional in-game pause observation.
+
 ## [A-independent-conversation-audio] Directed Chat on the rebuilt audio bridge
 
 2026-09-30, 1280x720, a fresh household on the isolated local port 5198. Bill

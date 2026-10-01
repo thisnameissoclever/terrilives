@@ -957,8 +957,10 @@ duplicate observations into source-owned start and stop edges. Load,
 backgrounding, first unlock, mute changes, and Effects crossing zero clear that
 retained state. A source-owned player now accepts prepared decoded loops with
 independent fades, a four-active/eight-retained cap, and effective-pause cleanup.
-The runtime catalog remains empty: no procedural stand-in or downloaded shower
-or stove recording plays yet. See `specs/2026-10-01-object-loop-playback.md`.
+Shower use now loads a prepared CC0 flowing-water loop on audible demand, with
+cached success and bounded recovery after download failure. It is a provisional
+addition, not owner-listening acceptance. Stove cooking remains silent. See
+`specs/2026-10-01-shower-water-recording.md` and the source-owned playback spec.
 
 The original foundation's production proof ran in visible Chrome on a display
 configured at 120 Hz. These are historical measurements, not a retest of the

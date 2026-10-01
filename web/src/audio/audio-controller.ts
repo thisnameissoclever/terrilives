@@ -20,16 +20,19 @@ import {
 import { FootstepScheduler } from './footsteps.js';
 import {
   ObjectSoundCueScheduler,
+  OBJECT_SOUND_ACTION_SHOWER_WATER,
   type ObjectSoundAction,
   type ObjectSoundCueEvent,
 } from './object-cues.js';
 import { ObjectLoopPlayer, prepareObjectLoopClips, type ObjectLoopClips } from './object-loops.js';
+import { loadObjectRecordings } from './object-recordings.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
 export const DEFAULT_EFFECTS_LEVEL = 0.7;
 export const DEFAULT_VOICES_LEVEL = 1;
 const VOICE_RETRY_COOLDOWN_MS = 5000;
+const OBJECT_RECORDING_RETRY_COOLDOWN_MS = 5000;
 
 export interface AudioPreferences {
   readonly muted: boolean;
@@ -120,6 +123,8 @@ export class AudioController implements GameAudioEventSink {
   private voices: VoiceClipPlayer | null = null;
   private objectLoops: ObjectLoopPlayer | null = null;
   private objectLoopClips: ObjectLoopClips = new Map();
+  private objectRecordingFetch: Promise<void> | null = null;
+  private nextObjectRecordingRetryAt = 0;
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
   /** Successful decodes survive retries and context rebuilds. */
@@ -261,8 +266,12 @@ export class AudioController implements GameAudioEventSink {
 
     if (event.type === 'object.sound-started') {
       if (this.objectSoundsPaused) return;
+      const alreadyDesired = this.desiredObjectLoops.get(event.sourceId) === event.action;
       this.desiredObjectLoops.set(event.sourceId, event.action);
       this.objectLoops?.play(event.sourceId, event.action);
+      if (!alreadyDesired && event.action === OBJECT_SOUND_ACTION_SHOWER_WATER) {
+        void this.loadObjectRecordings();
+      }
       return;
     }
     if (event.type === 'object.sound-stopped') {
@@ -344,11 +353,48 @@ export class AudioController implements GameAudioEventSink {
     this.reconcileObjectLoops();
   }
 
-  /** Installs approved decoded recordings; this boundary never fetches assets. */
+  /** Installs prepared decoded recordings; this boundary never fetches assets. */
   installObjectLoopClips(clips: ObjectLoopClips): void {
     this.objectLoopClips = prepareObjectLoopClips(clips);
     this.objectLoops?.setClips(this.objectLoopClips);
     this.reconcileObjectLoops();
+  }
+
+  /** Loads on shower demand only. Success is cached; failures wait for new demand. */
+  async loadObjectRecordings(): Promise<void> {
+    if (this.objectRecordingFetch !== null) {
+      await this.objectRecordingFetch;
+      return;
+    }
+    const context = this.context;
+    if (context === null || !this.isUnlocked() || this.mutedPreference ||
+      this.effectsLevelPreference === 0 || this.objectSoundsPaused ||
+      this.objectLoopClips.has(OBJECT_SOUND_ACTION_SHOWER_WATER) ||
+      ![...this.desiredObjectLoops.values()].includes(OBJECT_SOUND_ACTION_SHOWER_WATER) ||
+      performance.now() < this.nextObjectRecordingRetryAt) return;
+
+    const fetching = this.fetchObjectRecordings(context);
+    this.objectRecordingFetch = fetching;
+    try { await fetching; }
+    finally {
+      if (this.objectRecordingFetch === fetching) this.objectRecordingFetch = null;
+    }
+  }
+
+  private async fetchObjectRecordings(context: BrowserAudioContext): Promise<void> {
+    try {
+      const clips = await loadObjectRecordings(async url => {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`object recording ${url}: ${response.status}`);
+        return response.arrayBuffer();
+      }, bytes => context.decodeAudioData(bytes));
+      if (!clips.has(OBJECT_SOUND_ACTION_SHOWER_WATER)) throw new Error('invalid shower recording');
+      // A manual installation during the request keeps its selected recordings.
+      this.installObjectLoopClips(new Map([...clips, ...this.objectLoopClips]));
+    } catch {
+      // Failed sound must not interrupt the game or retry on every fixed tick.
+      this.nextObjectRecordingRetryAt = performance.now() + OBJECT_RECORDING_RETRY_COOLDOWN_MS;
+    }
   }
 
   /** Effective simulation pause affects sustained objects, not existing short cues. */

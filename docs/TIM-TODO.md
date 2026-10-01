@@ -440,8 +440,8 @@ The owner approved the four CC0 OpenGameArt archives on 2026-09-30. They are
 downloaded and inventoried; five water candidates passed mechanical screening.
 The procedure is `docs/specs/2026-09-06-cc0-audio-intake.md`, and the exact hashes
 and remaining selection work are in `docs/specs/2026-09-30-cc0-audio-intake-results.md`.
-Do not ask for that download approval again. No third-party clip ships yet;
-download approval does not establish a recording's suitability for the game.
+Do not ask for that download approval again. One prepared flowing-water clip now
+ships provisionally for showers; subjective suitability remains unverified.
 
 ### [T5] Confirm the repository should stay public `[APPROVE]`
 
@@ -499,9 +499,9 @@ The playback repairs are merged; remaining owner listening checks are still open
 Authored source identity for shower water and stove cooking is also implemented.
 It covers ordinary interactions and cooking chains and deduplicates state by
 exact placed object. The bounded loop player now handles source ownership,
-fades, capacity, and effective-pause cleanup. Sample selection, seam editing,
-mixing, and audible acceptance remain mine after the completed CC0 intake;
-these sources are currently silent because no recording is installed. Door event
+fades, capacity, and effective-pause cleanup. Shower use now has one prepared CC0
+water loop with on-demand loading and bounded failure recovery. Its timbre and
+mix still need listening acceptance; stove selection remains mine. Door event
 types remain reserved plumbing. Ambience, alarms, music, non-conversation voices
 and music/ambience controls remain unbuilt. The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and

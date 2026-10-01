@@ -2,8 +2,9 @@
 
 Status: the owner approved all four packs on 2026-09-30. Download and archive
 inventory are complete. Five water-related files passed browser decoding and
-level screening; listening and sound selection remain unfinished. No third-party
-audio has been copied into the game or added to repository history.
+level screening. One flowing-water recording is now a provisional shower asset;
+see `2026-10-01-shower-water-recording.md` and `ASSETS.md`. Listening acceptance
+and the remaining sound selection are unfinished.
 An offline five-candidate comparison can now be generated with
 `scripts/build-audio-audition.cjs`; its usage and verification limits are in the
 intake results document.
@@ -17,8 +18,10 @@ common household interactions without adding a runtime audio dependency or
 committing an entire unreviewed archive.
 
 Approval to fetch these archives is not approval to ship every file. Each sound
-still needs source inspection, listening review, editing, in-game mixing, and a
-specific semantic event before it can enter the public repository.
+still needs source inspection, documented edits, measured in-game mixing, and a
+specific semantic event. The owner's autonomous selection authorization permits
+bounded additive provisional sounds with listening limitations stated. Replacing
+an accepted cue still requires human listening first.
 
 ## Exact approval set
 
@@ -105,8 +108,9 @@ After an approved fetch:
 
 The current authored actions safely identify footsteps, conversation, sleep,
 eating, reading, and exercise. Shower and stove now also have an authored sound
-action plus exact source-object identity; they remain silent pending recording
-intake and acceptance. Other appliances still need explicit semantic state.
+action plus exact source-object identity. Shower use now loads one prepared
+flowing-water loop on demand; stove cooking remains silent pending a suitable
+recording. Other appliances still need explicit semantic state.
 File availability is not permission to infer object state from animation labels.
 
 The likely first use of these packs is therefore replacement material for

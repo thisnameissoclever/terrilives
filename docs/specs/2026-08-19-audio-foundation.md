@@ -118,8 +118,8 @@ The current semantic events are:
 10. `object.sound-started { sourceId, action }` and
     `object.sound-stopped { sourceId, action }`: an exact placed object's
     authored semantic sound state changed. These events drive the object-loop
-    player when an accepted prepared recording is installed. The shipped
-    catalog is empty pending recording acceptance.
+    player when a prepared recording is installed. One provisional shower-water
+    recording ships; subjective listening acceptance remains open.
 11. `door.opened` and `door.closed`: reserved event shapes only. No current door
    transition emits them.
 
@@ -268,14 +268,18 @@ fresh rather than resuming a loop whose start happened while silent.
 
 The bounded object-loop player now consumes these edges and explicit prepared
 recordings. It admits at most four active loops and retains at most eight
-records including fades. Missing clips cause no placeholder sound or fetch.
+records including fades. Missing clips cause no placeholder sound. The
+controller now fetches the prepared shower clip on playable shower demand.
 Pending sources clear at lifecycle boundaries; capacity-rejected sources remain
 eligible while observed. Effective pause stops loops and resume waits for a new
 fixed tick. See `2026-10-01-object-loop-playback.md` for the playback contract
 and rendered-signal proof.
 
-The shipped catalog remains empty. Shower and stove audio remain silent until recordings pass
-the documented CC0 intake, source review, editing, and owner listening gates.
+The shipped catalog contains one provisional CC0 shower-water loop. Success is
+cached; failures retry only on new shower demand after five seconds. Ended or
+globally invalidated sources cannot revive on late decode. Stove cooking remains
+silent. See `2026-10-01-shower-water-recording.md` for provenance, measured
+levels and the still-unverified listening assessment.
 The front door now has authoritative animated portal state, but no producer
 currently emits the reserved door sound events. Door audio remains unbuilt.
 

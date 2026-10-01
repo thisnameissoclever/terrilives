@@ -2,7 +2,7 @@ import type { ObjectSoundAction } from './object-cues.js';
 import type { GainNodePort } from './procedural-cues.js';
 import type { AudioBufferPort, AudioBufferSourcePort, VoiceAudioContext } from './voice-clips.js';
 
-/** Loop seams must be edited and approved in the recording before installation. */
+/** Loop seams are prepared offline; subjective acceptance is tracked with the asset. */
 export interface PreparedObjectLoopClip {
   readonly buffer: AudioBufferPort;
   readonly gain: number;

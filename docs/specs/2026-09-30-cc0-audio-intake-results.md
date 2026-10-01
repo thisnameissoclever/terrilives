@@ -2,7 +2,10 @@
 
 The owner approved the four shortlisted packs and asked for routine decisions
 to proceed without repeated questions. The guarded fetch completed at
-2026-10-01 04:39 UTC (2026-09-30 locally). No pack or excerpt is shipped yet.
+2026-10-01 04:39 UTC (2026-09-30 locally). A later slice selected and edited
+`water_flowing.ogg` as a provisional shower loop; see
+`2026-10-01-shower-water-recording.md`. The measurements below describe the
+unaltered intake, not listening approval or the edited runtime file.
 
 ## Provenance and inventory
 
@@ -61,8 +64,8 @@ Entry SHA-256 values:
 
 ## Next selection work
 
-Assess these candidates for bathroom water and cooking before editing or
-integrating them. A filename containing "water" does not establish shower
+The flowing-water candidate now has a bounded provisional shower integration.
+Assess the remaining candidates before integrating them. A filename containing "water" does not establish shower
 character, and boiling is not interchangeable with every stove action. Inspect
 door and kitchen one-shots from the first two packs separately. Preserve original
 files, record edits and exact source entries in `ASSETS.md` for any selected
