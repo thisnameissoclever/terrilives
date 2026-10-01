@@ -1,0 +1,16 @@
+PASS 51 layout states [
+  'Actual furniture sale completed through the game UI',
+  'Floor button applies a real covering; Clear and selecting another tile do not paint',
+  {
+    calls: 1,
+    escaped: 0,
+    disabledFocus: true,
+    hiddenFocus: true,
+    hidden: true
+  },
+  'Zoom updates contextual placement; Help suspends actions',
+  'Zoom factor 1.12 uses the center of desktop game space beside the panel',
+  { steadyFrames: 20, writes: 0, reads: 0 },
+  'Keyboard focus survives row entry, row exit, Options closure and resize',
+  'Options, all Sim detail tabs, object menus, household creation and confirmation reviewed at 320x568'
+]
