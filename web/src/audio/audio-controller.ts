@@ -69,6 +69,7 @@ export interface BrowserAudioContext
     VoiceAudioContext {
   readonly destination: unknown;
   readonly state: AudioContextState;
+  onstatechange: (() => void) | null;
   close(): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
@@ -123,7 +124,7 @@ export function browserAudioPreferenceStore(): AudioPreferenceStore | undefined 
 }
 
 /**
- * Owns browser audio state without owning DOM listeners or simulation state.
+ * Owns browser audio state and its context listener, not DOM or simulation state.
  * Call `unlockFromGesture` only inside a trusted pointer or keyboard handler.
  */
 export class AudioController implements GameAudioEventSink {
@@ -688,7 +689,7 @@ export class AudioController implements GameAudioEventSink {
     this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
-    this.voices?.stopAll();
+    this.voices?.stopAll(true);
   }
 
   /**
@@ -910,6 +911,7 @@ export class AudioController implements GameAudioEventSink {
 
   private async resumeFromGesture(): Promise<boolean> {
     if (this.context?.state === 'closed') {
+      this.context.onstatechange = null;
       this.stopEveryPlayer();
       this.resetSchedulers();
       safelyDisconnect(this.ambienceGain);
@@ -959,6 +961,14 @@ export class AudioController implements GameAudioEventSink {
         const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
+        // Simulation pause stops fixed ticks; the context must still own cleanup
+        // when its clock freezes during a release. Recovery never creates demand.
+        const observedContext = context;
+        context.onstatechange = () => {
+          if (this.context !== observedContext || observedContext.state === 'running') return;
+          this.stopEveryPlayer();
+          this.resetSchedulers();
+        };
         // The ids usually arrived before any gesture could create this
         // context, so this is the first moment the bytes can be decoded.
         void this.fetchVoiceLibrary();
@@ -967,6 +977,7 @@ export class AudioController implements GameAudioEventSink {
         this.applyVoicesGain();
         this.applyAmbienceGain();
       } catch {
+        if (context !== null) context.onstatechange = null;
         this.clearAmbience(true);
         safelyDisconnect(ambienceGain);
         safelyDisconnect(voicesGain);

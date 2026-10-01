@@ -9,6 +9,53 @@ import {
   type BrowserAudioContext,
 } from '../src/audio/audio-controller.js';
 import { FOOTSTEP_DISTANCE_TILES } from '../src/audio/footsteps.js';
+it.each(['room', 'object', 'conversation', 'door', 'procedural'] as const)(
+  'context events discard paused %s sources without ticks or another gesture', async kind => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new ArrayBuffer(16))));
+    try {
+      await controller.unlockFromGesture();
+      if (kind === 'room') { controller.observeRunningWorld(); await controller.loadAmbience(); }
+      if (kind === 'object') {
+        controller.installObjectLoopClips(OBJECT_CLIPS);
+        controller.emit({type: 'object.sound-started', sourceId: 41, action: 2});
+      }
+      if (kind === 'conversation') {
+        await controller.loadVoiceLibrary(['a', 'b']);
+        controller.emit({type: 'sim.conversation-started', simId: 4, voice: {owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1}});
+        controller.emit({type: 'sim.conversation-ended', voice: {owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1}});
+      }
+      if (kind === 'door') {
+        controller.emit({type: 'door.opened', doorId: 'test'});
+        await controller.loadDoorRecordings();
+        controller.emit({type: 'door.opened', doorId: 'test'});
+      }
+      if (kind === 'procedural') controller.emit({type: 'command.rejected'});
+      const sources = [...context.bufferSources, ...context.oscillators];
+      expect(sources.length).toBeGreaterThan(0);
+      context.currentTime = 4.25;
+      controller.setObjectSoundsPaused(true);
+      expect(sources.some(source => !source.disconnected)).toBe(true);
+      context.currentTime = 4.30;
+      context.changeState('suspended');
+      expect(sources.every(source => source.disconnected && source.onended === null)).toBe(true);
+      expect(controller.retainedAmbienceCount() + controller.retainedObjectLoopCount() +
+        controller.retainedConversationVoiceCount() + controller.activeDoorVoiceCount() + controller.activeVoiceCount()).toBe(0);
+      const count = sources.length;
+      context.changeState('running');
+      expect(context.bufferSources.length + context.oscillators.length).toBe(count);
+      expect(context.resumeCalls).toBe(1);
+      controller.setObjectSoundsPaused(false);
+      expect(context.bufferSources.length + context.oscillators.length).toBe(count);
+      if (kind === 'room') {
+        controller.observeRunningWorld();
+        expect(controller.activeAmbienceCount()).toBe(1);
+        expect(controller.ambienceStartCount()).toBe(2);
+      }
+    } finally { vi.unstubAllGlobals(); }
+  },
+);
 it('stale room completion cannot start into a rebuilt closed graph or consume its independent load gate', async () => {
   const abandoned = new FakeContext(), fresh = new FakeContext();
   let finish!: (clip: AudioBufferPort) => void;
@@ -19,8 +66,12 @@ it('stale room completion cannot start into a rebuilt closed graph or consume it
     const controller = new AudioController(vi.fn().mockReturnValueOnce(abandoned).mockReturnValue(fresh), undefined);
     await controller.unlockFromGesture(); controller.observeRunningWorld(); const old = controller.loadAmbience();
     await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+    const staleStateChange = abandoned.onstatechange;
     abandoned.state = 'closed'; await controller.unlockFromGesture();
+    expect(abandoned.onstatechange).toBeNull();
     controller.observeRunningWorld(); await controller.loadAmbience();
+    expect(controller.activeAmbienceCount()).toBe(1);
+    staleStateChange?.();
     expect(controller.activeAmbienceCount()).toBe(1);
     finish({duration: 8}); await old;
     expect(abandoned.bufferSources).toHaveLength(0);
@@ -65,7 +116,7 @@ it.each(['mute', 'effects', 'pause', 'load', 'hidden', 'suspended', 'ambience'] 
     if (boundary === 'load') controller.reset('load');
     if (boundary === 'hidden') await controller.setBackgrounded(true);
     if (boundary === 'ambience') controller.setAmbienceLevel(0);
-    if (boundary === 'suspended') { context.state = 'suspended'; controller.beginFootstepFrame(); controller.endFootstepFrame(); }
+    if (boundary === 'suspended') context.changeState('suspended');
     resolve({duration: 8}); await pending;
     expect(context.bufferSources).toHaveLength(0);
     expect(controller.ambienceStartCount()).toBe(0);
@@ -256,6 +307,11 @@ class FakeContext implements BrowserAudioContext {
   currentTime = 4;
   readonly destination = { kind: 'destination' };
   state: AudioContextState = 'suspended';
+  onstatechange: (() => void) | null = null;
+  changeState(state: AudioContextState): void {
+    this.state = state;
+    this.onstatechange?.();
+  }
   readonly gains: FakeGain[] = [];
   readonly oscillators: FakeOscillator[] = [];
   readonly bufferSources: FakeBufferSource[] = [];

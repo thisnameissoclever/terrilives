@@ -51,13 +51,14 @@ test('memory attribution rejects independently changed seeds, ticks, hashes and 
   expect(proof.analyseMemory(runsWithDoors(4)).comparable).toBe(true);
   for (const repetition of [0, 1, 2]) {
     for (const endpoint of [0, 2]) {
-      for (const field of ['seed', 'tick', 'worldHash', 'seedHigh']) {
+      for (const field of ['seed', 'tick', 'worldHash', 'seedLow', 'seedHigh']) {
         for (const mutation of ['change', 'omit']) {
           const runs = runsWithDoors(4);
           const sample = runs[repetition * 2].samples[endpoint];
-          if (field === 'seedHigh') {
-            if (mutation === 'omit') delete sample.seed.high;
-            else sample.seed.high++;
+          if (field === 'seedLow' || field === 'seedHigh') {
+            const half = field === 'seedLow' ? 'low' : 'high';
+            if (mutation === 'omit') delete sample.seed[half];
+            else sample.seed[half]++;
           } else if (mutation === 'omit') delete sample[field];
           else sample[field] = field === 'seed' ? {...sample.seed, low: sample.seed.low + 1} : field === 'tick' ? sample.tick + 1 : '999';
           const result = proof.analyseMemory(runs);
@@ -79,6 +80,21 @@ test('equal but unprescribed endpoints and seeds cannot pass a matched pair', ()
     expect(proof.analyseMemory(runs).comparable).toBe(false);
   }
 });
+
+test.each([0, 1, 2].flatMap(repetition => [0, 2].flatMap(endpoint =>
+  [0, 1].map(control => ({repetition, endpoint, control})))))(
+  'missing low seed rejects repetition $repetition endpoint $endpoint control $control independently',
+  ({repetition, endpoint, control}) => {
+    const runs = runsWithDoors(4);
+    const sample = runs[repetition * 2 + control].samples[endpoint];
+    delete sample.seed.low;
+    expect(sample.seed.high).toBe(proof.MEMORY_PROBE_SEEDS[repetition].high);
+    const result = proof.analyseMemory(runs);
+    expect(result.comparable).toBe(false);
+    expect(result.retainedAudioPass).toBe(false);
+    expect(result.medianAudioSpecificJsGrowthBytes).toBeNull();
+  },
+);
 
 test('memory comparability rejects missing and duplicated pairs', () => {
   const missing = runsWithDoors(4); missing.pop();

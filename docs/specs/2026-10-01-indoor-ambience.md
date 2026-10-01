@@ -57,6 +57,12 @@ schedulers untouched; raising it waits for a new observation. Automatic browser
 recovery cannot replay a frozen tail. Settings previews must not produce click
 or confirmation sounds.
 
+The controller owns an AudioContext `statechange` listener independently of
+simulation ticks. A non-running context event clears demand, every retained
+source family and scheduler ownership, including releases during simulation
+pause. Detach the listener before abandoning its graph; stale callbacks must
+not silence a replacement graph. A running event never establishes demand.
+
 Load the texture on first audible demand. Coalesce in-flight work, cache a
 successful decode and keep one five-second failed-load cooldown. Retry only
 on a fresh transition into audible demand or an explicit later trusted gesture
@@ -129,9 +135,16 @@ in `docs/assets/review-evidence/audio/indoor-ambience/implementation-report.md`.
 The native browser export is `proveRoomAmbience` in `web/proofs/room-ambience.js`.
 Root reports all ten rendered checks passed, including positive signal,
 independent gain routing, positive pause fade, zero suspended/releasing resumed
-tail, maximum-level peak 0.0146923745 and bounded 30-toggle ownership. The proof
+tail, historical Effects-70% peak 0.0146923745 and bounded 30-toggle ownership. The proof
 RMS at Ambience 100% and Effects 70% is 0.004350841. This is rendered-signal
 evidence, not a claim of hearing or accepting the texture.
+
+Review found that the historical interrupted-pause proof manually called a
+fixed-tick audio method while simulation was paused. Production does not make
+that call. That result did not prove paused interruption cleanup. The corrected
+proof forwards native offline context state events without a simulated tick or
+gesture during interruption, and measures maximum peak separately at Effects
+100% and Ambience 100%. Root owns the fresh native result and memory diagnosis.
 
 Root's first six-run memory acceptance failed: pair differentials 90,376,
 -237,816 and 69,120 bytes produce a median of 69,120, above the unchanged

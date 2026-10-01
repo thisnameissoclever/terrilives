@@ -3,13 +3,23 @@ import { AudioController } from '../src/audio/audio-controller.ts';
 const RATE = 48000;
 async function render({ambience = 1, voices = 1, effects = 0.7, muted = false, boundary = null}) {
   const offline = new OfflineAudioContext(1, RATE, RATE);
-  let state = 'running';
+  let clockOwnsState = false;
+  let interrupted;
+  const interruption = new Promise(resolve => { interrupted = resolve; });
   const context = {
-    get currentTime() { return offline.currentTime; }, get state() { return state; },
+    get currentTime() { return offline.currentTime; },
+    get state() { return clockOwnsState ? offline.state : 'running'; },
+    onstatechange: null,
     destination: offline.destination, createGain: () => offline.createGain(),
     createOscillator: () => offline.createOscillator(), createBufferSource: () => offline.createBufferSource(),
     decodeAudioData: bytes => offline.decodeAudioData(bytes), resume: async () => {}, suspend: async () => {}, close: async () => {},
   };
+  offline.onstatechange = () => {
+    if (!clockOwnsState) return;
+    context.onstatechange?.();
+    if (offline.state === 'suspended') interrupted();
+  };
+  // Scheduling begins before native offline rendering, whose initial state is suspended.
   const controller = new AudioController(() => context, {
     getItem: () => JSON.stringify({version: 1, muted, effectsLevel: effects, voicesLevel: voices, ambienceLevel: ambience}),
     setItem: () => {},
@@ -23,18 +33,20 @@ async function render({ambience = 1, voices = 1, effects = 0.7, muted = false, b
   } finally { globalThis.fetch = originalFetch; }
   const counts = {active: controller.activeAmbienceCount(), retained: controller.retainedAmbienceCount(), starts: controller.ambienceStartCount()};
   const waiting = boundary ? offline.suspend(0.25) : null;
+  if (boundary === 'suspended') clockOwnsState = true;
   const rendering = offline.startRendering();
   if (waiting) {
     await waiting;
     if (boundary === 'pause') controller.setObjectSoundsPaused(true);
     if (boundary === 'suspended') {
-      state = 'suspended'; controller.beginFootstepFrame(); controller.endFootstepFrame(); state = 'running';
+      await interruption;
     }
     if (boundary === 'release-suspended') {
       controller.setObjectSoundsPaused(true);
       const releaseWaiting = offline.suspend(0.3);
+      clockOwnsState = true;
       await offline.resume(); await releaseWaiting;
-      state = 'suspended'; controller.beginFootstepFrame(); controller.endFootstepFrame(); state = 'running';
+      await interruption;
     }
     if (boundary === 'toggles') {
       for (let index = 0; index < 30; index++) {
@@ -75,7 +87,9 @@ export async function proveRoomAmbience() {
     const result = await render({boundary});
     checks.push(near(rms(result.samples, boundary === 'release-suspended' ? 0.31 : 0.26, 0.9), 0, `${boundary} resumed tail`));
   }
-  let peak = 0; for (const sample of base.samples) peak = Math.max(peak, Math.abs(sample));
+  const maximum = await render({ambience: 1, effects: 1});
+  let peak = 0; for (const sample of maximum.samples) peak = Math.max(peak, Math.abs(sample));
   if (peak >= 1) throw Error('Maximum room level clips');
-  return {checks, rms: level, peak, counts: base.counts, subjectiveListening: 'not claimed'};
+  return {checks, rms: level, rmsEffectsLevel: 0.7, peak, peakEffectsLevel: 1, peakAmbienceLevel: 1,
+    counts: base.counts, subjectiveListening: 'not claimed'};
 }

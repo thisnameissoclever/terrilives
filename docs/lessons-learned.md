@@ -8350,3 +8350,28 @@ random-value row kept a 150px slider without horizontal overflow. The manual
 value 100 retained a 102px by 44px slider and accepted keyboard input. The
 fixture changes only the fieldset font size; it is separate from the shipped
 page and is not a claim about browser or operating-system text scaling.
+
+## [L-paused-audio-proof-needs-native-lifecycle] Paused releases need context events, not test ticks
+
+**What happened.** Indoor ambience paused with a 100 ms release. An interruption
+during that release froze its tail; automatic recovery could render it again.
+The native proof passed because it manually called `beginFootstepFrame()` while
+paused, although production makes no fixed-tick audio calls in that state.
+
+**Root cause.** Availability cleanup depended on simulation observation rather
+than the browser audio lifecycle. The proof supplied the missing observation
+and therefore hid the production gap. Global cleanup also faded already-releasing
+conversations rather than immediately disposing their retained nodes.
+
+**Prevention.** Let the controller own its context state listener independently
+of simulation ticks. Clear all source families and demand when the clock stops,
+detach an abandoned graph's listener, and reject stale callbacks. Recovery must
+not establish demand. Offline proof adapters must forward native lifecycle
+events rather than inject production calls that the paused game cannot make.
+
+**Verify.** Start each source family, pause, interrupt during release and recover
+without another tick or gesture. Require disconnected sources, cleared callbacks
+and no restart until fresh world observation. Deleting event cleanup must fail
+all five family regressions; deleting stale-context protection must silence the
+replacement in its regression. Verify maximum rendered peak at both Effects and
+Ambience 100%; label old Effects-70% evidence accurately.
