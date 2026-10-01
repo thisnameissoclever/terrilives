@@ -61,4 +61,11 @@ No timeout increase or error suppression was used.
 
 This final change touches only proof code. Production source and the previously
 inspected build are unchanged, so the passing game checks and full suite were
-not repeated. Scoped fix re-review is pending.
+not repeated. Scoped fix re-review found the cleanup defect addressed and no
+new breakage. All review findings are closed.
+
+## Decisions and scope
+
+1. Deliver the existing-audio repair separately from held ambience. Main-based tests and native proof cover the existing four families; absent ambience interactions remain part of that feature's own acceptance.
+2. Use owned context state events rather than simulation polling. This covers paused worlds without adding per-frame work. Controlled native proof still cannot establish every physical-device event sequence.
+3. Fix proof failure cleanup before publication. This added one small proof-only validation and review round, while production source remained unchanged.
