@@ -248,7 +248,7 @@ full ticks can miss removals after multiple paused drains.
     intent **preempts** a running interaction rather than queueing behind it,
     since a sim asleep for 24 seconds would otherwise leave a click with no
     visible response for the whole of it.
-5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and draw one needs-adjusted visitor-cleanup decision per entry. Player intents already have priority.
+5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and retain one pending needs-adjusted cleanup decision per room entry or genuinely new pile, including own old dishes. Player intents already have priority.
 6. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
 7. `advance_chains` - resume or begin the next station in a multi-step action.
@@ -1367,10 +1367,19 @@ entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
 ## Domestic state and presentation
 
-[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Meal tables permit up to four terminal meal occupants, with separate adjacent endpoints and ownership-aware reservation release. Other uses remain exclusive.
+[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Dining claims resolve exact physical chairs, clean settings and approach endpoints before generic chain targeting. Other diners stand near the table, or a preparation counter when no table is reachable. Claims publish synchronously, with ownership-aware reservation release. Other uses remain exclusive.
 
 `SavedDomestic` is the appended optional V5 tail. It records cleanliness profiles, monotonically issued dish identities and their surfaces and responsible SimIds, canonical room-visit memory, exclusive cleanup claims, and shared-meal invite/claim/collection/completion state. Cancellation, chain replacement, washing, furniture sales and death maintain those references at their own transition. Loading validates both directions between claims and chains before adoption, then refreshes the render projection. Older bytes default the tail to absent. The exact structural bridge reconstructs the old four-step recipe and roles, validates the source, maps its terminal step 3 to 5, and preserves prior geometry migrations. Unreviewed structural destinations close the bridge.
 
 Room membership is a flood fill across open saved wall edges; doorways separate rooms while furniture never does. Annoyance is a derived moodlet, and existing sustained mood integrates its effect into satisfaction. Directional resentment is charged once per creator newly noticed during a visit. [Sim interpersonal relations](SIM-RELATIONSHIPS.md) documents the composition with other social effects.
 
 The render bridge adds aligned `dirty_dishes` and `meal_portions` columns. Surface stacks and up to three prepared plate sprites disappear on actual collection, rather than on a reservation. Visual action codes 10, 11 and 12 append prepare, cook and wash; four rig frames per facing and shirt color use a ten-tick phase. Reduced motion holds frame zero. Existing action codes, sprite-name prefix order and approved rig source stay stable.
+
+
+`SavedDining` appends a separate optional V5 tail after `SavedDomestic`; published
+nested domestic records remain unchanged. It saves exact seats and settings,
+stand locations, deferred cleanup opportunities, episode complaints and tableless
+gathering decisions. The loader validates permitted contacts through these claims,
+then validates every claim transactionally. Rendering exposes four dirty-setting
+nibbles and a seated-eating action; the cooking prop follows the exact sound-source
+station rather than the logical carried item. See [MC-dining](specs/2026-09-30-meals-and-cleanup.md#mc-dining-physical-chairs-and-dirty-settings).

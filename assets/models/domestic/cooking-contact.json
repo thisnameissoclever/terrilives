@@ -1,0 +1,21 @@
+{
+  "body_distance": 1.0,
+  "pot_center_sim": [
+    0.235,
+    -0.77,
+    0.882
+  ],
+  "wrist": [
+    0.2,
+    -0.4,
+    1.12
+  ],
+  "bowl_height": 0.972,
+  "stir_radius": 0.025,
+  "grip_offset": [
+    -0.02870364,
+    -0.08156237,
+    0.03415751
+  ],
+  "spoon_length": 0.36
+}

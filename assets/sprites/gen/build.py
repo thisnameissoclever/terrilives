@@ -1219,7 +1219,7 @@ def main():
         for name, row in domestic.frames.items():
             index = next(index for index, sprite in enumerate(sprites) if sprite[0] == name)
             densities[index] = domestic.pixel_density
-    from surface_items import load_dishes, layouts
+    from surface_items import load_dishes, layouts, load_pot, stove_layouts
     dishes, dish_anchor = load_dishes(ROOT)
     for sprite in dishes:
         anchors[len(sprites)] = dish_anchor
@@ -1240,7 +1240,23 @@ def main():
         anchors.update(more_anchors)
         tops.update(more_tops)
         variants[variant].update(more_clips)
+    for variant in ('green', 'blue', 'red'):
+        dining = load_export(os.path.join(ROOT, 'assets/models/domestic/export/dining', variant, 'manifest.json'),
+                             required_clips={'food_walk', 'food_idle', 'seated_eat', 'cook_v2'}, expected_variant=variant)
+        for sprite in dining.sprites:
+            densities[len(sprites)] = dining.pixel_density
+            sprites.append(sprite)
+        more_anchors, _, more_tops, more_clips, _ = runtime_tables(dining, sprites)
+        anchors.update(more_anchors)
+        tops.update(more_tops)
+        variants[variant].update(more_clips)
+    pots,pot_anchor=load_pot(ROOT)
+    for sprite in pots:
+        anchors[len(sprites)]=pot_anchor
+        densities[len(sprites)]=2
+        sprites.append(sprite)
     surfaces = layouts(ROOT, sprites)
+    surfaces.update(stove_layouts(ROOT,sprites))
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

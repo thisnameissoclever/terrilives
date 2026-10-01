@@ -191,7 +191,7 @@ The chance of the accident should follow from the simulation and not be a flat d
 
 **Status: Partial, domestic first slice.**
 
-**What exists.** Cooking and snacks leave visible, attributed dishes. Sims can collect and wash them at the kitchen sink; other Sims notice foreign messes, lose mood and directional affinity, and may clean them. These are activity consequences rather than random events. The existing personal-hygiene sink interaction remains separate.
+**What exists.** Cooking and snacks leave visible, attributed dishes. Sims can collect and wash them at the kitchen sink; Sims lose mood near visible messes and may clean them. Foreign messes also lower directional affinity toward their creator. Diners sit at clean available chair settings or stand near a full or dirty table; dirty settings can prompt extra cleanup after eating. These are activity consequences rather than random events. The existing personal-hygiene sink interaction remains separate.
 
 **What is missing.** The owner described this system through pets, and it is broader than pets. It covers things that happen to the household and demand a response: a pet accident, a spilled meal, dirty dishes left on the table, a full bin, a blocked toilet, a broken shower, a tripped fuse, a leaking tap.
 
@@ -384,7 +384,7 @@ assigning ownership or adding a separate drain.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and foreign dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and visible dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 ### [S-chains] Multi-step activities
 

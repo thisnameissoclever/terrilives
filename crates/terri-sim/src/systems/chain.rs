@@ -113,11 +113,23 @@ pub fn advance_chains(
             continue;
         };
         let chain = &content.0.chains[chain_state.chain as usize];
-        if chain.steps[chain_state.step as usize..].iter().any(|step| {
-            !stations
-                .iter()
-                .any(|(_, _, object, _, _)| content.0.object(object.0).roles.contains(&step.role))
-        }) {
+        // Exact dining, including standing without a table, is resolved by the
+        // preceding exclusive system. Unreachable diners retain their recipe.
+        if crate::dining::managed_step(content.0, chain, chain_state.step) {
+            continue;
+        }
+        if chain.steps[chain_state.step as usize..]
+            .iter()
+            .enumerate()
+            .any(|(i, step)| {
+                if crate::dining::managed_step(content.0, chain, chain_state.step + i as u32) {
+                    return false;
+                }
+                !stations.iter().any(|(_, _, object, _, _)| {
+                    content.0.object(object.0).roles.contains(&step.role)
+                })
+            })
+        {
             // Sold stations cannot become free. Abandon the unfinished recipe.
             commands
                 .entity(sim)
@@ -219,9 +231,21 @@ pub fn advance_chains(
             } else {
                 &grid
             };
-            let Some(steps) = route_grid
-                .find_path_adjacent(from, to, footprint)
-                .and_then(|steps| route_grid.anchor_path((pos.x, pos.y), steps))
+            let approach = if step
+                .visual
+                .as_ref()
+                .is_some_and(|v| v.action == terri_data::CompiledVisualAction::Cook)
+            {
+                crate::stove_front(content.0, object, station_pos, facing)
+            } else {
+                None
+            };
+            let route = if let Some(front) = approach {
+                route_grid.find_path(from, (front.x.round() as i32, front.y.round() as i32))
+            } else {
+                route_grid.find_path_adjacent(from, to, footprint)
+            };
+            let Some(steps) = route.and_then(|steps| route_grid.anchor_path((pos.x, pos.y), steps))
             else {
                 continue;
             };

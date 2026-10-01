@@ -8567,3 +8567,42 @@ after reload. Deliberately reinstate the generic override and break the exact
 claim comparison; both assertions fail. Review actual moving wash frames with
 the media preference recorded, rather than treating identical screenshots as
 animation evidence.
+
+
+## [L-domestic-opportunities-and-physical-seats] Verify opportunities and furniture contact
+
+**What happened.** Low own-cleanup odds combined with busy room entry consuming
+its opportunity, so dishes accumulated. Logical dinner inventory also appeared as
+a floating badge during cooking, while table capacity counted walkable contacts
+rather than physical chairs.
+
+**Root cause.** Entry bookkeeping preceded the idle decision; rendering treated
+inventory as a universal prop. Dining had no exact chair or dirty-setting ownership.
+
+**Prevention rule.** Persist a pending episode decision until the Sim can act,
+consume it once, and tie furniture use to a real reachable chair and setting.
+Keep inventory semantics separate from contacting animation props. Reservation
+ownership comes from each exact Target, not a bare Reserved marker. Keep published
+postcard records frozen and append new envelope state instead.
+
+**Verification.** Test busy entry followed by idle, new and old own mess, urgent
+needs, simultaneous seat claims, wrong-facing chairs, dirty settings, interruption,
+no-table shared meals and every save transition. Reject forged route endpoints and
+duplicate claims. Inspect integrated animated captures independently; a successful
+sprite export does not establish that the plate, hand, chair and table meet.
+
+## [L-cooking-physical-contact] Derive animation contact from the visible models
+
+**What happened.** The first stirring pose left the utensil disconnected from
+the visible palm and the pot even though each asset exported successfully.
+
+**Root cause.** The pose used a wrist origin as its grip and guessed the stove
+target independently from the supported pot's position.
+
+**Prevention rule.** Use the visible palm as the grip and one measured contact
+definition for the character, utensil and furniture. Compose those models before
+baking sprites. Keep the accepted character mesh unchanged when adjusting poses.
+
+**Verification.** Inspect every phase in every direction. Measure grip and bowl
+contact, test evaluated meshes for furniture collisions, and inspect the final
+browser rendering after rebuilding both the sprite atlas and simulation.

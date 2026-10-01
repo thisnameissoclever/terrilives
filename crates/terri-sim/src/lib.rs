@@ -4,6 +4,7 @@ mod action_queue;
 #[cfg(test)]
 mod activity_tests;
 pub mod details;
+mod dining;
 pub mod domestic;
 #[cfg(test)]
 mod ecs_lifecycle_tests;
@@ -561,6 +562,12 @@ fn chain_station_matches(
     if definition.roles.contains(&chain.steps[step as usize].role) {
         return true;
     }
+    if domestic::communal(&chain.id, step, chain.steps.len())
+        && dining::claim(world, person.index_u32())
+            .is_some_and(|d| d.station == station.index_u32())
+    {
+        return true;
+    }
     chain.id == domestic::CLEANUP
         && step == 0
         && world
@@ -587,6 +594,79 @@ fn object_footprint_centre(
     Some(terri_core::Position {
         x: origin.x + (footprint.width as f32 - 1.0) * 0.5,
         y: origin.y + (footprint.depth as f32 - 1.0) * 0.5,
+    })
+}
+
+fn stove_front(
+    pack: &terri_data::ContentPack,
+    object: &terri_core::SmartObject,
+    position: &terri_core::Position,
+    facing: Option<&terri_core::ObjectFacing>,
+) -> Option<terri_core::Position> {
+    let definition = pack.object(object.0);
+    if definition.id != "stove" {
+        return None;
+    }
+    let center = object_footprint_centre(pack, object, position, facing)?;
+    let (dx, dy) = facing
+        .map_or(definition.base_facing, |f| f.0)
+        .rotate_axis(1, 0);
+    Some(terri_core::Position {
+        x: center.x + dx as f32,
+        y: center.y + dy as f32,
+    })
+}
+
+fn cooking_projection(world: &World, person: Entity) -> Option<SocketActionProjection> {
+    use terri_core::{ChainState, Eating, Path, Position, SmartObject, StepWork, Target};
+    let pack = world.resource::<Content>().0;
+    if world.get::<Path>(person).is_some() || world.get::<Eating>(person).is_some() {
+        return None;
+    }
+    world.get::<StepWork>(person)?;
+    let chain = world.get::<ChainState>(person)?;
+    let recipe = pack.chains.get(chain.chain as usize)?;
+    let step = recipe.steps.get(chain.step as usize)?;
+    if !is_authored_station_visual(step)
+        || step.visual.as_ref()?.action != terri_data::CompiledVisualAction::Cook
+        || step.activity != Some(terri_data::CompiledActivity::Cooking)
+    {
+        return None;
+    }
+    let target = world.get::<Target>(person)?;
+    let object = world.get::<SmartObject>(target.object)?;
+    if target.interaction != systems::chain::CHAIN_STEP
+        || pack.object(object.0).id != "stove"
+        || !pack.object(object.0).roles.contains(&step.role)
+    {
+        return None;
+    }
+    let center = object_footprint_centre(
+        pack,
+        object,
+        world.get::<Position>(target.object)?,
+        world.get::<terri_core::ObjectFacing>(target.object),
+    )?;
+    let front = stove_front(
+        pack,
+        object,
+        world.get::<Position>(target.object)?,
+        world.get::<terri_core::ObjectFacing>(target.object),
+    )?;
+    if !world
+        .resource::<terri_core::TileGrid>()
+        .is_walkable(front.x.round() as i32, front.y.round() as i32)
+    {
+        return None;
+    }
+    let facing = facing_toward(person, &front, target.object, &center);
+    Some(SocketActionProjection {
+        x: front.x,
+        y: front.y,
+        facing,
+        target_entity: target.object.index_u32(),
+        visual_action: render_buffer::visual_action::COOK,
+        activity: render_buffer::activity::COOKING,
     })
 }
 
@@ -874,6 +954,7 @@ impl Sim {
             self_preservation: save::self_preservation::capture(&self.world),
             chronotype_offsets: save::chronotype::capture(&self.world),
             domestic: domestic::snapshot(&self.world),
+            dining: dining::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -1169,7 +1250,7 @@ impl Sim {
                 // station walk on the same tick a chosen fridge gets
                 // its path - and there is exactly ONE targeting code
                 // path for chains, this system ([K4]).
-                systems::chain::advance_chains,
+                (dining::advance, systems::chain::advance_chains).chain(),
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -1589,6 +1670,7 @@ impl Sim {
         self.render.sound_sources.clear();
         self.render.carrying.clear();
         self.render.dirty_dishes.clear();
+        self.render.dirty_settings.clear();
         self.render.carried_dishes.clear();
         self.render.meal_portions.clear();
         self.render.voice_firsts.clear();
@@ -1802,6 +1884,12 @@ impl Sim {
             } else {
                 None
             };
+            let station_visual = if is_agent && !socially_active && !at_work {
+                dining::projection(&self.world, entity)
+                    .or_else(|| cooking_projection(&self.world, entity))
+            } else {
+                None
+            };
             let socket_action_visual = if is_agent && !socially_active && !at_work {
                 authored_socket_action_visual(content, &self.world, eating, step_work, target)
             } else {
@@ -1846,6 +1934,15 @@ impl Sim {
                         y,
                         false,
                         Some(render_buffer::activity::TALKING),
+                    )
+                } else if let Some(diner) = station_visual {
+                    (
+                        diner.visual_action,
+                        diner.facing,
+                        diner.x,
+                        diner.y,
+                        true,
+                        Some(diner.activity),
                     )
                 } else if let Some((action, direction)) = eating_visual {
                     (
@@ -1978,7 +2075,8 @@ impl Sim {
                     .map_or(0, |colourway| colourway.0),
                 activity,
                 visual_action,
-                interaction_target: socket_action_visual
+                interaction_target: station_visual
+                    .or(socket_action_visual)
                     .filter(|_| socket_projected)
                     .map_or(render_buffer::NO_INTERACTION_TARGET, |projection| {
                         projection.target_entity
@@ -2019,6 +2117,9 @@ impl Sim {
             self.render
                 .dirty_dishes
                 .push(surface.map_or(0, |items| items[1]));
+            self.render
+                .dirty_settings
+                .push(dining::setting_counts(&self.world, row.index));
             self.render
                 .meal_portions
                 .push(surface.map_or(0, |items| items[2]));
@@ -3241,6 +3342,7 @@ impl Sim {
             }
         }
         domestic::hash(&self.world, &mut hasher);
+        dining::hash(&self.world, &mut hasher);
         hasher.finish()
     }
 }

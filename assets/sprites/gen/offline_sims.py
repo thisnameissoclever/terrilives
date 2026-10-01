@@ -17,6 +17,8 @@ STEMS = {
     "sit": "Sit", "sleep": "Sleep", "exercise": "Exercise",
     "prepare": "Prepare", "cook": "Cook", "wash": "Wash",
     "carry_walk": "CarryWalk", "carry_idle": "CarryIdle",
+    "food_walk": "FoodWalk", "food_idle": "FoodIdle",
+    "seated_eat": "SeatedEat", "cook_v2": "CookV2",
 }
 
 
@@ -148,7 +150,7 @@ def runtime_tables(export, all_sprites):
             [indices[f"{prefix}{STEMS[action]}{facing}{frame}"] for frame in range(clip["frame_count"])]
             for facing in FACINGS
         ]}
-        if action in ("walk", "carry_walk"):
+        if action in ("walk", "carry_walk", "food_walk"):
             distance = clip.get("distance_per_cycle_model_units")
             if type(distance) not in (int, float) or distance <= 0 or not math.isfinite(distance) or abs(1 / distance - round(1 / distance)) > 1e-9:
                 raise ValueError("walk cycle distance must meet at integer tile corners")

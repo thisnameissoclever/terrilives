@@ -233,7 +233,7 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 9;
+    const APPENDED_LISTS: usize = 10;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
@@ -262,37 +262,46 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let domestic = usize::from(snapshot.domestic.is_some());
                 let instinct = snapshot.self_preservation.len();
                 let chronotype = snapshot.chronotype_offsets.len();
-                let invented = match pad {
-                    0 => 0,
-                    1 => domestic,
-                    2 => domestic + chronotype,
-                    3 => domestic + chronotype + instinct,
-                    4 => domestic + chronotype + instinct + waiting,
-                    5 => domestic + chronotype + instinct + waiting + migrated,
-                    6 => domestic + chronotype + instinct + waiting + migrated + mortality,
-                    7 => domestic + chronotype + instinct + waiting + migrated + mortality + family,
-                    8 => {
-                        domestic
-                            + chronotype
-                            + instinct
-                            + waiting
-                            + migrated
-                            + mortality
-                            + family
-                            + by_index
-                    }
-                    _ => {
-                        domestic
-                            + chronotype
-                            + instinct
-                            + waiting
-                            + migrated
-                            + mortality
-                            + family
-                            + by_index
-                            + snapshot.floors.tiles().len()
-                    }
-                };
+                let invented = usize::from(pad > 0 && snapshot.dining.is_some())
+                    + match pad.saturating_sub(1) {
+                        0 => 0,
+                        1 => domestic,
+                        2 => domestic + chronotype,
+                        3 => domestic + chronotype + instinct,
+                        4 => domestic + chronotype + instinct + waiting,
+                        5 => domestic + chronotype + instinct + waiting + migrated,
+                        6 => domestic + chronotype + instinct + waiting + migrated + mortality,
+                        7 => {
+                            domestic
+                                + chronotype
+                                + instinct
+                                + waiting
+                                + migrated
+                                + mortality
+                                + family
+                        }
+                        8 => {
+                            domestic
+                                + chronotype
+                                + instinct
+                                + waiting
+                                + migrated
+                                + mortality
+                                + family
+                                + by_index
+                        }
+                        _ => {
+                            domestic
+                                + chronotype
+                                + instinct
+                                + waiting
+                                + migrated
+                                + mortality
+                                + family
+                                + by_index
+                                + snapshot.floors.tiles().len()
+                        }
+                    };
                 return (invented == 0).then_some(snapshot);
             }
             Err(postcard::Error::DeserializeUnexpectedEnd) => padded.push(0),
@@ -1654,6 +1663,10 @@ impl SimHandle {
 
     pub fn dirty_dishes_ptr(&self) -> *const u32 {
         self.sim.render_buffer().dirty_dishes.as_ptr()
+    }
+
+    pub fn dirty_settings_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().dirty_settings.as_ptr()
     }
 
     pub fn carried_dishes_ptr(&self) -> *const u32 {
@@ -7970,7 +7983,9 @@ mod instinct_boundary_tests {
         snapshot.self_preservation.clear();
         snapshot.chronotype_offsets.clear();
         snapshot.domestic = None;
+        snapshot.dining = None;
         let mut payload = postcard::to_allocvec(&snapshot).unwrap();
+        assert_eq!(payload.pop(), Some(0));
         assert_eq!(payload.pop(), Some(0));
         assert_eq!(payload.pop(), Some(0));
         assert_eq!(payload.pop(), Some(0));
@@ -7989,13 +8004,69 @@ mod instinct_boundary_tests {
         let mut current = source.sim.save_snapshot_v5();
         current.chronotype_offsets.clear();
         current.domestic = None;
+        current.dining = None;
         let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
         truncated.extend(postcard::to_allocvec(&current).unwrap());
+        truncated.pop();
         truncated.pop();
         truncated.pop();
         truncated.pop();
         let before = loaded.save_bytes();
         assert!(!loaded.load_bytes(&truncated));
         assert_eq!(before, loaded.save_bytes());
+    }
+    #[test]
+    fn published_domestic_tail_without_dining_loads_and_nested_dining_truncation_rejects() {
+        use terri_core::save::{SavedCleanupOpportunity, SavedDining, SavedDishes, SavedDomestic};
+        let source = SimHandle::from_lot();
+        let mut saved = source.sim.save_snapshot_v5();
+        saved.domestic = Some(SavedDomestic {
+            next_dish: 1,
+            dishes: vec![SavedDishes {
+                id: 0,
+                surface: 1,
+                owner: 0,
+                units: 1,
+            }],
+            ..SavedDomestic::default()
+        });
+        saved.dining = None;
+        let mut old = postcard::to_allocvec(&saved).unwrap();
+        assert_eq!(old.pop(), Some(0));
+        let decoded = decode_v5(&old).unwrap();
+        assert_eq!(decoded.domestic, saved.domestic);
+        assert!(decoded.dining.is_none());
+        let mut bytes = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+        bytes.extend(old);
+        let mut loaded = SimHandle::from_lot();
+        assert!(loaded.load_bytes(&bytes));
+        let before = loaded.save_bytes();
+        saved.dining = Some(SavedDining {
+            opportunities: vec![SavedCleanupOpportunity {
+                person: 34,
+                room: 0,
+                known: vec![0],
+                pending: true,
+            }],
+            ..SavedDining::default()
+        });
+        let full = postcard::to_allocvec(&saved).unwrap();
+        for removed in 1..=8 {
+            let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
+            truncated.extend(&full[..full.len() - removed]);
+            assert!(
+                !loaded.load_bytes(&truncated),
+                "cut inside dining extension at {removed}"
+            );
+            assert_eq!(before, loaded.save_bytes());
+        }
+        assert_eq!(
+            loaded.dirty_settings_ptr(),
+            loaded.sim.render_buffer().dirty_settings.as_ptr()
+        );
+        assert_eq!(
+            loaded.sim.render_buffer().dirty_settings.len(),
+            loaded.entity_count()
+        );
     }
 }

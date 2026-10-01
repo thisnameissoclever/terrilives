@@ -879,10 +879,10 @@ describe('SimBridge', () => {
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
     // the applied migration flag, waiting, instincts and chronotype offsets.
-    expect(Array.from(legacyCells.slice(-17))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0]);
+    expect(Array.from(legacyCells.slice(-18))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - 17] = 2;
+    edgeBytes[edgeBytes.length - 18] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -901,14 +901,14 @@ describe('SimBridge', () => {
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration,
     // waiting, instincts and chronotypes. Each empty list costs one byte.
-    expect(Array.from(valid.slice(-17))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0]);
+    expect(Array.from(valid.slice(-18))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -6), valid.slice(0, -13), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -7), valid.slice(0, -14), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();

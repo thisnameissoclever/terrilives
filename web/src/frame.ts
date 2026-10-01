@@ -563,24 +563,26 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
 
 const RIGGED_ACTIONS: readonly string[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
-  'watch_fish', 'sit', 'sleep', 'prepare', 'cook', 'wash',
+  'watch_fish', 'sit', 'sleep', 'prepare', 'cook_v2', 'wash', 'seated_eat',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
-  10, 10, 10,
+  10, 10, 10, 16,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */
 export function simBodySprite(
   id: number, visualAction: number, facing: number, simulationTick: number,
-  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0,
+  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0, carriedFood = false,
 ): number {
   if (!validFacing(facing)) {
-    if (carriedDishes === 0) return simSprite(id, simId);
+    if (carriedDishes === 0 && !carriedFood) return simSprite(id, simId);
     facing = 1;
   }
-  const action = carriedDishes > 0 && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
+  const action = carriedFood && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
+    ? (visualAction === VISUAL_ACTION_WALK ? 'food_walk' : 'food_idle')
+    : carriedDishes > 0 && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
     ? (visualAction === VISUAL_ACTION_WALK ? 'carry_walk' : 'carry_idle')
     : RIGGED_ACTIONS[visualAction] ?? 'idle';
   const clip = RIGGED_SIM_VARIANTS[simShirtVariant(simId)][action];
@@ -857,6 +859,9 @@ export interface RenderSource {
    */
   carrying(): Uint32Array;
   dirtyDishes?(): Uint32Array;
+  dirtySettings?(): Uint32Array;
+  soundActions?(): Uint32Array;
+  soundSources?(): Uint32Array;
   carriedDishes?(): Uint32Array;
   mealPortions?(): Uint32Array;
   /**
@@ -906,6 +911,12 @@ function carriedSprite(source: RenderSource, kind: number): number | null {
 const CARRIED_LIFT = 24;
 const CARRIED_SIDE = 14;
 
+function cookingSurface(id:number, actions?:Uint32Array, sources?:Uint32Array, facings?:Uint32Array):number {
+  if (!actions || !sources || !facings) return 0;
+  for (let i=0;i<actions.length;i++) if (actions[i]===2 && sources[i]===id && facings[i]>=1 && facings[i]<=4) return facings[i];
+  return 0;
+}
+
 function exactEatingPose(
   kind: number,
   activity: number,
@@ -924,7 +935,18 @@ function displayedPropSprite(
   source: RenderSource,
   carriedKind: number,
   eatingPose: boolean,
+  visualAction = 0,
+  activity = 0,
 ): number | null {
+  // Work represents food at its station; seated eating and transport bake it
+  // into the contacting body pose. Logical carrying still drives the recipe.
+  if ((visualAction === 10 && activity === 22) ||
+      (visualAction === 11 && activity === 23) ||
+      (visualAction === 12 && activity === 17) ||
+      (visualAction === 13 && activity === ACTIVITY_EATING)) return null;
+  if (carriedKind === source.itemKinds().indexOf('dinner') &&
+      ((visualAction === 0 && activity <= 2) ||
+       (visualAction === VISUAL_ACTION_WALK && activity === 1))) return null;
   if (eatingPose && carriedKind === NOT_CARRYING) return HELD_SNACK_SPRITE;
   return carriedKind === NOT_CARRYING
     ? null
@@ -1001,6 +1023,8 @@ export function buildInstanceBatch(
   // `sync_render_buffer` starts with a `std::mem::swap`, and memory
   // growth detaches the ArrayBuffer underneath both. See bridge.ts.
   const current = source.positions();
+  const carrying = source.carrying();
+  const dinnerKind = source.itemKinds().indexOf('dinner');
   const previous = source.prevPositions();
   const kinds = source.kinds();
   const sprites = source.sprites();
@@ -1015,6 +1039,9 @@ export function buildInstanceBatch(
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
   const dirtyDishes = source.dirtyDishes?.();
+  const dirtySettings = source.dirtySettings?.();
+  const cookingActions=source.soundActions?.();
+  const cookingSources=source.soundSources?.();
   const carriedDishes = source.carriedDishes?.();
   const mealPortions = source.mealPortions?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
@@ -1073,6 +1100,7 @@ export function buildInstanceBatch(
             wy,
             simIds?.[i],
             carriedDishes?.[i],
+            carrying[i] === dinnerKind && (activities[i] <= 2),
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     const localLight = lighting === null
@@ -1122,10 +1150,12 @@ export function buildInstanceBatch(
     const layout = surfaceLayout(sprites[row]);
     if (!layout) continue;
     const dirty = dirtyDishes?.[row] ?? 0;
-    const items = surfaceItemCount(layout, dirty, mealPortions?.[row] ?? 0);
+    const settings = dirtySettings?.[row];
+    const cooking = layout.kind === 'stove' ? cookingSurface(ids[row],cookingActions,cookingSources,facings) : 0;
+    const items = surfaceItemCount(layout, dirty, mealPortions?.[row] ?? 0, settings, cooking);
     for (let item = 0; item < items; item++) {
-      const sprite = surfaceItemSprite(layout, dirty, item);
-      const point = layout.points[surfacePointIndex(layout, dirty, item)];
+      const sprite = surfaceItemSprite(layout, dirty, item, settings, cooking);
+      const point = layout.points[surfacePointIndex(layout, dirty, item, settings, cooking)];
       const light = lighting === null ? EMISSIVE_NONE : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
       writeInstance(scratch, slot,
         screenX(wx, wy, originX, scale) + (spriteDrawOffsetX(sprite) + point[0]) * scale,
@@ -1209,6 +1239,7 @@ export function buildInstanceBatch(
             wy,
             simIds?.[i],
             carriedDishes?.[i],
+            carrying[i] === dinnerKind && (activities[i] <= 2),
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     writeInstance(
@@ -1239,7 +1270,6 @@ export function buildInstanceBatch(
   // zoomed sims moved at scaled ones - the owner saw the badge
   // tracking its carrier "at a different rate". Both the position and
   // the offsets take the scale.
-  const carrying = source.carrying();
   for (let i = 0; i < count; i++) {
     if (activities[i] === ACTIVITY_AT_WORK) continue;
     const eatingPose = exactEatingPose(
@@ -1248,7 +1278,7 @@ export function buildInstanceBatch(
       visualActions[i],
       facings[i],
     );
-    const sprite = displayedPropSprite(source, carrying[i], eatingPose);
+    const sprite = displayedPropSprite(source, carrying[i], eatingPose, visualActions[i], activities[i]);
     if (sprite === null) continue;
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
@@ -1360,6 +1390,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
   const sprites = source.sprites();
   const activities = source.activities();
   const carrying = source.carrying();
+  const ids = source.ids();
   const kinds = source.kinds();
   const visualActions = source.visualActions();
   const facings = source.facings();
@@ -1367,10 +1398,13 @@ export function instanceCount(source: RenderSource, selected: number | null,
   interactions.updateSource(source, 0, true);
   const replacedRow = placementReplacedRow(source, selected, placement);
   const dirtyDishes = source.dirtyDishes?.();
+  const dirtySettings = source.dirtySettings?.();
+  const cookingActions=source.soundActions?.();
+  const cookingSources=source.soundSources?.();
   const mealPortions = source.mealPortions?.();
   for (let i = 0; i < source.count; i++) {
     if (i !== replacedRow && !interactions.suppressed[i]) {
-      extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0);
+      extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0, dirtySettings?.[i], cookingSurface(ids[i],cookingActions,cookingSources,facings));
     }
     if (
       foregroundSprites !== null &&
@@ -1390,7 +1424,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     );
     if (
       activities[i] !== ACTIVITY_AT_WORK &&
-      displayedPropSprite(source, carrying[i], eatingPose) !== null
+      displayedPropSprite(source, carrying[i], eatingPose, visualActions[i], activities[i]) !== null
     ) {
       extras++;
     }

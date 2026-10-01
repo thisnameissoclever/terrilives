@@ -1,0 +1,168 @@
+{
+  "state": "complete",
+  "samples": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "collisions": []
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "collisions": []
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "collisions": []
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "collisions": []
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "collisions": []
+    }
+  ],
+  "method": "Existing armchair evaluated triangle-crossing and containment mechanism",
+  "collision_count": 0,
+  "model_sha256": "614e25602e46d82e8f895062eabde80847642980898eb22b3d1fe92da049c22e"
+}

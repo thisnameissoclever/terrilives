@@ -1021,10 +1021,10 @@ pub fn select_action(
                     })
                     .flatten();
                 if snack.is_some_and(|chain| {
-                    chain
-                        .steps
-                        .iter()
-                        .any(|step| role_positions[step.role as usize].is_empty())
+                    chain.steps.iter().enumerate().any(|(i, step)| {
+                        role_positions[step.role as usize].is_empty()
+                            && !crate::dining::managed_step(content.0, chain, i as u32)
+                    })
                 }) {
                     continue;
                 }
@@ -1105,10 +1105,10 @@ pub fn select_action(
                 chain_row += 1;
                 if crate::domestic::hidden_chain(&chain.id)
                     || chain.id == crate::domestic::CLEANUP
-                    || chain
-                        .steps
-                        .iter()
-                        .any(|step| role_positions[step.role as usize].is_empty())
+                    || chain.steps.iter().enumerate().any(|(i, step)| {
+                        role_positions[step.role as usize].is_empty()
+                            && !crate::dining::managed_step(content.0, chain, i as u32)
+                    })
                 {
                     continue;
                 }

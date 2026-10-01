@@ -134,6 +134,8 @@ pub struct RenderBuffer {
     pub carrying: Vec<u32>,
     /// Visible dirty dish units and unclaimed meal plates on each surface row.
     pub dirty_dishes: Vec<u32>,
+    /// Four table-setting nibbles, each the visible dish count capped at 15.
+    pub dirty_settings: Vec<u32>,
     /// Collected cleanup load, derived from the saved cleanup claims.
     pub carried_dishes: Vec<u32>,
     pub meal_portions: Vec<u32>,
@@ -248,6 +250,7 @@ pub mod visual_action {
     pub const PREPARE: u32 = 10;
     pub const COOK: u32 = 11;
     pub const WASH: u32 = 12;
+    pub const SEATED_EAT: u32 = 13;
 }
 
 /// Lot-axis facing codes for projected body actions.

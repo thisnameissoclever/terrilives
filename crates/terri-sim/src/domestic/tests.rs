@@ -48,7 +48,7 @@ fn needs_override_tidiness_and_slobs_rarely_clean() {
             &full,
             15.0,
             &terri_data::pack().tuning.domestic.unwrap()
-        ) - 0.90)
+        ) - 0.98)
             .abs()
             < 0.00001
     );
@@ -86,6 +86,79 @@ fn needs_override_tidiness_and_slobs_rarely_clean() {
             15.0,
             &terri_data::pack().tuning.domestic.unwrap()
         )
+    );
+}
+
+#[test]
+fn average_cleanliness_has_stronger_own_cleanup_and_thirty_percent_blocker_response() {
+    let tuning = terri_data::pack().tuning.domestic.unwrap();
+    let full = Needs::all_at(100.0);
+    assert!((cleanup_probability(0.5, &full, 15.0, &tuning) - 0.6566667).abs() < 0.00001);
+    assert!((blocked_cleanup_probability(0.5, &full, 15.0, &tuning) - 0.30).abs() < 0.00001);
+    assert!(cleanup_probability(0.08, &full, 15.0, &tuning) < 0.025);
+    assert!(blocked_cleanup_probability(0.9, &full, 15.0, &tuning) > 0.45);
+    let mut exhausted = full;
+    exhausted.set(NeedId::Energy, 5.0);
+    assert!(blocked_cleanup_probability(1.0, &exhausted, 15.0, &tuning) < 0.003);
+}
+
+#[test]
+fn busy_room_entry_defers_one_cleanup_draw_and_own_old_mess_can_trigger_it() {
+    let (mut sim, people, _, counter, _) = household();
+    let observer = people[1];
+    for p in &people {
+        sim.world_mut().entity_mut(*p).insert(ChainState::begin(0));
+        *sim.world_mut().get_mut::<Needs>(*p).unwrap() = Needs::all_at(100.0);
+    }
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() =
+        *sim.world().get::<Position>(counter).unwrap();
+    let owner = sim.world().get::<SimId>(observer).unwrap().0;
+    add_dishes(sim.world_mut(), counter.index_u32(), owner, 1);
+    sim.world_mut().resource_mut::<SavedDomestic>().cleanliness =
+        people.iter().map(|p| (p.index_u32(), 1.0)).collect();
+    let seed = (0..1000)
+        .find(|seed| SimRng::from_seed(*seed).next_f32() < 0.35 * 0.98)
+        .unwrap();
+    let initial = SimRng::from_seed(seed);
+    sim.world_mut().insert_resource(initial.clone());
+    tick(sim.world_mut());
+    assert_eq!(
+        *sim.world().resource::<SimRng>(),
+        initial,
+        "busy entry must not consume a roll"
+    );
+    assert!(sim
+        .world()
+        .resource::<SavedDining>()
+        .opportunities
+        .iter()
+        .any(|o| o.person == observer.index_u32() && o.pending));
+    sim.world_mut().entity_mut(observer).remove::<ChainState>();
+    tick(sim.world_mut());
+    assert!(sim
+        .world()
+        .resource::<SavedDomestic>()
+        .cleanup
+        .iter()
+        .any(|t| t.person == observer.index_u32() && t.dishes == vec![0]));
+    let after = sim.world().resource::<SimRng>().clone();
+    sim.world_mut()
+        .resource_mut::<SavedDomestic>()
+        .cleanup
+        .clear();
+    sim.world_mut().entity_mut(observer).remove::<ChainState>();
+    tick(sim.world_mut());
+    assert_eq!(
+        *sim.world().resource::<SimRng>(),
+        after,
+        "same noticed pile cannot reroll each tick"
+    );
+    add_dishes(sim.world_mut(), counter.index_u32(), owner, 1);
+    tick(sim.world_mut());
+    assert_ne!(
+        *sim.world().resource::<SimRng>(),
+        after,
+        "a genuinely new dish arms a new opportunity"
     );
 }
 
@@ -875,7 +948,7 @@ fn gathering_yields_to_critical_needs_player_interruptions_and_table_capacity() 
 }
 
 #[test]
-fn a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook() {
+fn guests_stand_to_eat_when_the_table_is_busy_and_the_cook_has_left() {
     let (mut sim, people, table) = plate_with_guests_finishing_their_activity();
     sim.world_mut()
         .resource_mut::<CommandQueue>()
@@ -883,21 +956,36 @@ fn a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook
             agent: people[0].index_u32(),
         });
     sim.flush_commands();
+    let object = sim.world().get::<SmartObject>(table).unwrap().0;
+    *sim.world_mut().get_mut::<Position>(people[0]).unwrap() = Position { x: 2.0, y: 2.0 };
+    sim.world_mut().entity_mut(people[0]).insert((
+        Target {
+            object: table,
+            interaction: 0,
+        },
+        Eating {
+            object,
+            interaction: 0,
+            remaining_ticks: 190,
+        },
+    ));
     sim.world_mut().entity_mut(table).insert(Reserved);
+    let mut saw_standing = false;
     for _ in 0..180 {
         sim.tick();
+        if let Some(state) = sim.world().get_resource::<SavedDining>() {
+            for diner in &state.diners {
+                if people[1..].iter().any(|p| p.index_u32() == diner.person) {
+                    assert_eq!(diner.chair, None);
+                    saw_standing = true;
+                }
+            }
+        }
     }
-    let state = sim.world().resource::<SavedDomestic>();
-    assert_eq!(state.meals[0].table, None);
-    assert_eq!(state.meals[0].collected.len(), 2);
-    for guest in &people[1..] {
-        assert_eq!(sim.world().get::<ChainState>(*guest).unwrap().step, 1);
-        assert!(sim.world().get::<terri_core::Carrying>(*guest).is_some());
-    }
+    assert!(saw_standing);
     let mut restored = Sim::new_from_shipped_lot();
     restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
     assert_eq!(restored.world_hash(), sim.world_hash());
-    sim.world_mut().entity_mut(table).remove::<Reserved>();
     for _ in 0..500 {
         sim.tick();
     }
@@ -1133,7 +1221,7 @@ fn abandoned_shared_plate_becomes_a_counter_dish_and_reservation_has_multiple_ow
 }
 
 #[test]
-fn a_visitor_draws_once_per_entry_at_one_fifth_of_own_willingness() {
+fn a_visitor_draws_once_per_entry_at_the_tuned_fraction_of_own_willingness() {
     let (mut sim, people, _, counter, _) = household();
     let observer = people[1];
     for person in &people {
@@ -1148,6 +1236,9 @@ fn a_visitor_draws_once_per_entry_at_one_fifth_of_own_willingness() {
     let mut decisions = 0;
     for seed in 0..200 {
         sim.world_mut().entity_mut(observer).remove::<ChainState>();
+        if let Some(mut dining) = sim.world_mut().get_resource_mut::<SavedDining>() {
+            dining.opportunities.clear();
+        }
         let state = sim.world_mut().resource_mut::<SavedDomestic>().into_inner();
         state.cleanup.clear();
         state.visits.clear();
@@ -1156,7 +1247,7 @@ fn a_visitor_draws_once_per_entry_at_one_fifth_of_own_willingness() {
             .map(|person| (person.index_u32(), 1.0))
             .collect();
         let mut expected = SimRng::from_seed(seed);
-        let accepted = expected.next_f32() < 0.18;
+        let accepted = expected.next_f32() < 0.35 * 0.98;
         sim.world_mut().insert_resource(SimRng::from_seed(seed));
         tick(sim.world_mut());
         assert_eq!(
@@ -1250,4 +1341,27 @@ fn the_hash_observes_domestic_identity_memory_claims_and_quality() {
         sim.world_mut().insert_resource(state.clone());
         assert_eq!(baseline, sim.world_hash());
     }
+}
+
+#[test]
+fn own_old_dishes_lower_mood_without_self_resentment() {
+    let (mut sim, people, _, counter, _) = household();
+    let observer = people[1];
+    let owner = sim.world().get::<SimId>(observer).unwrap().0;
+    *sim.world_mut().get_mut::<Position>(observer).unwrap() =
+        *sim.world().get::<Position>(counter).unwrap();
+    for person in &people {
+        sim.world_mut()
+            .entity_mut(*person)
+            .insert(ChainState::begin(0));
+    }
+    add_dishes(sim.world_mut(), counter.index_u32(), owner, 3);
+    tick(sim.world_mut());
+    assert!(mood_penalty(sim.world(), observer).unwrap() > 0.0);
+    assert_eq!(
+        sim.world()
+            .get::<Relationships>(observer)
+            .map_or(0.0, |r| r.feeling(SimId(owner))),
+        0.0
+    );
 }

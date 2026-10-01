@@ -627,6 +627,10 @@ export class SimBridge {
     return new Uint32Array(this.memory.buffer, this.handle.dirty_dishes_ptr(), this.count);
   }
 
+  dirtySettings(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.dirty_settings_ptr(), this.count);
+  }
+
   carriedDishes(): Uint32Array {
     return new Uint32Array(this.memory.buffer, this.handle.carried_dishes_ptr(), this.count);
   }
