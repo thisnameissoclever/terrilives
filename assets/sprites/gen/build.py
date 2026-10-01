@@ -36,6 +36,7 @@ from offline_sims import load_export, runtime_tables             # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
+from aquarium_motion import validate_aquarium_motion            # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
@@ -1189,6 +1190,7 @@ def main():
         anchors[index] = prop_anchors[sprite[0]]
         densities[index] = prop_density[sprite[0]]
         bounds[index] = prop_bounds[sprite[0]]
+    validate_aquarium_motion(sprites)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

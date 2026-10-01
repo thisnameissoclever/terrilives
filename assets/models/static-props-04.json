@@ -36,6 +36,18 @@
       "directory": "living/owner-review-pending/bookcase/candidate-01",
       "proof_sha256": "bbe22a421bc086416d86506d579241d7200d7498f97f63532472cff1b55da7ae",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineAquarium",
+      "directory": "living/owner-review-pending/aquarium/candidate-06/frame-0",
+      "proof_sha256": "af0337623fe1bbf0cc33b418de72d0c023ff66a659f00582018d54f15ad8aaa7",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineAquariumFrame1",
+      "directory": "living/owner-review-pending/aquarium/candidate-06/frame-1",
+      "proof_sha256": "65b9281355635970ce6a6def1dc745ba1da5040c04c242eba50a95ffa243ab9c",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

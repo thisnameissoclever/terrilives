@@ -1,0 +1,27 @@
+{
+  "state": "failed",
+  "object": "aquarium-frame-0",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_aquarium.py": "bcb3aa416b5366d1effeb88842936c355ca4d31ed76eeb7a0e7cb861b76cdee3",
+    "living/aquarium_model.py": "05501378e43365832d62f425da0abcc1eef2b5f26a3b7642822b2cedb94600d1",
+    "living/aquarium_layout.py": "e68d5a9d0a51bc789ffc759b002ab436940876115c1ba059c1a2906bdb6bb028",
+    "living/check_aquarium_scene.py": "f9014d720b5f3ab37879bc096be38f350e38e136bcbd6c7c86d158d979ae19a5",
+    "living/check_aquarium_visibility.py": "22775d572e05f0a17e9213cc1b697a37c7ea191944d9c269f33ce05b375419b1",
+    "kitchen/check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+    "bathroom/check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "error": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\kitchen\\render_static.py\", line 53, in run\n    proof['model_checks'] = build(root)\n                            ^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\render_aquarium.py\", line 26, in <lambda>\n    lambda root: checked_build(root, frame),\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\render_aquarium.py\", line 14, in checked_build\n    checks = validate()\n             ^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\check_aquarium_scene.py\", line 43, in validate\n    assert all(edge.is_manifold for edge in topology.edges), f'{name} is not closed'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Plant 0 blade 0 is not closed\n"
+}

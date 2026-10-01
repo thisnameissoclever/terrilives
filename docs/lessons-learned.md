@@ -8102,3 +8102,30 @@ random-value row kept a 150px slider without horizontal overflow. The manual
 value 100 retained a 102px by 44px slider and accepted keyboard input. The
 fixture changes only the fieldset font size; it is separate from the shipped
 page and is not a claim about browser or operating-system text scaling.
+## [L-contained-fish-can-still-be-invisible] Measure sightlines before rerendering
+
+**What happened.** Three aquarium candidates kept hiding fish beneath an
+opaque lid in at least one rotation. Taller glass, stronger colours and small
+height changes improved individual pictures without solving all four views.
+
+**Root cause.** The layout tests proved that fish fit inside the water, not
+that the fixed downward-looking camera could see their complete silhouettes.
+Far-side positions need more clearance than centre positions. Transparency
+also has to survive the runtime's alpha threshold, not merely a PNG viewer.
+
+**Prevention.** After repeated similar failures, obtain fresh-context review
+and measure the missing invariant. Trace sightlines from the evaluated body,
+tail and eyes through every camera direction before rendering another batch.
+Keep the selected exterior where possible; reposition the contents only after
+checking whole-body clearance, separation and the other interior objects.
+
+**Verify.** The rejected third candidate must fail the lid-ray diagnostic.
+Require both new frames to clear it, then inspect reduced sprites and actual
+GPU output. Compare all RGBA channels outside fish-motion regions. Geometry
+checks do not establish rendered readability or owner approval.
+
+Record which camera stage produced projected coordinates. The aquarium's
+embedded pre-render checks run before final canvas registration. Their clear
+lid sightlines remain valid because the view direction is unchanged, but
+their pixel bounds cannot define runtime motion masks. Reopen the saved,
+registered scene and require the masks to match those final projections.

@@ -883,7 +883,7 @@ sprite = "offlineChair"
 id = "reference_shelf"
 name = "Aquarium of Managed Expectations"
 price = 220
-sprite = "bookcaseClosedWide"
+sprite = "offlineAquarium"
 
   # `reference_shelf` is now a Save V1 persistence key rather than a
   # description. Keep this id, its one-tile footprint, and its lot position
