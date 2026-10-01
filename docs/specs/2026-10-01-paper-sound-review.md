@@ -1,6 +1,6 @@
 # Paper sound review
 
-Status: implementation, local tests, browser checks and independent code review passed. Publication is pending. No game sound is replaced or added by this work.
+Status: merged in PR 179 and deployed to GitHub Pages on 2026-10-01. No game sound is replaced or added by this work.
 
 ## Purpose and boundary
 
@@ -53,7 +53,7 @@ The production page started silent at 25% volume. A real Chromium session played
 
 The [desktop](../assets/review-evidence/audio/paper-review/desktop.png), [mobile top](../assets/review-evidence/audio/paper-review/mobile.png) and [mobile controls](../assets/review-evidence/audio/paper-review/mobile-controls.png) screenshots were visually inspected. At 390 px viewport width, document width was 375 px with no horizontal overflow. No page exception occurred; console resource errors were only the existing missing favicon. Native background-tab suspension was not retested in this round. The player lifecycle is unchanged. The task-owned browser and preview server were closed after verification.
 
-Source merge, Pages deployment and owner listening remain separate results. The intended public URL is [audio-review.html](https://thisnameissoclever.github.io/terrilives/audio-review.html); this document does not claim that deployment has completed.
+PR 179 merged at `06ee3e78087678a88c66b3d80f05e6def623aea7`. Main CI run `36839866204` and Pages run `36840398674` succeeded. The public [audio-review.html](https://thisnameissoclever.github.io/terrilives/audio-review.html) was opened afterward: four candidates, silent startup at 25%, and successful original playback were verified. The [live page](../assets/review-evidence/audio/paper-review/live.png) was visually inspected, then the task-owned browser was closed. Owner listening remains separate and unverified.
 
 The existing public game was opened in a task-owned fresh browser session, paused and visually inspected. The household scene, people, furniture and compact controls rendered. The only console errors were requests for the missing site favicon, not game or audio exceptions. [Observed scene](../assets/review-evidence/audio/paper-review/game.png). That browser was closed immediately after capture. This checks the existing deployed game, not the unpublished candidate page.
 

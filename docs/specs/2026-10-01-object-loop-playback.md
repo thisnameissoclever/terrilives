@@ -44,6 +44,12 @@ provenance and the remaining listening work.
 9. Desired source state is bounded by observed live objects, not the four-voice
    admission limit. Missing sources leave it at the next fixed tick. Audio
    node counts have their separate hard limits.
+10. Ending an object cancels its exact source/action even if the context is
+    externally suspended. Pending ownership is removed before player cleanup.
+    A stopped clock disposes that source immediately rather than retaining an
+    unrenderable fade. Other sources are not cancelled. Automatic recovery of
+    starts dropped during suspension is a separate unresolved transition; see
+    `2026-10-01-suspended-audio-cancellation.md`.
 
 ## Verification
 
