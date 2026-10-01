@@ -80,10 +80,12 @@ describe('the Floors tool', () => {
     expect(floors.highlight()).toBeNull();
   });
 
-  it('lays the chosen covering where the player clicks, and says what is there', () => {
+  it('selects without mutation, then applies the requested covering to that tile', () => {
     const { floors, source } = tool();
     floors.choose(3);
     floors.choosePoint(1.1, 0.9);
+    expect(source.staged).toEqual([]);
+    floors.applyCovering(3);
     expect(source.staged).toEqual([[1, 1, 3]]);
     expect(floors.highlight()).toEqual({ tiles: [[1, 1]], valid: true });
 
@@ -108,6 +110,7 @@ describe('the Floors tool', () => {
     source.tiles = [2, 0, 1];
     floors.choose(BARE);
     floors.choosePoint(2, 0);
+    floors.applyCovering(BARE);
     expect(source.staged).toEqual([[2, 0, BARE]]);
     source.result = { x: 2, y: 0, covering: BARE, reason: 0 };
     source.tiles = [];
@@ -126,6 +129,7 @@ describe('the Floors tool', () => {
     // A refusal the drain reports reaches the status line.
     floors.choose(1);
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     source.result = { x: 1, y: 1, covering: 1, reason: 5 };
     floors.afterCommands();
     expect(floors.status).toBe('That tile is not on the lot.');
@@ -165,6 +169,7 @@ describe('the Floors tool', () => {
     floors.setBlocked(false);
 
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     expect(source.staged).toHaveLength(1);
     floors.choosePoint(2, 1);
     expect(source.staged).toHaveLength(1);
@@ -173,12 +178,14 @@ describe('the Floors tool', () => {
   it('clears on Escape and after a Load, and keeps a change already on its way', () => {
     const { floors, source } = tool();
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     source.result = { x: 1, y: 1, covering: 1, reason: 0 };
     floors.afterCommands();
     expect(floors.handleKey('Escape')).toBe(true);
     expect(floors.tile).toBeNull();
 
     floors.choosePoint(2, 1);
+    floors.applyCovering(1);
     expect(floors.pending).toBe(1);
     floors.exit();
     // An edit on its way is kept until its result arrives.
@@ -198,12 +205,13 @@ describe('the Floors tool', () => {
     const { floors, source } = tool();
     source.accept = false;
     floors.choosePoint(1, 1);
+    floors.applyCovering(1);
     expect(floors.status).toBe('That change could not be sent.');
   });
 });
 
 describe('the Floors tool in the page', () => {
-  const IDS = ['build-tool-floors', 'floor-tool', 'floor-status', 'floor-coverings',
+  const IDS = ['build-tool-floors', 'floor-tool', 'floor-status', 'floor-shortcut-content',
     'floor-keyboard-help', 'floor-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
@@ -232,25 +240,15 @@ describe('the Floors tool in the page', () => {
     expect(MAIN_TS).toContain('floorTool.resetAfterLoad(lotWidth, lotHeight);');
   });
 
-  it('builds one button per covering plus Remove, from the content', () => {
+  it('keeps selection feedback and optional shortcuts in the panel', () => {
     const source = new FakeFloors();
     const floors = new FloorTool(source as never, 4, 3, { changed: () => {} });
     const elements = new Map<string, FakeElement>();
-    const document = fakeDocument(elements);
-    const view = new FloorToolControls(document as never, floors);
-    expect(elements.get('floor-coverings')!.children.map((child) => child.textContent))
-      .toEqual(['Boards', 'Tiles', 'Carpet', 'Remove']);
-
-    floors.enter();
-    elements.get('floor-coverings')!.children[2].listeners.click?.();
-    expect(floors.chosen).toBe(3);
-    view.render();
-    expect(elements.get('floor-coverings')!.children.map((child) => child.attributes['aria-pressed']))
-      .toEqual(['false', 'false', 'true', 'false']);
+    const view = new FloorToolControls(fakeDocument(elements) as never, floors);
+    floors.enter(); floors.choosePoint(1, 1); view.render();
     expect(elements.get('floor-status')!.textContent).toBe(floors.status);
-
     view.setCompact(true);
-    expect(elements.get('floor-keyboard-help')!.hidden).toBe(true);
+    expect(elements.get('floor-keyboard-help')!.hidden).toBe(false);
     expect(elements.get('floor-touch-help')!.hidden).toBe(false);
   });
 });

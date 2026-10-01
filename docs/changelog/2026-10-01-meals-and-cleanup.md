@@ -1,6 +1,6 @@
-# Meals, moods, shared beds and solid doors
+# Build controls, meals, shared beds and solid doors
 
-Share meals and beds, navigate bathroom boundaries and watch doors swing with visible thickness.
+Build actions beside your selection, shared meals, bathroom boundaries, developing relationships and solid doors.
 
 ## New
 - Assign a sleeping place in Sim details under Personality, habits and bed. Each place shows its assignee and current occupant.
@@ -18,6 +18,12 @@ Share meals and beds, navigate bathroom boundaries and watch doors swing with vi
 
 ## Improved
 - Doors swing more smoothly as Sims walk through.
+- Wall, doorway and window controls appear around the selected edge. Curved arrows turn the selection without changing the house until you choose an edit.
+- Furniture and purchases have nearby placement, rotation and cancellation controls. Selling shows its return; buying shows its price.
+- Room controls let you choose a doorway or restart its corners.
+- Floors now selects a tile first. Choose its covering afterward; selecting another tile never paints it automatically. Remove restores the original floor.
+- Shortcuts starts collapsed and groups actions with labeled keycaps. Help groups building, people, camera and saved-game controls.
+- Zoom buttons work in Build.
 - Dirty dishes have a smaller effect on relationships; their mood effects stay the same.
 - Friendships and grudges fade more slowly without interaction.
 
@@ -25,6 +31,8 @@ Share meals and beds, navigate bathroom boundaries and watch doors swing with vi
 - Door leaves and frames overlap Sims correctly during crossings.
 - Sims' feet no longer disappear beneath doorway thresholds.
 - Doorways on both wall directions now show doors with the same crossing and closing sounds.
+- All desktop Build tools keep the same panel width. Action labels are centered, and compact layouts keep navigation and essential controls reachable.
+- Keyboard focus stays on Build controls when the panel moves during resizing.
 - Floor previews show the whole selected tile, with instructions that adapt between desktop and phone controls.
 - Activity bubbles appear when an activity starts, rather than while someone walks toward it.
 - Audio recovers after browser interruptions without restarting sounds from activities that have already ended.

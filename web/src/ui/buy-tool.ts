@@ -154,11 +154,11 @@ export class BuyTool {
     this.query(x, y, this.preview.facing);
   }
 
-  rotate(): void {
+  rotate(direction: -1 | 1 = 1): void {
     if (!this.active || this.pending || this.blocked || !this.preview || !this.canRotate) return;
     const mask = this.chosen?.facings ?? 0;
     for (let turn = 1; turn <= 4; turn += 1) {
-      const facing = (this.preview.facing + turn) % 4;
+      const facing = (this.preview.facing + direction * turn + 4) % 4;
       if ((mask & (1 << facing)) !== 0) {
         this.query(this.preview.x, this.preview.y, facing);
         return;

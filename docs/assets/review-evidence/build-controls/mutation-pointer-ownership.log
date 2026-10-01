@@ -1,0 +1,20 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    calls: 1,
+    disabledFocus: true,
++   escaped: 1,
+-   escaped: 0,
+    hidden: true,
+    hiddenFocus: true
+  }
+
+    at D:\VIBES\.worktrees\9fb8\terrilives\scripts\verify-build-controls.cjs:134:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [Object],
+  expected: [Object],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}

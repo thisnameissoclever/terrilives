@@ -140,10 +140,10 @@ export class FurnitureBuilder {
     else this.cycle(1);
   }
 
-  rotate(): void {
+  rotate(direction: -1 | 1 = 1): void {
     if (!this.active || this.pending || this.blocked || !this.preview || !this.canRotate) return;
     for (let turn = 1; turn <= 4; turn += 1) {
-      const facing = (this.preview.facing + turn) % 4;
+      const facing = (this.preview.facing + direction * turn + 4) % 4;
       if ((this.mask & (1 << facing)) !== 0) {
         this.query(this.preview.x, this.preview.y, facing);
         return;
