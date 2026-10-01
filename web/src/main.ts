@@ -840,7 +840,9 @@ async function main(): Promise<void> {
     loadGameDialog.showModal();
   });
   loadGameDialog.addEventListener('close', () => {
-    if (!loadingGame) overlayPause.resume('load-game');
+    if (loadingGame) return;
+    restorePersistenceFocus(document, loadGameDialog, optionsToggle, persistenceFocusFallbacks);
+    overlayPause.resume('load-game');
   });
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
@@ -946,7 +948,9 @@ async function main(): Promise<void> {
     newGameDialog.showModal();
   });
   newGameDialog.addEventListener('close', () => {
-    if (!clearingForNewGame) overlayPause.resume('new-game');
+    if (clearingForNewGame) return;
+    restorePersistenceFocus(document, newGameDialog, optionsToggle, persistenceFocusFallbacks);
+    overlayPause.resume('new-game');
   });
   confirmNewGame.addEventListener('click', (event) => {
     // Same ordering rule as Load: close first, then acquire and publish the

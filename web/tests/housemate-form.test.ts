@@ -332,6 +332,21 @@ describe('HousemateFormView', () => {
     expect(housemate.page).toBe('traits');
   });
 
+  it('returns to the first enabled trait when a full selection disables the first box', () => {
+    const { housemate, element, row } = view();
+    housemate.setName('Ann');
+    element('housemate-next').fire('click');
+    row('housemate-traits', 1).control.fire('change');
+    row('housemate-traits', 5).control.fire('change');
+    expect(housemate.chosenTraits).toEqual([1, 5]);
+    expect(row('housemate-traits', 0).control.disabled).toBe(true);
+    element('housemate-back').fire('click');
+    element('housemate-next').fire('click');
+    expect(row('housemate-traits', 1).control.focused).toBe(1);
+    expect(row('housemate-traits', 0).control.focused).toBe(1);
+    expect(element('housemate-confirm').focused).toBe(0);
+  });
+
   it('closes the dialog from Cancel, and never lets the form submit', () => {
     const { element } = view();
     element('housemate-cancel').fire('click');
