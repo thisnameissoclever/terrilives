@@ -8248,6 +8248,10 @@ one-node difference using only the `needs-caption` writer.
 **Prevention.** Compare the actual DOM text before assigning. Do not add a second
 cached UI state, change the memory allowance, or accept a failed equality check
 because its count declined. Text refreshes must still repair changed DOM values.
+Include open disclosures in the writer inventory. Personal details retained
+redundant writes after the always-visible HUD was fixed: 20 unchanged public
+refreshes replaced 23 text children and emitted 460 native text mutations.
+The shared text guard reduced both to zero while still repairing changed text.
 
 **Verify.** Check text-child identity across repeated unchanged public updates,
 then change the source value and verify the text updates. The causal diagnostic
