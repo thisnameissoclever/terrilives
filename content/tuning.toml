@@ -848,12 +848,12 @@ exhaustion_bonus = 2.5
 
 # Ordinary relationship development and privacy decisions.
 [relationships]
-proximity_per_hour = 0.057
+proximity_per_hour = 0.075
 shared_activity_multiplier = 10.0
-friction_per_hour = 0.018
+friction_per_hour = 0.0075
 incompatible_below = -0.2
 contact_radius = 4.0
-privacy_respect_chance = 0.72
+privacy_respect_chance = 0.65
 shyness_respect_strength = 0.08
 privacy_decision_ticks = 30
 privacy_critical_wait_ticks = 10
@@ -874,6 +874,6 @@ mood_penalty_min = 2.0
 mood_penalty_bonus = 8.0
 mood_units = 4.0
 mood_max_load = 1.5
-affinity_penalty_min = 0.003
-affinity_penalty_bonus = 0.027
+affinity_penalty_min = 0.0003
+affinity_penalty_bonus = 0.0027
 wash_ticks_per_unit = 8

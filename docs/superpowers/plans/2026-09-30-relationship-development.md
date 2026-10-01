@@ -1,6 +1,6 @@
 # Privacy avoidance and relationship development implementation
 
-Status: implemented and verified locally by one editor in the existing worktree, followed by independent read-only review. No dependency changes or publication requested. [Evidence and acceptance limits](../../evidence/relationship-development/verification.md) include the pooled privacy result, layout variation and need-access observations.
+Implementation uses one editor in the existing worktree and independent read-only review. The owner authorized publication and merge through [PR #196](https://github.com/thisnameissoclever/terrilives/pull/196). [Publication evidence](../../evidence/relationship-development/publication/verification.md) records the combined meals and sleeping-place implementation, aggregate balance, layout variation and need-access limits. [Earlier evidence](../../evidence/relationship-development/verification.md) remains historical. No dependencies changed.
 
 The approved conversation plan is the behavioral contract. Extend the original privacy specification with measured results after implementation.
 

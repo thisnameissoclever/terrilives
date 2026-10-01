@@ -281,10 +281,12 @@ fn run(seed: u64, scenario: &str, without_avoidance: bool, tuning: Overrides) {
         }
     }
     let effective = sim.world().resource::<Content>().0.tuning;
-    println!("SETTINGS,{scenario},{seed},respect={},proximity={},friction={},talk={},privacy_penalty={},television={}",
+    let domestic = effective.domestic.expect("domestic tuning");
+    println!("SETTINGS,{scenario},{seed},respect={},proximity={},friction={},talk={},privacy_penalty={},television={},mess_min={},mess_bonus={}",
         effective.relationships.privacy_respect_chance, effective.relationships.proximity_per_hour,
         effective.relationships.friction_per_hour, effective.relationship_gain_per_talk,
-        effective.bathroom_privacy_penalty, scenario == "shipped" || tuning.television);
+        effective.bathroom_privacy_penalty, scenario == "shipped" || tuning.television,
+        domestic.affinity_penalty_min, domestic.affinity_penalty_bonus);
     let settle = 7 * 1440;
     for _ in 0..settle {
         sim.tick();

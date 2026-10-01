@@ -120,4 +120,4 @@ odor behavior are available in this branch.
 
 ## Validation and delivery status
 
-[Original verification evidence](../evidence/need-social-privacy/verification.md) records the earlier full checks (1,181 Rust tests, 1,228 web tests and 15 causal mutations), controlled browser readings, and the numerical tuning follow-up. Those counts describe the original feature before this extension. [Relationship-development evidence](../evidence/relationship-development/verification.md) records the current integrated test counts, targeted mutations, controlled browser cases and balance matrix, while preserving the earlier results separately. Changes remain uncommitted and unpublished.
+[Original verification evidence](../evidence/need-social-privacy/verification.md) records the original feature's checks and numerical tuning. [Relationship-development evidence](../evidence/relationship-development/verification.md) preserves its subsequent historical results. [Publication evidence](../evidence/relationship-development/publication/verification.md) records the combined sleeping-place and domestic implementation, current tuning, controlled browser cases and balance matrix.

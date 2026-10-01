@@ -1,17 +1,19 @@
 # Sleeping places and bed assignment
 
-Status: implementation in progress. This document records the bounded plan for
-the accepted `[S-bed-assignment]` roadmap item. Two-person sleeping and the
-assignment interface are not shipped.
+This document records the bounded implementation of `[S-bed-assignment]`.
+Individual assignment and shared admission are implemented; the occupied
+double-bed display still requires separate visual acceptance.
 
 The local implementation now includes shared admission, assignment commands,
 V1 through V5 save migration and validation, hashing, lifecycle cleanup and the
 assignment control inside the existing Sim details disclosure. Its label is
 now Personality, habits and bed. Keyboard focus, same-Sim Load and responsive
-control checks have passed, as have the native and web suites. This remains
-unpublished: per-place navigation is implemented locally; the occupied double-bed
-composite is still required before shared sleeping can ship. See
+control checks have passed, as have the native and web suites. Per-place navigation
+is implemented. The occupied double-bed composite remains a visual limitation. See
 `docs/assets/review-evidence/bed-assignment/runtime-ui.md` for this checkpoint.
+The [combined publication evidence](../evidence/relationship-development/publication/verification.md)
+records integration with privacy, relationships and meals, including historical
+bed-save preservation and replay.
 
 The reservation-release foundation is implemented with 20 new tests. All
 1,241 native tests, strict Clippy, formatting and the WASM build passed before

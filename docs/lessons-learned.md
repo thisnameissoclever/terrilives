@@ -8842,6 +8842,15 @@ source fingerprint, and share fixed-station/capacity/seat rules. Refresh routing
 snapshots after claims change; retain the incident baseline for same-tick ordering.
 Verify authentic historical bytes, transactional interior-cut rejection, owned pickup,
 distinct dining seats, cleanup interruption and full-tick diagnostic clamping.
+
+Balance fixtures must include facilities required by newly integrated mechanics.
+Without a dish sink, the formerly adequate household could never clean its dishes.
+Repeated mess resentment then dominated relationship pacing. Check furniture roles
+before calibrating, measure every relationship cause, and tune existing consequence
+coefficients rather than weakening an unrelated fixed penalty. Preserve noticing,
+mood and cleanup rules; verify the full seed cohorts after composition.
+When a penalty shrinks, move a clamping fixture close enough to the bound that
+the requested change still crosses it. Keep separate requested/actual assertions.
 ## [L-public-changelog-is-for-players] Release history must explain the player experience
 
 **What happened.** The first public changelog included PR references, development details and a visual layout the owner rejected. The owner requested mockups before further design work and approved the compact accordion with dark and light themes, dark by default.

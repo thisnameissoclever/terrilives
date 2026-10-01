@@ -209,7 +209,7 @@ fn complaints_are_directional_once_per_visit_and_stronger_for_neat_people() {
         .get::<Relationships>(observer)
         .unwrap()
         .feeling(SimId(0));
-    assert!((first + 0.03).abs() < 0.00001);
+    assert!((first + 0.003).abs() < 0.00001);
     assert!(mood_penalty(sim.world(), observer).unwrap() > 7.0);
     assert_eq!(
         sim.world()
@@ -234,7 +234,7 @@ fn complaints_are_directional_once_per_visit_and_stronger_for_neat_people() {
             .get::<Relationships>(observer)
             .unwrap()
             .feeling(SimId(0))
-            + 0.06)
+            + 0.006)
             .abs()
             < 0.00001
     );
@@ -1332,7 +1332,7 @@ fn mess_diagnostics_survive_full_tick_and_report_clamping() {
         .entity_mut(observer)
         .insert(ChainState::begin(0));
     let mut feelings = Relationships::default();
-    feelings.bump(SimId(0), -0.99);
+    feelings.bump(SimId(0), -0.999);
     sim.world_mut().entity_mut(observer).insert(feelings);
     sim.world_mut().insert_resource(SavedDomestic {
         cleanliness: vec![(observer.index_u32(), 1.0)],
@@ -1349,8 +1349,8 @@ fn mess_diagnostics_survive_full_tick_and_report_clamping() {
                 && e.responsible == SimId(0)
         })
         .unwrap();
-    assert!((effect.requested + 0.03).abs() < 0.00001);
-    assert!((effect.actual + 0.01).abs() < 0.00001);
+    assert!((effect.requested + 0.003).abs() < 0.00001);
+    assert!((effect.actual + 0.001).abs() < 0.00001);
 }
 
 #[test]
