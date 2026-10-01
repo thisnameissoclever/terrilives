@@ -26,6 +26,17 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('refreshes aligned dish views after save/load replaces WASM memory', () => {
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const saved = bridge.saveBytes();
+    expect(bridge.carriedDishes()).toHaveLength(bridge.count);
+    expect(Array.from(bridge.carriedDishes()).every(count => count === 0)).toBe(true);
+    expect(handle.load_bytes(saved)).toBe(true);
+    expect(bridge.carriedDishes().buffer).toBe(wasmMemory.buffer);
+    expect(bridge.dirtyDishes()).toHaveLength(bridge.count);
+    expect(bridge.mealPortions()).toHaveLength(bridge.count);
+  });
   it('enables death by default and preserves a saved off command', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
@@ -386,6 +397,7 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
     bridge.spawnObject(12, 1, 'fridge');
     bridge.spawnAgent(1, 1, 20);
+    bridge.spawnObject(14, 3, 'counter');
 
     const startX = bridge.positions()[2];
     for (let i = 0; i < 40; i++) bridge.tick();
@@ -691,13 +703,14 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
     expect(bridge.spawnObject(4, 1, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
+    expect(bridge.spawnObject(4, 2, 'counter')).toBe(true);
     expect(bridge.useObject(1, 0, 0)).toBe(true);
     for (let i = 0; i < 120; i++) {
       bridge.tick();
-      if (bridge.visualActions()[1] === 2) break;
+      if (bridge.visualActions()[1] === 10) break;
     }
-    expect(Array.from(bridge.visualActions())).toEqual([0, 2]);
-    expect(Array.from(bridge.facings())).toEqual([0, 1]);
+    expect(Array.from(bridge.visualActions())).toEqual([0, 10, 0]);
+    expect(Array.from(bridge.facings())).toEqual([0, 3, 0]);
 
     // Hold the exact new views across growth. Zero-filled fresh views would
     // prove only their lengths; these non-zero sentinels also prove that each
@@ -722,21 +735,21 @@ describe('SimBridge', () => {
     expect(heldFacings.length).toBe(0);
     expect(heldFootprintWidths.length).toBe(0);
     expect(heldFootprintDepths.length).toBe(0);
-    expect(bridge.count).toBe(2002);
+    expect(bridge.count).toBe(2003);
     // If views were cached across growth this reads zeroes or throws.
     const pos = bridge.positions();
-    expect(pos.length).toBe(4004);
+    expect(pos.length).toBe(4006);
     expect(pos.some((v) => v !== 0)).toBe(true);
     const visualActions = bridge.visualActions();
     const facings = bridge.facings();
     const footprintWidths = bridge.footprintWidths();
     const footprintDepths = bridge.footprintDepths();
-    expect(visualActions.length).toBe(2002);
-    expect(facings.length).toBe(2002);
-    expect(footprintWidths.length).toBe(2002);
-    expect(footprintDepths.length).toBe(2002);
-    expect(Array.from(visualActions.slice(0, 2))).toEqual([0, 2]);
-    expect(Array.from(facings.slice(0, 2))).toEqual([0, 1]);
+    expect(visualActions.length).toBe(2003);
+    expect(facings.length).toBe(2003);
+    expect(footprintWidths.length).toBe(2003);
+    expect(footprintDepths.length).toBe(2003);
+    expect(Array.from(visualActions.slice(0, 3))).toEqual([0, 10, 0]);
+    expect(Array.from(facings.slice(0, 3))).toEqual([0, 3, 0]);
     expect(footprintWidths.every((value) => value === 1)).toBe(true);
     expect(footprintDepths.every((value) => value === 1)).toBe(true);
     expect(visualActions.buffer).toBe(wasmMemory.buffer);
@@ -866,10 +879,10 @@ describe('SimBridge', () => {
     // an empty list.
     // The tail includes floors, both family lists, enabled mortality,
     // the applied migration flag, waiting, instincts and chronotype offsets.
-    expect(Array.from(legacyCells.slice(-16))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0]);
+    expect(Array.from(legacyCells.slice(-17))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0]);
     const edgeBytes = legacyCells.slice();
     // The layout tag precedes the appended save fields.
-    edgeBytes[edgeBytes.length - 16] = 2;
+    edgeBytes[edgeBytes.length - 17] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength((34 + 28) * 4);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -888,14 +901,14 @@ describe('SimBridge', () => {
     expect(Array.from(valid.slice(8, 10))).toEqual([5, 0]);
     // Current tail: layout and appended lists, mortality, migration,
     // waiting, instincts and chronotypes. Each empty list costs one byte.
-    expect(Array.from(valid.slice(-16))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0]);
+    expect(Array.from(valid.slice(-17))).toEqual([1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
     future[8] = 6;
     // Cuts at historical field boundaries load. A cut inside mortality
     // or before the appended fields remains malformed.
-    const invalid = [valid.slice(0, -5), valid.slice(0, -12), valid.slice(0, valid.length / 2), trailing, future];
+    const invalid = [valid.slice(0, -6), valid.slice(0, -13), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();
     const edges = live.wallEdges()!.slice();
@@ -1045,6 +1058,8 @@ describe('SimBridge', () => {
     const bridge = new SimBridge(handle, wasmMemory);
     expect(bridge.itemKinds()).toEqual(['ingredients', 'dinner']);
 
+    const bill = Array.from(bridge.ids()).find(id => bridge.simName(id) === "Bill")!;
+    expect(bridge.useObjectFirst(bill, 0, 1)).toBe(true);
     const EMPTY_HANDS = 0xffff_ffff;
     for (let t = 0; t < 6000; t++) {
       bridge.tick();
@@ -1054,7 +1069,7 @@ describe('SimBridge', () => {
         if (carrying[row] === EMPTY_HANDS) continue;
         expect(carrying[row]).toBeLessThan(2);
         const status = bridge.chainStatusOf(ids[row]);
-        expect(status).toContain('Cook dinner');
+        if (status === null || !/^Cook (breakfast|lunch|dinner)/.test(status)) continue;
         expect(status).toContain('carrying');
         return;
       }
@@ -1258,8 +1273,9 @@ describe('SimBridge', () => {
     // 0xc7bb_234c_419a_654cn. Measured on the rebuilt wasm32 module first,
     // then found equal to the native value.
     // Varied autonomy changes selection draws and hashes each person's instinct.
+    // With no counter, snacks are ineligible and selection draws change.
     // Independently measured on native and rebuilt release WASM: identical.
-    expect(bridge.worldHash()).toBe(0xa1a1f123206ce493n);
+    expect(bridge.worldHash()).toBe(0x21c21e6232f46614n);
   });
 
   // ---- Player commands -------------------------------------------------
@@ -1445,15 +1461,16 @@ describe('SimBridge', () => {
 
   it('directs a sim at an object, overriding what it chose for itself', () => {
     // [D-3] through the boundary. The sim is hungry and the two objects
-    // advertise different needs, so autonomy has an unambiguous
-    // preference for the fridge; directing it at the BED is therefore an
-    // instruction it would never have given itself. A command that
+    // advertise different needs. Measure its actual first choice before
+    // directing it at the BED. A command that
     // agrees with autonomy proves nothing ([L36]).
     const build = () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
       expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
-      b.spawnAgent(8, 8, 20);
+      b.spawnAgent(8, 8, 0);
+      expect(b.spawnObject(13, 8, 'counter')).toBe(true);
+      expect(Array.from(b.needsOf(2)!)).toEqual([0, 100, 100, 100, 100, 100, 100]);
       return b;
     };
 
@@ -1461,11 +1478,18 @@ describe('SimBridge', () => {
     // than assumed - without it the assertions below could be describing
     // autonomy's own choice.
     const undirected = build();
+    undirected.tick();
+    expect(undirected.positions()[4]).toBeGreaterThan(8);
     for (let i = 0; i < 20; i++) undirected.tick();
     const undirectedX = undirected.positions()[4];
 
     const bridge = build();
+    bridge.tick();
+    const autonomousX = bridge.positions()[4];
+    expect(autonomousX).toBeGreaterThan(8);
     expect(bridge.useObject(2, 0, 0)).toBe(true);
+    bridge.tick();
+    expect(bridge.positions()[4]).toBeLessThan(autonomousX);
     for (let i = 0; i < 20; i++) bridge.tick();
     const directedX = bridge.positions()[4];
 
@@ -1502,9 +1526,7 @@ describe('SimBridge', () => {
     // and [L12] is this project's recorded instance of a check present in
     // debug and absent from what ships.
     //
-    // Every shipped object offers exactly one interaction, so the shipped
-    // game cannot show a second row doing something different. What it CAN
-    // show is the difference between an index the object has and one it does
+    // This fixture uses two objects with one interaction each. It shows the difference between an index the object has and one it does
     // not, and that is enough to rule out the dangerous wrong answer: a
     // clamp. `min(interaction, len - 1)` or a `NaN >>> 0` anywhere on the
     // path turns "the verb that is not there" into "the first verb", so the
@@ -1522,8 +1544,16 @@ describe('SimBridge', () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
       expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
-      b.spawnAgent(8, 8, 20);
+      b.spawnAgent(8, 8, 0);
+      expect(b.spawnObject(13, 8, 'counter')).toBe(true);
+      expect(Array.from(b.needsOf(2)!)).toEqual([0, 100, 100, 100, 100, 100, 100]);
+      b.tick();
+      const autonomousX = b.positions()[4];
+      expect(autonomousX).toBeGreaterThan(8);
       expect(b.useObject(2, 0, interaction)).toBe(true);
+      b.tick();
+      if (interaction === 0) expect(b.positions()[4]).toBeLessThan(autonomousX);
+      else expect(b.positions()[4]).toBeGreaterThan(autonomousX);
       for (let i = 0; i < 20; i++) b.tick();
       return b.positions()[4];
     };
@@ -1648,7 +1678,7 @@ describe('SimBridge', () => {
     const build = () => {
       const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
       expect(b.spawnObject(2, 8, 'bed')).toBe(true);
-      expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
+      expect(b.spawnObject(11, 8, 'radio')).toBe(true);
       b.spawnAgent(8, 8, 20);
       b.spawnAgent(8, 11, 80);
       return b;

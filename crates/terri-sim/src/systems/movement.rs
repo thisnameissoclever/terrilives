@@ -100,6 +100,7 @@ pub fn follow_path(
     content: Res<Content>,
     grid: Res<TileGrid>,
     mut rng: ResMut<SimRng>,
+    domestic: Option<Res<terri_core::save::SavedDomestic>>,
     mut agents: Query<(
         Entity,
         &mut Position,
@@ -156,8 +157,22 @@ pub fn follow_path(
                 };
                 let chain = &content.0.chains[chain_state.chain as usize];
                 let step = &chain.steps[chain_state.step as usize];
+                let work_ticks = if chain.id == crate::domestic::CLEANUP && chain_state.step == 1 {
+                    domestic.as_ref().map_or(step.duration_ticks, |state| {
+                        crate::domestic::wash_ticks(
+                            state,
+                            entity.index_u32(),
+                            step.duration_ticks,
+                            tuning
+                                .domestic
+                                .map_or(0, |tuning| tuning.wash_ticks_per_unit),
+                        )
+                    })
+                } else {
+                    step.duration_ticks
+                };
                 let remaining_ticks = sample_duration(
-                    step.duration_ticks,
+                    work_ticks,
                     tuning.duration_variance,
                     tuning.min_interaction_ticks,
                     &mut rng,

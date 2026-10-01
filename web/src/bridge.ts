@@ -623,6 +623,18 @@ export class SimBridge {
     );
   }
 
+  dirtyDishes(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.dirty_dishes_ptr(), this.count);
+  }
+
+  carriedDishes(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.carried_dishes_ptr(), this.count);
+  }
+
+  mealPortions(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.meal_portions_ptr(), this.count);
+  }
+
   /**
    * What each row is DOING, as the activity codes the render buffer
    * documents: 0 none, 1 walking, 2 waiting, 3 eating, 4 talking,
@@ -1273,6 +1285,10 @@ export class SimBridge {
   personalityOf(entityIndex: number): Float32Array {
     if (!isU32(entityIndex)) return new Float32Array(0);
     return this.handle.personality_of(entityIndex);
+  }
+
+  cleanlinessOf(entityIndex: number): number | null {
+    return this.handle.cleanliness_of(entityIndex) ?? null;
   }
 
   simDetailsOf(entityIndex: number): SimDetails | null {

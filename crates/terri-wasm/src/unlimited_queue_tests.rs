@@ -45,7 +45,7 @@ fn hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load() {
     let cards = handle.action_queue_of(agent);
     assert_eq!(cards.len(), 515);
     assert_eq!(cards[0], "");
-    assert!(cards[1].starts_with("Cook dinner: "));
+    assert!(cards[1].starts_with("Cook breakfast: "));
     assert!(cards[2..]
         .iter()
         .all(|label| label.starts_with("Grab a snack: ")));

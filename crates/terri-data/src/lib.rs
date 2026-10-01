@@ -17,7 +17,7 @@ pub use pack::{
     CompiledPlacement, CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge,
     CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
-    ContentPack, Footprint, ObjectDefId, Tuning,
+    ContentPack, DomesticTuning, Footprint, ObjectDefId, Tuning,
 };
 pub use pack::{Facing, FacingSprites};
 pub use schema::{
@@ -332,6 +332,11 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
     if saved == exact {
         return true;
     }
+    if let Some(source) = pre_meals_content(pack) {
+        if content_fingerprint_matches(&source, saved) {
+            return true;
+        }
+    }
     saved == current
         || PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS
             .iter()
@@ -347,9 +352,56 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
             .any(|&(prior, target)| saved == prior && current == target)
 }
 
+/// Exact reviewed source for the six-stage meal and appended domestic chains.
+/// A changed destination closes this bridge; an old program counter is mapped
+/// by terri-sim before its station reference is validated against new content.
+pub fn pre_meals_content(pack: &ContentPack) -> Option<ContentPack> {
+    if content_fingerprint(pack) != 0x85a2_d140_0dff_9da1 {
+        return None;
+    }
+    let mut source = pack.clone();
+    source.chains.retain(|chain| chain.id == "cook_dinner");
+    let meal = source
+        .chains
+        .iter_mut()
+        .find(|chain| chain.id == "cook_dinner")?;
+    if meal.steps.len() != 6 {
+        return None;
+    }
+    meal.steps.drain(3..5);
+    let eating = source
+        .roles
+        .iter()
+        .position(|role| role == "eating_surface")? as u32;
+    source.chains[0].steps[3].role = eating;
+    for role_name in ["dish_sink", "meal_table"] {
+        let removed = source.roles.iter().position(|role| role == role_name)? as u32;
+        source.roles.remove(removed as usize);
+        for object in &mut source.objects {
+            object.roles.retain(|role| *role != removed);
+            for role in &mut object.roles {
+                if *role > removed {
+                    *role -= 1;
+                }
+            }
+        }
+        for chain in &mut source.chains {
+            for step in &mut chain.steps {
+                if step.role > removed {
+                    step.role -= 1;
+                }
+            }
+        }
+    }
+    (content_fingerprint(&source) == 0xc2cf_2919_84ed_61f7).then_some(source)
+}
+
 /// Whether `saved` is one of the retired whole-pack fingerprints accepted by
 /// the migration table for this exact current content shape.
 pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
+    if let Some(source) = pre_meals_content(pack) {
+        return content_fingerprint_is_legacy(&source, saved);
+    }
     let current = reviewed_pre_facing_target(content_fingerprint(pack));
     LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
         .iter()
@@ -364,6 +416,9 @@ pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
 /// from [`content_fingerprint_is_legacy`]: this bridge never authorises the
 /// historical household-name rewrite.
 pub fn content_fingerprint_is_prior_structural(pack: &ContentPack, saved: u64) -> bool {
+    if let Some(source) = pre_meals_content(pack) {
+        return content_fingerprint_is_prior_structural(&source, saved);
+    }
     let current = reviewed_pre_facing_target(content_fingerprint(pack));
     PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS
         .iter()
@@ -632,8 +687,8 @@ mod tests {
     /// pack. Both values were read from this assertion failing.
     #[test]
     fn the_trait_library_digest_is_pinned() {
-        assert_eq!(content_fingerprint(pack()), 0xc2cf_2919_84ed_61f7);
-        let mut rebuilt = pack().clone();
+        let mut rebuilt = pre_meals_content(pack()).expect("reviewed pre-meal shape");
+        assert_eq!(content_fingerprint(&rebuilt), 0xc2cf_2919_84ed_61f7);
         let tub = rebuilt.find("bathtub").unwrap();
         rebuilt.objects[tub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         rebuilt.objects[tub.0 as usize].base_facing = Facing::SouthEast;
@@ -675,7 +730,10 @@ mod tests {
         let previous_public = 0x4dab_6950_757c_1f15;
         assert_eq!(
             PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS,
-            &[(previous_public, content_fingerprint(pack()))],
+            &[(
+                previous_public,
+                content_fingerprint(&pre_meals_content(pack()).unwrap())
+            )],
             "the bridge names one source and one reviewed destination"
         );
         assert!(content_fingerprint_matches(pack(), previous_public));
@@ -748,7 +806,7 @@ mod tests {
         // clipping line and made the fridge deliver more hunger than it
         // advertised. `no_shipped_interaction_is_clipped_by_the_interaction_floor`
         // in compile.rs is the rule; this is just deserialisation.
-        assert_eq!(act.duration_ticks, 30);
+        assert_eq!(act.duration_ticks, 85);
         assert_eq!(
             act.advertises,
             vec![(terri_core::NeedId::Hunger.index() as u8, 40.0)]
@@ -907,12 +965,19 @@ mod tests {
             .find(|c| c.id == "cook_dinner")
             .expect("content/chains.toml declares cook_dinner");
         assert_eq!(p.object(chain.advertised_by).id, "fridge");
-        assert_eq!(chain.steps.len(), 4);
+        assert_eq!(chain.steps.len(), 6);
 
         let role = |i: usize| p.roles[chain.steps[i].role as usize].as_str();
         assert_eq!(
-            [role(0), role(1), role(2), role(3)],
-            ["cold_storage", "prep_surface", "hob", "eating_surface"]
+            [role(0), role(1), role(2), role(3), role(4), role(5)],
+            [
+                "cold_storage",
+                "prep_surface",
+                "hob",
+                "hob",
+                "prep_surface",
+                "meal_table"
+            ]
         );
         assert_eq!(chain.steps[2].tags, vec!["cooking".to_string()]);
 
@@ -922,7 +987,15 @@ mod tests {
             chain.steps[2].transforms.map(|(f, t)| (kind(f), kind(t))),
             Some(("ingredients", "dinner"))
         );
-        assert_eq!(chain.steps[3].consumes.map(kind), Some("dinner"));
+        assert_eq!(chain.steps[5].consumes.map(kind), Some("dinner"));
+        assert_eq!(
+            chain
+                .steps
+                .iter()
+                .map(|step| step.duration_ticks)
+                .sum::<u32>(),
+            500
+        );
 
         assert!(
             chain.advertises.iter().any(|(_, delta)| *delta > 0.0),
@@ -1236,6 +1309,7 @@ mod tests {
 
         assert!(!original.chains.is_empty(), "the fixture needs a chain");
         let mut chain_fixture = original.clone();
+        chain_fixture.chains.truncate(1);
         let mut extra_chain = chain_fixture.chains[0].clone();
         extra_chain.id = "another_chain".to_string();
         extra_chain.advertised_by = ObjectDefId(
@@ -1782,7 +1856,7 @@ mod tests {
         let prior = pre_facing_fingerprint(&prior_pack);
         let current = content_fingerprint(pack());
         assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
-        assert_eq!(current, 0xc2cf_2919_84ed_61f7);
+        assert_eq!(current, 0x85a2_d140_0dff_9da1);
         assert_eq!(
             PRE_PORTAL_FINGERPRINT_MIGRATIONS,
             &[(prior, 0xfdf5_87d9_437f_bfd0)],
@@ -1850,6 +1924,8 @@ mod tests {
     /// The shipped pack as it was before [TL-library]: the first three
     /// traits only. Historical digests were computed over that list.
     fn without_the_trait_library(mut source: ContentPack) -> ContentPack {
+        // Historical fixtures undo the domestic structural change first.
+        source = pre_meals_content(&source).unwrap_or(source);
         source.traits.truncate(3);
         source
     }

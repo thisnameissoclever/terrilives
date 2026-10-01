@@ -41,6 +41,7 @@
 # house's biggest fun-dispenser stays available for everyone else.
 [[archetype]]
 id = "the_correspondent"
+cleanliness = 0.9
 # What the New housemate form says about her ([CS-personality]). Each verb
 # follows [TL-affinity]'s lines: the desk's 1.7 is love, the bookshelf's
 # 1.45 and the reading chair's 1.28 are liking, the television's 0.55 is
@@ -111,6 +112,7 @@ satisfaction = { fun = 0.85, energy = 1.15 }
 # The 0.45 on the desk is the same fact from the other side.
 [[archetype]]
 id = "the_settled"
+cleanliness = 0.08
 # Ordinary hours, comfort draining at 1.5; the armchair's 1.85 is love, the
 # long sofa's 1.35 liking, and the desk's 0.45 is under the hate line.
 description = "Keeps ordinary hours and aches for comfort. Loves the armchair, likes lying on the sofa, hates the desk."
@@ -157,6 +159,7 @@ satisfaction = { comfort = 1.25 }
 # pins near zero that is [C2] and the number to soften is the 1.4.
 [[archetype]]
 id = "the_flitting"
+cleanliness = 0.55
 # Three hours late to bed, social draining at 1.4 and refilling at 0.75;
 # the radio's 1.6 is love, the television's 1.2 and the dining table's
 # 1.05 are liking.

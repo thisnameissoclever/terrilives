@@ -93,6 +93,9 @@ pub enum CompiledVisualAction {
     Watch,
     Sit,
     Sleep,
+    Prepare,
+    Cook,
+    Wash,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -696,6 +699,29 @@ pub struct Tuning {
     pub choice_probability_floor: f32,
     pub wander_pause_variance: f32,
     pub self_preservation_curve: [(u8, f32); 6],
+    /// Domestic systems are disabled in custom packs without this table.
+    pub domestic: Option<DomesticTuning>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct DomesticTuning {
+    pub own_cleanup_min: f32,
+    pub own_cleanup_bonus: f32,
+    pub visitor_cleanup_fraction: f32,
+    pub critical_cleanup_scale: f32,
+    pub ready_need_level: f32,
+    pub other_need_floor: f32,
+    pub other_need_level: f32,
+    pub invite_hunger_level: f32,
+    pub accept_hunger_level: f32,
+    pub friend_affinity: f32,
+    pub mood_penalty_min: f32,
+    pub mood_penalty_bonus: f32,
+    pub mood_units: f32,
+    pub mood_max_load: f32,
+    pub affinity_penalty_min: f32,
+    pub affinity_penalty_bonus: f32,
+    pub wash_ticks_per_unit: u32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -729,6 +755,7 @@ pub struct Circadian {
 /// positive - so a reader may assume the ranges rather than re-check.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledPersonality {
+    pub cleanliness: f32,
     pub id: String,
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
@@ -1256,6 +1283,7 @@ mod tests {
                 (100, 2.0),
             ],
 
+            domestic: None,
             action_threshold: 0.25,
             choice_temperature: 0.5,
             idle_threshold: 0.125,
@@ -1403,6 +1431,7 @@ mod tests {
             lot: a_lot(),
             tuning: a_tuning(),
             personalities: vec![CompiledPersonality {
+                cleanliness: 0.5,
                 id: "the_settled".to_string(),
                 // Pairwise distinct across BOTH arrays, so a round trip
                 // that wrote satisfaction into drain's slot - or dropped
@@ -1941,7 +1970,7 @@ mod tests {
         .flat_map(f32::to_le_bytes)
         .collect();
         // Seven f32 controls and six (u8, f32) anchors append 58 bytes.
-        let old_end = before.len() - 58;
+        let old_end = before.len() - 59;
         assert_eq!(&before[old_end - 60..old_end], mood_bytes);
         let len = old_end - 20 - 60;
         assert_eq!(

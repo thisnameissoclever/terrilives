@@ -248,10 +248,11 @@ full ticks can miss removals after multiple paused drains.
     intent **preempts** a running interaction rather than queueing behind it,
     since a sim asleep for 24 seconds would otherwise leave a click with no
     visible response for the whole of it.
-5. `select_action` - pick the winning interaction, **for sims with no queued
+5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and draw one needs-adjusted visitor-cleanup decision per entry. Player intents already have priority.
+6. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
-6. `advance_chains` - resume or begin the next station in a multi-step action.
-7. `wander` - a sim who samples wandering among the eligible weighted choices
+7. `advance_chains` - resume or begin the next station in a multi-step action.
+8. `wander` - a sim who samples wandering among the eligible weighted choices
     walks to a random reachable LOCAL tile instead of standing still ([D-5] of
     the M1c design and [LW2] of the local-wandering spec). Both the endpoint's
     Manhattan distance and the actual A* path are capped by
@@ -260,16 +261,16 @@ full ticks can miss removals after multiple paused drains.
     `wander_attempts`; the system never widens the search to the whole lot. It
     draws x then y and a pause length from the shared PRNG and
     processes sims in entity-index order before those draws.
-8. `follow_path` - move one deterministic step along the chosen path.
-9. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
-10. `tick_interactions` - advance ordinary object interactions and need deltas.
-11. `tick_chain_steps` - advance station work and terminal-only chain payoff.
-12. `tick_social` - advance conversations and directional relationships.
-13. `decay_habituation` - cool repeated-object memory.
-14. `decay_relationships` - apply directional relationship decay.
-15. `bleed_neglect` - reduce satisfaction when needs remain neglected.
-16. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
-17. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
+9. `follow_path` - move one deterministic step along the chosen path.
+10. `commute_and_work` - clock in at the street's exit or the door, run the shift, pay, and walk home.
+11. `tick_interactions` - advance ordinary object interactions and need deltas.
+12. `tick_chain_steps` - advance station work and terminal-only chain payoff.
+13. `tick_social` - advance conversations and directional relationships.
+14. `decay_habituation` - cool repeated-object memory.
+15. `decay_relationships` - apply directional relationship decay.
+16. `bleed_neglect` - reduce satisfaction when needs remain neglected.
+17. `mortality::tick` - count consecutive final-tick zero hunger or energy, then remove eligible sims in entity-index order when death is enabled. Recovery earlier in the same tick prevents death.
+18. `mood::accrue_satisfaction` - derive each survivor's mood and integrate its signed contribution into life satisfaction, including grief from this tick.
 
 After the command drain and before advancing the clock, `mortality::cleanup` releases actions whose owner lost Needs or whose target lost SmartObject. Death releases its own claims before despawning without freeing the entity index. `waiting::clear` removes the previous item-wait decision before selection and chain scheduling publish the next one.
 
@@ -689,8 +690,7 @@ keeps frame zero, so the directional action remains legible without ornamental
 alternation.
 
 Eating extends the same two-column contract without widening the bridge.
-`Grab a snack` declares `eat / object / toward_anchor`; the terminal dinner
-chain step declares `eat / station / toward_anchor`. Render sync requires the
+The current snack and meal eating stages declare `eat / station / toward_anchor`. Historical in-flight standalone snacks retain their `eat / object / toward_anchor` contract. Render sync requires the
 exact active interaction or chain step, resolves its exact target object, and
 faces toward the centre of that object's authored footprint. Malformed or
 unauthored state emits no pose. The shell maps action code 2 to four
@@ -1365,3 +1365,12 @@ world. Older saves omit the field and retain zero offsets. Frozen entity records
 remain unchanged. The world hash includes nonzero offsets and their owners in
 entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
+## Domestic state and presentation
+
+[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Meal tables permit up to four terminal meal occupants, with separate adjacent endpoints and ownership-aware reservation release. Other uses remain exclusive.
+
+`SavedDomestic` is the appended optional V5 tail. It records cleanliness profiles, monotonically issued dish identities and their surfaces and responsible SimIds, canonical room-visit memory, exclusive cleanup claims, and shared-meal invite/claim/collection/completion state. Cancellation, chain replacement, washing, furniture sales and death maintain those references at their own transition. Loading validates both directions between claims and chains before adoption, then refreshes the render projection. Older bytes default the tail to absent. The exact structural bridge reconstructs the old four-step recipe and roles, validates the source, maps its terminal step 3 to 5, and preserves prior geometry migrations. Unreviewed structural destinations close the bridge.
+
+Room membership is a flood fill across open saved wall edges; doorways separate rooms while furniture never does. Annoyance is a derived moodlet, and existing sustained mood integrates its effect into satisfaction. Directional resentment is charged once per creator newly noticed during a visit. [Sim interpersonal relations](SIM-RELATIONSHIPS.md) documents the composition with other social effects.
+
+The render bridge adds aligned `dirty_dishes` and `meal_portions` columns. Surface stacks and up to three prepared plate sprites disappear on actual collection, rather than on a reservation. Visual action codes 10, 11 and 12 append prepare, cook and wash; four rig frames per facing and shirt color use a ten-tick phase. Reduced motion holds frame zero. Existing action codes, sprite-name prefix order and approved rig source stay stable.

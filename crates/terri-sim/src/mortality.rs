@@ -115,6 +115,7 @@ fn clear_action(world: &mut World, entity: Entity) {
 }
 
 fn remove_person(world: &mut World, dead: Entity) {
+    crate::domestic::remove_person(world, dead);
     let own_target = world.get::<Target>(dead).copied();
     let partner = world.get::<Socialising>(dead).map(|talk| Target {
         object: talk.partner,

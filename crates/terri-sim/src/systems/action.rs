@@ -26,6 +26,24 @@ fn build_distance_field(grid: &TileGrid, from: (i32, i32)) -> Option<TileDistanc
     grid.distance_field(from)
 }
 
+fn chain_travel(chain: &terri_data::CompiledChain, role_positions: &[Vec<(f32, f32)>]) -> f32 {
+    chain
+        .steps
+        .windows(2)
+        .map(|pair| {
+            role_positions[pair[0].role as usize]
+                .iter()
+                .flat_map(|(ax, ay)| {
+                    role_positions[pair[1].role as usize]
+                        .iter()
+                        .map(move |(bx, by)| (ax - bx).abs() + (ay - by).abs())
+                })
+                .fold(f32::INFINITY, f32::min)
+        })
+        .filter(|distance| distance.is_finite())
+        .sum()
+}
+
 fn reconstruct_winning_path(
     grid: &TileGrid,
     from: (i32, i32),
@@ -578,6 +596,7 @@ pub fn serve_intents(
             // people loop documents.
             claimed.push(intent.object);
             claimed.push(agent);
+            commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
             commands
                 .entity(intent.object)
                 .remove::<terri_core::Wander>()
@@ -609,16 +628,36 @@ pub fn serve_intents(
         // emptied: two dinners at once is not a state.
         {
             let interactions = content.0.object(placed.0).interactions.len();
-            if intent.interaction as usize >= interactions {
-                let local = intent.interaction as usize - interactions;
-                let Some((global, _)) = content
+            let snack = content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(intent.interaction as usize)
+                .is_some_and(|act| act.id == "grab_snack")
+                && content
                     .0
                     .chains
                     .iter()
-                    .enumerate()
-                    .filter(|(_, chain)| chain.advertised_by == placed.0)
-                    .nth(local)
-                else {
+                    .any(|chain| chain.id == crate::domestic::SNACK);
+            if intent.interaction as usize >= interactions || snack {
+                let local = (intent.interaction as usize).saturating_sub(interactions);
+                let requested = if snack {
+                    content
+                        .0
+                        .chains
+                        .iter()
+                        .enumerate()
+                        .find(|(_, chain)| chain.id == crate::domestic::SNACK)
+                } else {
+                    content
+                        .0
+                        .chains
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, chain)| chain.advertised_by == placed.0)
+                        .nth(local)
+                };
+                let Some((global, chain)) = requested else {
                     // Past the chains too: the pack changed under a
                     // saved command log, since a live click cannot name
                     // a row that is not there. Dropping it is what
@@ -628,6 +667,10 @@ pub fn serve_intents(
                     queue.pop();
                     continue;
                 };
+                if crate::domestic::hidden_chain(&chain.id) && !snack {
+                    queue.pop();
+                    continue;
+                }
                 if let Some(target) = target {
                     crate::reservations::release(&mut commands, agent, *target);
                 }
@@ -642,6 +685,12 @@ pub fn serve_intents(
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
                     .insert(terri_core::ChainState::begin(global as u32));
+                commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
+                if chain.id == crate::domestic::CLEANUP {
+                    commands.queue(move |world: &mut World| {
+                        crate::domestic::directed_cleanup(world, agent)
+                    });
+                }
                 claimed.push(agent);
                 queue.pop();
                 continue;
@@ -703,6 +752,7 @@ pub fn serve_intents(
         // reserve a sim already walking away - the deferred-Target
         // blindness again.
         claimed.push(agent);
+        commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
         commands
             .entity(intent.object)
             .remove::<terri_core::Wander>()
@@ -819,7 +869,16 @@ pub fn select_action(
 ) {
     let mut role_positions: Vec<Vec<(f32, f32)>> = vec![Vec::new(); content.0.roles.len()];
     for (_, position, placed, _, _) in objects.iter() {
-        for role in &content.0.object(placed.0).roles {
+        let definition = content.0.object(placed.0);
+        for role in &definition.roles {
+            if content.0.roles[*role as usize] == "prep_surface"
+                && definition
+                    .roles
+                    .iter()
+                    .any(|role| content.0.roles[*role as usize] == "dish_sink")
+            {
+                continue;
+            }
             role_positions[*role as usize].push((position.x, position.y));
         }
     }
@@ -952,23 +1011,48 @@ pub fn select_action(
             let distance = distance as f32;
 
             for (index, advert) in content.0.object(placed.0).interactions.iter().enumerate() {
+                let snack = (advert.id == "grab_snack")
+                    .then(|| {
+                        content
+                            .0
+                            .chains
+                            .iter()
+                            .find(|chain| chain.id == crate::domestic::SNACK)
+                    })
+                    .flatten();
+                if snack.is_some_and(|chain| {
+                    chain
+                        .steps
+                        .iter()
+                        .any(|step| role_positions[step.role as usize].is_empty())
+                }) {
+                    continue;
+                }
+                let duration = snack.map_or(advert.duration_ticks, |chain| {
+                    chain.steps.iter().map(|step| step.duration_ticks).sum()
+                });
+                let travel =
+                    distance + snack.map_or(0.0, |chain| chain_travel(chain, &role_positions));
+                let benefits = snack.map_or(&advert.advertises, |chain| &chain.advertises);
+                let chain_tags = snack.map(super::chain::chain_tags);
+                let tags = chain_tags.as_ref().unwrap_or(&advert.tags);
                 let hab = habituation.get(placed.0, index as u32);
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, index as u32)
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),
                         content.0,
-                        &advert.tags,
+                        tags,
                     )
                     * super::circadian::sleep_drive(
                         content.0,
                         &clock,
                         personality.chronotype_offset_ticks,
-                        &advert.tags,
+                        tags,
                         pressure.map_or(0, |p| p.ticks),
                     );
                 let mut score = 0.0;
-                for (need_index, delta) in &advert.advertises {
+                for (need_index, delta) in benefits {
                     let satisfaction = personality.satisfaction[*need_index as usize];
                     let delta = scaled_delta(*delta, scale * satisfaction);
                     let id = NeedId::ALL[*need_index as usize];
@@ -976,8 +1060,8 @@ pub fn select_action(
                         &needs,
                         id,
                         delta,
-                        advert.duration_ticks,
-                        distance,
+                        duration,
+                        travel,
                         instinct,
                         &content.0.tuning,
                     );
@@ -987,13 +1071,13 @@ pub fn select_action(
                     &needs,
                     &personality,
                     instinct,
-                    &advert.advertises,
-                    advert.duration_ticks,
-                    distance,
-                    advert.tags.contains(&content.0.sleep_tag),
+                    benefits,
+                    duration,
+                    travel,
+                    tags.contains(&content.0.sleep_tag),
                     deprivation,
                     mortality.enabled,
-                    false,
+                    snack.is_some(),
                 );
                 score -= risk;
                 let waiting_score = contested_score(score, contested_multiplier);
@@ -1001,7 +1085,7 @@ pub fn select_action(
                     waiting_rows.push((
                         object,
                         waiting_score,
-                        Some(crate::waiting::advertised_needs(object, &advert.advertises)),
+                        Some(crate::waiting::advertised_needs(object, benefits)),
                     ));
                 }
 
@@ -1019,30 +1103,18 @@ pub fn select_action(
                 }
                 let row = interactions_len + chain_row;
                 chain_row += 1;
-                if chain
-                    .steps
-                    .iter()
-                    .any(|step| role_positions[step.role as usize].is_empty())
+                if crate::domestic::hidden_chain(&chain.id)
+                    || chain.id == crate::domestic::CLEANUP
+                    || chain
+                        .steps
+                        .iter()
+                        .any(|step| role_positions[step.role as usize].is_empty())
                 {
                     continue;
                 }
 
                 let total_duration: u32 = chain.steps.iter().map(|s| s.duration_ticks).sum();
-                let mut legs = 0.0f32;
-                for pair in chain.steps.windows(2) {
-                    let from = &role_positions[pair[0].role as usize];
-                    let to = &role_positions[pair[1].role as usize];
-                    let mut shortest = f32::INFINITY;
-                    for (ax, ay) in from {
-                        for (bx, by) in to {
-                            let leg = (ax - bx).abs() + (ay - by).abs();
-                            shortest = shortest.min(leg);
-                        }
-                    }
-                    if shortest.is_finite() {
-                        legs += shortest;
-                    }
-                }
+                let legs = chain_travel(chain, &role_positions);
 
                 let tags = super::chain::chain_tags(chain);
                 let hab = habituation.get(placed.0, row);
@@ -1254,6 +1326,26 @@ pub fn select_action(
 
         if let Ok((_, _, placed, _, _)) = objects.get(object) {
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            if content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(interaction as usize)
+                .is_some_and(|act| act.id == "grab_snack")
+            {
+                if let Some(global) = content
+                    .0
+                    .chains
+                    .iter()
+                    .position(|chain| chain.id == crate::domestic::SNACK)
+                {
+                    claimed.push(agent);
+                    commands
+                        .entity(agent)
+                        .insert(terri_core::ChainState::begin(global as u32));
+                    continue;
+                }
+            }
             if interaction >= interactions_len {
                 let local = (interaction - interactions_len) as usize;
                 if let Some((global, _)) = content
@@ -1309,6 +1401,72 @@ pub fn select_action(
         ));
     }
     commands.insert_resource(super::autonomy::DecisionTelemetry(decisions));
+}
+
+#[cfg(test)]
+mod staged_snack_tests {
+    use super::tests::{spawn_agent_with, spawn_object};
+    use super::*;
+    use crate::{test_content, Sim};
+
+    fn snack_choice(counter_x: Option<f32>, death_enabled: bool) -> Option<(f32, f32)> {
+        let pack = terri_data::pack();
+        let mut sim: Sim = test_content::sim_with(16, 16, pack);
+        let fridge = spawn_object(&mut sim, 2.0, 1.0, pack.find("fridge").unwrap());
+        if let Some(x) = counter_x {
+            spawn_object(&mut sim, x, 1.0, pack.find("counter").unwrap());
+        }
+        let mut needs = Needs::all_at(100.0);
+        needs.set(NeedId::Hunger, 0.0);
+        let agent = spawn_agent_with(&mut sim, 1.0, 1.0, needs);
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::SelfPreservation(100));
+        sim.world_mut()
+            .insert_resource(terri_core::save::SavedMortality {
+                enabled: death_enabled,
+                counts: vec![(agent.index_u32(), pack.tuning.death_after_ticks - 20)],
+                deaths: vec![],
+            });
+        sim.tick();
+        let decision = &sim
+            .world()
+            .resource::<super::super::autonomy::DecisionTelemetry>()
+            .0[0];
+        let choices: Vec<_> = decision
+            .choices
+            .iter()
+            .filter(|choice| choice.0 == fridge.index_u32() && choice.1 == 0)
+            .collect();
+        assert!(choices.len() <= 1, "snacks have one visible candidate");
+        choices.first().map(|choice| (choice.2, choice.3))
+    }
+
+    #[test]
+    fn staged_snack_risk_waits_for_terminal_recovery_and_includes_counter_travel() {
+        let near = snack_choice(Some(6.0), true).unwrap();
+        let far = snack_choice(Some(14.0), true).unwrap();
+        assert!(
+            near.1 > 0.0,
+            "adjacent fridge cannot feed a Sim before prep and eating finish"
+        );
+        assert!(
+            far.1 > near.1,
+            "travel to the preparation counter delays recovery further"
+        );
+        let harmless = snack_choice(Some(6.0), false).unwrap();
+        assert_eq!(harmless.1, 0.0);
+        assert!(
+            harmless.0 > near.0,
+            "the late recovery penalty lowers the actual candidate score"
+        );
+    }
+
+    #[test]
+    fn staged_snack_is_ineligible_without_a_preparation_counter() {
+        assert!(snack_choice(None, false).is_none());
+        assert!(snack_choice(Some(6.0), false).is_some());
+    }
 }
 
 #[cfg(test)]

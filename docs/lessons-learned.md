@@ -7815,6 +7815,51 @@ Review also found New housemate availability cached after a full household lost 
 
 Adding occupied-item mood exposed two cancellation cases: an autonomous wait has no player order to cancel, and an order staged earlier in the same paused command batch is not yet in the live queue. Clearing every waiting marker discarded autonomous frustration; checking only the live queue made batched and separately flushed commands disagree. Cancel only waiting owned by a current or staged order, or an active chain. Verify all three sources, an autonomous wait that survives Clear orders, and equivalent batched and split command sequences. The mood projection must also stop penalizing a freed or sold item without requiring a clock tick.
 
+## [L-domestic-transition-saves] Claims must be valid at the action boundary
+
+**What happened.** Integration review found cleanup claims surviving paused cancellation, room memory retaining washed dish identities, and dirty furniture or the last washing station remaining sellable. An early bulk source edit also matched an unrelated similarly shaped declaration.
+
+**Root cause.** Claim cleanup was left to the next simulation tick, and text edits used patterns broader than the intended type or transition. A save or paused command can occur before that next tick.
+
+**Prevention.** Maintain claim ownership at cancellation, replacement, washing, sale and death themselves. Validate both the claim-to-chain and chain-to-claim directions. Use small, context-specific patches and inspect each changed declaration before compiling.
+
+**Verification.** Save and reload after every domestic work tick, after paused cancel/reissue, and exactly when washing finishes. Reject duplicated or unowned claims transactionally. Prove furniture refusal and ownership-aware reservation release. Remove the transition mechanism deliberately, observe the regression fail, and restore byte-identical source.
+
+## [L-dish-art-needs-support-and-motion] Passing simulation tests does not make the dishes look right
+
+**What happened.** The first domestic preview showed oversized gray stacks hanging over furniture edges. The owner rejected it. Pickup also hid the surface pile without showing a carried load, and the first replacement wash pose held its plate over the counter lip.
+
+**Root cause.** One procedural stack represented every quantity. The renderer used one guessed screen offset for different furniture and cameras. Tests checked sprite presence, not physical support, scale, hand contact or action continuity. The visual review was deferred to the owner.
+
+**Prevention.** Derive support points from authored furniture geometry and its export camera. Bake hand-held props into the rig when correct hand occlusion requires it. Inspect normal-scale gameplay, all furniture facings, mixed occupancy, lighting, near/far occlusion and ordered pickup-through-washing frames. Use a fresh-context adversarial reviewer before reporting visual work as complete.
+
+**Verification.** Run the surface geometry, export registration and cleanup conservation tests; then inspect the real GPU fixture and a played meal. The plate must fit inside the surface, remain visible during transport, sit over the basin while washing, and disappear only on completion. Record rejected evidence as rejected, regardless of passing behavior tests.
+
+## [L-shared-food-scheduler-boundary] Test the handoff through the actual scheduler
+
+**What happened.** An idle invited guest could start a new snack while the cook's finished meal waited for table assignment. The original shared-meal test assigned the table directly before ticking, so it bypassed the failing boundary.
+
+**Root cause.** Acceptance required a dining table before the collection step could use an already-known counter. Table selection ran later in the tick, after ordinary food selection. Making guests simply wait would also have stranded them if the cook was cancelled before choosing a table.
+
+**Prevention.** Require only the resources needed by the current step. Let the prepared meal own its table assignment, publish that assignment within the station-selection pass, and make every diner honor it. Preserve ongoing activities and explicit orders.
+
+**Verification.** Finish a guest's non-food activity on the cook's real plating-completion tick. On the next tick the idle guest must claim prepared food rather than start a snack. Save and reload with a collected portion while the table is occupied, cancel the cook, release the table, and prove the guest still eats exactly once.
+
+The fresh review also caught table selection borrowing the newest retained
+meal by cook identity. A cook can have an older unclaimed meal and a newer
+solo meal. Save an explicit current batch association, clear it at completion
+and cancellation, and bind only that batch. Reject duplicate batch identities
+and mismatches between a serving cook's target and the batch's table. Tests
+must distinguish old leftovers, current food and already-finished guest claims.
+
+Played verification then showed the cook finishing before the last guest
+arrived. Serialized pickup and travel can exceed the cook's eating time.
+Starting independent eating countdowns does not provide a shared meal. Save
+a one-way dining-start decision and retain each present diner's full eating
+interval while active participants gather. Exclude player interruptions and
+busy guests; urgent needs and insufficient free seats must release the group.
+Verify a sustained four-person eating interval, save/load during gathering,
+and each release condition. A one-tick overlap is not an adequate assertion.
 
 ## [L-autonomy-positive-choices] Random seeds do not fix deterministic eligibility
 
@@ -8474,3 +8519,49 @@ atlas pixels stay unchanged. Evidence:
 **Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
 
 **Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+## [L-domestic-integrated-actions-need-terminal-scoring] Score the food that actually arrives
+
+**What happened.** Main integration exposed an instant-fridge survival score
+for the longer snack chain and repetition tracked against a hidden chain row.
+Public command fixtures also assumed every need started low; public spawning
+only makes hunger low.
+
+**Root cause.** Older fixtures and scorer assumptions described the one-step
+action rather than the staged runtime. Main's current public boundary differed
+from the internal test builder.
+
+**Prevention.** Score all required work and travel before terminal recovery.
+Use the visible snack identity for repetition, preserve ordinary custom-pack
+behavior when the chain is absent, and establish the actual autonomous choice
+before asserting player-command preemption. Read the public initial needs;
+do not infer them from a helper name.
+
+**Verify.** A starving Sim beside a fridge still incurs staged snack risk;
+moving the counter farther increases it. Completed snacks change the visible
+habituation row. The public command fixture first walks east for food, then
+reverses west for a valid bed order; an invalid interaction preserves the
+autonomous direction. Removing terminal scoring, the row alias, command
+identity or intent dispatch fails the corresponding regression. Receipts:
+`docs/assets/review-evidence/domestic/integration-mutations.md`.
+
+## [L-domestic-presentation-needs-exact-claimed-station] Body motion and action identity compose
+
+**What happened.** Integrating authored activity bubbles hid preparation,
+cooking and washing identities behind a generic pose activity. Collecting
+dishes from a table also lost its cleanup bubble because the table is not a
+preparation counter.
+
+**Root cause.** Pose fallback ran before metadata, and ordinary station-role
+validation could not recognize a saved cleanup surface at another object type.
+
+**Prevention.** Preserve explicit eating precedence, let generic domestic poses
+use authored activity metadata, and permit the cleanup collection exception
+only for the cleaner's exact saved surface at step zero. Ordinary Wash hands
+remains distinct from the cleanup chain that removes persistent dishes.
+
+**Verify.** Exhaust every shipped chain step and its activity/body pair. Reach
+actual table collection through the runtime and retain the washing identity
+after reload. Deliberately reinstate the generic override and break the exact
+claim comparison; both assertions fail. Review actual moving wash frames with
+the media preference recorded, rather than treating identical screenshots as
+animation evidence.

@@ -81,7 +81,7 @@ roles = ["cold_storage"]
   activity = "eating"
   label = "Grab a snack"
   advertises = { hunger = 40.0 }
-  duration_ticks = 30
+  duration_ticks = 85
   slots = 1
   visual = { action = "eat", anchor = "object", facing = "toward_anchor" }
 
@@ -469,7 +469,7 @@ price = 150
 sprite = "offlineSink"
 # A second prep station, so two cooks do not serialise on one counter
 # tile and a one-counter lot still compiles.
-roles = ["prep_surface"]
+roles = ["prep_surface", "dish_sink"]
 
   # **The chore.** 20 hygiene is the smallest of the four hygiene deltas - a
   # third of the shower's 70 - and it costs 6 comfort, which makes this the
@@ -490,8 +490,8 @@ roles = ["prep_surface"]
   # argument the bathroom sink was introduced with, applied one level down.
   [[object.interaction]]
   id = "wash_up"
-  activity = "washing_dishes"
-  label = "Wash the dishes"
+  activity = "washing_hands"
+  label = "Wash hands"
   sound_action = "sink_water"
   # **20 and 23, raised from 14 and 27 after the first trace.** At 14 hygiene
   # this was at zero uses in 12 000 ticks, and the candidate table said why: it
@@ -515,8 +515,8 @@ presentation = { object_type = "Dining table", description = "A table for meals 
 price = 120
 sprite = "offlineDiningTable"
 footprint = { width = 2, depth = 1 }
-# The chain's terminal station; the current dinner animation is standing.
-roles = ["eating_surface"]
+# The chain terminal uses the standing eating animation.
+roles = ["eating_surface", "meal_table"]
 
   # 37 comfort over 62 ticks is 0.597 per tick standing beside it, against the
   # long sofa's 0.597, the ottoman sofa's 0.667 and the armchair's 0.707. So

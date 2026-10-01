@@ -180,6 +180,14 @@ describe('traitsPanelState', () => {
     expect(traitsPanelState(source, LIBRARY)).toEqual({ kind: 'ready', traits: [] });
   });
 
+  it('shows cleanliness separately from learned skills and rejects invalid scores', () => {
+    const source = new MutableTraitsSource() as MutableTraitsSource & { cleanlinessOf(): number };
+    source.cleanlinessOf = () => 0.9;
+    expect(ready(traitsPanelState(source, LIBRARY))[0]).toMatchObject({ key: -2, label: 'Cleanliness', state: '90%' });
+    source.cleanlinessOf = () => Number.NaN;
+    expect(traitsPanelState(source, LIBRARY)).toEqual({ kind: 'unavailable' });
+  });
+
   it('makes exactly one bridge read per refresh', () => {
     const source = new MutableTraitsSource();
     source.worn = new Float32Array([0, 0, 1, 0.25, 2, 0.6]);
@@ -402,4 +410,24 @@ it('shows self-preservation separately from the optional trait slots, including 
   expect(state.traits.map(row => row.label)).toEqual(['Self-preservation instinct', 'Television devotee']);
   expect(state.traits[0].state).toBe('0/100');
   expect(traitsPanelState(Object.assign(source, { selfPreservationOf: () => 101 }), LIBRARY).kind).toBe('unavailable');
+});
+
+it('retains distinct cleanliness and self-preservation rows while either value changes', () => {
+  let cleanliness = 0.75;
+  let instinct = 30;
+  const source = Object.assign(new MutableTraitsSource(), {
+    cleanlinessOf: () => cleanliness,
+    selfPreservationOf: () => instinct,
+  });
+  const { list, surface } = surfaceParts();
+  surface.render(traitsPanelState(source, LIBRARY));
+  expect(list.nodes).toHaveLength(2);
+  const originalRows = [...list.nodes];
+  cleanliness = 0.9;
+  instinct = 70;
+  surface.render(traitsPanelState(source, LIBRARY));
+  expect(list.nodes).toEqual(originalRows);
+  expect(list.nodes.map(row => row.textContent)).toEqual([
+    expect.stringContaining('70/100'), expect.stringContaining('90%'),
+  ]);
 });

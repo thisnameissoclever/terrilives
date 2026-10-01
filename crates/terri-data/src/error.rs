@@ -9,6 +9,7 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidDomesticTuning,
     InvalidAutonomyTuning,
     EmptyObjectText {
         object: String,
@@ -1146,6 +1147,7 @@ pub enum ContentError {
 impl fmt::Display for ContentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ContentError::InvalidDomesticTuning => write!(f, "domestic tuning has an invalid probability, need threshold or work rate"),
             ContentError::UnknownNeed {
                 object,
                 interaction,
