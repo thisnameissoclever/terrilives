@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { runInNewContext } from 'node:vm';
 import proof from '../../scripts/audio-browser-proof.cjs';
 
 test.each([true, false])('memory setup unlocks through visible controls with first-run Help %s', async helpVisible => {
@@ -44,11 +45,150 @@ test('memory acceptance needs exercised doors and rejects retained door growth o
   }
 });
 
-test('equivalent endpoint HUD states still reject node, document and listener leaks', () => {
+test.each([-1, 1])('equivalent endpoint HUD states reject node, document and listener changes of %s', change => {
   for (const field of ['domNodes', 'domDocuments', 'eventListeners']) {
     const leak = runsWithDoors(4);
-    leak[0].samples[2][field]++;
+    leak[0].samples[2][field] += change;
     expect(proof.analyseMemory(leak).structuralPass, field).toBe(false);
+  }
+});
+
+function memoryHudFixture() {
+  const nodes = new Map();
+  const add = (selector, textContent = '', hidden = false) => {
+    nodes.set(selector, { textContent, hidden, childNodes: textContent ? [{}] : [], title: '', dataset: {} });
+  };
+  add('#needs-caption', 'Select a person');
+  nodes.get('#needs-caption').title = 'Select a person';
+  add('#needs-empty', 'Select a person to see what they need.');
+  add('#needs-content', '', true);
+  add('#satisfaction-value', 'unavailable');
+  add('#activity-value', 'Nothing selected');
+  add('#career-row', '', true);
+  add('#career-value');
+  add('#orders-row', '', true);
+  add('#orders-value', '0');
+  add('#action-queue', '', true);
+  add('#people-caption', 'People');
+  add('#people-empty', 'Select a person to see how they feel about the household.');
+  add('#people-list', '', true);
+  add('#traits-block', '', true);
+  add('#trait-list', '', true);
+  add('#traits-empty', 'No traits.');
+  add('#mood-content', '', true);
+  add('#mood-empty', 'Select a person to see their mood.');
+  add('#moodlet-list', '', true);
+  add('#mood-label');
+  add('#household-roster-members');
+  add('#dock-activity', 'Nothing selected');
+  nodes.get('#dock-activity').dataset.urgent = 'false';
+  add('#dock-traits-empty', 'Select a person to see their traits.');
+  add('#queue-empty', 'No actions queued.');
+  add('#personal-details');
+  nodes.get('#personal-details').open = false;
+  const warnings = Array.from({ length: 7 }, () => ({ childNodes: [] }));
+  const members = Array.from({ length: 3 }, () => ({ pressed: 'false', getAttribute() { return this.pressed; } }));
+  const fixture = {
+    nodes, warnings, members, selected: null,
+    document: {
+      querySelector: selector => nodes.get(selector) ?? null,
+      querySelectorAll: selector => {
+        if (selector === '#needs-content .need-state') return warnings;
+        if (selector === '#household-roster-members .household-member') return members;
+        throw new Error(`Unexpected selector: ${selector}`);
+      },
+    },
+  };
+  return fixture;
+}
+
+function normalized(fixture) {
+  // A separate realm catches accidental closure dependencies before Playwright serialization.
+  return runInNewContext(`(${proof.memoryHudIsDeselected.toString()})()`, {
+    document: fixture.document,
+    __terriStress: { sim: { selectedIndex: () => fixture.selected } },
+  });
+}
+
+function oldSubsetReady(fixture) {
+  return fixture.selected === null && fixture.nodes.get('#moodlet-list').childNodes.length === 0 &&
+    fixture.nodes.get('#action-queue').childNodes.length === 0 && fixture.warnings.length === 7 &&
+    fixture.warnings.every(span => span.childNodes.length === 0);
+}
+
+const staleProjectionCases = [
+  ['needs-caption', node => { node.textContent = 'Tim'; }],
+  ['needs-caption title', node => { node.title = 'Tim'; }],
+  ['needs-empty', node => { node.hidden = true; }],
+  ['needs-content', node => { node.hidden = false; }],
+  ['satisfaction-value', node => { node.textContent = '12.3'; }],
+  ['activity-value', node => { node.textContent = 'Sitting'; }],
+  ['career-row', node => { node.hidden = false; }],
+  ['career-value', node => { node.textContent = 'Office clerk'; node.childNodes = [{}]; }],
+  ['orders-row', node => { node.hidden = false; }],
+  ['orders-value', node => { node.textContent = '1'; }],
+  ['action-queue', node => { node.hidden = false; }],
+  ['people-caption', node => { node.textContent = 'How Tim feels'; }],
+  ['people-empty', node => { node.hidden = true; }],
+  ['people-empty text', node => { node.textContent = 'There is nobody else in the household.'; }],
+  ['people-list visibility', node => { node.hidden = false; }],
+  ['people-list children', node => { node.childNodes = [{}]; }],
+  ['traits-block', node => { node.hidden = false; }],
+  ['trait-list visibility', node => { node.hidden = false; }],
+  ['trait-list children', node => { node.childNodes = [{}]; }],
+  ['traits-empty', node => { node.hidden = true; }],
+  ['traits-empty text', node => { node.textContent = 'Traits unavailable'; }],
+  ['mood-content', node => { node.hidden = false; }],
+  ['mood-empty visibility', node => { node.hidden = true; }],
+  ['mood-empty text', node => { node.textContent = 'Mood unavailable'; }],
+  ['moodlet-list', node => { node.hidden = false; }],
+  ['mood-label', node => { node.textContent = 'Low'; node.childNodes = [{}]; }],
+  ['dock-activity text', node => { node.textContent = 'Sitting / Low'; }],
+  ['dock-activity urgent', node => { node.dataset.urgent = 'true'; }],
+  ['dock-traits-empty', node => { node.hidden = true; }],
+  ['queue-empty', node => { node.hidden = true; }],
+  ['personal-details', node => { node.open = true; }],
+];
+
+test.each(staleProjectionCases)('memory normalization rejects stale %s even when the old subset is ready', (label, change) => {
+  const fixture = memoryHudFixture();
+  change(fixture.nodes.get(`#${label.split(' ')[0]}`));
+  expect(oldSubsetReady(fixture)).toBe(true);
+  expect(normalized(fixture)).toBe(false);
+});
+
+test('memory normalization accepts only a complete deselected projection without waiting on closed detail contents', () => {
+  const fixture = memoryHudFixture();
+  fixture.nodes.set('#personal-details-content', { textContent: 'Intentionally not refreshed while closed' });
+  expect(normalized(fixture)).toBe(true);
+  fixture.selected = 34;
+  expect(normalized(fixture)).toBe(false);
+});
+
+test.each([...memoryHudFixture().nodes.keys()])('memory normalization rejects missing %s', selector => {
+  const fixture = memoryHudFixture();
+  fixture.nodes.delete(selector);
+  expect(normalized(fixture)).toBe(false);
+});
+
+test('memory normalization rejects selected or missing roster buttons and uncleared warnings or rows', () => {
+  const selected = memoryHudFixture();
+  selected.members[0].pressed = 'true';
+  expect(oldSubsetReady(selected)).toBe(true);
+  expect(normalized(selected)).toBe(false);
+  const emptyRoster = memoryHudFixture();
+  emptyRoster.members.length = 0;
+  expect(normalized(emptyRoster)).toBe(false);
+  const missingWarning = memoryHudFixture();
+  missingWarning.warnings.pop();
+  expect(normalized(missingWarning)).toBe(false);
+  const warning = memoryHudFixture();
+  warning.warnings[0].childNodes.push({});
+  expect(normalized(warning)).toBe(false);
+  for (const selector of ['#action-queue', '#moodlet-list']) {
+    const row = memoryHudFixture();
+    row.nodes.get(selector).childNodes.push({});
+    expect(normalized(row)).toBe(false);
   }
 });
 

@@ -1,3 +1,5 @@
+import { setTextIfChanged } from './set-text-if-changed.js';
+
 // The selected person's traits in plain words - [TL-panel] in
 // docs/specs/2026-09-21-trait-library-and-traits-panel.md.
 //
@@ -199,10 +201,10 @@ export function createTraitsPanelSurface(
           row = createTraitRow(doc);
           rowByKey.set(trait.key, row);
         }
-        row.label.textContent = trait.label;
-        row.state.textContent = trait.state;
+        setTextIfChanged(row.label, trait.label);
+        setTextIfChanged(row.state, trait.state);
         row.state.hidden = trait.state === '';
-        row.description.textContent = trait.description;
+        setTextIfChanged(row.description, trait.description);
 
         const current = list.children.item(index);
         if (current !== row.root) {
@@ -214,7 +216,7 @@ export function createTraitsPanelSurface(
       root.hidden = state.kind === 'unselected';
       list.hidden = !hasRows;
       empty.hidden = hasRows;
-      empty.textContent = state.kind === 'unavailable' ? 'Traits unavailable' : 'No traits.';
+      setTextIfChanged(empty, state.kind === 'unavailable' ? 'Traits unavailable' : 'No traits.');
     },
   };
 }

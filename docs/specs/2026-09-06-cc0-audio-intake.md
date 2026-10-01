@@ -109,8 +109,9 @@ After an approved fetch:
 The current authored actions safely identify footsteps, conversation, sleep,
 eating, reading, and exercise. Shower and stove now also have an authored sound
 action plus exact source-object identity. Shower use now loads one prepared
-flowing-water loop on demand; stove cooking remains silent pending a suitable
-recording. Other appliances still need explicit semantic state.
+flowing-water loop on demand. Stove cooking now uses a separate provisional
+first-party synthetic texture, not a recording from these packs; see
+`2026-10-01-stove-cooking-texture.md`. Other appliances still need explicit semantic state.
 File availability is not permission to infer object state from animation labels.
 
 The likely first use of these packs is therefore replacement material for

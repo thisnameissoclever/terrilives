@@ -23,7 +23,8 @@ dirty dishes or change simulation behavior.
    Resume requires a fresh source observation. Failed downloads retain the
    existing five-second cooldown and require new audible demand, not fixed-tick retries.
 5. No save migration, gameplay state, random draw, new dependency, paid service
-   or new asset bytes. Stove cooking remains silent pending its own selection.
+   or new asset bytes. This slice left stove cooking silent; the later
+   [cooking texture](2026-10-01-stove-cooking-texture.md) adds its separate asset.
 
 ## Verification
 

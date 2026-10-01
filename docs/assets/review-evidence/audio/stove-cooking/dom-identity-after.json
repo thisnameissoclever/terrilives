@@ -1,0 +1,107 @@
+{
+  "pass": true,
+  "phase": "complete",
+  "tick": 69,
+  "pausedTick": 69,
+  "frames": 91,
+  "unchanged": [
+    {
+      "target": "needs-caption",
+      "text": "Select a person",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "clock-value",
+      "text": "Day 1, 01:09",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "funds-value",
+      "text": "0",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "satisfaction-value",
+      "text": "unavailable",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "activity-value",
+      "text": "Nothing selected",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "orders-value",
+      "text": "0",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "people-caption",
+      "text": "People",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "people-empty",
+      "text": "Select a person to see how they feel about the household.",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "mood-empty",
+      "text": "Select a person to see their mood.",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "traits-empty",
+      "text": "No traits.",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "Tim",
+      "text": "Tim",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "Bill",
+      "text": "Bill",
+      "sameNode": true,
+      "sameText": true
+    },
+    {
+      "target": "Casey",
+      "text": "Casey",
+      "sameNode": true,
+      "sameText": true
+    }
+  ],
+  "pausedMutations": [],
+  "changed": [
+    {
+      "target": "needs-caption",
+      "before": "Select a person",
+      "after": "Tim",
+      "differentNode": true,
+      "differentNonemptyText": true
+    },
+    {
+      "target": "clock-value",
+      "before": "Day 1, 01:09",
+      "after": "Day 1, 01:11",
+      "differentNode": true,
+      "differentNonemptyText": true
+    }
+  ],
+  "scripts": [
+    "http://127.0.0.1:5221/assets/index-B9wQm15e.js"
+  ]
+}
