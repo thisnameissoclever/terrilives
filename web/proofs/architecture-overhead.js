@@ -1,4 +1,3 @@
-import { initDevice } from '../src/render/device.ts';
 import { SpriteRenderer as CandidateRenderer } from '../src/render/sprites.ts';
 import { SpriteRenderer as BaselineRenderer } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/sprites.ts';
 import { buildStaticInstances as historicalGeometry } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/tiles.ts';
@@ -12,11 +11,13 @@ import { ARCHITECTURE } from '../src/render/architecture-data.ts';
 import { writeInstance } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/instances.ts';
 import { layeredDepth, LAYER_PROP } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/iso.ts';
 import { acquireWithTimeout } from './owned-timeout.ts';
+import { benchmarkOrder, distribution, timestampDurations } from './architecture-benchmark-metrics.mjs';
+import metricsSource from './architecture-benchmark-metrics.mjs?raw';
+import proofSource from './architecture-overhead.js?raw';
 
 const baselineSources = import.meta.glob('./.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/*.{ts,wgsl}', { query: '?raw', import: 'default', eager: true });
 const candidateSources = import.meta.glob('../src/render/*.{ts,wgsl}', { query: '?raw', import: 'default', eager: true });
 const hash = async value => [...new Uint8Array(await crypto.subtle.digest('SHA-256', typeof value === 'string' ? new TextEncoder().encode(value) : value))].map(x => x.toString(16).padStart(2, '0')).join('');
-const percentile = (values, fraction) => [...values].sort((a,b) => a-b)[Math.ceil(values.length*fraction)-1];
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const visible = () => assert(document.visibilityState === 'visible', 'Benchmark requires a visible document throughout');
 const bounded = (promise, name) => acquireWithTimeout(promise, 15000, () => {}, name);
@@ -38,92 +39,245 @@ function makeLot(finalScene, cutaway) {
   return { lot:{width:size,height:size,house:[size,size],walls:new Uint32Array(),edges:Uint32Array.from(shell),windows:Uint32Array.from(lines),floors:Uint32Array.from(floors),coveringLooks:new Float32Array(9),showCutAwayWalls:!cutaway}, architecture:{windows,catalogue}, size };
 }
 
-/** One owned visible canvas; call runRound separately, then dispose in finally. */
+const MAX_FRAMES = 120;
+
+async function timestampDevice(canvas) {
+  assert(navigator.gpu, 'WebGPU is unavailable');
+  const adapter = await bounded(navigator.gpu.requestAdapter(), 'Timestamp adapter');
+  assert(adapter?.features.has('timestamp-query'), 'Adapter does not support timestamp-query; direct GPU timing is unobserved');
+  const device = await acquireWithTimeout(adapter.requestDevice({ requiredFeatures: ['timestamp-query'] }),
+    15000, value => value.destroy(), 'Timestamp device');
+  try {
+    const context = canvas.getContext('webgpu');
+    assert(context, 'Could not acquire the benchmark WebGPU canvas');
+    const format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({ device, format, alphaMode: 'premultiplied',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
+    return { device, context, format, adapterInfo: { vendor: adapter.info?.vendor ?? '',
+      architecture: adapter.info?.architecture ?? '', device: adapter.info?.device ?? '',
+      description: adapter.info?.description ?? '' } };
+  } catch (error) { device.destroy(); throw error; }
+}
+
+/**
+ * Owned visible proof canvas, with no per-frame GPU fence or query readback.
+ * Configure once, run one bounded round per call, finish, then dispose in finally.
+ */
 export async function createArchitectureBenchmark() {
   visible();
-  const canvas = document.createElement('canvas'); canvas.width=1280;canvas.height=900;document.body.append(canvas);
-  let gpu, atlas, baseline, candidate, readback, active = null;
-  const restore = [], errors = [], resources = {baseline:[],candidate:[]};
-  const counts = () => ({drawCalls:0,submits:0,bufferUploads:0,bufferUploadBytes:0,textureUploads:0,gpuBufferAllocations:0,gpuTextureAllocations:0});
-  let observed=counts();
-  const hook = (object,name,wrapped) => { const original=object[name];object[name]=wrapped(original);restore.push(()=>{object[name]=original;}); };
+  const canvas = document.createElement('canvas');
+  canvas.width = 1280; canvas.height = 900; document.body.append(canvas);
+  let gpu, atlas, baseline, candidate, readback, querySet, queryResolve, queryReadback;
+  let active = null, configured, busy = false, disposed = false, finished = false;
+  let timingIndex = -1, timestampPasses = 0;
+  const restore = [], errors = [], resources = { baseline: [], candidate: [] };
+  const counts = () => ({ drawCalls: 0, submits: 0, bufferUploads: 0, bufferUploadBytes: 0,
+    textureUploads: 0, gpuBufferAllocations: 0, gpuTextureAllocations: 0 });
+  let observed = counts();
+  const cpuScratch = new Float64Array(MAX_FRAMES), cadenceScratch = new Float64Array(MAX_FRAMES);
+  const hook = (object, name, wrapped) => {
+    const original = object[name]; object[name] = wrapped(original);
+    restore.push(() => { object[name] = original; });
+  };
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true; timingIndex = -1;
+    if (atlas) closeArchitectureAtlas(atlas);
+    for (const fn of restore.reverse()) fn();
+    readback?.destroy(); querySet?.destroy(); queryResolve?.destroy(); queryReadback?.destroy();
+    candidate?.destroy(); baseline?.destroy?.(); gpu?.device.destroy(); canvas.remove();
+  };
+  const ready = () => {
+    assert(!disposed && !finished && !busy, 'Benchmark must be active and idle'); visible();
+  };
   try {
-    gpu=await acquireWithTimeout(initDevice(canvas),15000,value=>value.device.destroy(),'Benchmark device');
-    gpu.context.configure({device:gpu.device,format:gpu.format,alphaMode:'premultiplied',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});
-    gpu.device.addEventListener('uncapturederror',e=>errors.push(e.error.message));
-    hook(gpu.device,'createBuffer',original=>function(desc){ observed.gpuBufferAllocations++;return original.call(this,desc); });
-    hook(gpu.device,'createTexture',original=>function(desc){ observed.gpuTextureAllocations++;if(active) resources[active].push({format:desc.format,size:desc.size});return original.call(this,desc); });
-    hook(gpu.device.queue,'writeBuffer',original=>function(buffer,offset,data,dataOffset=0,size){ observed.bufferUploads++;observed.bufferUploadBytes+=(size??(data.length??data.byteLength)-dataOffset)*(data.BYTES_PER_ELEMENT??1);return original.call(this,buffer,offset,data,dataOffset,size); });
-    hook(gpu.device.queue,'writeTexture',original=>function(...args){observed.textureUploads++;return original.apply(this,args);});
-    hook(gpu.device.queue,'copyExternalImageToTexture',original=>function(...args){observed.textureUploads++;return original.apply(this,args);});
-    hook(gpu.device.queue,'submit',original=>function(...args){observed.submits++;return original.apply(this,args);});
-    hook(GPURenderPassEncoder.prototype,'draw',original=>function(...args){observed.drawCalls++;return original.apply(this,args);});
-    const sources = {baseline:baselineManifest,candidate:{}};
-    for(const [path,source] of Object.entries(baselineSources)) assert(await hash(source)===baselineManifest.files[path.split('/').pop()],`Pinned baseline changed: ${path}`);
-    for(const [path,source] of Object.entries(candidateSources)) sources.candidate[path.split('/').pop()]=await hash(source);
+    gpu = await timestampDevice(canvas);
+    assert(gpu.device.features.has('timestamp-query'), 'Timestamp feature was not enabled on the device');
+    gpu.device.addEventListener('uncapturederror', event => errors.push(event.error.message));
+    hook(gpu.device, 'createBuffer', original => function(desc) {
+      observed.gpuBufferAllocations++; return original.call(this, desc);
+    });
+    hook(gpu.device, 'createTexture', original => function(desc) {
+      observed.gpuTextureAllocations++;
+      if (active) resources[active].push({ format: desc.format, size: desc.size });
+      return original.call(this, desc);
+    });
+    hook(gpu.device.queue, 'writeBuffer', original => function(buffer, offset, data, dataOffset = 0, size) {
+      observed.bufferUploads++;
+      observed.bufferUploadBytes += (size ?? (data.length ?? data.byteLength) - dataOffset) * (data.BYTES_PER_ELEMENT ?? 1);
+      return original.call(this, buffer, offset, data, dataOffset, size);
+    });
+    for (const name of ['writeTexture', 'copyExternalImageToTexture']) {
+      hook(gpu.device.queue, name, original => function(...args) { observed.textureUploads++; return original.apply(this, args); });
+    }
+    hook(gpu.device.queue, 'submit', original => function(...args) { observed.submits++; return original.apply(this, args); });
+    hook(GPURenderPassEncoder.prototype, 'draw', original => function(...args) { observed.drawCalls++; return original.apply(this, args); });
+
+    querySet = gpu.device.createQuerySet({ type: 'timestamp', count: MAX_FRAMES * 2 });
+    const queryBytes = MAX_FRAMES * 2 * 8;
+    queryResolve = gpu.device.createBuffer({ size: queryBytes, usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC });
+    queryReadback = gpu.device.createBuffer({ size: queryBytes, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const timestampWrites = Array.from({ length: MAX_FRAMES }, (_, index) => ({ querySet,
+      beginningOfPassWriteIndex: index * 2, endOfPassWriteIndex: index * 2 + 1 }));
+    hook(GPUCommandEncoder.prototype, 'beginRenderPass', original => function(descriptor) {
+      if (timingIndex >= 0) {
+        assert(timestampPasses === 0, 'Expected one render pass per measured draw');
+        assert(descriptor.timestampWrites === undefined, 'Renderer already owns timestamp writes');
+        descriptor.timestampWrites = timestampWrites[timingIndex]; timestampPasses++;
+      }
+      return original.call(this, descriptor);
+    });
+
+    const sources = { baseline: baselineManifest, candidate: {}, proofSHA256: await hash(proofSource), metricsSHA256: await hash(metricsSource) };
+    for (const [path, source] of Object.entries(baselineSources)) {
+      assert(await hash(source) === baselineManifest.files[path.split('/').pop()], `Pinned baseline changed: ${path}`);
+    }
+    for (const [path, source] of Object.entries(candidateSources)) sources.candidate[path.split('/').pop()] = await hash(source);
     gpu.device.pushErrorScope('validation');
-    active='baseline';observed=counts();baseline=await bounded(BaselineRenderer.create(gpu),'Baseline renderer');const baselineSetup={...observed};
-    atlas=await acquireWithTimeout(loadArchitectureAtlas(gpu.device.limits,{baseUrl:'/'}),15000,closeArchitectureAtlas,'Architecture atlas');
-    const atlasBytes={color:atlas.width*atlas.height*4,depth:atlas.depth.byteLength,carrier:atlas.carrier?atlas.width*atlas.height*4:0,roles:atlas.roles?.byteLength??0,patterns:(atlas.patterns??[]).map(x=>x.width*x.height*4),activePatternCount:atlas.patterns?.length??0,resources:ARCHITECTURE.resources};
-    active='candidate';observed=counts();candidate=await bounded(CandidateRenderer.create(gpu,atlas),'Candidate renderer');const candidateSetup={...observed};
-    closeArchitectureAtlas(atlas);atlas=null;active=null;
-    let bytesPerRow=Math.ceil(canvas.width*4/256)*256;
-    readback=gpu.device.createBuffer({size:bytesPerRow*canvas.height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
-    const metadata={sources,atlasBytes,resources,setup:{baseline:baselineSetup,candidate:candidateSetup},userAgent:navigator.userAgent,limits:{maxTextureDimension2D:gpu.device.limits.maxTextureDimension2D,maxSampledTexturesPerShaderStage:gpu.device.limits.maxSampledTexturesPerShaderStage},canvas:{width:canvas.width,height:canvas.height},allocationScope:'Counts GPU buffers/textures. JS heap allocation is not measured. Timing includes renderer draw submission and queue completion, excludes rAF scheduling; cadence is separate.'};
-    const renderers={baseline,candidate};let configured;
-    const capture=async renderer=>{
-      active=renderer===baseline?'baseline':'candidate';
-      renderer.draw(configured.props,12,configured.scale);
-      const encoder=gpu.device.createCommandEncoder();encoder.copyTextureToBuffer({texture:gpu.context.getCurrentTexture()},{buffer:readback,bytesPerRow},{width:canvas.width,height:canvas.height});gpu.device.queue.submit([encoder.finish()]);
-      await bounded(readback.mapAsync(GPUMapMode.READ),'Benchmark readback');
-      const mapped=new Uint8Array(readback.getMappedRange()),pixels=new Uint8Array(canvas.width*canvas.height*4);
-      for(let y=0;y<canvas.height;y++) pixels.set(mapped.subarray(y*bytesPerRow,y*bytesPerRow+canvas.width*4),y*canvas.width*4);
+    active = 'baseline'; observed = counts();
+    baseline = await bounded(BaselineRenderer.create(gpu), 'Baseline renderer'); const baselineSetup = { ...observed };
+    atlas = await acquireWithTimeout(loadArchitectureAtlas(gpu.device.limits, { baseUrl: '/' }),
+      15000, closeArchitectureAtlas, 'Architecture atlas');
+    const atlasBytes = { color: atlas.width * atlas.height * 4, depth: atlas.depth.byteLength,
+      carrier: atlas.carrier ? atlas.width * atlas.height * 4 : 0, roles: atlas.roles?.byteLength ?? 0,
+      patterns: (atlas.patterns ?? []).map(image => image.width * image.height * 4),
+      activePatternCount: atlas.patterns?.length ?? 0, resources: ARCHITECTURE.resources };
+    active = 'candidate'; observed = counts();
+    candidate = await bounded(CandidateRenderer.create(gpu, atlas), 'Candidate renderer'); const candidateSetup = { ...observed };
+    closeArchitectureAtlas(atlas); atlas = null; active = null;
+    let bytesPerRow = 0;
+    const metadata = { sources, atlasBytes, resources, setup: { baseline: baselineSetup, candidate: candidateSetup },
+      userAgent: navigator.userAgent, hardware: gpu.adapterInfo, format: gpu.format,
+      limits: { maxTextureDimension2D: gpu.device.limits.maxTextureDimension2D,
+        maxSampledTexturesPerShaderStage: gpu.device.limits.maxSampledTexturesPerShaderStage },
+      timestampQuery: { supported: true, enabled: true, querySlots: MAX_FRAMES * 2,
+        resolveBufferBytes: queryBytes, readbackBufferBytes: queryBytes, unit: 'nanoseconds',
+        precision: 'Implementation-dependent quantization. Raw uint64 values, zeros and observed duration divisibility are retained.' },
+      timingScope: { cpu: 'Synchronous renderer.draw call, including identical benchmark counter/timestamp descriptor hooks. No await inside the interval.',
+        gpu: 'Beginning to end of the actual render pass. Excludes uploads, queue waiting, readback and JavaScript promise resumption.',
+        cadence: 'Differences between consecutive requestAnimationFrame callback timestamps. Refresh-limited cadence is not a performance acceptance test.',
+        protocol: 'One draw per visible animation frame. No per-frame completion fence, query resolve or map. One query resolve/copy/submit/map after each measured arm block.' },
+      allocationScope: 'GPU buffer/texture allocations are counted. Query resources and sample buffers are preallocated. JavaScript heap allocation and driver padding are unmeasured.',
+      armDefinitions: { baselineHistorical: 'Pinned baseline renderer with pinned historical geometry for the final logical lot.',
+        candidateHistorical: 'Current renderer with the exact same historical geometry and dynamic bytes.',
+        candidateFinal: 'Current renderer with authored architecture geometry for the same logical lot.' },
+      schedule: Array.from({ length: 6 }, (_, round) => benchmarkOrder(round)) };
+    const arms = {};
+    const activate = name => {
+      const arm = arms[name]; active = arm.resource;
+      arm.renderer.setStaticGeometry(arm.geometry.instances, arm.geometry.count, arm.geometry.lowInstances);
+      return arm.renderer;
+    };
+    const capture = async name => {
+      const renderer = activate(name);
+      renderer.draw(configured.props, 12, configured.scale);
+      const encoder = gpu.device.createCommandEncoder();
+      encoder.copyTextureToBuffer({ texture: gpu.context.getCurrentTexture() }, { buffer: readback, bytesPerRow },
+        { width: canvas.width, height: canvas.height });
+      gpu.device.queue.submit([encoder.finish()]);
+      await bounded(readback.mapAsync(GPUMapMode.READ), 'Benchmark pixel readback');
+      const mapped = new Uint8Array(readback.getMappedRange()), pixels = new Uint8Array(canvas.width * canvas.height * 4);
+      for (let y = 0; y < canvas.height; y++) pixels.set(mapped.subarray(y * bytesPerRow, y * bytesPerRow + canvas.width * 4), y * canvas.width * 4);
       readback.unmap();
-      let changed=0;for(let i=4;i<pixels.length;i+=4) if(pixels[i]!==pixels[0]||pixels[i+1]!==pixels[1]||pixels[i+2]!==pixels[2])changed++;
-      assert(pixels[3]===255&&changed>1000,'Framebuffer must contain opaque clear and visible geometry');
-      active=null;
-      return {sha256:await hash(pixels),nonBackgroundPixels:changed,corner:[...pixels.slice(0,4)]};
+      let changed = 0;
+      for (let i = 4; i < pixels.length; i += 4) {
+        if (pixels[i] !== pixels[0] || pixels[i + 1] !== pixels[1] || pixels[i + 2] !== pixels[2]) changed++;
+      }
+      assert(pixels[3] === 255 && changed > 1000, 'Framebuffer must contain opaque clear and visible geometry');
+      active = null;
+      return { sha256: await hash(pixels), nonBackgroundPixels: changed, corner: [...pixels.slice(0, 4)] };
     };
-    return {metadata,
-      async configure({scene='historical',scale=1,cutaway=true}={}) {
-        visible();assert(['historical','final'].includes(scene)&&[1,1.75,3].includes(scale),'Known benchmark case');
-        const data=makeLot(scene==='final',cutaway);
-        canvas.width=Math.ceil((data.size*64+160)*scale);canvas.height=Math.ceil((data.size*42+220)*scale);
-        assert(canvas.width<=gpu.device.limits.maxTextureDimension2D&&canvas.height<=gpu.device.limits.maxTextureDimension2D,'Scene exceeds device canvas limit');
-        readback.destroy();bytesPerRow=Math.ceil(canvas.width*4/256)*256;
-        readback=gpu.device.createBuffer({size:bytesPerRow*canvas.height,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
-        const ox=canvas.width/2+.37,oy=120*scale+.19;
-        const old=historicalGeometry(data.lot,ox,oy,data.size,scale);
-        const previous={instances:old.instances.slice(0,old.count*16),count:old.count,lowInstances:old.lowInstances.slice()};
-        const current=scene==='historical'?previous:buildStaticInstances({...data.lot,architecture:data.architecture},ox,oy,data.size,scale);
-        const next={instances:current.instances.slice(0,current.count*16),count:current.count,lowInstances:current.lowInstances.slice()};
-        const props=new Float32Array(12*16);
-        for(let i=0;i<12;i++){const x=1+i%4,y=1+Math.floor(i/4),id=spriteIndex(i%3===0?'offlineDeskSW':i%3===1?'offlineBunk':'sim');writeInstance(props,i,ox+((x-y)*32+spriteDrawOffsetX(id))*scale,oy+((x+y)*21+spriteDrawOffsetY(id))*scale,layeredDepth(x,y,data.size,LAYER_PROP),id);}
-        baseline.setStaticGeometry(previous.instances,previous.count,previous.lowInstances);candidate.setArchitectureCamera(ox,oy);candidate.setStaticGeometry(next.instances,next.count,next.lowInstances);
-        configured={scene,scale,cutaway,props};
-        const pixels={baseline:await capture(baseline),candidate:await capture(candidate)};
-        if(scene==='historical') assert(pixels.baseline.sha256===pixels.candidate.sha256,'Identical historical input pixels differ');
-        return {...configured,props:undefined,canvas:{width:canvas.width,height:canvas.height},depthAttachmentBytesLowerBound:canvas.width*canvas.height*3,pixels,pixelsEqual:pixels.baseline.sha256===pixels.candidate.sha256,windows:data.architecture.windows.length,inputHashes:{baseline:await hash(previous.instances),candidate:await hash(next.instances),baselineLow:await hash(previous.lowInstances),candidateLow:await hash(next.lowInstances),props:await hash(props)},counts:{baseline:{static:previous.count,low:previous.lowInstances.length/16},candidate:{static:next.count,low:next.lowInstances.length/16}}};
-      },
-      async runRound({round=0,warmup=60,frames=120}={}) {
-        assert(configured&&frames>=30&&frames<=120&&warmup>=0&&warmup<=120,'Configure first; use bounded frame counts');
-        const order=round%2?['candidate','baseline']:['baseline','candidate'],result={round,order,frames,warmup};
-        for(const name of order){
-          const elapsed=[],cadence=[];let last;
-          observed=counts();active=name;
-          for(let i=0;i<warmup+frames;i++) {
-            await bounded(new Promise(resolve=>requestAnimationFrame(resolve)),'Visible animation frame');visible();
-            const start=performance.now();renderers[name].draw(configured.props,12,configured.scale);await bounded(gpu.device.queue.onSubmittedWorkDone(),'Frame completion');
-            if(i>=warmup){elapsed.push(performance.now()-start);if(last!==undefined)cadence.push(start-last);}
-            last=start;if(i===warmup-1)observed=counts();
+    const inputHashes = async geometry => ({ opaque: await hash(geometry.instances), low: await hash(geometry.lowInstances) });
+    return { metadata,
+      async configure({ scale = 1, cutaway = true } = {}) {
+        ready(); assert([1, 1.75].includes(scale), 'Use scale 1 or 1.75 for the final stress lot'); busy = true;
+        try {
+          const data = makeLot(true, cutaway);
+          canvas.width = Math.ceil((data.size * 64 + 160) * scale); canvas.height = Math.ceil((data.size * 42 + 220) * scale);
+          assert(canvas.width <= gpu.device.limits.maxTextureDimension2D && canvas.height <= gpu.device.limits.maxTextureDimension2D,
+            'Scene exceeds device canvas limit');
+          readback?.destroy(); bytesPerRow = Math.ceil(canvas.width * 4 / 256) * 256;
+          readback = gpu.device.createBuffer({ size: bytesPerRow * canvas.height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          const ox = canvas.width / 2 + .37, oy = 120 * scale + .19;
+          const old = historicalGeometry(data.lot, ox, oy, data.size, scale);
+          const previous = { instances: old.instances.slice(0, old.count * 16), count: old.count, lowInstances: old.lowInstances.slice() };
+          const current = buildStaticInstances({ ...data.lot, architecture: data.architecture }, ox, oy, data.size, scale);
+          const next = { instances: current.instances.slice(0, current.count * 16), count: current.count, lowInstances: current.lowInstances.slice() };
+          const props = new Float32Array(12 * 16);
+          for (let i = 0; i < 12; i++) {
+            const x = 1 + i % 4, y = 1 + Math.floor(i / 4), id = spriteIndex(i % 3 === 0 ? 'offlineDeskSW' : i % 3 === 1 ? 'offlineBunk' : 'sim');
+            writeInstance(props, i, ox + ((x - y) * 32 + spriteDrawOffsetX(id)) * scale,
+              oy + ((x + y) * 21 + spriteDrawOffsetY(id)) * scale, layeredDepth(x, y, data.size, LAYER_PROP), id);
           }
-          result[name]={p50:percentile(elapsed,.5),p95:percentile(elapsed,.95),cadenceP95:percentile(cadence,.95),samples:elapsed,counters:{...observed}};
-        }
-        active=null;result.p95Growth=(result.candidate.p95/result.baseline.p95)-1;result.requiresInvestigation=result.p95Growth>.1;
-        assert(errors.length===0,errors.join('; '));return result;
+          candidate.setArchitectureCamera(ox, oy);
+          arms.baselineHistorical = { renderer: baseline, resource: 'baseline', geometry: previous };
+          arms.candidateHistorical = { renderer: candidate, resource: 'candidate', geometry: previous };
+          arms.candidateFinal = { renderer: candidate, resource: 'candidate', geometry: next };
+          configured = { scene: 'final-stress-34x34', scale, cutaway, props };
+          const pixels = {}, inputs = {}, rowCounts = {};
+          for (const name of benchmarkOrder(0)) {
+            pixels[name] = await capture(name); inputs[name] = await inputHashes(arms[name].geometry);
+            rowCounts[name] = { static: arms[name].geometry.count, low: arms[name].geometry.lowInstances.length / 16, dynamic: 12 };
+          }
+          assert(pixels.baselineHistorical.sha256 === pixels.candidateHistorical.sha256, 'Identical historical input pixels differ');
+          assert(inputs.baselineHistorical.opaque === inputs.candidateHistorical.opaque && inputs.baselineHistorical.low === inputs.candidateHistorical.low,
+            'Historical arms must share identical geometry bytes');
+          configured.inputs = inputs; configured.propsHash = await hash(props);
+          return { scene: configured.scene, scale, cutaway, canvas: { width: canvas.width, height: canvas.height },
+            depthAttachmentBytesLowerBound: canvas.width * canvas.height * 3, windows: data.architecture.windows.length,
+            interiorFloorTiles: data.size * data.size, pixels, historicalPixelsEqual: true, inputHashes: inputs,
+            dynamicSHA256: configured.propsHash, rowCounts };
+        } finally { busy = false; active = null; }
       },
-      async finish(){ const error=await bounded(gpu.device.popErrorScope(),'Benchmark validation');return {resources,validationError:error?.message??null,uncapturedErrors:errors,pass:!error&&errors.length===0}; },
-      dispose(){for(const fn of restore.reverse())fn();readback.destroy();candidate.destroy();gpu.device.destroy();canvas.remove();}
+      async runRound({ round = 0, warmup = 60, frames = 120 } = {}) {
+        ready(); assert(configured, 'Configure the final scene before measuring');
+        assert(Number.isInteger(frames) && frames >= 30 && frames <= MAX_FRAMES
+          && Number.isInteger(warmup) && warmup >= 1 && warmup <= MAX_FRAMES, 'Use 30-120 samples and 1-120 warmup frames');
+        const order = benchmarkOrder(round), result = { round, order, frames, warmup, arms: {} }; busy = true;
+        try {
+          for (const name of order) {
+            const renderer = activate(name);
+            let previousRaf, cadenceCount = 0;
+            for (let i = 0; i < warmup + frames; i++) {
+              const raf = await bounded(new Promise(resolve => requestAnimationFrame(resolve)), 'Visible animation frame');
+              assert(!disposed, 'Benchmark was disposed'); visible();
+              const measured = i >= warmup, index = i - warmup;
+              if (i === warmup) observed = counts();
+              timestampPasses = 0; timingIndex = measured ? index : -1;
+              if (measured) {
+                const start = performance.now(); renderer.draw(configured.props, 12, configured.scale);
+                cpuScratch[index] = performance.now() - start;
+                assert(timestampPasses === 1, 'Each measured frame must write one timestamp pair');
+                cadenceScratch[cadenceCount++] = raf - previousRaf;
+              } else renderer.draw(configured.props, 12, configured.scale);
+              timingIndex = -1; previousRaf = raf;
+            }
+            const frameCounters = { ...observed };
+            const encoder = gpu.device.createCommandEncoder(), usedBytes = frames * 2 * 8;
+            encoder.resolveQuerySet(querySet, 0, frames * 2, queryResolve, 0);
+            encoder.copyBufferToBuffer(queryResolve, 0, queryReadback, 0, usedBytes);
+            gpu.device.queue.submit([encoder.finish()]);
+            await acquireWithTimeout(queryReadback.mapAsync(GPUMapMode.READ, 0, usedBytes), 15000,
+              () => queryReadback.unmap(), 'Block timestamp readback');
+            const timestamps = new BigUint64Array(queryReadback.getMappedRange(0, usedBytes)).slice();
+            queryReadback.unmap();
+            const currentInputs = await inputHashes(arms[name].geometry);
+            assert(currentInputs.opaque === configured.inputs[name].opaque && currentInputs.low === configured.inputs[name].low
+              && await hash(configured.props) === configured.propsHash, 'Frame sampling changed geometry or dynamic inputs');
+            result.arms[name] = { cpu: { ...distribution(cpuScratch.subarray(0, frames)), unit: 'milliseconds' },
+              gpu: timestampDurations(timestamps), cadence: { ...distribution(cadenceScratch.subarray(0, cadenceCount)), unit: 'milliseconds' },
+              frameCounters, readback: { resolves: 1, copies: 1, submits: 1, maps: 1, bytes: usedBytes }, unchangedInputs: true };
+          }
+          assert(errors.length === 0, errors.join('; ')); return result;
+        } finally { timingIndex = -1; busy = false; active = null; }
+      },
+      async finish() {
+        ready(); finished = true;
+        const error = await bounded(gpu.device.popErrorScope(), 'Benchmark validation');
+        return { resources, validationError: error?.message ?? null, uncapturedErrors: errors,
+          pass: !error && errors.length === 0, acceptance: 'Validation only; CPU/GPU timing and quantization require separate review.' };
+      },
+      dispose,
     };
-  } catch(error){if(atlas)closeArchitectureAtlas(atlas);for(const fn of restore.reverse())fn();readback?.destroy();candidate?.destroy();gpu?.device.destroy();canvas.remove();throw error;}
+  } catch (error) { dispose(); throw error; }
 }
