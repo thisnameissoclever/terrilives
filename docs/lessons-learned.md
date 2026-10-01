@@ -7921,3 +7921,23 @@ invoking the guards, cancel main runs, or remove event isolation. Each fault
 must fail a named assertion, and the original workflow bytes must be restored.
 Check that GitHub accepts the updated workflow. This validates configuration;
 it does not measure account-wide runner availability or promise a queue delay.
+
+## [L-dom-fault-parent-ownership] A DOM fault probe needs real parent ownership
+
+**What happened.** A Sim details fault intended to stop reordering existing
+habit rows initially passed. The fault checked `parentElement`, but the test
+double exposed only its internal `parent` field. It therefore appended every
+row on every render, which happened to produce the right order.
+
+**Root cause.** The probe was different in the test double from a real DOM.
+Its passing result did not establish that the intended defect was covered.
+
+**Prevention.** Keep ownership properties used by a fault faithful to browser
+semantics. Record an uncaught probe as incomplete evidence, inspect the cause,
+and fix the fixture or the probe before claiming detection.
+
+**Verify.** `personal-details.test.ts` now exposes `parentElement` from actual
+parent ownership. Replacing ordered insertion with append-only-when-unparented
+fails the named row-reuse and ordering assertion. Production bytes were
+restored exactly, then the full web suite passed. Browser scrolling and Sim
+switching provide separate evidence for the actual DOM.

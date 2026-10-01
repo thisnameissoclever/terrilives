@@ -3837,3 +3837,25 @@ conversation, and it does not establish public deployment. Detailed scope,
 GPU evidence and production-build images are in
 `docs/assets/review-evidence/cutaway-walls.md`. All owned pages and both local
 servers were closed after verification.
+
+## [A-personality-and-habits] Compact personal details, 2026-09-30
+
+Played the running game at 1280x800, 360x640 and 640x400. Overview's new
+Personality and habits section began collapsed and left the closed dock's
+footprint unchanged. Enter and Space opened and closed it; Escape closed the
+sheet and focused Sim details. The existing scroll area reached every habit
+row at phone and short-screen sizes without horizontal page overflow.
+
+Tim, Bill and Casey showed different personal need factors and sleep rhythms.
+Switching people replaced the factors and removed old habits. During play,
+Casey accumulated television, dishwashing, sleep, shower, toilet, handwashing
+and sitting history; their visible repetition changed with activity and time.
+Loading the earlier local save restored Bill at Day 1, 03:07 with his usual
+sleep schedule and no recorded repetition, clearing Casey's later rows.
+
+No new visual blocker or browser warning/error was observed. The new need
+labels were capitalized to match the existing meters. This was a displayed
+browser viewport pass, not physical-phone or spoken screen-reader acceptance.
+It did not watch a complete conversation. Task-owned game pages and the
+preview server were closed. Details, test counts and retained evidence paths
+are in `docs/specs/2026-09-30-sim-details.md`.

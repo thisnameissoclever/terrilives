@@ -1,5 +1,18 @@
 import type { SimHandle } from './wasm/terri_wasm.js';
 
+/** Personal factors and recent repetition, read together without advancing time. */
+export interface SimDetails {
+  readonly sleepOffsetTicks: number;
+  readonly drain: readonly number[];
+  readonly refill: readonly number[];
+  readonly repeated: readonly {
+    key: string;
+    object: string;
+    activity: string;
+    repetition: number;
+  }[];
+}
+
 /**
  * `SimCommand`'s variant indices, which are **wire format** rather than
  * an internal detail. They are the numbers postcard writes for the enum
@@ -1260,6 +1273,26 @@ export class SimBridge {
   personalityOf(entityIndex: number): Float32Array {
     if (!isU32(entityIndex)) return new Float32Array(0);
     return this.handle.personality_of(entityIndex);
+  }
+
+  simDetailsOf(entityIndex: number): SimDetails | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.sim_details_of(entityIndex);
+    if (values.length < 15 || (values.length - 15) % 3 !== 0) return null;
+    const labels = this.handle.sim_details_labels_of(entityIndex);
+    if (labels.length !== (values.length - 15) / 3 * 2) return null;
+    const sleepOffsetTicks = values[0];
+    if (!Number.isInteger(sleepOffsetTicks) || sleepOffsetTicks < -2_147_483_648 || sleepOffsetTicks > 2_147_483_647) return null;
+    const factors = Array.from(values.slice(1, 15));
+    if (factors.some(value => !Number.isFinite(value) || value < 0)) return null;
+    const repeated: SimDetails['repeated'][number][] = [];
+    for (let offset = 15, row = 0; offset < values.length; offset += 3, row += 1) {
+      const [object, activity, repetition] = values.slice(offset, offset + 3);
+      if (!isU32(object) || !isU32(activity) || !Number.isFinite(repetition) || repetition < 0 || repetition > 1) return null;
+      repeated.push({ key: `${object}:${activity}`, object: labels[row * 2],
+        activity: labels[row * 2 + 1], repetition });
+    }
+    return { sleepOffsetTicks, drain: factors.slice(0, 7), refill: factors.slice(7), repeated };
   }
 
   /**

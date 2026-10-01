@@ -81,6 +81,20 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #overview-needs { margin-bottom: 10px; }
 #overview-needs:empty { display: none; }
 #selected-summary { border: 0; padding: 0; margin: 0; }
+#personal-details { border-top: 1px solid var(--hud-edge); margin-top: 10px; padding-top: 2px; }
+#personal-details summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 700; }
+#personal-details summary:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+#personal-details table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+#personal-details caption, #personal-details h3 { text-align: left; font-size: 13px; font-weight: 700; margin-block: 8px; }
+#personal-details th, #personal-details td { padding: 3px 4px; text-align: right; overflow-wrap: anywhere; }
+#personal-details th:first-child { text-align: left; }
+#personal-details tbody th { font-weight: 400; }
+.personal-details-note { color: var(--hud-muted); font-size: 12px; }
+.personal-repetition { padding: 0; margin: 0; list-style: none; }
+.personal-repetition li { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 10px; padding-block: 6px; }
+.personal-repetition li strong, .personal-repetition li .personal-details-note { display: block; overflow-wrap: anywhere; }
+.personal-repetition-value { display: flex; align-items: center; gap: 6px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.personal-repetition-value meter { width: 65px; accent-color: var(--need-fill); }
 #traits-block { margin: 0; border: 0; padding: 0; }
 #traits-caption { display: none; }
 .queue-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

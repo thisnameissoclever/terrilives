@@ -50,6 +50,7 @@ import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
+import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
@@ -507,6 +508,20 @@ async function main(): Promise<void> {
     sim.needBarRefreshMs(),
   );
   const peopleRoot = document.querySelector('#people-panel');
+  const personalDetails = document.querySelector<HTMLDetailsElement>('#personal-details');
+  const personalDetailsEmpty = document.querySelector<HTMLElement>('#personal-details-empty');
+  const personalDetailsContent = document.querySelector<HTMLElement>('#personal-details-content');
+  const simOverview = document.querySelector<HTMLElement>('#sim-overview');
+  const simSheet = document.querySelector<HTMLElement>('#sim-sheet');
+  if (!personalDetails || !personalDetailsEmpty || !personalDetailsContent || !simOverview || !simSheet) {
+    throw new Error('missing personal details markup');
+  }
+  const personalDetailsPanel = new PersonalDetailsPanel(sim, sim.needNames(),
+    createPersonalDetailsSurface(document, personalDetailsEmpty, personalDetailsContent), sim.needBarRefreshMs(),
+    () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
+  personalDetails.addEventListener('toggle', () => {
+    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);
+  });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
   const peopleList = document.querySelector<HTMLElement>('#people-list');
@@ -642,6 +657,7 @@ async function main(): Promise<void> {
   peoplePanel.update(initialHudMs, true);
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
+  personalDetailsPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -871,6 +887,7 @@ async function main(): Promise<void> {
           peoplePanel.update(nowMs, true);
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
+          personalDetailsPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -1585,6 +1602,7 @@ async function main(): Promise<void> {
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
+    personalDetailsPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);

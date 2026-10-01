@@ -448,6 +448,12 @@ actions; Queue mode and Clear orders live in Queue. Build retains its existing
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
+Overview also has a collapsed Personality and habits section: personal drain
+and refill factors, sleep timing, and recent activity repetition. Its meters
+have text values, and it uses the sheet's existing scrolling area. Opening it
+does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
+`docs/specs/2026-09-30-sim-details.md` for the projection and verification.
+
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
 play session that is the milestone's actual payoff was run and written up -
