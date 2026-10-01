@@ -491,6 +491,9 @@ Effects, defaulting to the unchanged mix. Routine buttons, menus and slider rele
 Twelve recorded conversation clips play in pairs. Each conversation now starts
 and stops independently, with at most three pairs sounding at once. Sleep cues
 remain household-scoped; eating, reading and exercise cues have per-Sim cadence.
+Failed conversation downloads now have bounded, demand-driven recovery without
+refetching successful clips or reviving cancelled playback. The evidence is in
+`docs/specs/2026-10-01-voice-download-recovery.md`.
 The playback repairs are merged; remaining owner listening checks are still open.
 
 Authored source identity for shower water and stove cooking is also implemented.

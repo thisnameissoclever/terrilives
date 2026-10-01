@@ -1,5 +1,40 @@
 # Lessons Learned
 
+## [L-browser-proof-public-urls] Resolve served recordings as browser URLs
+
+**What happened.** The recovery browser proof retried both recordings because
+its supposed successful input never decoded. Two fixture runs failed.
+
+**Root cause.** Vite rewrote `new URL(..., import.meta.url)` as a bundled asset
+reference. Public WAV files were not in that source-relative asset map.
+
+**Prevention rule.** For a browser proof requesting served public files, resolve
+the runtime URL against the page location. Check the transformed fixture and a
+direct fetch/decode before treating a fixture failure as a production defect.
+
+**How to verify.** The recovery proof must fetch the successful WAV only once,
+retry the failed WAV once, and render nonzero samples for the surviving pair.
+
+## [L-voice-cache-holes-need-recovery] Array length does not prove recordings loaded
+
+**What happened.** A temporary download or decode failure could leave affected
+conversations silent until page reload. Even explicitly loading the library
+again made no new requests.
+
+**Root cause.** Failed recordings retained their array indices as undefined
+slots, but the controller checked array length rather than slot contents. The
+game also had no recovery trigger after initial loading.
+
+**Prevention rule.** Check decoded slots, preserve successes, and retry missing
+recordings from a bounded semantic demand path. Keep download completion separate
+from permission to play: ended or invalidated interactions must stay silent.
+
+**How to verify.** Fail one recording, recover the network, and start a new
+conversation after the cooldown. Only the missing file should be fetched again.
+Hold recovery across end, mute, Effects zero, Load, and background boundaries;
+the old conversation must not return. The browser proof in
+`docs/specs/2026-10-01-voice-download-recovery.md` also checks real decoded samples.
+
 ## [L-test-cleanup-needs-owned-paths] A rejection test must not delete its target blindly
 
 **What happened.** Review found an audition-builder test that used a fixed

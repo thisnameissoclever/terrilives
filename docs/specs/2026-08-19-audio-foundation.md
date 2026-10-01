@@ -171,6 +171,12 @@ does not restart this one. Pending decoded-library playback is keyed the same
 way, so ending one pair cannot cancel another or revive itself after loading.
 See `2026-09-30-conversation-audio-ownership.md` for projection and verification.
 
+Missing recordings can recover after a temporary fetch or decode failure. A new
+conversation needing a missing clip triggers at most one shared retry batch per
+five seconds. Successful clips remain cached, and late recovery cannot revive
+an ended or globally invalidated pair. Explicit library loading can also retry
+missing slots. See `2026-10-01-voice-download-recovery.md` for the contract and proof.
+
 Sleep remains household-level. One quiet breath plays on entry,
 then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets

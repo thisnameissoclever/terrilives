@@ -29,6 +29,7 @@ export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
 export const DEFAULT_EFFECTS_LEVEL = 0.7;
 export const DEFAULT_VOICES_LEVEL = 1;
+const VOICE_RETRY_COOLDOWN_MS = 5000;
 
 export interface AudioPreferences {
   readonly muted: boolean;
@@ -121,7 +122,7 @@ export class AudioController implements GameAudioEventSink {
   private objectLoopClips: ObjectLoopClips = new Map();
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
-  /** Decoded once and reinstalled on every context rebuild. */
+  /** Successful decodes survive retries and context rebuilds. */
   private voiceClips: readonly (AudioBufferPort | undefined)[] = [];
   private voiceClipIds: readonly string[] = [];
   /** The player's chosen speed, so conversations can follow it. */
@@ -137,6 +138,7 @@ export class AudioController implements GameAudioEventSink {
   private readonly pendingVoices = new Map<string, ConversationVoicePair>();
   /** The in-flight library fetch, so two callers cannot both download it. */
   private voiceFetch: Promise<(AudioBufferPort | undefined)[]> | null = null;
+  private nextVoiceRetryAt = 0;
   private hasUnlocked = false;
   private backgrounded = false;
   private contextStateRevision = 0;
@@ -246,7 +248,14 @@ export class AudioController implements GameAudioEventSink {
     }
 
     if (event.type === 'sim.conversation-started') {
+      const alreadyPending = this.pendingVoices.has(conversationVoiceKey(event.voice));
       this.startConversationVoice(event.voice);
+      const missingClip = [event.voice.first, event.voice.second].some(
+        (index) => this.voiceClipIds[index] !== undefined && this.voiceClips[index] === undefined,
+      );
+      if (!alreadyPending && missingClip && performance.now() >= this.nextVoiceRetryAt) {
+        void this.fetchVoiceLibrary();
+      }
       return;
     }
 
@@ -504,22 +513,19 @@ export class AudioController implements GameAudioEventSink {
   private async fetchVoiceLibrary(): Promise<void> {
     const context = this.context;
     if (context === null || this.voiceClipIds.length === 0) return;
-    // One fetch at a time, defensively. The cache check below only sees a
-    // FINISHED load, so any second caller arriving mid-flight would fetch the
-    // whole library again. No current path does: the context is built once
-    // and only cleared when construction itself fails. This costs one field
-    // and removes the question.
+    // Initial load, explicit calls and conversation demand share one batch.
     if (this.voiceFetch !== null) {
       await this.voiceFetch;
       return;
     }
-    if (this.voiceClips.length === this.voiceClipIds.length) {
+    if (this.voiceClipIds.every((_, index) => this.voiceClips[index] !== undefined)) {
       // Already decoded. A rebuilt context reinstalls these buffers rather
       // than pulling them down a second time.
       this.voices?.setClips(compactClips(this.voiceClips));
       this.retryPendingVoice();
       return;
     }
+    this.nextVoiceRetryAt = performance.now() + VOICE_RETRY_COOLDOWN_MS;
     const fetching = loadVoiceClips(
       this.voiceClipIds,
       async (url) => {
@@ -528,6 +534,7 @@ export class AudioController implements GameAudioEventSink {
         return response.arrayBuffer();
       },
       (bytes) => context.decodeAudioData(bytes),
+      this.voiceClips,
     );
     this.voiceFetch = fetching;
     try {
