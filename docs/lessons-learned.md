@@ -3960,7 +3960,7 @@ would have meant the entire TypeScript side of the change was untested, and the
 honest response would have been to write five more tests.
 
 All five were in fact caught. The script scraped vitest's output for lines
-beginning with `Ã—`, which the reporter in use does not emit; the failure lines
+beginning with `Ãƒâ€”`, which the reporter in use does not emit; the failure lines
 are `FAIL  tests/<file> > <suite> > <name>`. Applying one mutation by hand and
 reading the raw output took under a minute and showed the named test failing with
 the expected diff.
@@ -9091,6 +9091,15 @@ claim comparison; both assertions fail. Review actual moving wash frames with
 the media preference recorded, rather than treating identical screenshots as
 animation evidence.
 
+## [L-long-term-score-needs-exact-restoration] Defaults and restoration use different constructors
+
+**What happened.** Introducing a neutral starting score exposed fixtures that assumed an empty ledger or no upper bound. A tuning comment also expressed a per-tick rate in real-time hours while the simulation clock uses game minutes.
+
+**Root cause.** Creation, save restoration and test setup shared a default constructor with different intended meanings. Small per-tick values also approach the precision limit of a single-precision floating-point score near its ceiling.
+
+**Prevention.** Apply neutral values and trait offsets only when creating a Sim. Restore saved scores directly, validate them before changing the live world, and define saturation explicitly. Give test fixtures an explicit score. State rates in game ticks and game days; check that small losses still change a score at its maximum.
+
+**Verify.** Restore zero, an in-range score and an old total above the ceiling twice. Exercise trait offsets through the public move-in command. Run the actual neglect system at 100 with the shipped small rate. Measure month-scale extreme mood and year-scale ordinary mood. Deliberately replace exact restoration with additive restoration and omit creation offsets; the causal assertions must fail. See [dated evidence](assets/review-evidence/dock-controls/README.md).
 ### [L-privacy-domestic-composition] Merge station ownership and save contracts together
 
 Privacy and domestic work developed independently. A role-only privacy detour could
@@ -9454,3 +9463,6 @@ writer cannot replace an existing terminal result.
 **Prevention.** Predeclare finite conditions before running a diagnostic. Change one measurement intervention at a time. Assert the retained observations and endpoint collection calls. Inspect enabled and disabled growth separately before interpreting their difference. Record timed-out measurement requests and differing initial memory capacities. Keep diagnostic results separate from acceptance results; do not relax a limit or retry for a favorable sample.
 
 **Verify.** Require matching initial and final game ticks, world hashes and loaded build hashes. Require unchanged within-run structural bounds. Preserve raw enabled and disabled values. Report whether a lower difference came from lower enabled growth or movement in the disabled control. Do not claim causation from one observation per condition. Dated evidence: [audio memory protocol diagnostic](assets/review-evidence/audio/toilet/2026-10-01-protocol-diagnostic.md).
+## [L-causal-evidence-must-survive-capture] Record each invariant independently
+
+A review found that a combined bound mutation stopped at its first assertion, leaving the second bound without observed failure evidence. Some dock failures lacked committed excerpts, and one browser result capture wrote `undefined` instead of the returned measurements. The checks had run, but the records overstated what they retained. Mutate independent guards separately, preserve failure output with source restoration digests, and parse generated evidence before claiming its contents. Verify each claimed invariant has an observed failure and every result file contains the expected non-empty structure.

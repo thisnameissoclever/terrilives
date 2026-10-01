@@ -1,0 +1,21 @@
+[
+  {
+    "name": "creation-and-restore",
+    "exit": 101,
+    "failures": [
+      "satisfaction_restores_without_reapplying_baseline_or_trait_bias",
+      "shipped_household_gets_only_its_authored_initial_trait_bias",
+      "move_in_applies_starting_trait_offsets_once"
+    ],
+    "restored": [
+      {
+        "file": "crates/terri-sim/src/household.rs",
+        "sha256": "9aeaadf72f2dc8b2930a7bebc1b664430335bdeae894ecb76d23c5b268cf67bf"
+      },
+      {
+        "file": "crates/terri-sim/src/save.rs",
+        "sha256": "95e4632f940343a4b856e6106054fcbc3cd6f06ae52b8302e366860295e57c5d"
+      }
+    ]
+  }
+]

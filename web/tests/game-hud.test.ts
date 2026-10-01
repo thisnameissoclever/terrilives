@@ -86,6 +86,18 @@ describe('game HUD formatting', () => {
 });
 
 describe('GameHud', () => {
+  it('shares one satisfaction read with the numeric value and meter, including deselection', () => {
+    const view = roots();
+    const rendered: (number | null)[] = [];
+    let reads = 0;
+    const hud = new GameHud(view, 100, { render: value => rendered.push(value) });
+    hud.update(0, source({ satisfactionOf: () => { reads++; return 50; } }));
+    expect(reads).toBe(1);
+    expect(view.satisfaction.textContent).toBe('50.0');
+    expect(rendered).toEqual([50]);
+    hud.update(100, source({ selectedIndex: () => null }));
+    expect(rendered).toEqual([50, null]);
+  });
   it('preserves unchanged text while applying changed state and repairing external edits', () => {
     const view = roots();
     const hud = new GameHud(view, 100);

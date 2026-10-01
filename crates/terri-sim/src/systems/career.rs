@@ -287,7 +287,7 @@ pub fn commute_and_work(
             }
             needs.drain(NeedId::Energy, career.energy_cost);
             funds.0 += career.pay as i64;
-            satisfaction.add(career.satisfaction);
+            satisfaction.reward(career.satisfaction);
         }
     }
 }
@@ -377,7 +377,7 @@ mod tests {
                 Agent,
                 Position { x, y },
                 Needs::all_at(80.0),
-                Satisfaction::default(),
+                Satisfaction::from_value(0.0),
                 Career(0),
             ))
             .id()
@@ -666,7 +666,7 @@ mod tests {
         assert_eq!(sim.funds(), 130, "one shift, one pay packet");
         assert_eq!(
             sim.world().get::<Satisfaction>(worker).unwrap().value(),
-            2.25,
+            2.25 * Satisfaction::REWARD_SCALE,
             "the career's satisfaction lands exactly once"
         );
         // Energy: 80 at spawn, minus 29 ticks of decay - the ones
@@ -882,7 +882,7 @@ mod tests {
                     Agent,
                     Position { x: 5.0, y: 6.0 },
                     needs,
-                    Satisfaction::default(),
+                    Satisfaction::from_value(0.0),
                     Target {
                         object: worker,
                         interaction: 0,

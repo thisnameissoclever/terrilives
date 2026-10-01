@@ -1,5 +1,6 @@
 /** The player-facing clock, household and selected-sim summary. */
 import { setTextIfChanged } from './set-text-if-changed.js';
+import type { SatisfactionSurface } from './satisfaction-meter.js';
 
 export interface GameHudSource {
   selectedIndex(): number | null;
@@ -103,6 +104,7 @@ export class GameHud {
   constructor(
     private readonly roots: GameHudRoots,
     private readonly refreshMs: number,
+    private readonly satisfactionSurface?: SatisfactionSurface,
   ) {
     if (!Number.isFinite(refreshMs) || refreshMs <= 0) {
       throw new Error('HUD refresh interval must be positive');
@@ -125,6 +127,7 @@ export class GameHud {
     const satisfaction =
       selected === null ? null : source.satisfactionOf(selected);
     setTextIfChanged(this.roots.satisfaction, formatSatisfaction(satisfaction));
+    this.satisfactionSurface?.render(satisfaction);
 
     const career = selected === null ? null : source.careerOf(selected);
     this.roots.careerRow.hidden = career === null;

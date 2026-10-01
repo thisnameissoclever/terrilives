@@ -889,10 +889,13 @@ pub struct CompiledTrait {
     pub label: String,
     pub tag: String,
     pub kind: CompiledTraitKind,
-    /// One plain sentence for the Traits panel - [TL-description]. Last,
-    /// because it was appended; it is in no save and not in the
+    /// One plain sentence for the Traits panel - [TL-description].
+    /// It is in no save and not in the
     /// compatibility digest, so rewording it costs nothing.
     pub description: String,
+    /// Initial satisfaction bias, applied only when a Sim is created.
+    /// Appended for the compiled pack's field order; absent TOML values are zero.
+    pub starting_satisfaction_offset: f32,
 }
 
 /// One member of the authored household - [H2].
@@ -1581,6 +1584,7 @@ mod tests {
             // being re-derived.
             traits: vec![
                 CompiledTrait {
+                    starting_satisfaction_offset: 0.0,
                     id: "gossip_hound".to_string(),
                     label: "Gossip hound".to_string(),
                     tag: "gossip".to_string(),
@@ -1590,6 +1594,7 @@ mod tests {
                     description: String::new(),
                 },
                 CompiledTrait {
+                    starting_satisfaction_offset: 0.0,
                     id: "all_thumbs".to_string(),
                     label: "All thumbs".to_string(),
                     tag: "tinkering".to_string(),
@@ -1601,6 +1606,7 @@ mod tests {
                     description: String::new(),
                 },
                 CompiledTrait {
+                    starting_satisfaction_offset: 0.0,
                     id: "weary".to_string(),
                     label: "Weary".to_string(),
                     tag: "puttering".to_string(),

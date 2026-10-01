@@ -45,13 +45,13 @@ async (page, outputDir) => {
       await page.waitForFunction(name =>
         document.querySelector('#needs-caption').textContent === name, name);
       if (!await page.locator('#mood-meter').isVisible() ||
-          !await page.locator('#satisfaction-value').isVisible()) {
+          !await page.locator('#satisfaction-meter').isVisible()) {
         throw Error('Selected wellbeing is hidden');
       }
     }
     await page.getByRole('button', { name: 'Collapse Sim dock', exact: true }).click();
     if (!await page.locator('#mood-meter').isVisible() ||
-        !await page.locator('#satisfaction-value').isVisible()) {
+        !await page.locator('#satisfaction-meter').isVisible()) {
       throw Error('Collapse hid wellbeing');
     }
     await page.getByRole('button', { name: 'Sim details', exact: true }).click();
@@ -95,14 +95,14 @@ async (page, outputDir) => {
       const source = globalThis.__terriStress.sim;
       source.moodSummaryOf = () => ['Miserable'];
       source.moodSnapshotOf = () => new Float32Array([-95]);
-      source.satisfactionOf = () => 12345.6;
+      source.satisfactionOf = () => 5.6;
     });
     await page.waitForFunction(() =>
       document.querySelector('#mood-label').textContent === 'Miserable' &&
-      document.querySelector('#satisfaction-value').textContent === '12345.6');
+      document.querySelector('#satisfaction-value').textContent === '5.6');
     const unchangedText = await page.evaluate(() => {
       const harness = globalThis.__terriStress;
-      const nodes = ['mood-label', 'satisfaction-value'].map(id => document.getElementById(id));
+      const nodes = ['mood-label', 'satisfaction-value', 'satisfaction-label'].map(id => document.getElementById(id));
       const before = nodes.map(node => node.firstChild);
       const tick = harness.sim.clockTick();
       const observer = new MutationObserver(() => {});

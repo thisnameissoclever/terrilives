@@ -4161,8 +4161,8 @@ mod household_tests {
         pairs.sort_by_key(|(id, ..)| *id);
         assert_eq!(
             pairs,
-            vec![(0, vec!["whittling".to_string()], 0.0), (1, vec![], 0.0),],
-            "hobbies are the member's own and every ledger opens empty"
+            vec![(0, vec!["whittling".to_string()], 50.0), (1, vec![], 50.0),],
+            "hobbies are the member's own and satisfaction starts neutral"
         );
     }
 
