@@ -1,5 +1,4 @@
 import { FACING_NAMES, type FurnitureBuilder } from './builder.js';
-import { formatFunds } from './game-hud.js';
 
 /** One set of controls moves between the desktop HUD and the mobile dock. */
 export class BuilderControls {
@@ -9,10 +8,6 @@ export class BuilderControls {
   private readonly name: HTMLElement;
   private readonly facing: HTMLElement;
   private readonly status: HTMLElement;
-  private readonly rotate: HTMLButtonElement;
-  private readonly confirm: HTMLButtonElement;
-  private readonly cancel: HTMLButtonElement;
-  private readonly sell: HTMLButtonElement;
   private readonly saleNote: HTMLElement;
   private readonly colour: HTMLSelectElement;
   private readonly keyboardHelp: HTMLElement;
@@ -31,10 +26,6 @@ export class BuilderControls {
     this.name = required('builder-name');
     this.facing = required('builder-facing');
     this.status = required('builder-status');
-    this.rotate = required('builder-rotate');
-    this.confirm = required('builder-confirm');
-    this.cancel = required('builder-cancel');
-    this.sell = required('builder-sell');
     this.saleNote = required('builder-sale-note');
     this.colour = required('builder-colour');
     // [RC-ui]: the colourways are content, so the list is built once.
@@ -52,10 +43,6 @@ export class BuilderControls {
     this.selector.addEventListener('change', () => {
       if (this.selector.value !== '') builder.select(Number(this.selector.value));
     });
-    this.rotate.addEventListener('click', () => builder.rotate());
-    this.confirm.addEventListener('click', () => builder.confirm());
-    this.cancel.addEventListener('click', () => builder.cancel());
-    this.sell.addEventListener('click', () => builder.sell());
     this.render();
   }
 
@@ -63,8 +50,8 @@ export class BuilderControls {
     const host = this.document.querySelector(compact ? '#builder-dock' : '#builder-desktop');
     if (!host) throw new Error('Missing furniture panel host');
     host.append(this.panel);
-    this.keyboardHelp.hidden = compact;
-    this.touchHelp.hidden = !compact;
+    this.keyboardHelp.hidden = false;
+    this.touchHelp.hidden = false;
   }
 
   render(): void {
@@ -88,15 +75,10 @@ export class BuilderControls {
     }
     this.selector.value = builder.selected === null ? '' : String(builder.selected);
     this.selector.disabled = builder.pending || builder.blocked;
-    this.name.textContent = builder.name || 'Build mode';
+    this.name.textContent = 'Build mode';
+    const exit = this.document.querySelector<HTMLButtonElement>('#builder-exit');
+    if (exit) exit.disabled = builder.pending;
     this.facing.textContent = builder.preview ? `Facing: ${FACING_NAMES[builder.preview.facing]}` : '';
-    this.rotate.disabled = !builder.canRotate || builder.pending || builder.blocked;
-    this.rotate.title = builder.canRotate ? 'Rotate to the next supported direction' : 'Only one direction is available for this furniture.';
-    this.confirm.disabled = !builder.canConfirm;
-    this.cancel.disabled = builder.selected === null || builder.pending || builder.blocked;
-    // [SL-shell]: the button names what the sale pays back.
-    this.sell.disabled = !builder.canSell;
-    this.sell.textContent = builder.saleValue === null ? 'Sell' : `Sell for ${formatFunds(builder.saleValue)}`;
     this.colour.value = String(builder.shownColourway ?? 0);
     // Not disabled while a change is on its way: disabling the focused list
     // would drop keyboard focus out of the panel. The builder queues it.

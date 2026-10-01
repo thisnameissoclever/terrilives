@@ -450,7 +450,7 @@ describe('the Walls tool on real wasm', () => {
 
 describe('the Walls tool in the page', () => {
   const IDS = ['build-tool-furniture', 'build-tool-walls', 'furniture-tool', 'wall-tool',
-    'wall-status', 'wall-build', 'wall-doorway', 'wall-window', 'wall-remove', 'wall-keyboard-help',
+    'wall-status', 'wall-keyboard-help',
     'wall-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
@@ -462,7 +462,7 @@ describe('the Walls tool in the page', () => {
       INDEX_HTML.indexOf('</section>', INDEX_HTML.indexOf('id="builder-controls"')));
     for (const id of IDS) expect(panel).toContain(`id="${id}"`);
     expect(panel).toContain('<div id="wall-tool" class="builder-tool" hidden>');
-    expect(panel).toContain('aria-pressed="true">Furniture</button>');
+    expect(panel).toContain('aria-pressed="true" aria-controls="furniture-tool">Furniture</button>');
   });
 
   it('keeps the build panel spacing inside every tool wrapper', () => {
@@ -536,6 +536,8 @@ describe('WallToolControls', () => {
     setAttribute(name: string, value: string) { this.attributes.set(name, value); }
     addEventListener(_type: string, listener: () => void) { this.listeners.push(listener); }
     click() { for (const listener of this.listeners) listener(); }
+    readonly shortcuts = [{ open: false }];
+    querySelectorAll() { return this.shortcuts; }
   }
 
   function controls(leave: () => boolean) {
@@ -601,28 +603,23 @@ describe('WallToolControls', () => {
     expect(focused()).toBe(5);
   });
 
-  it('disables the button for the current state and for a refused one, and presses apply', () => {
+  it('retains readable refusal feedback beside the contextual controls', () => {
     const { walls, source, view, element } = controls(() => true);
     element('build-tool-walls').click();
     source.refusals = [0, 12, 0, 12];
     source.edges = [0, 2, 1, 1];
     walls.choosePoint(1.6, 1.0);
     view.render();
-    expect(['wall-build', 'wall-doorway', 'wall-window', 'wall-remove'].map((id) => element(id).disabled))
-      .toEqual([true, true, true, false]);
     expect(element('wall-status').textContent).toBe(walls.status);
-    element('wall-remove').click();
-    expect(source.staged).toEqual([[0, 2, 1, OPEN]]);
-    element('wall-build').click();
-    expect(source.staged).toHaveLength(1);
+    expect(walls.status).toMatch(/cut off the front door/);
   });
 
-  it('shows the touch help on a phone and the keyboard help elsewhere', () => {
+  it('keeps the optional shortcuts available on desktop and phone', () => {
     const { view, element } = controls(() => true);
     view.setCompact(true);
-    expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([true, false]);
+    expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([false, false]);
     view.setCompact(false);
-    expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([false, true]);
+    expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([false, false]);
   });
 });
 

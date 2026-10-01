@@ -1,0 +1,36 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/9fb8/terrilives/web
+
+ ❯ tests/build-context.test.ts (16 tests | 1 failed) 132ms
+     × Floors reads content names and selection never paints, even after an application 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/build-context.test.ts > context actions use the active controller > Floors reads content names and selection never paints, even after an application
+AssertionError: expected null to deeply equal [ 5, 4 ]
+
+- Expected:
+[
+  5,
+  4,
+]
+
++ Received:
+null
+
+ ❯ tests/build-context.test.ts:182:29
+    180|       f.floors.choosePoint(5, 4); f.source.flushCommands(); expect(f.s…
+    181|       f.floors.pending = 1; f.floors.clearSelection();
+    182|       expect(f.floors.tile).toEqual([5, 4]);
+       |                             ^
+    183|       expect(contextModel(f.tools)!.actions.every(a => !a.enabled)).to…
+    184|       f.floors.pending = null;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 passed (16)
+   Start at  11:12:30
+   Duration  607ms (transform 288ms, setup 0ms, import 344ms, tests 132ms, environment 0ms)
+

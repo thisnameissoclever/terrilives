@@ -1,0 +1,104 @@
+[
+  {
+    "command": "python -B -m unittest discover -s .github/scripts -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "ci-scripts"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/sprites/gen -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "atlas-tests"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/models/sims/sim-01 -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "sim-art-tests"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/models/furniture -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "furniture-art-tests"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/models/kitchen -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "kitchen-art-tests"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/models/bathroom -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "bathroom-art-tests"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/models/bedroom -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "bedroom-art-tests"
+  },
+  {
+    "command": "python -B -m unittest discover -s assets/models/office -p test_*.py",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "office-art-tests"
+  },
+  {
+    "command": "python assets/sprites/gen/build.py --check",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "atlas-reproducible"
+  },
+  {
+    "command": "node --test scripts/build-changelog.test.mjs",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "changelog-tests"
+  },
+  {
+    "command": "node scripts/build-changelog.mjs",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "changelog-build"
+  },
+  {
+    "command": "cargo tree -p terri-core --target x86_64-unknown-linux-gnu",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "purity-terri-core-x86_64-unknown-linux-gnu"
+  },
+  {
+    "command": "cargo tree -p terri-data --target x86_64-unknown-linux-gnu",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "purity-terri-data-x86_64-unknown-linux-gnu"
+  },
+  {
+    "command": "cargo tree -p terri-sim --target x86_64-unknown-linux-gnu",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "purity-terri-sim-x86_64-unknown-linux-gnu"
+  },
+  {
+    "command": "cargo tree -p terri-core --target wasm32-unknown-unknown",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "purity-terri-core-wasm32-unknown-unknown"
+  },
+  {
+    "command": "cargo tree -p terri-data --target wasm32-unknown-unknown",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "purity-terri-data-wasm32-unknown-unknown"
+  },
+  {
+    "command": "cargo tree -p terri-sim --target wasm32-unknown-unknown",
+    "exit": 0,
+    "verdict": "PASS",
+    "name": "purity-terri-sim-wasm32-unknown-unknown"
+  }
+]

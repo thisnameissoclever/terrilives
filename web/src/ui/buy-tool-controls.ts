@@ -35,9 +35,6 @@ export class BuyToolControls {
   private readonly facing: HTMLElement;
   private readonly price: HTMLElement;
   private readonly status: HTMLElement;
-  private readonly rotate: HTMLButtonElement;
-  private readonly confirm: HTMLButtonElement;
-  private readonly cancel: HTMLButtonElement;
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
   private readonly identity: HTMLElement;
@@ -72,9 +69,6 @@ export class BuyToolControls {
     this.price = required('buy-price');
     this.serves = required('buy-serves');
     this.status = required('buy-status');
-    this.rotate = required('buy-rotate');
-    this.confirm = required('buy-confirm');
-    this.cancel = required('buy-cancel');
     this.keyboardHelp = required('buy-keyboard-help');
     this.touchHelp = required('buy-touch-help');
     this.placeholder = document.createElement('option');
@@ -111,16 +105,13 @@ export class BuyToolControls {
       else tool.choose(Number(this.selector.value));
       this.render();
     });
-    this.rotate.addEventListener('click', () => tool.rotate());
-    this.confirm.addEventListener('click', () => tool.buy());
-    this.cancel.addEventListener('click', () => tool.cancel());
     this.render();
   }
 
-  /** The phone layout reads the touch help, as the other tools' do. */
-  setCompact(compact: boolean): void {
-    this.keyboardHelp.hidden = compact;
-    this.touchHelp.hidden = !compact;
+  /** CSS chooses the pointer hint; Shortcuts remains available in either layout. */
+  setCompact(_compact: boolean): void {
+    this.keyboardHelp.hidden = false;
+    this.touchHelp.hidden = false;
   }
 
   render(): void {
@@ -151,9 +142,6 @@ export class BuyToolControls {
     this.serves.textContent = tool.chosen ? servesLabel(tool.chosen.needs, this.needNames) : '';
     this.facing.textContent = tool.preview ? `Facing: ${FACING_NAMES[tool.preview.facing]}` : '';
     this.price.textContent = tool.chosen ? `Price: ${formatFunds(tool.chosen.price)}` : '';
-    this.rotate.disabled = !tool.canRotate || tool.pending || tool.blocked;
-    this.confirm.disabled = !tool.canBuy;
-    this.cancel.disabled = tool.chosen === null || tool.pending || tool.blocked;
     this.status.textContent = tool.status;
     this.status.setAttribute('data-valid', String(tool.preview?.valid ?? true));
   }
