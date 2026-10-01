@@ -190,6 +190,12 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         });
     }
 
+    if let Some(penalty) = crate::domestic::mood_penalty(world, subject) {
+        moodlets.push(Moodlet {
+            label: "Dirty dishes".into(),
+            score: -penalty,
+        });
+    }
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)
@@ -247,13 +253,7 @@ fn has_bed_shortage(world: &World) -> bool {
                 pack.objects
                     .get(object.0 .0 as usize)
                     .map_or(0, |definition| {
-                        definition
-                            .interactions
-                            .iter()
-                            .filter(|i| i.tags.contains(&pack.sleep_tag))
-                            .map(|i| usize::from(i.slots))
-                            .max()
-                            .unwrap_or(0)
+                        usize::from(crate::beds::capacity(pack, definition))
                     })
             })
             .sum()

@@ -1,0 +1,352 @@
+missing-hash
+
+running 1 test
+test privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not ... FAILED
+
+failures:
+
+---- privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not stdout ----
+
+thread 'privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not' (66636) panicked at crates\terri-sim\src\privacy.rs:465:13:
+assertion `left != right` failed: field 0
+  left: 10764083894741568085
+ right: 10764083894741568085
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+warning: function `hash` is never used
+   --> crates\terri-sim\src\privacy.rs:139:15
+    |
+139 | pub(crate) fn hash(world: &World, hasher: &mut terri_core::FnvHasher) {
+    |               ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.84s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+missing-save
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears' (81684) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:94:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.39s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+entry-guard
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears' (28212) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:90:5:
+assertion `left == right` failed
+  left: 1.5
+ right: 1.25
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.65s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+start-guard
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override' (81752) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:157:9:
+assertion `left == right` failed: wait
+  left: true
+ right: false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.20s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+repeated-reroll
+
+running 1 test
+test privacy::tests::cached_respect_waits_without_rerolls_and_only_relevant_emergencies_override ... FAILED
+
+failures:
+
+---- privacy::tests::cached_respect_waits_without_rerolls_and_only_relevant_emergencies_override stdout ----
+
+thread 'privacy::tests::cached_respect_waits_without_rerolls_and_only_relevant_emergencies_override' (30792) panicked at crates\terri-sim\src\privacy.rs:519:9:
+assertion `left == right` failed
+  left: SimRng { state: 11801410640963831621, inc: 3 }
+ right: SimRng { state: 12282511421362615598, inc: 3 }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::tests::cached_respect_waits_without_rerolls_and_only_relevant_emergencies_override
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.35s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+reversed-direction
+
+running 1 test
+test systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event stdout ----
+
+thread 'systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event' (33868) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:506:5:
+assertion `left == right` failed
+  left: 0.0
+ right: -0.25
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.35s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+duplicate-reward
+
+running 1 test
+test relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity ... FAILED
+
+failures:
+
+---- relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity stdout ----
+
+thread 'relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity' (59456) panicked at crates\terri-sim\src\relationship_dynamics.rs:277:9:
+assertion failed: (feeling(&sim, a, SimId(1)) - 0.02 / 60.0).abs() < 0.0000001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.54s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+shared-dislikes
+
+running 1 test
+test compatibility::tests::compatibility_is_directional_and_unrelated_interests_are_neutral ... FAILED
+
+failures:
+
+---- compatibility::tests::compatibility_is_directional_and_unrelated_interests_are_neutral stdout ----
+
+thread 'compatibility::tests::compatibility_is_directional_and_unrelated_interests_are_neutral' (80224) panicked at crates\terri-sim\src\compatibility.rs:116:9:
+assertion `left == right` failed
+  left: 1.0
+ right: 0.0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    compatibility::tests::compatibility_is_directional_and_unrelated_interests_are_neutral
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 687 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.63s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+late-alternative
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_late_occupancy_checks_alternatives_before_an_emergency_override ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_late_occupancy_checks_alternatives_before_an_emergency_override stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_late_occupancy_checks_alternatives_before_an_emergency_override' (62264) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:683:5:
+assertion failed: sim.world().get::<Eating>(user).is_none()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_late_occupancy_checks_alternatives_before_an_emergency_override
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 693 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.30s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+stale-conversation
+
+running 1 test
+test relationship_dynamics::tests::a_redirected_conversation_partner_cannot_claim_social_help_from_the_old_talk ... FAILED
+
+failures:
+
+---- relationship_dynamics::tests::a_redirected_conversation_partner_cannot_claim_social_help_from_the_old_talk stdout ----
+
+thread 'relationship_dynamics::tests::a_redirected_conversation_partner_cannot_claim_social_help_from_the_old_talk' (75180) panicked at crates\terri-sim\src\relationship_dynamics.rs:326:9:
+assertion `left == right` failed
+  left: 3.3333334e-5
+ right: 0.0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    relationship_dynamics::tests::a_redirected_conversation_partner_cannot_claim_social_help_from_the_old_talk
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 693 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.49s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+urgent-private-goal
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared' (45584) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:722:9:
+assertion `left == right` failed: cleared=false
+  left: 3v0
+ right: 4v0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 694 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.41s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+cleared-wait-urgency
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared' (11140) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:722:9:
+assertion `left == right` failed: cleared=true
+  left: 3v0
+ right: 4v0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 694 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+warning: unused variable: `already_waiting`
+   --> crates\terri-sim\src\privacy.rs:232:13
+    |
+232 |         let already_waiting = world
+    |             ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_already_waiting`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning (run `cargo fix --lib -p terri-sim --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.32s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+urgent-priority
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_two_critical_needs_keep_the_chosen_goal_until_its_emergency_wait_expires ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_two_critical_needs_keep_the_chosen_goal_until_its_emergency_wait_expires stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_two_critical_needs_keep_the_chosen_goal_until_its_emergency_wait_expires' (44488) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:728:9:
+assertion `left == right` failed: minute 0
+  left: 4v0
+ right: 3v0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_two_critical_needs_keep_the_chosen_goal_until_its_emergency_wait_expires
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 695 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.40s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+

@@ -1,0 +1,411 @@
+[
+  {
+    "bodyAction": 2,
+    "expected": 3,
+    "label": "Snack",
+    "person": 34,
+    "position": [
+      0,
+      1
+    ],
+    "queue": [
+      "Grab a snack: Chill-o-Matic 3000",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 0,
+    "tick": 190
+  },
+  {
+    "bodyAction": 9,
+    "expected": 5,
+    "label": "Bunk sleep",
+    "person": 34,
+    "position": [
+      9.5,
+      6
+    ],
+    "queue": [
+      "Sleep: Sleepeazy Deluxe",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 25,
+    "tick": 142
+  },
+  {
+    "bodyAction": 0,
+    "expected": 12,
+    "label": "Shower",
+    "person": 34,
+    "position": [
+      13,
+      6
+    ],
+    "queue": [
+      "Take a shower: Rainfall Cubicle",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 30,
+    "tick": 118
+  },
+  {
+    "bodyAction": 0,
+    "expected": 13,
+    "label": "Toilet",
+    "person": 34,
+    "position": [
+      13,
+      6
+    ],
+    "queue": [
+      "Use the toilet: Porcelain Standard",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 29,
+    "tick": 118
+  },
+  {
+    "bodyAction": 0,
+    "expected": 14,
+    "label": "Television",
+    "person": 34,
+    "position": [
+      11,
+      3
+    ],
+    "queue": [
+      "Watch TV: Cathode Companion"
+    ],
+    "target": 17,
+    "tick": 189
+  },
+  {
+    "bodyAction": 0,
+    "expected": 11,
+    "label": "Sofa sitting",
+    "person": 34,
+    "position": [
+      13,
+      3
+    ],
+    "queue": [
+      "Sit down: Chesterfield Regret",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 18,
+    "tick": 130
+  },
+  {
+    "bodyAction": 0,
+    "expected": 16,
+    "label": "Wash hands",
+    "person": 34,
+    "position": [
+      12,
+      9
+    ],
+    "queue": [
+      "Wash hands: Basin Basic",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 32,
+    "tick": 134
+  },
+  {
+    "bodyAction": 4,
+    "expected": 8,
+    "label": "Bookshelf reading",
+    "person": 34,
+    "position": [
+      9,
+      0
+    ],
+    "queue": [
+      "Read a book: Wall of Intent",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 10,
+    "tick": 158
+  },
+  {
+    "bodyAction": 0,
+    "expected": 17,
+    "label": "Wash dishes",
+    "person": 34,
+    "position": [
+      4,
+      1
+    ],
+    "queue": [
+      "Wash the dishes: Basin, Communal",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 4,
+    "tick": 174
+  },
+  {
+    "bodyAction": 0,
+    "expected": 11,
+    "label": "Table sitting",
+    "person": 34,
+    "position": [
+      3,
+      2
+    ],
+    "queue": [
+      "Sit down to eat: Dining table",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 7,
+    "tick": 174
+  },
+  {
+    "bodyAction": 0,
+    "expected": 15,
+    "label": "Lie on couch",
+    "person": 34,
+    "position": [
+      12,
+      0
+    ],
+    "queue": [
+      "Lie down: The Sectional Compromise",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 11,
+    "tick": 146
+  },
+  {
+    "bodyAction": 8,
+    "expected": 11,
+    "label": "Armchair sitting",
+    "person": 34,
+    "position": [
+      13,
+      0
+    ],
+    "queue": [
+      "Sit down: Armchair",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 12,
+    "tick": 138
+  },
+  {
+    "bodyAction": 0,
+    "expected": 18,
+    "label": "Radio",
+    "person": 34,
+    "position": [
+      9,
+      3
+    ],
+    "queue": [
+      "Listen to the radio: Frequency of Record",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 16,
+    "tick": 146
+  },
+  {
+    "bodyAction": 0,
+    "expected": 5,
+    "label": "Double-bed sleep",
+    "person": 34,
+    "position": [
+      2,
+      7
+    ],
+    "queue": [
+      "Go to bed: The Restorative Unit",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 19,
+    "tick": 182
+  },
+  {
+    "bodyAction": 6,
+    "expected": 9,
+    "label": "Exercise bike",
+    "person": 34,
+    "position": [
+      4,
+      11
+    ],
+    "queue": [
+      "Use the exercise bike: Wellness Initiative, Indoor",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 22,
+    "tick": 170
+  },
+  {
+    "bodyAction": 0,
+    "expected": 19,
+    "label": "Correspondence",
+    "person": 34,
+    "position": [
+      8,
+      6
+    ],
+    "queue": [
+      "Work: Station of Ongoing Concern",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 23,
+    "tick": 154
+  },
+  {
+    "bodyAction": 3,
+    "expected": 8,
+    "label": "Seated reading",
+    "person": 34,
+    "position": [
+      9,
+      9
+    ],
+    "queue": [
+      "Sit and read: The Wingback Sabbatical",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 26,
+    "tick": 184
+  },
+  {
+    "bodyAction": 7,
+    "expected": 10,
+    "label": "Watch fish",
+    "person": 34,
+    "position": [
+      6,
+      9
+    ],
+    "queue": [
+      "Watch the fish: Aquarium of Managed Expectations",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 27,
+    "tick": 158
+  },
+  {
+    "bodyAction": 0,
+    "expected": 20,
+    "label": "Bath",
+    "person": 34,
+    "position": [
+      14,
+      8
+    ],
+    "queue": [
+      "Take a bath: The Long Soak Directive",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 31,
+    "tick": 130
+  },
+  {
+    "bodyAction": 0,
+    "expected": 21,
+    "label": "Get ingredients",
+    "person": 34,
+    "position": [
+      0,
+      1
+    ],
+    "queue": [
+      "Cook dinner - step: Get ingredients"
+    ],
+    "target": "cook_dinner",
+    "tick": 226
+  },
+  {
+    "bodyAction": 0,
+    "expected": 22,
+    "label": "Prepare food",
+    "person": 34,
+    "position": [
+      1,
+      1
+    ],
+    "queue": [
+      "Cook dinner - step: Prepare food (carrying ingredients)"
+    ],
+    "target": "cook_dinner",
+    "tick": 245
+  },
+  {
+    "bodyAction": 0,
+    "expected": 23,
+    "label": "Cook",
+    "person": 34,
+    "position": [
+      2,
+      1
+    ],
+    "queue": [
+      "Cook dinner - step: Cook (carrying ingredients)"
+    ],
+    "target": "cook_dinner",
+    "tick": 270
+  },
+  {
+    "bodyAction": 2,
+    "expected": 3,
+    "label": "Eat dinner",
+    "person": 34,
+    "position": [
+      2,
+      2
+    ],
+    "queue": [
+      "Cook dinner - step: Eat dinner (carrying dinner)"
+    ],
+    "target": "cook_dinner",
+    "tick": 317
+  },
+  {
+    "bodyAction": 5,
+    "expected": 1,
+    "label": "Walking to fish",
+    "person": 34,
+    "position": [
+      13,
+      6.25
+    ],
+    "queue": [
+      "Watch the fish: Aquarium of Managed Expectations",
+      "Take a shower: Rainfall Cubicle"
+    ],
+    "target": 27,
+    "tick": 118
+  },
+  {
+    "bodyAction": 0,
+    "expected": 2,
+    "label": "Waiting for chat",
+    "person": 35,
+    "position": [
+      11,
+      3
+    ],
+    "queue": [
+      ""
+    ],
+    "target": 34,
+    "tick": 169
+  },
+  {
+    "bodyAction": 1,
+    "expected": 4,
+    "label": "Conversation",
+    "person": 34,
+    "position": [
+      11,
+      4
+    ],
+    "queue": [
+      "Chat: Bill"
+    ],
+    "target": 35,
+    "tick": 185
+  }
+]

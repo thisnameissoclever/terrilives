@@ -1,7 +1,6 @@
 //! Content packs built in memory, for tests only.
 //!
-//! `content/objects.toml` declares one object, and several tests in this
-//! crate need two or three with deltas chosen to make a specific
+//! Several tests need two or three objects with deltas chosen to make a specific
 //! comparison observable. Those fixtures live here rather than in shipped
 //! content: anything in `content/` is an object every agent in the game
 //! can walk up to and use, and an object tuned to produce a bitwise tie
@@ -15,6 +14,19 @@
 use crate::{portals::ActivePortals, Content, Sim};
 use terri_core::{Footprint, NeedId, SimRng, SmartObject};
 use terri_data::{CompiledInteraction, CompiledObject, ContentPack, Tuning};
+
+/// Historical placements with current definitions; callers supply the era's walls.
+pub(crate) fn historical_lot(pack: &ContentPack) -> terri_data::CompiledLot {
+    let origins = include!("../../test-fixtures/pre-yard-placements.rs");
+    let mut lot = pack.lot.clone();
+    assert_eq!(lot.placements.len(), origins.len());
+    for (placement, (id, x, y, facing)) in lot.placements.iter_mut().zip(origins) {
+        assert_eq!(pack.object(placement.object).id, id);
+        (placement.x, placement.y) = (x, y);
+        placement.facing = facing;
+    }
+    lot
+}
 
 /// One interaction advertising the given (need, delta) pairs.
 ///
@@ -70,6 +82,8 @@ pub fn interaction(
         // same absence as an interaction with no authored `visual` table.
         visual: None,
         sound_action: None,
+        shared_activity: None,
+        activity: None,
     }
 }
 
@@ -139,6 +153,7 @@ pub fn object_sized(
     footprint: Footprint,
 ) -> CompiledObject {
     CompiledObject {
+        sleep_places: Vec::new(),
         id: id.to_string(),
         name: id.to_string(),
         presentation: None,

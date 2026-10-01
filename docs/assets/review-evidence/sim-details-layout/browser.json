@@ -1,0 +1,125 @@
+{
+  "defaults": {
+    "width": 360,
+    "height": 312.9375,
+    "scrollWidth": 358,
+    "clientWidth": 358
+  },
+  "expanded": {
+    "width": 540,
+    "scrollWidth": 538,
+    "clientWidth": 538
+  },
+  "shyness": "89",
+  "switchedShyness": "22",
+  "traitsWidth": 360,
+  "collapsedWidth": 360,
+  "responsive": [
+    {
+      "viewport": [
+        320,
+        568
+      ],
+      "width": 304,
+      "left": 8,
+      "right": 312,
+      "bottom": 451,
+      "overflow": false,
+      "contentOverflow": false,
+      "navOverflow": false,
+      "tabs": [
+        {
+          "text": "Overview",
+          "height": 44
+        },
+        {
+          "text": "Queue",
+          "height": 44
+        },
+        {
+          "text": "People",
+          "height": 44
+        },
+        {
+          "text": "Traits",
+          "height": 44
+        },
+        {
+          "text": "Household",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "width": 374,
+      "left": 8,
+      "right": 382,
+      "bottom": 727,
+      "overflow": false,
+      "contentOverflow": false,
+      "navOverflow": false,
+      "tabs": [
+        {
+          "text": "Overview",
+          "height": 44
+        },
+        {
+          "text": "Queue",
+          "height": 44
+        },
+        {
+          "text": "People",
+          "height": 44
+        },
+        {
+          "text": "Traits",
+          "height": 44
+        },
+        {
+          "text": "Household",
+          "height": 44
+        }
+      ]
+    },
+    {
+      "viewport": [
+        640,
+        400
+      ],
+      "width": 432,
+      "left": 200,
+      "right": 632,
+      "bottom": 283,
+      "overflow": false,
+      "contentOverflow": false,
+      "navOverflow": false,
+      "tabs": [
+        {
+          "text": "Overview",
+          "height": 44
+        },
+        {
+          "text": "Queue",
+          "height": 44
+        },
+        {
+          "text": "People",
+          "height": 44
+        },
+        {
+          "text": "Traits",
+          "height": 44
+        },
+        {
+          "text": "Household",
+          "height": 44
+        }
+      ]
+    }
+  ],
+  "pageErrors": []
+}

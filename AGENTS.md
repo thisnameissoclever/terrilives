@@ -6,6 +6,14 @@ Clarity always comes first. Keep object types primary, model names secondary, an
 
 The skill records writing direction and a proposed object-text hierarchy. It does not authorize an unrequested rewrite, implement the proposed interface, or approve sample copy for release. Preserve the owner's review boundary documented in `docs/player-visible-strings.md` and lesson L58 in `docs/lessons-learned.md`.
 
+## Keep the public changelog current
+
+Before every branch push, and again before merging, read and apply [.agents/skills/maintain-changelog/SKILL.md](.agents/skills/maintain-changelog/SKILL.md). Review all significant player-facing changes being delivered, including follow-up fixes since the previous push, and ensure each has a truthful note in `docs/changelog/`. Commit and push the notes on the same branch as the implementation; do not defer them until task completion. An earlier changelog edit does not cover later changes automatically. The [authoring and publishing guide](docs/changelog.md) defines significance, writing rules, when to extend an entry, when to create one, and automated GitHub Pages publication. For internal-only work, record why no public note is needed in the delivery report or pull request.
+
+The changelog is for players. Describe what they can do or notice, in short, plain sentences. Never include PR references, commit links, test results or implementation details in public entries. Keep that evidence in internal documentation. Add same-day changes to the existing dated entry.
+
+Before merging, reconcile the intended delivery date and any same-day notes already on main. Preserve other contributors' bullets and published history. Run the changelog tests and build, and complete the pull-request changelog checklist. The tests check format and common content mistakes; the agent must still judge player impact and coverage.
+
 ## Finish delivery without waiting for duplicate CI
 
 When the owner authorizes commit, push, and merge, complete that delivery. If the relevant tests, type checks, lint, and builds have already passed locally for the changes being merged, do not wait for the same remote CI checks to finish before merging. Do not rerun passing checks without a new change, failure, or specific unresolved concern.

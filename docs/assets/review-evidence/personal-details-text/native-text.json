@@ -1,0 +1,21 @@
+{
+  "scope": "Native text-child identity and text mutations during unchanged paused personal-details refreshes; not whole-game or audio memory acceptance",
+  "baseline": {
+    "pausedTick": 0,
+    "unchangedRefreshes": 20,
+    "leaves": 30,
+    "replacedTextChildren": 23,
+    "nativeTextMutations": 460,
+    "repairedText": "100%",
+    "pageErrors": []
+  },
+  "fixed": {
+    "pausedTick": 0,
+    "unchangedRefreshes": 20,
+    "leaves": 30,
+    "replacedTextChildren": 0,
+    "nativeTextMutations": 0,
+    "repairedText": "100%",
+    "pageErrors": []
+  }
+}

@@ -125,6 +125,7 @@ class FakeContext implements BrowserAudioContext {
   currentTime = 4;
   readonly destination = { kind: 'destination' };
   state: AudioContextState = 'suspended';
+  onstatechange: ((event: Event) => void) | null = null;
   readonly gains: FakeGain[] = [];
   readonly oscillators: FakeOscillator[] = [];
   readonly bufferSources: FakeBufferSource[] = [];
@@ -137,6 +138,11 @@ class FakeContext implements BrowserAudioContext {
   hangResume = false;
   rejectSuspend = false;
   suspendGate: Promise<void> | null = null;
+
+  changeState(state: AudioContextState): void {
+    this.state = state;
+    this.onstatechange?.(new Event('statechange'));
+  }
 
   createGain(): FakeGain {
     const gain = new FakeGain();
@@ -463,7 +469,198 @@ function spyOtherRecordingFetch(implementation: (...args: any[]) => Promise<Resp
   return fetcher;
 }
 
+describe('audio state events without simulation ticks', () => {
+  it('disposes a flush on a native state event without a tick and never replays it', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+    try {
+      await controller.unlockFromGesture();
+      await controller.loadToiletRecording();
+      controller.emit({ type: 'object.completed', sourceId: 42, action: 1 });
+      expect(controller.activeToiletVoiceCount()).toBe(1);
+      const source = context.bufferSources[0];
+      expect(source.disconnected).toBe(false);
+      context.changeState('suspended');
+      expect(source.disconnected).toBe(true);
+      expect(source.onended).toBeNull();
+      expect(controller.activeToiletVoiceCount()).toBe(0);
+      context.changeState('running');
+      expect(context.bufferSources).toHaveLength(1);
+      expect(controller.activeToiletVoiceCount()).toBe(0);
+      controller.emit({ type: 'object.completed', sourceId: 42, action: 1 });
+      expect(controller.activeToiletVoiceCount()).toBe(1);
+    } finally { fetcher.mockRestore(); }
+  });
+
+  it.each(['object', 'conversation', 'door', 'procedural'] as const)(
+    'disposes the paused %s tail on a state event without a gesture or tick', async kind => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, memoryStore());
+      const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+      try {
+        await controller.unlockFromGesture();
+        if (kind === 'object') {
+          controller.installObjectLoopClips(OBJECT_CLIPS);
+          objectSoundFrame(controller, [[41, 2]]);
+          expect(controller.activeObjectLoopCount()).toBe(1);
+        } else if (kind === 'conversation') {
+          await controller.loadVoiceLibrary(['a', 'b']);
+          activityFrame(controller, [[4, 'conversation', { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 }]]);
+          expect(controller.activeConversationVoiceCount()).toBe(1);
+          activityFrame(controller, []);
+          expect(controller.retainedConversationVoiceCount()).toBe(1);
+        } else if (kind === 'door') {
+          portalFrame(controller, 0);
+          await vi.waitFor(() => expect(fetcher).toHaveBeenCalled());
+          await vi.waitFor(() => expect(context.decodedByteLengths.length).toBeGreaterThan(0));
+          controller.emit({ type: 'door.closed', doorId: 'door' });
+          expect(controller.activeDoorVoiceCount()).toBe(1);
+        } else {
+          controller.emit({ type: 'command.rejected' });
+          expect(controller.activeVoiceCount()).toBe(1);
+        }
+        controller.setObjectSoundsPaused(true);
+        const sources = kind === 'procedural' ? context.oscillators : context.bufferSources;
+        expect(sources.length).toBeGreaterThan(0);
+        expect(sources[0].disconnected).toBe(false);
+        context.changeState('suspended');
+        expect(sources.every(source => source.disconnected)).toBe(true);
+        expect(controller.retainedObjectLoopCount()).toBe(0);
+        expect(controller.retainedConversationVoiceCount()).toBe(0);
+        const created = sources.length;
+        context.changeState('running');
+        expect(sources).toHaveLength(created);
+        expect(controller.activeVoiceCount()).toBe(0);
+        expect(controller.activeDoorVoiceCount()).toBe(0);
+        expect(context.resumeCalls).toBe(1);
+      } finally { fetcher.mockRestore(); }
+    },
+  );
+
+  it('restarts only a freshly observed current action and silently anchors movement after state recovery', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response(new ArrayBuffer(16)));
+    try {
+      await controller.unlockFromGesture();
+      controller.installObjectLoopClips(OBJECT_CLIPS);
+      await controller.loadVoiceLibrary(['a', 'b']);
+      const voice = { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 };
+      objectSoundFrame(controller, [[41, 2]]);
+      activityFrame(controller, [[4, 'conversation', voice]]);
+      controller.beginFootstepFrame();
+      controller.observeFootstep(4, 0, 0, true);
+      controller.endFootstepFrame();
+      context.changeState('suspended');
+      const created = context.bufferSources.length;
+      context.changeState('running');
+      expect(context.bufferSources).toHaveLength(created);
+      expect(controller.activeObjectLoopCount()).toBe(0);
+      expect(controller.activeConversationVoiceCount()).toBe(0);
+      objectSoundFrame(controller, [[41, 2]]);
+      activityFrame(controller, [[4, 'conversation', voice]]);
+      expect(controller.activeObjectLoopCount()).toBe(1);
+      expect(controller.activeConversationVoiceCount()).toBe(1);
+      context.changeState('running');
+      expect(controller.activeObjectLoopCount()).toBe(1);
+      expect(controller.activeConversationVoiceCount()).toBe(1);
+      controller.beginFootstepFrame();
+      controller.observeFootstep(4, 100, 0, true);
+      controller.endFootstepFrame();
+      expect(controller.cuePlayCounts().footstep).toBe(0);
+      controller.beginFootstepFrame();
+      controller.observeFootstep(4, 100 + FOOTSTEP_DISTANCE_TILES, 0, true);
+      controller.endFootstepFrame();
+      expect(controller.cuePlayCounts().footstep).toBe(1);
+    } finally { fetcher.mockRestore(); }
+  });
+
+  it('drops pending recordings before late decoding on a paused state event', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    let finish!: () => void;
+    const gate = new Promise<void>(resolve => { finish = resolve; });
+    const fetcher = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+      await gate;
+      return new Response(new ArrayBuffer(16));
+    });
+    try {
+      await controller.unlockFromGesture();
+      const loading = controller.loadVoiceLibrary(['a', 'b']);
+      activityFrame(controller, [[4, 'conversation', { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 }]]);
+      objectSoundFrame(controller, [[41, 2]]);
+      controller.setObjectSoundsPaused(true);
+      context.changeState('suspended');
+      context.changeState('running');
+      finish();
+      await loading;
+      controller.installObjectLoopClips(OBJECT_CLIPS);
+      expect(context.bufferSources).toHaveLength(0);
+    } finally { fetcher.mockRestore(); }
+  });
+
+  it('detaches an abandoned graph handler and ignores its stale queued callback', async () => {
+    const abandoned = new FakeContext();
+    const current = new FakeContext();
+    let queued: ((event: Event) => void) | null = null;
+    const createGain = abandoned.createGain.bind(abandoned);
+    abandoned.createGain = () => {
+      const gain = createGain();
+      if (abandoned.gains.length === 1) {
+        gain.gain.cancelScheduledValues = () => {
+          queued = abandoned.onstatechange;
+          throw Error('gain scheduling failed');
+        };
+      }
+      return gain;
+    };
+    const contexts = [abandoned, current];
+    const controller = new AudioController(() => contexts.shift()!, memoryStore());
+    expect(await controller.unlockFromGesture()).toBe(false);
+    expect(queued).not.toBeNull();
+    expect(abandoned.onstatechange).toBeNull();
+    expect(abandoned.closeCalls).toBe(1);
+    expect(abandoned.gains.every(gain => gain.disconnected)).toBe(true);
+    expect(await controller.unlockFromGesture()).toBe(true);
+    controller.emit({ type: 'command.rejected' });
+    controller.beginFootstepFrame();
+    controller.observeFootstep(4, 0, 0, true);
+    controller.endFootstepFrame();
+    abandoned.state = 'suspended';
+    (queued as unknown as (event: Event) => void)(new Event('statechange'));
+    expect(controller.activeVoiceCount()).toBe(1);
+    expect(current.oscillators[0].disconnected).toBe(false);
+    expect(controller.activeFootstepTrackCount()).toBe(1);
+    current.changeState('suspended');
+    expect(controller.activeVoiceCount()).toBe(0);
+    expect(controller.activeFootstepTrackCount()).toBe(0);
+  });
+});
+
 describe('recorded physical doors', () => {
+  it('keeps opening silent and plays one closing thunk from the exact runtime URL', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    const fetcher = vi.fn(async (_url: string) => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(4) }));
+    stubOtherRecordingFetch(fetcher);
+    try {
+      await controller.unlockFromGesture();
+      portalFrame(controller, 0);
+      await controller.loadDoorRecordings();
+      const gainCount = context.gains.length;
+      portalFrame(controller, 1);
+      controller.emit({ type: 'door.opened', doorId: 'direct' });
+      expect(context.bufferSources).toHaveLength(0);
+      expect(context.gains).toHaveLength(gainCount);
+      expect(controller.activeDoorVoiceCount()).toBe(0);
+      expect(controller.cuePlayCounts()['door-opened']).toBe(0);
+      portalFrame(controller, 0);
+      expect(context.bufferSources).toHaveLength(1);
+      expect(controller.cuePlayCounts()['door-closed']).toBe(1);
+      expect(fetcher.mock.calls.map(call => call[0])).toEqual(['audio/doors/close-thunk.wav']);
+    } finally { vi.unstubAllGlobals(); }
+  });
   it.each(['locked', 'muted', 'effects-zero', 'hidden', 'paused'])(
     'does not fetch or play on %s portal demand', async boundary => {
       const context = new FakeContext();
@@ -491,7 +688,7 @@ describe('recorded physical doors', () => {
     const controller = new AudioController(() => context, undefined);
     let failClose = true;
     const fetcher = vi.fn(async (url: string) => ({
-      ok: !(url.endsWith('close.wav') && failClose), status: 503,
+      ok: !(url.endsWith('close-thunk.wav') && failClose), status: 503,
       arrayBuffer: async () => new ArrayBuffer(4),
     }));
     stubOtherRecordingFetch( fetcher);
@@ -499,22 +696,22 @@ describe('recorded physical doors', () => {
       await controller.unlockFromGesture();
       portalFrame(controller, 0);
       await controller.loadDoorRecordings();
-      expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(fetcher).toHaveBeenCalledTimes(1);
       now = 4999;
       portalFrame(controller, 1); portalFrame(controller, 0);
       await controller.loadDoorRecordings();
-      expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(fetcher).toHaveBeenCalledTimes(1);
       now = 5000;
       for (let i = 0; i < 50; i++) portalFrame(controller, 0);
-      expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(fetcher).toHaveBeenCalledTimes(1);
       failClose = false;
-      portalFrame(controller, 1);
+      portalFrame(controller, 1); portalFrame(controller, 0);
       await controller.loadDoorRecordings();
       expect(fetcher.mock.calls.map(call => call[0])).toEqual([
-        'audio/doors/open.wav', 'audio/doors/close.wav', 'audio/doors/close.wav',
+        'audio/doors/close-thunk.wav', 'audio/doors/close-thunk.wav',
       ]);
       expect(controller.cuePlayCounts()['door-closed']).toBe(0);
-      portalFrame(controller, 0);
+      portalFrame(controller, 1); portalFrame(controller, 0);
       expect(controller.cuePlayCounts()['door-closed']).toBe(1);
     } finally { clock.mockRestore(); vi.unstubAllGlobals(); }
   });
@@ -532,9 +729,9 @@ describe('recorded physical doors', () => {
       stubOtherRecordingFetch( fetcher);
       try {
         await controller.unlockFromGesture();
-        portalFrame(controller, 0); portalFrame(controller, 1);
+        portalFrame(controller, 0); portalFrame(controller, 1); portalFrame(controller, 0);
         const pending = controller.loadDoorRecordings();
-        expect(fetcher).toHaveBeenCalledTimes(2);
+        expect(fetcher).toHaveBeenCalledTimes(1);
         if (boundary === 'load') controller.reset('load');
         if (boundary === 'mute') controller.setMuted(true);
         if (boundary === 'effects') controller.setEffectsLevel(0);
@@ -549,6 +746,8 @@ describe('recorded physical doors', () => {
         portalFrame(controller, 0);
         expect(context.bufferSources).toHaveLength(0);
         portalFrame(controller, 1);
+        expect(context.bufferSources).toHaveLength(0);
+        portalFrame(controller, 0);
         expect(context.bufferSources).toHaveLength(1);
       } finally { release(); vi.unstubAllGlobals(); }
     },
@@ -581,7 +780,7 @@ describe('recorded physical doors', () => {
     expect(context.gains[0].disconnected).toBe(true);
   });
 
-  it('loads only after audible portal demand, caches both clips and never replays the uncached transition', async () => {
+  it('loads only after audible portal demand, caches the thunk and never replays the uncached transition', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     const fetcher = vi.fn(async (_url: string) => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(4) }));
@@ -597,7 +796,7 @@ describe('recorded physical doors', () => {
       portalFrame(controller, 0);
       portalFrame(controller, 1);
       await controller.loadDoorRecordings();
-      expect(fetcher.mock.calls.map(call => call[0])).toEqual(['audio/doors/open.wav', 'audio/doors/close.wav']);
+      expect(fetcher.mock.calls.map(call => call[0])).toEqual(['audio/doors/close-thunk.wav']);
       expect(context.bufferSources).toHaveLength(0);
       portalFrame(controller, 2);
       portalFrame(controller, 3);
@@ -617,7 +816,7 @@ describe('recorded physical doors', () => {
       ]);
       expect(controller.cuePlayCounts()['door-closed']).toBe(1);
       await controller.loadDoorRecordings();
-      expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(fetcher).toHaveBeenCalledTimes(1);
     } finally { vi.unstubAllGlobals(); }
   });
 
@@ -631,6 +830,7 @@ describe('recorded physical doors', () => {
         portalFrame(controller, 0);
         await controller.loadDoorRecordings();
         portalFrame(controller, 1);
+        portalFrame(controller, 0);
         expect(controller.activeDoorVoiceCount()).toBe(1);
         if (boundary === 'load') controller.reset('load');
         if (boundary === 'mute') controller.setMuted(true);
@@ -651,6 +851,7 @@ describe('recorded physical doors', () => {
         portalFrame(controller, 0);
         expect(context.bufferSources).toHaveLength(1);
         portalFrame(controller, 1);
+        portalFrame(controller, 0);
         expect(context.bufferSources).toHaveLength(2);
       } finally { vi.unstubAllGlobals(); }
     },
@@ -664,7 +865,7 @@ describe('recorded physical doors', () => {
       await controller.unlockFromGesture();
       portalFrame(controller, 0);
       await controller.loadDoorRecordings();
-      for (let i = 0; i < 8; i++) controller.emit({ type: 'door.opened', doorId: `${i}` });
+      for (let i = 0; i < 8; i++) controller.emit({ type: 'door.closed', doorId: `${i}` });
       expect(controller.activeDoorVoiceCount()).toBe(4);
       expect(context.bufferSources).toHaveLength(4);
       context.bufferSources[0].onended?.();
@@ -672,7 +873,7 @@ describe('recorded physical doors', () => {
       expect(context.bufferSources[0].disconnected).toBe(true);
       expect(context.gains[3].disconnected).toBe(true);
       context.createGain = () => { throw new Error('device failed'); };
-      expect(() => controller.emit({ type: 'door.opened', doorId: 'failure' })).not.toThrow();
+      expect(() => controller.emit({ type: 'door.closed', doorId: 'failure' })).not.toThrow();
       expect(context.bufferSources[4].disconnected).toBe(true);
       expect(controller.activeDoorVoiceCount()).toBe(3);
     } finally { vi.unstubAllGlobals(); }
@@ -1594,6 +1795,21 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(Math.min(...(pitchedValues ?? []))).toBeGreaterThanOrEqual(120);
   });
 
+  it('plays footsteps at the reduced peak amplitude', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    footstepFrame(controller, 3, 0);
+    footstepFrame(controller, 3, FOOTSTEP_DISTANCE_TILES);
+
+    const footstep = context.oscillators[0];
+    const gain = footstep?.connections[0] as FakeGain;
+    const peaks = gain.gain.calls.map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(Math.max(...peaks)).toBe(0.0225);
+  });
+
   it('drops a held conversation when the player silences the game', async () => {
     // A conversation can begin while the recordings are still decoding, and
     // is held so it can start when they land. If the player mutes in that
@@ -1838,7 +2054,9 @@ describe('AudioController gesture and cue lifecycle', () => {
       footstepFrame(controller, 4, 20 + FOOTSTEP_DISTANCE_TILES);
       portalFrame(controller, 1);
       expect(controller.cuePlayCounts().footstep).toBe(1);
-      expect(controller.cuePlayCounts()['door-opened']).toBe(1);
+      expect(controller.cuePlayCounts()['door-opened']).toBe(0);
+      portalFrame(controller, 0);
+      expect(controller.cuePlayCounts()['door-closed']).toBe(1);
       expect(context.resumeCalls).toBe(1);
     } finally { fetcher.mockRestore(); }
   });
@@ -1862,6 +2080,7 @@ describe('AudioController gesture and cue lifecycle', () => {
           activityFrame(controller, []);
           activityFrame(controller, [[4, 'sleep']]);
           portalFrame(controller, 1);
+          portalFrame(controller, 0);
           const oscillator = context.oscillators.at(-1)!;
           const door = context.bufferSources.at(-1)!;
           expect(oscillator.disconnected).toBe(false);
@@ -1907,7 +2126,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       activityFrame(controller, []);
       context.state = 'running';
       controller.emit({ type: 'command.rejected' });
-      controller.emit({ type: 'door.opened', doorId: 'front' });
+      controller.emit({ type: 'door.closed', doorId: 'front' });
       expect(context.oscillators).toHaveLength(1);
       expect(context.bufferSources).toHaveLength(1);
       context.state = 'suspended';

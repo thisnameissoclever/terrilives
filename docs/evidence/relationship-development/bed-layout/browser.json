@@ -1,0 +1,64 @@
+{
+  "people": [
+    34,
+    35,
+    36
+  ],
+  "bed": 19,
+  "bedPosition": [
+    0.5,
+    8.5
+  ],
+  "walking": [
+    {
+      "bed": 19,
+      "ordinal": 0,
+      "label": "Bed at (0, 8), place 1: The Restorative Unit",
+      "assignee": 34,
+      "occupant": 34,
+      "assigneeName": "Tim",
+      "occupantName": "Tim"
+    },
+    {
+      "bed": 19,
+      "ordinal": 1,
+      "label": "Bed at (0, 8), place 2: The Restorative Unit",
+      "assignee": 35,
+      "occupant": 35,
+      "assigneeName": "Bill",
+      "occupantName": "Bill"
+    }
+  ],
+  "sleeping": [
+    {
+      "bed": 19,
+      "ordinal": 0,
+      "label": "Bed at (0, 8), place 1: The Restorative Unit",
+      "assignee": 34,
+      "occupant": 34,
+      "assigneeName": "Tim",
+      "occupantName": "Tim"
+    },
+    {
+      "bed": 19,
+      "ordinal": 1,
+      "label": "Bed at (0, 8), place 2: The Restorative Unit",
+      "assignee": 35,
+      "occupant": 35,
+      "assigneeName": "Bill",
+      "occupantName": "Bill"
+    }
+  ],
+  "walkingReplayHash": "12057948869165674750",
+  "sleepingReplayHash": "13971420435876022988",
+  "ticksUntilBothSleep": 53,
+  "observedTick": "73",
+  "activities": [
+    5,
+    5,
+    1
+  ],
+  "uiShowsSleeping": true,
+  "pageErrors": [],
+  "wasmAsset": "http://127.0.0.1:4185/assets/terri_wasm_bg-C0oUKkc1.wasm"
+}

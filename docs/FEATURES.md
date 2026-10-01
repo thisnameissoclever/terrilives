@@ -215,7 +215,7 @@ placement for the same Save V1 reason.
 activity 11 project the displayed Sim to the existing armchair seat without
 moving ECS position or widening the WASM bridge. Every shipped look has two
 directional, planted seated frames on a 24-tick hold; the normal HUD says
-`Sitting` and deliberately adds no generic bubble. Pause, speed, reduced
+`Sitting` and shows the chair activity bubble. Pause, speed, reduced
 motion, entry, and exit follow the same deterministic socket rules as seated
 reading and exercise. Sofas, beds, and other multi-user furniture remain
 separate until the simulation owns deterministic per-user slots.
@@ -442,17 +442,23 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 
 The compact HUD now separates world controls at the upper left from a bottom
 Sim dock. Desktop exposes all need meters; compact and collapsed layouts keep
-Sim details available for the same information. People, Traits, Queue and
-Household share one expandable sheet. Options holds world preferences and game
-actions; Queue mode and Clear orders live in Queue. Build retains its existing
+Sim details available for the same information. Mood and life satisfaction
+remain visible in the dock, including when collapsed; phones give them a short
+row beneath the identity and controls. Overview, People, Traits and Queue share
+one expandable sheet. Options holds world preferences and game actions,
+including New housemate even without a selected person; Queue mode and Clear orders live in Queue. Build retains its existing
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
-Overview also has a collapsed Personality and habits section: personal drain
+Overview also has a collapsed Personality, habits and bed section: personal drain
 and refill factors, sleep timing, and recent activity repetition. Its meters
 have text values, and it uses the sheet's existing scrolling area. Opening it
 does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
 `docs/specs/2026-09-30-sim-details.md` for the projection and verification.
+The bed-assignment extension is implemented locally within that disclosure,
+with explicit Assign and Clear controls. It remains unpublished until the
+occupied-bed visual checks pass. Place-specific routing is implemented locally; see
+`docs/specs/2026-10-01-bed-assignment.md`.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -997,23 +1003,26 @@ for eight. The current candidate aligns both at eight ticks and
 replaces it with a quieter 520 to 340 Hz triangle sweep, but that correction
 also remains owner-listening evidence rather than accepted sound design.
 
-This is not the complete audio feature. Front and interior door transitions now
-play two quiet provisional recordings, keyed by physical portal geometry with
+This is not the complete audio feature. Front and interior doors open silently
+and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
 `specs/2026-10-01-door-audio.md`. Completed toilet use has a provisional recorded
 flush, sourced from a separate exact-target completion event rather than an
 action stopping. Cancellation and Load never fabricate a completion. The cue
 stops on pause and cannot replay after late decoding; technical and listening
 status are in `specs/2026-10-01-toilet-completion-audio.md`. Routine controls
-are silent by design rather than waiting for blanket click sounds. Room and
-outdoor ambience, alarms, music, and non-conversation Sim voices remain unbuilt.
+are silent by design rather than waiting for blanket click sounds. Continuous
+indoor background noise is excluded from the sound design. Outdoor ambience,
+alarms, music, and non-conversation Sim voices remain unbuilt.
 Object-loop playback exists; its audible content still needs selection and
 listening acceptance. Recorded conversation gain is 0.224 after owner listening;
 Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water, door and toilet recordings are integrated.
+downloaded and inventoried; selected water and toilet recordings and a filtered closing-door
+thunk are now integrated. Door opening is silent; the original door recordings
+remain preserved but are not fetched by gameplay.
 The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 
@@ -1394,6 +1403,13 @@ than explicit and topical, and it keeps the audience twice as large.
 
 Tone should be locked before serious content authoring begins in M1.
 
+## [F-domestic-meals-cleanup] Meals, messes and shared food
+
+Requested 2026-09-30; implemented locally, verification recorded in [the meal spec](specs/2026-09-30-meals-and-cleanup.md). Meals have six stages totaling 500 base work ticks, snacks three totaling 85. New prepare, cook and wash clips cover all four directions and three household shirt colors. Preparation and eating leave visible, attributed dishes. Kitchen-sink cleanup collects each dirty surface before washing.
+
+Cleanliness is a separate personality value. Needs reduce autonomous cleanup willingness; critical energy, hunger or bladder almost always wins. Foreign dishes lower mood and directional affinity once per room visit, and allow one visitor-cleanup roll at 20% of own willingness. A cook can provide real portions for up to three strongly liked hungry friends; all four can eat at the dining table. Time-of-day fridge labels read breakfast, lunch or dinner. Save/load preserves claims, responsibility and visit memory, and reads earlier meal bytes through a reviewed bridge.
+
+[Sim interpersonal relations](SIM-RELATIONSHIPS.md) is the dedicated account of support, resentment, needs, personality, mood and satisfaction. This local implementation is not a claim of merged or deployed delivery.
 ## Gameplay UI corrections (2026-09-30)
 
 Simulation speed sits below the clock and funds; Build and Options now share
@@ -1409,3 +1425,21 @@ The follow-up makes action cards about 20% smaller, allows unlimited waiting
 orders and lets the player sell the last appliance. Build's left control becomes
 Exit build during editing. Historical saves predating per-entity conversation
 voices load through their frozen wire shape and normal simulation validation.
+
+### [A-needs-social-privacy] Inconvenient conversations and bathroom privacy
+
+Implemented locally, 2026-09-30; not committed, merged or deployed. A low or critical unhelped need makes a conversation recipient lose affinity toward the initiator. Private toilet, shower and bath use distinguishes who arrived first: the user resents later entrants; existing occupants resent someone who begins using the furniture beside them. The actual room containing the furniture controls the result, including living-room toilets. Remaining in the room never charges a penalty every tick.
+
+Each Sim also has shyness from 1 to 100: higher values amplify their annoyance and strengthen deliberate privacy avoidance. [Relationship development](specs/2026-09-30-relationship-development.md) adds cached boundary decisions, safe alternatives, pleasant-company and shared-activity gains, and directional personality friction. Player orders remain available.
+
+The [behavior specification](specs/2026-09-30-need-social-privacy.md) documents the approved balance and needs/social/mood/satisfaction interactions. Focused tests prove directionality, same-tick order, save/load replay, missing-component accumulation and existing mood integration. Validation evidence and its limits are recorded with the specification.
+
+### [B-hostility-expression] Make interpersonal hostility visible
+
+Status: planned. Relationship calculations can produce dislike, but the player needs to see who dislikes whom and how that affects ordinary life. This builds on [relationship dynamics](GAME-SYSTEMS.md#s-relationship-dynamics-relationship-causes-and-consequences).
+
+1. Distinguish one-sided hostility from mutual hostility, and identify both people. Give visual indicators a readable text equivalent; color alone cannot carry the meaning.
+2. Add reactions and activity feedback that convey discomfort or dislike. Consider glances, recoil, turning away and other new animations, with accessible text and reduced-motion behavior. Animation work and final player-facing wording need their normal review.
+3. Mildly lower the appeal of otherwise attractive activities when a disliked person occupies the room containing the relevant item, including a television or fridge. Evaluate the acting person's opinion, not the other person's opinion of them.
+4. Let urgent needs and player orders override this preference. Essential furniture must remain usable, and avoidance must not trap people, starve them or strand a multi-step activity.
+5. Revalidate relationship pacing when avoidance reduces contact between hostile Sims. Fewer encounters also mean fewer opportunities for friction and reconciliation; the existing balance measurements must cover both.

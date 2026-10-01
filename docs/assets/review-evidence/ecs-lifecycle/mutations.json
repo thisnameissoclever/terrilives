@@ -1,0 +1,16 @@
+[
+  {
+    "mutation": "double_rotation",
+    "exitCode": 101,
+    "failure": "\nrunning 3 tests\ntest ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation ... FAILED\ntest ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals ... FAILED\ntest ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks ... ok\n\nfailures:\n\n---- ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation stdout ----\n\nthread 'ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation' (42060) panicked at crates\\terri-sim\\src\\ecs_lifecycle_tests.rs:25:5:\nassertion `left == right` failed\n  left: 0\n right: 1\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals stdout ----\n\nthread 'ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals' (76268) panicked at crates\\terri-sim\\src\\ecs_lifecycle_tests.rs:25:5:\nassertion `left == right` failed\n  left: 0\n right: 1\n\n\nfailures:\n    ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals\n    ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation\n\ntest result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 718 filtered out; finished in 0.01s\n\n"
+  },
+  {
+    "mutation": "before_schedule",
+    "exitCode": 101,
+    "failure": "\nrunning 3 tests\ntest ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation ... FAILED\ntest ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals ... FAILED\ntest ecs_lifecycle_tests::public_paused_drains_preserve_ordered_batches_and_subsequent_ticks ... ok\n\nfailures:\n\n---- ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation stdout ----\n\nthread 'ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation' (37580) panicked at crates\\terri-sim\\src\\ecs_lifecycle_tests.rs:26:5:\nassertion `left == right` failed: the finished boundary must rotate its newest removals\n  left: 1\n right: 0\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals stdout ----\n\nthread 'ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals' (24860) panicked at crates\\terri-sim\\src\\ecs_lifecycle_tests.rs:26:5:\nassertion `left == right` failed: the finished boundary must rotate its newest removals\n  left: 1\n right: 0\n\n\nfailures:\n    ecs_lifecycle_tests::full_ticks_retain_only_the_latest_selection_removals\n    ecs_lifecycle_tests::paused_drains_retire_removals_without_advancing_simulation\n\ntest result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 718 filtered out; finished in 0.01s\n\n"
+  },
+  {
+    "restoredSha256": "b385ac780a9e5c773908a05a9c36424761fc297f94c48e115c25d23dfacf0b44",
+    "byteIdentical": true
+  }
+]

@@ -459,7 +459,7 @@ mod tests {
     }
 
     #[test]
-    fn hungry_sim_walks_to_the_fridge_and_eats() {
+    fn an_ordinary_hunger_interaction_walks_refills_and_releases() {
         // Event-driven, not tick-counted, on purpose. Ticking a fixed
         // number of times and then asserting `Eating` is none proves
         // nothing: it passes just as well if the meal never started, the
@@ -474,7 +474,14 @@ mod tests {
         // is the end-to-end check that real content produces the
         // behaviour [D-6] requires: a hungry sim paths to the fridge and
         // eats.
-        let mut sim = Sim::new_with_lot(16, 16);
+        // Isolate ordinary per-tick refill. Actual staged snacks are exercised
+        // through the shipped household in domestic::tests.
+        let mut ordinary = terri_data::pack().objects
+            [terri_data::pack().find("fridge").unwrap().0 as usize]
+            .clone();
+        ordinary.roles.clear();
+        let content = test_content::pack(vec![ordinary]);
+        let mut sim = test_content::sim_with(16, 16, content);
 
         let fridge = sim
             .world_mut()
@@ -569,6 +576,10 @@ mod tests {
         let mut sim = Sim::new_with_lot(16, 16);
         sim.world_mut()
             .spawn((Position { x: 10.0, y: 8.0 }, test_content::shipped_fridge()));
+        sim.world_mut().spawn((
+            Position { x: 12.0, y: 8.0 },
+            SmartObject(terri_data::pack().find("counter").unwrap()),
+        ));
         let sim_entity = sim
             .world_mut()
             .spawn((

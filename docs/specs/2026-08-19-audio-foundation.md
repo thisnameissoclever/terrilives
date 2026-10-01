@@ -37,6 +37,10 @@ The controls live in Options on desktop and mobile. Both ranges are at least
 44 CSS pixels tall. The help dialog names the controls. Browser storage denial
 leaves the current session settings usable.
 
+Footsteps have a peak amplitude of 0.0225 before Effects and master gain. Their
+40-millisecond duration and 175-to-130 Hz pitch sweep remain unchanged. Continuous
+indoor background noise is excluded from the sound design.
+
 The versioned preference key remains `terrilives.audio-preferences.v1`.
 Malformed original fields or an unknown version discard the record. Existing
 valid records without `voicesLevel` keep their mute and Effects settings and
@@ -85,6 +89,13 @@ default Voices to 100%. An invalid Voices field defaults only that field.
     releases whose owners already ended. An active count of zero does not
     prove those nodes are disconnected. Normal audible fades remain unchanged;
     see `2026-10-01-interrupted-release-cleanup.md`.
+14. The controller owns its context's `onstatechange` handler. A non-running
+    event immediately clears every player family, including release-only
+    recordings, pending ownership and every scheduler, even while simulation
+    ticks are paused. Returning to running starts nothing by itself; fresh
+    observations may restart current actions. Abandoned graph construction
+    detaches the handler before closing, and queued callbacks from that graph
+    cannot touch a later context. See `2026-10-01-audio-state-events.md`.
 
 ## Node graph and bounded playback
 
@@ -746,8 +757,9 @@ cancellation, Load and late decoding stay silent. Unlike sub-second door cues,
 the four-second flush stops on effective pause. See
 `2026-10-01-toilet-completion-audio.md` for the source, contract and evidence.
 
-1. Complete subjective listening review for provisional shower, sink, door and toilet recordings.
-2. Select and accept recordings for the object-loop player. Add ambience,
+1. Complete in-game listening review for shower, sink, door and toilet mixing.
+   The owner accepted the selected toilet recording independently of the game mix.
+2. Select and accept recordings for the object-loop player. Add outdoor ambience,
    alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.
    Voices now has its own multiplier without changing the Effects meaning.

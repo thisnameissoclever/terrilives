@@ -1,0 +1,108 @@
+{
+  "scenario": "starting-household",
+  "wasmSha256": "564035eedbc13836565dd93afda3bcb62aafc3d753f5c3f82d4d070411cd5eb1",
+  "days": 4,
+  "seeds": [
+    {
+      "seed": 7,
+      "ticks": 5760,
+      "overlappingSleepTicks": 0,
+      "firstOverlap": null,
+      "sleepTicks": [
+        556,
+        998,
+        997
+      ],
+      "assignedSleepTicks": [
+        351,
+        998,
+        997
+      ],
+      "sleepBouts": [
+        4,
+        6,
+        5
+      ],
+      "exitedSleepBouts": [
+        3,
+        6,
+        5
+      ],
+      "reloadTicks": [
+        0,
+        1440,
+        2880,
+        4320,
+        5760
+      ]
+    },
+    {
+      "seed": 19,
+      "ticks": 5760,
+      "overlappingSleepTicks": 200,
+      "firstOverlap": 1514,
+      "sleepTicks": [
+        392,
+        726,
+        674
+      ],
+      "assignedSleepTicks": [
+        392,
+        726,
+        674
+      ],
+      "sleepBouts": [
+        3,
+        4,
+        5
+      ],
+      "exitedSleepBouts": [
+        3,
+        4,
+        4
+      ],
+      "reloadTicks": [
+        0,
+        1440,
+        1514,
+        2880,
+        4320,
+        5760
+      ]
+    },
+    {
+      "seed": 2301,
+      "ticks": 5760,
+      "overlappingSleepTicks": 72,
+      "firstOverlap": 1152,
+      "sleepTicks": [
+        556,
+        972,
+        667
+      ],
+      "assignedSleepTicks": [
+        399,
+        972,
+        667
+      ],
+      "sleepBouts": [
+        4,
+        5,
+        5
+      ],
+      "exitedSleepBouts": [
+        4,
+        5,
+        4
+      ],
+      "reloadTicks": [
+        0,
+        1152,
+        1440,
+        2880,
+        4320,
+        5760
+      ]
+    }
+  ]
+}

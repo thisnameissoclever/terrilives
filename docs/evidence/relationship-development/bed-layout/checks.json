@@ -1,0 +1,130 @@
+[
+  {
+    "check": "fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives",
+    "exit": 0
+  },
+  {
+    "check": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives",
+    "exit": 0
+  },
+  {
+    "check": "wasm-build",
+    "command": [
+      "wasm-pack",
+      "build",
+      "crates/terri-wasm",
+      "--target",
+      "web",
+      "--out-dir",
+      "../../web/src/wasm"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives",
+    "exit": 0
+  },
+  {
+    "check": "web-tests",
+    "command": [
+      "npm.cmd",
+      "test",
+      "--",
+      "--maxWorkers=1",
+      "--reporter=dot"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives\\web",
+    "exit": 0
+  },
+  {
+    "check": "web-typecheck",
+    "command": [
+      "npm.cmd",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives\\web",
+    "exit": 0
+  },
+  {
+    "check": "web-build",
+    "command": [
+      "npm.cmd",
+      "run",
+      "build"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives\\web",
+    "exit": 0
+  },
+  {
+    "check": "docs",
+    "command": [
+      "python",
+      "check-doc-ids.py"
+    ],
+    "cwd": "D:\\VIBES\\.worktrees\\b770\\terrilives",
+    "exit": 0
+  },
+  {
+    "check": "workspace-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--workspace",
+      "--no-fail-fast",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit": 0,
+    "passed": 1353
+  },
+  {
+    "check": "calibration-shipped",
+    "command": [
+      "relationship-balance.exe",
+      "1",
+      "16",
+      "shipped"
+    ],
+    "exit": 0,
+    "elapsed_seconds": 82.8,
+    "scenarios": 16
+  },
+  {
+    "check": "validation-shipped",
+    "command": [
+      "relationship-balance.exe",
+      "17",
+      "24",
+      "shipped"
+    ],
+    "exit": 0,
+    "elapsed_seconds": 44.5,
+    "scenarios": 8
+  },
+  {
+    "check": "independent-source-review",
+    "result": "No actionable integration findings",
+    "scope": "ddb67d62 integration with privacy and historical save fixtures",
+    "edits": false
+  },
+  {
+    "check": "browser-cleanup",
+    "result": "Owned browser context closed in finally; preview server stopped; port 4185 has no listener"
+  }
+]

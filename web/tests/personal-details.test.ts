@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { SimDetails } from '../src/bridge.js';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface, personalDetailsState, sleepTiming,
   type PersonalDetailsSource, type PersonalDetailsState } from '../src/ui/personal-details.js';
 
@@ -14,8 +15,10 @@ class Source implements PersonalDetailsSource {
   selected: number | null = 7;
   value: SimDetails | null = details();
   asked: number[] = [];
+  shynessAsked: number[] = [];
   selectedIndex() { return this.selected; }
   simDetailsOf(entity: number) { this.asked.push(entity); return this.value; }
+  shynessOf(entity: number) { this.shynessAsked.push(entity); return entity === 7 ? 73 : 8; }
   dayTicks() { return 6000; }
 }
 function ready(state: PersonalDetailsState) {
@@ -78,6 +81,7 @@ describe('personal details values and refresh', () => {
     active = false;
     expect(panel.update(1000)).toBe(false);
     expect(source.asked).toEqual([7, 7, 7]);
+    expect(source.shynessAsked).toEqual([7, 7, 7]);
   });
 
   it.each([0, -1, NaN, Infinity])('rejects invalid refresh interval %s', interval => {
@@ -123,6 +127,48 @@ function surface() {
 }
 
 describe('personal details surface', () => {
+  it('shows shyness with personality and clears stale values when selection ends', () => {
+    const source = new Source();
+    const { content, view } = surface();
+    const panel = new PersonalDetailsPanel(source, names, view, 100, () => true);
+    const value = content.all('span').find(node => node.className === 'summary-value')!;
+    panel.update(0);
+    expect(value.textContent).toBe('73');
+    source.selected = 83;
+    panel.update(100);
+    expect(value.textContent).toBe('8');
+    source.selected = null;
+    panel.update(200);
+    expect(value.textContent).toBe('');
+    expect(value.parent!.hidden).toBe(true);
+    expect(source.shynessAsked).toEqual([7, 83]);
+  });
+  it('preserves unchanged text while refreshing changed factors and repetition', () => {
+    const source = new Source();
+    const { content, empty, view } = surface();
+    const state = ready(personalDetailsState(source, names));
+    view.render(state);
+    const leaves = [empty, ...['p', 'th', 'td', 'strong', 'span'].flatMap(tag => content.all(tag))];
+    const probes = leaves.map(textWriteProbe);
+    for (let refresh = 0; refresh < 20; refresh++) view.render(state);
+    expect(probes.map(probe => probe.writes)).toEqual(leaves.map(() => 0));
+
+    view.render({ ...state, sleep: 'Usual schedule',
+      needs: state.needs.map((need, index) => index === 0 ? { ...need, drain: '75%' } : need),
+      repeated: state.repeated.map(row => ({ ...row, percent: 20 })) });
+    expect(content.all('p').some(node => node.textContent === 'Sleep rhythm: Usual schedule')).toBe(true);
+    expect(content.all('td')[0].textContent).toBe('75%');
+    expect(content.all('meter')[0].value).toBe(20);
+    expect(content.all('span').some(node => node.textContent === '20%')).toBe(true);
+    expect(probes.reduce((sum, probe) => sum + probe.writes, 0)).toBe(3);
+
+    view.render({ kind: 'unselected' });
+    const emptyWrites = probes[0].writes;
+    view.render({ kind: 'unselected' });
+    expect(probes[0].writes).toBe(emptyWrites);
+    expect(empty.textContent).toBe('Select a person to see their personality and habits.');
+  });
+
   it('switches between valid people using the selected ID and removes the previous habits', () => {
     const source = new Source();
     const { content, view } = surface();
@@ -192,7 +238,15 @@ describe('personal details surface', () => {
     const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
     expect(html.match(/<details\b[^>]*id="personal-details"[^>]*>/)?.[0]).toBe('<details id="personal-details">');
     expect(main).toContain('() => personalDetails.open && !simOverview.hidden && !simSheet.hidden');
-    expect(main).toContain("personalDetails.addEventListener('toggle', () => {\n    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);");
+    const toggle = main.slice(main.indexOf("personalDetails.addEventListener('toggle'"), main.indexOf('const peopleCaption'));
+    expect(toggle).toContain('if (personalDetails.open) {');
+    expect(toggle).toContain('personalDetailsPanel.update(nowMs, true);');
+    expect(toggle).toContain('bedAssignmentPanel.update(nowMs, true);');
+    const load = main.slice(main.indexOf('housemateForm.resetAfterLoad();'), main.indexOf('housemateForm.resetAfterLoad();') + 1700);
+    expect(load).toContain('bedAssignmentPanel.resetAfterLoad();');
+    expect(load).toContain('bedAssignmentPanel.update(nowMs, true);');
+    expect(main).toContain('bedAssignmentPanel.afterCommands();');
+    expect(main).toContain('bedAssignmentPanel.update(nowMs);');
     expect(main).toContain('personalDetailsPanel.update(nowMs, true);');
     expect(main).toContain('personalDetailsPanel.update(nowMs);');
   });

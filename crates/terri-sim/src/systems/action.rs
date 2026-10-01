@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::*;
+use bevy_ecs::system::SystemParam;
 use terri_core::clock::SimClock;
 use terri_core::{
     Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, ObjectFacing, Path,
@@ -26,18 +27,35 @@ fn build_distance_field(grid: &TileGrid, from: (i32, i32)) -> Option<TileDistanc
     grid.distance_field(from)
 }
 
+fn chain_travel(chain: &terri_data::CompiledChain, role_positions: &[Vec<(f32, f32)>]) -> f32 {
+    chain
+        .steps
+        .windows(2)
+        .map(|pair| {
+            role_positions[pair[0].role as usize]
+                .iter()
+                .flat_map(|(ax, ay)| {
+                    role_positions[pair[1].role as usize]
+                        .iter()
+                        .map(move |(bx, by)| (ax - bx).abs() + (ay - by).abs())
+                })
+                .fold(f32::INFINITY, f32::min)
+        })
+        .filter(|distance| distance.is_finite())
+        .sum()
+}
+
 fn reconstruct_winning_path(
     grid: &TileGrid,
     from: (i32, i32),
-    destination: (i32, i32),
-    footprint: terri_core::Footprint,
+    route: Route,
 ) -> Option<Vec<(i32, i32)>> {
     #[cfg(test)]
     PATH_SEARCH_COUNTS.with(|counts| {
         let (fields, paths) = counts.get();
         counts.set((fields, paths + 1));
     });
-    grid.find_path_adjacent(from, destination, footprint)
+    route.path(grid, from)
 }
 
 #[cfg(test)]
@@ -49,7 +67,37 @@ fn reset_path_search_counts() {
 fn path_search_counts() -> (usize, usize) {
     PATH_SEARCH_COUNTS.with(std::cell::Cell::get)
 }
+use crate::beds::navigation::{Access, Route};
 use crate::Content;
+
+/// Both admission systems read the same ownership inputs before recording local claims.
+#[derive(SystemParam)]
+pub struct BedState<'w, 's> {
+    pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
+    targets: Query<
+        'w,
+        's,
+        (
+            Entity,
+            &'static Target,
+            Option<&'static terri_core::SleepPlace>,
+            Has<Agent>,
+        ),
+    >,
+    reservations: Query<'w, 's, Entity, With<Reserved>>,
+    identities: Query<'w, 's, &'static SimId>,
+}
+
+impl BedState<'_, '_> {
+    pub(super) fn occupancy(&self) -> crate::beds::Occupancy {
+        crate::beds::Occupancy::new(
+            self.targets.iter().map(|(owner, target, place, agent)| {
+                (owner, *target, place.copied().filter(|_| agent))
+            }),
+            self.reservations.iter(),
+        )
+    }
+}
 
 /// Legacy public softmax primitive, retained for existing callers and tests.
 /// Live autonomy uses `autonomy::grouped_probabilities` and its positive bucket
@@ -413,11 +461,14 @@ mod sampler_tests {
 /// [`select_action`]: the query tuple is what pushes past clippy's
 /// threshold, and a type alias would only move it somewhere less
 /// readable.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    beds: BedState,
+    mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
+    identities: Query<&SimId>,
     // Work outranks the queue - [E4]. serve_intents deliberately sees
     // mid-walk and mid-meal sims because a player intent preempts, but
     // the clock's preemption is not preemptable back: a commuting or
@@ -466,6 +517,7 @@ pub fn serve_intents(
     directed.sort_by_key(|entity| entity.index());
 
     let mut claimed: Vec<Entity> = Vec::new();
+    let mut occupancy = beds.occupancy();
 
     for agent in directed {
         // Infallible: the list was just collected from this query and
@@ -516,7 +568,7 @@ pub fn serve_intents(
         // mistaken for contention with somebody else.
         let held_here = target.is_some_and(|t| t.object == intent.object);
 
-        let Ok((object_pos, placed, reserved, facing)) = objects.get(intent.object) else {
+        let Ok((object_pos, placed, _, facing)) = objects.get(intent.object) else {
             // **Not an object - perhaps a PERSON.** A TalkTo intent
             // carries the target sim's entity in the same field a
             // UseObject carries a fridge's, and this is where the two
@@ -578,6 +630,15 @@ pub fn serve_intents(
             // people loop documents.
             claimed.push(intent.object);
             claimed.push(agent);
+            occupancy.claim(
+                agent,
+                Target {
+                    object: intent.object,
+                    interaction: intent.interaction,
+                },
+                crate::beds::Admission::Exclusive,
+            );
+            commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
             commands
                 .entity(intent.object)
                 .remove::<terri_core::Wander>()
@@ -586,6 +647,7 @@ pub fn serve_intents(
             commands
                 .entity(agent)
                 .remove::<Eating>()
+                .remove::<terri_core::SleepPlace>()
                 .remove::<Socialising>()
                 .remove::<terri_core::ConversationVoice>()
                 .remove::<terri_core::StepWork>()
@@ -609,16 +671,36 @@ pub fn serve_intents(
         // emptied: two dinners at once is not a state.
         {
             let interactions = content.0.object(placed.0).interactions.len();
-            if intent.interaction as usize >= interactions {
-                let local = intent.interaction as usize - interactions;
-                let Some((global, _)) = content
+            let snack = content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(intent.interaction as usize)
+                .is_some_and(|act| act.id == "grab_snack")
+                && content
                     .0
                     .chains
                     .iter()
-                    .enumerate()
-                    .filter(|(_, chain)| chain.advertised_by == placed.0)
-                    .nth(local)
-                else {
+                    .any(|chain| chain.id == crate::domestic::SNACK);
+            if intent.interaction as usize >= interactions || snack {
+                let local = (intent.interaction as usize).saturating_sub(interactions);
+                let requested = if snack {
+                    content
+                        .0
+                        .chains
+                        .iter()
+                        .enumerate()
+                        .find(|(_, chain)| chain.id == crate::domestic::SNACK)
+                } else {
+                    content
+                        .0
+                        .chains
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, chain)| chain.advertised_by == placed.0)
+                        .nth(local)
+                };
+                let Some((global, chain)) = requested else {
                     // Past the chains too: the pack changed under a
                     // saved command log, since a live click cannot name
                     // a row that is not there. Dropping it is what
@@ -628,9 +710,14 @@ pub fn serve_intents(
                     queue.pop();
                     continue;
                 };
+                if crate::domestic::hidden_chain(&chain.id) && !snack {
+                    queue.pop();
+                    continue;
+                }
                 if let Some(target) = target {
                     crate::reservations::release(&mut commands, agent, *target);
                 }
+                occupancy.release(agent);
                 commands
                     .entity(agent)
                     .remove::<Target>()
@@ -642,6 +729,26 @@ pub fn serve_intents(
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
                     .insert(terri_core::ChainState::begin(global as u32));
+                if let Ok(id) = identities.get(agent) {
+                    boundaries
+                        .0
+                        .entry(id.0)
+                        .or_insert(terri_core::save::SavedBoundaryDecision {
+                            actor: id.0,
+                            expires: 0,
+                            lapse: false,
+                            waiting_since: None,
+                            goal: None,
+                            directed_chain: None,
+                        })
+                        .directed_chain = Some(global as u32);
+                }
+                commands.queue(move |world: &mut World| crate::domestic::abandon(world, agent));
+                if chain.id == crate::domestic::CLEANUP {
+                    commands.queue(move |world: &mut World| {
+                        crate::domestic::directed_cleanup(world, agent)
+                    });
+                }
                 claimed.push(agent);
                 queue.pop();
                 continue;
@@ -649,44 +756,55 @@ pub fn serve_intents(
         }
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
         let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
-        // **Beside it, not on it.** See `TileGrid::find_path_adjacent` for
-        // the four separate problems standing on the furniture caused. `None`
-        // still means unreachable and still drops the intent, which is the
-        // same handling as before - it now also covers an object whose every
-        // neighbour is walled off.
-        //
-        // **Beside the whole RECTANGLE**, not beside the origin tile - [F4].
-        // The footprint is the definition's, oriented by the object's
-        // facing, so a click on the east end of a 2x1 bed sends the sim
-        // to the tile beside that end rather than round to the origin, and
-        // a bed the player has turned is approached where it now lies. A
-        // 1x1 default here would be the bug footprints exist to remove, which
-        // is why the argument is required rather than optional.
-        let footprint = crate::placed_footprint(content.0, placed.0, facing);
-        let Some(steps) = grid
-            .find_path_adjacent(from, to, footprint)
+        let definition = content.0.object(placed.0);
+        let advert = &definition.interactions[intent.interaction as usize];
+        let sleep = !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
+        let Some(field) = grid.distance_field(from) else {
+            queue.pop();
+            continue;
+        };
+        let access = Access::new(
+            definition,
+            &content.0.sleep_tag,
+            facing.map_or(definition.base_facing, |f| f.0),
+            to,
+            &field,
+        );
+        if access.nearest(sleep).is_none() {
+            queue.pop();
+            continue;
+        }
+        let available = occupancy.admissions(
+            content.0,
+            definition,
+            agent,
+            beds.identities.get(agent).ok().copied(),
+            Target {
+                object: intent.object,
+                interaction: intent.interaction,
+            },
+            &beds.assignments,
+        );
+        let chosen = available.into_iter().find_map(|admission| {
+            access
+                .for_admission(admission)
+                .map(|reachable| (admission, reachable))
+        });
+        let Some((admission, reachable)) = chosen else {
+            commands.entity(agent).insert((
+                Blocked,
+                crate::waiting::advertised_needs(intent.object, &advert.advertises),
+            ));
+            continue;
+        };
+        let Some(steps) = reachable
+            .route
+            .path(&grid, from)
             .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
         else {
             queue.pop();
             continue;
         };
-
-        if (reserved && !held_here) || claimed.contains(&intent.object) {
-            // **Waiting its turn, which is exactly what `Blocked` says.**
-            // This is the second writer of that marker and the only one
-            // that ever sees a directed agent, because `select_action`
-            // filters them out before it scores anything - so the two
-            // cannot disagree about one agent on one tick.
-            commands.entity(agent).insert((
-                Blocked,
-                crate::waiting::advertised_needs(
-                    intent.object,
-                    &content.0.object(placed.0).interactions[intent.interaction as usize]
-                        .advertises,
-                ),
-            ));
-            continue;
-        }
 
         // Release whatever the agent was holding before, unless it is
         // the same object - re-targeting one object's other interaction
@@ -698,11 +816,20 @@ pub fn serve_intents(
             }
         }
         claimed.push(intent.object);
+        occupancy.claim(
+            agent,
+            Target {
+                object: intent.object,
+                interaction: intent.interaction,
+            },
+            admission,
+        );
         // The agent too: it is now committed to furniture, so a TalkTo
         // directed at IT later in this same run must wait rather than
         // reserve a sim already walking away - the deferred-Target
         // blindness again.
         claimed.push(agent);
+        commands.queue(move |world: &mut World| crate::domestic::suspend_cleanup(world, agent));
         commands
             .entity(intent.object)
             .remove::<terri_core::Wander>()
@@ -731,6 +858,7 @@ pub fn serve_intents(
                 },
                 Path { steps, cursor: 0 },
             ));
+        admission.apply(&mut commands.entity(agent));
     }
 }
 
@@ -770,9 +898,11 @@ pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
     clock: Res<SimClock>,
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
+    beds: BedState,
     agents: Query<
         (
             Entity,
@@ -819,7 +949,16 @@ pub fn select_action(
 ) {
     let mut role_positions: Vec<Vec<(f32, f32)>> = vec![Vec::new(); content.0.roles.len()];
     for (_, position, placed, _, _) in objects.iter() {
-        for role in &content.0.object(placed.0).roles {
+        let definition = content.0.object(placed.0);
+        for role in &definition.roles {
+            if content.0.roles[*role as usize] == "prep_surface"
+                && definition
+                    .roles
+                    .iter()
+                    .any(|role| content.0.roles[*role as usize] == "dish_sink")
+            {
+                continue;
+            }
             role_positions[*role as usize].push((position.x, position.y));
         }
     }
@@ -877,19 +1016,26 @@ pub fn select_action(
         .collect();
     idle.sort_by_key(|(e, ..)| e.index());
 
-    let mut placed_objects: Vec<(Entity, Position, SmartObject, bool, terri_core::Footprint)> =
-        objects
-            .iter()
-            .map(|(e, pos, object, reserved, facing)| {
-                (
-                    e,
-                    *pos,
-                    *object,
-                    reserved,
-                    crate::placed_footprint(content.0, object.0, facing),
-                )
-            })
-            .collect();
+    let mut placed_objects: Vec<(
+        Entity,
+        Position,
+        SmartObject,
+        bool,
+        terri_core::Footprint,
+        terri_data::Facing,
+    )> = objects
+        .iter()
+        .map(|(e, pos, object, reserved, facing)| {
+            (
+                e,
+                *pos,
+                *object,
+                reserved,
+                crate::placed_footprint(content.0, object.0, facing),
+                facing.map_or(content.0.object(object.0).base_facing, |f| f.0),
+            )
+        })
+        .collect();
     placed_objects.sort_by_key(|(e, ..)| e.index());
 
     let mut company: Vec<(Entity, Position, SimId, bool)> = people
@@ -904,6 +1050,7 @@ pub fn select_action(
     let mut claimed: Vec<Entity> = Vec::new();
 
     let mut decisions = Vec::new();
+    let mut occupancy = beds.occupancy();
     for (
         agent,
         agent_pos,
@@ -925,6 +1072,8 @@ pub fn select_action(
             continue;
         }
         let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
+        let mut admissions = std::collections::HashMap::new();
+        let mut routes = std::collections::HashMap::new();
         let mut risks = Vec::new();
         let deprivation = mortality
             .counts
@@ -940,7 +1089,7 @@ pub fn select_action(
 
         let mut waiting_rows: Vec<(Entity, f32, Option<crate::waiting::WaitingNeeds>)> = Vec::new();
 
-        for (object, object_pos, placed, reserved, footprint) in &placed_objects {
+        for (object, object_pos, placed, reserved, footprint, facing) in &placed_objects {
             let object = *object;
             let contested = *reserved || claimed.contains(&object);
             let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
@@ -951,63 +1100,144 @@ pub fn select_action(
             };
             let distance = distance as f32;
 
-            for (index, advert) in content.0.object(placed.0).interactions.iter().enumerate() {
+            let definition = content.0.object(placed.0);
+            let access = Access::new(
+                definition,
+                &content.0.sleep_tag,
+                *facing,
+                to,
+                distances.expect("reachable perimeter has a distance field"),
+            );
+            for (index, advert) in definition.interactions.iter().enumerate() {
+                let sleep =
+                    !content.0.sleep_tag.is_empty() && advert.tags.contains(&content.0.sleep_tag);
+                let available = occupancy.admissions(
+                    content.0,
+                    definition,
+                    agent,
+                    beds.identities.get(agent).ok().copied(),
+                    Target {
+                        object,
+                        interaction: index as u32,
+                    },
+                    &beds.assignments,
+                );
+                let reachable: Vec<_> = available
+                    .into_iter()
+                    .filter_map(|admission| {
+                        access
+                            .for_admission(admission)
+                            .map(|route| (admission, route))
+                    })
+                    .collect();
+                let snack = (advert.id == "grab_snack")
+                    .then(|| {
+                        content
+                            .0
+                            .chains
+                            .iter()
+                            .find(|chain| chain.id == crate::domestic::SNACK)
+                    })
+                    .flatten();
+                if snack.is_some_and(|chain| {
+                    chain
+                        .steps
+                        .iter()
+                        .any(|step| role_positions[step.role as usize].is_empty())
+                }) {
+                    continue;
+                }
+                let duration = snack.map_or(advert.duration_ticks, |chain| {
+                    chain.steps.iter().map(|step| step.duration_ticks).sum()
+                });
+                let benefits = snack.map_or(&advert.advertises, |chain| &chain.advertises);
+                let chain_tags = snack.map(super::chain::chain_tags);
+                let tags = chain_tags.as_ref().unwrap_or(&advert.tags);
                 let hab = habituation.get(placed.0, index as u32);
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, index as u32)
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),
                         content.0,
-                        &advert.tags,
+                        tags,
                     )
                     * super::circadian::sleep_drive(
                         content.0,
                         &clock,
                         personality.chronotype_offset_ticks,
-                        &advert.tags,
+                        tags,
                         pressure.map_or(0, |p| p.ticks),
                     );
-                let mut score = 0.0;
-                for (need_index, delta) in &advert.advertises {
-                    let satisfaction = personality.satisfaction[*need_index as usize];
-                    let delta = scaled_delta(*delta, scale * satisfaction);
-                    let id = NeedId::ALL[*need_index as usize];
-                    score += super::autonomy::need_score(
+                let score_at = |distance: u32| {
+                    let distance = distance as f32
+                        + snack.map_or(0.0, |chain| chain_travel(chain, &role_positions));
+                    let mut score = 0.0;
+                    for (need_index, delta) in benefits {
+                        let satisfaction = personality.satisfaction[*need_index as usize];
+                        let delta = scaled_delta(*delta, scale * satisfaction);
+                        let id = NeedId::ALL[*need_index as usize];
+                        score += super::autonomy::need_score(
+                            &needs,
+                            id,
+                            delta,
+                            duration,
+                            distance,
+                            instinct,
+                            &content.0.tuning,
+                        );
+                    }
+                    let risk = super::autonomy::survival_penalty(
+                        content.0,
                         &needs,
-                        id,
-                        delta,
-                        advert.duration_ticks,
-                        distance,
+                        &personality,
                         instinct,
-                        &content.0.tuning,
+                        benefits,
+                        duration,
+                        distance,
+                        tags.contains(&content.0.sleep_tag),
+                        deprivation,
+                        mortality.enabled,
+                        snack.is_some(),
                     );
-                }
-                let risk = super::autonomy::survival_penalty(
-                    content.0,
-                    &needs,
-                    &personality,
-                    instinct,
-                    &advert.advertises,
-                    advert.duration_ticks,
-                    distance,
-                    advert.tags.contains(&content.0.sleep_tag),
-                    deprivation,
-                    mortality.enabled,
-                    false,
-                );
-                score -= risk;
-                let waiting_score = contested_score(score, contested_multiplier);
-                if contested {
-                    waiting_rows.push((
-                        object,
-                        waiting_score,
-                        Some(crate::waiting::advertised_needs(object, &advert.advertises)),
-                    ));
-                }
-
-                if !contested {
+                    score -= risk;
+                    if let Some(phase) = &interpersonal {
+                        score -= phase.object_cost(agent, object, tags);
+                    }
+                    (score, risk)
+                };
+                let chosen = reachable
+                    .into_iter()
+                    .map(|(admission, route)| {
+                        let (score, risk) = score_at(route.distance);
+                        (admission, route, score, risk)
+                    })
+                    .min_by(|a, b| {
+                        let preference = |admission| match admission {
+                            crate::beds::Admission::Sleep {
+                                preference,
+                                ordinal,
+                            } => (preference, ordinal),
+                            crate::beds::Admission::Exclusive => {
+                                (crate::beds::Preference::Unassigned, 0)
+                            }
+                        };
+                        a.3.total_cmp(&b.3)
+                            .then_with(|| preference(a.0).0.cmp(&preference(b.0).0))
+                            .then_with(|| b.2.total_cmp(&a.2))
+                            .then_with(|| preference(a.0).1.cmp(&preference(b.0).1))
+                    });
+                if let Some((admission, route, score, risk)) = chosen {
                     candidates.push((object, index as u32, score));
                     risks.push(risk);
+                    admissions.insert((object, index as u32), admission);
+                    routes.insert((object, index as u32), route.route);
+                } else if let Some(route) = access.nearest(sleep) {
+                    let (score, _) = score_at(route.distance);
+                    waiting_rows.push((
+                        object,
+                        contested_score(score, contested_multiplier),
+                        Some(crate::waiting::advertised_needs(object, benefits)),
+                    ));
                 }
             }
 
@@ -1019,30 +1249,18 @@ pub fn select_action(
                 }
                 let row = interactions_len + chain_row;
                 chain_row += 1;
-                if chain
-                    .steps
-                    .iter()
-                    .any(|step| role_positions[step.role as usize].is_empty())
+                if crate::domestic::hidden_chain(&chain.id)
+                    || chain.id == crate::domestic::CLEANUP
+                    || chain
+                        .steps
+                        .iter()
+                        .any(|step| role_positions[step.role as usize].is_empty())
                 {
                     continue;
                 }
 
                 let total_duration: u32 = chain.steps.iter().map(|s| s.duration_ticks).sum();
-                let mut legs = 0.0f32;
-                for pair in chain.steps.windows(2) {
-                    let from = &role_positions[pair[0].role as usize];
-                    let to = &role_positions[pair[1].role as usize];
-                    let mut shortest = f32::INFINITY;
-                    for (ax, ay) in from {
-                        for (bx, by) in to {
-                            let leg = (ax - bx).abs() + (ay - by).abs();
-                            shortest = shortest.min(leg);
-                        }
-                    }
-                    if shortest.is_finite() {
-                        legs += shortest;
-                    }
-                }
+                let legs = chain_travel(chain, &role_positions);
 
                 let tags = super::chain::chain_tags(chain);
                 let hab = habituation.get(placed.0, row);
@@ -1151,6 +1369,9 @@ pub fn select_action(
                     false,
                 );
                 score -= risk;
+                if let Some(phase) = &interpersonal {
+                    score -= phase.social_cost(agent, other, index as u32, content.0);
+                }
                 if contested {
                     waiting_rows.push((other, contested_score(score, contested_multiplier), None));
                 }
@@ -1160,6 +1381,8 @@ pub fn select_action(
                 }
             }
         }
+
+        crate::beds::prefer_assignments(&mut candidates, &mut risks, &admissions);
 
         // Waiting targets and their interactions are sampled like available targets.
         let mut waiting_choices = Vec::new();
@@ -1254,6 +1477,26 @@ pub fn select_action(
 
         if let Ok((_, _, placed, _, _)) = objects.get(object) {
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            if content
+                .0
+                .object(placed.0)
+                .interactions
+                .get(interaction as usize)
+                .is_some_and(|act| act.id == "grab_snack")
+            {
+                if let Some(global) = content
+                    .0
+                    .chains
+                    .iter()
+                    .position(|chain| chain.id == crate::domestic::SNACK)
+                {
+                    claimed.push(agent);
+                    commands
+                        .entity(agent)
+                        .insert(terri_core::ChainState::begin(global as u32));
+                    continue;
+                }
+            }
             if interaction >= interactions_len {
                 let local = (interaction - interactions_len) as usize;
                 if let Some((global, _)) = content
@@ -1287,7 +1530,14 @@ pub fn select_action(
             } else {
                 continue;
             };
-        let Some(steps) = reconstruct_winning_path(&grid, from, destination, footprint)
+        let route = routes
+            .get(&(object, interaction))
+            .copied()
+            .unwrap_or(Route::Perimeter {
+                origin: destination,
+                footprint,
+            });
+        let Some(steps) = reconstruct_winning_path(&grid, from, route)
             .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
         else {
             continue;
@@ -1295,6 +1545,18 @@ pub fn select_action(
 
         claimed.push(object);
         claimed.push(agent);
+        let admission = admissions
+            .get(&(object, interaction))
+            .copied()
+            .unwrap_or(crate::beds::Admission::Exclusive);
+        occupancy.claim(
+            agent,
+            Target {
+                object,
+                interaction,
+            },
+            admission,
+        );
         commands
             .entity(object)
             .remove::<terri_core::Wander>()
@@ -1307,8 +1569,75 @@ pub fn select_action(
             },
             Path { steps, cursor: 0 },
         ));
+        admission.apply(&mut commands.entity(agent));
     }
     commands.insert_resource(super::autonomy::DecisionTelemetry(decisions));
+}
+
+#[cfg(test)]
+mod staged_snack_tests {
+    use super::tests::{spawn_agent_with, spawn_object};
+    use super::*;
+    use crate::{test_content, Sim};
+
+    fn snack_choice(counter_x: Option<f32>, death_enabled: bool) -> Option<(f32, f32)> {
+        let pack = terri_data::pack();
+        let mut sim: Sim = test_content::sim_with(16, 16, pack);
+        let fridge = spawn_object(&mut sim, 2.0, 1.0, pack.find("fridge").unwrap());
+        if let Some(x) = counter_x {
+            spawn_object(&mut sim, x, 1.0, pack.find("counter").unwrap());
+        }
+        let mut needs = Needs::all_at(100.0);
+        needs.set(NeedId::Hunger, 0.0);
+        let agent = spawn_agent_with(&mut sim, 1.0, 1.0, needs);
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::SelfPreservation(100));
+        sim.world_mut()
+            .insert_resource(terri_core::save::SavedMortality {
+                enabled: death_enabled,
+                counts: vec![(agent.index_u32(), pack.tuning.death_after_ticks - 20)],
+                deaths: vec![],
+            });
+        sim.tick();
+        let decision = &sim
+            .world()
+            .resource::<super::super::autonomy::DecisionTelemetry>()
+            .0[0];
+        let choices: Vec<_> = decision
+            .choices
+            .iter()
+            .filter(|choice| choice.0 == fridge.index_u32() && choice.1 == 0)
+            .collect();
+        assert!(choices.len() <= 1, "snacks have one visible candidate");
+        choices.first().map(|choice| (choice.2, choice.3))
+    }
+
+    #[test]
+    fn staged_snack_risk_waits_for_terminal_recovery_and_includes_counter_travel() {
+        let near = snack_choice(Some(6.0), true).unwrap();
+        let far = snack_choice(Some(14.0), true).unwrap();
+        assert!(
+            near.1 > 0.0,
+            "adjacent fridge cannot feed a Sim before prep and eating finish"
+        );
+        assert!(
+            far.1 > near.1,
+            "travel to the preparation counter delays recovery further"
+        );
+        let harmless = snack_choice(Some(6.0), false).unwrap();
+        assert_eq!(harmless.1, 0.0);
+        assert!(
+            harmless.0 > near.0,
+            "the late recovery penalty lowers the actual candidate score"
+        );
+    }
+
+    #[test]
+    fn staged_snack_is_ineligible_without_a_preparation_counter() {
+        assert!(snack_choice(None, false).is_none());
+        assert!(snack_choice(Some(6.0), false).is_some());
+    }
 }
 
 #[cfg(test)]

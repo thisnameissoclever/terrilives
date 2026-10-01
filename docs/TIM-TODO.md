@@ -505,13 +505,15 @@ kitchen washing-up reuse that decoded recording at lower gain, with independent
 source ownership. Its timbre and
 mix still need listening acceptance. Stove cooking now uses a provisional
 first-party synthetic texture with independent demand loading; its listening
-acceptance also remains open. Door opening
-and closing now have quiet provisional recorded cues tied to authoritative portal
-state. Completed toilet use has a provisional recorded flush; cancellation,
-loading and late decoding do not trigger one. Its listening acceptance remains
-open; see `docs/specs/2026-10-01-toilet-completion-audio.md`.
-Ambience, alarms, music, non-conversation voices
-and music/ambience controls remain unbuilt. The current contract and evidence are in
+acceptance also remains open. Doors open silently and close with a filtered thunk
+tied to authoritative portal state. Footsteps use a quieter peak amplitude without
+changing pitch or cadence. Completed toilet use has a recorded flush; cancellation,
+loading and late decoding do not trigger one. The owner accepted the recording;
+in-game mixing and technical release evidence belong in
+`docs/specs/2026-10-01-toilet-completion-audio.md`.
+Continuous indoor background noise is excluded from the sound design. Outdoor
+ambience, alarms, music, non-conversation voices and their controls remain unbuilt.
+The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.
 

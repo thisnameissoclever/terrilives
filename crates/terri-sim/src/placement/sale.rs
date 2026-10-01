@@ -67,6 +67,7 @@ pub fn validate_sale(world: &World, object: u32) -> Result<SalePlan, PlacementRe
     let CurrentLayout { walls, rectangles } = current_layout(world)?;
     let mut people = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
     if world.get::<Reserved>(entity).is_some()
+        || crate::domestic::surface_in_use(world, object)
         || people.iter(world).any(|person| {
             person.get::<Target>().is_some_and(|t| t.object == entity)
                 || person
@@ -106,6 +107,9 @@ pub(crate) fn commit(world: &mut World, object: u32) {
     let mut payout = None;
     if let Ok(plan) = result {
         world.insert_resource(plan.grid);
+        world
+            .resource_mut::<crate::beds::BedAssignments>()
+            .remove_bed(plan.entity);
         world
             .despawn_no_free(plan.entity)
             .expect("a validated sale names a live object");

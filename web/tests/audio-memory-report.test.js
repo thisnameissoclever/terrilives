@@ -32,6 +32,7 @@ function runsWithDoors(doorTracks) {
     };
     return {repetition, audioEnabled, fixtureSha256: 'same-fixture', diagnosticOnly:false,
       measurementBaseline:{tick:60,worldHash:'same-world'},
+      measurementEndpoint:{tick:600,worldHash:'same-end-world'},
       bundleEvidence: [{url:'http://local/index-proof.js',sha256:'same-bundle'},
         {url:'http://local/terri-proof.wasm',sha256:'same-wasm'}],
       toiletWarmup: { naturallyDrained:true, pausedVoices:0, playedFlushes:audioEnabled?2:0,
@@ -65,6 +66,9 @@ test('memory acceptance requires exercised toilet lifecycle, paired fixtures and
     run => { run.bundleEvidence.pop(); },
     run => { run.measurementBaseline.tick++; },
     run => { run.measurementBaseline.worldHash = 'different-baseline'; },
+    run => { delete run.measurementEndpoint; },
+    run => { run.measurementEndpoint.tick++; },
+    run => { run.measurementEndpoint.worldHash = 'different-endpoint'; },
     run => { run.diagnosticOnly = true; },
   ]) {
     const runs = runsWithDoors(4);

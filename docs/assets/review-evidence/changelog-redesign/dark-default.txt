@@ -1,0 +1,42 @@
+✔ newest notes come first and only the latest date starts open (19.246ms)
+✔ editing, adding and deleting source notes changes the generated page (6.4503ms)
+✔ HTML is escaped while bold, code and HTTPS links remain usable (4.6615ms)
+✔ literal template markers in a note cannot expand into presentation code (4.8021ms)
+✔ invalid notes and empty collections fail instead of silently dropping content (4.1557ms)
+✔ wrapped summaries and continued list items preserve their meaning (0.1281ms)
+✔ public notes reject development references instead of publishing them (0.1707ms)
+✔ same-day notes must be consolidated and former links reach the dated update (4.1377ms)
+✖ dark is the default even on a light system; theme choices persist and blocked storage stays usable (1.1261ms)
+✔ expand and collapse switch controls and keep keyboard focus; old links open the right update (1.4952ms)
+✔ the repository history renders and the CLI writes the same standalone page (61.9541ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 175.0536
+
+✖ failing tests:
+
+test at scripts\build-changelog.test.mjs:145:1
+✖ dark is the default even on a light system; theme choices persist and blocked storage stays usable (1.1261ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'light' !== 'dark'
+
+      at TestContext.<anonymous> (file:///D:/VIBES/.worktrees/4c2e/terrilives/scripts/build-changelog.test.mjs:147:10)
+      at Test.runInAsyncScope (node:async_hooks:228:14)
+      at Test.run (node:internal/test_runner/test:1118:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:787:18)
+      at Test.postRun (node:internal/test_runner/test:1247:19)
+      at Test.run (node:internal/test_runner/test:1175:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:787:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'light',
+    expected: 'dark',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

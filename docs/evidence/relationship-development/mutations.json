@@ -1,0 +1,93 @@
+[
+  {
+    "name": "missing-hash",
+    "command": "cargo test -p terri-sim every_boundary_field_changes_the_hash --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "60143aba80009ba3022dfe95a5635c5ac151398d54f429811009e01baed52f08"
+  },
+  {
+    "name": "missing-save",
+    "command": "cargo test -p terri-sim privacy_entry_waits_at_the_boundary --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "60143aba80009ba3022dfe95a5635c5ac151398d54f429811009e01baed52f08"
+  },
+  {
+    "name": "entry-guard",
+    "command": "cargo test -p terri-sim privacy_entry_waits_at_the_boundary --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "bf7d6b9d711b9f35c0766ee0ab18b43e46507155bd41df1a55489df8d1e2a1a1"
+  },
+  {
+    "name": "start-guard",
+    "command": "cargo test -p terri-sim privacy_start_waits_and_player_order --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "bf7d6b9d711b9f35c0766ee0ab18b43e46507155bd41df1a55489df8d1e2a1a1"
+  },
+  {
+    "name": "repeated-reroll",
+    "command": "cargo test -p terri-sim cached_respect_waits_without_rerolls --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "b024b85d6f2b335ad6fa4b01914754e2cd850a2ba8f7ff10954025a95f8e1150"
+  },
+  {
+    "name": "reversed-direction",
+    "command": "cargo test -p terri-sim interpersonal_entry_offends_the_active_user --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "ce49b2c3c9a0108d0a47207ef94a42b3b3fd62acfc4fb98ef366d182c652cb70"
+  },
+  {
+    "name": "duplicate-reward",
+    "command": "cargo test -p terri-sim shared_reading_pays_ten_times_proximity --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "ffccdf16b413211a1220d2062866c7ab39dfa9b0d55a635cd1952810c66a2d37"
+  },
+  {
+    "name": "shared-dislikes",
+    "command": "cargo test -p terri-sim compatibility_is_directional --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "dc20d0b608f2274f7f00d98c225b247cdfd3b7a781a2520d5712b4b415810c6a"
+  },
+  {
+    "name": "late-alternative",
+    "command": "cargo test -p terri-sim privacy_late_occupancy --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "7047090f2feefd989f327ec09641d9b47e16cf753b32dae5489ca403211cc2a3"
+  },
+  {
+    "name": "stale-conversation",
+    "command": "cargo test -p terri-sim a_redirected_conversation_partner_cannot --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "3a0813a591ab7d29c0b77d1211506106be525a6fc296e04c9fea8f292cb2c978"
+  },
+  {
+    "name": "urgent-private-goal",
+    "command": "cargo test -p terri-sim privacy_wait_switches_to_an_urgent --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "017471d31faaae2f3447fa84adef691404510f170d05ad62db5f74f8618886a4"
+  },
+  {
+    "name": "cleared-wait-urgency",
+    "command": "cargo test -p terri-sim privacy_wait_switches_to_an_urgent --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "017471d31faaae2f3447fa84adef691404510f170d05ad62db5f74f8618886a4"
+  },
+  {
+    "name": "urgent-priority",
+    "command": "cargo test -p terri-sim privacy_two_critical --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "d98407fba139d6b0178aa23f6300cf9349035749682bd4a0a8c04f0994cb98e8"
+  }
+]

@@ -1,0 +1,41 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bed-sprites.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/2301/terrilives/web
+
+ ❯ tests/bed-sprites.test.ts (9 tests | 1 failed) 286ms
+     × uses the actual shared draw row and layer against an unrelated equal-depth Sim 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > uses the actual shared draw row and layer against an unrelated equal-depth Sim
+AssertionError: expected { entity: 900, isAgent: true } to deeply equal { entity: 400, isAgent: false }
+
+- Expected
++ Received
+
+  {
+-   "entity": 400,
+-   "isAgent": false,
++   "entity": 900,
++   "isAgent": true,
+  }
+
+ ❯ tests/bed-sprites.test.ts:184:65
+    182|         if(sampleBedCoverage(BED_COVERAGE[scene.alpha],sx,sy)<.5) cont…
+    183|         if(scene.owners.some(owner=>sampleBedCoverage(BED_COVERAGE[own…
+    184|         expect(pickSprite(mixed,x,y,200,180,1,false,selection)).toEqua…
+       |                                                                 ^
+    185|         witnessed=true;
+    186|       }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  10:17:21
+   Duration  798ms (transform 346ms, setup 0ms, import 408ms, tests 286ms, environment 0ms)
+

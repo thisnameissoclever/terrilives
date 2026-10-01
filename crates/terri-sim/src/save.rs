@@ -34,7 +34,9 @@ mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
 pub(super) mod chronotype;
+mod meal_migration;
 pub(super) mod self_preservation;
+pub(super) mod sleeping_places;
 #[cfg(test)]
 mod v3_tests;
 mod wall_migration;
@@ -340,6 +342,10 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             covering: *covering,
         },
         SimCommand::SetDeathEnabled(enabled) => SavedCommand::SetDeathEnabled(*enabled),
+        SimCommand::SetBedAssignment { agent, place } => SavedCommand::SetBedAssignment {
+            agent: *agent,
+            place: *place,
+        },
         SimCommand::SetFamilyTie { who, to, relation } => SavedCommand::SetFamilyTie {
             who: *who,
             to: *to,
@@ -438,7 +444,7 @@ fn restore_with_facings(
     facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
     retired: &[u32],
 ) -> Result<Sim, SaveError> {
-    let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
+    let (snapshot, migrate_legacy_household_names) = meal_migration::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
@@ -863,6 +869,9 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
         }
         SavedCommand::SetFloor { x, y, covering } => SimCommand::SetFloor { x, y, covering },
         SavedCommand::SetDeathEnabled(enabled) => SimCommand::SetDeathEnabled(enabled),
+        SavedCommand::SetBedAssignment { agent, place } => {
+            SimCommand::SetBedAssignment { agent, place }
+        }
         SavedCommand::SetFamilyTie { who, to, relation } => {
             SimCommand::SetFamilyTie { who, to, relation }
         }
@@ -1174,7 +1183,8 @@ fn validate_command(
         | SavedCommand::BuyObjectInColourway { .. }
         | SavedCommand::SetFloor { .. }
         | SavedCommand::SetFamilyTie { .. }
-        | SavedCommand::SetDeathEnabled(_) => Ok(()),
+        | SavedCommand::SetDeathEnabled(_)
+        | SavedCommand::SetBedAssignment { .. } => Ok(()),
         // [CS-save]: held to the limits every saved name and list is held
         // to; the drain checks the rest.
         SavedCommand::AddHousemateWithInstinct { instinct, .. } if *instinct > 100 => {

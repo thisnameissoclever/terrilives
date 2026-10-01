@@ -1,0 +1,8 @@
+# Domestic and sleeping-state integration
+
+This held branch integrates released main `41df46ed` before bed visuals. It preserves the published V5 domestic field before the new sleeping record. Its compiled content digest is `cf787472e9e838f5`, with an exact same-recipe route from released domestic `85a2d1400dff9da1`. Earlier recipes still map their old dinner counter from step 3 to step 5.
+
+1. `cargo test --workspace` passed core 109, data 273 and data integration 1. The initial simulation run found a stale bed-test digest and a fixed collection-time fixture assumption, recorded in lessons. After repair, `cargo test -p terri-sim` passed 791 tests.
+2. `cargo test -p terri-wasm` passed 156 tests, including every grouped sleeping-record interior cut, explicit None and authentic old meal migration. The extended released-domestic test then passed independently with every interior domestic cut. It loads checked-in `web/review/domestic.save`, compares every retained snapshot field immediately, and proves stable resave and 160-tick replay.
+3. Three deliberate faults failed the named assertions, then passed after byte-identical restoration. `mutations.json` records commands, statuses and original hashes. The retained failure files show explicit bed None was accepted without the presence guard, incomplete domestic state was accepted without its boundary guard, and released domestic Load failed without the exact current-recipe route.
+4. Independent source review found no blocker in combined snack/place autonomy, restoration order or published wire boundaries. These checks do not establish renderer, played sleeping or live release acceptance.

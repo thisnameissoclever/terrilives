@@ -67,6 +67,8 @@ export interface BrowserAudioContext
     VoiceAudioContext {
   readonly destination: unknown;
   readonly state: AudioContextState;
+  /** Exclusively owned by the controller for the context it creates. */
+  onstatechange: ((event: Event) => void) | null;
   close(): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
@@ -146,7 +148,7 @@ export class AudioController implements GameAudioEventSink {
   private toiletClip: AudioBufferPort | null = null;
   private toiletFetch: Promise<void> | null = null;
   private nextToiletRetryAt = 0;
-  private readonly doorClips: Partial<Record<'opened' | 'closed', AudioBufferPort>> = {};
+  private readonly doorClips: Partial<Record<'closed', AudioBufferPort>> = {};
   private doorFetch: Promise<void> | null = null;
   private nextDoorRetryAt = 0;
   private doorDemandObserved = false;
@@ -316,11 +318,11 @@ export class AudioController implements GameAudioEventSink {
     }
 
     if (event.type === 'door.opened' || event.type === 'door.closed') {
+      if (event.type === 'door.opened') return;
       if (this.objectSoundsPaused) return;
       this.doorDemandObserved = true;
-      const opened = event.type === 'door.opened';
-      const clip = this.doorClips[opened ? 'opened' : 'closed'];
-      if (clip !== undefined && this.doors?.play(clip)) this.playedCueCounts[opened ? 6 : 7]++;
+      const clip = this.doorClips.closed;
+      if (clip !== undefined && this.doors?.play(clip)) this.playedCueCounts[7]++;
       void this.loadDoorRecordings();
       return;
     }
@@ -410,7 +412,7 @@ export class AudioController implements GameAudioEventSink {
     const context = this.context;
     if (context === null || !this.objectCuesAudible() || !this.doorDemandObserved ||
       performance.now() < this.nextDoorRetryAt ||
-      (this.doorClips.opened !== undefined && this.doorClips.closed !== undefined)) return;
+      this.doorClips.closed !== undefined) return;
     const fetching = this.fetchDoorClips(context);
     this.doorFetch = fetching;
     try { await fetching; }
@@ -418,18 +420,15 @@ export class AudioController implements GameAudioEventSink {
   }
 
   private async fetchDoorClips(context: BrowserAudioContext): Promise<void> {
-    await Promise.all((['opened', 'closed'] as const).map(async kind => {
-      if (this.doorClips[kind] !== undefined) return;
-      try {
-        const response = await fetch(`audio/doors/${kind === 'opened' ? 'open' : 'close'}.wav`);
-        if (!response.ok) throw new Error(`door recording: ${response.status}`);
-        const clip = await context.decodeAudioData(await response.arrayBuffer());
-        if (!Number.isFinite(clip.duration) || clip.duration < 0.024) throw new Error('invalid door recording');
-        this.doorClips[kind] = clip;
-      } catch {
-        this.nextDoorRetryAt = performance.now() + 5000;
-      }
-    }));
+    try {
+      const response = await fetch('audio/doors/close-thunk.wav');
+      if (!response.ok) throw new Error(`door recording: ${response.status}`);
+      const clip = await context.decodeAudioData(await response.arrayBuffer());
+      if (!Number.isFinite(clip.duration) || clip.duration < 0.024) throw new Error('invalid door recording');
+      this.doorClips.closed = clip;
+    } catch {
+      this.nextDoorRetryAt = performance.now() + 5000;
+    }
   }
 
   private objectCuesAudible(): boolean {
@@ -668,7 +667,7 @@ export class AudioController implements GameAudioEventSink {
     this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
-    this.voices?.stopAll();
+    this.voices?.stopAll(true);
   }
 
   /**
@@ -916,6 +915,13 @@ export class AudioController implements GameAudioEventSink {
         const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
+        const ownedContext = context;
+        ownedContext.onstatechange = () => {
+          if (this.context !== ownedContext || ownedContext.state === 'running') return;
+          // A paused world has no tick to observe a frozen source or release.
+          this.stopEveryPlayer();
+          this.resetSchedulers();
+        };
         // The ids usually arrived before any gesture could create this
         // context, so this is the first moment the bytes can be decoded.
         void this.fetchVoiceLibrary();
@@ -923,6 +929,7 @@ export class AudioController implements GameAudioEventSink {
         this.applyEffectsGain();
         this.applyVoicesGain();
       } catch {
+        if (context !== null) context.onstatechange = null;
         safelyDisconnect(voicesGain);
         safelyDisconnect(effectsGain);
         safelyDisconnect(masterGain);

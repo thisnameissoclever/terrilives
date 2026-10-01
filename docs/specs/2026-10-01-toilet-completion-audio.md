@@ -1,6 +1,6 @@
 # Toilet completion audio
 
-Status: implemented and pushed on `twcx/toilet-completion-audio`, not merged. Source review, local code checks and playback proofs passed. The full-audio retained-memory check failed; 120 Hz coverage and owner listening remain unverified. Owner authorization covers routine sound improvements and delivery, not silently replacing failed acceptance requirements.
+Status: implemented on `twcx/toilet-completion-audio`, not merged. The owner accepted the selected recording and requested its inclusion. In-game mix acceptance remains separate. Earlier local checks and playback proofs passed, but the full-audio retained-memory check failed and 120 Hz coverage remains unverified. Current-main integration and endpoint-matched reassessment are recorded below; no failed acceptance requirement is silently replaced.
 
 ## Contract
 

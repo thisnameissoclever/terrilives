@@ -7,6 +7,16 @@ survival_risk_penalty = 2.0
 choice_probability_floor = 0.000000001
 wander_pause_variance = 0.4
 self_preservation_curve = [[0, 0.02], [5, 0.10], [30, 0.75], [50, 1.0], [70, 1.4], [100, 2.0]]
+# One directional penalty at conversation start; worst unhelped need wins.
+social_unmet_need_penalty = 0.11
+social_critical_need_penalty = 0.20
+# One penalty per private-use start or room entry.
+bathroom_privacy_penalty = 0.25
+# Mild preference costs and shyness response; these never forbid an action.
+social_boundary_avoidance_cost = 0.01
+shyness_annoyance_strength = 0.25
+boundary_wander_reconsider_chance = 0.10
+shyness_wander_reconsider_strength = 0.15
 
 # Preserves the critical need band used by the mood panel.
 mood_critical_need_level = 20.0
@@ -466,22 +476,21 @@ need_bar_refresh_ms = 100
 # A's feeling about B is stored separately from B's about A, so
 # unrequited is a real state.
 
-# How much one completed social interaction raises EACH participant's
-# relationship toward the other. 0.15 means roughly seven conversations
-# take two strangers to best friends, which at measured M2c social decay
-# (a sim seeks company every 2 000-4 000 ticks) is an evening of game
-# time rather than a lifetime or an instant. Zero disables the mechanic,
-# like habituation_per_use.
-relationship_gain_per_talk = 0.15
+# Base affinity reward for each eligible participant in a completed
+# conversation. Compatibility scales the reward; poor hygiene and unhelped
+# critical needs can block it. Calibrated with ordinary privacy incidents
+# and shared activities; see the relationship-development evidence.
+# Zero disables this completion reward.
+relationship_gain_per_talk = 0.17
 
 # How much every relationship drifts toward zero each tick - toward
 # zero, not downward: a grudge fades on the same clock a friendship
-# does. 0.00001 costs a full friendship about a third of its warmth
+# does. 0.000005 costs a full friendship about 0.18 of its warmth
 # over 36 000 unattended ticks (one long measured session), so
 # maintenance matters at the pace sessions are actually played. Must be
 # strictly positive, or a relationship is a one-way ratchet - the same
 # rule habituation_decay_per_tick carries.
-relationship_decay_per_tick = 0.00001
+relationship_decay_per_tick = 0.000005
 
 # How strongly the initiator's relationship toward the target scales a
 # social advert's BENEFIT: the multiplier is 1 + relationship * scale.
@@ -836,3 +845,35 @@ exhaustion_ramp_ticks = 240
 #
 # Exactly 1 disables the ramp, which is how to measure its effect again.
 exhaustion_bonus = 2.5
+
+# Ordinary relationship development and privacy decisions.
+[relationships]
+proximity_per_hour = 0.062
+shared_activity_multiplier = 10.0
+friction_per_hour = 0.0075
+incompatible_below = -0.2
+contact_radius = 4.0
+privacy_respect_chance = 0.65
+shyness_respect_strength = 0.08
+privacy_decision_ticks = 30
+privacy_critical_wait_ticks = 10
+privacy_desperate_need_level = 5.0
+# Meals, cleanliness and household mess. Scores are 0..1; need levels 0..100.
+[domestic]
+own_cleanup_min = 0.01
+own_cleanup_bonus = 0.89
+visitor_cleanup_fraction = 0.20
+critical_cleanup_scale = 0.005
+ready_need_level = 55.0
+other_need_floor = 0.35
+other_need_level = 50.0
+invite_hunger_level = 40.0
+accept_hunger_level = 55.0
+friend_affinity = 0.60
+mood_penalty_min = 2.0
+mood_penalty_bonus = 8.0
+mood_units = 4.0
+mood_max_load = 1.5
+affinity_penalty_min = 0.0003
+affinity_penalty_bonus = 0.0027
+wash_ticks_per_unit = 8

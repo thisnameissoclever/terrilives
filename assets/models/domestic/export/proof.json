@@ -1,0 +1,217 @@
+{
+  "state": "complete",
+  "background": true,
+  "renders": [
+    {
+      "name": "dirtyDishes",
+      "path": "dirtyDishes.png",
+      "kind": "plate",
+      "facing": "SE",
+      "sha256": "90ead96ed9656780e4f3a10ad2fed8be23d0e6ddec2611d81a862cb4c3148a01"
+    },
+    {
+      "name": "dirtyDishesNW",
+      "path": "dirtyDishesNW.png",
+      "kind": "plate",
+      "facing": "NW",
+      "sha256": "06025066f3e1b337547d701c0e49e42653db5a1465aa089aa8dea62a992d1440"
+    },
+    {
+      "name": "dirtyDishesSW",
+      "path": "dirtyDishesSW.png",
+      "kind": "plate",
+      "facing": "SW",
+      "sha256": "44a66354ac686ce280bfdb5ee7c16eb96af9738cb65dec90163b6915449d7b66"
+    },
+    {
+      "name": "dirtyDishesNE",
+      "path": "dirtyDishesNE.png",
+      "kind": "plate",
+      "facing": "NE",
+      "sha256": "69fd370852cbaf2579e13e0c66ad620ef20f0537f524d8cadced045a60e88a07"
+    },
+    {
+      "name": "dirtyDishesPair",
+      "path": "dirtyDishesPair.png",
+      "kind": "pair",
+      "facing": "SE",
+      "sha256": "7d315591cf769b117d4ae719dfa86b02cfeb993d8d896f258e22c1409d30a979"
+    },
+    {
+      "name": "dirtyDishesPairNW",
+      "path": "dirtyDishesPairNW.png",
+      "kind": "pair",
+      "facing": "NW",
+      "sha256": "5a76f40cf73d9dbd19b6bbd186fc02616abd5fbbe8aee6cedc544e2fbe93516f"
+    },
+    {
+      "name": "dirtyDishesPairSW",
+      "path": "dirtyDishesPairSW.png",
+      "kind": "pair",
+      "facing": "SW",
+      "sha256": "36cc8fd9d50a0cec38f65e8d5a155b17369a7b8193d80faa04e8b5ae0607782a"
+    },
+    {
+      "name": "dirtyDishesPairNE",
+      "path": "dirtyDishesPairNE.png",
+      "kind": "pair",
+      "facing": "NE",
+      "sha256": "8c3101eeb20c974033f3515cda4efe0da2aeff73184ecf32ab6af3a691d9d233"
+    },
+    {
+      "name": "dirtyPrep",
+      "path": "dirtyPrep.png",
+      "kind": "prep",
+      "facing": "SE",
+      "sha256": "dcd8a8dc9ca895404ca5d0c1e2cf7d6073d07fd6643aa3296cb9894f3cb823ce"
+    },
+    {
+      "name": "dirtyPrepNW",
+      "path": "dirtyPrepNW.png",
+      "kind": "prep",
+      "facing": "NW",
+      "sha256": "27e0853f47a577afd4b6d8190ce71757026813f1d210aabc44bab70b7b3c760f"
+    },
+    {
+      "name": "dirtyPrepSW",
+      "path": "dirtyPrepSW.png",
+      "kind": "prep",
+      "facing": "SW",
+      "sha256": "3936bb8aff74a4b190f2323f17e9e24b2d99968bec14f6d1a1f0f24fcb5d700a"
+    },
+    {
+      "name": "dirtyPrepNE",
+      "path": "dirtyPrepNE.png",
+      "kind": "prep",
+      "facing": "NE",
+      "sha256": "c5e98cc729e0e0cea836e959487222f5d3f296f3c19db96c07a68247c9e936ba"
+    },
+    {
+      "name": "dirtyPrepLarge",
+      "path": "dirtyPrepLarge.png",
+      "kind": "prep_large",
+      "facing": "SE",
+      "sha256": "c78f8fd267b4a0ff861d0ddf50fae905d985741b837ad0b0988a5d1bfc93436d"
+    },
+    {
+      "name": "dirtyPrepLargeNW",
+      "path": "dirtyPrepLargeNW.png",
+      "kind": "prep_large",
+      "facing": "NW",
+      "sha256": "822b1656757e51908e2d6906af6a9e0e475812e4223a87e2db0a551c8bcc3162"
+    },
+    {
+      "name": "dirtyPrepLargeSW",
+      "path": "dirtyPrepLargeSW.png",
+      "kind": "prep_large",
+      "facing": "SW",
+      "sha256": "fd3d879d65b001101853c4381381ad14a267f295641171ae1a15e5e459b91adb"
+    },
+    {
+      "name": "dirtyPrepLargeNE",
+      "path": "dirtyPrepLargeNE.png",
+      "kind": "prep_large",
+      "facing": "NE",
+      "sha256": "c18a4d4ac990e60ab320d6cbfe22bb63cb37ef44988326003b03e79166d745a2"
+    },
+    {
+      "name": "mealPlate",
+      "path": "mealPlate.png",
+      "kind": "meal",
+      "facing": "SE",
+      "sha256": "8bcab49e4cc5e407f2bfbc127f215406b09d9bd58677aef551fe244d15fa8186"
+    },
+    {
+      "name": "mealPlateNW",
+      "path": "mealPlateNW.png",
+      "kind": "meal",
+      "facing": "NW",
+      "sha256": "0087f1e92a00f3db74890115600693c0c8bd8951326783f87d195177427bad47"
+    },
+    {
+      "name": "mealPlateSW",
+      "path": "mealPlateSW.png",
+      "kind": "meal",
+      "facing": "SW",
+      "sha256": "6e1cce750b60b4079e3a950b5e5917f80893f7f6326308330b2b91c5687a2511"
+    },
+    {
+      "name": "mealPlateNE",
+      "path": "mealPlateNE.png",
+      "kind": "meal",
+      "facing": "NE",
+      "sha256": "d18fd198f95ee299d82c91cdd6f1b0c7a8a12dc6076d4706ce40445209aa791d"
+    }
+  ],
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "blender": "4.5.14 LTS",
+  "inputs": {
+    "render.py": "3660ac478f608bc83e414385505d3fcf6ea7abce9d2359a7da946fbd592dda5d",
+    "dishes.py": "ba66c899eb7abd5c09cb96d940ca0c4e971bd52a194c033bcf8b816623f69220"
+  },
+  "origin": [
+    12.00001859664917,
+    12.512252569198608
+  ],
+  "anchor": [
+    12.00001859664917,
+    33.51225256919861
+  ],
+  "logical_size": [
+    24,
+    24
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      6.577500343322754
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_scale": 0.5303300619125366,
+  "dirtyDishes": {
+    "diameter": 0.3,
+    "base_z": 0,
+    "kind": "plate"
+  },
+  "dirtyDishesPair": {
+    "diameter": 0.3,
+    "base_z": 0,
+    "kind": "pair"
+  },
+  "dirtyPrep": {
+    "diameter": 0.3,
+    "base_z": 0,
+    "kind": "prep"
+  },
+  "dirtyPrepLarge": {
+    "diameter": 0.3,
+    "base_z": 0,
+    "kind": "prep_large"
+  },
+  "mealPlate": {
+    "diameter": 0.3,
+    "base_z": 0,
+    "kind": "meal"
+  },
+  "model_sha256": "25a0d3867de2a484ed1501a4ca22d0da956cf4b621b210cb62a17946697ca758"
+}

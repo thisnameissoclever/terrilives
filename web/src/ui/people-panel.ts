@@ -71,8 +71,9 @@ export interface PeoplePanelSurface {
 /**
  * Turns the simulation's directional -1..=1 value into player vocabulary.
  *
- * The bands deliberately expose a first completed Chat: the authored gain is
- * 0.15, so one conversation moves a stranger to Warm. The UI does not
+ * The bands expose a first eligible Chat at neutral compatibility: its base
+ * gain is 0.17, scaled by compatibility and gated by need and hygiene rules.
+ * An eligible neutral chat moves a stranger to Warm. The UI does not
  * call this friendship or romance state because the simulation currently owns
  * one ordered feeling, not two relationship axes.
  */

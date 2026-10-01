@@ -431,6 +431,21 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {
       if (!sim.select(entity)) throw new Error('Could not restore memory-run selection');
       sim.flushCommands();
     }, selected);
+    await page.evaluate(({ baseline, delta }) => {
+      const target = baseline + delta;
+      function pauseAtEndpoint() {
+        const tick = globalThis.__terriStress.sim.clockTick();
+        if (tick < target) {
+          requestAnimationFrame(pauseAtEndpoint);
+          return;
+        }
+        const pause = document.querySelector('#speed-0');
+        if (!(pause instanceof HTMLInputElement)) throw new Error('Missing memory endpoint pause control');
+        pause.checked = true;
+        pause.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      requestAnimationFrame(pauseAtEndpoint);
+    }, { baseline: baselineTick, delta: FIXED_TICKS - WARMUP_TICKS });
     await setSpeed(page, 3);
     await page.waitForTimeout(250);
     for (
@@ -453,6 +468,13 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {
     await setSpeed(page, 0);
     await normalizeMemoryHud(page);
     await waitForAudioDrain(page);
+    const measurementEndpoint = await page.evaluate(() => ({
+      tick: globalThis.__terriStress.sim.clockTick(),
+      worldHash: String(globalThis.__terriStress.sim.worldHash()),
+    }));
+    if (measurementEndpoint.tick !== baselineTick + FIXED_TICKS - WARMUP_TICKS) {
+      throw new Error(`Invalid memory endpoint: expected ${baselineTick + FIXED_TICKS - WARMUP_TICKS}, got ${measurementEndpoint.tick}`);
+    }
     samples.push(await collectMemorySample(page, cdp, true));
     if (options.onCheckpoint) await options.onCheckpoint(cdp, 'first540');
 
@@ -475,7 +497,7 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {
       if (options.onCheckpoint) await options.onCheckpoint(cdp, 'second540');
     }
     return { repetition, audioEnabled, bundleEvidence, fixtureSha256, toiletWarmup,
-      diagnosticOnly: typeof options.onCheckpoint === 'function', measurementBaseline, samples, diagnosticSamples };
+      diagnosticOnly: typeof options.onCheckpoint === 'function', measurementBaseline, measurementEndpoint, samples, diagnosticSamples };
   } finally {
     await context.close();
   }
@@ -566,6 +588,11 @@ function analyseMemory(runs) {
       typeof run.measurementBaseline?.worldHash === 'string' &&
       run.measurementBaseline.worldHash === reference.measurementBaseline?.worldHash &&
       Number.isInteger(run.measurementBaseline.tick) && run.measurementBaseline.tick === reference.measurementBaseline?.tick &&
+      typeof run.measurementEndpoint?.worldHash === 'string' &&
+      run.measurementEndpoint.worldHash === reference.measurementEndpoint?.worldHash &&
+      Number.isInteger(run.measurementEndpoint.tick) &&
+      run.measurementEndpoint.tick === run.measurementBaseline.tick + FIXED_TICKS - WARMUP_TICKS &&
+      run.measurementEndpoint.tick === reference.measurementEndpoint?.tick &&
       typeof run.fixtureSha256 === 'string' && run.fixtureSha256 === reference.fixtureSha256 &&
       run.bundleEvidence?.length > 0 &&
       run.bundleEvidence.some(bundle => /\.js(?:\?|$)/.test(bundle.url)) &&

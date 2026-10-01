@@ -30,6 +30,10 @@ pub struct SmartObject(pub ObjectDefId);
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Reserved;
 
+/// Physical sleeping place held by this agent's current Target, including travel.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SleepPlace(pub u8);
+
 /// A tile path being followed. `steps` excludes the origin tile.
 #[derive(Component, Debug, Clone)]
 pub struct Path {
