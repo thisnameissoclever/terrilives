@@ -1011,8 +1011,8 @@ Object-loop playback exists; its audible content still needs selection and
 listening acceptance. Recorded conversation gain is 0.224 after owner listening;
 Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
-default preserves the current mix and existing stored preferences. Music and
-ambience controls remain future work. The approved four-pack CC0 intake is
+default preserves the current mix and existing stored preferences. Music
+controls remain future work. The approved four-pack CC0 intake is
 downloaded and inventoried; selected water and door recordings are now integrated.
 The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
