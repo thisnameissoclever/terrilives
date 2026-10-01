@@ -299,31 +299,31 @@ Define `WindowEdit` as Fit(WindowPlacement) or Remove(WallLine); `WindowPlan`
 owns the entire candidate layout/grid and a changed flag; the result contains
 the edit and optional refusal. Preview and commit call the same validator.
 
-- [ ] Search all `windows()`, `EdgeWallsV2`, `from_parts`, `WallState::Window`,
+- [x] Search all `windows()`, `EdgeWallsV2`, `from_parts`, `WallState::Window`,
   layout writes and enum matches before editing. Update room edits, yard migration
   and test helpers, not just the new window button. Keep ordinary edge bounds intact.
-- [ ] Complete the saved-command conversions and V3 restoration cases needed to
+- [x] Complete the saved-command conversions and V3 restoration cases needed to
   compile the simulation with the new variants. Reuse the actual span and shell
   validation; do not add temporary no-op or catch-all handlers. Include model
   identity in the V3 world hash while retaining historical hash behavior. Task 5
   verifies full save/replay compatibility and adds the external bridge.
-- [ ] Validate complete straight spans, supported shell coordinates and matching
+- [x] Validate complete straight spans, supported shell coordinates and matching
   wall state. Check corners, crossings, front-door lines, occupied routes,
   furniture contact and existing loader usability rules against the candidate.
-- [ ] Implement whole-window selection, narrower/wider replacement and removal
+- [x] Implement whole-window selection, narrower/wider replacement and removal
   semantics from the spec. Expand a legacy Wall/Open/Doorway edit that hits a
   window into a complete candidate change. Refuse opening the implicit rear shell.
-- [ ] Preserve legacy `SetWallEdge(Window)` behavior for old command replay;
+- [x] Preserve legacy `SetWallEdge(Window)` behavior for old command replay;
   map its one-line window to Sash when upgrading the layout. It cannot cut a new
   multi-unit window in half. New UI placement uses FitWindow.
-- [ ] Add causal tests: invalid third line leaves layout/grid/revision unchanged;
+- [x] Add causal tests: invalid third line leaves layout/grid/revision unchanged;
   fit increments revision once; removing from any owned line restores the same
   span; a shorter replacement restores exposed wall; a crossing Room edit fails
   without changing anything; an unrelated Room edit retains the model ID.
-- [ ] Test rear X=0/Y=0 apertures separately from invalid off-lot coordinates.
+- [x] Test rear X=0/Y=0 apertures separately from invalid off-lot coordinates.
   Grid collision stays bounded; neither Sims nor pathfinding gain an outside tile.
   A front-door window attempt remains refused.
-- [ ] Run `cargo test -p terri-sim -j 1 window`, then the affected wall/room tests.
+- [x] Run `cargo test -p terri-sim -j 1 window`, then the affected wall/room tests.
   Mutation-check skipped third-line validation, per-line partial writes, and a
   Room/yard writer that drops model metadata. Require assertion failures.
 

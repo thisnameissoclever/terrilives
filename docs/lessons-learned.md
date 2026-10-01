@@ -5,20 +5,30 @@
 **What happened.** A split-ownership guard mutation was reported as detected, but
 its test failed on clean input before reaching the overlapping-piece case. A
 separate material test asserted values that it had constructed itself.
+A room-edit mutation later failed on a front-door landing conflict before it
+could test preservation of a window model.
 
 **Root cause.** Deleting the assertion also removed initialization from the same
 line. The mutation runner accepted the test name in failure output without proving
 which case failed. The material test bypassed production classification entirely.
+The room fixture combined the intended wall-junction conflict with an unrelated
+landing conflict, so a changed refusal did not prove model preservation.
 
 **Prevention rule.** Separate state initialization from assertions. Require clean
 input to remain valid under a guard deletion, then require the named bad-input
 case to expose the missing guard. Test material ownership through production
 classification and exported carrier data.
+For transaction tests, establish that the candidate is valid except for the
+specific condition under test. Test metadata preservation through an otherwise
+valid edit, separately from refusal behavior.
 
 **How to verify.** Delete only the overlap check and observe the overlap assertion
 fail after clean validation passes. Misclassify glazing as a paintable surface or
 neutralize an excluded material and require the ownership test to fail. Restore
 exact source bytes and rerun the clean tests.
+Removing a junction check must permit the otherwise-valid crossing edit.
+Dropping descriptors during an unrelated room edit must fail the model-identity
+assertion. Neither test may rely on a different refusal occurring first.
 
 ## [L-mixed-height-wall-mesh] Partition joined solids at shared height boundaries
 
