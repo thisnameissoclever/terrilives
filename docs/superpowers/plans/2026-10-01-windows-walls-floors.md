@@ -59,7 +59,8 @@ pub enum WindowModel {
     Sash, Cottage, Arched, Sliding, SteelGrid, TwinCasement,
     Picture, Craftsman, Clerestory,
 }
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+// Deserialize validates that the span fits the coordinate representation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct WindowPlacement {
     pub line: WallLine,
     pub model: WindowModel,
@@ -68,6 +69,7 @@ pub struct WindowPlacement {
 // WindowModel::id(self) -> u8
 // WindowModel::from_id(id: u8) -> Option<Self>
 // WindowModel::width(self) -> u32
+// WindowPlacement::checked_lines(self) -> Option<Vec<WallLine>>
 // WindowPlacement::lines(self) -> Vec<WallLine>
 // SavedLayout::window_placements(&self) -> Vec<WindowPlacement>
 // SavedLayout::window_lines(&self) -> Vec<WallLine>
@@ -105,7 +107,9 @@ export interface WindowDefinition {
 ```
 
 `WindowPlacement::lines` uses checked coordinate addition; malformed coordinates
-are rejected before expansion. Public bridge inputs reject fractional, negative,
+are rejected before expansion. Deserialization rejects overflowing spans.
+Untrusted edit/load boundaries use `checked_lines`; `lines` requires a representable
+span. Public bridge inputs reject fractional, negative,
 non-finite and unknown model values before conversion to unsigned integers.
 Keep the old `windowLines()` bridge projection and historical command encodings.
 The new controller uses the dedicated preview/result API, not several legacy
@@ -248,10 +252,10 @@ Put focused unit tests beside the new types and existing wire-contract tests.
 **Consumes:** The nine model definitions. **Produces:** The shared Rust types,
 layout projections and appended command variants defined above.
 
-- [ ] Add the nine `WindowModel` variants in the approved order. Widths are
+- [x] Add the nine `WindowModel` variants in the approved order. Widths are
   `[1,1,1,2,2,2,3,3,3]`; public IDs are `[1,2,3,4,5,6,7,8,9]`.
   Implement the shared methods and the new `EdgeWallsV3` variant.
-- [ ] Add model/span tests before implementation. Example:
+- [x] Add model/span tests before implementation. Example:
 
 ```rust
 #[test]
@@ -269,14 +273,14 @@ fn picture_window_owns_three_lines_in_both_axes() {
 }
 ```
 
-- [ ] Preserve old serialized layouts byte for byte. V2 projection supplies Sash
+- [x] Preserve old serialized layouts byte for byte. V2 projection supplies Sash
   descriptors without rewriting the stored resource. New projections return
   every covered line, while `window_at` resolves any segment to its owner.
-- [ ] Append FitWindow `{ axis, x, y, model }` and RemoveWindow `{ axis, x, y }`
+- [x] Append FitWindow `{ axis, x, y, model }` and RemoveWindow `{ axis, x, y }`
   to live and saved commands. Use a validated model type inside the simulation;
   boundary IDs remain integers. Pin old command vectors and record the actual
   appended tags from the execution baseline rather than guessing unused codes.
-- [ ] Run `cargo test -p terri-core -j 1`. Test IDs 0/10, checked overflow,
+- [x] Run `cargo test -p terri-core -j 1`. Test IDs 0/10, checked overflow,
   single-unit defaults, both axes and all interior segments of every model.
 
 **Exit:** A window has one unambiguous identity, span and serialized representation.
@@ -285,7 +289,8 @@ fn picture_window_owns_three_lines_in_both_axes() {
 
 **Files:** Create `crates/terri-sim/src/placement/windows.rs` and `window_tests.rs`;
 modify `placement.rs`, `placement/walls.rs`, `placement/rooms.rs`,
-`systems/lot_edit.rs`, `systems/command.rs`, `save/yard.rs` and relevant wall/room tests.
+`systems/lot_edit.rs`, `systems/command.rs`, `save/yard.rs`, `save.rs`,
+`save/architecture.rs`, the window hash in `lib.rs`, and relevant wall/room tests.
 
 **Consumes:** Task 3 types. **Produces:**
 `validate_window_edit(world: &World, edit: WindowEdit) -> Result<WindowPlan, PlacementRefusal>`
@@ -297,6 +302,11 @@ the edit and optional refusal. Preview and commit call the same validator.
 - [ ] Search all `windows()`, `EdgeWallsV2`, `from_parts`, `WallState::Window`,
   layout writes and enum matches before editing. Update room edits, yard migration
   and test helpers, not just the new window button. Keep ordinary edge bounds intact.
+- [ ] Complete the saved-command conversions and V3 restoration cases needed to
+  compile the simulation with the new variants. Reuse the actual span and shell
+  validation; do not add temporary no-op or catch-all handlers. Include model
+  identity in the V3 world hash while retaining historical hash behavior. Task 5
+  verifies full save/replay compatibility and adds the external bridge.
 - [ ] Validate complete straight spans, supported shell coordinates and matching
   wall state. Check corners, crossings, front-door lines, occupied routes,
   furniture contact and existing loader usability rules against the candidate.
@@ -339,7 +349,7 @@ round trips, hash coverage, catalogue/descriptor exports and TypeScript decoding
 - [ ] Round-trip all nine models, both axes, rear-shell apertures and pending
   FitWindow/RemoveWindow commands. Test every byte truncation inside a new record,
   duplicate spans and unknown IDs. Never default a partial new record to Sash.
-- [ ] Extend save-command conversion and world hashing. Swapping Sash for Cottage
+- [ ] Verify save-command conversion and world hashing from Task 4. Swapping Sash for Cottage
   on the same line must change the hash; changing light mode must not. Load and
   uninterrupted command replay must reach the same resulting layout and hash.
 - [ ] Add the bridge methods in Shared interfaces. Assert descriptor stride is
