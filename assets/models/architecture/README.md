@@ -1,6 +1,6 @@
 # Architecture room candidate
 
-This is the first-room feasibility checkpoint for the approved windows, walls and floors plan. The nine window concepts remain approved. The owner still needs to accept the wall and floor appearance in the actual renderer before the full asset batch starts.
+This is the first-room feasibility checkpoint for the approved windows, walls and floors plan. The nine window concepts remain approved. The owner accepted candidate08 wall and floor appearance in the actual renderer. The technical review remains separate from that appearance approval.
 
 `geometry.py` describes solids in game coordinates. Wall height is 2.0 units, thickness is 0.12, and the baseboard is 0.14 high. Sash, Sliding and Picture retain widths 1, 2 and 3. `clip` physically cuts geometry at height 2/3; it does not hide an upper frame behind a transparent rectangle. Straight segments bevel only edges running along the wall, so neighboring panels meet on their exact authored end planes.
 
@@ -35,3 +35,13 @@ await architectureRoomProof({ scale: 1, show: true, cutaway: true, probes: true 
 ```
 
 Use scales 1 and 3 for room captures and `cutaway: false` for the full shell. Analytic probes include scale 1.75, source-texel boundary guards, both physical wall faces, top caps and sills. Twenty floor cases check shared endpoints, complete interior coverage, immediate exterior pixels, contrasting materials, missing tiles and reversed draw order. They retain both previously failing scale-1.75 origins and sweep fractional pan/zoom. Samples exactly on mathematical boundaries are excluded from the CPU ownership oracle because the GPU top-left fill rule chooses ownership there; draw-order equality still checks the complete image. Timing reports average 30 submissions plus GPU completion; the historical-art control uses the same candidate renderer and is not a pre-change shader benchmark. These are technical feasibility measurements, not owner appearance acceptance or full production integration.
+
+The owner accepted candidate08 wall/floor appearance after the room review. The separate renderer-overhead proof uses identical historical draw inputs against exact baseline sources, not different art in one renderer:
+
+```powershell
+python -B web/proofs/prepare-architecture-baseline.py
+```
+
+Then import `/proofs/architecture-overhead.js` and call `architectureOverheadProof()` in a visible disposable proof page. The preparation script pins baseline commit `22ffd8b6e5f9d03191f521f908a20e1bfc02c70a` and writes seven unchanged renderer/dependency files beneath ignored `web/proofs/.architecture-baseline/`. The benchmark verifies source hashes and equal pixels, warms both renderers, alternates 12 paired batches at each scale and retains raw CPU-submission-plus-GPU-completion timings. It reports uncertainty; it is not a GPU timestamp measurement or a cross-machine guarantee.
+
+`owned-timeout.ts` gives GPU and bitmap acquisitions a late-result disposer. If an acquisition resolves after its timeout, the disposer releases it; timely resources remain owned by the surrounding `finally` block. Focused delayed-resolution tests cover both timeout and success paths.

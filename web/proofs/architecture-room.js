@@ -1,4 +1,5 @@
 // Isolated proof using the production SpriteRenderer and frame builder.
+import { acquireWithTimeout } from './owned-timeout.ts';
 import { initDevice } from '../src/render/device.ts';
 import { SpriteRenderer } from '../src/render/sprites.ts';
 import { SPRITES, SPRITE_PAIRS, spriteIndex } from '../src/render/atlas.ts';
@@ -73,15 +74,18 @@ export async function architectureRoomProof({ scale = 1, show = true, cutaway = 
   };
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(460*scale); canvas.height = Math.ceil(390*scale);
-  const gpu = await bounded('Acquire GPU',initDevice(canvas));
-  const submitted = label => bounded(label,Promise.race([gpu.device.queue.onSubmittedWorkDone(),
-    gpu.device.lost.then(info=>{throw new Error(`Architecture proof device lost: ${info.reason}; ${info.message}`);})]));
+  let gpu;
   let color;
   try {
+  stage('Acquire GPU');
+  gpu = await acquireWithTimeout(initDevice(canvas),10000,value=>value.device.destroy(),'Acquire GPU');
+  const submitted = label => bounded(label,Promise.race([gpu.device.queue.onSubmittedWorkDone(),
+    gpu.device.lost.then(info=>{throw new Error(`Architecture proof device lost: ${info.reason}; ${info.message}`);})]));
   gpu.device.pushErrorScope('validation');
   const colorResponse=await bounded('Fetch trial color',fetch(colorUrl));
   if(!colorResponse.ok) throw new Error(`Trial color HTTP ${colorResponse.status}`);
-  color = await bounded('Decode trial color',createImageBitmap(await colorResponse.blob(), { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }));
+  stage('Decode trial color');
+  color = await acquireWithTimeout(createImageBitmap(await colorResponse.blob(), { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }),10000,value=>value.close(),'Decode trial color');
   const depthResponse=await bounded('Fetch trial depth',fetch(depthUrl));
   if(!depthResponse.ok) throw new Error(`Trial depth HTTP ${depthResponse.status}`);
   const depth = new Uint16Array(await depthResponse.arrayBuffer());
@@ -246,7 +250,7 @@ export async function architectureRoomProof({ scale = 1, show = true, cutaway = 
     if (show) {
       document.body.replaceChildren(); document.body.style='margin:0;background:#17171c;color:#eee;font:14px system-ui;';
       const caption=document.createElement('p');
-      caption.textContent=`Architecture room candidate | ${scale}x | ${cutaway?'Play cutaway':'Full shell'} | Walls and floors await owner review`;
+      caption.textContent=`Architecture room candidate | ${scale}x | ${cutaway?'Play cutaway':'Full shell'} | Wall and floor room reference`;
       caption.style='margin:12px'; copy.id='architecture-room';
       document.body.append(caption,copy);
     }
@@ -259,5 +263,5 @@ export async function architectureRoomProof({ scale = 1, show = true, cutaway = 
         depthTextureBytes:manifest.depth_texture_bytes,historicalSpriteCount:SPRITES.length,trialSpriteCount:manifest.sprites.length},
       room:{scale,cutaway,staticCount:statics.length,lowCount:low.length,referenceCount:props.length/FLOATS_PER_INSTANCE,
         desk:[1,.1],occupiedBed:[3.5,2],standingSim:[1.5,3.5]}, image:copy.toDataURL() };
-  } finally { color?.close(); gpu.device.destroy(); }
+  } finally { color?.close(); gpu?.device.destroy(); }
 }

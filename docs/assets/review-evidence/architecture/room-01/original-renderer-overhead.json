@@ -1,0 +1,516 @@
+{
+  "pass": true,
+  "error": null,
+  "sources": {
+    "baseline": {
+      "baseline": "22ffd8b6e5f9d03191f521f908a20e1bfc02c70a",
+      "files": {
+        "sprites.ts": "5c9290fcc0f066e47c4dbb8b7b4fa7fe8419cba1b6f81d4828b70c6a5021b594",
+        "sprites.wgsl": "7c66640284d31ed20f7078ce57a5e37dc6d133004fc7fb7a24b4e32d40537930",
+        "atlas.ts": "0effc1bbfa9a0ae5d3b010a23a1fdec22ddcf8a03d3a05ef88302faef5f9355d",
+        "device.ts": "b25a2e209a88f8cea2686d1d6a179360462841b09d05ed6fb9826df8d112285f",
+        "instances.ts": "e81f4be0ce12f809afabd8991c2262f4ab2bb654d118f2194a85266fb31d00c8",
+        "iso.ts": "53b29f38a5308bc7bcd04fd924f3bfbfb0ab72c88b8c8d25bc586c3ef0864523",
+        "daylight.ts": "8117655c982f25f6e9012a4bbb7f5121536835db19c005126d7bd0e241309493"
+      }
+    },
+    "baselineRendererSHA256": "5c9290fcc0f066e47c4dbb8b7b4fa7fe8419cba1b6f81d4828b70c6a5021b594",
+    "baselineShaderSHA256": "7c66640284d31ed20f7078ce57a5e37dc6d133004fc7fb7a24b4e32d40537930",
+    "candidateRendererSHA256": "44f3ab76ac8d54c744bea51a9010ff36ea467cfa9ac84eb9cf686c166d59aad8",
+    "candidateShaderSHA256": "1d21093cb445463b99c2fad867bfb24093db5e64cb1217fe1e8a827adcc3cfba",
+    "trialColorSHA256": "6844d59e9965dd802cf646b1240ebf30d5bcd75ae379145746937a5597dda65d",
+    "trialDepthSHA256": "645282e842ade8e16cbbf123ded9707fa96c95d0a8b2a7506b0e61e9b82cba67"
+  },
+  "cases": [
+    {
+      "inputs": {
+        "staticsSHA256": "ad2b5bc3eb7ded7bb18c6abe6d751382b47f9d05b5afb19919cca0516563afda",
+        "lowWallsSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dynamicsSHA256": "991a7b8283fa129eb113ad82240bb94da9c3655c39b9563f96452eb04f9c2042",
+        "staticCount": 49,
+        "lowCount": 0,
+        "dynamicCount": 12,
+        "width": 460,
+        "height": 390,
+        "scale": 1,
+        "ambient": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "skyShade": 0
+      },
+      "pixels": {
+        "baseline": "bc087593fad4b551bd9625aadde25e0d4a9f22d9c6c16120ce462b4a21f6a324",
+        "candidate": "bc087593fad4b551bd9625aadde25e0d4a9f22d9c6c16120ce462b4a21f6a324"
+      },
+      "pixelsEqual": true,
+      "unchangedInputs": true,
+      "batches": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.955000013113022,
+          "candidate": 17.235000014305115,
+          "deltaPerFrame": -0.005999999990065893
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 16.439999997615814,
+          "baseline": 17.894999980926514,
+          "deltaPerFrame": -0.012124999860922496
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 18.069999992847443,
+          "candidate": 18.22000002861023,
+          "deltaPerFrame": 0.001250000298023224
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.8299999833107,
+          "baseline": 16.850000023841858,
+          "deltaPerFrame": 0.008166666328907012
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.8299999833107,
+          "candidate": 18.57499998807907,
+          "deltaPerFrame": 0.006208333373069763
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.75,
+          "baseline": 17.834999978542328,
+          "deltaPerFrame": -0.000708333154519399
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 18.19999998807907,
+          "candidate": 17.314999997615814,
+          "deltaPerFrame": -0.00737499992052714
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 18.24500000476837,
+          "baseline": 19.00499999523163,
+          "deltaPerFrame": -0.0063333332538604735
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 16.490000009536743,
+          "candidate": 18.33500000834465,
+          "deltaPerFrame": 0.015374999990065892
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.854999989271164,
+          "baseline": 18.21500000357628,
+          "deltaPerFrame": -0.0030000001192092896
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.689999997615814,
+          "candidate": 17.894999980926514,
+          "deltaPerFrame": 0.001708333194255829
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.53499999642372,
+          "baseline": 16.78999999165535,
+          "deltaPerFrame": 0.006208333373069763
+        }
+      ],
+      "summary": {
+        "baselineMedianPerFrame": 0.14887499983112018,
+        "candidateMedianPerFrame": 0.14868749988575775,
+        "pairedMeanDeltaPerFrame": 0.00028125002152389983,
+        "pairedDeltaRange": [
+          -0.012124999860922496,
+          0.015374999990065892
+        ],
+        "approximatePairedMean95Interval": [
+          -0.004680153630826624,
+          0.005242653673874424
+        ]
+      }
+    },
+    {
+      "inputs": {
+        "staticsSHA256": "1a9588431a39948bd1a7df0f91727acfe63f519ec43c897226cdd9a53635c892",
+        "lowWallsSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dynamicsSHA256": "8c60199c5b224c27f11b65c6905fd40a31a6d9ead75efb4c6d135c0c248ecb06",
+        "staticCount": 49,
+        "lowCount": 0,
+        "dynamicCount": 12,
+        "width": 805,
+        "height": 683,
+        "scale": 1.75,
+        "ambient": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "skyShade": 0
+      },
+      "pixels": {
+        "baseline": "b531458f477b84a2657a3eee6a165982875d4e4feb1f44c41f1a51f58d023a00",
+        "candidate": "b531458f477b84a2657a3eee6a165982875d4e4feb1f44c41f1a51f58d023a00"
+      },
+      "pixelsEqual": true,
+      "unchangedInputs": true,
+      "batches": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.354999989271164,
+          "candidate": 16.770000010728836,
+          "deltaPerFrame": -0.004874999821186066
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.854999989271164,
+          "baseline": 16.685000002384186,
+          "deltaPerFrame": 0.009749999890724817
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 16.775000005960464,
+          "candidate": 18.530000001192093,
+          "deltaPerFrame": 0.01462499996026357
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 16.535000026226044,
+          "baseline": 16.025000005960464,
+          "deltaPerFrame": 0.004250000168879827
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.064999997615814,
+          "candidate": 16.650000005960464,
+          "deltaPerFrame": -0.0034583332637945813
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 18.269999980926514,
+          "baseline": 17.440000027418137,
+          "deltaPerFrame": 0.006916666279236475
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 16.974999994039536,
+          "candidate": 17.115000009536743,
+          "deltaPerFrame": 0.0011666667958100637
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.580000013113022,
+          "baseline": 16.50499999523163,
+          "deltaPerFrame": 0.008958333482344946
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 16.50499999523163,
+          "candidate": 18.604999989271164,
+          "deltaPerFrame": 0.017499999950329463
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 18.189999997615814,
+          "baseline": 21.6700000166893,
+          "deltaPerFrame": -0.02900000015894572
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 21.770000010728836,
+          "candidate": 16.12000000476837,
+          "deltaPerFrame": -0.04708333338300387
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 20.015000015497208,
+          "baseline": 18.37000000476837,
+          "deltaPerFrame": 0.0137083334227403
+        }
+      ],
+      "summary": {
+        "baselineMedianPerFrame": 0.14183333329856396,
+        "candidateMedianPerFrame": 0.14764583334326745,
+        "pairedMeanDeltaPerFrame": -0.0006284722230500642,
+        "pairedDeltaRange": [
+          -0.04708333338300387,
+          0.017499999950329463
+        ],
+        "approximatePairedMean95Interval": [
+          -0.012804199616917793,
+          0.011547255170817665
+        ]
+      }
+    },
+    {
+      "inputs": {
+        "staticsSHA256": "e8f8d9c18175746325b2ca73d7bb384550feb7a764c8250cd889437de751d917",
+        "lowWallsSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "dynamicsSHA256": "884b4ff0f32f21735d43b8a0a6635350fdd4d5257a844e21fe0ff9f3244ebad0",
+        "staticCount": 49,
+        "lowCount": 0,
+        "dynamicCount": 12,
+        "width": 1380,
+        "height": 1170,
+        "scale": 3,
+        "ambient": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "skyShade": 0
+      },
+      "pixels": {
+        "baseline": "6a06e38878fa831540decea929eb4c350715f656b263042623115775a20511d7",
+        "candidate": "6a06e38878fa831540decea929eb4c350715f656b263042623115775a20511d7"
+      },
+      "pixelsEqual": true,
+      "unchangedInputs": true,
+      "batches": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 18.025000005960464,
+          "candidate": 17.770000010728836,
+          "deltaPerFrame": -0.0021249999602635703
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 16.944999992847443,
+          "baseline": 17.23999997973442,
+          "deltaPerFrame": -0.0024583332240581514
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 16.769999980926514,
+          "candidate": 18.08500000834465,
+          "deltaPerFrame": 0.010958333561817805
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 18.104999989271164,
+          "baseline": 17.270000010728836,
+          "deltaPerFrame": 0.006958333154519399
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 16.76000002026558,
+          "candidate": 16.42500001192093,
+          "deltaPerFrame": -0.002791666736205419
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 16.799999982118607,
+          "baseline": 16.764999985694885,
+          "deltaPerFrame": 0.0002916666368643443
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 19.709999978542328,
+          "candidate": 18.194999992847443,
+          "deltaPerFrame": -0.01262499988079071
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 18.439999997615814,
+          "baseline": 17.724999994039536,
+          "deltaPerFrame": 0.005958333363135656
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.594999998807907,
+          "candidate": 17.899999976158142,
+          "deltaPerFrame": 0.002541666477918625
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 17.599999994039536,
+          "baseline": 18.655000001192093,
+          "deltaPerFrame": -0.008791666726271312
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 17.899999976158142,
+          "candidate": 17.439999997615814,
+          "deltaPerFrame": -0.003833333154519399
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 19.490000009536743,
+          "baseline": 15.96000000834465,
+          "deltaPerFrame": 0.029416666676600773
+        }
+      ],
+      "summary": {
+        "baselineMedianPerFrame": 0.14527083337306979,
+        "candidateMedianPerFrame": 0.1486249999453624,
+        "pairedMeanDeltaPerFrame": 0.0019583333490623364,
+        "pairedDeltaRange": [
+          -0.01262499988079071,
+          0.029416666676600773
+        ],
+        "approximatePairedMean95Interval": [
+          -0.004947849045107458,
+          0.008864515743232132
+        ]
+      }
+    }
+  ],
+  "framesPerBatch": 120,
+  "warmupFramesPerRenderer": 120,
+  "pairedRounds": 12,
+  "timingScope": "CPU submissions plus GPU completion, shared device/canvas, alternating order. Upload and compilation excluded by warmup. Not GPU timestamps.",
+  "uncertainty": "Approximate paired t interval (11 degrees of freedom); scheduling, thermal drift and correlated batches limit inference. One machine and browser session.",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "visibility": "visible"
+}
