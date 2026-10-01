@@ -35,12 +35,20 @@ impl Sim {
                 let action = if row < definition.interactions.len() {
                     &definition.interactions[row].label
                 } else {
-                    &pack
+                    let chain = pack
                         .chains
                         .iter()
+                        .filter(|chain| !crate::domestic::hidden_chain(&chain.id))
                         .filter(|chain| chain.advertised_by == object.0)
-                        .nth(row - definition.interactions.len())?
-                        .label
+                        .nth(row - definition.interactions.len())?;
+                    if chain.id == "cook_dinner" {
+                        crate::domestic::meal_label(
+                            self.world.resource::<terri_core::SimClock>().tick,
+                            pack.tuning.day_ticks,
+                        )
+                    } else {
+                        &chain.label
+                    }
                 };
                 Some(format!("{}: {}", action, definition.display_name()))
             } else if self.world.get::<Agent>(intent.object).is_some() {
@@ -244,7 +252,7 @@ mod tests {
             .interaction_labels(fridge.index_u32())
             .unwrap()
             .iter()
-            .position(|label| *label == "Cook dinner")
+            .position(|label| *label == "Cook breakfast")
             .unwrap() as u32;
         sim.world_mut()
             .entity_mut(person)
@@ -264,7 +272,7 @@ mod tests {
             ]));
         let before = sim.save_snapshot_v5();
         let labels = sim.action_queue_of(person.index_u32());
-        assert!(labels[1].starts_with("Cook dinner: "));
+        assert!(labels[1].starts_with("Cook breakfast: "));
         assert!(labels[2].starts_with("Grab a snack: "));
         assert_eq!(labels[3], "Unavailable action");
         assert_eq!(sim.save_snapshot_v5(), before);
@@ -312,6 +320,6 @@ mod tests {
                 object: bookcase,
                 interaction: crate::systems::chain::CHAIN_STEP,
             });
-        assert!(sim.action_queue_of(person.index_u32())[0].starts_with("Cook dinner - step: "));
+        assert!(sim.action_queue_of(person.index_u32())[0].starts_with("Cook breakfast - step: "));
     }
 }

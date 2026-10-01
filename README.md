@@ -8,6 +8,8 @@
 
 <p align="center">Play the live game on GitHub Pages. Use a browser with WebGPU support.</p>
 
+<p align="center"><a href="https://thisnameissoclever.github.io/terrilives/changelog/">Changelog</a></p>
+
 Natural Causes is a dark-comedy life sim that runs in the browser. The current
 cast is Tim, Bill, and Casey.
 
@@ -31,6 +33,7 @@ Then, by what you want:
 | --- | --- |
 | What the playable alpha must prove | [docs/alpha-goals.md](docs/alpha-goals.md) - eleven acceptance criteria; ten complete and the owner's voice pass open |
 | What is built so far | [docs/FEATURES.md](docs/FEATURES.md) |
+| Significant changes to the game | [Public changelog](https://thisnameissoclever.github.io/terrilives/changelog/) and [maintenance guide](docs/changelog.md) |
 | How it is put together, and why | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Why one specific decision went that way | `docs/specs/` - one working design per milestone, IDs stable |
 | What play actually felt like, measured | [docs/alpha-feel-notes.md](docs/alpha-feel-notes.md) |

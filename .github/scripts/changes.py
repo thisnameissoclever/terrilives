@@ -1,9 +1,9 @@
 """Decide whether a change can affect the game, or is documentation only.
 
 CI runs the Rust, web and mutation jobs only when this says the game could
-be affected, and Pages redeploys only for such a change. A change that
-touches nothing but documentation skips them and runs the documentation
-id check instead.
+be affected. Published Markdown in docs/changelog also affects the site:
+CI checks the changelog and Pages redeploys it without requiring game checks
+for a notes-only edit. Other documentation runs the documentation id check.
 
 A path is documentation when it is a Markdown file outside the agent skill
 folders. Those skill files are read by `web/tests/agent-skill-mirrors.test.ts`,
@@ -18,14 +18,16 @@ costs time.
 
 Usage in a workflow step:
 
-    python3 .github/scripts/changes.py <event> <base> <head>
+    python3 .github/scripts/changes.py <event> <base> <head> [site_base]
 
-writes `code=true` or `code=false` to $GITHUB_OUTPUT (or prints it when that
-is unset). `<event>` is `pull_request`, `push` or `compare`. A pull request is
+writes `code` and `site` booleans to $GITHUB_OUTPUT and stdout.
+`<event>` is `pull_request`, `push` or `compare`. A pull request is
 compared from where it branched; `push` and `compare` compare two commits
 directly. For a push to main the workflow passes the newest main revision
 whose game CI passed as the base, so everything since the last tested game
-counts.
+counts. `site_base` is the newest successful main push whose changelog or game
+was checked, so unrelated documentation after a notes edit can still skip
+publication. Without a separate site base, comparisons use the game base.
 """
 
 import os
@@ -45,6 +47,11 @@ def affects_game(paths: list[str]) -> bool:
     if not paths:
         return True
     return not all(is_documentation(path) for path in paths)
+
+
+def affects_site(paths: list[str]) -> bool:
+    """Published notes are site content even when the game is unchanged."""
+    return affects_game(paths) or any(path.startswith("docs/changelog/") for path in paths)
 
 
 def changed_paths(base: str, head: str, merge_base: bool) -> list[str]:
@@ -75,15 +82,24 @@ def decide(event: str, base: str, head: str) -> bool:
     return affects_game(changed_paths(base, head, merge_base=event == "pull_request"))
 
 
+def decide_site(event: str, base: str, head: str) -> bool:
+    """Whether Pages must publish the tested revision's game or notes."""
+    if event not in ("pull_request", "push", "compare") or not base or not head:
+        return True
+    return affects_site(changed_paths(base, head, merge_base=event == "pull_request"))
+
+
 def main(argv: list[str]) -> int:
     event, base, head = (argv + ["", "", ""])[:3]
+    site_base = argv[3] if len(argv) > 3 else base
     code = decide(event, base, head)
-    line = f"code={'true' if code else 'false'}"
+    site = code or decide_site(event, site_base, head)
+    lines = f"code={'true' if code else 'false'}\nsite={'true' if site else 'false'}"
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
         with open(output, "a", encoding="utf-8") as handle:
-            handle.write(line + "\n")
-    print(line)
+            handle.write(lines + "\n")
+    print(lines)
     return 0
 
 

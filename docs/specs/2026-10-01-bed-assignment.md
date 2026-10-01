@@ -121,8 +121,9 @@ also applies after a historical walk is re-saved as modern V5; its second
 load must remain valid. Physical reachability and ownership still validate.
 
 The authored access extension hashes ordered place IDs and canonical approach
-sets. Its exact reviewed live digest `b38e71a123bb8273` maps back to
-`c2cf291984ed61f7`; the reconstructed pre-rotation shape `9ac7e41e24d4c921`
+sets. Its integrated digest `cf787472e9e838f5` maps back to the released
+domestic digest `85a2d1400dff9da1`. The reconstructed pre-meal shape
+`b38e71a123bb8273` maps back to `c2cf291984ed61f7`; the reconstructed pre-rotation shape `9ac7e41e24d4c921`
 maps back to `d396b3f39e3c6685`. Both then use the existing migration
 classification. No arbitrary pack may obtain compatibility by stripping access
 metadata, and old bathtub geometry still requires its physical migration.
@@ -131,25 +132,26 @@ metadata, and old bathtub geometry still requires its physical migration.
 
 Keep frozen entity, target and running-action records unchanged. Append one
 V5 field, `sleeping_places: Option<SavedSleepingPlaces>`, after
-`chronotype_offsets`. Its record contains `active_places: Vec<(u32, u8)>`
+`domestic`, preserving the released domestic wire order. Its record contains `active_places: Vec<(u32, u8)>`
 (agent entity index, place ordinal), then `assignments: Vec<(u32, u32, u8)>`
 (SimId, bed entity index, place ordinal). An active row gets its bed from the
 agent's `Target`. New writers must emit `Some`, including empty lists.
 These are implementation decisions, not fields shipped by this documentation
-change. Coordinate publication order with other unpublished save extensions.
+change. Released meal, dish and cleanup state must survive unchanged.
 
 Grouping the lists leaves one historical absence boundary and no accepted
 boundary between them. Its `Some` encoding matches the alternative of an
 optional active-place list followed by an assignment list. Follow the existing
 V5 decoder's unexpected-end-only padding, full consumption and canonical
-reserialization checks. With this field appended directly after chronotypes,
-the maximum zero padding becomes nine:
+reserialization checks. With this field appended after domestic state,
+the maximum zero padding becomes ten:
 
 | Padding added | Required result |
 | --- | --- |
 | None | The grouped field is `Some`; an explicitly encoded `None` rejects |
-| One byte | The grouped field is `None`; this is the historical chronotype boundary |
-| Two through nine bytes | The grouped field is `None`; apply the existing invented-data checks to the preceding fields using one fewer padding byte |
+| One byte | The grouped field is `None`; physically complete domestic state survives |
+| Two bytes | The grouped field and domestic are absent; domestic must be `None` |
+| Three through ten bytes | The grouped field is `None`; apply the existing invented-data checks to the preceding fields using one fewer padding byte |
 
 While this record is the final field, any padded decode that produces `Some`
 rejects. This covers an incomplete grouped record even when padding could
@@ -202,113 +204,36 @@ atomic failure and stale-command refusal.
 
 ## Visual acceptance
 
-The double bed has no accepted two-place occupied artwork. Its furniture
-approval does not establish occupied fit. Before enabling the full feature,
-provide distinct place-aware approach and pose mapping and verify all four
-facings with one and two occupants. Reuse existing art only if its fit is
-proved. Preserve the approved Sim body and furniture footprint.
+The owner approved the covered static double-bed pose and requested publication.
+The bed-only Sim scale is 0.88; standing and walking bodies remain unchanged.
+The occupied model uses one continuous duvet and covered feet. The art owner
+completed all 64 facing, occupancy and active-shirt combinations. The committed
+production manifest and receipt are retained in
+`docs/assets/review-evidence/bed-assignment/covered-double-bed.md`.
 
-Follow `[L-bed-body-envelope]`: inspect all body parts and animation samples
-for mattress support, frame and body intersections, and walking-lane clearance,
-then inspect the actual rendered game. Coordinate asset ownership with the
-visual task. Do not mark two-person sleeping playable from runtime tests alone.
+The accepted encoding is `scene-linear-premultiplied-visible-additive`.
+Each registered scene references furniture, shared ink, and one visible body
+contribution plus separate raw visible fill coverage for each active place.
+Identical decoded pixels alone may be deduplicated. All layers share the
+232 by 218 crop at density 2 and logical anchor
+`[58.000009536743164, 93.00043869018555]`; registration is already applied.
+The static sample is zero. Independent breathing is outside this release.
 
-### Measured constraints and the next proof
+Sample these linear premultiplied bytes without automatic sRGB decoding.
+Furniture recolour operates after sampling: unpremultiply furniture, convert
+linear RGB to sRGB, apply the existing recolour, return to linear and
+premultiply by its effective alpha. Sum furniture, active bodies and ink;
+source-resolution ink attenuation is already present in the fills. Do not
+apply ink-over again. Unpremultiply by actual summed alpha, clamp output alpha
+separately and apply the sRGB transfer once, followed by scene ambient/tint.
+Keep the established non-bed pair path unchanged.
 
-The current lower-bunk body cannot simply be copied into both places. Its
-full evaluated width, including sleeve cuffs, reaches 0.7918503 model units.
-Two copies occupy 1.5837006 units before margins on the double bed's 1.50-unit
-mattress. This is a bounding-envelope failure, not a measured mesh intersection.
-The existing standalone contact probe omits the cuffs and sleeves and cannot
-establish fit. Keep the approved body size and furniture footprint; prove a
-two-person arrangement across every body part and animation sample. Disjoint
-half-bed X intervals are a sufficient construction rule, not the physical
-requirement. Overlapping X bounds neither prove intersection nor excuse it;
-such an arrangement needs direct evaluated interbody separation and joint
-visible ownership. The recorded 0.69-wide starting envelopes remain useful
-diagnostics and must not be widened to relabel a rejected pose as accepted.
-
-The double bed also has different support heights. Its mattress is at 0.47,
-duvet at 0.55, fold edge at 0.568 and pillow at 0.59. Raising the whole bunk
-pose to clear the duvet would lift its existing head contacts above the pillow.
-The new pose needs its own support and intersection measurements.
-
-Existing occupied sprites use complementary visible contributions: the body
-and furniture are each cut against the other, then their premultiplied colour
-is added and one scene outline is overlaid. Furniture and outline visibility
-depend on the pose. Drawing two existing composites would duplicate the bed;
-ordinary alpha-over of their contributions does not preserve the established
-reconstruction contract.
-
-A candidate export contract separates body colour from joint visibility. Keep
-body colour images per facing, place, animation sample and shirt palette, plus
-an empty furniture colour image. Joint visibility and outline images depend
-on both samples, with empty as an additional state. A small draw descriptor
-references the images for one bed composite. This is a proposal to test, not
-an accepted renderer format: another body could change surface shading, and
-partial-pixel visibility may not factor cleanly at antialiased edges.
-
-The accepted lower-bunk furniture already differs in RGB between samples zero
-and three at pixels fully opaque in both images. Raw differences reach five
-8-bit channel values; exported differences reach two. Exact pose-independent
-furniture colour is therefore disproved for those images. Their receipt does
-not isolate sampling noise from scene-dependent shading, and this result does
-not establish an unacceptable double-bed approximation. See
-`docs/assets/review-evidence/bed-assignment/visual-contract.md` for the verified
-inputs, reproducible comparison and limits of this evidence.
-
-With four facings, four samples and three palettes, the conservative image
-budget is 96 body images, four furniture images, 96 visibility images and 96
-outlines, before deduplication. The visibility and outline counts cover the
-64 double-occupied and 32 single-occupied states across all facings. There
-are 676 small draw combinations including four fully empty states, which reuse
-the existing complete empty-bed sprites. Measured
-with the current shelf packer, the existing 1,370 sprites occupy 8192 by 4806
-pixels. Adding 196 images at the current 320 by 352 double-bed canvas reaches
-8192 by 7601; adding 260 exceeds the atlas height limit. Transparent-margin
-cropping and reuse are therefore prerequisites for this candidate contract.
-No occupied double-bed crop or mobile GPU budget has been proved.
-
-Before changing the renderer, the visual task and runtime task must agree
-ownership and attempt this bounded proof:
-
-1. Establish natural supported poses inside the accepted bed and walking-space
-   boundaries, preserving all approved body data. Check complete evaluated
-   bodies against themselves, furniture and each other, including independent
-   animation samples. Begin a new contact family with a phase-zero feasibility
-   screen and source-image review before extensive certification; that early
-   review does not replace full-surface or all-sample proof. Fixed abdomen hand
-   transforms and elbows above wrists are authoring choices, not requirements.
-   Disjoint local-X intervals may simplify ownership if every part and sample
-   proves containment. Only then is the nearer lane negative X for SE and NE,
-   positive X for NW and SW; that ordering still does not settle furniture
-   visibility. Otherwise derive visible ownership jointly from the full scene.
-2. Choose a facing with maximum projected overlap. Independently render sample
-   pairs (0, 0), (0, 3), (3, 0), (3, 3), contrasting palettes, either lane alone
-   at samples zero and three, and the empty bed. Demonstrate separate material
-   ownership for each shirt and repeat one identical joint state as a noise
-   control. Retain per-scene owner RGB, true coverage, outline and beauty, then
-   compare both reused-colour and per-scene-colour reconstructions against the
-   same beauty render. Inspect opaque interior colour, partial coverage,
-   outlines and contact regions separately after actual export resampling;
-   a global percentile can hide a narrow seam. A shading residual must remain
-   distinct from visibility and has its own unproved palette and atlas costs.
-3. Swap the place-to-owner coverage mapping and omit an outline contribution.
-   Each deliberate fault must fail. If the chosen route uses a proven near-lane
-   picking priority, corrupt that priority too. Reverse compositing order only
-   if the tested route depends on it; adding joint visibility contributions is
-   commutative. Reordering logical Sim rows must leave visible ownership intact.
-   Reject the factorization if it cannot reproduce the independent renders;
-   do not conceal mismatches by clamping.
-4. Prove the actual cropped atlas budget, then inspect fractional zoom,
-   furniture colourways, both occupants' selection and one occupant leaving.
-   Picking and indicators need explicit place identity and registered body
-   bounds or visibility ownership. Entity order must not stand in for a place.
-
-The source of the body envelope is the accepted lower-bunk full-scene proof at
-`assets/models/bedroom/owner-review-pending/bunk/candidate-03/contributions-01/raw-proof.json`.
-Atlas measurements use the existing pack function with added image dimensions;
-they are capacity estimates, not generated-art or runtime acceptance.
+CPU picking uses the separate raw visible owner-fill masks. Reconstruction
+weights, lane rectangles and shared outlines do not define Sim ownership.
+Furniture-only pixels select the bed; outline-only pixels do not select a Sim.
+Actual fractional-zoom GPU colourways, distinct owner picking, a sleeper leaving,
+played sleeping and publication require runtime proof. The approved export and
+its CPU comparisons do not establish those runtime gates.
 
 ### Runtime identity before visual integration
 
@@ -342,11 +267,10 @@ runtime identity and do not approve an unproved image format.
 2. `InteractionSelection.update` currently picks one owner per target by raw
    entity ID. Add a bed-specific group beside that path, keyed by exact target
    and physical place. Preserve both logical Sim rows, stable shirt identities
-   and independent animation samples while drawing shared furniture once.
+   while drawing shared furniture once. The approved static sample is zero.
    Keep duplicate-owner rejection for ordinary single-user furniture.
-3. `buildInstances` and `instanceCount` must agree. Occupancy determines draw
-   count independently of animation sample because count currently selects at
-   tick zero with reduced motion. The proven asset contract must define any
+3. `buildInstances` returns the reusable instance array and exact packed count
+   together. Preserve that boundary; do not revive a second count traversal. The proven asset contract must define any
    changes to sprite pairs, the instance layout and shader together; ordinary
    alpha-over of two existing paired sprites is not an acceptable substitute.
 4. `pickSprite` needs occupant-specific visible coverage and ordering rather

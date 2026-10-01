@@ -53,6 +53,9 @@ pub(super) fn prepare(
 }
 
 pub(super) fn reviewed_source(destination: &ContentPack) -> Option<ContentPack> {
+    if let Some(source) = terri_data::pre_meals_content(destination) {
+        return reviewed_source(&source);
+    }
     if !REVIEWED_DESTINATION_FINGERPRINTS.contains(&terri_data::content_fingerprint(destination)) {
         return None;
     }

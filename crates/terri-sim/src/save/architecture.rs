@@ -20,7 +20,7 @@ pub(crate) fn restore(
 ) -> Result<Sim, SaveError> {
     // V2 carries complete architecture: do not apply V1's optional-tail repair or
     // reinterpret a saved layout from whatever lot content now happens to be.
-    super::validate_snapshot(&snapshot.world, content)?;
+    super::meal_migration::validate_source(&snapshot.world, content)?;
     let candidate = super::restore_legacy(snapshot.world, content, active_portals)?;
     finish_restore(candidate, snapshot.layout, content)
 }
@@ -68,6 +68,7 @@ pub(crate) fn restore_v5(
         self_preservation,
         chronotype_offsets,
         sleeping_places,
+        domestic,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -148,6 +149,7 @@ pub(crate) fn restore_v5(
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
     super::self_preservation::restore(&mut candidate.world, self_preservation)?;
     super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
+    crate::domestic::restore(&mut candidate.world, domestic)?;
     match sleeping_places {
         Some(saved) => super::sleeping_places::restore(&mut candidate.world, saved)?,
         None => super::sleeping_places::migrate_legacy(&mut candidate.world)?,
@@ -175,7 +177,7 @@ pub(crate) fn restore_v4(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
-    super::validate_snapshot(&snapshot.world, content)?;
+    super::meal_migration::validate_source(&snapshot.world, content)?;
     let retired = &snapshot.retired_indices;
     if retired
         .iter()

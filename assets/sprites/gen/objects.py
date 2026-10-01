@@ -797,12 +797,18 @@ def radio(d):
 
 
 # --------------------------------------------------------------- study ----
+def table_surface(facing="se"):
+    """The authored tabletop bounds and height, shared with supported props."""
+    x0, y0, x1, y1 = _span(facing, 1.70, across=0.92, inset=0.04)
+    return x0 - .02, y0 - .02, x1 + .02, y1 + .02, .64
+
+
 def _table(d, facing="se"):
     w = C["wood"]
     x0, y0, x1, y1 = _span(facing, 1.70, across=0.92, inset=0.04)
     contact_shadow(d, x0, y0, x1, y1, "se")
     legs(d, x0 + .04, y0 + .04, x1 - .04, y1 - .04, 0.54, w)
-    slab(d, x0 - .02, y0 - .02, x1 + .02, y1 + .02, 0.64, w, thick=0.10)
+    slab(d, *table_surface(facing), w, thick=0.10)
 
 
 def table(d):

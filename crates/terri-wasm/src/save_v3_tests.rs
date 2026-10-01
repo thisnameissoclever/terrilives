@@ -34,7 +34,7 @@ fn v5_bytes(snapshot: &SaveSnapshotV5) -> Vec<u8> {
 
 // Serialize each appended field independently so historical-prefix fixtures
 // cannot accidentally cut a newer field that follows the intended boundary.
-fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 9] {
+fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 10] {
     [
         postcard::to_allocvec(&snapshot.floors).unwrap().len(),
         postcard::to_allocvec(&snapshot.family_by_index)
@@ -54,6 +54,7 @@ fn v5_appended_lengths(snapshot: &SaveSnapshotV5) -> [usize; 9] {
         postcard::to_allocvec(&snapshot.chronotype_offsets)
             .unwrap()
             .len(),
+        postcard::to_allocvec(&snapshot.domestic).unwrap().len(),
         postcard::to_allocvec(&snapshot.sleeping_places)
             .unwrap()
             .len(),
@@ -109,6 +110,88 @@ fn grouped_sleeping_places_rejects_explicit_none_and_every_interior_cut() {
 }
 
 #[test]
+fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
+    let bytes = include_bytes!("../../../web/review/domestic.save");
+    assert_eq!(
+        &bytes[..SAVE_HEADER_BYTES],
+        &SimHandle::from_lot().save_bytes()[..SAVE_HEADER_BYTES]
+    );
+    let mut expected = decode_v5(&bytes[SAVE_HEADER_BYTES..]).expect("released domestic payload");
+    assert_eq!(expected.world.content_fingerprint, 0x85a2_d140_0dff_9da1);
+    assert!(expected.sleeping_places.is_none());
+    let domestic = expected
+        .domestic
+        .as_ref()
+        .expect("fixture must carry domestic state");
+    assert!(
+        !domestic.cleanliness.is_empty()
+            || !domestic.dishes.is_empty()
+            || !domestic.meals.is_empty()
+    );
+    let domestic_len = postcard::to_allocvec(&expected.domestic).unwrap().len();
+    let start = bytes.len() - domestic_len;
+    for cut in start + 1..bytes.len() {
+        assert!(
+            decode_v5(&bytes[SAVE_HEADER_BYTES..cut]).is_none(),
+            "accepted incomplete domestic record at {}",
+            cut - start
+        );
+    }
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(bytes));
+    expected.world.content_fingerprint = loaded.sim.save_snapshot_v5().world.content_fingerprint;
+    expected.sleeping_places = Some(terri_core::save::SavedSleepingPlaces::default());
+    assert_eq!(loaded.sim.save_snapshot_v5(), expected);
+    assert_current_resave_is_stable(&loaded);
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&loaded.save_bytes()));
+    for _ in 0..160 {
+        loaded.tick();
+        resumed.tick();
+        assert_eq!(loaded.world_hash(), resumed.world_hash());
+    }
+}
+
+#[test]
+fn public_main_meal_preserves_personality_tail_and_migrates_recipe_counter() {
+    // Written and validated by public main 6d2499d4, before domestic existed.
+    let hex = include_str!("../tests/fixtures/public-main-meal.hex").trim();
+    let bytes: Vec<u8> = (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+        .collect();
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(&bytes));
+    let state = loaded.sim.save_snapshot_v5();
+    assert_eq!(state.self_preservation, vec![(34, 0), (35, 93), (36, 47)]);
+    assert_eq!(state.chronotype_offsets, vec![(34, -317), (35, 629)]);
+    let cook = state
+        .world
+        .entities
+        .iter()
+        .find(|row| row.index == 34)
+        .unwrap();
+    assert_eq!(cook.chain.as_ref().unwrap().step, 5);
+    assert_eq!(cook.step_work_ticks, Some(31));
+    assert_eq!(
+        postcard::to_allocvec(&state.world.rng).unwrap(),
+        postcard::to_allocvec(&(12019770418448921669u64, 40521457u64)).unwrap()
+    );
+    assert!(state
+        .domestic
+        .as_ref()
+        .is_none_or(|state| state.dishes.is_empty() && state.meals.is_empty()));
+    assert_current_resave_is_stable(&loaded);
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&loaded.save_bytes()));
+    for _ in 0..160 {
+        loaded.tick();
+        resumed.tick();
+        assert_eq!(loaded.world_hash(), resumed.world_hash());
+    }
+}
+
+#[test]
 fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
     let source = SimHandle::from_lot();
     let mut snapshot = source.sim.save_snapshot_v5();
@@ -123,7 +206,8 @@ fn chronotype_v5_roundtrips_exact_signed_offsets_and_legacy_defaults() {
     let tail = postcard::to_allocvec(&snapshot.chronotype_offsets).unwrap();
     let suffix = postcard::to_allocvec(&snapshot.sleeping_places)
         .unwrap()
-        .len();
+        .len()
+        + postcard::to_allocvec(&snapshot.domestic).unwrap().len();
     let prefix = &bytes[..bytes.len() - suffix - tail.len()];
     assert!(loaded.load_bytes(prefix));
     assert!(loaded.sim.save_snapshot_v5().chronotype_offsets.is_empty());
@@ -190,7 +274,8 @@ fn chronotype_v5_rejects_every_partial_tail_and_noncanonical_length_atomically()
         let end = bytes.len()
             - postcard::to_allocvec(&snapshot.sleeping_places)
                 .unwrap()
-                .len();
+                .len()
+            - postcard::to_allocvec(&snapshot.domestic).unwrap().len();
         let start = end - tail.len();
         for cut in start + 1..end {
             assert!(
@@ -441,7 +526,8 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
     assert!(live.family_ties().is_empty());
 
     for (first, what) in [
-        (8, "sleeping places"),
+        (9, "sleeping places"),
+        (8, "domestic state"),
         (7, "chronotypes"),
         (6, "instincts"),
         (5, "waiting"),
@@ -467,7 +553,6 @@ fn v5_required_tail_rejects_every_truncation_and_trailing_data() {
 
 /// Two sims of the shipped lot, as entity indices, lowest first.
 fn two_sims(handle: &mut SimHandle) -> (u32, u32) {
-    handle.tick();
     let count = handle.entity_count();
     let kinds = unsafe { std::slice::from_raw_parts(handle.kinds_ptr(), count) };
     let ids = unsafe { std::slice::from_raw_parts(handle.ids_ptr(), count) };
@@ -762,4 +847,53 @@ fn pre_default_change_preserves_nonempty_mortality_and_enables_death() {
     assert_eq!(loaded.sim.deprivation_ticks(first), 1);
     assert_eq!(loaded.family_ties(), source.family_ties());
     assert_eq!(loaded.floor_tiles(), source.floor_tiles());
+}
+
+#[test]
+fn real_pre_meal_bytes_preserve_in_flight_snack_and_map_the_old_dinner_counter() {
+    for (hex, dinner) in [
+        (include_str!("../tests/fixtures/pre-meals-snack.hex"), false),
+        (include_str!("../tests/fixtures/pre-meals-dinner.hex"), true),
+    ] {
+        let bytes: Vec<_> = hex
+            .trim()
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        let source = decode_v5(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        assert_eq!(source.world.content_fingerprint, 0xc2cf_2919_84ed_61f7);
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.load_bytes(&bytes), "actual old program bytes load");
+        let current = handle.sim.save_snapshot_v5();
+        assert_eq!(current.world.tick, source.world.tick);
+        let active = source
+            .world
+            .entities
+            .iter()
+            .find(|entity| {
+                if dinner {
+                    entity.chain.is_some()
+                } else {
+                    entity.eating.is_some()
+                }
+            })
+            .unwrap();
+        let mapped = current
+            .world
+            .entities
+            .iter()
+            .find(|entity| entity.index == active.index)
+            .unwrap();
+        assert_eq!(mapped.needs, active.needs);
+        assert_eq!(mapped.step_work_ticks, active.step_work_ticks);
+        assert_eq!(mapped.eating, active.eating);
+        if dinner {
+            assert_eq!(mapped.chain.as_ref().unwrap().step, 5);
+        }
+        let saved = handle.save_bytes();
+        let mut replay = SimHandle::from_lot();
+        assert!(replay.load_bytes(&saved));
+        assert_eq!(handle.sim.world_hash(), replay.sim.world_hash());
+    }
 }

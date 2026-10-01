@@ -39,7 +39,7 @@ class ActivityIconTests(unittest.TestCase):
     def test_new_icons_append_after_all_1370_historical_records(self):
         root = Path(__file__).resolve().parents[3]
         records = tomllib.loads((root / 'assets/sprites/atlas.toml').read_text())['sprite']
-        self.assertEqual([row['name'] for row in records[1370:]],
+        self.assertEqual([row['name'] for row in records[1370:1392]],
                          [row[0] for row in render_icons()])
         digest = hashlib.sha256()
         with Image.open(root / 'web/public/atlas.png') as atlas:
@@ -49,7 +49,7 @@ class ActivityIconTests(unittest.TestCase):
                     digest.update(str(row.get(key, 1)).encode() + b'\0')
                 digest.update(atlas.crop((row['x'], row['y'], row['x'] + row['w'],
                                          row['y'] + row['h'])).tobytes())
-            for row in records[1370:]:
+            for row in records[1370:1392]:
                 self.assertEqual(row['pixel_density'], 2)
         self.assertEqual(digest.hexdigest(),
                          '23fd4d4740d65c1010e23820faceeef5b345d14a1fea3beac67e3f1f34f0d732')

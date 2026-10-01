@@ -1,0 +1,79 @@
+:root {
+  color-scheme: dark;
+  --background: #0d0d10;
+  --text: #d8d8e0;
+  --muted: #9aa3ad;
+  --edge: #2c2c36;
+  --accent: #8ac5df;
+  --hover: #20202a;
+  --tag: #1b303d;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+  --background: #fafafd;
+  --text: #262632;
+  --muted: #5d6571;
+  --edge: #d6d9e0;
+  --accent: #236581;
+  --hover: #edf1f6;
+  --tag: #dfedf4;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--text); font: 16px/1.65 system-ui, sans-serif; }
+a { color: var(--accent); text-underline-offset: 3px; }
+button { font: inherit; cursor: pointer; color: var(--text); }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 3px; }
+.skip-link { position: absolute; left: 16px; top: -100px; padding: 10px 16px; background: var(--background); z-index: 2; }
+.skip-link:focus { top: 12px; }
+.site-header { border-bottom: 1px solid var(--edge); }
+nav { max-width: 1080px; margin: auto; min-height: 72px; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { color: var(--text); font-size: 20px; font-weight: 750; text-decoration: none; letter-spacing: -.4px; }
+.nav-actions { display: flex; gap: 24px; align-items: center; }
+.play-link { font-size: 14px; text-decoration: none; }
+#theme-toggle { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--edge); border-radius: 5px; background: transparent; }
+svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+main { max-width: 820px; margin: auto; padding: 64px 24px 40px; }
+h1 { margin: 0; font-size: 34px; line-height: 1.25; letter-spacing: -.8px; }
+.page-heading > p { color: var(--muted); margin: 16px 0 24px; }
+.view-controls { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 16px; }
+.view-controls button { padding: 8px 12px; min-height: 44px; font-size: 13px; background: transparent; border: 1px solid var(--edge); border-radius: 4px; }
+button:hover { background: var(--hover); }
+.entries { display: grid; gap: 16px; }
+.entry { position: relative; border: 1px solid var(--edge); border-radius: 7px; scroll-margin-top: 24px; }
+.entry:target { border-color: var(--accent); }
+summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 22px; cursor: pointer; list-style: none; min-height: 88px; }
+summary::-webkit-details-marker { display: none; }
+summary:hover { background: var(--hover); border-radius: 7px; }
+.entry-heading { min-width: 0; padding-right: 44px; }
+.entry-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+.latest { color: var(--accent); background: var(--tag); border-radius: 20px; padding: 1px 9px; font-size: 12px; font-weight: 650; }
+h2 { font-size: 18px; line-height: 1.4; margin: 6px 0 0; font-weight: 650; letter-spacing: -.2px; }
+.chevron { flex-shrink: 0; color: var(--muted); }
+details[open] .chevron { transform: rotate(180deg); }
+.permalink { position: absolute; right: 52px; top: 22px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--muted); border-radius: 4px; }
+.permalink:hover { color: var(--accent); background: var(--hover); }
+.entry-body { padding: 0 22px 24px; overflow-wrap: anywhere; }
+.entry-body > p { margin: 2px 0 24px; color: var(--muted); }
+h3 { font-size: 15px; margin: 26px 0 8px; }
+ul { margin: 0; padding-left: 22px; }
+li { padding-left: 2px; }
+li + li { margin-top: 12px; }
+strong { font-weight: 650; }
+code { font-size: .88em; background: var(--hover); border-radius: 3px; padding: 2px 4px; }
+footer { margin-top: 48px; border-top: 1px solid var(--edge); padding-top: 24px; font-size: 13px; color: var(--muted); }
+footer p { max-width: 60ch; }
+@media (max-width: 560px) {
+  nav { padding: 12px 16px; gap: 12px; }
+  .brand { font-size: 17px; }
+  .nav-actions { gap: 12px; }
+  .play-link { font-size: 13px; }
+  main { padding: 36px 16px 32px; }
+  h1 { font-size: 30px; }
+  summary { padding: 18px 16px; }
+  .permalink { right: 42px; top: 18px; }
+  .entry-body { padding: 0 16px 20px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chevron { transition: transform .15s ease; }
+}

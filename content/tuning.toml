@@ -836,3 +836,22 @@ exhaustion_ramp_ticks = 240
 #
 # Exactly 1 disables the ramp, which is how to measure its effect again.
 exhaustion_bonus = 2.5
+# Meals, cleanliness and household mess. Scores are 0..1; need levels 0..100.
+[domestic]
+own_cleanup_min = 0.01
+own_cleanup_bonus = 0.89
+visitor_cleanup_fraction = 0.20
+critical_cleanup_scale = 0.005
+ready_need_level = 55.0
+other_need_floor = 0.35
+other_need_level = 50.0
+invite_hunger_level = 40.0
+accept_hunger_level = 55.0
+friend_affinity = 0.60
+mood_penalty_min = 2.0
+mood_penalty_bonus = 8.0
+mood_units = 4.0
+mood_max_load = 1.5
+affinity_penalty_min = 0.003
+affinity_penalty_bonus = 0.027
+wash_ticks_per_unit = 8

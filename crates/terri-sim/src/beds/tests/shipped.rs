@@ -163,7 +163,10 @@ fn saved_bed_position_survives_a_new_game_layout_change() {
         Some(BedPlace { bed, ordinal: 0 })
     );
     let saved = sim.save_snapshot_v5();
-    assert_eq!(saved.world.content_fingerprint, 0xb38e_71a1_23bb_8273);
+    assert_eq!(
+        saved.world.content_fingerprint,
+        terri_data::content_fingerprint(terri_data::pack())
+    );
     let mut loaded = Sim::new_from_shipped_lot();
     loaded.load_snapshot_v5(saved.clone()).unwrap();
     assert_eq!(loaded.save_snapshot_v5(), saved);

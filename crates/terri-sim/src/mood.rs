@@ -190,6 +190,12 @@ fn derive_mood(world: &World, index: u32) -> Option<MoodSnapshot> {
         });
     }
 
+    if let Some(penalty) = crate::domestic::mood_penalty(world, subject) {
+        moodlets.push(Moodlet {
+            label: "Dirty dishes".into(),
+            score: -penalty,
+        });
+    }
     let overall_score = moodlets
         .iter()
         .map(|moodlet| moodlet.score)

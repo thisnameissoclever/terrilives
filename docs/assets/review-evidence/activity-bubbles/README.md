@@ -1,7 +1,34 @@
 # Activity bubble review, 2026-10-01
 
-Every shipped ordinary interaction and dinner work step now has an authored
-activity bubble. All 22 displayed symbols were reviewed for meaning, centering,
+The owner subsequently removed walking bubbles: travel toward an activity has
+no head icon, leaving 21 displayed activity/waiting symbols. The original
+captures below include the former walking bubble and remain historical review
+evidence. The unused footprints sprite stays in the append-only atlas.
+The original captures and case counts describe the content shipped in PR #190.
+
+The follow-up received independent approval: the renderer and counter share
+the same mapping, walking carriers retain their items and selection rings,
+and every other activity/icon pairing remains unchanged. The focused frame
+and packed-instance suites pass all 109 tests, exit 0. Reintroducing the walking
+sprite makes the mixed walking/idle/activity test fail with `expected 5 to be 4`,
+exit 1. Source bytes were restored exactly before the full web suite passed
+all 1,770 tests across 118 files, exit 0. The mutation receipt is retained in
+[`no-walking-mutation.json`](no-walking-mutation.json).
+
+Follow-up type checking, release WASM and production builds passed, exit 0.
+The Rust workspace passed all 1,281 tests and doc tests with `cargo test
+--workspace`, exit 0. `cargo fmt --all -- --check` and
+`cargo clippy --workspace --all-targets -- -D warnings` also passed, exit 0.
+The seven changelog tests and changelog generation also passed, exit 0.
+Documentation-ID and whitespace checks passed. Commands: `npm --prefix web
+test -- --maxWorkers=1`, `npm --prefix web run typecheck`, `npm --prefix web run
+build`, `wasm-pack build crates/terri-wasm --target web --out-dir
+../../web/src/wasm`, `node --test scripts/build-changelog.test.mjs`,
+`node scripts/build-changelog.mjs`, `python check-doc-ids.py` and
+`git diff --check`. This follow-up did not create a game page or preview server.
+
+The original pass gave every shipped ordinary interaction and dinner work step
+an authored activity bubble. All 22 displayed symbols were reviewed for meaning, centering,
 contrast, border clearance and legibility. The independent reviewer approved
 the complete pairing inventory and production captures without blocking findings.
 

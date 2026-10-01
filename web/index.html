@@ -458,6 +458,12 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
       }
+      #show-changelog {
+        grid-column: 1 / -1;
+        display: grid;
+        place-items: center;
+        text-decoration: none;
+      }
       .hud-button {
         min-height: 44px;
         border: 1px solid var(--hud-edge);
@@ -1066,6 +1072,8 @@
           aria-controls="help-panel"
           aria-expanded="false"
         >Help</button>
+        <a id="show-changelog" class="hud-button" href="./changelog/" target="_blank"
+          rel="noopener" aria-label="Changelog (opens in a new tab)">Changelog</a>
         </section>
       </div>
     </div></div>
@@ -1280,7 +1288,7 @@
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
           <li>The dock shows mood and life satisfaction. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li>
           <li>Choose People inside Sim details to see how the selected person feels about everyone else.</li>
-          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game, New housemate and Help. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
+          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
         </ol>
       </div>
       <div id="help-actions">

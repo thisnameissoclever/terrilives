@@ -13,6 +13,7 @@ pub enum ContentError {
         object: String,
         reason: String,
     },
+    InvalidDomesticTuning,
     InvalidAutonomyTuning,
     EmptyObjectText {
         object: String,
@@ -1153,6 +1154,7 @@ impl fmt::Display for ContentError {
             ContentError::InvalidSleepPlaces { object, reason } => write!(
                 f, "object '{object}' has invalid sleep places: {reason}"
             ),
+            ContentError::InvalidDomesticTuning => write!(f, "domestic tuning has an invalid probability, need threshold or work rate"),
             ContentError::UnknownNeed {
                 object,
                 interaction,

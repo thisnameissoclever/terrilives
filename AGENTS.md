@@ -6,6 +6,10 @@ Clarity always comes first. Keep object types primary, model names secondary, an
 
 The skill records writing direction and a proposed object-text hierarchy. It does not authorize an unrequested rewrite, implement the proposed interface, or approve sample copy for release. Preserve the owner's review boundary documented in `docs/player-visible-strings.md` and lesson L58 in `docs/lessons-learned.md`.
 
+## Keep the public changelog current
+
+For every significant player-facing change, read and apply [.agents/skills/maintain-changelog/SKILL.md](.agents/skills/maintain-changelog/SKILL.md). Update the source documents in `docs/changelog/` in the same branch as the implementation before finishing delivery. The [publishing guide](docs/changelog.md) defines the format and automated GitHub Pages route. Internal-only changes do not need a player-facing note.
+
 ## Finish delivery without waiting for duplicate CI
 
 When the owner authorizes commit, push, and merge, complete that delivery. If the relevant tests, type checks, lint, and builds have already passed locally for the changes being merged, do not wait for the same remote CI checks to finish before merging. Do not rerun passing checks without a new change, failure, or specific unresolved concern.

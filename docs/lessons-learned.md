@@ -1,5 +1,14 @@
 # Lessons Learned
 
+## [L-changelog-has-its-own-tested-history] Published Markdown needs a site history
+
+**What happened.** Adding a generated changelog to a site whose CI skips Markdown exposed two publication gaps: notes would not trigger Pages, and comparing notes only from the last tested game would repeatedly redeploy later unrelated documentation.
+
+**Root cause.** The existing classifier had one history because all served content was game code. The changelog introduces independently editable, published Markdown.
+
+**Prevention rule.** Keep game checks based on the newest successful main push whose web job passed. Compare published notes from the newest successful main push whose changelog or web job passed. Report both `code` and `site`; Pages must use `site` when deciding whether newer content makes an artifact stale. Check all published notes before allowing publication.
+
+**How to verify.** The change-classifier tests use real Git commits to add, edit and delete notes, then add unrelated documentation after a tested note. Notes require site publication without game tests, later unpublished docs skip, and untested code cannot hide behind either. Deleting the published-note classification must fail these assertions. The Pages contracts require successful push CI, the triggering SHA and the generated artifact.
 ## [L-floor-help-viewport-transition] Compact floor help must follow viewport changes
 
 **What happened.** The played renderer check changed a desktop viewport to 390px
@@ -7821,6 +7830,51 @@ Review also found New housemate availability cached after a full household lost 
 
 Adding occupied-item mood exposed two cancellation cases: an autonomous wait has no player order to cancel, and an order staged earlier in the same paused command batch is not yet in the live queue. Clearing every waiting marker discarded autonomous frustration; checking only the live queue made batched and separately flushed commands disagree. Cancel only waiting owned by a current or staged order, or an active chain. Verify all three sources, an autonomous wait that survives Clear orders, and equivalent batched and split command sequences. The mood projection must also stop penalizing a freed or sold item without requiring a clock tick.
 
+## [L-domestic-transition-saves] Claims must be valid at the action boundary
+
+**What happened.** Integration review found cleanup claims surviving paused cancellation, room memory retaining washed dish identities, and dirty furniture or the last washing station remaining sellable. An early bulk source edit also matched an unrelated similarly shaped declaration.
+
+**Root cause.** Claim cleanup was left to the next simulation tick, and text edits used patterns broader than the intended type or transition. A save or paused command can occur before that next tick.
+
+**Prevention.** Maintain claim ownership at cancellation, replacement, washing, sale and death themselves. Validate both the claim-to-chain and chain-to-claim directions. Use small, context-specific patches and inspect each changed declaration before compiling.
+
+**Verification.** Save and reload after every domestic work tick, after paused cancel/reissue, and exactly when washing finishes. Reject duplicated or unowned claims transactionally. Prove furniture refusal and ownership-aware reservation release. Remove the transition mechanism deliberately, observe the regression fail, and restore byte-identical source.
+
+## [L-dish-art-needs-support-and-motion] Passing simulation tests does not make the dishes look right
+
+**What happened.** The first domestic preview showed oversized gray stacks hanging over furniture edges. The owner rejected it. Pickup also hid the surface pile without showing a carried load, and the first replacement wash pose held its plate over the counter lip.
+
+**Root cause.** One procedural stack represented every quantity. The renderer used one guessed screen offset for different furniture and cameras. Tests checked sprite presence, not physical support, scale, hand contact or action continuity. The visual review was deferred to the owner.
+
+**Prevention.** Derive support points from authored furniture geometry and its export camera. Bake hand-held props into the rig when correct hand occlusion requires it. Inspect normal-scale gameplay, all furniture facings, mixed occupancy, lighting, near/far occlusion and ordered pickup-through-washing frames. Use a fresh-context adversarial reviewer before reporting visual work as complete.
+
+**Verification.** Run the surface geometry, export registration and cleanup conservation tests; then inspect the real GPU fixture and a played meal. The plate must fit inside the surface, remain visible during transport, sit over the basin while washing, and disappear only on completion. Record rejected evidence as rejected, regardless of passing behavior tests.
+
+## [L-shared-food-scheduler-boundary] Test the handoff through the actual scheduler
+
+**What happened.** An idle invited guest could start a new snack while the cook's finished meal waited for table assignment. The original shared-meal test assigned the table directly before ticking, so it bypassed the failing boundary.
+
+**Root cause.** Acceptance required a dining table before the collection step could use an already-known counter. Table selection ran later in the tick, after ordinary food selection. Making guests simply wait would also have stranded them if the cook was cancelled before choosing a table.
+
+**Prevention.** Require only the resources needed by the current step. Let the prepared meal own its table assignment, publish that assignment within the station-selection pass, and make every diner honor it. Preserve ongoing activities and explicit orders.
+
+**Verification.** Finish a guest's non-food activity on the cook's real plating-completion tick. On the next tick the idle guest must claim prepared food rather than start a snack. Save and reload with a collected portion while the table is occupied, cancel the cook, release the table, and prove the guest still eats exactly once.
+
+The fresh review also caught table selection borrowing the newest retained
+meal by cook identity. A cook can have an older unclaimed meal and a newer
+solo meal. Save an explicit current batch association, clear it at completion
+and cancellation, and bind only that batch. Reject duplicate batch identities
+and mismatches between a serving cook's target and the batch's table. Tests
+must distinguish old leftovers, current food and already-finished guest claims.
+
+Played verification then showed the cook finishing before the last guest
+arrived. Serialized pickup and travel can exceed the cook's eating time.
+Starting independent eating countdowns does not provide a shared meal. Save
+a one-way dining-start decision and retain each present diner's full eating
+interval while active participants gather. Exclude player interruptions and
+busy guests; urgent needs and insufficient free seats must release the group.
+Verify a sustained four-person eating interval, save/load during gathering,
+and each release condition. A one-tick overlap is not an adequate assertion.
 
 ## [L-autonomy-positive-choices] Random seeds do not fix deterministic eligibility
 
@@ -8617,6 +8671,16 @@ direct interbody separation and jointly derived visible-owner picking.
 complete evaluated meshes. Test independent samples, owner-map swaps, row
 reordering and one occupant leaving. A relaxed search limit is not acceptance;
 neither is a kinematic angle bound or a phase-zero lane pass.
+## [L-native-link-proof-needs-activation] Tab inventory alone cannot verify a new-window link
+
+**What happened.** Three clicks on a native Changelog link produced no new tab in the in-app browser's inventory. The link had focus, no overlay and no cancellation handler. Treating the inventory alone as the result left product activation unresolved.
+
+**Root cause.** The verification conflated the renderer's new-window request with the host exposing its resulting tab. The host's disposition was not observed.
+
+**Prevention.** Register the browser's new-window event before activation, then record the resolved URL, requested window name and trusted user gesture. Verify the destination separately when the host does not expose the popup. Do not change ordinary link behavior to accommodate missing host evidence, or claim visible navigation from an activation event alone.
+
+**Verify.** The unchanged anchor emits `Page.windowOpen` with the expected project changelog URL, `_blank` and `userGesture=true`. The requested destination renders 25 entries. Evidence: `docs/assets/review-evidence/changelog/link-activation.json` and the verification README. Visible popup creation in the in-app host remains unobserved.
+
 ## [L-standalone-ecs-removal-history] Standalone ECS needs an update boundary
 
 **What happened.** A matched 1,037-entity workload grew WebAssembly capacity from 5,308,416 bytes at tick 60 to 118,095,872 at tick 1,680 without a browser or audio. A native allocation counter found 71,003,186 live requested bytes and 2,482,699 retained component-removal messages at the final checkpoint.
@@ -8645,6 +8709,8 @@ interaction and chain work step. Validate the exact runtime target and chain
 role, retain body-action precedence, and give generic uses a visible fallback.
 Keep new artwork appended after the historical atlas records. Review each
 activity/icon pair in the release renderer as well as in the art sheet.
+The owner clarified that walking is travel toward an action, not an action
+requiring a bubble. Show activity and waiting icons; suppress travel bubbles.
 
 **Verify.** Count and test every shipped interaction and dinner step, remove
 ordinary and chain identity checks, reverse body precedence, and remove a
@@ -8692,3 +8758,69 @@ atlas pixels stay unchanged. Evidence:
 **Prevention.** When Rust or embedded content changes, build the WASM package in the owning worktree before running dependent web tests. Do not copy a main-only artifact into a branch with additional ABI fields or use an unverified sibling binary.
 
 **Verify.** Rebuild with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, record its hash, and run the actual release-WASM bridge/activity tests. Keep source, generated artifact and deployed acceptance provenance separate.
+## [L-domestic-integrated-actions-need-terminal-scoring] Score the food that actually arrives
+
+**What happened.** Main integration exposed an instant-fridge survival score
+for the longer snack chain and repetition tracked against a hidden chain row.
+Public command fixtures also assumed every need started low; public spawning
+only makes hunger low.
+
+**Root cause.** Older fixtures and scorer assumptions described the one-step
+action rather than the staged runtime. Main's current public boundary differed
+from the internal test builder.
+
+**Prevention.** Score all required work and travel before terminal recovery.
+Use the visible snack identity for repetition, preserve ordinary custom-pack
+behavior when the chain is absent, and establish the actual autonomous choice
+before asserting player-command preemption. Read the public initial needs;
+do not infer them from a helper name.
+
+**Verify.** A starving Sim beside a fridge still incurs staged snack risk;
+moving the counter farther increases it. Completed snacks change the visible
+habituation row. The public command fixture first walks east for food, then
+reverses west for a valid bed order; an invalid interaction preserves the
+autonomous direction. Removing terminal scoring, the row alias, command
+identity or intent dispatch fails the corresponding regression. Receipts:
+`docs/assets/review-evidence/domestic/integration-mutations.md`.
+
+## [L-domestic-presentation-needs-exact-claimed-station] Body motion and action identity compose
+
+**What happened.** Integrating authored activity bubbles hid preparation,
+cooking and washing identities behind a generic pose activity. Collecting
+dishes from a table also lost its cleanup bubble because the table is not a
+preparation counter.
+
+**Root cause.** Pose fallback ran before metadata, and ordinary station-role
+validation could not recognize a saved cleanup surface at another object type.
+
+**Prevention.** Preserve explicit eating precedence, let generic domestic poses
+use authored activity metadata, and permit the cleanup collection exception
+only for the cleaner's exact saved surface at step zero. Ordinary Wash hands
+remains distinct from the cleanup chain that removes persistent dishes.
+
+**Verify.** Exhaust every shipped chain step and its activity/body pair. Reach
+actual table collection through the runtime and retain the washing identity
+after reload. Deliberately reinstate the generic override and break the exact
+claim comparison; both assertions fail. Review actual moving wash frames with
+the media preference recorded, rather than treating identical screenshots as
+animation evidence.
+
+## [L-published-save-tail-wins] Integrate unpublished tails after released fields
+
+**What happened.** Held sleeping-place state and released domestic state both appended a V5 field after chronotypes. A mechanical union would place one record where released saves encode the other. The sleeping-access fingerprint also made released meal saves look like old recipes to the staged-meal migration.
+
+**Root cause.** Positional serialization and exact content migration each have publication order. Two independent additions cannot share a tail position or treat every accepted digest as the same recipe.
+
+**Prevention.** Preserve released domestic before unpublished sleeping state. Extend padding boundaries for both records, keeping actual absence distinct from explicit modern None. Use an exact same-recipe route for the released domestic digest; earlier recipes still require their program-counter mapping.
+
+**Verify.** Load the checked-in released domestic save and compare every retained field immediately, changing only the destination digest and added empty sleeping record. Require stable resave and replay. Keep authentic pre-meal fixtures, every interior sleeping cut and explicit-None rejection. Delete the presence guard and current-recipe route separately; the named tests must fail.
+
+## [L-fixture-events-before-clock-bounds] Wait for the event a fixture requires
+
+**What happened.** After integrating sleeping-place admission, a domestic test sampled two guests at a fixed 180 ticks and saw one collected portion. The diagnostic showed both claims intact; the second guest was at the counter with seven collection ticks left.
+
+**Root cause.** The shared fixture let guests run ordinary autonomy before injecting their completion actions. The starting route and random choices were not fixed, so the old tick count did not define completed collection.
+
+**Prevention.** In the retention test, wait within a bound for both collections and keep the table locked throughout. Then hold the completed state for an additional interval to prove retention. Keep exact ownership, carrying, step, Load and eventual delivery assertions. Complete synthetic sleep actions with their ownership marker and require completion to remove it.
+
+**Verify.** Both collections must complete within the route/work bound, the table remains unclaimed, and both portions remain uneaten during the subsequent 180 ticks. The original fixed-bound checkpoint remains in the diagnostic log; increasing a timeout alone does not establish retention.

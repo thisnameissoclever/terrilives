@@ -215,7 +215,7 @@ placement for the same Save V1 reason.
 activity 11 project the displayed Sim to the existing armchair seat without
 moving ECS position or widening the WASM bridge. Every shipped look has two
 directional, planted seated frames on a 24-tick hold; the normal HUD says
-`Sitting` and deliberately adds no generic bubble. Pause, speed, reduced
+`Sitting` and shows the chair activity bubble. Pause, speed, reduced
 motion, entry, and exit follow the same deterministic socket rules as seated
 reading and exercise. Sofas, beds, and other multi-user furniture remain
 separate until the simulation owns deterministic per-user slots.
@@ -1398,6 +1398,13 @@ than explicit and topical, and it keeps the audience twice as large.
 
 Tone should be locked before serious content authoring begins in M1.
 
+## [F-domestic-meals-cleanup] Meals, messes and shared food
+
+Requested 2026-09-30; implemented locally, verification recorded in [the meal spec](specs/2026-09-30-meals-and-cleanup.md). Meals have six stages totaling 500 base work ticks, snacks three totaling 85. New prepare, cook and wash clips cover all four directions and three household shirt colors. Preparation and eating leave visible, attributed dishes. Kitchen-sink cleanup collects each dirty surface before washing.
+
+Cleanliness is a separate personality value. Needs reduce autonomous cleanup willingness; critical energy, hunger or bladder almost always wins. Foreign dishes lower mood and directional affinity once per room visit, and allow one visitor-cleanup roll at 20% of own willingness. A cook can provide real portions for up to three strongly liked hungry friends; all four can eat at the dining table. Time-of-day fridge labels read breakfast, lunch or dinner. Save/load preserves claims, responsibility and visit memory, and reads earlier meal bytes through a reviewed bridge.
+
+[Sim interpersonal relations](SIM-RELATIONSHIPS.md) is the dedicated account of support, resentment, needs, personality, mood and satisfaction. This local implementation is not a claim of merged or deployed delivery.
 ## Gameplay UI corrections (2026-09-30)
 
 Simulation speed sits below the clock and funds; Build and Options now share

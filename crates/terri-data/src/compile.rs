@@ -1777,6 +1777,9 @@ fn compile_visual(
         "watch" => CompiledVisualAction::Watch,
         "sit" => CompiledVisualAction::Sit,
         "sleep" => CompiledVisualAction::Sleep,
+        "wash" => CompiledVisualAction::Wash,
+        "cook" => CompiledVisualAction::Cook,
+        "prepare" => CompiledVisualAction::Prepare,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -1820,7 +1823,10 @@ fn compile_visual(
             None
         ) | (
             VisualOwner::ChainStep { .. },
-            CompiledVisualAction::Eat,
+            CompiledVisualAction::Eat
+                | CompiledVisualAction::Prepare
+                | CompiledVisualAction::Cook
+                | CompiledVisualAction::Wash,
             CompiledVisualAnchor::Station,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -1871,6 +1877,9 @@ fn compile_visual(
             CompiledVisualAction::Watch => "watch",
             CompiledVisualAction::Sit => "sit",
             CompiledVisualAction::Sleep => "sleep",
+            CompiledVisualAction::Wash => "wash",
+            CompiledVisualAction::Cook => "cook",
+            CompiledVisualAction::Prepare => "prepare",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -1904,6 +1913,9 @@ fn compile_visual(
                             CompiledVisualAction::Watch => "watch",
                             CompiledVisualAction::Sit => "sit",
                             CompiledVisualAction::Sleep => "sleep",
+                            CompiledVisualAction::Wash => "wash",
+                            CompiledVisualAction::Cook => "cook",
+                            CompiledVisualAction::Prepare => "prepare",
                         },
                         "object_socket",
                     ),
@@ -1948,6 +1960,12 @@ fn compile_personalities(
             });
         }
 
+        check_number(archetype.cleanliness, "personality cleanliness")?;
+        if archetype.cleanliness > 1.0 {
+            return Err(ContentError::NonFiniteValue {
+                context: "cleanliness must be between zero and one".to_string(),
+            });
+        }
         let mut drain = [1.0f32; NEED_COUNT];
         for (need_name, value) in &archetype.drain {
             let Some(id) = NeedId::from_name(need_name) else {
@@ -2052,6 +2070,7 @@ fn compile_personalities(
             // hours earlier" are the same sim.
             chronotype_offset_ticks: archetype.chronotype_offset_ticks,
             description: archetype.description.clone(),
+            cleanliness: archetype.cleanliness,
         });
     }
 
@@ -2288,6 +2307,47 @@ fn compile_household(
 type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    if let Some(domestic) = &tuning.domestic {
+        for value in [
+            domestic.own_cleanup_min,
+            domestic.own_cleanup_bonus,
+            domestic.visitor_cleanup_fraction,
+            domestic.critical_cleanup_scale,
+            domestic.other_need_floor,
+            domestic.friend_affinity,
+            domestic.affinity_penalty_min,
+            domestic.affinity_penalty_bonus,
+        ] {
+            check_number(value, "domestic probability or affinity")?;
+            if value > 1.0 {
+                return Err(ContentError::InvalidDomesticTuning);
+            }
+        }
+        for value in [
+            domestic.ready_need_level,
+            domestic.other_need_level,
+            domestic.invite_hunger_level,
+            domestic.accept_hunger_level,
+            domestic.mood_units,
+            domestic.mood_max_load,
+        ] {
+            check_number(value, "domestic need or load")?;
+            if value <= 0.0 || value > 100.0 {
+                return Err(ContentError::InvalidDomesticTuning);
+            }
+        }
+        for value in [domestic.mood_penalty_min, domestic.mood_penalty_bonus] {
+            check_number(value, "domestic mood penalty")?;
+        }
+        if domestic.own_cleanup_min + domestic.own_cleanup_bonus > 1.0
+            || domestic.ready_need_level <= tuning.mood_critical_need_level
+            || domestic.invite_hunger_level > domestic.accept_hunger_level
+            || domestic.wash_ticks_per_unit == 0
+            || domestic.wash_ticks_per_unit > 1000
+        {
+            return Err(ContentError::InvalidDomesticTuning);
+        }
+    }
     // Read here, with every other tuning check, so no caller can compile
     // the knobs and forget the verb lines.
     let affinity = affinity_bands(&tuning)?;
@@ -2704,6 +2764,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             choice_probability_floor: tuning.choice_probability_floor,
             wander_pause_variance: tuning.wander_pause_variance,
             self_preservation_curve: tuning.self_preservation_curve,
+            domestic: tuning.domestic,
             habituation_per_use: tuning.habituation_per_use,
             habituation_decay_per_tick: tuning.habituation_decay_per_tick,
             habituation_floor: tuning.habituation_floor,
@@ -3738,26 +3799,28 @@ mod tests {
     // and an empty sleep_places vector after object presentation. Relative to
     // the 413-byte ancestor, these add zeros at offsets 98 and 108 respectively.
     // These embedded build bytes are separate from persisted SaveSnapshot DTOs.
+    // Domestic tuning inserts its None byte after the autonomy fields (merged offset 405).
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63, 154,
-        153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105, 100, 103,
-        101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0, 12, 66, 1,
-        0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
-        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0,
-        0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2,
-        1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0, 5, 3, 0,
-        0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0,
-        0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0, 160, 62, 10,
-        215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
-        0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154,
-        153, 25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0,
-        32, 62, 0, 0, 96, 62, 144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216,
-        4, 0, 0, 0, 191, 0, 0, 160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65,
-        0, 0, 64, 65, 0, 0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205,
-        204, 204, 61, 205, 204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204,
-        204, 60, 0, 0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160,
-        64, 95, 112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0,
-        0, 64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0,
+        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
+        154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
+        100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
+        12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
+        116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
+        0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0,
+        0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0,
+        0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63,
+        3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
+        80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0,
+        0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28,
+        216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0,
+        160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0,
+        160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204,
+        76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0,
+        128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112,
+        137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64,
+        63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
@@ -3905,6 +3968,7 @@ mod tests {
                 (100, 2.0),
             ],
 
+            domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
             // golden vector reads, and its objects come from
@@ -6473,6 +6537,7 @@ mod tests {
     /// assertion ([L34]).
     fn archetype(id: &str) -> ArchetypeDef {
         ArchetypeDef {
+            cleanliness: 0.5,
             chronotype_offset_ticks: 0,
             description: format!("The {id} sort."),
             id: id.to_string(),

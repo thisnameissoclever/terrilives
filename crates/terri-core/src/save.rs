@@ -63,8 +63,59 @@ pub struct SaveSnapshotV5 {
     /// Person index and exact nonzero sleep-schedule offset, ascending by index.
     /// Missing entries retain the historical zero; never infer them from content.
     pub chronotype_offsets: Vec<(u32, i32)>,
+    /// Food, dishes, cleanup claims and room visits. Older saves append None.
+    pub domestic: Option<SavedDomestic>,
     /// Absent only in historical payloads; current writers emit Some, even empty.
     pub sleeping_places: Option<SavedSleepingPlaces>,
+}
+
+#[derive(bevy_ecs::prelude::Resource, Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedDomestic {
+    pub cleanliness: Vec<(u32, f32)>,
+    pub dishes: Vec<SavedDishes>,
+    pub visits: Vec<SavedRoomVisit>,
+    pub cleanup: Vec<SavedCleanup>,
+    pub meals: Vec<SavedMeal>,
+    pub next_dish: u32,
+    /// Current cook's SimId and plating tick, distinct from older unclaimed meals.
+    pub serving_meals: Vec<(u32, u64)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedDishes {
+    pub id: u32,
+    pub surface: u32,
+    pub owner: u32,
+    pub units: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedRoomVisit {
+    pub person: u32,
+    pub room: u32,
+    pub seen: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedCleanup {
+    pub person: u32,
+    pub dishes: Vec<u32>,
+    pub collected: Vec<u32>,
+    pub directed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedMeal {
+    pub cook: u32,
+    pub counter: u32,
+    pub table: Option<u32>,
+    pub guests: Vec<u32>,
+    pub claimed: Vec<u32>,
+    pub collected: Vec<u32>,
+    pub eaten: Vec<u32>,
+    pub scale: f32,
+    pub tick: u64,
+    pub dining_started: bool,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
