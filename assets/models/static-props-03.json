@@ -24,6 +24,18 @@
       "directory": "living/owner-review-pending/long-sofa/candidate-01",
       "proof_sha256": "b596582f7e72d3be24fcccba671e62435046aca2b527dde23728027029368abf",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineTelevision",
+      "directory": "living/owner-review-pending/television/candidate-01",
+      "proof_sha256": "b96fe1c8a9fb2bbbf31e9856d50335ca1ed4bc0fb0b1c245b64f047cf34cf34d",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineRadio",
+      "directory": "living/owner-review-pending/radio/candidate-01",
+      "proof_sha256": "b5da0c9ad702e23da13b4faa8c3b2afa2eddf9aaa3e4b7d8f8d16ac3cde9ff53",
+      "review_status": "accepted-independent-review"
     }
   ]
 }
