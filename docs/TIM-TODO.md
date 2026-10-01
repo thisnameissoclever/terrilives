@@ -503,7 +503,9 @@ fades, capacity, and effective-pause cleanup. Shower use now has one prepared CC
 water loop with on-demand loading and bounded failure recovery. Handwashing and
 kitchen washing-up reuse that decoded recording at lower gain, with independent
 source ownership. Its timbre and
-mix still need listening acceptance; stove selection remains mine. Door opening
+mix still need listening acceptance. Stove cooking now uses a provisional
+first-party synthetic texture with independent demand loading; its listening
+acceptance also remains open. Door opening
 and closing now have quiet provisional recorded cues tied to authoritative portal
 state. Completed toilet use has a provisional recorded flush; cancellation,
 loading and late decoding do not trigger one. Its listening acceptance remains

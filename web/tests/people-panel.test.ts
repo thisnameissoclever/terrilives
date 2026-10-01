@@ -1,5 +1,6 @@
 import { tieBetween } from '../src/ui/people-panel.js';
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   PeoplePanel,
@@ -262,6 +263,31 @@ describe('PeoplePanel', () => {
 });
 
 describe('createPeoplePanelSurface', () => {
+  it('skips unchanged caption, empty message and relationship text', () => {
+    const doc = new FakeDocument();
+    const caption = new FakeElement();
+    const empty = new FakeElement();
+    const list = new FakeElement();
+    const surface = createPeoplePanelSurface(doc as unknown as Document, caption as unknown as HTMLElement,
+      empty as unknown as HTMLElement, list as unknown as HTMLElement);
+    const view = { selectedName: 'Terri', people: [person(1, 'Doug', -0.3)] };
+    surface.render(view);
+    const name = list.nodes[0].find('relationship-name');
+    const state = list.nodes[0].find('relationship-state');
+    const probes = [caption, empty, name, state].map(textWriteProbe);
+    surface.render(view);
+    expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0]);
+    surface.render({ selectedName: 'Casey', people: [person(1, 'Douglas', 0.4)] });
+    expect([caption.textContent, name.textContent, state.textContent]).toEqual(['How Casey feels', 'Douglas', 'Friendly']);
+    surface.render(null);
+    const emptyWrites = probes[1].writes;
+    surface.render(null);
+    expect(probes[1].writes).toBe(emptyWrites);
+    caption.textContent = 'External change';
+    surface.render(null);
+    expect(caption.textContent).toBe('People');
+  });
+
   it('renders directional accessible meters, reuses rows, and removes stale people', () => {
     const doc = new FakeDocument();
     const caption = new FakeElement();
@@ -364,4 +390,3 @@ describe('family ties in the relationship list', () => {
       .toEqual(['child', null]);
   });
 });
-

@@ -94,9 +94,13 @@ export class ObjectLoopPlayer {
     }
   }
 
-  stop(sourceId: number, action: ObjectSoundAction): void {
+  stop(sourceId: number, action: ObjectSoundAction, immediate = false): void {
     const loop = this.active.get(sourceId);
     if (!loop || loop.action !== action) return;
+    if (immediate) {
+      this.dispose(loop);
+      return;
+    }
     this.active.delete(sourceId);
     const now = this.context.currentTime;
     const attack = Math.min(1, Math.max(0, (now - loop.startedAt) / EDGE_SECONDS));

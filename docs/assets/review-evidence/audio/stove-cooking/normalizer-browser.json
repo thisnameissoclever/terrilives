@@ -1,0 +1,118 @@
+{
+  "pass": true,
+  "checks": {
+    "selectedPersonExercised": true,
+    "baselineComplete": true,
+    "finalComplete": true,
+    "endpointsEqual": true,
+    "detachedNodeDetected": true,
+    "detachedNodeCleanup": true,
+    "listenerDetected": true,
+    "listenerCleanup": true
+  },
+  "selectedBefore": {
+    "selected": 34,
+    "career": "Office clerk"
+  },
+  "baselineProjection": {
+    "selected": null,
+    "tick": 69,
+    "caption": "Select a person",
+    "activity": "Nothing selected",
+    "dockActivity": "Nothing selected",
+    "satisfaction": "unavailable",
+    "career": "",
+    "orders": "0",
+    "mood": "",
+    "peopleCaption": "People",
+    "emptyLists": [
+      {
+        "id": "moodlet-list",
+        "empty": true
+      },
+      {
+        "id": "action-queue",
+        "empty": true
+      },
+      {
+        "id": "people-list",
+        "empty": true
+      },
+      {
+        "id": "trait-list",
+        "empty": true
+      }
+    ],
+    "warningsEmpty": true
+  },
+  "finalProjection": {
+    "selected": null,
+    "tick": 129,
+    "caption": "Select a person",
+    "activity": "Nothing selected",
+    "dockActivity": "Nothing selected",
+    "satisfaction": "unavailable",
+    "career": "",
+    "orders": "0",
+    "mood": "",
+    "peopleCaption": "People",
+    "emptyLists": [
+      {
+        "id": "moodlet-list",
+        "empty": true
+      },
+      {
+        "id": "action-queue",
+        "empty": true
+      },
+      {
+        "id": "people-list",
+        "empty": true
+      },
+      {
+        "id": "trait-list",
+        "empty": true
+      }
+    ],
+    "warningsEmpty": true
+  },
+  "baseline": {
+    "documents": 1,
+    "nodes": 1434,
+    "listeners": 157,
+    "jsUsedBytes": 4153320
+  },
+  "final": {
+    "documents": 1,
+    "nodes": 1434,
+    "listeners": 157,
+    "jsUsedBytes": 4205176
+  },
+  "retainedNode": {
+    "documents": 1,
+    "nodes": 1435,
+    "listeners": 157,
+    "jsUsedBytes": 4205232
+  },
+  "afterNodeCleanup": {
+    "documents": 1,
+    "nodes": 1434,
+    "listeners": 157,
+    "jsUsedBytes": 4263688
+  },
+  "retainedListener": {
+    "documents": 1,
+    "nodes": 1434,
+    "listeners": 158,
+    "jsUsedBytes": 4205648
+  },
+  "afterListenerCleanup": {
+    "documents": 1,
+    "nodes": 1434,
+    "listeners": 157,
+    "jsUsedBytes": 4205184
+  },
+  "scripts": [
+    "http://127.0.0.1:5221/assets/index-B9wQm15e.js"
+  ]
+}

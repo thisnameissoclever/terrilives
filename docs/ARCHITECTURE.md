@@ -966,7 +966,10 @@ across a sync.
 
 JS to sim traffic is player commands only: small and infrequent, so a simple
 serialized command channel suffices. UI reads are pull-based and throttled; the
-needs panel does not need 60Hz.
+needs panel does not need 60Hz. Repeated text refreshes compare against the
+actual DOM value before assigning `textContent`: an unchanged assignment still
+replaces its text child and creates avoidable garbage. This is a write guard,
+not another cache of simulation state.
 
 The normal-play People panel follows the same projection rule. It gets the
 complete live row set from the household roster, gets sparse directional
@@ -1071,6 +1074,17 @@ Visibility changes synchronously gate emission, stop voices, clear walking
 phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
+While globally inaudible, fixed-tick audio frames still begin and end, but no
+observations reach their schedulers. Their normal absence handling releases
+object/conversation ownership and drops activity, stride and door history.
+An unavailable frame boundary also disposes unfinished procedural and door
+cues if they still have active sources, without resetting any open frame.
+Recording cleanup uses retained counts so object and conversation releases
+whose active owners already ended cannot survive the unavailable interval.
+Automatic return to running therefore starts only current actions, without
+requiring another gesture or replaying old motion. This samples availability
+at fixed ticks; it is not an operating-system interruption listener. See
+`docs/specs/2026-10-01-automatic-audio-recovery.md`.
 Pause stops fixed ticks and fades object loops, but does not suspend the context
 or stop an already-playing short cue or conversation. A successful Load reads
 identity from the replacement world's aligned
@@ -1118,10 +1132,11 @@ player with at most four active loops and eight retained records including
 fades. Prepared recordings specify valid loop boundaries and gain. Its
 production catalog shares one provisional flowing-water WAV between showers
 (gain 0.6) and sinks (gain 0.35). Bathroom handwashing and kitchen washing-up
-author sink action 3; existing action codes stay unchanged. A playable water
-start with a missing clip triggers one cached fetch/decode; failures wait five seconds and a new
-semantic demand before retrying. Late completion reconciles only still-owned
-sources. Stove cooking remains silent. Every effective pause stops object loops,
+author sink action 3; existing action codes stay unchanged. Stove action 2 plays
+a provisional first-party cooking texture at gain 0.6. Water and stove have
+independent demand-driven fetches, decoded caches and five-second failure
+cooldowns. New demand or an explicit load can retry; fixed ticks cannot.
+Late completion reconciles only still-owned sources. Every effective pause stops object loops,
 including blocking overlays; resume waits for a new fixed-tick observation.
 Short cues and conversations retain their existing finish-on-pause behavior.
 

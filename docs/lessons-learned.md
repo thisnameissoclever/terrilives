@@ -80,6 +80,115 @@ silence boundaries. Do not patch a proof by adding an unrelated extra gesture.
 zero played voices. Resume and complete actual toilet use; require its exact
 source event and a played cue on that first completion. Keep cancellation,
 late-decode and paused-playback rejection tests.
+## [L-binary-tests-need-bounded-diffs] Compare large binary artifacts without printing every byte
+
+**What happened.** A deliberately changed audio seed caused a deep byte-array
+assertion to spend excessive time formatting hundreds of thousands of values.
+The task-owned test was stopped and the source restored.
+
+**Root cause.** The assertion requested a structural diff of a complete WAV
+when the useful evidence was whether the bytes matched.
+
+**Prevention rule.** Use byte equality plus a fixed content hash for large
+reproducible artifacts. Assert header fields and signal bounds separately.
+Keep negative CLI checks isolated from the real runtime asset.
+
+**How to verify.** Changing the seed must fail the equality assertion promptly;
+silence must fail the signal bound; removing the publication guard must fail an
+isolated differing-output test without modifying the shipped WAV.
+
+## [L-audio-retained-is-not-active] Silence boundaries must include release-only nodes
+
+**What happened.** A recording ended normally, began fading, then the browser
+suspended audio. Its remaining release resumed later despite an empty audio
+frame. Both object and conversation output reproduced the tail.
+
+**Root cause.** The scheduler had removed the owner and the player had removed
+its active record. Only the separate collection of draining nodes still held
+the release. Active counts and repeated exact-owner stops could not find it.
+
+**Prevention rule.** Global unavailable-frame cleanup must inspect retained
+records and immediately dispose active and draining nodes. Preserve default
+fades on a running audible clock and keep direct stops identity-specific.
+
+**How to verify.** End while running, suspend midway through the release,
+process an empty frame, and render the resumed samples. Require zero across
+the entire resumed tail, alongside a positive normal-fade control. Cover
+throwing stops and stale callbacks as well as retained counts.
+
+## [L-browser-cli-page-argument] Check the CLI callback signature
+
+**What happened.** Two cleanup callbacks destructured `{ page }`, received
+undefined and failed before closing their task-owned page. Explicit session
+close then closed both browsers.
+
+**Root cause.** The callback shape was borrowed from a different browser API.
+This installed CLI passes the page directly, not an object containing it.
+
+**Prevention rule.** Check `playwright-cli run-code --help` before authoring
+its callback. Use `async (page) => { try { ... } finally { await page.close(); } }`.
+Keep session close as a fallback, and never include another task's browser.
+
+**How to verify.** A task-owned `about:blank` callback returns its URL and closes
+the page in `finally` without an exception. The corrected callback passed that
+check before this lesson was recorded.
+
+## [L-audio-observations-require-playback-availability] Do not consume starts that cannot play
+
+**What happened.** An action first observed during external audio suspension
+could remain silent after the browser resumed automatically. Gesture-driven
+recovery worked and concealed the missing automatic path.
+
+**Root cause.** Playback rejected an inaudible start after the scheduler had
+already recorded it. The unchanged next action could not emit another start.
+
+**Prevention rule.** Gate observations across every scheduler family on the
+same global playback predicate, while always finishing begin/end frames. Let
+absence handling release ownership and phase. Never reset an open frame from
+inside emission. At the first unavailable frame boundary, also stop unfinished
+procedural and door cues; otherwise their frozen tails can overlap fresh audio.
+Keep direct cancellation independent of playback availability.
+
+**How to verify.** Begin and replace actions while suspended, then return to
+running without a gesture. Require current actions to start, departed actions
+to stay silent, and footsteps/doors to re-anchor without replay. Include native
+rendered samples as well as controller and nested fixed-tick sampler tests.
+
+## [L-audio-cancellation-without-playback] End ownership even when sound cannot play
+
+**What happened.** Object and conversation end events were discarded while an
+externally suspended audio context could not play. Their schedulers forgot the
+ended actions, but native loops or pending recordings could survive and resume.
+
+**Root cause.** One audibility gate controlled both playback admission and
+ownership cancellation. Gesture-driven recovery hid the missing terminal path
+in earlier tests. A normal fade also cannot finish on a suspended audio clock.
+
+**Prevention rule.** Process exact-source cancellation independently of playback
+availability. Clear pending ownership first. Preserve normal fades when the
+clock runs; release the affected nodes immediately when it does not.
+
+**How to verify.** End an action through public frame APIs during suspension,
+return to running without a gesture, and settle a late recording load. Require
+no revived source or retained nodes. Render samples across native suspension
+to distinguish real cleanup from an active-count change that hides a frozen fade.
+
+## [L-audio-decode-detaches-input] Capture encoded metadata before decoding
+
+**What happened.** A paper-recording screening report showed zero encoded bytes
+for four successfully decoded files.
+
+**Root cause.** `decodeAudioData` detached its input ArrayBuffer before the
+report read `byteLength`. The zero described the consumed buffer, not an empty
+source file.
+
+**Prevention rule.** Capture encoded byte length and hash before decoding. Keep
+source-file identity separate from decoded frames, channels and duration.
+
+**How to verify.** Compare reported byte counts and hashes with the original
+files, then check decoded sample counts and finite-value bounds separately.
+Keep the corrected measurement report rather than silently interpreting zero
+as a valid source size.
 
 ## [L-audio-proof-visible-gesture] Discover visible controls before driving audio checks
 
@@ -6229,8 +6338,10 @@ footstep lifecycle. Two explicit scheduler lists evolved independently: the
 audible re-entry branch and the browser proof's diagnostics. Each list was
 partially updated, so neither represented the complete controller contract.
 
-**Prevention rule.** Every global transition from inaudible to audible must call the
-controller's single all-scheduler reset. Every bounded-state proof must sample
+**Prevention rule.** Explicit global lifecycle boundaries use the controller's
+single all-scheduler reset. Fixed-tick observations must also apply the same
+availability gate to every scheduler, so automatic context recovery cannot
+retain silent history. Every bounded-state proof must sample
 and constrain every retained scheduler's live count and capacity. Adding a
 scheduler requires updating both contracts in the same change.
 
@@ -8181,6 +8292,67 @@ record; padding must never manufacture that record from a truncated payload.
 **How to verify.** Test a complete bed-era payload after appending later fields,
 as well as every interior truncation of the grouped bed record. This was a
 documentation correction before implementation, not a shipped loader defect.
+
+## [L-unchanged-text-node-churn] Unchanged text assignments still replace nodes
+
+**What happened.** The cooking-audio memory check failed exact DOM equality in
+an audio-disabled control: 1,435 nodes became 1,434. Paused HUD panels repeatedly
+assigned the same text, despite a comment claiming those writes were no-ops.
+
+**Root cause.** Assigning an element's `textContent` replaces its text child even
+when the string is unchanged. A render between garbage collection and the DOM
+counter sample exposed the detached old node. A focused probe reproduced the
+one-node difference using only the `needs-caption` writer.
+
+**Prevention.** Compare the actual DOM text before assigning. Do not add a second
+cached UI state, change the memory allowance, or accept a failed equality check
+because its count declined. Text refreshes must still repair changed DOM values.
+
+**Verify.** Check text-child identity across repeated unchanged public updates,
+then change the source value and verify the text updates. The causal diagnostic
+had 250/250 stable samples when unchanged writes were suppressed; production
+acceptance also requires the unchanged whole-game memory check after the repair.
+
+## [L-memory-endpoints-need-complete-projection] Await the whole UI projection before measuring
+
+**What happened.** After redundant text writes were fixed, the memory proof
+still saw one fewer DOM node at an audio-disabled endpoint. Its baseline had
+the selected person's `Office clerk` career text; the final endpoint did not.
+
+**Root cause.** Clearing simulation selection does not synchronously update
+independently throttled panels. The normalizer checked only rows and warnings
+which could already be empty, accepting a partially updated presentation.
+
+**Prevention.** Establish the complete semantic endpoint before collecting:
+all selected-person fields and rows cleared, derived summaries updated, and
+audio drained. Do not repair an invalid baseline by relaxing exact equality,
+freezing the page, or adding a delay that merely makes the race less likely.
+
+**Verify.** A fixture with the old subset ready and stale career text must stay
+unready. Reject each other incomplete panel and missing required node. Retained
+node, document and listener changes in either direction must still fail the
+unchanged acceptance calculation. Then exercise the actual browser transition.
+
+## [L-audio-player-merge-interruption-coverage] Reconcile new players with newer lifecycle fixes
+
+**What happened.** Refreshing the held toilet-flush branch brought in main's
+automatic audio-recovery fixes, but unavailable-frame cleanup omitted the new
+toilet player. Its active recording could resume a frozen tail after recovery.
+
+**Root cause.** Git merged the files without a textual conflict at this method.
+The old branch tested explicit gesture recovery, while main's newer cleanup
+handled browser-driven recovery. Neither branch had tested the combined player
+set through that boundary.
+
+**Prevention.** During integration, compare every player against every lifecycle
+boundary. Automatic recovery without a gesture needs its own test. Keep
+unrelated recording preload out of category-specific fetch/decode test gates.
+
+**Verify.** Deleting toilet cleanup fails eight public-controller cases across
+four frame entry points and two hardware states. Native offline rendering also
+rejects the retained flush; the restored code produces zero post-cancellation
+output. Keep modeled interruption evidence distinct from real OS interruption,
+and do not use this repair to clear unrelated retained-memory acceptance.
 
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 

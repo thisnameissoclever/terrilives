@@ -60,6 +60,56 @@ Selected 02 provisionally: its shorter duration reduces overlap and its final pa
 
 ## Delivery hold
 
+### Main integration and interruption repair
+
+On 2026-10-01, the branch incorporated main `6df7c045`, including the cooking
+texture, silent-control policy, complete HUD normalization and automatic audio
+recovery fixes. The merge retained the shared-world, bundle-fingerprint and
+toilet-lifecycle requirements in the memory harness. Its limits did not change.
+
+Independent review found that the new toilet player was missing from unavailable
+frame cleanup. A playing flush could survive an externally suspended clock and
+resume its old tail without a new completion. `prepareWorldAudioFrame` now stops
+the toilet player alongside the other players. This defect is separate from the
+failed whole-page retained-memory check; no causal link was established.
+
+1. Red: `npm test -- --maxWorkers=1 tests/audio-controller.test.ts -t 'discards a flush'`
+   failed with `expected false to be true` at the source-disconnection assertion,
+   exit 1. Eight final cases cover all four standalone frame entry points in
+   suspended and interrupted states. They require cleared ownership, no replay
+   on automatic recovery and successful fresh completion from the same source.
+2. Green: `npm run typecheck` passed, exit 0. `npm test -- --maxWorkers=1` passed
+   1,748 tests in 117 files, exit 0. New tests inherited from main use the existing
+   category-specific transport spy so independent toilet preloading cannot
+   consume their response or alter their fetch/decode assertions.
+3. Mutation: deleting the new toilet cleanup failed all eight cases, exit 1,
+   and the browser render proof rejected `Frozen flush retained`. Restoring it
+   passed all eight cases and restored controller SHA-256
+   `b2937f134cc6b19a072f179e3526f70a3e2d7d3c08aa6173730e13e924a26758`.
+4. `proveToiletRecording()` passed nine native OfflineAudioContext renders.
+   Both new interruption cases had positive output before cancellation and zero
+   output after 0.2 seconds, including after resumption. Single and four-source
+   peaks stayed 0.0604901239 and 0.2419604957. The suspended/interrupted state
+   labels are modeled; this does not claim operating-system interruption proof.
+5. `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
+   `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`,
+   `cargo test --workspace`, and `npm run build` all passed, exit 0.
+   The production JavaScript bundle is `index-ROiUXfBB.js`.
+6. The [production lifecycle report](../assets/review-evidence/audio/toilet/refresh-game.json)
+   recorded two genuine completions for toilet 29 at ticks 51 and 238. Each
+   played one flush, the first drained naturally, and pause drained the second.
+   There were no page exceptions. The [game screenshot](../assets/review-evidence/audio/toilet/refresh-game.png)
+   was inspected at 1440x1000: household and controls remained readable; the
+   generic standing interaction poses remain a separate visual limitation.
+7. `python check-doc-ids.py` and `git diff --check` passed, exit 0. Independent
+   source review found no remaining material integration findings. Task-owned
+   browser pages and both preview/proof servers were closed.
+
+No whole-page memory or refresh-rate acceptance run was repeated. The following
+hold remains in force; this refresh does not represent the feature as shipped.
+
+### Unchanged release decision
+
 The corrected raw-memory result remains FAIL: median 67,664 bytes against 65,536. The causal diagnostic found no specific runtime defect to fix, so further whole-page retries are not justified. Merge requires an explicit release exception or an agreed acceptance-contract change. The separate 120 Hz evidence gap must also remain visible. A draft pull request preserves the work without representing it as shipped.
 
 Durable raw reports are [matched memory](../assets/review-evidence/audio/toilet/memory-matched.json), [causal comparison](../assets/review-evidence/audio/toilet/causal-comparison.json), and [performance](../assets/review-evidence/audio/toilet/performance.json). Task-local scripts, fixture saves, failed earlier runs and snapshots remain under `.tmp/toilet-*`; the temporary pre-feature checkout has been archived. Diagnostic browsers and production servers are closed.

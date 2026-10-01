@@ -491,14 +491,49 @@ async function normalizeMemoryHud(page) {
   });
   // Compare identical empty selected-person panels, while the measured
   // interval still renders normal changing moodlets and action cards.
-  await page.waitForFunction(() => {
-    const warnings = document.querySelectorAll('#needs-content .need-state');
-    return globalThis.__terriStress.sim.selectedIndex() === null &&
-      document.querySelector('#moodlet-list')?.childNodes.length === 0 &&
-      document.querySelector('#action-queue')?.childNodes.length === 0 &&
-      warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
-  }, undefined, { polling: 50, timeout: 5000 });
+  await page.waitForFunction(memoryHudIsDeselected, undefined, { polling: 50, timeout: 5000 });
   return selected;
+}
+
+/** Self-contained for Playwright: every selected-person producer must finish its render. */
+function memoryHudIsDeselected() {
+  if (globalThis.__terriStress.sim.selectedIndex() !== null) return false;
+  const matches = (selector, check) => {
+    const node = document.querySelector(selector);
+    return node !== null && check(node);
+  };
+  const expectedText = [
+    ['#needs-caption', 'Select a person'],
+    ['#satisfaction-value', 'unavailable'],
+    ['#activity-value', 'Nothing selected'],
+    ['#orders-value', '0'],
+    ['#people-caption', 'People'],
+    ['#people-empty', 'Select a person to see how they feel about the household.'],
+    ['#traits-empty', 'No traits.'],
+    ['#mood-empty', 'Select a person to see their mood.'],
+  ];
+  const hidden = ['#needs-content', '#career-row', '#orders-row', '#action-queue',
+    '#people-list', '#traits-block', '#trait-list', '#mood-content', '#moodlet-list'];
+  const visible = ['#needs-empty', '#people-empty', '#traits-empty', '#mood-empty',
+    '#dock-traits-empty', '#queue-empty'];
+  const empty = ['#career-value', '#action-queue', '#people-list', '#trait-list',
+    '#moodlet-list', '#mood-label'];
+  const panelsReady = expectedText.every(([selector, text]) => matches(selector, node => node.textContent === text)) &&
+    hidden.every(selector => matches(selector, node => node.hidden === true)) &&
+    visible.every(selector => matches(selector, node => node.hidden === false)) &&
+    empty.every(selector => matches(selector, node => node.childNodes.length === 0));
+
+  const warnings = document.querySelectorAll('#needs-content .need-state');
+  const warningsReady = warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
+  const members = document.querySelectorAll('#household-roster-members .household-member');
+  const rosterReady = document.querySelector('#household-roster-members') !== null &&
+    members.length > 0 && Array.from(members).every(button => button.getAttribute('aria-pressed') === 'false');
+  const dockReady = matches('#dock-activity', node =>
+    node.textContent === document.querySelector('#activity-value')?.textContent && node.dataset.urgent === 'false') &&
+    matches('#needs-caption', node => node.title === node.textContent);
+  // Closed personal details intentionally do not refresh; assert the scenario, not their stale contents.
+  const detailsClosed = matches('#personal-details', node => node.open === false);
+  return panelsReady && warningsReady && rosterReady && dockReady && detailsClosed;
 }
 
 async function waitForAudioDrain(page) {
@@ -725,7 +760,7 @@ async function main() {
   if (!pass) process.exitCode = 1;
 }
 
-module.exports = { analyseMemory, closeHelpAndSetThreeTimes, runMemory, warmToiletLifecycle, loadPlaywright };
+module.exports = { analyseMemory, closeHelpAndSetThreeTimes, runMemory, warmToiletLifecycle, loadPlaywright, memoryHudIsDeselected, normalizeMemoryHud };
 
 if (require.main === module) main().catch((error) => {
   console.error(error);

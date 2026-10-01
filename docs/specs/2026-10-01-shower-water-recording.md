@@ -16,8 +16,10 @@ blocker even for additive work. Fresh-context review recommended delivering one
 bounded shower recording under the owner's existing authorization, with the
 perceptual limitation stated explicitly. The recording is provisional, not
 claimed to be approved by listening. Replacing accepted cues still requires the
-existing listening gate. Generic stove cooking stays silent; boiling water is
-not a confirmed match for that action.
+existing listening gate. This slice left generic cooking silent; boiling water
+is not a confirmed match for that action. The later
+[cooking texture](2026-10-01-stove-cooking-texture.md) adds a first-party
+synthetic interpretation rather than assigning boiling water to every recipe.
 
 ## Source and edit
 

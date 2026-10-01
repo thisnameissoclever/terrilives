@@ -243,14 +243,17 @@ export class VoiceClipPlayer {
   }
 
   /** Stops only this instance when the simulation outruns its recording. */
-  stopConversation(key: string): void {
+  stopConversation(key: string, immediate = false): void {
     const conversation = this.active.find((record) => record.key === key);
-    if (conversation !== undefined) this.finish(conversation, true);
+    if (conversation !== undefined) this.finish(conversation, true, immediate);
   }
 
-  /** Lifecycle silence: stop every pair, fading rather than cutting. */
-  stopAll(): void {
-    for (const conversation of [...this.active]) this.finish(conversation, true);
+  /** Fade active pairs by default; immediate silence also disposes existing releases. */
+  stopAll(immediate = false): void {
+    for (const conversation of [...this.active]) this.finish(conversation, true, immediate);
+    if (immediate) {
+      for (const conversation of [...this.draining]) this.finish(conversation, true, true);
+    }
   }
 
   activeConversationCount(): number {
@@ -268,16 +271,21 @@ export class VoiceClipPlayer {
     return this.active.length + this.draining.length;
   }
 
-  private finish(conversation: ActiveConversation, stop: boolean): void {
-    if (conversation.ended) return;
+  private finish(conversation: ActiveConversation, stop: boolean, immediate = false): void {
+    if (conversation.torn || (conversation.ended && !immediate)) return;
     conversation.ended = true;
 
     const index = this.active.indexOf(conversation);
     if (index >= 0) this.active.splice(index, 1);
 
-    if (!stop) {
-      // Reported ended: the audio has already played out, so the nodes can go
-      // immediately.
+    if (!stop || immediate) {
+      if (stop) {
+        for (const source of conversation.sources) {
+          try { source.stop(this.context.currentTime); }
+          catch { /* Still disconnect every node if a source refuses stop. */ }
+        }
+      }
+      // Natural completion or a stopped hardware clock needs no release fade.
       this.tearDown(conversation);
       return;
     }

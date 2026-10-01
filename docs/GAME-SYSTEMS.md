@@ -477,7 +477,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-audio] Sound, ambience, music, and voices
 
-**Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Doors have provisional opening and closing recordings. Completed toilet use has a provisional flush; cancelling an action does not trigger it. Stove sound ownership is wired but silent pending recording selection. There is no music, room or outdoor ambience, alarm, or non-verbal voice for anything except conversation. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
+**Status: Partial.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Showering, handwashing and kitchen washing-up play provisional flowing-water recordings owned by the object in use. Doors have provisional opening and closing recordings. Completed toilet use has a provisional flush on the held development branch; cancelling an action does not trigger it. The Cook step plays a provisional first-party synthetic cooking texture through the same object-owned player. There is no music, room or outdoor ambience, alarm, or non-verbal voice for anything except conversation. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
 
 ## Proposed additional systems
 

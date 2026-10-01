@@ -3,10 +3,11 @@ import { AudioController } from '../src/audio/audio-controller.ts';
 // Decode the shipped file and render its real graph without speaker output.
 export async function proveToiletRecording() {
   const results = [];
-  for (const mode of ['single', 'four', 'load', 'mute', 'effects', 'background', 'pause']) {
+  for (const mode of ['single', 'four', 'load', 'mute', 'effects', 'background', 'pause', 'suspended', 'interrupted']) {
     const offline = new OfflineAudioContext(2, 48000 * 5, 48000);
+    let state = 'running';
     const context = {
-      get currentTime() { return offline.currentTime; }, get state() { return 'running'; },
+      get currentTime() { return offline.currentTime; }, get state() { return state; },
       destination: offline.destination,
       createGain: () => offline.createGain(), createOscillator: () => offline.createOscillator(),
       createBufferSource: () => offline.createBufferSource(),
@@ -43,6 +44,13 @@ export async function proveToiletRecording() {
         if (mode === 'effects') controller.setEffectsLevel(0);
         if (mode === 'background') await controller.setBackgrounded(true);
         if (mode === 'pause') controller.setObjectSoundsPaused(true);
+        if (mode === 'suspended' || mode === 'interrupted') {
+          state = mode;
+          controller.beginActivityFrame(); controller.endActivityFrame();
+          if (controller.activeToiletVoiceCount() !== 0) throw new Error('Frozen flush retained');
+          state = 'running';
+          controller.beginActivityFrame(); controller.endActivityFrame();
+        }
         await offline.resume();
       }
       const rendered = await rendering;

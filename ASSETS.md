@@ -205,6 +205,18 @@ buffer at gain 0.35, below the unchanged shower gain of 0.6. No duplicate asset
 or new download is added. Sink timbre and mix remain provisional. See
 `docs/specs/2026-10-01-sink-water-audio.md`.
 
+## Cooking texture
+
+`web/public/audio/objects/stove-cooking.wav` is a first-party synthetic texture,
+not a sampled or downloaded recording. Its editable source is
+`scripts/build-stove-texture.mjs`: seeded filtered noise, smoothly shaped short
+bursts, 100 ms loop overlap and PCM16 export. No third-party audio or dependency
+is used. The four-second mono 48 kHz WAV is 384,044 bytes, SHA-256
+`c126462490ce29618b9d285ffeb0d3c05883e0723d230cbca80ce3fc7b2b07a8`.
+The existing Cook step plays it at gain 0.6 before Effects. This is a provisional
+interpretation of cooking, not an accepted recording of a particular recipe.
+See `docs/specs/2026-10-01-stove-cooking-texture.md` for preparation and evidence.
+
 ## Door recordings
 
 Two provisional recordings accompany actual door state changes. Author:
@@ -242,6 +254,19 @@ page identifies two toilet-flushing recordings. Archive SHA-256 is
 outputs. The shorter of two candidates was selected to limit overlap, not on
 claimed listening evidence. Technical contract and measurements are in
 `docs/specs/2026-10-01-toilet-completion-audio.md`; owner listening remains open.
+
+## Paper recordings for review only
+
+Four unchanged originals from rubberduck's [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx), CC0 1.0, are retained in `assets/audio/review/paper/`. Archive SHA-256 is `a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`. The source page and local archive hash were rechecked on 2026-10-01; no new pack was downloaded.
+
+| Exact archive entry | Original bytes | SHA-256 |
+| --- | ---: | --- |
+| `paper_01.ogg` | 25,529 | `b2b2b55e44761c7a45283bce0196f41f72207180fb08c970d7dcf93b705d280c` |
+| `paper_02.ogg` | 27,205 | `4d0c68b367bd3fbdf9817e764908e5524b2cad6536eb0911fc74f6ab4f60c50a` |
+| `paper_03.ogg` | 29,838 | `90147dde68b9e2082404f439165bbcb6f7c2364e88e9373d1cd1f7446a37f7b2` |
+| `paper_04.ogg` | 32,322 | `afae7236bce275fad555922cc8578882eb0c0b5d822be0a9180c9efdadf4a770` |
+
+The standalone `web/public/audio-review.html` embeds these bytes for comparison. They are not registered in the game audio catalog, and no existing cue is replaced. All four decoded as finite, unclipped stereo at 48 kHz. That is mechanical screening, not listening acceptance. The source, measurements and publication contract are in `docs/specs/2026-10-01-paper-sound-review.md`.
 
 ## What was here before, and why it is gone
 
