@@ -48,6 +48,7 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Meals, leftover portions, dirty dishes and interrupted cooking carry over when you save and load.
 - Sim details start narrower and expand when Personal details need more space. Shyness appears alongside personality information.
 - Privacy detours preserve meal pickup, occupied dining spaces and interrupted cleanup.
+- The bar at the bottom always shows what the selected Sim is doing. Critical needs now appear on their own line instead of replacing it.
 
 ## Art
 - Doors have visible thickness, panels and handles on both sides. Lighter frame outlines fit the furniture, and the posts have clean joins.

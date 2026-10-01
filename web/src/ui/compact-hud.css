@@ -47,7 +47,7 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 }
 #sim-dock [hidden], #sim-dock[hidden] { display: none !important; }
 #sim-dock-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-#sim-identity { flex: 1 0 60px; min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+#sim-identity { flex: 1 0 60px; min-width: 0; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); align-items: baseline; gap: 0 10px; }
 #needs-caption { margin: 0; cursor: default; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #dock-activity { color: var(--hud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #sim-dock-header > .hud-button { min-height: 32px; padding: 0 10px; flex: none; }
@@ -134,7 +134,7 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 
 @media (max-width: 900px) {
   #dock-wellbeing { flex-basis: 320px; }
-  #sim-identity { display: grid; gap: 0; }
+  #sim-identity { grid-template-columns: minmax(0, 1fr); gap: 0; }
   #sim-dock-body { grid-template-columns: minmax(150px, 0.8fr) minmax(0, 2fr); }
   #needs-content { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -148,9 +148,9 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   #dock-wellbeing { order: 1; flex: 1 0 100%; gap: 16px; }
   #dock-wellbeing .summary-label { font-size: 11px; }
   #dock-wellbeing .mood-track { height: 5px; }
-  #sim-identity { display: grid; gap: 0; }
+  #sim-identity { grid-template-columns: minmax(0, 1fr); gap: 0; }
   #needs-caption { font-size: 18px; }
-  #dock-activity { font-size: 11px; }
+  #dock-activity, #dock-critical { font-size: 11px; }
   #sim-dock-header > .hud-button { min-height: 44px; padding: 0 7px; }
   #dock-queue { display: none; }
   #sim-dock-collapse { font-size: 11px; }
@@ -175,7 +175,8 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 body[data-building='true'] #hud #time-controls { display: none; }
 #hud:has(#options-panel:not([hidden])) { z-index: 8; }
 
-#dock-activity[data-urgent='true'] { white-space: normal; color: var(--hud-danger); }
+#dock-critical { grid-column: 1 / -1; color: var(--hud-danger); }
+#dock-critical:empty { display: none; }
 
 #dock-alert { margin: 4px 0 0; color: var(--hud-danger); max-height: 4.2em; overflow-y: auto; }
 #dock-alert:empty { margin: 0; }

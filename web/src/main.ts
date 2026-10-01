@@ -601,16 +601,19 @@ async function main(): Promise<void> {
   const dockTraitsEmpty = document.getElementById('dock-traits-empty');
   const queueEmpty = document.getElementById('queue-empty');
   const dockAlert = document.getElementById('dock-alert');
-  if (!dockActivity || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
+  const dockCritical = document.getElementById('dock-critical');
+  if (!dockActivity || !dockCritical || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
   const needMeters = Array.from(needsContent.querySelectorAll<HTMLElement>('[role="meter"]'));
   const syncDockSummary = () => {
     const critical = needsContent.hidden ? [] : needMeters
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
-    const activity = critical.length ? `Critical: ${critical.join(', ')}`
-      : activityValue.textContent ?? '';
+    // The current activity always shows; critical needs get their own line.
+    const activity = activityValue.textContent ?? '';
+    const urgent = critical.length ? `Critical: ${critical.join(', ')}` : '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
+    if (dockCritical.textContent !== urgent) dockCritical.textContent = urgent;
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
     queueEmpty.hidden = !actionQueueRoot.hidden;
     const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
