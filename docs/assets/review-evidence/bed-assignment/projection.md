@@ -91,3 +91,11 @@ the rerun results are in `projection-autonomy-report.json` and
 `projection-old-layout-report.json`.
 
 Logs and the fault runner are under `.tmp/bed-assignment/projection-*`.
+
+## Main integration after the retention fix
+
+The held bed branch integrated main `c0949f05` at `7d4c617d` on 2026-10-01. Main contains the separately reviewed component-removal history maintenance from PR #186 and the audio state-event cleanup from PR #185. The bed implementation remains unpublished pending accepted occupied artwork and renderer integration.
+
+`cargo test --workspace --locked -j 1 --quiet` passed with exit 0: 109 core tests, 270 data tests, one data integration test, 759 simulation tests, and 153 WASM-boundary tests. The three new lifecycle tests also passed individually through the real full-tick and paused-drain boundaries. Documentation IDs and `git diff --check` passed.
+
+This is native integration evidence. The earlier bed release-WASM artifact and browser reports above retain their original provenance; they have not been relabeled as a fresh build of this merge. The reviewed main-only memory comparison is in `../ecs-lifecycle/README.md` and does not establish occupied-bed artwork acceptance.
