@@ -1,0 +1,34 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Additive alpha GPU control</title><body>
+<pre id="result">Checking alpha division...</pre><canvas id="canvas" width="240" height="220"></canvas>
+<script type="module">
+import {initDevice} from '../src/render/device.ts';
+import {SpriteRenderer} from '../src/render/sprites.ts';
+import {ATLAS_WIDTH,ATLAS_HEIGHT,BED_CATALOG,BED_LAYERS,SPRITES,spriteIndex} from '../src/render/atlas.ts';
+import {writeInstance} from '../src/render/instances.ts';
+const canvas=document.createElement('canvas');canvas.width=240;canvas.height=220;
+const gpu=await initDevice(canvas);
+try {
+ gpu.device.pushErrorScope('validation');
+ const scene=BED_CATALOG[spriteIndex('offlineDoubleBed')][27];
+ const texture=gpu.device.createTexture({size:[ATLAS_WIDTH,ATLAS_HEIGHT],format:'rgba8unorm',usage:GPUTextureUsage.TEXTURE_BINDING|GPUTextureUsage.COPY_DST});
+ const colours=[[20,0,0,128],[0,20,0,128],[0,0,20,128],[0,0,0,0]];
+ for(const [term,index] of BED_LAYERS[scene.sprite].entries()) {
+  const sprite=SPRITES[index],data=new Uint8Array(sprite.w*sprite.h*4);
+  for(let at=0;at<data.length;at+=4)data.set(colours[term],at);
+  gpu.device.queue.writeTexture({texture,origin:[sprite.x,sprite.y]},data,{bytesPerRow:sprite.w*4},[sprite.w,sprite.h]);
+ }
+ // The JS fixture supplies a numeric texture to the production constructor.
+ // No shader math or pipeline behavior is replaced by the test.
+ const renderer=new SpriteRenderer(gpu,texture),instances=new Float32Array(16);
+ writeInstance(instances,0,120,170,.5,scene.sprite);renderer.draw(instances,1,1);
+ await gpu.device.queue.onSubmittedWorkDone();
+ const copy=document.createElement('canvas');copy.width=240;copy.height=220;
+ const ctx=copy.getContext('2d');ctx.drawImage(canvas,0,0);
+ const actual=Array.from(ctx.getImageData(110,110,1,1).data);
+ document.querySelector('#canvas').getContext('2d').drawImage(copy,0,0);
+ const expected=[64,64,64,255];
+ const error=await gpu.device.popErrorScope();
+ document.querySelector('#result').textContent=JSON.stringify({pass:!error&&actual.every((value,index)=>Math.abs(value-expected[index])<=1),actual,expected,validation:error?.message??null});
+} catch(error){document.querySelector('#result').textContent=JSON.stringify({pass:false,error:String(error)});}
+finally{gpu.device.destroy();}
+</script></body></html>

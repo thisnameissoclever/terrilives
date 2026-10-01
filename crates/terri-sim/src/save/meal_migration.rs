@@ -8,7 +8,10 @@ pub(super) fn validate_source(
     snapshot: &SaveSnapshotV1,
     destination: &ContentPack,
 ) -> Result<(), SaveError> {
-    if snapshot.content_fingerprint != terri_data::content_fingerprint(destination) {
+    if !terri_data::content_fingerprint_has_current_recipe(
+        destination,
+        snapshot.content_fingerprint,
+    ) {
         if let Some(source) = terri_data::pre_meals_content(destination) {
             // The bathtub bridge owns earlier geometry migrations and validates
             // the source before making them. Do not accept a digest on its own.
@@ -23,7 +26,8 @@ pub(super) fn prepare(
     snapshot: SaveSnapshotV1,
     destination: &ContentPack,
 ) -> Result<(SaveSnapshotV1, bool), SaveError> {
-    if snapshot.content_fingerprint == terri_data::content_fingerprint(destination) {
+    if terri_data::content_fingerprint_has_current_recipe(destination, snapshot.content_fingerprint)
+    {
         return bathtub::prepare(snapshot, destination);
     }
     let Some(source) = terri_data::pre_meals_content(destination) else {

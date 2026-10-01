@@ -3,6 +3,7 @@
 mod action_queue;
 #[cfg(test)]
 mod activity_tests;
+pub mod beds;
 pub mod details;
 pub mod domestic;
 #[cfg(test)]
@@ -141,6 +142,8 @@ struct RenderRow {
     activity: u32,
     visual_action: u32,
     interaction_target: u32,
+    sleeping_bed: u32,
+    sleeping_place: u32,
     facing: u32,
     sound_action: u32,
     sound_source: u32,
@@ -311,6 +314,12 @@ fn authored_object_facing_codes(
             terri_data::CompiledVisualFacing::TowardAnchor,
             None,
         ) => Some((visual_action::WATCH, activity::WATCHING_FISH)),
+        (
+            terri_data::CompiledVisualAction::Sleep,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+            None,
+        ) => Some((visual_action::SLEEP, activity::SLEEPING)),
         _ => None,
     }
 }
@@ -784,7 +793,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -873,6 +884,7 @@ impl Sim {
             waiting_needs: waiting::snapshot(&self.world),
             self_preservation: save::self_preservation::capture(&self.world),
             chronotype_offsets: save::chronotype::capture(&self.world),
+            sleeping_places: Some(save::sleeping_places::capture(&self.world)),
             domestic: domestic::snapshot(&self.world),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
@@ -902,7 +914,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -914,7 +928,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -949,7 +965,9 @@ impl Sim {
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::restore(snapshot, content, active_portals)?;
+        let mut restored = save::restore(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -996,6 +1014,8 @@ impl Sim {
         world.insert_resource(terri_core::CommandQueue::default());
         world.insert_resource(systems::command::CommandFeedback::default());
         world.insert_resource(placement::LotEditState::default());
+        world.insert_resource(beds::BedAssignments::default());
+        world.insert_resource(beds::AssignmentFeedback::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -1012,6 +1032,7 @@ impl Sim {
         world.register_component::<terri_core::Reserved>();
         world.register_component::<terri_core::Path>();
         world.register_component::<terri_core::Target>();
+        world.register_component::<terri_core::SleepPlace>();
         world.register_component::<terri_core::Eating>();
         world.register_component::<terri_core::Restless>();
         world.register_component::<terri_core::Wander>();
@@ -1412,7 +1433,7 @@ impl Sim {
                 .filter(|edge| edge.in_bounds(width, height))
                 .copied()
                 .collect(),
-            ..pack.lot.clone()
+            ..test_content::historical_lot(pack)
         };
         let mut sim = Self::new_from_lot(&lot, &pack.objects);
         sim.world
@@ -1584,6 +1605,8 @@ impl Sim {
         self.render.activities.clear();
         self.render.visual_actions.clear();
         self.render.interaction_targets.clear();
+        self.render.sleeping_beds.clear();
+        self.render.sleeping_places.clear();
         self.render.facings.clear();
         self.render.sound_actions.clear();
         self.render.sound_sources.clear();
@@ -1960,6 +1983,9 @@ impl Sim {
                 render_buffer::NO_SOUND_SOURCE,
             ));
             let crossing = portals::crossing_position(&self.world, entity, Position { x, y });
+            let sleeping = (is_agent && !socially_active && !at_work)
+                .then(|| beds::sleeping_place(&self.world, entity))
+                .flatten();
             rows.push(RenderRow {
                 entity,
                 index: entity.index_u32(),
@@ -1983,6 +2009,12 @@ impl Sim {
                     .map_or(render_buffer::NO_INTERACTION_TARGET, |projection| {
                         projection.target_entity
                     }),
+                sleeping_bed: sleeping.map_or(render_buffer::NO_SLEEPING_BED, |place| {
+                    place.bed.index_u32()
+                }),
+                sleeping_place: sleeping.map_or(render_buffer::NO_SLEEPING_PLACE, |place| {
+                    u32::from(place.ordinal)
+                }),
                 facing,
                 sound_action,
                 sound_source,
@@ -2038,6 +2070,8 @@ impl Sim {
             self.render.activities.push(row.activity);
             self.render.visual_actions.push(row.visual_action);
             self.render.interaction_targets.push(row.interaction_target);
+            self.render.sleeping_beds.push(row.sleeping_bed);
+            self.render.sleeping_places.push(row.sleeping_place);
             self.render.facings.push(row.facing);
             self.render.sound_actions.push(row.sound_action);
             self.render.sound_sources.push(row.sound_source);
@@ -2991,6 +3025,7 @@ impl Sim {
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
+        beds::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<terri_core::Funds>().0 as u64);
 
         let commands = self.world.resource::<terri_core::CommandQueue>();
@@ -3001,6 +3036,12 @@ impl Sim {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
                     SetDeathEnabled(enabled) => vec![17, u64::from(*enabled)],
+                    SetBedAssignment { agent, place } => match place {
+                        Some((bed, ordinal)) => {
+                            vec![19, *agent as u64, 1, *bed as u64, *ordinal as u64]
+                        }
+                        None => vec![19, *agent as u64, 0],
+                    },
                     Select(id) => vec![0, id.map_or(u64::MAX, |id| id as u64)],
                     UseObject {
                         agent,
@@ -3327,6 +3368,7 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                sleep_places: Vec::new(),
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
                 presentation: None,
@@ -3894,18 +3936,18 @@ mod lot_tests {
         // **The double bed is the 2x2 object, and all four of its tiles are
         // solid.** Literal coordinates for the same reason as the doorways
         // above. The depth axis matters as much as the width: a rule that
-        // walked `width` twice would leave (0, 7) and (1, 7) walkable and a
+        // walked `width` twice would leave (0, 9) and (1, 9) walkable and a
         // sim would path straight through the bed, which is the transposition
         // trap in [L34] wearing a footprint.
-        for tile in [(0, 6), (1, 6), (0, 7), (1, 7)] {
+        for tile in [(0, 8), (1, 8), (0, 9), (1, 9)] {
             assert!(
                 !grid.is_walkable(tile.0, tile.1),
                 "the double bed covers {tile:?} and it must be solid"
             );
         }
         assert!(
-            grid.is_walkable(2, 7),
-            "(2, 7) is beside the bed and is where a sim sleeps from"
+            grid.is_walkable(1, 7) && grid.is_walkable(1, 10),
+            "both sleeping sides need a walkable approach"
         );
     }
 }

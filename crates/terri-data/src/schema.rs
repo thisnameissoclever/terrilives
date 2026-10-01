@@ -394,6 +394,9 @@ pub struct ObjectDef {
     /// Appended so existing authored objects remain valid unchanged.
     #[serde(default)]
     pub action_socket: Vec<ActionSocketDef>,
+    /// Ordered sleeping-place access, in base-facing footprint coordinates.
+    #[serde(default)]
+    pub sleep_place: Vec<crate::pack::SleepPlaceAccess>,
 }
 
 /// A named presentation point in object-local lot coordinates.

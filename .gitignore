@@ -59,6 +59,7 @@ assets/models/sims/sim-01/exercise-*-status.json
 # docs/assets/review-evidence/ first, without account balances or provider
 # identifiers.
 .tmp/
+web/proofs/.covered-bed-reference.json
 .scratch/
 assets/models/sims/sim-01/domestic-status.json
 assets/models/sims/sim-01/export/domestic/*/raw-*.png
@@ -78,6 +79,8 @@ assets/models/bedroom/owner-review-pending/bunk/candidate-02/contributions-*/*.p
 assets/models/bedroom/owner-review-pending/bunk/candidate-02/contribution-pilot/*.png
 assets/models/bedroom/owner-review-pending/bunk/candidate-03/contributions-*/*.png
 assets/models/bedroom/owner-review-pending/bunk/candidate-01/*.blend
+# Full-size covered double-bed passes remain local; retain their hash-linked journal.
+assets/models/bedroom/owner-review-pending/double-bed/candidate-03/contributions-01/*.png
 assets/models/office/owner-review-pending/office-chair/candidate-01/*.blend
 assets/models/office/owner-review-pending/office-chair/candidate-02/*.blend
 # Keep rejected chair originals and notes, but only the accepted editable model.

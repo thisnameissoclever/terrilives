@@ -591,6 +591,20 @@ impl TileGrid {
 }
 
 impl TileDistanceField {
+    /// Distance to an exact approach tile with an open cardinal contact edge.
+    pub fn distance_to_contact(&self, approach: (i32, i32), contact: (i32, i32)) -> Option<u32> {
+        if contact.0 < 0
+            || contact.1 < 0
+            || contact.0 >= self.width as i32
+            || contact.1 >= self.height as i32
+            || approach.0.abs_diff(contact.0) as u64 + approach.1.abs_diff(contact.1) as u64 != 1
+        {
+            return None;
+        }
+        let distance = self.distance_across_boundary(approach, contact);
+        (distance != u32::MAX).then_some(distance)
+    }
+
     /// Shortest distance to any orthogonally adjacent tile around the whole
     /// footprint rectangle across an open contact boundary, matching
     /// [`TileGrid::find_path_adjacent`]. The field retains the edge snapshot
@@ -755,6 +769,42 @@ impl PartialOrd for OpenNode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn exact_contact_requires_a_reachable_tile_and_an_open_cardinal_boundary() {
+        let mut grid = TileGrid::new(4, 4);
+        grid.set_blocked(2, 2, true);
+        let old = grid.distance_field((0, 0)).unwrap();
+        assert_eq!(old.distance_to_contact((2, 1), (2, 2)), Some(3));
+        for (approach, contact) in [
+            ((2, 1), (2, 1)),
+            ((1, 1), (2, 2)),
+            ((0, 0), (-1, 0)),
+            ((2, 2), (2, 1)),
+        ] {
+            assert_eq!(old.distance_to_contact(approach, contact), None);
+        }
+        grid.set_edge_blocked((2, 1), (2, 2), true);
+        assert_eq!(
+            grid.distance_field((0, 0))
+                .unwrap()
+                .distance_to_contact((2, 1), (2, 2)),
+            None
+        );
+        assert_eq!(
+            old.distance_to_contact((2, 1), (2, 2)),
+            Some(3),
+            "fields retain their boundary snapshot"
+        );
+        grid.set_edge_blocked((2, 1), (2, 2), false);
+        grid.set_blocked(2, 1, true);
+        assert_eq!(
+            grid.distance_field((0, 0))
+                .unwrap()
+                .distance_to_contact((2, 1), (2, 2)),
+            None
+        );
+    }
 
     /// The one-tile case of the production goal test, delegating rather than
     /// restating the arithmetic, so the tests that predate footprints keep

@@ -35,6 +35,7 @@ fn destination() -> &'static ContentPack {
 /// The cell-wall house, on the lot as it stood before the yard ([OS-grow]).
 fn source_sim() -> Sim {
     let mut pack = terri_data::pack().clone();
+    pack.lot = crate::test_content::historical_lot(&pack);
     (pack.lot.width, pack.lot.height) = pack.lot.house;
     pack.lot.wall_edges.clear();
     pack.lot.walls = bathtub::source_layout::WALLS

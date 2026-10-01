@@ -288,9 +288,51 @@ pub struct CompiledObject {
     pub price: Option<u32>,
     /// Appended presentation data; absent retains the existing name-only display.
     pub presentation: Option<ObjectPresentation>,
+    /// Ordered physical sleeping places. Saved ordinals follow this order.
+    pub sleep_places: Vec<SleepPlaceAccess>,
+}
+
+/// Navigation offsets from the base-facing footprint, independent of art sockets.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SleepPlaceAccess {
+    pub id: String,
+    pub approaches: Vec<(i32, i32)>,
 }
 
 impl CompiledObject {
+    /// Alternate sleep interactions share physical capacity rather than adding it.
+    pub fn sleep_capacity(&self, sleep_tag: &str) -> u8 {
+        if sleep_tag.is_empty() {
+            return 0;
+        }
+        self.interactions
+            .iter()
+            .filter(|interaction| interaction.tags.iter().any(|tag| tag == sleep_tag))
+            .map(|interaction| interaction.slots)
+            .max()
+            .unwrap_or(0)
+    }
+
+    /// Rotated perimeter offsets. An unauthored single place uses legacy adjacency.
+    pub fn sleep_approaches_at(&self, ordinal: u8, facing: Facing) -> Option<Vec<(i32, i32)>> {
+        let place = self.sleep_places.get(ordinal as usize)?;
+        let width = self.footprint.width as i32;
+        let depth = self.footprint.depth as i32;
+        let turn = self.relative_turn(facing);
+        Some(
+            place
+                .approaches
+                .iter()
+                .map(|&(x, y)| match turn {
+                    Facing::SouthEast => (x, y),
+                    Facing::SouthWest => (depth - 1 - y, x),
+                    Facing::NorthWest => (width - 1 - x, depth - 1 - y),
+                    Facing::NorthEast => (y, width - 1 - x),
+                })
+                .collect(),
+        )
+    }
+
     /// Primary identification for controls and accessible labels.
     pub fn display_name(&self) -> &str {
         self.presentation
@@ -1368,6 +1410,7 @@ mod tests {
                         });
                     }
                     CompiledObject {
+                        sleep_places: Vec::new(),
                         id: (*id).to_string(),
                         name: id.to_uppercase(),
                         presentation: None,
@@ -1677,6 +1720,7 @@ mod tests {
         facing_foreground_sprites: FacingSprites,
     ) -> CompiledObject {
         CompiledObject {
+            sleep_places: Vec::new(),
             id: "thing".to_string(),
             name: "Thing".to_string(),
             presentation: None,

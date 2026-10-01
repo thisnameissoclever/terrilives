@@ -437,6 +437,7 @@ pub fn compile(
             });
         }
         let definition = CompiledObject {
+            sleep_places: object.sleep_place.clone(),
             id: object.id.clone(),
             name: object.name.clone(),
             presentation: object.presentation.clone(),
@@ -477,6 +478,9 @@ pub fn compile(
         &sprite_index,
     )?;
     let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
+    for object in &compiled {
+        check_sleep_places(object, &sleep_tag)?;
+    }
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -1828,7 +1832,7 @@ fn compile_visual(
             None
         ) | (
             VisualOwner::Object { .. },
-            CompiledVisualAction::Read,
+            CompiledVisualAction::Read | CompiledVisualAction::Sleep,
             CompiledVisualAnchor::Object,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -2877,6 +2881,45 @@ fn check_socket_bounds(
     Ok(())
 }
 
+fn check_sleep_places(object: &CompiledObject, sleep_tag: &str) -> Result<(), ContentError> {
+    let invalid = |reason: &str| ContentError::InvalidSleepPlaces {
+        object: object.id.clone(),
+        reason: reason.into(),
+    };
+    let capacity = object.sleep_capacity(sleep_tag) as usize;
+    if object.sleep_places.is_empty() && capacity <= 1 {
+        return Ok(());
+    }
+    if object.sleep_places.len() != capacity {
+        return Err(invalid(
+            "declare one access record per physical sleeping place",
+        ));
+    }
+    let mut ids = BTreeSet::new();
+    let mut approaches = BTreeSet::new();
+    let width = i64::from(object.footprint.width);
+    let depth = i64::from(object.footprint.depth);
+    for place in &object.sleep_places {
+        if place.id.trim().is_empty() || !ids.insert(&place.id) {
+            return Err(invalid("place IDs must be nonempty and unique"));
+        }
+        if place.approaches.is_empty() {
+            return Err(invalid("every place needs at least one approach tile"));
+        }
+        for &(x, y) in &place.approaches {
+            let (x, y) = (i64::from(x), i64::from(y));
+            let on_perimeter = ((0..width).contains(&x) && (y == -1 || y == depth))
+                || ((0..depth).contains(&y) && (x == -1 || x == width));
+            if !on_perimeter || !approaches.insert((x, y)) {
+                return Err(invalid(
+                    "approaches must be distinct cardinal perimeter tiles",
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 fn check_direction_sockets(object: &CompiledObject) -> Result<(), ContentError> {
     for facing in Facing::ALL {
         if !object.supports(facing) {
@@ -3752,32 +3795,33 @@ mod tests {
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
-    // Measured after appending ordinary activity metadata. The fixture carries
-    // None, whose zero byte follows the existing interaction sound field.
+    // The fixture appends ordinary activity None after interaction sound_action
+    // and an empty sleep_places vector after object presentation. Relative to
+    // the 413-byte ancestor, these add zeros at offsets 98 and 108 respectively.
     // These embedded build bytes are separate from persisted SaveSnapshot DTOs.
-    // Domestic tuning appends one None byte after the autonomy fields.
+    // Domestic tuning inserts its None byte after the autonomy fields (merged offset 405).
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
         116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0,
-        0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0,
-        62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63, 3,
-        172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80,
-        63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0, 0,
-        192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28, 216,
-        4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160,
-        65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160,
-        65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76,
-        61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 128,
-        63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112, 137,
-        48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64, 63,
-        50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
+        0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0,
+        0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0,
+        0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63,
+        3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
+        80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0,
+        0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28,
+        216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0,
+        160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0,
+        160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204,
+        76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0,
+        128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112,
+        137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64,
+        63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3868,6 +3912,7 @@ mod tests {
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
+                    sleep_place: Vec::new(),
                     roles: vec![],
                     action_socket: vec![],
                     id: (*id).to_string(),
@@ -4050,6 +4095,65 @@ mod tests {
         }
     }
 
+    #[test]
+    fn sleeping_access_requires_distinct_valid_places_and_shared_capacity() {
+        let valid = || {
+            let mut action = snack();
+            action.tags = vec!["sleep".into()];
+            action.slots = 2;
+            let mut objects = one_object_sized(action, Footprint { width: 2, depth: 2 });
+            objects.object[0].sleep_place = vec![
+                crate::SleepPlaceAccess {
+                    id: "first".into(),
+                    approaches: vec![(0, -1), (1, -1)],
+                },
+                crate::SleepPlaceAccess {
+                    id: "second".into(),
+                    approaches: vec![(0, 2), (1, 2)],
+                },
+            ];
+            objects
+        };
+        let mut objects = valid();
+        let mut alternate = snack();
+        alternate.id = "nap".into();
+        alternate.tags = vec!["sleep".into()];
+        alternate.slots = 1;
+        objects.object[0].interaction.push(alternate);
+        assert!(compile_objects(full_needs(), objects).is_ok());
+        for change in 0..9 {
+            let mut objects = valid();
+            let object = &mut objects.object[0];
+            match change {
+                0 => object.sleep_place.clear(),
+                1 => {
+                    object.sleep_place.pop();
+                }
+                2 => object.sleep_place[0].id.clear(),
+                3 => object.sleep_place[1].id = "first".into(),
+                4 => object.sleep_place[0].approaches.clear(),
+                5 => object.sleep_place[0].approaches[0] = (0, 0),
+                6 => object.sleep_place[0].approaches[0] = (-1, -1),
+                7 => object.sleep_place[1].approaches[0] = (0, -1),
+                _ => object.interaction[0].tags.clear(),
+            }
+            assert!(
+                matches!(
+                    compile_objects(full_needs(), objects),
+                    Err(ContentError::InvalidSleepPlaces { .. })
+                ),
+                "mutation {change}"
+            );
+        }
+        let mut single = valid();
+        single.object[0].interaction[0].slots = 1;
+        single.object[0].sleep_place.clear();
+        assert!(
+            compile_objects(full_needs(), single).is_ok(),
+            "one unauthored place retains perimeter access"
+        );
+    }
+
     fn one_object(interaction: InteractionDef) -> ObjectsFile {
         one_object_sized(interaction, Footprint::SINGLE)
     }
@@ -4059,6 +4163,7 @@ mod tests {
         ObjectsFile {
             colourway: Vec::new(),
             object: vec![ObjectDef {
+                sleep_place: Vec::new(),
                 roles: vec![],
                 action_socket: vec![],
                 id: "fridge".into(),
@@ -4533,6 +4638,7 @@ mod tests {
     fn rejects_duplicate_object_ids() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
             id: "fridge".into(),
@@ -4572,6 +4678,7 @@ mod tests {
     fn allows_the_same_interaction_id_on_different_objects() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
             id: "vending".into(),
@@ -6403,6 +6510,7 @@ mod tests {
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
+                    sleep_place: Vec::new(),
                     roles: vec![],
                     action_socket: vec![],
                     id: (*id).to_string(),
@@ -7878,6 +7986,7 @@ mod tests {
         // A second object so there are two ObjectDefIds to sort between.
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
             id: "couch".into(),
@@ -9435,7 +9544,8 @@ mod tests {
                     let legal = match owner {
                         VisualOwner::Social { .. } => action == "talk" && anchor == "partner",
                         VisualOwner::Object { .. } => {
-                            matches!(action, "eat" | "read" | "watch") && anchor == "object"
+                            matches!(action, "eat" | "read" | "watch" | "sleep")
+                                && anchor == "object"
                         }
                         VisualOwner::ChainStep { .. } => action == "eat" && anchor == "station",
                     };
@@ -9595,7 +9705,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "eat" | "read" | "watch",
+                                    "eat" | "read" | "watch" | "sleep",
                                     "object",
                                     "toward_anchor",
                                     None
@@ -9695,6 +9805,7 @@ mod tests {
 
     fn reading_object() -> ObjectDef {
         ObjectDef {
+            sleep_place: Vec::new(),
             id: "reading_chair".to_string(),
             name: "Reading chair".to_string(),
             presentation: None,
@@ -10534,6 +10645,7 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec!["eating_surface".to_string()],
             action_socket: vec![],
             id: "sink".into(),
@@ -10959,6 +11071,7 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec!["eating_surface".to_string()],
             action_socket: vec![],
             id: "sink".into(),

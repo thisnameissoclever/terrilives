@@ -1,0 +1,3723 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\2301\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\2301\terrilives\crates\terri-sim)
+error: bare CR not allowed in doc-comment
+ --> crates\terri-sim\src\lib.rs:1:66
+  |
+1 | //! Simulation systems and scheduling. No web dependencies, ever.
+  |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:36:74
+   |
+36 | /// The content pack, as a resource so systems can resolve object ids and
+   |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:37:74
+   |
+37 | /// decay rates. Holds a `&'static` because the pack is embedded at build
+   |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:38:32
+   |
+38 | /// time and deserialised once.
+   |                                ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:39:4
+   |
+39 | ///
+   |    ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:40:73
+   |
+40 | /// Systems read this rather than calling `terri_data::pack()` directly,
+   |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:41:66
+   |
+41 | /// which is what lets a test point a world at a pack of its own.
+   |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:45:81
+   |
+45 | /// Rectangle occupied at the live direction, or the definition's authored base.
+   |                                                                                 ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:55:84
+   |
+55 | /// Applies a previously validated placement and all derived presentation together.
+   |                                                                                    ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:94:78
+   |
+94 | /// Presentation-only action positions resolved from compiled object content.
+   |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:95:4
+   |
+95 | ///
+   |    ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:96:77
+   |
+96 | /// This component deliberately stays out of `terri-core`: gameplay systems,
+   |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:97:80
+   |
+97 | /// Save V1, and the world hash have no reason to know that a body may be drawn
+   |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:98:80
+   |
+98 | /// somewhere other than its pathing tile. Placement, dynamic spawn and restore
+   |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+  --> crates\terri-sim\src\lib.rs:99:56
+   |
+99 | /// resolve sockets through [`apply_object_placement`].
+   |                                                        ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:103:74
+    |
+103 | /// Facing-resolved atlas layer drawn after bodies occupying this object.
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:107:46
+    |
+107 | /// Owns the ECS world and the tick schedule.
+    |                                              ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:114:74
+    |
+114 |     /// Full ECS identities that used a socket in the last render sample.
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:115:8
+    |
+115 |     ///
+    |        ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:116:77
+    |
+116 |     /// Keeping `Entity` rather than its raw index means a despawn and index
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:117:75
+    |
+117 |     /// reuse cannot masquerade as an unchanged projection. This is render
+    |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:118:76
+    |
+118 |     /// interpolation history only; it is intentionally absent from Save V1
+    |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:119:44
+    |
+119 |     /// and the deterministic world digest.
+    |                                            ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:121:71
+    |
+121 |     /// The entity in each render row at the last sync, in row order -
+    |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:122:80
+    |
+122 |     /// [SL-render] in `docs/specs/2026-09-22-selling-furniture.md`. A sale and
+    |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:123:79
+    |
+123 |     /// a purchase in one drain keep the row count while shifting rows, so the
+    |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:124:79
+    |
+124 |     /// interpolation history is reseeded whenever this list changes, not only
+    |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:125:71
+    |
+125 |     /// when its length does. Render history only, like the set above.
+    |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:185:65
+    |
+185 | /// Chooses the dominant lot axis from `source` toward `anchor`.
+    |                                                                 ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:186:4
+    |
+186 | ///
+    |    ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:187:70
+    |
+187 | /// A diagonal tie chooses x. Coincident participants cannot supply a
+    |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:188:78
+    |
+188 | /// direction geometrically, so entity order supplies a stable one: the lower
+    |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:189:77
+    |
+189 | /// index faces positive x and the higher index faces negative x. This keeps
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:190:65
+    |
+190 | /// the pair opposite without consulting row order or wall time.
+    |                                                                 ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:237:80
+    |
+237 | /// Chooses the dominant lot axis from the current position toward a path step.
+    |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:238:4
+    |
+238 | ///
+    |    ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:239:76
+    |
+239 | /// Paths are four-neighbour routes in ordinary play, but the dominant-axis
+    |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:240:74
+    |
+240 | /// rule keeps this presentation projection deterministic for a malformed
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:241:79
+    |
+241 | /// diagonal step too. A coincident step has no direction and therefore cannot
+    |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:242:29
+    |
+242 | /// select walking body art.
+    |                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:353:62
+    |
+353 | /// Expected sockets for tests of the default spawn boundary.
+    |                                                              ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:513:80
+    |
+513 | /// Resolves bubble identity from the exact active interaction or station step.
+    |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:514:77
+    |
+514 | /// Authored indicators do not select body art and never infer identity from
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:515:67
+    |
+515 | /// menu labels, gameplay tags, or the sprite drawn for an object.
+    |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:704:77
+    |
+704 | /// Projects the authored sound category and exact SmartObject source for an
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:705:57
+    |
+705 | /// actively running ordinary interaction or chain step.
+    |                                                         ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:706:4
+    |
+706 | ///
+    |    ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:707:77
+    |
+707 | /// This deliberately validates the same component identities that drive the
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:708:80
+    |
+708 | /// action. A broad activity, object name, or gameplay tag cannot invent sound.
+    |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:773:73
+    |
+773 |     /// Captures the frozen V1 world payload, without edge architecture.
+    |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:774:76
+    |
+774 |     /// Use `save_snapshot_v5` for complete persistence of a current world.
+    |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:779:83
+    |
+779 |     /// Captures historical V2 architecture and world, without runtime directions.
+    |                                                                                   ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:803:90
+    |
+803 |     /// Captures architecture and runtime directions without changing historical records.
+    |                                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:832:81
+    |
+832 |     /// The previous envelope - [SL-save]: V3's, with the indices sales retired.
+    |                                                                                 ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:850:74
+    |
+850 |     /// The current envelope - [RC-save]: V4's, with each placed object's
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:851:76
+    |
+851 |     /// colourway, ascending by entity index, for the objects not as drawn.
+    |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:898:82
+    |
+898 |     /// Validates the complete candidate before replacing the running simulation.
+    |                                                                                  ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:910:82
+    |
+910 |     /// Validates the complete candidate before replacing the running simulation.
+    |                                                                                  ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:924:82
+    |
+924 |     /// Validates the complete candidate before replacing the running simulation.
+    |                                                                                  ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:938:78
+    |
+938 |     /// Replaces the running simulation with a restored one that passed every
+    |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:939:77
+    |
+939 |     /// check. The lot's revision moves on so the shell rereads the lot. The
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:940:80
+    |
+940 |     /// portal rows are rebuilt last: the restore synced them before it put the
+    |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:941:74
+    |
+941 |     /// saved walls in, and the interior doors are drawn from those walls
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:942:79
+    |
+942 |     /// ([DR-derived]), so without this a loaded house would show its doorways
+    |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:943:38
+    |
+943 |     /// doorless until the next tick.
+    |                                      ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:944:8
+    |
+944 |     ///
+    |        ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:945:77
+    |
+945 |     /// A house saved before the yard grows into it first ([OS-migrate]), so
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:946:53
+    |
+946 |     /// every loader passes through the same growth.
+    |                                                     ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:963:77
+    |
+963 |     /// Loads a historical V1 payload, including reviewed layout migrations.
+    |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:964:42
+    |
+964 |     /// On any error `self` is untouched.
+    |                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:975:74
+    |
+975 |     /// Creates a sim with a **1x1 placeholder lot**, so only tile (0, 0)
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:976:21
+    |
+976 |     /// is walkable.
+    |                     ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:977:8
+    |
+977 |     ///
+    |        ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:978:73
+    |
+978 |     /// Only suitable for worlds that never path: need decay, clock, and
+    |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:979:66
+    |
+979 |     /// component-level tests. Any world built with `Sim::new` or
+    |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:980:68
+    |
+980 |     /// `Sim::default` that contains a smart object will have every
+    |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:981:74
+    |
+981 |     /// `find_path` return `None` on every tick, so agents silently never
+    |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:982:72
+    |
+982 |     /// go anywhere - no panic, no log, and the sim looks alive because
+    |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:983:73
+    |
+983 |     /// needs still decay. Use [`Sim::new_with_lot`] whenever agents are
+    |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:984:71
+    |
+984 |     /// expected to move, or [`Sim::new_from_lot`] to load an authored
+    |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+   --> crates\terri-sim\src\lib.rs:985:40
+    |
+985 |     /// lot with its walls and objects.
+    |                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1262:68
+     |
+1262 |     /// Creates a sim with an empty walkable lot of the given size.
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1270:72
+     |
+1270 |     /// Creates a sim holding a compiled lot: the grid sized to it, its
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1271:77
+     |
+1271 |     /// walls **and every placed object's footprint** marked unwalkable, and
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1272:37
+     |
+1272 |     /// every placed object spawned.
+     |                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1273:8
+     |
+1273 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1274:73
+     |
+1274 |     /// This is what makes `content/lot.toml` reach the game. Everything
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1275:67
+     |
+1275 |     /// it reads is post-validation, so nothing here re-checks it:
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1276:75
+     |
+1276 |     /// `terri-data`'s `compile` rejects a wall or a placement outside the
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1277:74
+     |
+1277 |     /// lot, a footprint that leaves it or crosses a wall, two footprints
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1278:75
+     |
+1278 |     /// that overlap, and an object nothing can walk up to; and `build.rs`
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1279:74
+     |
+1279 |     /// runs that validation over the shipped content at build time, so a
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1280:68
+     |
+1280 |     /// pack that exists cannot hold any of them. That is what lets
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1281:75
+     |
+1281 |     /// `set_blocked` be called without a bounds test - it asserts, and an
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1282:75
+     |
+1282 |     /// assertion firing here would mean the content gate had been removed
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1283:54
+     |
+1283 |     /// rather than that this function needs a guard.
+     |                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1284:8
+     |
+1284 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1285:79
+     |
+1285 |     /// **Footprint tiles are blocked rather than merely used for adjacency**,
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1286:78
+     |
+1286 |     /// which is [F3]. Leaving them walkable would be cheaper and would leave
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1287:73
+     |
+1287 |     /// sims pathing straight through the furniture, which is the defect
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1288:74
+     |
+1288 |     /// footprints exist to fix wearing a different hat; blocking them is
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1289:77
+     |
+1289 |     /// also what makes "two objects cannot overlap" enforceable at all. The
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1290:74
+     |
+1290 |     /// risk it creates - an object in a doorway sealing a room - is what
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1291:77
+     |
+1291 |     /// [F5]'s reachability rule exists to catch, and it catches it at build
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1292:31
+     |
+1292 |     /// time rather than here.
+     |                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1293:8
+     |
+1293 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1294:78
+     |
+1294 |     /// **`objects` is needed because a footprint is a property of the object
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1295:67
+     |
+1295 |     /// DEFINITION, not of the placement.** A placement carries an
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1296:76
+     |
+1296 |     /// `ObjectDefId`, so the extent has to be looked up; the alternative -
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1297:77
+     |
+1297 |     /// copying each footprint into `CompiledPlacement` - would put the same
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1298:72
+     |
+1298 |     /// fact in the pack twice with nothing to disambiguate the copies.
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1299:8
+     |
+1299 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1300:75
+     |
+1300 |     /// Both are passed in rather than read from `terri_data::pack()` so a
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1301:75
+     |
+1301 |     /// test can build them, for the same reason [`Content`] is a resource
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1302:58
+     |
+1302 |     /// rather than a direct call into the content crate.
+     |                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1367:70
+     |
+1367 |     /// Spawns one runtime object at its definition's base direction.
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1368:8
+     |
+1368 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1369:79
+     |
+1369 |     /// The public WASM object-spawn path delegates here so it cannot create a
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1370:76
+     |
+1370 |     /// usable reading chair whose action position disappeared at the crate
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1371:80
+     |
+1371 |     /// boundary. This deliberately does not alter grid occupancy, matching the
+     |                                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1372:49
+     |
+1372 |     /// existing dynamic-spawn behavior exactly.
+     |                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1394:75
+     |
+1394 |     /// The lot the game ships, compiled from `content/lot.toml`, with the
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1395:62
+     |
+1395 |     /// household from `content/household.toml` living in it.
+     |                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1396:8
+     |
+1396 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1397:73
+     |
+1397 |     /// A convenience over [`Sim::new_from_lot`] for callers that do not
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1398:72
+     |
+1398 |     /// depend on `terri-data` themselves. `terri-wasm` is the one that
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1399:73
+     |
+1399 |     /// matters: it is the boundary crate, and keeping the content crate
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1400:75
+     |
+1400 |     /// out of its manifest keeps its dependency list as small as the [D1]
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1401:33
+     |
+1401 |     /// purity rule can make it.
+     |                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1406:60
+     |
+1406 |     /// Seeds household draws before any person is created.
+     |                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1418:71
+     |
+1418 |     /// The shipped household in its house as it stood before the yard
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1419:77
+     |
+1419 |     /// ([OS-grow]): the lot cut back to the house, without the walls on the
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1420:79
+     |
+1420 |     /// house's outside lines, which were then the lot's edge. Every save made
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1421:46
+     |
+1421 |     /// before the yard was made on this lot.
+     |                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1445:75
+     |
+1445 |     /// Spawns the authored household - [H2] - in declaration order, which
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1446:76
+     |
+1446 |     /// is what fixes each member's [`terri_core::SimId`]: the first sim in
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1447:74
+     |
+1447 |     /// the file is SimId 0, for as long as nobody is born or dies before
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1448:23
+     |
+1448 |     /// load finishes.
+     |                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1449:8
+     |
+1449 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1450:75
+     |
+1450 |     /// Separate from [`Sim::new_from_lot`] rather than folded into it, so
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1451:73
+     |
+1451 |     /// the lot-geometry tests stay statements about geometry and a test
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1452:66
+     |
+1452 |     /// can put ANY household on any lot. Everything read here is
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1453:71
+     |
+1453 |     /// post-validation: `compile` has already rejected a member whose
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1454:74
+     |
+1454 |     /// archetype does not resolve, whose spawn tile is blocked or sealed
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1455:70
+     |
+1455 |     /// off, or whose starting needs leave `[0, 100]` - which is what
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1456:71
+     |
+1456 |     /// makes the `personalities[..]` index below unable to panic on a
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1457:26
+     |
+1457 |     /// pack that exists.
+     |                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1492:71
+     |
+1492 |     /// Applies staged player input without advancing simulation time.
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1493:8
+     |
+1493 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1494:78
+     |
+1494 |     /// The browser calls this while paused. Commands still enter through the
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1495:75
+     |
+1495 |     /// same serialized queue and the same drain system as a full tick, so
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1496:74
+     |
+1496 |     /// replay ordering does not acquire a second implementation. Nothing
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1497:51
+     |
+1497 |     /// after command step zero in [D5] runs here.
+     |                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1504:73
+     |
+1504 |     /// Returns and clears the number of object or social orders refused
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1505:68
+     |
+1505 |     /// because their sim already held `max_queued_intents` orders.
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1506:8
+     |
+1506 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1507:77
+     |
+1507 |     /// Enqueue acceptance is deliberately separate: it covers command bytes
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1508:79
+     |
+1508 |     /// and the staging queue, while this result can only be decided after the
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1509:71
+     |
+1509 |     /// simulation resolves the command and applies its ordered batch.
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1516:75
+     |
+1516 |     /// Returns and clears the number of orders dropped from the back of a
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1517:76
+     |
+1517 |     /// full queue to make room for a front-placed order. The dropped order
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1518:76
+     |
+1518 |     /// is whichever was last in line: usually one still waiting, but after
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1519:75
+     |
+1519 |     /// enough front placements the one the sim is carrying out, which the
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1520:75
+     |
+1520 |     /// drain then releases. The new order was accepted; an older one fell
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1521:67
+     |
+1521 |     /// off, and the shell's sentence for that is different from a
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1522:19
+     |
+1522 |     /// refusal's.
+     |                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1537:70
+     |
+1537 |     /// One id per compiled voice clip, in the index order the render
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1538:36
+     |
+1538 |     /// buffer's voice columns use.
+     |                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1539:8
+     |
+1539 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1540:78
+     |
+1540 |     /// Borrowed rather than owned: the pack outlives the simulation, and the
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1541:68
+     |
+1541 |     /// boundary crate is the only caller that needs owned strings.
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1552:75
+     |
+1552 |     /// Copies render-relevant state into the struct-of-arrays buffer that
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1553:68
+     |
+1553 |     /// JavaScript views directly. Called once per tick, before the
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1554:24
+     |
+1554 |     /// renderer reads.
+     |                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1555:8
+     |
+1555 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1556:73
+     |
+1556 |     /// Entities are sorted by index so an entity keeps its slot between
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1557:72
+     |
+1557 |     /// frames. This is load-bearing rather than tidiness: the renderer
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1558:70
+     |
+1558 |     /// interpolates slot `i` of `prev_positions` towards slot `i` of
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1559:70
+     |
+1559 |     /// `positions` and assumes both belong to the same entity. Query
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1560:73
+     |
+1560 |     /// iteration is archetype order, which shifts every time any entity
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1561:71
+     |
+1561 |     /// gains or loses a component, so without the sort entities would
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1562:73
+     |
+1562 |     /// smear across each other's positions whenever an agent started or
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1563:72
+     |
+1563 |     /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1564:47
+     |
+1564 |     /// deleting the sort must fail that test.
+     |                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1569:76
+     |
+1569 |     /// Refreshes command-visible render metadata without advancing the two
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1570:49
+     |
+1570 |     /// position samples used for interpolation.
+     |                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1571:8
+     |
+1571 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1572:75
+     |
+1572 |     /// A paused command can change selection or activity, but no movement
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1573:78
+     |
+1573 |     /// system ran. Swapping position frames here would collapse an in-flight
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:1574:73
+     |
+1574 |     /// interpolation into a snap even when the command queue was empty.
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2136:72
+     |
+2136 |     /// The seven need levels of the entity carrying `index`, or `None`
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2137:64
+     |
+2137 |     /// if nothing live carries it or what does has no `Needs`.
+     |                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2138:8
+     |
+2138 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2139:61
+     |
+2139 |     /// # Why this takes a raw index and tolerates a bad one
+     |                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2140:8
+     |
+2140 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2141:75
+     |
+2141 |     /// The caller is the need-bar panel, which reads this every frame for
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2142:72
+     |
+2142 |     /// whichever entity the shell is showing - and the shell only ever
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2143:66
+     |
+2143 |     /// knows a raw `u32`, because JavaScript cannot construct an
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2144:68
+     |
+2144 |     /// `Entity`. So the same two hazards `drain_commands::resolve`
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2145:75
+     |
+2145 |     /// documents apply: the index may be stale, and it may name something
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2146:70
+     |
+2146 |     /// that is not a sim at all. Both answer `None` here rather than
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2147:73
+     |
+2147 |     /// panicking, which is what lets the boundary return an empty array
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2148:36
+     |
+2148 |     /// and the panel draw nothing.
+     |                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2149:8
+     |
+2149 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2150:75
+     |
+2150 |     /// A scan rather than a lookup, for the same reason `resolve` is one:
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2151:76
+     |
+2151 |     /// `Entities` could answer liveness but not KIND, and at most one live
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2152:73
+     |
+2152 |     /// entity carries any given index, so the answer does not depend on
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2153:25
+     |
+2153 |     /// iteration order.
+     |                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2154:8
+     |
+2154 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2155:71
+     |
+2155 |     /// **`Needs` is the filter, and that is the kind check.** A smart
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2156:74
+     |
+2156 |     /// object has no `Needs`, so a click that selected the fridge cannot
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2157:36
+     |
+2157 |     /// reach a level here to show.
+     |                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2158:8
+     |
+2158 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2159:71
+     |
+2159 |     /// This lives in the simulation crate rather than at the boundary
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2160:66
+     |
+2160 |     /// because it is a query over the world, and `terri-wasm` is
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2161:73
+     |
+2161 |     /// forbidden simulation logic. The boundary's job is the `u32`, not
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2162:18
+     |
+2162 |     /// the walk.
+     |                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2171:70
+     |
+2171 |     /// The stable identity of the sim carrying `index` - the key the
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2172:72
+     |
+2172 |     /// relationships in [`Sim::relationships_of`] point at. `None` for
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2173:72
+     |
+2173 |     /// objects, stale indices, and bare test agents, the same contract
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2174:28
+     |
+2174 |     /// as every scan here.
+     |                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2183:71
+     |
+2183 |     /// The accumulated satisfaction of the sim carrying `index` - the
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2184:77
+     |
+2184 |     /// [E1] second axis, read by both the debug overlay and the normal HUD.
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2185:64
+     |
+2185 |     /// `None` for objects, stale indices, and bare agents with
+     |                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2186:57
+     |
+2186 |     /// no ledger, the same contract as every scan here.
+     |                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2197:73
+     |
+2197 |     /// The household's money - [E4], read by both the debug overlay and
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2198:61
+     |
+2198 |     /// the normal HUD. One number for the lot, not per sim.
+     |                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2203:68
+     |
+2203 |     /// The worn traits of the sim carrying `index`, as (pack trait
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2204:71
+     |
+2204 |     /// index, live state) pairs in key order - the [E3] overlay read.
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2205:69
+     |
+2205 |     /// `None` for objects, stale indices, and bare agents, the same
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2206:68
+     |
+2206 |     /// contract as every scan here; the shell resolves the indices
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2207:56
+     |
+2207 |     /// against the pack's labels, which it reads once.
+     |                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2216:70
+     |
+2216 |     /// One label per entry in the pack's trait list, in pack order -
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2217:71
+     |
+2217 |     /// what [`Sim::traits_of`]'s indices resolve against. Here rather
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2218:73
+     |
+2218 |     /// than in `terri-wasm` because the boundary crate is forbidden the
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2219:64
+     |
+2219 |     /// content crate ([D1]); the strings are borrowed from the
+     |                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2220:52
+     |
+2220 |     /// `&'static` pack like `interaction_labels`'.
+     |                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2235:79
+     |
+2235 |     /// One plain sentence per pack trait, aligned with [`Self::trait_labels`]
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2236:70
+     |
+2236 |     /// - what the Traits panel prints under each label ([TL-panel]).
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2251:69
+     |
+2251 |     /// The kind of each pack trait - "disposition", "capability" or
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2252:72
+     |
+2252 |     /// "condition" - aligned with [`Sim::trait_labels`], so an overlay
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2253:53
+     |
+2253 |     /// can word a level and a severity differently.
+     |                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2272:73
+     |
+2272 |     /// One name per entry in the pack's item-kind list, in pack order -
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2273:69
+     |
+2273 |     /// what the render buffer's `carrying` column resolves against.
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2281:74
+     |
+2281 |     /// The mid-errand status of the sim carrying `index` - "Cook dinner:
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2282:70
+     |
+2282 |     /// Cook" with the carried kind appended when hands are full - or
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2283:71
+     |
+2283 |     /// `None` when it is not on one. Composed here rather than in the
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2284:56
+     |
+2284 |     /// shell because every word of it is pack content.
+     |                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2329:67
+     |
+2329 |     /// Why the sim carrying `index` is not acting, or `None` when
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2330:69
+     |
+2330 |     /// nothing is holding it back - the overlay's answer to "she is
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2331:54
+     |
+2331 |     /// starving at the front door and it says idle".
+     |                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2332:8
+     |
+2332 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2333:66
+     |
+2333 |     /// **Exactly two reasons exist, and they are the two markers
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2334:70
+     |
+2334 |     /// selection writes**: `Blocked` (the best thing it could see is
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2335:70
+     |
+2335 |     /// somebody else's) and `Restless` (nothing it could see cleared
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2336:66
+     |
+2336 |     /// `idle_threshold`). Both can be true at once - it wanted a
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2337:70
+     |
+2337 |     /// contested thing, but not enough to wait for it - which is why
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2338:58
+     |
+2338 |     /// this returns a joined string rather than an enum.
+     |                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2339:8
+     |
+2339 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2340:72
+     |
+2340 |     /// A pending player order is deliberately NOT in here: an order is
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2341:70
+     |
+2341 |     /// something a sim is about to DO, not a reason it is stuck, and
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2342:68
+     |
+2342 |     /// folding the two together is what made this function's first
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2343:58
+     |
+2343 |     /// name ("standing") mean nothing in particular. See
+     |                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2344:35
+     |
+2344 |     /// [`Sim::queued_orders_of`].
+     |                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2400:73
+     |
+2400 |     /// How many player-issued orders the sim carrying `index` still has
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2401:67
+     |
+2401 |     /// waiting - a FACT about the queue, reported on its own line
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2402:71
+     |
+2402 |     /// because it is not a stall reason. Zero for a sim with an empty
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2403:34
+     |
+2403 |     /// queue or no queue at all.
+     |                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2416:69
+     |
+2416 |     /// The label of the career held by the sim carrying `index`, or
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2417:71
+     |
+2417 |     /// `None` for the unemployed and everything else - [E4]'s overlay
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2418:71
+     |
+2418 |     /// read. The label rather than the index, because the pack lookup
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2419:49
+     |
+2419 |     /// is a query over content this crate owns.
+     |                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2429:81
+     |
+2429 |     /// The primary type, or legacy name, of a smart object. Includes decorative
+     |                                                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2430:60
+     |
+2430 |     /// objects; returns `None` for sims and stale indices.
+     |                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2436:84
+     |
+2436 |     /// Current content for a placed object, independent of its saved presentation.
+     |                                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2449:73
+     |
+2449 |     /// The personality multipliers of the sim carrying `index`: `drain`
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2450:71
+     |
+2450 |     /// for all seven needs, then `satisfaction` for all seven - drain
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2451:73
+     |
+2451 |     /// FIRST, pinned by a test with asymmetric halves, because fourteen
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2452:65
+     |
+2452 |     /// floats have no field names once they cross the boundary.
+     |                                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2453:8
+     |
+2453 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2454:73
+     |
+2454 |     /// Read-only debug surface for the [A-11] stats overlay; nothing on
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2455:31
+     |
+2455 |     /// a frame path calls it.
+     |                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2478:71
+     |
+2478 |     /// How the sim carrying `index` feels about everyone it knows, as
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2479:71
+     |
+2479 |     /// interleaved `[sim_id, feeling, sim_id, feeling, ...]` pairs in
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2480:46
+     |
+2480 |     /// the component's own key-sorted order.
+     |                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2481:8
+     |
+2481 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2482:74
+     |
+2482 |     /// The ids ride as `f32` because wasm-bindgen cannot return a vector
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2483:66
+     |
+2483 |     /// of tuples and two parallel arrays would need an atomicity
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2484:70
+     |
+2484 |     /// contract between two boundary calls. Lossless below 2^24, and
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2485:71
+     |
+2485 |     /// `SimId`s are allocated monotonically from zero in a game whose
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2486:67
+     |
+2486 |     /// household is single digits - the margin is seven orders of
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2487:62
+     |
+2487 |     /// magnitude. Debug surface only, like `personality_of`.
+     |                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2505:69
+     |
+2505 |     /// The display name of the sim carrying `index`, or `None` when
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2506:74
+     |
+2506 |     /// nothing live carries it or what does has no name - which includes
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2507:73
+     |
+2507 |     /// every object and every bare test agent, so `SimName` is the kind
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2508:56
+     |
+2508 |     /// check the way `Needs` is for [`Sim::needs_of`].
+     |                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2509:8
+     |
+2509 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2510:72
+     |
+2510 |     /// A scan over a raw index tolerating a stale one, for the reasons
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2511:68
+     |
+2511 |     /// `needs_of` gives; it lives here rather than at the boundary
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2512:66
+     |
+2512 |     /// because it is a query over the world, and `terri-wasm` is
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2513:36
+     |
+2513 |     /// forbidden simulation logic.
+     |                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2522:73
+     |
+2522 |     /// The labels of the interactions the smart object carrying `index`
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2523:70
+     |
+2523 |     /// offers, in the order `content/objects.toml` declares them, or
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2524:74
+     |
+2524 |     /// `None` when nothing live carries that index or what does is not a
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2525:22
+     |
+2525 |     /// smart object.
+     |                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2526:8
+     |
+2526 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2527:42
+     |
+2527 |     /// # Why the shell needs this at all
+     |                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2528:8
+     |
+2528 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2529:74
+     |
+2529 |     /// The right-click flyout lists one row per interaction, and a row's
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2530:74
+     |
+2530 |     /// POSITION is `Intent::interaction`. So this is not decoration: the
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2531:76
+     |
+2531 |     /// order is the index space, and a list built in TypeScript would be a
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2532:72
+     |
+2532 |     /// second copy of every object's interaction list, kept in sync by
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2533:75
+     |
+2533 |     /// nobody. It would fail the way a mislabelled need bar fails - every
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2534:73
+     |
+2534 |     /// row drawn, every click accepted, and the wording attached to the
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2535:67
+     |
+2535 |     /// wrong verb - which is the coupling [D1] exists to prevent.
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2536:8
+     |
+2536 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2537:55
+     |
+2537 |     /// # A scan, a raw index, and a tolerated bad one
+     |                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2538:8
+     |
+2538 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2539:75
+     |
+2539 |     /// All three for the same reasons [`Sim::needs_of`] gives: the caller
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2540:71
+     |
+2540 |     /// only ever knows a `u32` because JavaScript cannot construct an
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2541:76
+     |
+2541 |     /// `Entity`, the index may be stale, and it may name something that is
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2542:69
+     |
+2542 |     /// not an object. Every one of those answers `None` rather than
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2543:75
+     |
+2543 |     /// panicking, which is what lets the boundary hand back an empty list
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2544:36
+     |
+2544 |     /// and the shell open no menu.
+     |                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2545:8
+     |
+2545 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2546:75
+     |
+2546 |     /// **`SmartObject` is the filter, and that is the kind check.** A sim
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2547:73
+     |
+2547 |     /// does not carry one, so a right click that landed on a sim cannot
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2548:67
+     |
+2548 |     /// reach a label here - which is what makes "this pick has no
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2549:72
+     |
+2549 |     /// interactions" and "this pick is not an object" the same answer,
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2550:72
+     |
+2550 |     /// deliberately, because the useful response to both is identical.
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2551:8
+     |
+2551 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2552:77
+     |
+2552 |     /// It lives here rather than at the boundary because it is a query over
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2553:70
+     |
+2553 |     /// the world and `terri-wasm` is forbidden simulation logic. The
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2554:73
+     |
+2554 |     /// borrowed strings come from the `&'static` pack, so no allocation
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2555:55
+     |
+2555 |     /// happens until the boundary copies them across.
+     |                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2593:70
+     |
+2593 |     /// One label per entry in the pack's SOCIAL vocabulary, in index
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2594:56
+     |
+2594 |     /// order - the same order-IS-the-index contract as
+     |                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2595:72
+     |
+2595 |     /// [`Sim::interaction_labels`], for the flyout drawn over a fellow
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2596:70
+     |
+2596 |     /// sim. Not per-target: the vocabulary is what a sim advertises,
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2597:71
+     |
+2597 |     /// and per-sim variation enters through relationships, not menus.
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2612:69
+     |
+2612 |     /// The raw index of the selected sim, or `None` when nothing is
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2613:18
+     |
+2613 |     /// selected.
+     |                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2614:8
+     |
+2614 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2615:76
+     |
+2615 |     /// Selection lives in the simulation rather than in the shell ([D-5]):
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2616:74
+     |
+2616 |     /// it is state a replay has to reproduce, so the DOM renders it back
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2617:70
+     |
+2617 |     /// out rather than owning it. This is the read half of that, and
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2618:48
+     |
+2618 |     /// `SimCommand::Select` is the write half.
+     |                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2619:8
+     |
+2619 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2620:72
+     |
+2620 |     /// At most one entity carries `Selected` - `drain_commands` is its
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2621:74
+     |
+2621 |     /// only writer and maintains that. `min` is the answer that does not
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2622:65
+     |
+2622 |     /// depend on query order if a future writer ever breaks the
+     |                                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2623:56
+     |
+2623 |     /// invariant, matching what the drain itself does.
+     |                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2624:8
+     |
+2624 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2625:70
+     |
+2625 |     /// **`min` is deliberately untested and this says so rather than
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2626:74
+     |
+2626 |     /// hiding it.** Swapping it for `max` was hand-mutated at M1b Task 6
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2627:74
+     |
+2627 |     /// and the whole workspace stayed green, because on a set of at most
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2628:68
+     |
+2628 |     /// one element the two agree - so no legal world can tell them
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2629:69
+     |
+2629 |     /// apart, and the only fixture that could is one that inserts a
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2630:69
+     |
+2630 |     /// second `Selected` behind the drain's back. That would pin an
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2631:71
+     |
+2631 |     /// arbitrary tie-break rather than a behaviour. What IS pinned is
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2632:68
+     |
+2632 |     /// everything above the tie-break: `selected_index_tracks_the_
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2633:73
+     |
+2633 |     /// selection_the_simulation_holds` in `terri-wasm` fails on `None`,
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2634:74
+     |
+2634 |     /// on any constant, and on reporting a sim the command did not name.
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2635:69
+     |
+2635 |     /// The mutation is also outside `cargo mutants`' grammar, which
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2636:73
+     |
+2636 |     /// replaces return values rather than rewriting an iterator method,
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2637:73
+     |
+2637 |     /// so the sweep will not report it either. Whoever gives `Selected`
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2638:53
+     |
+2638 |     /// a second writer owns making this observable.
+     |                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2646:74
+     |
+2646 |     /// Hashes all simulation-visible state. Entities are sorted by index
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2647:75
+     |
+2647 |     /// first, because ECS iteration order is an implementation detail and
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:2648:36
+     |
+2648 |     /// must not affect the result.
+     |                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3295:76
+     |
+3295 | /// A content id as one digest word, for the world hash: the same id always
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3296:65
+     |
+3296 | /// gives the same word, whatever position it holds in the pack.
+     |                                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3309:70
+     |
+3309 |     //! `Sim::new_from_lot` is a three-part mapping - grid size, wall
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3310:73
+     |
+3310 |     //! tiles, placed objects - and each part is checked separately, per
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3311:74
+     |
+3311 |     //! [L7] rule 3. The fixture is deliberately asymmetric everywhere it
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3312:72
+     |
+3312 |     //! can be: a non-square lot, walls whose transposes are not walls,
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3313:75
+     |
+3313 |     //! and placements whose object ids differ from their own positions in
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3314:74
+     |
+3314 |     //! the list. [L26] is the recorded instance of a tidy fixture hiding
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3315:74
+     |
+3315 |     //! an index-to-slot bug one layer down, and [L29] is the one where a
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3316:73
+     |
+3316 |     //! fixture whose candidates agreed on the field being read made the
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3317:25
+     |
+3317 |     //! read untestable.
+     |                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3322:76
+     |
+3322 |     /// The clip names handed across the boundary are the pack's, in order.
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3323:8
+     |
+3323 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3324:79
+     |
+3324 |     /// Returning an empty list, or one blank name, would leave the shell with
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3325:79
+     |
+3325 |     /// nothing to fetch and every conversation silent, with no other symptom:
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3326:74
+     |
+3326 |     /// the simulation would still draw pairs and still run for the right
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3327:74
+     |
+3327 |     /// length. The mutation sweep found all three of those substitutions
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3328:43
+     |
+3328 |     /// survived, which is what this pins.
+     |                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3357:68
+     |
+3357 |     /// The definitions the fixture lots' placements point at, with
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3358:55
+     |
+3358 |     /// `footprints[i]` belonging to `ObjectDefId(i)`.
+     |                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3359:8
+     |
+3359 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3360:75
+     |
+3360 |     /// Three, because the fixtures place `ObjectDefId(2)` and a two-entry
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3361:76
+     |
+3361 |     /// list would make that index a panic rather than a lookup. Index 1 is
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3362:75
+     |
+3362 |     /// placed by nothing and is deliberately given an absurd rectangle by
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3363:78
+     |
+3363 |     /// the callers below, so an implementation that looked a footprint up by
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3364:76
+     |
+3364 |     /// the placement's POSITION in the list rather than by the id it names
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3365:79
+     |
+3365 |     /// blocks a visibly wrong region instead of coincidentally the right one.
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3389:75
+     |
+3389 |     /// Every object one tile, which is what the three mapping tests below
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3390:75
+     |
+3390 |     /// were written against and what all but one shipped object still is.
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3395:74
+     |
+3395 |     /// A 6x4 lot: wider than it is tall, so a transposed `TileGrid::new`
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3396:75
+     |
+3396 |     /// is visible; walls whose transposes and cross products are free, so
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3397:73
+     |
+3397 |     /// a single-coordinate or swapped `set_blocked` is visible; and two
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3398:75
+     |
+3398 |     /// placements at distinct positions carrying distinct definitions, so
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3399:71
+     |
+3399 |     /// a definition collapsed to zero or a coordinate pair swapped is
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3400:17
+     |
+3400 |     /// visible.
+     |                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3434:73
+     |
+3434 |     /// Every (position, definition) pair in the world, sorted by entity
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3435:45
+     |
+3435 |     /// index so the assertion can be exact.
+     |                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3449:70
+     |
+3449 |     /// The facing guard in the spawn loop, exercised through the one
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3450:69
+     |
+3450 |     /// path that decides: a placement whose compiled sprite DIFFERS
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3451:71
+     |
+3451 |     /// from its definition's carries a `SpriteVariant`, and one whose
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3452:73
+     |
+3452 |     /// sprite matches carries nothing. The fixture's two placements are
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3453:69
+     |
+3453 |     /// one of each - sprite 2 against a definition sprite of 0, and
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3454:71
+     |
+3454 |     /// sprite 0 against the same - so flipping the guard's `!=` swaps
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3455:73
+     |
+3455 |     /// both outcomes and both assertions go red. The render-buffer test
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3456:70
+     |
+3456 |     /// for the variant inserts the component directly and cannot see
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3457:23
+     |
+3457 |     /// this decision.
+     |                       ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3486:72
+     |
+3486 |             "the faced placement carries its resolved variant and the \
+     |                                                                        ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3595:77
+     |
+3595 |     /// Renamed from `..._and_only_those` when footprints arrived: walls are
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3596:76
+     |
+3596 |     /// no longer the only blocked tiles, since [F3] blocks every footprint
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3597:78
+     |
+3597 |     /// tile as well. The four tiles asserted walkable below are chosen clear
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3598:69
+     |
+3598 |     /// of both objects, so the mutation this kills is unchanged - a
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3599:55
+     |
+3599 |     /// transposed or single-coordinate `set_blocked`.
+     |                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3626:78
+     |
+3626 |     /// The one-tile half of [F3]: a placement's own tile is impassable, so a
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3627:62
+     |
+3627 |     /// sim paths round the furniture rather than through it.
+     |                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3652:67
+     |
+3652 |     /// A 7x5 lot holding ONE object at the fractional coordinates
+     |                                                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3653:74
+     |
+3653 |     /// `(2.5, 1.25)`, so its origin tile is `(2, 1)`, plus one wall well
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3654:77
+     |
+3654 |     /// clear of it at `(6, 0)` so walls and footprints are seen to coexist.
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3655:8
+     |
+3655 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3656:77
+     |
+3656 |     /// Purpose-built rather than `a_lot` widened, because every tile around
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3657:79
+     |
+3657 |     /// the rectangle has to be free for the test below to assert it walkable,
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3658:74
+     |
+3658 |     /// and in `a_lot` the tile below the second column is a wall - which
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3659:71
+     |
+3659 |     /// would make "a 2x1 is one tile deep" pass for the wrong reason.
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3682:70
+     |
+3682 |     /// **A 2x1 footprint blocks BOTH of its tiles**, and every other
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3683:79
+     |
+3683 |     /// assertion in this module is satisfied by an implementation that blocks
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3684:79
+     |
+3684 |     /// only the origin - which is exactly why this test exists rather than an
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3685:37
+     |
+3685 |     /// extra line on the one above.
+     |                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3686:8
+     |
+3686 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3687:74
+     |
+3687 |     /// Four things are pinned, and each names a different way to get the
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3688:25
+     |
+3688 |     /// rectangle wrong:
+     |                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3689:8
+     |
+3689 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3690:64
+     |
+3690 |     /// - `(3, 1)` is blocked. **The only assertion here that a
+     |                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3691:49
+     |
+3691 |     ///   block-the-origin-only mapping fails.**
+     |                                                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3692:78
+     |
+3692 |     /// - `(4, 1)` is walkable, so "blocks two tiles" is distinguishable from
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3693:40
+     |
+3693 |     ///   "blocks the rest of the row".
+     |                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3694:79
+     |
+3694 |     /// - `(2, 2)` and `(3, 2)` are walkable, so a 2x1 read as 1x2 or as 2x2 -
+     |                                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3695:58
+     |
+3695 |     ///   a transposed or squared rectangle - is visible.
+     |                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3696:76
+     |
+3696 |     /// - `(1, 1)` is walkable, so a rectangle extending -x from the origin
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3697:78
+     |
+3697 |     ///   instead of +x is visible. [F2] fixes the direction and nothing else
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3698:52
+     |
+3698 |     ///   in the codebase would notice it reversed.
+     |                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3699:8
+     |
+3699 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3700:75
+     |
+3700 |     /// The definitions give `ObjectDefId(1)` a 4x4 rectangle that nothing
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3701:75
+     |
+3701 |     /// places, so a lookup by the placement's position in the list rather
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3702:77
+     |
+3702 |     /// than by the id it names blocks `(2..6, 1..5)` and fails three of the
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3703:48
+     |
+3703 |     /// assertions rather than passing by luck.
+     |                                                ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3720:79
+     |
+3720 |             "a 2x1 footprint must block its SECOND tile too, and this is the \
+     |                                                                               ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3725:79
+     |
+3725 |             "(4, 1) is one past the rectangle and must stay walkable, or the \
+     |                                                                               ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3730:81
+     |
+3730 |             "a 2x1 footprint is one tile DEEP; blocking (2, 2) means width and \
+     |                                                                                 ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3753:76
+     |
+3753 |             "each placement must reach the world with its own coordinates \
+     |                                                                            ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3754:75
+     |
+3754 |              and its own definition; a shared definition means the id is \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3755:75
+     |
+3755 |              not being carried, and swapped coordinates mean x and y are \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3785:80
+     |
+3785 |             "goal item 8 calls for a home worth living in, written down as 25 \
+     |                                                                                ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3898:84
+     |
+3898 |                     "with the doorway {from:?} -> {to:?} sealed, {probe:?} is cut \
+     |                                                                                    ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3899:78
+     |
+3899 |                      off from the kitchen; the circulation is a tree rather \
+     |                                                                              ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3912:78
+     |
+3912 |             "with both of the bedroom's doorways sealed it must be cut off; \
+     |                                                                              ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3913:80
+     |
+3913 |              still reachable means there is a third way in and the ring above \
+     |                                                                                ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:3928:78
+     |
+3928 |             "the shower's own tile must be solid, or the adjacency below is \
+     |                                                                              ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3957:76
+     |
+3957 |     //! `spawn_household` is a mapping from compiled content to components,
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3958:74
+     |
+3958 |     //! and every field is load-bearing for a different consumer: `SimId`
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3959:69
+     |
+3959 |     //! for relationships and the save file, `SimName` for the needs
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3960:72
+     |
+3960 |     //! panel, `Personality` for three systems, the needs array for the
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:3961:24
+     |
+3961 |     //! opening minute.
+     |                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4133:73
+     |
+4133 |     /// The shipped household, played with nobody at the controls, never
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4134:53
+     |
+4134 |     /// strands anybody and never strands an object.
+     |                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4135:8
+     |
+4135 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4136:74
+     |
+4136 |     /// Two invariants over the real house, and they are the two faces of
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4137:57
+     |
+4137 |     /// one bug ([L-cleanup-removes-only-what-it-owns]):
+     |                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4138:8
+     |
+4138 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4139:72
+     |
+4139 |     /// * **Nobody uses an object with no target.** `tick_interactions`
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4140:74
+     |
+4140 |     ///   counts an interaction down only while its sim still carries the
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4141:76
+     |
+4141 |     ///   `Target` it walked to. A sim holding `Eating` alone sits where it
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4142:73
+     |
+4142 |     ///   is for good and never releases what it reserved - and with one
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4143:72
+     |
+4143 |     ///   toilet in the house that is the whole household's bladder. It
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4144:76
+     |
+4144 |     ///   happened at tick 1799 the first time the household was given more
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4145:73
+     |
+4145 |     ///   traits, and nothing failed: the unit tests passed and the page
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4146:47
+     |
+4146 |     ///   looked fine for its first half hour.
+     |                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4147:74
+     |
+4147 |     /// * **No object is reserved with nobody coming.** The same bug, met
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4148:75
+     |
+4148 |     ///   across the room instead of beside the object, leaves no `Eating`
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4149:77
+     |
+4149 |     ///   at all: the sim walks its leftover path as a stroll and the object
+     |                                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4150:72
+     |
+4150 |     ///   stays claimed. Checked after every tick with no grace period,
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4151:78
+     |
+4151 |     ///   because this household never produces even a one-tick gap; a system
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4152:61
+     |
+4152 |     ///   that introduces one has to decide that on purpose.
+     |                                                             ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4153:8
+     |
+4153 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4154:78
+     |
+4154 |     /// This is the net under content changes. It asserts invariants over the
+     |                                                                              ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4155:75
+     |
+4155 |     /// real household rather than golden values, so rebalancing the house
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4156:76
+     |
+4156 |     /// does not break it and breaking an invariant does. 2400 ticks is two
+     |                                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4157:71
+     |
+4157 |     /// simulated days of shift starts, which is where the race lives.
+     |                                                                       ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4180:92
+     |
+4180 |                         "tick {tick}: {} is using an object with no target and will never \
+     |                                                                                            ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4198:85
+     |
+4198 |             "the household must actually be using things for this to mean anything \
+     |                                                                                     ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4240:63
+     |
+4240 |     //! The `?debug=1` overlay's own accessors. Nothing in the
+     |                                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4241:70
+     |
+4241 |     //! simulation reads them back, so a stub returning a constant is
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4242:72
+     |
+4242 |     //! invisible to every behavioural test - which is exactly what the
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4243:72
+     |
+4243 |     //! CI sweep found. Each one is pinned here against a fixture where
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4244:72
+     |
+4244 |     //! two sims hold DIFFERENT states, so an accessor that ignores the
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4245:70
+     |
+4245 |     //! index it was handed (the `==`-to-`!=` mutant) is visible too.
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4250:68
+     |
+4250 |     /// Two sims: one stalled both ways with two orders queued, one
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4251:68
+     |
+4251 |     /// perfectly free with none. Returns their raw indices in that
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4252:15
+     |
+4252 |     /// order.
+     |               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4278:71
+     |
+4278 |     /// A sim in MOTION has no stall reason, whatever markers it still
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4279:68
+     |
+4279 |     /// carries - `Restless` is what sent it wandering, so it rides
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4280:70
+     |
+4280 |     /// along for the whole stroll and would otherwise contradict the
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4281:53
+     |
+4281 |     /// panel's own "doing: walking" one line above.
+     |                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4432:72
+     |
+4432 |     /// Each marker alone, because the joined string above is satisfied
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4433:54
+     |
+4433 |     /// by an implementation that always writes both.
+     |                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4457:70
+     |
+4457 |     /// TWO orders rather than one, so a constant 1 is visible, and a
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4458:69
+     |
+4458 |     /// queueless sim rather than only an empty queue, so the absent
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4459:47
+     |
+4459 |     /// component's zero is exercised as well.
+     |                                               ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4514:73
+     |
+4514 |     /// The entity indices `world_hash`'s query yields in raw ECS order,
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4515:75
+     |
+4515 |     /// with no sorting applied. This is precisely the order the hash must
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4516:75
+     |
+4516 |     /// NOT be sensitive to, so comparing it between two worlds is how the
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4517:66
+     |
+4517 |     /// layout test below proves it is exercising a real ordering
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4518:53
+     |
+4518 |     /// difference rather than passing decoratively.
+     |                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4530:72
+     |
+4530 |     /// An entity-free world advanced to `ticks`, for the guards below.
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4531:8
+     |
+4531 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4532:73
+     |
+4532 |     /// Ticking it is load-bearing. `world_hash` writes the clock before
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4533:71
+     |
+4533 |     /// the entity rows, so an *unticked* empty world differs from any
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4534:72
+     |
+4534 |     /// ticked world by the clock term alone: the guard would then pass
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4535:73
+     |
+4535 |     /// even if the row block emitted nothing at all, which is the exact
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4536:69
+     |
+4536 |     /// failure it was written to prevent. See lessons-learned [L7].
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4545:69
+     |
+4545 |     /// Asserts `sim`'s hash is not simply an empty world's, holding
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4546:72
+     |
+4546 |     /// every other term in the digest constant so only the entity rows
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4547:69
+     |
+4547 |     /// can account for the difference. Guards the [L3] trap: if any
+     |                                                                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4548:74
+     |
+4548 |     /// queried component were unregistered, `try_query` would yield zero
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4549:74
+     |
+4549 |     /// rows and the equality tests would pass by comparing two identical
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4550:64
+     |
+4550 |     /// empty hashes - permanently green while testing nothing.
+     |                                                                ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4556:76
+     |
+4556 |             "the empty world must sit at the same tick, or the clock term \
+     |                                                                            ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4562:77
+     |
+4562 |             "world hash equals an empty world's at the same tick; the hash \
+     |                                                                             ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4578:74
+     |
+4578 |     /// The world's PRNG exists and is seeded from `content/tuning.toml`,
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4579:64
+     |
+4579 |     /// which is the [D-3] claim that "randomness must not mean
+     |                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4580:75
+     |
+4580 |     /// nondeterminism" rests on. A generator seeded from a wall clock, or
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4581:74
+     |
+4581 |     /// from a constant somebody typed, would satisfy every other test in
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4582:21
+     |
+4582 |     /// this module.
+     |                     ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4583:8
+     |
+4583 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4584:70
+     |
+4584 |     /// Read through `Sim::new_with_lot` rather than by reaching into
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4585:60
+     |
+4585 |     /// `Sim::new`, because that is what every caller uses.
+     |                                                            ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4586:8
+     |
+4586 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4587:74
+     |
+4587 |     /// The `assert_ne` is the vacuity guard: comparing against the tuned
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4588:70
+     |
+4588 |     /// seed alone would also be satisfied by a generator seeded from
+     |                                                                      ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4589:75
+     |
+4589 |     /// literally anything, if the comparison were computed the same wrong
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4590:74
+     |
+4590 |     /// way twice. A second seed that must NOT match is what excludes it.
+     |                                                                          ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4610:75
+     |
+4610 |             "the world's generator must not agree with a DIFFERENT seed, \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4616:75
+     |
+4616 |             "the world's generator must be the one content/tuning.toml's \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4617:77
+     |
+4617 |              rng_seed produces, and must not have been advanced before any \
+     |                                                                             ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4622:73
+     |
+4622 |     /// The two components M1b Task 4 added are registered by `Sim::new`
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4623:43
+     |
+4623 |     /// itself, before any system has run.
+     |                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4624:8
+     |
+4624 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4625:72
+     |
+4625 |     /// **This world is deliberately never ticked**, which is the whole
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4626:73
+     |
+4626 |     /// mechanism: running the schedule initialises every system's query
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4627:75
+     |
+4627 |     /// and registers their components as a side effect, so a ticked world
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4628:75
+     |
+4628 |     /// would report success no matter what `Sim::new` did. `try_query` is
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4629:68
+     |
+4629 |     /// the read that cares - it returns `None` on any unregistered
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4630:73
+     |
+4630 |     /// component rather than registering on demand, which is [L3] - and
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4631:52
+     |
+4631 |     /// several fixtures in this crate `expect` it.
+     |                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4632:8
+     |
+4632 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4633:73
+     |
+4633 |     /// `Selected` has no reader at all until Task 5's command drain, so
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4634:67
+     |
+4634 |     /// this is the only thing constraining its registration line.
+     |                                                                   ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4644:73
+     |
+4644 |             "Selected is not registered, so try_query returns None and \
+     |                                                                         ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4663:75
+     |
+4663 |             "try_query answered for a component nothing ever registered, \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:4664:77
+     |
+4664 |              so it cannot tell a registered component from an unregistered \
+     |                                                                             ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4845:71
+     |
+4845 |     /// The golden vector. Everything else in this module compares two
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4846:72
+     |
+4846 |     /// digests computed by the same binary, which pins reproducibility
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4847:68
+     |
+4847 |     /// but says nothing about the value itself. From Task 8 onward
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4848:73
+     |
+4848 |     /// `world_hash` is exported across the WASM boundary and JavaScript
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4849:72
+     |
+4849 |     /// depends on it, so the digest is a published format: a change to
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4850:74
+     |
+4850 |     /// the hash's encoding, to the field order, to the FNV constants, or
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4851:74
+     |
+4851 |     /// to what the simulation computes over 100 ticks would otherwise be
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4852:43
+     |
+4852 |     /// completely invisible to the suite.
+     |                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4853:8
+     |
+4853 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4854:66
+     |
+4854 |     /// **If this number changes, that is a finding, not a rebase
+     |                                                                  ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4855:68
+     |
+4855 |     /// artifact.** Update it only when you can name the simulation
+     |                                                                    ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4856:74
+     |
+4856 |     /// behaviour change that moved it, and say so in the commit message.
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4857:75
+     |
+4857 |     /// An unexplained change means the sim is no longer computing what it
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4858:72
+     |
+4858 |     /// computed before, which is exactly the bug this vector exists to
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4859:17
+     |
+4859 |     /// surface.
+     |                 ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4860:8
+     |
+4860 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4861:71
+     |
+4861 |     /// It covers **one** platform pair for free: CI runs on Linux and
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4862:72
+     |
+4862 |     /// this machine is Windows, so a divergence in float arithmetic or
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4863:57
+     |
+4863 |     /// iteration order between those two shows up here.
+     |                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4864:8
+     |
+4864 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4865:73
+     |
+4865 |     /// It does **not** cover the platform pair Task 8 actually created,
+     |                                                                         ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4866:71
+     |
+4866 |     /// which is native versus wasm32. This test runs natively on both
+     |                                                                       ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4867:74
+     |
+4867 |     /// sides of the Linux/Windows comparison, so wasm is not among them.
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4868:72
+     |
+4868 |     /// That gap is concrete rather than theoretical: `write_f32` calls
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4869:74
+     |
+4869 |     /// `f32::round`, which is round-half-away-from-zero in Rust and does
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4870:75
+     |
+4870 |     /// not map to wasm's round-half-to-even `f32.nearest`, so rustc emits
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4871:74
+     |
+4871 |     /// a different code path there - and every position and every one of
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4872:64
+     |
+4872 |     /// the seven need levels in this digest passes through it.
+     |                                                                ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4873:8
+     |
+4873 |     ///
+     |        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4874:35
+     |
+4874 |     /// The boundary is covered by
+     |                                   ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4875:75
+     |
+4875 |     /// `reproduces the native golden world hash across the wasm boundary`
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4876:72
+     |
+4876 |     /// in web/tests/bridge.test.ts, which rebuilds this exact scenario
+     |                                                                        ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4877:75
+     |
+4877 |     /// through the JavaScript API and compares against the same constant.
+     |                                                                           ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4878:74
+     |
+4878 |     /// Measured: the two agree. **If you change `GOLDEN` here, change it
+     |                                                                          ^
+
+error: bare CR not allowed in doc-comment
+    --> crates\terri-sim\src\lib.rs:4879:69
+     |
+4879 |     /// there too, or the boundary check silently stops being one.**
+     |                                                                     ^
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5240:75
+     |
+5240 |             "the world hash of a fixed scenario at tick {TICKS} changed; \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5241:76
+     |
+5241 |              either the digest encoding moved or the simulation no longer \
+     |                                                                            ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5242:72
+     |
+5242 |              computes what it did. Do not update the constant without \
+     |                                                                        ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5326:76
+     |
+5326 |             "the two worlds must iterate in different orders or this test \
+     |                                                                            ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5335:76
+     |
+5335 |             "the two worlds must hold the same entities; only their order \
+     |                                                                            ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5348:77
+     |
+5348 |             "identical state hashed differently because the two worlds got \
+     |                                                                             ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: unknown character escape: `\r`
+    --> crates\terri-sim\src\lib.rs:5349:75
+     |
+5349 |              there by different histories; the hash depends on archetype \
+     |                                                                           ^ unknown character escape
+     |
+     = help: this is an isolated carriage return; consider checking your editor and version control settings
+
+error: could not compile `terri-sim` (lib test) due to 610 previous errors

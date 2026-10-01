@@ -697,9 +697,22 @@ fn plate_with_guests_finishing_their_activity() -> (Sim, Vec<Entity>, Entity) {
                     remaining_ticks: 1,
                 },
             ));
+        let content = sim.world().resource::<Content>().0;
+        if !content.sleep_tag.is_empty()
+            && content.object(object).interactions[0]
+                .tags
+                .contains(&content.sleep_tag)
+        {
+            sim.world_mut()
+                .entity_mut(*person)
+                .insert(terri_core::SleepPlace(0));
+        }
         sim.world_mut().entity_mut(station).insert(Reserved);
     }
     sim.tick();
+    assert!(people[1..]
+        .iter()
+        .all(|person| sim.world().get::<terri_core::SleepPlace>(*person).is_none()));
     let state = sim.world().resource::<SavedDomestic>();
     assert_eq!(state.meals.len(), 1);
     assert_eq!(state.meals[0].guests, vec![1, 2]);
@@ -884,8 +897,30 @@ fn a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook
         });
     sim.flush_commands();
     sim.world_mut().entity_mut(table).insert(Reserved);
+    let mut collected = false;
+    for _ in 0..600 {
+        sim.tick();
+        let meal = &sim.world().resource::<SavedDomestic>().meals[0];
+        assert_eq!(
+            meal.table, None,
+            "the reserved table cannot be claimed while collecting"
+        );
+        if meal.collected.len() == 2 {
+            collected = true;
+            break;
+        }
+    }
+    assert!(
+        collected,
+        "both guests must finish collecting within the route/work bound"
+    );
+    // Prove retention after collection, while every table remains unavailable.
     for _ in 0..180 {
         sim.tick();
+        let meal = &sim.world().resource::<SavedDomestic>().meals[0];
+        assert_eq!(meal.table, None);
+        assert_eq!(meal.collected.len(), 2);
+        assert!(meal.eaten.is_empty());
     }
     let state = sim.world().resource::<SavedDomestic>();
     assert_eq!(state.meals[0].table, None);

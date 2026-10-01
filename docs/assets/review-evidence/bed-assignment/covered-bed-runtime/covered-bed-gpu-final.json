@@ -1,0 +1,8661 @@
+{
+  "pass": true,
+  "atlas": "atlas-2b6b7ba9f3ea12f98ee2ae590b97b11da5fb8d0f36d6599a7b73b7cb6e298f6c.png",
+  "cases": 256,
+  "totalSamples": 732052,
+  "maximum": 2,
+  "validation": null,
+  "errors": [],
+  "records": [
+    {
+      "facing": "NE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 59,
+        "y": 38,
+        "expected": [
+          129,
+          150,
+          141
+        ],
+        "actual": [
+          128,
+          150,
+          140
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 68,
+        "y": 35,
+        "expected": [
+          169,
+          152,
+          173
+        ],
+        "actual": [
+          168,
+          152,
+          173
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 47,
+        "expected": [
+          119,
+          137,
+          127
+        ],
+        "actual": [
+          119,
+          136,
+          127
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 47,
+        "expected": [
+          176,
+          159,
+          180
+        ],
+        "actual": [
+          176,
+          159,
+          179
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 35,
+        "expected": [
+          87,
+          79,
+          87
+        ],
+        "actual": [
+          87,
+          78,
+          87
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 86,
+        "y": 50,
+        "expected": [
+          104,
+          117,
+          110
+        ],
+        "actual": [
+          105,
+          117,
+          110
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 95,
+        "y": 47,
+        "expected": [
+          148,
+          134,
+          150
+        ],
+        "actual": [
+          148,
+          134,
+          151
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 77,
+        "y": 41,
+        "expected": [
+          70,
+          71,
+          69
+        ],
+        "actual": [
+          70,
+          70,
+          68
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 0,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 125,
+        "y": 50,
+        "expected": [
+          237,
+          214,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          245
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 125,
+        "y": 50,
+        "expected": [
+          237,
+          214,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          245
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 125,
+        "y": 50,
+        "expected": [
+          237,
+          214,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          245
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 44,
+        "expected": [
+          237,
+          213,
+          244
+        ],
+        "actual": [
+          236,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 50,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 92,
+        "y": 47,
+        "expected": [
+          140,
+          126,
+          143
+        ],
+        "actual": [
+          139,
+          125,
+          142
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 44,
+        "expected": [
+          237,
+          213,
+          244
+        ],
+        "actual": [
+          236,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 50,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 92,
+        "y": 47,
+        "expected": [
+          140,
+          126,
+          143
+        ],
+        "actual": [
+          139,
+          125,
+          142
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 44,
+        "expected": [
+          237,
+          213,
+          244
+        ],
+        "actual": [
+          236,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 50,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 92,
+        "y": 47,
+        "expected": [
+          140,
+          126,
+          143
+        ],
+        "actual": [
+          139,
+          125,
+          142
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 38,
+        "expected": [
+          238,
+          249,
+          249
+        ],
+        "actual": [
+          237,
+          249,
+          249
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 38,
+        "expected": [
+          238,
+          249,
+          249
+        ],
+        "actual": [
+          237,
+          249,
+          249
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 38,
+        "expected": [
+          238,
+          249,
+          249
+        ],
+        "actual": [
+          237,
+          249,
+          249
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 1,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 41,
+        "expected": [
+          185,
+          167,
+          190
+        ],
+        "actual": [
+          184,
+          167,
+          189
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 98,
+        "y": 53,
+        "expected": [
+          125,
+          144,
+          134
+        ],
+        "actual": [
+          126,
+          145,
+          134
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 47,
+        "expected": [
+          157,
+          141,
+          160
+        ],
+        "actual": [
+          156,
+          141,
+          160
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 41,
+        "expected": [
+          185,
+          167,
+          190
+        ],
+        "actual": [
+          184,
+          167,
+          189
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 98,
+        "y": 53,
+        "expected": [
+          125,
+          144,
+          134
+        ],
+        "actual": [
+          126,
+          145,
+          134
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 47,
+        "expected": [
+          157,
+          141,
+          160
+        ],
+        "actual": [
+          156,
+          141,
+          160
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 38,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 41,
+        "expected": [
+          185,
+          167,
+          190
+        ],
+        "actual": [
+          184,
+          167,
+          189
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 98,
+        "y": 53,
+        "expected": [
+          125,
+          144,
+          134
+        ],
+        "actual": [
+          126,
+          145,
+          134
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 47,
+        "expected": [
+          157,
+          141,
+          160
+        ],
+        "actual": [
+          156,
+          141,
+          160
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 110,
+        "expected": [
+          117,
+          202,
+          228
+        ],
+        "actual": [
+          117,
+          201,
+          226
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 110,
+        "expected": [
+          117,
+          202,
+          228
+        ],
+        "actual": [
+          117,
+          201,
+          226
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 110,
+        "expected": [
+          117,
+          202,
+          228
+        ],
+        "actual": [
+          117,
+          201,
+          226
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 0,
+      "point": {
+        "x": 83,
+        "y": 74,
+        "expected": [
+          190,
+          172,
+          196
+        ],
+        "actual": [
+          189,
+          170,
+          195
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 0,
+      "point": {
+        "x": 83,
+        "y": 74,
+        "expected": [
+          190,
+          172,
+          196
+        ],
+        "actual": [
+          189,
+          170,
+          195
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 0,
+      "point": {
+        "x": 83,
+        "y": 74,
+        "expected": [
+          190,
+          172,
+          196
+        ],
+        "actual": [
+          189,
+          170,
+          195
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 74,
+        "y": 32,
+        "expected": [
+          132,
+          215,
+          240
+        ],
+        "actual": [
+          131,
+          215,
+          240
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 74,
+        "y": 32,
+        "expected": [
+          132,
+          215,
+          240
+        ],
+        "actual": [
+          131,
+          215,
+          240
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 74,
+        "y": 32,
+        "expected": [
+          132,
+          215,
+          240
+        ],
+        "actual": [
+          131,
+          215,
+          240
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 2,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 65,
+        "y": 35,
+        "expected": [
+          173,
+          156,
+          177
+        ],
+        "actual": [
+          172,
+          156,
+          176
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 116,
+        "y": 41,
+        "expected": [
+          50,
+          44,
+          42
+        ],
+        "actual": [
+          50,
+          45,
+          41
+        ]
+      }
+    },
+    {
+      "facing": "NE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 164,
+        "y": 101,
+        "expected": [
+          155,
+          157,
+          159
+        ],
+        "actual": [
+          153,
+          156,
+          157
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          155,
+          182,
+          170
+        ],
+        "actual": [
+          154,
+          182,
+          170
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 53,
+        "y": 32,
+        "expected": [
+          237,
+          213,
+          245
+        ],
+        "actual": [
+          237,
+          213,
+          244
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 77,
+        "y": 44,
+        "expected": [
+          47,
+          44,
+          43
+        ],
+        "actual": [
+          46,
+          43,
+          43
+        ]
+      }
+    },
+    {
+      "facing": "NW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 2,
+      "p95": 1,
+      "point": {
+        "x": 122,
+        "y": 98,
+        "expected": [
+          221,
+          231,
+          231
+        ],
+        "actual": [
+          220,
+          230,
+          229
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 56,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 50,
+        "y": 26,
+        "expected": [
+          119,
+          208,
+          235
+        ],
+        "actual": [
+          119,
+          208,
+          234
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          139,
+          113,
+          84
+        ],
+        "actual": [
+          140,
+          113,
+          84
+        ]
+      }
+    },
+    {
+      "facing": "SE",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 89,
+        "y": 23,
+        "expected": [
+          99,
+          163,
+          182
+        ],
+        "actual": [
+          98,
+          163,
+          182
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 71,
+        "y": 26,
+        "expected": [
+          182,
+          146,
+          106
+        ],
+        "actual": [
+          181,
+          146,
+          106
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 0.73,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 0,
+      "point": {
+        "x": 62,
+        "y": 35,
+        "expected": [
+          122,
+          95,
+          76
+        ],
+        "actual": [
+          122,
+          95,
+          77
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        0,
+        0,
+        0
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 107,
+        "y": 23,
+        "expected": [
+          182,
+          147,
+          107
+        ],
+        "actual": [
+          182,
+          146,
+          107
+        ]
+      }
+    },
+    {
+      "facing": "SW",
+      "mask": 3,
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "scale": 1.37,
+      "shift": [
+        150,
+        0.4,
+        0.15
+      ],
+      "maximum": 1,
+      "p95": 1,
+      "point": {
+        "x": 104,
+        "y": 23,
+        "expected": [
+          74,
+          108,
+          119
+        ],
+        "actual": [
+          74,
+          107,
+          118
+        ]
+      }
+    }
+  ],
+  "legacy": [
+    {
+      "index": 0,
+      "hash": "70aaccf19bac89148e2039da21f2c047f9d2d254bbf89d9ce218ffa28a8386e8"
+    },
+    {
+      "index": 1,
+      "hash": "568cb227fbbc82ebad703aed90d5d6a9fef49fe341dff25003f8d49e4ad51158"
+    },
+    {
+      "index": 857,
+      "hash": "d2344780bb6b255dbeabfba8c9a56c152699f05dfd46e1ca85c21b9c8ae4f00c"
+    },
+    {
+      "index": 860,
+      "hash": "25f15d6b38e4e7060079f919b154d664c84c3aba2e7091eee05e151e6c7d4d8c"
+    },
+    {
+      "index": 863,
+      "hash": "6e01f9a9c3c2f385800ec0a9c427e57885f06e1449a77546a81f0b412a28d3c0"
+    },
+    {
+      "index": 866,
+      "hash": "a974a2bc235e0c526ac78e7009be69680cdd6085b799bc2d0d0ef08a935d861f"
+    },
+    {
+      "index": 869,
+      "hash": "30717c9c4853c109f7ccb1d10e142094cef4f85ce6ae287ac271cf89767b5942"
+    },
+    {
+      "index": 872,
+      "hash": "4f03f367f6c1257c55780ce1a13351c085e0d34ff0654e1e1903bcc19ee8ab4c"
+    },
+    {
+      "index": 875,
+      "hash": "776007ba5e4e95518d92704be7d085d11f7087676a0c6140dd9c6c081982e463"
+    },
+    {
+      "index": 878,
+      "hash": "aadc890d2e4efcd8f446f12f8359c87e8d63531e602c727ed39557b458370ebb"
+    },
+    {
+      "index": 881,
+      "hash": "0d735a90f37ab60207688218ac7205dbe8e28bd583e728f2ac6c7e725aafc209"
+    },
+    {
+      "index": 882,
+      "hash": "9d17a9021b053677b46f6daf87b74a59653760299ffe1d9e55adfc31cb673b74"
+    },
+    {
+      "index": 883,
+      "hash": "d07e3db18c3407c473d615b86d7ae9680b8eb8d5be81bee2bc9d843f8dfd310f"
+    },
+    {
+      "index": 884,
+      "hash": "a0704354d5c0d759547d24bc20df0a09414f927c8197b2c6cc2c304a5627d890"
+    },
+    {
+      "index": 885,
+      "hash": "5faadceef082b4d561116910ed283c6cbe446b4a02a42c346624740983ebe521"
+    },
+    {
+      "index": 886,
+      "hash": "397b60395f6bdbf6f8c4ffb8565a37ae67b4dbe01c825f4702ad7227a826add7"
+    },
+    {
+      "index": 887,
+      "hash": "4454b960c182461791d0aa397f41362fb30e60e120049de460bfb3795e46135c"
+    },
+    {
+      "index": 888,
+      "hash": "d71374747815a4c853bb130d255dd712fd66ad09a91a954f0fbeaeb47a3a39e2"
+    },
+    {
+      "index": 889,
+      "hash": "e3fa20013264b8de295934b86cffe8a0e3e0301e2669492b637adc164b2eb7b5"
+    },
+    {
+      "index": 890,
+      "hash": "910a68f2d82ecd978714c712176be64664be15709c4f2f3b5bd46ef63c10b031"
+    },
+    {
+      "index": 891,
+      "hash": "2346911c4abe39c5a678510c16c677a47ae46502f17cc22e92aa9555d8e6d494"
+    },
+    {
+      "index": 892,
+      "hash": "3be3ff73b2b69af15d6116864c8f4889259b57d4ba83c46b61a17a9c60b609ab"
+    },
+    {
+      "index": 893,
+      "hash": "068f74083361093d939094af4e33a22da677b6867c929a5eba11945571da7d22"
+    },
+    {
+      "index": 894,
+      "hash": "9f8ba8ca2295c787cf3b9ea509050a963fddce793b6d8809a3632f903109a110"
+    },
+    {
+      "index": 895,
+      "hash": "9d5da4f3c1479d14538af0632939ac04e8bba26c20b9c54fd51ef0da537599bb"
+    },
+    {
+      "index": 896,
+      "hash": "b239c0c4e6efac3624f15e9201303e5d522feedcf9f47e353d2c5bfd5cea7d96"
+    },
+    {
+      "index": 897,
+      "hash": "a8617cf28188d83730adfb31010e653a83522640ae181c6cd7edb2707a3fc27e"
+    },
+    {
+      "index": 900,
+      "hash": "ad6179269eeb5dd2bf7bfd115a5d6bd08657f4fa30b2ffa30c5ad1f1701a2dd3"
+    },
+    {
+      "index": 903,
+      "hash": "f393aee0cdd06cf4d2e05865cbd8a80ed7dace4353423dd1ddecd01aca3e0b80"
+    },
+    {
+      "index": 906,
+      "hash": "892bf067ae4e5955602c5c556b2f6bb8e90801be0aea2d88d126e0b09c6abf94"
+    },
+    {
+      "index": 909,
+      "hash": "96ab80d47eed06b50400199960d9687996215161d48bba68d6a047cdd02ec6cc"
+    },
+    {
+      "index": 912,
+      "hash": "c23fa69ffe6b0441de0bcd450835c8900100b073fb3b62e7d7aa5c32135277b1"
+    },
+    {
+      "index": 915,
+      "hash": "46e8b69f14a06136af901e0c53461634f8ee68f87d44309ca6b726bb929638b0"
+    },
+    {
+      "index": 918,
+      "hash": "237c9db9b17e8da8b42e40b55fb87a73c11d09f9e23f87fe226e6faf7f02019b"
+    },
+    {
+      "index": 921,
+      "hash": "c423d51a221d739530ba7e5f253e38609086db098e5325aaae46ab82e5d696b5"
+    },
+    {
+      "index": 922,
+      "hash": "eb7709e3f301dccc3f641e55d340d954f4af1c7a743cb1ae2a2f841052ed65e4"
+    },
+    {
+      "index": 923,
+      "hash": "ec0a4f1684fecc1c87eb053cba16acdb557157b5efba1343de9c52fe287b285e"
+    },
+    {
+      "index": 924,
+      "hash": "0cf4085e6f502103d3c6387ed2a12f50c45fb9bc7ba8756983e89973fea1025b"
+    },
+    {
+      "index": 925,
+      "hash": "11c86def3b825799bf8628e4c4fa7df51423659a924aa6630556f01bae4158a2"
+    },
+    {
+      "index": 926,
+      "hash": "35c1495989f71af46372323c6fe6ea975033c1a42ca672db61280e4bcb3da631"
+    },
+    {
+      "index": 927,
+      "hash": "39f8b004563a2ba1b0db5dd52148fe0f7a31c103589a92b58ba35ae6f1a14ec7"
+    },
+    {
+      "index": 928,
+      "hash": "b150fdc26ea5e74b33292259560a4ae6178f60a970dd8c763825b018afc8df2d"
+    },
+    {
+      "index": 929,
+      "hash": "8a591d4b6a2c99756f5c05505cad6b05b5cbe80cd02879427bce8386abd5935b"
+    },
+    {
+      "index": 930,
+      "hash": "1e55568a6c813de6c7c38f052e774d9b49f51ddf65fa2a52e19e02ccf739d0f8"
+    },
+    {
+      "index": 931,
+      "hash": "090e940dec551d6730b3177e33d8f78816b9c245d10b1a93d088cbb922940353"
+    },
+    {
+      "index": 932,
+      "hash": "7800205020d8247b9b62fef87e02ab6fd5ffc219d0c6c7f57b92cbb430f2c261"
+    },
+    {
+      "index": 933,
+      "hash": "6b29746112bf5475685242d1cb023dc14b6c9daca1de453c5ee6861eafa599ff"
+    },
+    {
+      "index": 934,
+      "hash": "c7c1d89bee9449f0b6e96332a7cef09046b50b99fcd2dc5c0e992905860b5089"
+    },
+    {
+      "index": 935,
+      "hash": "c9ee1b5e682a202ef24791f5127d526a6149a3692199e8ee80ca5690a09120e3"
+    },
+    {
+      "index": 936,
+      "hash": "a073a7401c1c1a7690d7539f451d228dc3ebdb7955e83176e51beb980443fd9b"
+    },
+    {
+      "index": 937,
+      "hash": "de7820f44bf0b3b0818447bb35a7f924f398f8f47900b7f9860d3257ba7caa94"
+    },
+    {
+      "index": 940,
+      "hash": "b5bbbcfb63407114336730ad2ffbe42fcfeb838f99c350cdd234bb17b7040e3c"
+    },
+    {
+      "index": 943,
+      "hash": "5b22af5a0a24a2da99e0dc7d69d43dd479734ce1297abcae3088d755a11d49e0"
+    },
+    {
+      "index": 946,
+      "hash": "7fd89004d9a19e5eb293dfef50c9cd715488b4281cc8c2cd99986c4eb2aa034b"
+    },
+    {
+      "index": 949,
+      "hash": "ff450553f777e779ccc0e439011aa8fc8b29307a8f396298a71c136aadbff977"
+    },
+    {
+      "index": 952,
+      "hash": "500537d36492c879af6b37cb58182ba55e7e108e60b13dacdf9d875d905cc1d2"
+    },
+    {
+      "index": 955,
+      "hash": "2bb36768697d724895cec962ca83f6539282f519c9d48fa0452b006843298c81"
+    },
+    {
+      "index": 958,
+      "hash": "af583587ec143b76eb4c44fb023e1bbc19d50b93c9c4c18368ebf1127e74672a"
+    },
+    {
+      "index": 961,
+      "hash": "68317cdd1096be37f96a2322d9d389fa5cc41ce749382456e49922166d79099e"
+    },
+    {
+      "index": 962,
+      "hash": "26ed3b7aa367c1812e588d0ddcaf3c89faaa4dd88b02513212143ecf0c44e056"
+    },
+    {
+      "index": 963,
+      "hash": "ba093d15229a72e09b2688f6b945a19d9d7a5b251fd96db8fabb478f2cc190a9"
+    },
+    {
+      "index": 964,
+      "hash": "baa48b83067109d957259bab5cfefbdad33951ca25e5929fd45684e46e0d5446"
+    },
+    {
+      "index": 965,
+      "hash": "8f30609b2bdbae1b1f9a413faa3930871e28093595a61db22ad8e5d0d0ed08d5"
+    },
+    {
+      "index": 966,
+      "hash": "d50aaa7b4bfa3214c78ee5ad40a4aef3b72ff40dfbe53b0089026bd835b157c7"
+    },
+    {
+      "index": 967,
+      "hash": "cca7dd4c45d7051c76730cbcbbc434c278fbc414163ecda4152f0cfeaf0b0df7"
+    },
+    {
+      "index": 968,
+      "hash": "aa2ea6cc067c956dad894ea77a1c8a544fb67d867bd086d413f88d64c53f8e56"
+    },
+    {
+      "index": 969,
+      "hash": "44d97b642114a82ddde295dfb72baf5e2ee120821b0b9b01f00b58957a4911f0"
+    },
+    {
+      "index": 970,
+      "hash": "553cb311294e5bdf8de49921ec14bad5679636b0e794a210800e18cac1ba5bec"
+    },
+    {
+      "index": 971,
+      "hash": "d58964d2b9c97a76b80fd511f4a85aac4cc31f73d2eef03bdce43b1f5ea1b86e"
+    },
+    {
+      "index": 972,
+      "hash": "917238b4b3099450204d9ff97bc3d3f2685a1e0d2a0c68311deba69f2fedfa8e"
+    },
+    {
+      "index": 973,
+      "hash": "584e6baa5a98ecfe6b51b14e3a929533cf962e500297e6e8016330f882fa816c"
+    },
+    {
+      "index": 974,
+      "hash": "02ccc7319cdd82d9af6ff070e7ade94668d00cff52d58a46f8560273b072eafa"
+    },
+    {
+      "index": 975,
+      "hash": "fa938e130410671d68a589b21cf65a615cfc18fd6fb73b09fb5b4543eda33c32"
+    },
+    {
+      "index": 976,
+      "hash": "34a84320df8b3aa62c637491b4a680284fd60f8cb05f43ef8dc73dd7e7c3dfe3"
+    },
+    {
+      "index": 977,
+      "hash": "d1005b309ef1fa46f6d651e1950ff3d81d295fe56c369369d973f450c3f2a5e8"
+    },
+    {
+      "index": 980,
+      "hash": "ec5d487a40035af4a699ca067fea86e6b746891de7aa9ad8ff4e07599b8e0d88"
+    },
+    {
+      "index": 983,
+      "hash": "06fcb2042d9e74c914a6c0f45c657d4bbc63e25155f0d3f7096aa6c0db8f5b25"
+    },
+    {
+      "index": 986,
+      "hash": "4cc663f7ebc4fcb56bbff49c6b32650446c23d5094baf00b22361dd6a8872b35"
+    },
+    {
+      "index": 989,
+      "hash": "587801e1afdf9da03f68233be0ab140da0a6890c0e5c1cda3bd57029dee9b2e4"
+    },
+    {
+      "index": 992,
+      "hash": "7e42f414cf842ad5e19c72058c6f55a703422439e639917ff8775a49e14bb4ce"
+    },
+    {
+      "index": 995,
+      "hash": "25987cdaecf261f7a706aeda8f60ccb515696abe5df726be4ea5f415d4a6cfe1"
+    },
+    {
+      "index": 998,
+      "hash": "11fa07ab7b2f2e3233613d3bae3c595bc85859fc22e608036ce0f042f86c5614"
+    },
+    {
+      "index": 1001,
+      "hash": "5a62b498ecda46eda772b171a48e4afce7fb6e8812afc3089fb0eef1edc4a0d4"
+    },
+    {
+      "index": 1002,
+      "hash": "c52842757b1ef014e831abda855307ae3b696abc138116f74e0e9c8339df62f1"
+    },
+    {
+      "index": 1003,
+      "hash": "c87718a98d2694522056f0ed6f95502a00c645f804d8261e283324e9f0b13701"
+    },
+    {
+      "index": 1004,
+      "hash": "56c3fabf639fef515dafe31f0d62461ac4e482eeead10ae376f9f9dabd2f11ab"
+    },
+    {
+      "index": 1005,
+      "hash": "a19c5de4198da81c02763c2c936b3805a397bb7b4fbe892466959ade52b04f5d"
+    },
+    {
+      "index": 1006,
+      "hash": "f95d44ae2a1a3e61cf57c89f3f50532e2310cd2aaac93ad3fd9d5626bd22c654"
+    },
+    {
+      "index": 1007,
+      "hash": "d7036be1b341d75b4aa128f8e4b9135dc228c4d1fa3e8184e2bfc14c92cd9dc9"
+    },
+    {
+      "index": 1008,
+      "hash": "87a86e7f42bb70993325e3a87fd95b037d5b596f878b2a6836e1196500f65eef"
+    },
+    {
+      "index": 1009,
+      "hash": "c78b7b5a17185a65726126c4df82a56e58f96b6255ef94a4a4a48cc6f3eb949d"
+    },
+    {
+      "index": 1010,
+      "hash": "3eb08935bcb89dfd84a97a0aa56f1a8fe0da32fa3ff7bceebae80af10cc0c63e"
+    },
+    {
+      "index": 1011,
+      "hash": "3f30134676ae4dd3ff20653ba81f7e17842e3c4cfcb9c9f36e21631551fe11a7"
+    },
+    {
+      "index": 1012,
+      "hash": "f07abf21b9a7ed402c3d7a2c1fc07a17683c5da8dd8898ec77a7c92660b885fc"
+    },
+    {
+      "index": 1013,
+      "hash": "ff705f75d534cbc59975dd393f0d32e3a97ae3847fd227aba262411f63260a96"
+    },
+    {
+      "index": 1014,
+      "hash": "69633edd9fce03e4c3ba526880f245d8359d443caa7c6cc1827d8f6ab1450911"
+    },
+    {
+      "index": 1015,
+      "hash": "89e26b3bd180eef1e84fa3e39f36a413ace6e4e7c7019ca880cbbecb4f896389"
+    },
+    {
+      "index": 1016,
+      "hash": "115be6db3971a9729cba88d4fbe806c49f50bdbaa10549aa732861c4e4acae81"
+    },
+    {
+      "index": 1017,
+      "hash": "291b44244af1f0e7ffdd7ba2b02e5352295522929425d91e170df9225a4d53aa"
+    },
+    {
+      "index": 1020,
+      "hash": "5e80d23a62b25c54e37e97e3ecc4742f284efc0d17e0d8f8584dbc33ab568ad5"
+    },
+    {
+      "index": 1023,
+      "hash": "291b44244af1f0e7ffdd7ba2b02e5352295522929425d91e170df9225a4d53aa"
+    },
+    {
+      "index": 1024,
+      "hash": "6ac15fab90fa4e511ee7c986c8315476767947db4d241a215d34ff19897849b2"
+    },
+    {
+      "index": 1027,
+      "hash": "6627059da192b3dd716452794d77e680fad7b80f154139eebe38510bd1a4baf0"
+    },
+    {
+      "index": 1028,
+      "hash": "d1a0f9d2eaea75f99863d12bd91df05dd1173fd146186c3761bda60699798f7c"
+    },
+    {
+      "index": 1029,
+      "hash": "6627059da192b3dd716452794d77e680fad7b80f154139eebe38510bd1a4baf0"
+    },
+    {
+      "index": 1030,
+      "hash": "2d5c158b278ad293202a79eab8dadc0d8bf2dd9642abf7f8d36c337c41fac9eb"
+    },
+    {
+      "index": 1031,
+      "hash": "d54da8c6837f8b1263949192c251608e52e4d79f54f40e6ccb2d99dd024b43d7"
+    },
+    {
+      "index": 1032,
+      "hash": "8c49a36bdf7a000487f3996973441cb434ad54536dd982e1636135516d0b9a87"
+    },
+    {
+      "index": 1033,
+      "hash": "d54da8c6837f8b1263949192c251608e52e4d79f54f40e6ccb2d99dd024b43d7"
+    },
+    {
+      "index": 1034,
+      "hash": "215b3d0d47dd6adfbd72a1957a36de3bc171ca204f71fdd1eef7f07b6bf30f19"
+    },
+    {
+      "index": 1035,
+      "hash": "21989c517b02bdff98e8adf7fc71d98db72f7daa03b3ce5f0c6ed6ce755e3e22"
+    },
+    {
+      "index": 1038,
+      "hash": "474bae3e87e888185b1c46a82ed859083f4dba3fdab990fe584ecbef478f8e04"
+    },
+    {
+      "index": 1041,
+      "hash": "21989c517b02bdff98e8adf7fc71d98db72f7daa03b3ce5f0c6ed6ce755e3e22"
+    },
+    {
+      "index": 1042,
+      "hash": "444a9c3cffc04a7a3fd250f56ea4e68907940ecdeb1a37e088b8f195d57690d6"
+    },
+    {
+      "index": 1045,
+      "hash": "f57aac0d2155bacad5b3ffbc93801380394b2146e61438bd0ad9170a39bacf95"
+    },
+    {
+      "index": 1046,
+      "hash": "7fadcedc07002361627a30674752e79a35e8bc03f09adbdf6536f10ec726259b"
+    },
+    {
+      "index": 1047,
+      "hash": "c9bf236ca0d7fcfbe2e0d7fe54b903dc46eeab3bf08f4d7746e39c920c1f4a29"
+    },
+    {
+      "index": 1048,
+      "hash": "a37e7b1127031b7dac0d4efdb9a95c583a3bd67a8dea6220bc719d4b1e00f14f"
+    },
+    {
+      "index": 1049,
+      "hash": "c0f3e1e41203dbd0f706d8431f1032ff2b2308e7b9c65c874d8e17302f10b3a3"
+    },
+    {
+      "index": 1050,
+      "hash": "b243e26469e4ddf08b27a455a7203ab528925cef25b133cc03085920da4622c2"
+    },
+    {
+      "index": 1051,
+      "hash": "c0f3e1e41203dbd0f706d8431f1032ff2b2308e7b9c65c874d8e17302f10b3a3"
+    },
+    {
+      "index": 1052,
+      "hash": "2eb4fa5c0d94f13e85726381fe3a346236e26c268053c6cea676174ff3eb3ae3"
+    },
+    {
+      "index": 1053,
+      "hash": "3816cc1747b8bf7b2886ada29f50a86a7a5f15da1b3256c58a7da96ef5de3f11"
+    },
+    {
+      "index": 1056,
+      "hash": "5b88b1a24bbbed320c3cd4f99208e2688acf530da96f7ccb7e4842950c9722dd"
+    },
+    {
+      "index": 1059,
+      "hash": "9b63c5d14d4d415abb0221002546b74a8edd2d9fa7adfbb13c8263dcac217759"
+    },
+    {
+      "index": 1060,
+      "hash": "20a371a653ef7211079852f03dfcc930df7054bcb5d2745107921e0852166019"
+    },
+    {
+      "index": 1063,
+      "hash": "4133a4281869c164e4ee65ab5f8dea98208f9cd2dbe7371bf939830916b2e242"
+    },
+    {
+      "index": 1064,
+      "hash": "e7a99770666e64a91230b0489deb4c59e6475b42c053216a3fc04405a3370f6a"
+    },
+    {
+      "index": 1065,
+      "hash": "4133a4281869c164e4ee65ab5f8dea98208f9cd2dbe7371bf939830916b2e242"
+    },
+    {
+      "index": 1066,
+      "hash": "b0ae1172b46c6f92a2d26b8c4c4d8fbaeeccb58d316e3d3b9fd3b3b387cb9165"
+    },
+    {
+      "index": 1067,
+      "hash": "acc11ae1016d0e50ab26911a6f18b0ea32d6615d4ce42fba665dd87dce798244"
+    },
+    {
+      "index": 1068,
+      "hash": "bb3ac6ccbbdec4fa986021ef69ec30cb1373521a2034bd53bfc348b597be27fa"
+    },
+    {
+      "index": 1069,
+      "hash": "acc11ae1016d0e50ab26911a6f18b0ea32d6615d4ce42fba665dd87dce798244"
+    },
+    {
+      "index": 1070,
+      "hash": "c3a8300be4332e02e9327fec630e1f490be81e2add41c8ad4c7de871b5ac9904"
+    },
+    {
+      "index": 1071,
+      "hash": "b4a1ffa19256dc1644092c61f0421a227a1e9da93e45de9227b99d1e5c5a90c1"
+    },
+    {
+      "index": 1074,
+      "hash": "6a7328ea4678aff39e03a42409eb4531ad71d28c9a3711cfa7f44c54df75c535"
+    },
+    {
+      "index": 1077,
+      "hash": "b4a1ffa19256dc1644092c61f0421a227a1e9da93e45de9227b99d1e5c5a90c1"
+    },
+    {
+      "index": 1078,
+      "hash": "9199e7dfbbc146525d40f1c0efb28646dfecb914ddb5f3a2109ef6c06aa720c7"
+    },
+    {
+      "index": 1081,
+      "hash": "0415a081c6e3d2c431b1d8e3741accad153bebcc429cfe3e028676bdb0478a14"
+    },
+    {
+      "index": 1082,
+      "hash": "64ddf93a0f10530f36d81c9e868ba2c4c725dabda04a870a221d7812209988a2"
+    },
+    {
+      "index": 1083,
+      "hash": "0415a081c6e3d2c431b1d8e3741accad153bebcc429cfe3e028676bdb0478a14"
+    },
+    {
+      "index": 1084,
+      "hash": "d5313dcc3f1d08852d65ba9ddbddb67e83687e791a2840a02346304142a8e74e"
+    },
+    {
+      "index": 1085,
+      "hash": "9357a60b9ad6b41328df4263b00a2b7c299cb1fdb90139f3d6549ec14491e3b8"
+    },
+    {
+      "index": 1086,
+      "hash": "08c6f6ca2f4ce4f90d425cdbc946a7c50a1e660a605e2fdd2ad62ca38be60a48"
+    },
+    {
+      "index": 1087,
+      "hash": "9357a60b9ad6b41328df4263b00a2b7c299cb1fdb90139f3d6549ec14491e3b8"
+    },
+    {
+      "index": 1088,
+      "hash": "939acaa278d5b888bf23fd303f158495d4711680f9185ea0e3758cf90205574c"
+    },
+    {
+      "index": 1141,
+      "hash": "137146ddbdbcb272f7619bbb8dabeaffedc81ccef7ef8d21eeb4e138fbe1ce97"
+    },
+    {
+      "index": 1144,
+      "hash": "e932f3cff35dc979bd6085558ac2f59ae345cc24ddf0c5a716d560504b0ed8b8"
+    },
+    {
+      "index": 1147,
+      "hash": "673bfda7196302d0df16108dc81ed6512b5e18a9a11f060414a5d76ed7811264"
+    },
+    {
+      "index": 1148,
+      "hash": "814eab5c6768914710b41837eeb0661f201810ce9c86fee96c7ccbae2a7f839b"
+    },
+    {
+      "index": 1151,
+      "hash": "9e2cb246c549f587913962004237b14e40f56e9148c32cdcca1943952cf8975d"
+    },
+    {
+      "index": 1152,
+      "hash": "d6c3d1ade72753b3cbb8036fd65114edb9d61833aec908e61a8bd135b1d008de"
+    },
+    {
+      "index": 1153,
+      "hash": "9e2cb246c549f587913962004237b14e40f56e9148c32cdcca1943952cf8975d"
+    },
+    {
+      "index": 1154,
+      "hash": "4e3a68d0b0b24131341191d788b26c09404ae3cb92da2b55a06f098d9c17bb44"
+    },
+    {
+      "index": 1155,
+      "hash": "a44c1cf4974532e19f429f4bc665fa0de4f6827c3a73ee5c927a610a72df7501"
+    },
+    {
+      "index": 1156,
+      "hash": "63ffcfcd18bc7f2fcc179b5156ad2068606ce4f46e3357264663a3cc61597d01"
+    },
+    {
+      "index": 1157,
+      "hash": "a44c1cf4974532e19f429f4bc665fa0de4f6827c3a73ee5c927a610a72df7501"
+    },
+    {
+      "index": 1158,
+      "hash": "f30bc1e786f7596bc075d4df9985b621c6d08eb79d517d1d49deca297113332f"
+    },
+    {
+      "index": 1159,
+      "hash": "69708c9ee384353d1f7d382ffbbbf73e29f427467ad5cd7d7c4baec0ed9ffc02"
+    },
+    {
+      "index": 1162,
+      "hash": "6cd1b82839de8602ccf9928f9ec6722f2933b4329f1163b4d1ee7cfcfc7ea90a"
+    },
+    {
+      "index": 1165,
+      "hash": "69708c9ee384353d1f7d382ffbbbf73e29f427467ad5cd7d7c4baec0ed9ffc02"
+    },
+    {
+      "index": 1166,
+      "hash": "3e00567de1abb7583a78456313930f0278da5a900a26f20bceb2844036aeb040"
+    },
+    {
+      "index": 1169,
+      "hash": "724752061c193db5615749c037f816a4a69ef129a45fd7169a741122f3ed3c1c"
+    },
+    {
+      "index": 1170,
+      "hash": "babb851fa7598ce678ec3bfc9841809a6e3654b669e1ad19c77683f5d919a2a4"
+    },
+    {
+      "index": 1171,
+      "hash": "724752061c193db5615749c037f816a4a69ef129a45fd7169a741122f3ed3c1c"
+    },
+    {
+      "index": 1172,
+      "hash": "748d0b90466e56fc0891f125d099bf28f10dc02760fffac0dff1bfedb2a6caee"
+    },
+    {
+      "index": 1173,
+      "hash": "7c10cb736321eb723a363357abcdc004ebec605fa74ddf839d34a3e2c381bfaf"
+    },
+    {
+      "index": 1174,
+      "hash": "484d77012af5356c04930a22fb2091e1a9455b5b5909980198643ab51aaab988"
+    },
+    {
+      "index": 1175,
+      "hash": "7c10cb736321eb723a363357abcdc004ebec605fa74ddf839d34a3e2c381bfaf"
+    },
+    {
+      "index": 1176,
+      "hash": "ae3a0fff438e0bf13dd1bf214c1a28f0ce06fa4a204da500aa79b2ff2dd44bc6"
+    },
+    {
+      "index": 1177,
+      "hash": "1c34064c900307bad43f4a143bb8db822b9785130ec568ddfc8a7e8cdbb1f6e2"
+    },
+    {
+      "index": 1180,
+      "hash": "1975939017d1b224ea32fe346bed2ad4eae71efb4f88cfb961580e8be4d661f0"
+    },
+    {
+      "index": 1183,
+      "hash": "1c34064c900307bad43f4a143bb8db822b9785130ec568ddfc8a7e8cdbb1f6e2"
+    },
+    {
+      "index": 1184,
+      "hash": "537f7c16a229a5de574379e157bae40bf800649ba7bf3595e092fd328a10dc92"
+    },
+    {
+      "index": 1187,
+      "hash": "156618c46d4bb413f5dc78db84e3e07b8e0d43679f12de15a299ce7b26dd7ffc"
+    },
+    {
+      "index": 1188,
+      "hash": "13781a652b8b98a19abaec0ad94a4c8fc99272ee04e4e0c6204d1003b9e7101d"
+    },
+    {
+      "index": 1189,
+      "hash": "156618c46d4bb413f5dc78db84e3e07b8e0d43679f12de15a299ce7b26dd7ffc"
+    },
+    {
+      "index": 1190,
+      "hash": "b2ea294c5b7d928cf5f05618ccac68888860fa4765163b41d151d82995b142fd"
+    },
+    {
+      "index": 1191,
+      "hash": "482a5ea8af5d7747b2a1231ea54c94d36742935a522497fc8a78d9b3ea4c57a9"
+    },
+    {
+      "index": 1192,
+      "hash": "99e5fd6b26061d89cb11908ede5ae0259324948b3b8c80d8391e8df36768242f"
+    },
+    {
+      "index": 1193,
+      "hash": "482a5ea8af5d7747b2a1231ea54c94d36742935a522497fc8a78d9b3ea4c57a9"
+    },
+    {
+      "index": 1194,
+      "hash": "679623fb7edf8c99a44a6ebd10fa35d8727a03ac5527c80b75118a57dad490e3"
+    },
+    {
+      "index": 1195,
+      "hash": "89a05f5b39d2e70d590d2af7efad5548f94ab6c86a6fc46989839c6ec0d4e85f"
+    },
+    {
+      "index": 1198,
+      "hash": "1701f4dba74763ded9186ff532c93286ef5b30b257d79e4b1a928d6fc37a5333"
+    },
+    {
+      "index": 1201,
+      "hash": "89a05f5b39d2e70d590d2af7efad5548f94ab6c86a6fc46989839c6ec0d4e85f"
+    },
+    {
+      "index": 1202,
+      "hash": "6a86d9c45068d65e460546841ab579c20802be1c3b96c71389a768c9799aaf6e"
+    },
+    {
+      "index": 1205,
+      "hash": "b09082be3a0170e09199fcd4e999f41ee3621ebd200fb90de22c7a9826071557"
+    },
+    {
+      "index": 1206,
+      "hash": "de63ae4b5416174b11cc6f37838780753b273c65a823dcfe33d83b64bb62d97a"
+    },
+    {
+      "index": 1207,
+      "hash": "b09082be3a0170e09199fcd4e999f41ee3621ebd200fb90de22c7a9826071557"
+    },
+    {
+      "index": 1208,
+      "hash": "a3ffca8fff18b9d99b6972c694ac2081db7c45e82835e5ff68f65fda9d24b45e"
+    },
+    {
+      "index": 1209,
+      "hash": "b6aaaa921513de0e720927e5c730ca4a9423142a45302991b3926c972775e604"
+    },
+    {
+      "index": 1210,
+      "hash": "95bffc2f10978867d71510559152a09d9d8b1f60218be3f3f34504010249b78b"
+    },
+    {
+      "index": 1211,
+      "hash": "b6aaaa921513de0e720927e5c730ca4a9423142a45302991b3926c972775e604"
+    },
+    {
+      "index": 1212,
+      "hash": "d47ef031b3b308e47b8f0bbeada8c6b006738bd40a7ef78506a4c98a66249fac"
+    },
+    {
+      "index": 1274,
+      "hash": "31bf864a220de5a33ed669ccf3a9740bda8bc70e4e378d5473fd5ab4aeb98565"
+    },
+    {
+      "index": 1277,
+      "hash": "daa3bd5129d5530e5dc15a5182f326a2321b004bac9d4acf295adb848532a4a5"
+    },
+    {
+      "index": 1280,
+      "hash": "31bf864a220de5a33ed669ccf3a9740bda8bc70e4e378d5473fd5ab4aeb98565"
+    },
+    {
+      "index": 1281,
+      "hash": "9e56b8e1b902594a9a4785442ecb24da9cf8f2bc27bc9f0d30f0be96631bf8a4"
+    },
+    {
+      "index": 1284,
+      "hash": "0462dd132079b56b1e59c22b59aa782473cd850c3123c189e75b806c9d31bac6"
+    },
+    {
+      "index": 1285,
+      "hash": "98081cce4dcea0c96a3b9e45e3eaf5a09006d541b62e9ee45a1b81507039dba9"
+    },
+    {
+      "index": 1286,
+      "hash": "0462dd132079b56b1e59c22b59aa782473cd850c3123c189e75b806c9d31bac6"
+    },
+    {
+      "index": 1287,
+      "hash": "0b3d33602f5ff41eda376653042367b6fdbb40bdad2cb795d987a5270d31f1ef"
+    },
+    {
+      "index": 1288,
+      "hash": "f4cb073f995f37af155d68fb100dfc4e9a6aaabe532a13a53b7472773370bdef"
+    },
+    {
+      "index": 1289,
+      "hash": "a20be12496437726c96cf4d6304f9ac2e42d4ad16f3cc00793dd0ab15c663ee4"
+    },
+    {
+      "index": 1290,
+      "hash": "f4cb073f995f37af155d68fb100dfc4e9a6aaabe532a13a53b7472773370bdef"
+    },
+    {
+      "index": 1291,
+      "hash": "57db9efe17c126ecd4d24f79a99354e4b69897162081db31c808aacdd5559c44"
+    },
+    {
+      "index": 1292,
+      "hash": "1f4e58fa320c460ec63eea8e328e70ea9f144587f1b4ddb1f251d639964f21e2"
+    },
+    {
+      "index": 1295,
+      "hash": "8ec101896b0adf323453cb7d0e1310a71169291eb0fd21ebd37299f0bdbd9b09"
+    },
+    {
+      "index": 1298,
+      "hash": "f585ee28a3bf6516db24c2435c22d1bda29699699e559bc4abbd247c606514c4"
+    },
+    {
+      "index": 1299,
+      "hash": "a201b287a57b24e92d8ef423b95ea84f76ae18dcfe83d598586f2caf0677a708"
+    },
+    {
+      "index": 1302,
+      "hash": "2e60c6951f67a92114def67f4cd8e16891ba4043c157a593f0dad81b4b10b237"
+    },
+    {
+      "index": 1303,
+      "hash": "d37f6192c74731585db58a8635e664f129fa2e006794de305aa3da890331b989"
+    },
+    {
+      "index": 1304,
+      "hash": "2e60c6951f67a92114def67f4cd8e16891ba4043c157a593f0dad81b4b10b237"
+    },
+    {
+      "index": 1305,
+      "hash": "2b157229e499109ed4bf9264ca8e31e57e17ea463ffd0ca191557b80526aeec0"
+    },
+    {
+      "index": 1306,
+      "hash": "4afcc5f1d2b10eb65f888248690efdd4ca32f29870a848f574e40828a954315d"
+    },
+    {
+      "index": 1307,
+      "hash": "f2154ecaf0df9ef61485d36a21c7c15bbc3d7f9b7ba52a5258959b1d9356a24d"
+    },
+    {
+      "index": 1308,
+      "hash": "4afcc5f1d2b10eb65f888248690efdd4ca32f29870a848f574e40828a954315d"
+    },
+    {
+      "index": 1309,
+      "hash": "2ab37edbb9e89e36272a9803376dea9199b189783b0baa8edac80294549f3add"
+    },
+    {
+      "index": 1310,
+      "hash": "5f7b2f7f4ad61db966360b33357bdea24fbfceffb706351da73b64204acd0659"
+    },
+    {
+      "index": 1313,
+      "hash": "b3b609c3b51f03490901dd4582101f6ccc2b7f126841bc1a5a448882eb075110"
+    },
+    {
+      "index": 1316,
+      "hash": "5f7b2f7f4ad61db966360b33357bdea24fbfceffb706351da73b64204acd0659"
+    },
+    {
+      "index": 1317,
+      "hash": "116ea2f9ffd80e145bcc2e574e244742aa54c4a0ac257a236a0558e5de0315db"
+    },
+    {
+      "index": 1320,
+      "hash": "76c4191b21d0c719213f9e078d2eaa6403bf79c7d07b2b6440d58459744cf75a"
+    },
+    {
+      "index": 1321,
+      "hash": "aa4f0a746597c239a1ffa22a0d3241df1d03df68d2cdf072090288be689c360e"
+    },
+    {
+      "index": 1322,
+      "hash": "76c4191b21d0c719213f9e078d2eaa6403bf79c7d07b2b6440d58459744cf75a"
+    },
+    {
+      "index": 1323,
+      "hash": "b9329aed7ca6f88c23ddd873f745c0cbe2d0833beeb37d41cf7347e3866e2b30"
+    },
+    {
+      "index": 1324,
+      "hash": "496dcf1d4d3ee892c33c19a2be1fa55ccd28af7d3905f87e62e4fc15246244d0"
+    },
+    {
+      "index": 1325,
+      "hash": "0752a047d40aa139d28736540d9fce2bec61ecabc08d1dd5724ee658aec3e86a"
+    },
+    {
+      "index": 1326,
+      "hash": "496dcf1d4d3ee892c33c19a2be1fa55ccd28af7d3905f87e62e4fc15246244d0"
+    },
+    {
+      "index": 1327,
+      "hash": "975752e5d278ed04b6cdcbb093a04c8e26b0223f7d9d0e5b4f59bab004b3cf45"
+    },
+    {
+      "index": 1328,
+      "hash": "bf6cbe3d315ee70d2ca3a533d11bf31ab9c31c3521248b3417c1746392bd1db5"
+    },
+    {
+      "index": 1331,
+      "hash": "f653484a55e32e6c7b7b095b585692b065bfb409bdc771a296658b32c64af02f"
+    },
+    {
+      "index": 1334,
+      "hash": "bf6cbe3d315ee70d2ca3a533d11bf31ab9c31c3521248b3417c1746392bd1db5"
+    },
+    {
+      "index": 1335,
+      "hash": "9048918505b1e59fef82811e13314b926c1f5886e7e85d86474af20707ee3a8e"
+    },
+    {
+      "index": 1338,
+      "hash": "e620c36fe0480f3f3b4c4ad6ee993a3325f1778e61d1374cd110ffa3fe2985c8"
+    },
+    {
+      "index": 1339,
+      "hash": "6ccadbcc016670871a4647a5506c5d209eca8f51f029fac317c8f6d847292be9"
+    },
+    {
+      "index": 1340,
+      "hash": "b8404978dc6a67f809c673db620e563767e8fe9fc65b92120e4991ebc470d416"
+    },
+    {
+      "index": 1341,
+      "hash": "41f158c939782701c278fce369f09eedfcea444ffd2b415d3cbedae1d5f3de94"
+    },
+    {
+      "index": 1342,
+      "hash": "69277d7699788388778a378e1834e443d2713b65153363b20acdf689f24596fd"
+    },
+    {
+      "index": 1343,
+      "hash": "ac185347e6ff14d69c47e391254f70763a62298dc39050b1229a9a2ed9dd16be"
+    },
+    {
+      "index": 1344,
+      "hash": "69277d7699788388778a378e1834e443d2713b65153363b20acdf689f24596fd"
+    },
+    {
+      "index": 1345,
+      "hash": "ffd8abb39fe46a134b5c6563b7712b9dd76d004bf002d28c078d7acd36174778"
+    }
+  ]
+}
