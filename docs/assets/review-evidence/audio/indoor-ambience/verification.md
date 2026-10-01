@@ -218,7 +218,61 @@ check. The full-level room peak remains `0.020989106968045235`; interrupted
 tails remain zero. This verifies the merged audio wiring, not subjective sound
 quality or memory acceptance. The task-owned browser and server were closed.
 
-The separate simulation-removal-history correction is still being verified in
-another worktree. Its artifact is not included here. The latest comparable raw
-memory median remains 123,972 bytes against the unchanged 65,536-byte allowance.
+At that checkpoint, the simulation-removal-history correction was still being
+verified in another worktree and its artifact was not included. The comparable
+raw memory median was 123,972 bytes against the unchanged 65,536-byte allowance.
 Original failures and snapshots remain preserved; PR 184 stays draft and held.
+
+## After the simulation memory repair
+
+PR 186 merged the simulation correction at `c0949f05`. The conflict-free import
+here is `bf2a9049`, whose parents are `81dc2f9b` and that exact main commit.
+Root checked the parent identities, zero simulation-source difference from
+main and the supplied release WASM hash. The [integration report](ecs-refresh-report.md)
+records 1,793 passing tests in 117 files, typecheck, production build and
+documentation checks. Independent task review approved the import without
+findings; it did not approve feature delivery.
+
+The production build is `index-ChVIKHes.js`, `index-BWCAliOW.css` and
+`terri_wasm_bg-BwyH47uQ.wasm`. Source WASM SHA-256 is
+`da49265e97644cb5f3dcc2aef11ef0406a0682f468145d0df472640d929bf9dd`.
+The protocol was committed before execution in
+[the verification plan](../../../../specs/2026-10-01-ambience-post-ecs-verification.md).
+
+Root ran the production UI helper with output `indoor-ambience/post-ecs-ui`,
+exit 0, and inspected its [game](post-ecs-ui/game.png),
+[desktop Options](post-ecs-ui/options-desktop.png),
+[mobile Options](post-ecs-ui/options-mobile.png) and
+[enlarged-text Options](post-ecs-ui/options-enlarged-text.png).
+The [receipt](post-ecs-ui/game-ui.json) reports no page errors, silent startup,
+one room request/source after running, complete pause cleanup, and persisted
+50% Ambience while Effects stays 70% and Voices 100%. Range targets remain
+44 pixels high and reachable. At doubled text the ranges are narrow, about
+52 pixels wide, but visible without horizontal overflow. The night scene,
+household, furnishings and player controls render normally in this check.
+
+The single unchanged six-run memory command in the plan exited 1. Its
+[complete result](memory-after-ecs-fix.json) remains a failed acceptance:
+
+| Pair | Enabled JS growth | Disabled JS growth | Difference |
+| --- | ---: | ---: | ---: |
+| 1 | 335,556 | 241,060 | 94,496 |
+| 2 | 349,328 | 224,344 | 124,984 |
+| 3 | 317,764 | 247,584 | 70,180 |
+
+The median is **94,496 bytes**, exceeding 65,536 by 28,960. All three pairs
+match seeds and exact tick 60/600 world hashes. Structural checks pass:
+every drained endpoint has one document, 1,446 nodes and 160 listeners;
+enabled room starts advance from one to two, with at most one active/retained
+room source in sampled running frames and zero after draining. Disabled
+runs have zero starts. WASM capacity is 4,194,304 bytes at every sample in
+all six runs. The simulation repair removed that measured capacity growth,
+but did not clear the separate JavaScript gate.
+
+This is the third failed acceptance sweep across the investigation, with
+the previous two failures preserved above. No fourth sweep is authorized by
+these results alone. Root requested fresh adversarial review of the approach
+and causal evidence rather than repeating or relaxing the test. PR 184 and
+the separate PR 178 remain held. No 120 Hz, listening or ambience deployment
+acceptance is claimed. All task-owned browser contexts and preview server
+5221 were closed after verification.
