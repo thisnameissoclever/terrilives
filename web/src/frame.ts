@@ -587,29 +587,36 @@ export function simBodySprite(
 }
 
 /**
- * The activity-indicator bubbles, one atlas slot per code that draws.
- * Index 0 and 1 (none, walking) are deliberately null: an idle sim needs
- * no badge and a walking sim's motion IS its indicator - a bubble on
- * every walker would turn the house into a notification tray. The
- * remaining codes match `render_buffer::activity` on the Rust side.
+ * One bubble for every active activity, including travel and generic use.
+ * Idle Sims have no task; off-lot workers have no visible body. The codes
+ * match `render_buffer::activity`, including exact authored object uses.
  */
 const INDICATOR_SPRITES: readonly (number | null)[] = [
   null,
+  spriteIndex('activityWalking'),
+  spriteIndex('activityWait'),
+  spriteIndex('activityEat'),
+  spriteIndex('activityTalk'),
+  spriteIndex('activitySleep'),
+  // AT_WORK: the entire row stays off the lot.
   null,
-  spriteIndex('indicatorWait'),
-  spriteIndex('indicatorEat'),
-  spriteIndex('indicatorTalk'),
-  spriteIndex('indicatorSleep'),
-  // AT_WORK: no bubble - the whole ROW is skipped below; gone is gone.
-  null,
-  // USING_OBJECT: text-only. One 26px glyph cannot honestly cover
-  // washing, television, bathing, and toilet use.
-  null,
-  spriteIndex('indicatorReading'),
-  spriteIndex('indicatorExercise'),
-  spriteIndex('indicatorWatchFish'),
-  // SITTING: text-only. The seated silhouette and HUD name are explicit.
-  null,
+  spriteIndex('activityUse'),
+  spriteIndex('activityReading'),
+  spriteIndex('activityExercise'),
+  spriteIndex('activityWatchFish'),
+  spriteIndex('activitySitting'),
+  spriteIndex('activityShower'),
+  spriteIndex('activityToilet'),
+  spriteIndex('activityTV'),
+  spriteIndex('activityLyingDown'),
+  spriteIndex('activityWashHands'),
+  spriteIndex('activityWashDishes'),
+  spriteIndex('activityRadio'),
+  spriteIndex('activityCorrespondence'),
+  spriteIndex('activityBath'),
+  spriteIndex('activityIngredients'),
+  spriteIndex('activityPrepareFood'),
+  spriteIndex('activityCooking'),
 ];
 
 /**
@@ -925,6 +932,16 @@ function displayedPropSprite(
  */
 let scratch: InstanceArray = new Float32Array(0);
 
+/** Borrowed live prefix; both fields are invalidated by either building API. */
+export interface InstanceBatch {
+  readonly instances: InstanceArray;
+  readonly count: number;
+}
+const batch: { -readonly [K in keyof InstanceBatch]: InstanceBatch[K] } = {
+  instances: scratch,
+  count: 0,
+};
+
 /**
  * Builds one frame of GPU instances by interpolating between the previous
  * and the current simulation tick.
@@ -933,11 +950,10 @@ let scratch: InstanceArray = new Float32Array(0);
  * entity would jump six frames' worth of distance ten times a second.
  * `alpha` comes from `FixedStepDriver.advance`.
  *
- * Returns the shared scratch buffer, which is longer than the live entity
- * count once entities have despawned; callers pass `count` to `draw`
- * separately and the trailing slots are never read.
+ * Returns the reused batch and high-water-mark array. Only its `count` rows
+ * are live; trailing capacity is never read. Consume before either API runs again.
  */
-export function buildInstances(
+export function buildInstanceBatch(
   source: RenderSource,
   alpha: number,
   originX: number,
@@ -955,7 +971,7 @@ export function buildInstances(
   placementColourway = 0,
   /** How much open sky each tile sees ([OS-daylight]); open sky everywhere by default. */
   sky: SkyExposure = OPEN_SKY,
-): InstanceArray {
+): InstanceBatch {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
   // each in the worst case, and the selection ring. Still [D11]-clean: the
@@ -966,6 +982,7 @@ export function buildInstances(
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
+    batch.instances = scratch;
   }
 
   // Read every frame, never hoisted or cached. `positions_ptr()` and
@@ -990,7 +1007,7 @@ export function buildInstances(
   const replacedRow = placementReplacedRow(source, selected, placement);
 
   for (let i = 0; i < count; i++) {
-    // Office Sims, paired objects and overlapping previews keep their row slots:
+    // Office Sims, paired objects and drawable move previews keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
     if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
@@ -1125,7 +1142,7 @@ export function buildInstances(
   // the owner's "if you can't see what they're doing, they may as well
   // not be doing anything", as quads.
   for (let i = 0; i < count; i++) {
-    const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
+    const sprite = kinds[i] === KIND_AGENT ? INDICATOR_SPRITES[activities[i]] ?? null : null;
     if (sprite === null) continue;
     const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
@@ -1261,17 +1278,39 @@ export function buildInstances(
 
   slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting,
     colourwayShifts, placementColourway, sky);
-  writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
-  return scratch;
+  slot = writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
+  batch.count = slot;
+  return batch;
+}
+
+/** Legacy array-only API, sharing the batch's borrowed storage and defaults. */
+export function buildInstances(
+  source: RenderSource,
+  alpha: number,
+  originX: number,
+  originY: number,
+  gridSize: number,
+  selected: number | null = null,
+  scale = 1,
+  reducedMotion = false,
+  simulationTick = 0,
+  lighting: TileLighting | null = null,
+  interactions: InteractionSelection = frameInteractions,
+  placement: PlacementPreview | null = null,
+  highlight: TileHighlight | null = null,
+  placementColourway = 0,
+  sky: SkyExposure = OPEN_SKY,
+): InstanceArray {
+  return buildInstanceBatch(source, alpha, originX, originY, gridSize, selected,
+    scale, reducedMotion, simulationTick, lighting, interactions, placement,
+    highlight, placementColourway, sky).instances;
 }
 
 /**
  * Count fixed entity rows plus unsuppressed foregrounds, bubbles, props and ring.
  *
- * Returned separately rather than folded into the array because the caller
- * passes a count to `draw`, and the scratch buffer is deliberately longer than
- * the live data. Getting this wrong uploads uninitialised zeroes - quads at
- * screen (0, 0) with depth 0, which draw in front of everything.
+ * Legacy verification helper. Production uses the packer's batch count instead
+ * of repeating this traversal and interaction selection.
  */
 export function instanceCount(source: RenderSource, selected: number | null,
   interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null,
@@ -1295,7 +1334,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     ) {
       extras++;
     }
-    if (INDICATOR_SPRITES[activities[i]] != null) extras++;
+    if (kinds[i] === KIND_AGENT && INDICATOR_SPRITES[activities[i]] != null) extras++;
     const eatingPose = exactEatingPose(
       kinds[i],
       activities[i],

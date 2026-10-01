@@ -583,6 +583,16 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
+`buildInstanceBatch` packs dynamic instances once and publishes the actual written
+row count, including floor-tool highlights. Main draws `batch.instances` with
+`batch.count`; it does not repeat interaction selection or traverse entities to
+reconstruct that count. The batch object and its high-water-mark array are borrowed,
+module-owned storage, valid only until the next call through `buildInstanceBatch`
+or the legacy `buildInstances` wrapper. Only the first `count` rows are live;
+unused capacity is neither cleared nor inspected. `instanceCount` remains a legacy
+verification helper, outside the production frame loop. The 16-float row layout
+and renderer draw interface are unchanged.
+
 Short walls form a second atlas draw after opaque geometry, in the same render
 pass and submission. This small batch is sorted at geometry rebuild, tests the
 opaque depth buffer without writing it, and updates only its local fade opacity
@@ -696,10 +706,21 @@ exported hand anchor of the same selected body frame. An exact authored snack an
 work step project the existing `EATING` activity so the fork bubble remains visible. A
 valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
-`USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
-but no indicator sprite because one 26-pixel glyph cannot honestly cover
-washing, television, bathing, and toilet use. Generic object
-use never selects eating body art.
+`USING_OBJECT` activity code 7 when no narrower activity is authored. Ordinary
+interactions and chain steps may author presentation-only `activity` metadata.
+Render sync validates the exact running target, interaction or chain station
+before publishing that code. Codes 12 through 23 distinguish showering, toilet
+use, television, lying down, handwashing, dishwashing, radio, correspondence,
+bathing, ingredients, preparation and cooking. Existing body-action precedence
+remains authoritative. Generic object use never selects eating body art.
+
+Every active visible activity has a distinct 26-pixel bubble, exported at texture
+density two. Walking uses footprints, and unauthored generic use has a gear.
+Idle Sims have no active task and draw no bubble; at-work Sims remain off the
+lot. Actual blocked waits and reserved conversation waits share the clock.
+The icons append after the historical atlas and use the displayed body's
+content top and its occupied owner's footprint depth projection. See
+`docs/specs/2026-10-01-activity-bubbles.md` for the complete pairing inventory.
 
 Seated reading adds an object-local action position without widening the
 render bridge. Definitions author sockets relative to their base-facing
@@ -893,7 +914,7 @@ the world hash.
 11, the compiled seat facing, and the seat coordinates. The shell chooses four
 52 by 104 sitting bodies per facing on a 12-tick, stable-id phase;
 reduced motion pins frame zero. Activity 11 maps to the HUD label `Sitting` and
-has no indicator. The compiled visual enum, render action code, and activity
+has a chair indicator. The compiled visual enum, render action code, and activity
 code are append-only. The presentation does not add a simulation component,
 save field, bridge column, object reservation rule, or world-hash input.
 

@@ -1,5 +1,43 @@
 # Lessons Learned
 
+## [L-floor-help-viewport-transition] Compact floor help must follow viewport changes
+
+**What happened.** The played renderer check changed a desktop viewport to 390px
+and found keyboard instructions still visible in the floor tool.
+
+**Root cause.** Floor controls received the initial compact state, but the shared
+media-query change listener updated the other build controls without them.
+
+**Prevention rule.** Wire every responsive build control into both initial state
+and the existing viewport-change listener. Keep instruction text unchanged.
+
+**How to verify.** Run floor-control and compact-HUD tests, then resize the running
+game from desktop to a small viewport and back. Verify touch help replaces keyboard
+help on the small viewport and keyboard help returns on desktop. The live transition
+check remains separate from unit tests of setCompact.
+
+## [L-packed-instance-count] The packer must publish the draw count
+
+**What happened.** Floor-tool highlights were packed into the instance array but
+left outside the uploaded live prefix. Wall and room highlights still drew.
+
+**Root cause.** Main rebuilt the draw count in a second traversal with a separate
+highlight argument list that omitted the floor tool. Counting also repeated world
+column reads and interaction selection after packing had already done that work.
+
+**Prevention rule.** Publish the final written slot from the packer, including the
+last highlight writer. Draw the borrowed array with that count immediately. Update
+count on every frame and the pointer on growth; reuse the result object. Keep legacy
+verification helpers outside the production draw path.
+
+**How to verify.** Execute main's actual packing and draw statements with a floor
+highlight and assert two uploaded ring rows with no recount. Test independent exact
+counts and rows, one real interaction update, growth followed by shrink and empty
+frames, and the legacy wrapper. Delete each publishing mechanism and reintroduce
+the production recount separately; each covering test must fail an assertion.
+Update production-wiring assertions that counted the old duplicate call sites;
+they must require one preview/highlight argument list rather than preserving the
+removed recount as a test expectation.
 ## [L-generated-copy-needs-directory] Create the generated bundle directory before copying
 
 **What happened.** The new door checkout could not import generated WASM glue;
@@ -562,6 +600,10 @@ reversed projection, width/depth swaps, anchor omission, wrong occupied ownershi
 stale row fields and missing indicator projection. Review close-up played images.
 
 ## [L-builder-preview-overlap] Preview geometry and drawing must agree
+
+**Superseded.** [L-furniture-preview-replacement] replaces this overlap-only
+presentation rule. Drawable move previews hide their original even when refused
+or nonoverlapping; the following account records the earlier behavior.
 
 **What happened.** The first played builder pass showed old chair arms behind
 a rotated candidate, and old table artwork beneath a partially overlapping
@@ -4693,6 +4735,11 @@ work and merely makes an invalid test look stable.
 Assert the second `instanceCount` and its live prefix. Permit any value beyond
 that prefix, and verify the draw call receives the same live count.
 
+The current production API is `buildInstanceBatch`: its reused result publishes
+the written count with the borrowed array. Calls through either building API
+invalidate both fields. Production consumes that count instead of the legacy
+`instanceCount` helper.
+
 ## [L-save-presentation-boundary] Tick state and presentation state are different save boundaries
 
 **What happened.** A movement-animation test rendered the pre-save and
@@ -8582,6 +8629,30 @@ neither is a kinematic angle bound or a phase-zero lane pass.
 
 The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
 
+## [L-activity-identity-needs-complete-presentation] Every active interaction needs a visible identity
+
+**What happened.** Shower, toilet, bath, TV, radio and several seated uses had
+no head bubble. Dinner preparation and cooking also appeared inactive. The old
+aquarium glyph was visibly off center.
+
+**Root cause.** Activity presentation depended on the small set of authored
+body animations. Generic object use and sitting intentionally had no bubble;
+non-eating chain work had no activity identity. Existing glyphs lacked a
+complete small-size visual inventory and a centered fish geometry check.
+
+**Prevention.** Author presentation-only activity metadata on every executable
+interaction and chain work step. Validate the exact runtime target and chain
+role, retain body-action precedence, and give generic uses a visible fallback.
+Keep new artwork appended after the historical atlas records. Review each
+activity/icon pair in the release renderer as well as in the art sheet.
+
+**Verify.** Count and test every shipped interaction and dinner step, remove
+ordinary and chain identity checks, reverse body precedence, and remove a
+renderer mapping; each must fail. Check all glyphs at game size in different
+lighting and zoom levels. Push the fish into its rim and require the geometry
+test to fail. Confirm save bytes, structural fingerprints and historical
+atlas pixels stay unchanged. Evidence:
+`docs/assets/review-evidence/activity-bubbles/README.md`.
 ## [L-markup-tests-own-boundaries] Bound markup assertions by the element they test
 
 **What happened.** Removing Household from Sim details broke a Traits assertion even though Traits was unchanged. A second assertion silently included the rest of the page.
@@ -8601,3 +8672,23 @@ The first batch-equivalence fixture started and ended on the same person. Review
 **Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
 
 **Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+
+## [L-synthetic-actions-need-state-ownership] Keep synthetic action fixtures valid after ownership changes
+
+**What happened.** Integrating shipped activity projection into the held sleeping-place branch made one Load test reject its synthetic double-bed save. The fixture supplied Eating and Target but omitted SleepPlace. An attempted global text replacement matched two Load sequences and was rejected; the shell still launched an unchanged suite.
+
+**Root cause.** Modern sleeping-place saves record exact active ownership. A directly constructed action does not pass through admission, which normally supplies that ownership. The failed patch and verification commands were also combined without an error boundary.
+
+**Prevention.** Complete synthetic sleep actions with a valid place marker; never weaken modern missing-row validation to accept malformed fixtures. Anchor repairs inside the named test. Apply and verify in separate tool steps so a failed edit cannot launch an unchanged run.
+
+**Verify.** The immediate ordinary-activity Load test passes with SleepPlace(0) only on sleep-tagged interactions. The existing shared-sleep test still rejects missing and conflicting rows transactionally. Full integration verification passes 109 core, 272 data, one data integration, 768 simulation and 153 WASM tests. The merged web suite passes 1,777 tests in 121 files after rebuilding its generated WASM. These checks remain separate from the already deployed UI acceptance.
+
+## [L-integration-tests-need-matching-wasm] Regenerate WASM before testing changed Rust projections
+
+**What happened.** After activity-bubble main was integrated into the held sleeping-place branch, the Rust suite passed but five web tests expected new literal activities and observed older generic activity codes.
+
+**Root cause.** The web tests execute generated release WASM. The ignored package was the known older held-branch artifact, not the newly merged Rust/content source. A native Rust build does not refresh that package.
+
+**Prevention.** When Rust or embedded content changes, build the WASM package in the owning worktree before running dependent web tests. Do not copy a main-only artifact into a branch with additional ABI fields or use an unverified sibling binary.
+
+**Verify.** Rebuild with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, record its hash, and run the actual release-WASM bridge/activity tests. Keep source, generated artifact and deployed acceptance provenance separate.

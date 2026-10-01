@@ -1,6 +1,8 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod action_queue;
+#[cfg(test)]
+mod activity_tests;
 pub mod beds;
 pub mod details;
 #[cfg(test)]
@@ -471,6 +473,72 @@ fn eating_interaction_exists(
         .get(eating.object.0 as usize)
         .and_then(|object| object.interactions.get(eating.interaction as usize))
         .is_some()
+}
+
+fn activity_code(activity: terri_data::CompiledActivity) -> u32 {
+    use render_buffer::activity as code;
+    use terri_data::CompiledActivity as Activity;
+    match activity {
+        Activity::Eating => code::EATING,
+        Activity::Sleeping => code::SLEEPING,
+        Activity::Reading => code::READING,
+        Activity::Exercising => code::EXERCISING,
+        Activity::WatchingFish => code::WATCHING_FISH,
+        Activity::Sitting => code::SITTING,
+        Activity::Showering => code::SHOWERING,
+        Activity::UsingToilet => code::USING_TOILET,
+        Activity::WatchingTv => code::WATCHING_TV,
+        Activity::Lounging => code::LOUNGING,
+        Activity::WashingHands => code::WASHING_HANDS,
+        Activity::WashingDishes => code::WASHING_DISHES,
+        Activity::ListeningRadio => code::LISTENING_RADIO,
+        Activity::Correspondence => code::CORRESPONDENCE,
+        Activity::Bathing => code::BATHING,
+        Activity::GettingIngredients => code::GETTING_INGREDIENTS,
+        Activity::PreparingFood => code::PREPARING_FOOD,
+        Activity::Cooking => code::COOKING,
+    }
+}
+
+/// Resolves bubble identity from the exact active interaction or station step.
+/// Authored indicators do not select body art and never infer identity from
+/// menu labels, gameplay tags, or the sprite drawn for an object.
+fn authored_activity(
+    content: &terri_data::ContentPack,
+    world: &World,
+    eating: Option<&terri_core::Eating>,
+    chain_state: Option<&terri_core::ChainState>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<u32> {
+    if eating.is_some() && step_work.is_some() {
+        return None;
+    }
+    let target = target?;
+    let object = world.get::<terri_core::SmartObject>(target.object)?;
+    world.get::<terri_core::Position>(target.object)?;
+    let definition = content.objects.get(object.0 .0 as usize)?;
+    if let Some(eating) = eating {
+        if target.interaction == systems::chain::CHAIN_STEP
+            || target.interaction != eating.interaction
+            || object.0 != eating.object
+        {
+            return None;
+        }
+        let interaction = definition.interactions.get(target.interaction as usize)?;
+        return interaction.activity.map(activity_code);
+    }
+    step_work?;
+    let chain_state = chain_state?;
+    if target.interaction != systems::chain::CHAIN_STEP {
+        return None;
+    }
+    let chain = content.chains.get(chain_state.chain as usize)?;
+    let step = chain.steps.get(chain_state.step as usize)?;
+    if !definition.roles.contains(&step.role) {
+        return None;
+    }
+    step.activity.map(activity_code)
 }
 
 fn object_footprint_centre(
@@ -1764,7 +1832,16 @@ impl Sim {
             } else if socially_active {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
-                if let Some(activity) = authored_activity {
+                if let Some(activity) = authored_activity.or_else(|| {
+                    self::authored_activity(
+                        content,
+                        &self.world,
+                        eating,
+                        chain_state,
+                        step_work,
+                        target,
+                    )
+                }) {
                     // An exact visual contract owns both the body pose and its
                     // activity label. Tags remain independent authored data,
                     // so a legal overlap must not split those two signals.
@@ -1780,17 +1857,25 @@ impl Sim {
                     // player-facing eating activity.
                     render_buffer::activity::USING_OBJECT
                 }
-            } else if step_work.is_some()
-                && authored_activity == Some(render_buffer::activity::EATING)
-            {
-                // A running chain step has no `Eating` component, but an
-                // authored terminal eat still needs the existing fork bubble.
-                // The implication is one-way: generic object use never
-                // selects body art or the fork bubble.
-                render_buffer::activity::EATING
+            } else if step_work.is_some() {
+                authored_activity
+                    .or_else(|| {
+                        self::authored_activity(
+                            content,
+                            &self.world,
+                            eating,
+                            chain_state,
+                            step_work,
+                            target,
+                        )
+                    })
+                    .unwrap_or(render_buffer::activity::USING_OBJECT)
             } else if path.is_some() {
                 render_buffer::activity::WALKING
-            } else if reserved {
+            } else if reserved
+                || (self.world.get::<terri_core::Blocked>(entity).is_some()
+                    && self.world.get::<waiting::WaitingNeeds>(entity).is_some())
+            {
                 render_buffer::activity::WAITING
             } else {
                 render_buffer::activity::NONE

@@ -13,7 +13,7 @@ pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::SleepPlaceAccess;
 pub use pack::{
-    CompiledActionSocket, CompiledCareer, CompiledChain, CompiledChainStep,
+    CompiledActionSocket, CompiledActivity, CompiledCareer, CompiledChain, CompiledChainStep,
     CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
     CompiledPlacement, CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge,
     CompiledSocketFacing, CompiledSoundAction, CompiledTrait, CompiledTraitKind, CompiledVisual,
@@ -79,7 +79,8 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///
 /// What is deliberately NOT hashed: every number in `tuning.toml`, every
 /// advert delta, label, duration, tag, object-interaction visual contract,
-/// chain-step visual contract, object or chain-step sound action, action socket,
+/// chain-step visual contract, object or chain-step sound action and activity,
+/// action socket,
 /// every sprite index, portal facing or hinge, every sim's NAME, the rest of
 /// the lot, careers,
 /// carried-item declaration order, and the circadian curve. Object, career,
@@ -1249,6 +1250,46 @@ mod tests {
             base,
             content_fingerprint(&retuned),
             "numbers inside one trait kind are balance"
+        );
+    }
+
+    #[test]
+    fn authored_activities_do_not_invalidate_saved_content_references() {
+        let original = pack();
+        let baseline = content_fingerprint(original);
+        let mut changed = original.clone();
+        let mut changed_rows = 0;
+        for object in &mut changed.objects {
+            for interaction in &mut object.interactions {
+                assert!(interaction.activity.is_some());
+                interaction.activity = None;
+                changed_rows += 1;
+            }
+        }
+        assert_eq!(
+            changed_rows, 19,
+            "the fixture must include every shipped interaction"
+        );
+        assert_eq!(
+            content_fingerprint(&changed),
+            baseline,
+            "ordinary activity metadata is presentation only"
+        );
+        for chain in &mut changed.chains {
+            for step in &mut chain.steps {
+                assert!(step.activity.is_some());
+                step.activity = None;
+            }
+        }
+        assert_eq!(
+            content_fingerprint(&changed),
+            baseline,
+            "chain activity metadata is presentation only"
+        );
+        assert_ne!(
+            postcard::to_allocvec(original).unwrap(),
+            postcard::to_allocvec(&changed).unwrap(),
+            "the compiled pack must still carry the changed activity metadata"
         );
     }
 

@@ -6107,7 +6107,7 @@ mod boundary_tests {
     }
 
     #[test]
-    fn activities_ptr_carries_generic_object_use_without_an_eating_alias() {
+    fn activities_ptr_carries_authored_handwashing_without_an_eating_alias() {
         let mut handle = SimHandle::new(8, 8);
         assert!(handle.spawn_object(4.0, 4.0, "sink"));
         let agent = spawn_agent_at(&mut handle, 3.0, 4.0, 0.0);
@@ -6122,9 +6122,9 @@ mod boundary_tests {
             ),
             vec![
                 terri_sim::render_buffer::activity::NONE,
-                terri_sim::render_buffer::activity::USING_OBJECT,
+                terri_sim::render_buffer::activity::WASHING_HANDS,
             ],
-            "the append-only generic code must cross the existing WASM activity column"
+            "the authored handwashing code must cross the existing WASM activity column"
         );
     }
 
