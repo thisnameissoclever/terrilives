@@ -925,6 +925,14 @@ in the actual room. Before adding sleep, evaluate all visible body parts over
 all samples and slots for support, lane clearance, frame collisions and body
 intersections, then inspect their GPU composites.
 
+The 2026-10-01 relaxed-leg diagnostic confirmed the consequence: a more natural
+2.03865-long pose exceeds the unchanged 1.86 mattress by 0.17865. Arm clearance
+had distracted both visual reviewers from an excessively folded whole-body
+pose; their earlier visual pass was withdrawn. Review the entire silhouette
+before certifying individual contacts. Bed length and reserved floor space
+need an owner decision rather than further tightening the pose. Evidence:
+`assets/review-evidence/bed-assignment/visual-contract.md`.
+
 ## [L-storage-attachment-gaps] Check contact before and after beveling
 
 **What happened.** The first nightstand render had tiny gaps behind its drawer

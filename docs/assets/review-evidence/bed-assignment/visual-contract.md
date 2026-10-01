@@ -112,6 +112,29 @@ coverage, and explicit rules for partial pixels and outlines. Each person must
 remain visibly selectable, and furniture must still draw once. None of those
 renderer changes or their costs is accepted by this geometry-contract revision.
 
+## Relaxed-pose fit decision, 2026-10-01
+
+The visual owner's final relaxed-leg diagnostic and independent review withdraw
+the earlier folded-leg visual pass. The more natural slight-bend pose measures
+2.03865 along the mattress axis, versus the unchanged 1.86 mattress. Its
+0.17865 excess cannot be removed by translating the body. The previous pose
+bent each knee approximately 133 degrees; further certification of that family
+has stopped. This does not prove every possible natural pose impossible.
+
+The completed receipt is
+`output/double-bed-relaxed-legs-inspection-01/status.json` in
+`D:/VIBES/.worktrees/terrilives/bike-chair-four-facings`, SHA-256
+`ca80884c40789e0cc86d8927808ac936f69a9b36490f150e21fcefdcae80ea53`.
+Its adjacent `visual-review.md` records source-byte and approved-data preservation
+and the SE/SW image review. These are failed-fit diagnostics, not accepted art.
+
+The visual owner has asked for approval to lengthen the bed and reserve a 2x3
+footprint while preserving the Sim. That decision and final dimensions remain
+pending. Runtime dimensions, content, navigation, saves and the starting layout
+remain unchanged. A conditional runtime impact review may prepare the change;
+it does not authorize a migration or a new footprint. Do not hide unsupported
+overhang, shrink the Sim or render into unreserved walking tiles.
+
 ## Required next experiment
 
 After the independent pose-clearance gate, use one facing with maximum overlap,
