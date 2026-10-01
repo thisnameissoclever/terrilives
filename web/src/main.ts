@@ -99,7 +99,7 @@ import {
   AudioController,
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
-import { sampleSimAudioAfterTick } from './audio/frame-audio.js';
+import { sampleSimAudioAfterTick, withObjectSoundPause } from './audio/frame-audio.js';
 import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
@@ -153,6 +153,8 @@ export interface StressHandle {
     readonly conversationVoices: number;
     /** Conversations still holding audio nodes, sounding or fading out. */
     readonly retainedConversationVoices: number;
+    readonly objectLoopVoices: number;
+    readonly retainedObjectLoopVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -416,7 +418,7 @@ async function main(): Promise<void> {
     },
   };
   const overlayPause = new OverlayPauseController(
-    driver,
+    withObjectSoundPause(driver, audio),
     (ticksPerFrame) => sim.setSpeed(ticksPerFrame),
     START_SPEED,
   );
@@ -1619,6 +1621,12 @@ async function main(): Promise<void> {
         },
         get retainedConversationVoices() {
           return audio.retainedConversationVoiceCount();
+        },
+        get objectLoopVoices() {
+          return audio.activeObjectLoopCount();
+        },
+        get retainedObjectLoopVoices() {
+          return audio.retainedObjectLoopCount();
         },
         get footstepTracks() {
           return audio.activeFootstepTrackCount();

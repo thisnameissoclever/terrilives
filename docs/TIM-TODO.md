@@ -495,13 +495,14 @@ The playback repairs are merged; remaining owner listening checks are still open
 
 Authored source identity for shower water and stove cooking is also implemented.
 It covers ordinary interactions and cooking chains and deduplicates state by
-exact placed object. Sample selection, editing, looping and audible playback
-remain mine after the completed CC0 intake and remaining listening checks; these sources
-are currently silent. Door event types remain reserved plumbing. Ambience,
-object loops, alarms, music, non-conversation voices and music/ambience controls
-remain unbuilt. The current contract and evidence are in
+exact placed object. The bounded loop player now handles source ownership,
+fades, capacity, and effective-pause cleanup. Sample selection, seam editing,
+mixing, and audible acceptance remain mine after the completed CC0 intake;
+these sources are currently silent because no recording is installed. Door event
+types remain reserved plumbing. Ambience, alarms, music, non-conversation voices
+and music/ambience controls remain unbuilt. The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
-`docs/specs/2026-09-30-conversation-audio-ownership.md`.
+`docs/specs/2026-10-01-object-loop-playback.md`.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 

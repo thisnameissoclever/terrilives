@@ -11,6 +11,20 @@ import type {
   ConversationVoicePair,
   SimActivityAudioState,
 } from './activity-cues.js';
+import type { AudioController } from './audio-controller.js';
+import type { SpeedDriver } from '../ui/overlay-pause.js';
+
+/** Shares effective pause across manual speed selection and blocking overlays. */
+export function withObjectSoundPause(
+  driver: SpeedDriver,
+  audio: Pick<AudioController, 'setObjectSoundsPaused'>,
+): SpeedDriver {
+  return { setSpeed(multiplier) {
+    driver.setSpeed(multiplier);
+    audio.setObjectSoundsPaused(multiplier === 0);
+  } };
+}
+
 export interface SimAudioFrameSource {
   readonly count: number;
   positions(): Float32Array;

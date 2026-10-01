@@ -955,8 +955,10 @@ ordinary interaction and the stove hob's cooking-chain step. Rust exports each
 active action with the exact target object entity; the Web scheduler collapses
 duplicate observations into source-owned start and stop edges. Load,
 backgrounding, first unlock, mute changes, and Effects crossing zero clear that
-retained state. This is semantic plumbing only: no procedural stand-in or
-downloaded shower or stove recording plays yet.
+retained state. A source-owned player now accepts prepared decoded loops with
+independent fades, a four-active/eight-retained cap, and effective-pause cleanup.
+The runtime catalog remains empty: no procedural stand-in or downloaded shower
+or stove recording plays yet. See `specs/2026-10-01-object-loop-playback.md`.
 
 The original foundation's production proof ran in visible Chrome on a display
 configured at 120 Hz. These are historical measurements, not a retest of the
@@ -987,8 +989,9 @@ also remains owner-listening evidence rather than accepted sound design.
 This is not the complete audio feature. Door open and close event types are
 reserved but no authoritative door transition emits them yet. Routine controls
 are silent by design rather than waiting for blanket click sounds. Room and
-outdoor ambience, object loops, alarms, music, and non-conversation Sim voices
-remain unbuilt. Recorded conversation gain is 0.224 after owner listening;
+outdoor ambience, alarms, music, and non-conversation Sim voices remain unbuilt.
+Object-loop playback exists; its audible content still needs selection and
+listening acceptance. Recorded conversation gain is 0.224 after owner listening;
 Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and

@@ -28,6 +28,9 @@ export interface AudioBufferPort {
 
 export interface AudioBufferSourcePort extends AudioNodePort {
   buffer: AudioBufferPort | null;
+  loop?: boolean;
+  loopStart?: number;
+  loopEnd?: number;
   readonly playbackRate: AudioParamPort;
   onended: (() => void) | null;
   start(when?: number, offset?: number): void;

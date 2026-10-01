@@ -9,6 +9,9 @@ import {
   type BrowserAudioContext,
 } from '../src/audio/audio-controller.js';
 import { FOOTSTEP_DISTANCE_TILES } from '../src/audio/footsteps.js';
+import { OverlayPauseController } from '../src/ui/overlay-pause.js';
+import { withObjectSoundPause } from '../src/audio/frame-audio.js';
+import type { ObjectLoopClips } from '../src/audio/object-loops.js';
 import {
   OBJECT_SOUND_ACTION_SHOWER_WATER,
   OBJECT_SOUND_ACTION_STOVE_COOKING,
@@ -230,6 +233,147 @@ function objectSoundFrame(
   }
   controller.endObjectSoundFrame();
 }
+
+const OBJECT_CLIPS: ObjectLoopClips = new Map([
+  [1, { buffer: { duration: 4 }, gain: 0.3, loopStart: 0.5, loopEnd: 3.5 }],
+  [2, { buffer: { duration: 2 }, gain: 0.2, loopStart: 0, loopEnd: 2 }],
+]);
+
+describe('AudioController object loops', () => {
+  it.each(['mute', 'effects'] as const)('clears pending loops before a %s hardware gain failure', async boundary => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    await controller.unlockFromGesture();
+    objectSoundFrame(controller, [[1, 1]]);
+    const target = context.gains[boundary === 'mute' ? 0 : 1].gain;
+    vi.spyOn(target, 'cancelScheduledValues').mockImplementationOnce(() => { throw Error('hardware'); });
+    try {
+      if (boundary === 'mute') controller.setMuted(true);
+      else controller.setEffectsLevel(0);
+    } catch { /* An existing preference failure must not retain object ownership. */ }
+    if (boundary === 'mute') controller.setMuted(false);
+    else controller.setEffectsLevel(0.7);
+    controller.installObjectLoopClips(OBJECT_CLIPS);
+    expect(context.bufferSources).toHaveLength(0);
+  });
+
+  it('does not affect a playing conversation when only object sounds pause', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    await controller.unlockFromGesture();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try { await controller.loadVoiceLibrary(['a', 'b']); }
+    finally { globalThis.fetch = originalFetch; }
+    controller.emit({ type: 'sim.conversation-started', simId: 4, voice: { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 } });
+    const stops = context.bufferSources.map(source => [...source.stops]);
+    controller.setObjectSoundsPaused(true);
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    expect(context.bufferSources.map(source => source.stops)).toEqual(stops);
+  });
+
+  it('does not let a stale object stop erase a changed pending action', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    await controller.unlockFromGesture();
+    controller.emit({ type: 'object.sound-started', sourceId: 41, action: 1 });
+    controller.emit({ type: 'object.sound-started', sourceId: 41, action: 2 });
+    controller.emit({ type: 'object.sound-stopped', sourceId: 41, action: 1 });
+    controller.installObjectLoopClips(OBJECT_CLIPS);
+    expect(context.bufferSources).toHaveLength(1);
+    expect(context.bufferSources[0].buffer).toEqual({ duration: 2 });
+  });
+
+  it('pauses object loops for overlapping overlays without cutting short cues or conversation transport', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    controller.installObjectLoopClips(OBJECT_CLIPS);
+    await controller.unlockFromGesture();
+    const speeds: number[] = [];
+    const overlay = new OverlayPauseController(
+      withObjectSoundPause({ setSpeed: speed => speeds.push(speed) }, controller),
+      () => {}, 2,
+    );
+    objectSoundFrame(controller, [[1, 1]]);
+    controller.emit({ type: 'command.rejected' });
+    const shortStops = [...context.oscillators[0].stops];
+    overlay.suspend('help');
+    overlay.suspend('build');
+    expect(controller.activeObjectLoopCount()).toBe(0);
+    expect(context.bufferSources[0].disconnected).toBe(false);
+    expect(context.oscillators[0].stops).toEqual(shortStops);
+    objectSoundFrame(controller, [[1, 1]]);
+    controller.installObjectLoopClips(OBJECT_CLIPS);
+    expect(context.bufferSources).toHaveLength(1);
+    overlay.resume('help');
+    overlay.selectSpeed(3);
+    expect(context.bufferSources).toHaveLength(1);
+    overlay.resume('build');
+    expect(speeds).toEqual([0, 3]);
+    expect(context.bufferSources).toHaveLength(1);
+    objectSoundFrame(controller, [[1, 1]]);
+    expect(context.bufferSources).toHaveLength(2);
+    overlay.selectSpeed(0);
+    overlay.selectSpeed(1);
+    objectSoundFrame(controller, []);
+    expect(controller.activeObjectLoopCount()).toBe(0);
+  });
+
+  it.each(['mute', 'effects', 'background', 'load', 'recovery'] as const)(
+    'clears sounding and pending object ownership on %s before later installation', async boundary => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, memoryStore());
+      controller.installObjectLoopClips(new Map([[1, OBJECT_CLIPS.get(1)!]]));
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[1, 1], [2, 2]]);
+      if (boundary === 'mute') { controller.setMuted(true); controller.setMuted(false); }
+      if (boundary === 'effects') { controller.setEffectsLevel(0); controller.setEffectsLevel(0.7); }
+      if (boundary === 'background') { await controller.setBackgrounded(true); await controller.setBackgrounded(false); }
+      if (boundary === 'load') controller.reset('load');
+      if (boundary === 'recovery') { context.state = 'suspended'; await controller.unlockFromGesture(); }
+      expect(controller.retainedObjectLoopCount()).toBe(0);
+      expect(context.bufferSources[0].disconnected).toBe(true);
+      controller.installObjectLoopClips(OBJECT_CLIPS);
+      expect(context.bufferSources).toHaveLength(1);
+      objectSoundFrame(controller, [[1, 1], [2, 2]]);
+      expect(context.bufferSources).toHaveLength(3);
+    },
+  );
+  it('installs pending clips only for sources still active, through Effects independently of Voices', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    await controller.unlockFromGesture();
+    objectSoundFrame(controller, [[41, 1], [42, 1]]);
+    objectSoundFrame(controller, [[42, 1], [42, 1]]);
+    expect(context.bufferSources).toHaveLength(0);
+    controller.setVoicesLevel(0);
+    controller.installObjectLoopClips(OBJECT_CLIPS);
+    expect(context.bufferSources).toHaveLength(1);
+    expect(context.gains[3].connections).toEqual([context.gains[1]]);
+    objectSoundFrame(controller, [[42, 1]]);
+    controller.setVoicesLevel(0.8);
+    expect(context.bufferSources).toHaveLength(1);
+    objectSoundFrame(controller, []);
+    expect(context.bufferSources[0].stops).toEqual([4.02]);
+  });
+
+  it('retries rejected live sources on later ticks without restarting admitted loops', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore());
+    controller.installObjectLoopClips(OBJECT_CLIPS);
+    await controller.unlockFromGesture();
+    objectSoundFrame(controller, [[1, 1], [2, 1], [3, 1], [4, 1], [5, 2]]);
+    expect(context.bufferSources).toHaveLength(4);
+    objectSoundFrame(controller, [[2, 1], [3, 1], [4, 1], [5, 2]]);
+    expect(context.bufferSources).toHaveLength(5);
+    expect(context.bufferSources[4].buffer).toEqual({ duration: 2 });
+    expect(context.bufferSources[1].stops).toEqual([]);
+    expect(controller.activeObjectLoopCount()).toBe(4);
+    context.currentTime = 5;
+    objectSoundFrame(controller, [[2, 1], [3, 1], [4, 1], [5, 2]]);
+    expect(controller.retainedObjectLoopCount()).toBe(4);
+  });
+});
 
 describe('AudioController preferences', () => {
   it.each([
