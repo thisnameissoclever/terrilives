@@ -8500,3 +8500,49 @@ atlas pixels stay unchanged. Evidence:
 **Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
 
 **Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+## [L-domestic-integrated-actions-need-terminal-scoring] Score the food that actually arrives
+
+**What happened.** Main integration exposed an instant-fridge survival score
+for the longer snack chain and repetition tracked against a hidden chain row.
+Public command fixtures also assumed every need started low; public spawning
+only makes hunger low.
+
+**Root cause.** Older fixtures and scorer assumptions described the one-step
+action rather than the staged runtime. Main's current public boundary differed
+from the internal test builder.
+
+**Prevention.** Score all required work and travel before terminal recovery.
+Use the visible snack identity for repetition, preserve ordinary custom-pack
+behavior when the chain is absent, and establish the actual autonomous choice
+before asserting player-command preemption. Read the public initial needs;
+do not infer them from a helper name.
+
+**Verify.** A starving Sim beside a fridge still incurs staged snack risk;
+moving the counter farther increases it. Completed snacks change the visible
+habituation row. The public command fixture first walks east for food, then
+reverses west for a valid bed order; an invalid interaction preserves the
+autonomous direction. Removing terminal scoring, the row alias, command
+identity or intent dispatch fails the corresponding regression. Receipts:
+`docs/assets/review-evidence/domestic/integration-mutations.md`.
+
+## [L-domestic-presentation-needs-exact-claimed-station] Body motion and action identity compose
+
+**What happened.** Integrating authored activity bubbles hid preparation,
+cooking and washing identities behind a generic pose activity. Collecting
+dishes from a table also lost its cleanup bubble because the table is not a
+preparation counter.
+
+**Root cause.** Pose fallback ran before metadata, and ordinary station-role
+validation could not recognize a saved cleanup surface at another object type.
+
+**Prevention.** Preserve explicit eating precedence, let generic domestic poses
+use authored activity metadata, and permit the cleanup collection exception
+only for the cleaner's exact saved surface at step zero. Ordinary Wash hands
+remains distinct from the cleanup chain that removes persistent dishes.
+
+**Verify.** Exhaust every shipped chain step and its activity/body pair. Reach
+actual table collection through the runtime and retain the washing identity
+after reload. Deliberately reinstate the generic override and break the exact
+claim comparison; both assertions fail. Review actual moving wash frames with
+the media preference recorded, rather than treating identical screenshots as
+animation evidence.

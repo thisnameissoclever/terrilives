@@ -1,7 +1,8 @@
 # Domestic interaction verification
 
 Local evidence for the meals and cleanup changes in `twcx/meals-and-cleanup`.
-No publication or owner visual approval is implied by these results.
+The owner authorized merging the corrected work. These receipts establish
+local verification; publication and deployment are reported separately.
 
 The owner rejected the original oversized stacks. `meal-dishes.png` and
 `washing.png` preserve that rejected attempt and are not acceptance evidence.
@@ -17,6 +18,11 @@ needs-adjusted willingness, once-per-entry randomness, directional annoyance,
 cancellation, furniture sale protection, exclusive claims and malformed saves.
 The WASM tests include real pre-change V5 meal and snack bytes, old-step mapping,
 transactional rejection, and historical optional-field padding.
+
+### Historical checks before current-main integration
+
+The following table records the earlier feature revision. It does not describe
+the final integrated tree; the final receipts appear below.
 
 | Command | Result | Exit |
 | --- | --- | --- |
@@ -221,3 +227,89 @@ ownership and integration details for this dedicated interpersonal document,
 meal specification, V5 append, personality field and fingerprint bridge.
 Its interactions are identified as separate workstream changes until integrated.
 Other conversations' worktrees and documentation were not edited.
+
+## Final integration and played evidence
+
+The branch incorporates current furniture, autonomy, chronotypes, waiting
+needs, command queues, authored activity bubbles, dock layout and packed
+render batches through main revision `250c73b3`. The merge preserves main's
+published sprite prefix and appends the domestic artwork after its icons.
+The final atlas contains 1,700 sprites at 8,192 by 5,658 pixels.
+
+The frozen `public-main-meal.hex` fixture was written and validated by the
+native public-main implementation at `6d2499d4`. It retains three distinct
+instinct values (0, 93, 47), chronotype offsets (-317, 629), and the exact random
+generator state. Loading maps old eating step 3 to new step 5 with 31 work
+ticks remaining. Round-trip and continued simulation hashes agree.
+
+The final browser captures use the release WASM and actual renderer on an
+isolated, task-owned localhost tab. The existing household bytes were restored
+before closing the tab. No media preference was changed; reduced motion was
+confirmed false.
+
+1. [Shared dining](final-shared-dining.png): tick 619, all four Sims report
+   eating action 2 and activity 3 at distinct table places.
+2. [Used dishes](final-eaten-dishes.png): tick 749, all four hunger values are
+   100 and no food portions remain. The table has four dirty units; the counter
+   has five, including preparation before this meal.
+3. [Carrying](final-carrying-dishes.png): tick 825, the cook walks with five
+   collected units. Collection then includes the table pile.
+4. [Wash phases 0](final-wash-0.png), [1](final-wash-1.png),
+   [2](final-wash-2.png), and [3](final-wash-3.png): ticks 863, 868, 873 and 878,
+   action 12, facing 4, nine carried units. The renderer selects sprite indices
+   1485, 1486, 1487 and 1484. The plate and hands visibly move together over the
+   basin. Earlier `integrated-wash-close-*` captures had insufficient frame
+   separation and do not establish motion.
+5. [Completed collection](final-cleanup-complete.png): tick 998, the cook has
+   empty hands and the table is clear. Three counter units remain at this
+   later checkpoint, so this is not evidence that the entire household has
+   no new mess. Save/load succeeds and preserves the world hash.
+
+A fresh-context adversarial review passed the final dining, used plates,
+carrying, wash motion, hand contact, basin support and activity readability.
+The final browser reported no warnings or errors. All task-owned game tabs
+were closed. Static integrated fixtures also passed all four furniture
+facings at 1x and 2x, near/far occlusion and night lighting.
+
+The final [targeted regression receipts](integration-mutations.md) record
+seven deliberate production mutations, their actual assertion failures,
+exit codes and byte-identical restoration hashes. These are targeted checks,
+not a completed remote mutation sweep.
+
+### Final local check receipts
+
+All results below apply after current-main integration and the activity fixes.
+The full native run caught two stale assertions for authored handwashing;
+those expectations were corrected and the complete workspace run passed.
+
+| Command | Result | Exit |
+| --- | --- | --- |
+| `cargo test --workspace -- --test-threads=1` | PASS: core 107, data 269 plus 1 integration, simulation 753, WASM 151; 1,281 tests total | 0 |
+| `cargo clippy --workspace --all-targets -- -D warnings` | PASS: no warnings | 0 |
+| `cargo fmt --all --check` | PASS | 0 |
+| `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS: release WASM | 0 |
+| `npm test -- --maxWorkers=1` in `web/` | PASS: 118 files, 1,770 tests | 0 |
+| `npm run typecheck` in `web/` | PASS | 0 |
+| `npm run build` in `web/` | PASS: production bundle | 0 |
+| `python -B -m unittest discover -s assets/sprites/gen` | PASS: 126 tests | 0 |
+| `python -B -m unittest discover -s assets/models/sims/sim-01` | PASS: 29 tests | 0 |
+| `python -B -m unittest discover -s assets/models/domestic` | PASS: 1 complete cleanup-export test | 0 |
+| `python -B -m unittest discover -s assets/models/furniture -p 'test_*.py'` | PASS: 30 tests | 0 |
+| `python -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'` | PASS: 15 tests and hashed source-view checks | 0 |
+| `python -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'` | PASS: 8 tests | 0 |
+| `python -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'` | PASS: 13 tests | 0 |
+| `python -B -m unittest discover -s assets/models/office -p 'test_*.py'` | PASS: 8 tests | 0 |
+| `python assets/sprites/gen/build.py --check` | PASS: 1,700 sprites; 8,192 by 5,658 | 0 |
+| `python -B -m unittest discover -s .github/scripts -p 'test_*.py'` | PASS: 15 CI guard tests | 0 |
+| `cargo tree -p CRATE --target TARGET` for core, data and sim on `x86_64-pc-windows-msvc` and `wasm32-unknown-unknown` | PASS: all six trees generated; no `wasm-bindgen`, `web-sys` or `js-sys` | 0 |
+| `python check-doc-ids.py` | PASS: unique, allocation-free ids | 0 |
+
+The corrected native and release-browser determinism fixture independently
+produces `0x21c21e6232f46614`. A fridge without a preparation counter no longer
+offers a physically impossible snack, so the old fridge-only golden changed.
+The tests also keep cleanliness and self-preservation controls on distinct
+trait keys while changing each value.
+
+The task-owned preview server was stopped after closing the final tab. No
+other conversation's browser page or server was stopped. Remote CI and the
+full remote mutation sweep are separate from these completed local checks.

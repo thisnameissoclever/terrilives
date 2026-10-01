@@ -5939,7 +5939,7 @@ mod boundary_tests {
             .expect("the agent must have a render row");
         assert_eq!(
             handle.sim.render_buffer().activities[row],
-            terri_sim::render_buffer::activity::USING_OBJECT,
+            terri_sim::render_buffer::activity::WASHING_HANDS,
             "the fixture must begin with visible interaction metadata"
         );
 
