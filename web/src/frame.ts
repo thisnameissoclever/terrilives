@@ -1101,7 +1101,7 @@ export function buildInstanceBatch(
   // owns those pixels.
   let slot = count;
   if (portals !== undefined) {
-    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky, alpha);
   }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {

@@ -1195,6 +1195,10 @@ def main():
     for sprite in activity_icons.render_icons():
         densities[len(sprites)] = 2
         sprites.append(sprite)
+    import door_assets
+    for sprite in door_assets.records():
+        densities[len(sprites)] = 3
+        sprites.append(sprite)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

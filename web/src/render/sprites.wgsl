@@ -303,6 +303,17 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Coverage was tested above. Short walls blend after opaque geometry
     // without claiming depth, including when their current opacity is one.
     if (short) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x == -2.0) {
+    let surface = atlas.sprites[u32(in.wall.z)];
+    let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
+      surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);
+    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, 0.0);
+    // Lossless RG16 encodes the model's game-space X+Y in [-2, 2].
+    let sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0 - in.wall.w;
+    out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);
+    // Flush threshold pixels share the floor's ordering convention, just
+    // ahead of the tile but behind the leaf, casing and every person's feet.
+    if (sample.b > 0.5) { out.depth = 1.0 - 1.0 / 4096.0 * 0.625; }
   } else if (in.wall.x < 0.0) {
     // Intersect the view column x-y=t with the centered rectangular
     // footprint. Its interval midpoint in x+y is this clamped slope.

@@ -3931,3 +3931,21 @@ activity presentation, not a full need cycle or public deployment. The review
 receipts, limitations and local checks are in
 `docs/assets/review-evidence/activity-bubbles/README.md`. Task-owned game pages
 were closed, temporary lighting restored, and preview servers stopped.
+
+## [A-solid-door-crossings] Door model and floor joins, 2026-10-01
+
+Inspected the displayed production build with the replacement doors at play
+zoom, flat light, automatic night lighting, reduced motion and a 390px viewport.
+Both doorway axes now have leaves. Recorded native crossings include opening,
+occupied doorway, closing and closed, with no observed threshold clipping of
+feet, leaf or casing. The first replacement's heavy ink and projecting bottom
+tabs were rejected; thinner brown contours and a threshold fitted inside the
+casing correct those findings in the revised images.
+
+Fresh-context review required casing, edge-on and threshold-visibility samples
+in addition to broad leaf depth. The expanded GPU proof passes 864 cases and
+detects removal of each depth mechanism. The model, captures, executed gates,
+mutation receipts and evidence limits are recorded in
+`docs/specs/2026-10-01-solid-door-verification.md`. The owner approved the visuals
+and authorized delivery on 2026-10-01. This is a door presentation pass,
+not a full household activity playthrough or a deployment claim.

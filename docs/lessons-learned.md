@@ -8474,3 +8474,30 @@ atlas pixels stay unchanged. Evidence:
 **Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
 
 **Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+## [L-door-surface-and-floor-depth] Door geometry needs surface depth, 2026-10-01
+
+The first door correction put the whole frame on a vertical depth plane. The
+floor threshold then cut through the leaf, casing and a walking Sim's feet.
+The original GPU samples tested the panel plane, so their passing result did
+not establish correct floor or casing behavior. A replacement model also
+inherited the character scene's 4-pixel ink at a smaller canvas scale, making
+the door look much heavier than the furniture. Its threshold projected past
+the casing and left visible tabs at the floor joins.
+
+Use the evaluated model's surface depth for upright geometry, and tag flush
+floor surfaces separately. Fit the threshold inside the casing faces and
+aperture. Match contour width at runtime pixel density, rather than copying
+the source scene's physical pixel setting. Inspect the model inside the room,
+including the bottom corners, both crossing directions and edge-on poses.
+
+Verification must bracket leaf faces, edge-on slab ends, casing posts and the
+header in both draw orders. Threshold checks need both an actor in front and
+a floor sample behind; otherwise deleting the threshold can falsely pass.
+See `web/proofs/door-depth.js`, `test_door_assets.py` and the solid-door
+verification record. Owner visual approval remains separate from these checks.
+
+For GPU mutations, own the browser and server lifecycle. Mutating source while
+a game or proof page remains connected to hot reload can navigate the page
+during evaluation. A stalled run is an error, not a killed mutation. Use an
+isolated server with watching and hot reload disabled, write progress and
+results, close the owned browser/server, and restore source bytes in `finally`.
