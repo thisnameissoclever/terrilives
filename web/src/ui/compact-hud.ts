@@ -1,6 +1,6 @@
 /** Presentation only: the existing panels still own their simulation data. */
 export const COMPACT_HUD_MEDIA_QUERY = '(max-width: 600px), (max-height: 480px)';
-export type SimPanel = 'overview' | 'queue' | 'people' | 'traits' | 'household';
+export type SimPanel = 'overview' | 'queue' | 'people' | 'traits';
 
 export interface CompactHudState {
   panel: SimPanel | null;
