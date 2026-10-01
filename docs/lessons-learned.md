@@ -7625,3 +7625,27 @@ copy, alongside disconnected, oversized, rotated and missing parts. Keep the
 clean source byte-identical. Interaction labels are not animation evidence:
 execute the actual action and inspect the body's visual code before claiming
 that a sofa provides a reclining pose.
+
+## Media support graphs and meaningful rejection tests (2026-10-01)
+
+The first media validator checked exact coordinates before physical contact.
+Detached-part tests therefore passed without proving the contact guard worked.
+Check semantic floor/contact rules first and require the intended rejection
+message. Deleting either guard must then break the negative-test proof, not
+merely reveal another assertion that the harness accepts as equivalent.
+
+Nonempty support lists and pairwise overlap also failed to establish ground
+support. An independent in-memory mutation floated a cyclic radio assembly
+above its feet while every initial pure test passed. Pin the cabinet's four
+foot supports and recursively reject cycles. Verify both the deliberately
+floating graph and a separate grille/rib cycle fail; reload the clean saved
+model and require byte-identical source afterward.
+
+Browser visual proofs need a separate document if they replace page contents.
+Replacing the live game's body leaves its animation loop updating missing UI
+nodes, and its viewport CSS can clip a review board. Use an isolated HTML
+harness for GPU captures, then ordinary production controls for played proof.
+Read control types from the current DOM: Light is a button, not a select.
+Committed-facing evidence must wait for the actual simulation facing, not
+only the Build preview label. Active-action evidence must check the first
+queue entry; finding the action later in the queue proves only that it waits.

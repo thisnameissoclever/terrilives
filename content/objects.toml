@@ -179,7 +179,7 @@ sprite = "offlineToilet"
 id = "television"
 name = "Cathode Companion"
 price = 350
-sprite = "televisionVintage"
+sprite = "offlineTelevision"
 
   # Presentation treats the screen as a weak local light. There is no authored
   # power state yet, so the pool remains visible whether or not somebody is
@@ -642,7 +642,7 @@ foreground_sprite = "loungeChairForeground"
 id = "radio"
 name = "Frequency of Record"
 price = 60
-sprite = "radio"
+sprite = "offlineRadio"
 
   # 22 fun and 5 social at 38 ticks. Deliberately sat just under the
   # bookshelf's 26 fun at 34 ticks, so the two are close enough that

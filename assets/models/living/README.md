@@ -37,3 +37,36 @@ multi-user interaction design and contact review.
 
 See `../../../docs/assets/review-evidence/living/sofa.md` for runtime evidence
 and the explicit limitations of candidate 01.
+
+## Television and radio
+
+`media_layout.py` defines the two one-tile cabinets. Their front is local -Y,
+unlike the sofa's -X. The unchanged standard exporter maps that front to game
+SE +X, SW +Y, NW -X and NE -Y. Preserve the shipped positions and saved facings.
+
+1. Run the same living-model unit suite above.
+2. Run hidden background Blender with `render_media.py -- television NEW_DIR`
+   or `render_media.py -- radio NEW_DIR`, using absolute paths. Each candidate
+   retains four 768x960 RGBA originals, the editable model and hashed proof.
+3. Run `check_media_scene.py -- KIND MODEL NEW_RESULT`. Require four grounded
+   feet, cabinet-to-foot support, cycle-free support paths, actual evaluated
+   contact points, exact centers/dimensions and one-tile clearance. Seven
+   damaged copies per model must fail for their intended reasons. Deleting the
+   ground or contact guard must break that rejection proof. The clean source
+   must reload successfully and retain identical bytes.
+4. Run `../kitchen/review_fridge.py DIR LABEL` for the standard-canvas board.
+   It only lays out/resamples originals; it does not repair pixels. Require
+   primary and independent review before adding either proof to the catalog.
+5. Append the four views of each object. The SE name has no suffix. Update the
+   TV prefix in `web/src/render/lighting.ts` together with the content mapping;
+   a new sprite does not automatically inherit the old sprite's lighting.
+6. Run `/proofs/living-media.html` on the development server and call
+   `livingMediaProof()` from its module for the actual WASM/GPU board. Keep that
+   proof in its own document. Replacing the live game's DOM breaks its running
+   UI. Separately test production Build commits, picking and played actions.
+
+The TV's existing light pool and whole-sprite emissive strength remain always
+on. The radio emits no light, but nearby lights can illuminate it. Neither
+object has media audio, an animated screen, a power state or seated-use art.
+See `../../../docs/assets/review-evidence/living/media.md` for evidence and
+the unchanged living-room arrangement limitation.
