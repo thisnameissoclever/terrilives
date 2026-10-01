@@ -16,6 +16,8 @@ import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
+import { WindowTool } from './ui/window-tool.js';
+import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
@@ -636,6 +638,7 @@ async function main(): Promise<void> {
     compactHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
+    windowControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
     floorControls?.setCompact(event.matches);
@@ -897,6 +900,7 @@ async function main(): Promise<void> {
           housemateForm.resetAfterLoad();
           syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
+          windowTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
           roomTool.resetAfterLoad(lotWidth, lotHeight);
           floorTool.resetAfterLoad(lotWidth, lotHeight);
@@ -1076,6 +1080,7 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
+    windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
     architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue(),
       finishes: architectureAtlas.finishes },
     floorPreview: null as readonly [number, number, number] | null,
@@ -1244,12 +1249,22 @@ async function main(): Promise<void> {
   // [BM-shell]. The third tool, beside Furniture and Walls.
   let buyControls: BuyToolControls | undefined;
   let toolSwitch: BuildToolSwitch | undefined;
+  let windowControls: WindowToolControls | undefined;
+  const windowTool = new WindowTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      lot.windowPreview = windowTool.preview();
+      cameraDirty = true;
+      windowControls?.render();
+      wallControls?.render();
+    },
+  });
   const wallTool = new WallTool(sim, lotWidth, lotHeight, {
     changed: () => {
       wallControls?.render();
+      windowControls?.render();
       toolSwitch?.render();
     },
-  });
+  }, windowTool);
   const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
     changed: () => {
       buyControls?.render();
@@ -1390,6 +1405,8 @@ async function main(): Promise<void> {
   builderControls.setCompact(compactHudQuery.matches);
   wallControls = new WallToolControls(document, wallTool);
   wallControls.setCompact(compactHudQuery.matches);
+  windowControls = new WindowToolControls(document, windowTool, wallTool);
+  windowControls.setCompact(compactHudQuery.matches);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames());
   buyControls.setCompact(compactHudQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
@@ -1412,6 +1429,12 @@ async function main(): Promise<void> {
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && event.key.toLowerCase() === 'n') {
+        if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
+        event.preventDefault();
+        return;
+      }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && routeBuildKey(event.key, buildTools, builder)) {
         event.preventDefault();
@@ -1600,6 +1623,7 @@ async function main(): Promise<void> {
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
+    windowTool.afterCommands();
     roomTool.afterCommands();
     floorTool.afterCommands();
     buyTool.afterCommands();

@@ -26,6 +26,8 @@ import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
 import { buildEdgeWallGeometry, buildShortEdgeWallGeometry, type EdgeWallPanel } from './edge-walls.js';
 import { buildArchitectureWallGeometry } from './architecture-geometry.js';
+import { windowPreviewLayout, tintWindowPreview } from './placement-preview.js';
+import type { WindowEditPreview } from '../architecture/windows.js';
 import { floorMaterial, relativeFloorLook } from './floor-materials.js';
 import { architectureFinishSlot, type ActiveFinishes, type FinishCatalogue } from './architecture-finishes.js';
 import type { WindowDefinition, WindowPlacement } from '../architecture/windows.js';
@@ -66,6 +68,7 @@ export interface Lot {
     readonly floorCatalogue?: FinishCatalogue; readonly finishes?: ActiveFinishes };
   /** Transient tool selection; never written to the simulation or save. */
   readonly floorPreview?: readonly [number, number, number] | null;
+  readonly windowPreview?: WindowEditPreview | null;
   readonly width: number;
   readonly height: number;
   /**
@@ -209,9 +212,11 @@ export function buildStaticInstances(
   sky: SkyExposure = OPEN_SKY,
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
+  const windowLayout = lot.architecture && lot.edges != null
+    ? windowPreviewLayout(lot.edges, lot.architecture.windows, lot.architecture.catalogue, lot.windowPreview) : null;
   const edgePanels = lot.edges == null ? null : lot.architecture
-    ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, edges: lot.edges,
-      windows: lot.architecture.windows, catalogue: lot.architecture.catalogue,
+    ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, edges: windowLayout!.edges,
+      windows: windowLayout!.windows, catalogue: lot.architecture.catalogue,
       hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], cutaway: lot.showCutAwayWalls !== true })
     : lot.showCutAwayWalls === true
       ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
@@ -433,6 +438,7 @@ export function buildStaticInstances(
       || (panel.window === true && (panel.spriteName === 'wallNS' || panel.spriteName === 'wallLow5')) ? 5 : 10);
     write(panel.x, panel.y, LAYER_PROP, panel.architectureId ?? spriteIndex(panel.spriteName), emissive, mask, shade);
     if (panel.architectureId !== undefined) {
+      if (panel.fadeKey === windowLayout?.ghostKey) tintWindowPreview(instances, (slot - 1) * FLOATS_PER_INSTANCE);
       writeArchitectureDepth(instances, slot - 1,
         layeredDepth(0, 0, gridSize, LAYER_PROP) - layeredDepth(1, 0, gridSize, LAYER_PROP),
         1, panel.low, (panel.fadeKey ? lot.architecture?.wallFinishSlots?.[panel.fadeKey] : undefined)

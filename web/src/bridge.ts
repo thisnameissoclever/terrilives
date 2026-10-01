@@ -155,10 +155,19 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   11: 'A wall there would leave furniture out of reach.',
   12: 'A wall there would cut off the front door.',
   13: 'A wall there would cut off the front-door landing.',
+  18: 'Fit the entire window into a solid wall.',
+  19: 'A window cannot cross a wall junction.',
+  20: 'Select the whole window to change it.',
 };
 
 export function wallReason(code: number): string | null {
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
+}
+
+/** Window edits share stable wall refusal codes and literal explanations. */
+export function windowReason(code: number): string | null {
+  if (code === 5) return 'Keep the entire window on an editable wall.';
+  return wallReason(code);
 }
 
 /**
@@ -212,6 +221,7 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
 };
 
 export function roomReason(code: number): string | null {
+  if (code >= 18 && code <= 20) return wallReason(code);
   return code === 0 ? null : ROOM_REASONS[code] ?? 'That room is not possible.';
 }
 

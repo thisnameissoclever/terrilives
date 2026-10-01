@@ -676,6 +676,17 @@
          its status and buttons. On a desktop the choices join the tool's
          own grid and the help lines follow the footer, as they always did. */
       .builder-choices { display: contents; }
+      #window-choices[hidden], #window-actions[hidden], #wall-actions[hidden] { display: none; }
+      #window-models fieldset { min-width: 0; margin: 8px 0; padding: 4px; border: 1px solid var(--hud-edge); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.625rem), 1fr)); gap: 4px; }
+      #window-models legend { font-size: 0.875rem; }
+      .window-model { display: flex; flex-direction: column; align-items: center; padding: 4px; overflow-wrap: normal; }
+      .window-model canvas { width: 100%; height: 80px; object-fit: contain; image-rendering: pixelated; }
+      .window-width { font-size: 0.75rem; color: var(--hud-muted); }
+      #wall-tool.window-editing #wall-keyboard-help, #wall-tool.window-editing #wall-touch-help { display: none; }
+      #window-choices > .builder-row { flex-wrap: wrap; }
+      #window-actions .builder-row { flex-wrap: wrap; }
+      #window-actions button { flex-basis: 7rem; }
+
       .builder-help { order: 1; }
       .builder-actions { display: grid; gap: 8px; }
       /* Four tools do not fit one row of the side panel, so two by two. */
@@ -782,7 +793,7 @@
         /* Where a tool has a list, its choices keep one whole list row and
            its outline; where the footer and that floor do not fit, the panel
            scrolls whole. */
-        #builder-dock #furniture-tool .builder-choices, #builder-dock #buy-tool .builder-choices { min-height: 52px; }
+        #builder-dock #furniture-tool .builder-choices, #builder-dock #buy-tool .builder-choices, #builder-dock #wall-tool.window-editing .builder-choices { min-height: 52px; }
         #builder-dock .builder-actions {
           flex: none; padding-top: 8px; border-top: 1px solid var(--hud-edge);
         }
@@ -1199,16 +1210,29 @@
         </div>
         <div id="wall-tool" class="builder-tool" hidden>
           <div class="builder-choices">
-            <p id="wall-keyboard-help" class="builder-note builder-help">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; N fits a window; Backspace removes; Escape clears the choice.</p>
+            <p id="wall-keyboard-help" class="builder-note builder-help">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; N opens Windows; Backspace removes a wall; Escape clears the choice.</p>
             <p id="wall-touch-help" class="builder-note builder-help" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
+            <div id="window-choices" hidden>
+              <div class="builder-row"><strong>Windows</strong><button id="window-back" class="hud-button" type="button">Wall controls</button></div>
+              <div id="window-models"></div>
+              <p id="window-keyboard-help" class="builder-note">Choose a model and a wall line. With the game view focused: arrows move; V and H turn; Enter fits; Delete removes the selected window; Escape cancels.</p>
+              <p id="window-touch-help" class="builder-note" hidden>Choose a model, then tap a wall line. Tap a window to replace or remove its whole span. Drag to pan; pinch to zoom.</p>
+            </div>
           </div>
-          <div class="builder-actions">
+          <div id="wall-actions" class="builder-actions">
             <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
             <div class="builder-row">
               <button id="wall-build" class="hud-button" type="button">Wall</button>
               <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
-              <button id="wall-window" class="hud-button" type="button">Window</button>
-              <button id="wall-remove" class="hud-button" type="button">Remove</button>
+              <button id="wall-window" class="hud-button" type="button">Windows</button>
+              <button id="wall-remove" class="hud-button" type="button">Remove wall</button>
+            </div>
+          </div>
+          <div id="window-actions" class="builder-actions" hidden>
+            <p id="window-status" role="status" aria-live="polite">Choose a wall line for the window.</p>
+            <div class="builder-row">
+              <button id="window-fit" class="hud-button" type="button" disabled>Fit window</button>
+              <button id="window-remove" class="hud-button" type="button" hidden>Remove window</button>
             </div>
           </div>
         </div>

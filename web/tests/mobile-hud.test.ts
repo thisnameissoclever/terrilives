@@ -27,7 +27,8 @@ describe('the phone Build dock', () => {
   /** The markup of the `<div class="{kind}">` holding `#id`, or '' when none does. */
   function groupOf(kind: string, id: string): string {
     const at = INDEX_HTML.indexOf(`id="${id}"`);
-    const open = INDEX_HTML.lastIndexOf(`<div class="${kind}">`, at);
+    const matches = [...INDEX_HTML.slice(0, at).matchAll(new RegExp(`<div\\b[^>]*class="${kind}"[^>]*>`, 'g'))];
+    const open = matches.at(-1)?.index ?? -1;
     if (at < 0 || open < 0) return '';
     const tags = /<\/?div\b/g;
     tags.lastIndex = open;
@@ -46,6 +47,7 @@ describe('the phone Build dock', () => {
   it.each([
     ['builder-status', ['builder-confirm', 'builder-cancel', 'builder-sell', 'builder-sale-note']],
     ['wall-status', ['wall-build', 'wall-doorway', 'wall-window', 'wall-remove']],
+    ['window-status', ['window-fit', 'window-remove']],
     ['room-status', ['room-build', 'room-cancel']],
     ['buy-status', ['buy-confirm', 'buy-cancel']],
   ])('puts %s in one footer with the buttons that act on it', (status, buttons) => {
@@ -58,6 +60,7 @@ describe('the phone Build dock', () => {
     ['builder-object', ['builder-rotate', 'builder-rotation-note', 'builder-keyboard-help', 'builder-touch-help']],
     ['buy-object', ['buy-filter', 'buy-rotate', 'buy-price', 'buy-serves', 'buy-keyboard-help', 'buy-touch-help']],
     ['wall-keyboard-help', ['wall-touch-help']],
+    ['window-models', ['window-keyboard-help', 'window-touch-help', 'window-back']],
     ['room-keyboard-help', ['room-touch-help']],
   ])('puts %s in the choices above that footer', (first, rest) => {
     const choices = groupOf('builder-choices', first);
@@ -92,8 +95,8 @@ describe('the phone Build dock', () => {
     expect(tall).toMatch(/#builder-dock #builder-controls > \.builder-tool:not\(\[hidden\]\)\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/);
     expect(tall).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*box-sizing:\s*border-box;[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/);
     // Where a tool has a list, its choices never shrink below one whole list
-    // row and its outline; the Walls and Room tools have no list to keep.
-    expect(tall).toMatch(/#builder-dock #furniture-tool \.builder-choices,\s*#builder-dock #buy-tool \.builder-choices\s*\{\s*min-height:\s*52px;\s*\}/);
+    // row and its outline, including Walls when its Windows chooser is open.
+    expect(tall).toMatch(/#builder-dock #furniture-tool \.builder-choices,\s*#builder-dock #buy-tool \.builder-choices,\s*#builder-dock #wall-tool\.window-editing \.builder-choices\s*\{\s*min-height:\s*52px;\s*\}/);
     expect(tall).toMatch(/#builder-dock \.builder-actions\s*\{[^}]*flex:\s*none;/);
     // Nothing is pinned over content anywhere, so focus is never hidden.
     expect(INDEX_HTML).not.toContain('sticky');

@@ -21,14 +21,22 @@ export class WallToolControls {
     this.buttons = [
       [required<HTMLButtonElement>('wall-build'), WALL],
       [required<HTMLButtonElement>('wall-doorway'), DOORWAY],
-      [required<HTMLButtonElement>('wall-window'), WINDOW],
       [required<HTMLButtonElement>('wall-remove'), OPEN],
     ];
+    const windows = required<HTMLButtonElement>('wall-window');
+    windows.addEventListener('click', () => {
+      if (!tool.windows) { tool.apply(WINDOW); return; }
+      tool.selectWindows();
+      if (tool.windows.active) document.querySelector<HTMLElement>('#window-models button[aria-pressed="true"]')?.focus();
+    });
+    this.windowButton = windows;
     for (const [button, state] of this.buttons) {
       button.addEventListener('click', () => tool.apply(state));
     }
     this.render();
   }
+
+  private readonly windowButton: HTMLButtonElement;
 
   /** The phone layout reads the touch help, as the furniture tool's does. */
   setCompact(compact: boolean): void {
@@ -38,6 +46,9 @@ export class WallToolControls {
 
   render(): void {
     this.status.textContent = this.tool.status;
+    this.windowButton.disabled = this.tool.windows
+      ? !this.tool.active || this.tool.blocked || this.tool.pending !== null || this.tool.windows.pending !== null
+      : !this.tool.canApply(WINDOW);
     for (const [button, state] of this.buttons) {
       button.disabled = !this.tool.canApply(state);
     }
