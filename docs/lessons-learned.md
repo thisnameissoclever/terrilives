@@ -6280,6 +6280,12 @@ keep native filesystem paths out of portable manifests.
 **How to verify.** Test both Windows and POSIX path serialization, reject
 backslashes in committed artifact references, and verify every referenced hash.
 
+The door exporter repeated this defect because its input hashes used native
+path strings and the Windows asset checks only tested local resolution. Door
+manifest tests now interpret references as POSIX paths even on Windows and
+reject backslashes, absolute paths and parent traversal. Keep this check at
+the serialized boundary rather than normalizing invalid references in consumers.
+
 ## [L-independent-render-validation] A correct composite can hide incorrect ownership
 
 **What happened.** Adversarial review showed that swapping the Sim and furniture

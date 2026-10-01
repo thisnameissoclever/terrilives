@@ -140,3 +140,18 @@ portal rows, no page errors and no horizontal overflow. See the
 [combined room](../assets/review-evidence/solid-doors/integrated-house.png) and
 [combined play receipt](../assets/review-evidence/solid-doors/integrated-played.json).
 The task-owned browser and preview server were closed after inspection.
+
+## Linux publication path correction
+
+PR 201 merged at `5aadb4c2`. Native and web checks passed remotely, but the
+Linux asset check rejected a manifest input named `doors\\render_doors.py`.
+The exporter had serialized native Windows paths. All three exporter hash
+projections now use `.as_posix()`, and the committed input references use
+forward slashes. The exporter hash changes for this serialization fix; shared
+geometry, the reference scene, all colour/depth PNGs and the atlas retain their
+exact hashes. No rendering or model geometry changed.
+
+The generator suite passes 136 tests, including a new portable-reference check.
+Staged Git input bytes independently match every manifest source hash. This
+correction affects build portability and adds no player-visible behavior; the
+existing door release notes remain the matching public entry.

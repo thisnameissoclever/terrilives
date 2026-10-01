@@ -1,5 +1,7 @@
 """Model pixels retain coverage, thickness, registration and clean casing joins."""
 import unittest
+import json
+from pathlib import PurePosixPath
 import door_assets
 
 
@@ -7,6 +9,17 @@ class DoorAssetTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.images = {name: image for name, image, _, _ in door_assets.records()}
+
+    def test_input_paths_resolve_as_portable_relative_references(self):
+        manifest = json.loads((door_assets.BASE / 'manifest.json').read_text())
+        for relative in manifest['inputs']:
+            path = PurePosixPath(relative)
+            with self.subTest(input=relative):
+                self.assertNotIn('\\', relative)
+                self.assertFalse(path.is_absolute())
+                self.assertNotIn('..', path.parts)
+                self.assertEqual(path.as_posix(), relative)
+                self.assertTrue(door_assets.BASE.parent.parent.joinpath(*path.parts).is_file())
 
     def test_every_colour_sample_has_surface_depth(self):
         for name, colour in self.images.items():
