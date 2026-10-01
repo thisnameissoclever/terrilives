@@ -1,0 +1,211 @@
+# Packed count verification
+
+## Scope and revisions
+
+2026-10-01. Implementation `616e4a8d`, followed by conflict-free integration of
+shipped main `d6dce671` at `e26bc71c`. The played viewport correction is
+`682f4cf8`. Final review compares shipped main with the complete branch, not
+only its last commit. No held ambience or toilet implementation is included.
+
+The packer publishes its actual written row count. Production consumes that
+borrowed array and count immediately instead of reconstructing the count.
+The old exports remain compatible. Eliminated work is the duplicate column
+reads, interaction-selection update and entity traversal. No frame-time or
+audio-memory improvement is claimed from this structural change.
+
+## Local automated checks
+
+The implementation worker recorded these commands and results before freezing
+source and built output. Root did not repeat passing suites without a change.
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `npm --prefix web test -- --maxWorkers=1 tests/frame.test.ts tests/interaction-frame.test.ts tests/portals.test.ts tests/placement-preview.test.ts` | 0 | Baseline: 4 files, 89 tests PASS |
+| `npm --prefix web test -- --maxWorkers=1 tests/instance-batch-production.test.ts` before edits | 1 | RED: expected draw count 2, received 0; omitted floor preview |
+| Same production-boundary command after edits | 0 | GREEN: 1 test PASS |
+| `npm --prefix web test -- --maxWorkers=1 tests/instance-batch.test.ts tests/instance-batch-production.test.ts tests/frame.test.ts tests/interaction-frame.test.ts tests/interaction-production.test.ts tests/portals.test.ts tests/placement-preview.test.ts` | 0 | 7 files, 106 tests PASS |
+| `npm --prefix web test -- --maxWorkers=1` | 1 | Initial full run: 1719 PASS, 2 stale wiring assertions FAIL |
+| `$env:NODE_OPTIONS = '--max-old-space-size=1024'; npm --prefix web test -- --maxWorkers=1` after wiring-test corrections | 0 | 116 files, 1721 tests PASS |
+| `npm --prefix web run typecheck` | 0 | PASS: no diagnostics |
+| `npm --prefix web run build` | 0 | PASS: production output generated |
+| `python check-doc-ids.py` | 0 | PASS: IDs unique and allocation-free |
+| `git diff --check` and `git diff --cached --check` | 0 | PASS: no whitespace errors |
+
+The two stale wiring tests expected duplicated production argument lists;
+they were updated to the single packing occurrence. The original defect had
+a pre-implementation failing assertion. Additional batch-contract tests were
+written after implementation; they are not claimed as pre-implementation RED.
+
+Five isolated production mutations each caused behavioral assertion failures:
+omitting the final-highlight slot update, omitting count publication, omitting
+the grown-array pointer update, allocating a fresh result, and restoring the
+production recount. Each was reversed before the next test; exact restored
+SHA-256 values at mutation time were
+`e4b6017fd4738b4d14358505bd39e46a169a6988b2e3b862d413fe391fba19a7`
+for frame.ts and
+`b8c9e41a7dff07bf9ac120b0477c53a4d85c0beb76d916489c1af8e49543fd19`
+for main.ts. A later comment changed frame.ts; the viewport fix changed main.ts.
+No compilation failure is counted as a caught mutation.
+
+After integration with shipped door audio, the focused frame, interaction,
+portal and placement checks passed 4 files / 221 tests; typecheck, build,
+documentation IDs and whitespace checks passed. After the viewport listener
+fix, the following command passed 4 files / 60 tests, exit 0:
+
+`npm --prefix web test -- --maxWorkers=1 tests/floor-tool.test.ts tests/compact-hud.test.ts tests/builder.test.ts tests/instance-batch-production.test.ts`
+
+Typecheck, build, documentation IDs and whitespace checks then passed again.
+The full suite was not repeated for that one existing-method callback.
+
+## Played production checks
+
+Root opened task-owned, displayed Chromium pages on isolated production preview
+port 5224. Observational GPU wrappers recorded the real dynamic writeBuffer
+prefix and opaque draw; they changed no product files and retained only the
+latest frame. These are native uploaded/drawn counts, not a second model of
+the packing algorithm.
+
+| Scenario | Observation | Verdict |
+| --- | --- | --- |
+| Desktop floor selection | Dynamic rows 45 to 46; opaque draw 394 to 395. Last row sprite 12, cyan selection ring visible at tile (12,3). Escape restored 45 / 394. | PASS |
+| Dining-table move | Original row 7 parked at (-1000000,-1000000), sprite 0; three preview rows appended, dynamic count 48. The table appeared at the destination, not twice. | PASS |
+| Desktop Cancel | Original table row and dynamic count 45 restored; save bytes exact before, during and after preview. | PASS |
+| 390x844, reduced motion | Visible cyan floor ring; dynamic 45 to 46, opaque 394 to 395. Neutral lighting and usable bottom build dock; no horizontal page overflow. | PASS |
+| Mobile move/Cancel | Preview visible and controls reachable. Fresh save baseline: 3199 bytes, unchanged during preview and after Cancel. | PASS |
+| Final desktop to phone to desktop resize | At 1280px keyboard help visible/touch hidden; at 390px keyboard hidden/touch visible; at 1280px restored. Screenshots inspected individually. | PASS |
+
+The first mobile save comparison used a desktop baseline taken before a floor
+edit and differed. It is invalid cancellation evidence, not a product failure.
+A fresh mobile baseline taken immediately before the move passed. Floor
+selection requires a click or tap; hover alone does not select. Selecting
+another furniture item can switch selection, so the move check used the
+observed Dining table selector and keyboard movement.
+
+Desktop/mobile GPU and move screenshots are from the integrated build
+`index-CeVbE4eF.js`, SHA-256
+`f3f279e6c102aed6542a60d5025da8bf394965ae8115ea0cd09dd3bb26a72886`.
+That pass identified the missing floor-help resize notification. The final
+viewport transition used rebuilt `index-DpDiWA-m.js`, SHA-256
+`77c827e628c4a858fb0227fc75d3743a696984758be2861c953fdbc0d7add295`.
+Final main.ts SHA-256 is
+`f0873bfdb5bcab51bb37f7bb9b8cf2ef0cb3a438be26754924115da419b2c83f`.
+Reviewed, main-matching Windows WASM SHA-256 is
+`da49265e97644cb5f3dcc2aef11ef0406a0682f468145d0df472640d929bf9dd`.
+No Rust or dependency source changed.
+
+Screenshots: `../assets/review-evidence/render/packed-count/`. The older mobile
+floor image records the pre-fix keyboard help; `help-mobile.png` records the
+corrected touch instructions. Root actually inspected the screenshots, including
+the final phone and restored desktop views. The console's only error was the
+unrelated favicon 404; no GPU error was observed. Pages closed in finally blocks
+and all task-owned preview servers stopped. Other conversations' pages and
+servers were left alone.
+
+Separately, the already-deployed door fix from PR 188 was checked on live Pages.
+`audio/doors/close-thunk.wav` returned HTTP 200, 61484 bytes, exact reviewed SHA-256
+`3df7b05fe5101da61d0f06e523b52f0f038bee32c22fca2569107bf58f087cc3`.
+The game rendered and advanced; the screenshot was inspected. This establishes
+deployment of the corrected asset, not subjective physical-speaker acceptance.
+
+## Decisions and remaining boundaries
+
+1. Add a reused batch API while retaining legacy exports. Cost: old verification
+   helpers still need maintenance; no new per-frame allocation is introduced.
+2. Include the authored floor highlight in the count. Cost: the previously
+   missing intended marker becomes visible; the broken omission is not preserved.
+3. Accept the disclosed test-order deviation. Cost: less proof of development
+   sequence, although current invariants have independent assertions and mutation
+   evidence. Rewriting history would not establish a past failing test.
+4. Include floor controls in the existing compact-layout listener. Cost: one
+   additional existing-method callback; no label, CSS or saved-state change.
+
+Independent task review approved implementation compliance and quality. Fresh
+whole-branch review of `d6dce671..112e9d21` approved merge with no Critical,
+Important or Minor findings. The complete retained review is
+`../assets/review-evidence/render/packed-count/final-review.md`.
+
+Root resolved all seven declined judgments: the two audio holds stay unchanged;
+speaker acceptance, measured timing, 120Hz, full world/sleep acceptance and
+physical-device coverage remain unverified. Remote CI, remote mutation and
+deployment remain separate delivery evidence. Retaining a batch across a later
+build is outside the documented borrowed-storage contract; the actual production
+consumer is synchronous and performs no intervening batch build.
+
+No remote check is called passed before its result exists. This slice
+does not clear the memory holds on PR 184 or PR 178, establish 120Hz playback,
+approve standing sleep poses, or substitute for a full visual/world acceptance.
+
+## Integration after publication
+
+Main advanced to `70f56b6e` (shipped PR 189 dock wellbeing) while PR 191 was
+being published. The original worker integrated it without conflicts at
+`e1f2da4e`; both branches' lessons, docs, renderer and dock changes survived.
+No Rust or dependency change required a new artifact.
+
+The focused integration command exited 0, 5 files / 76 tests PASS:
+`npm --prefix web test -- --maxWorkers=1 tests/instance-batch-production.test.ts tests/instance-batch.test.ts tests/floor-tool.test.ts tests/compact-hud.test.ts tests/traits-panel.test.ts`.
+Typecheck, build, documentation IDs and whitespace checks also exited 0.
+Frozen main.ts SHA-256:
+`fc3551b77dc8091c33bd29432853a87ae10aeb0186e3caf217acd251a383a45d`.
+Combined production `index-CvnfsN4A.js` SHA-256:
+`ae06857eec16d1c0df84abab4a02f9a6b6956c7f8e4509e19438d6f020b885e8`.
+
+Root replayed the actual combined production output on desktop and phone,
+including reduced motion. Both floor checks again uploaded 45 to 46 dynamic
+rows and drew 394 to 395 opaque instances; the final cyan ring was sprite 12.
+Keyboard/touch help switched correctly desktop to phone to desktop. Mobile
+table preview had 48 dynamic rows and parked original row 7; Cancel restored
+45 rows and the original. Save bytes were identical before, during and after,
+3159 bytes in this fresh household. Three new `combined-*.png` screenshots
+were individually inspected, and the owned page/server closed.
+
+The first combined script pressed Escape with no floor choice, which correctly
+exited Build mode through the existing keyboard behavior. Its count comparison
+was not a product regression. The corrected script resets selection through
+the observed Furniture/Floors buttons and asserts only while Build is active.
+No production change was made to satisfy the mistaken script.
+
+## Activity-bubble integration
+
+Main then advanced to `46e6b0a7` (shipped PR 190). This changes activity
+presentation, authored data and the compiled simulation; the old WASM artifact
+is not acceptance evidence for this revision. Original worker merged without
+conflicts at `002bd345` and verified/copied the six generated package files
+from the clean release checkout at that exact main commit. New WASM SHA-256:
+`a7440ec0c4c486682f266923cf959be7d1946bc3c6e73b230026a6fbb5f76e0f`.
+Every copied package file matched its source hash; the source checkout remained
+unchanged. No new Rust, dependency, authored art or saved-state change was made
+by this renderer slice relative to shipped main.
+
+The first focused run failed two stale eating-icon expectations: old sprite 43
+versus the shipped appended activityEat sprite 1372. The two names were corrected
+at `a323b6e9`; independent expected counts 14 and 3 remained unchanged. Focused
+command then exited 0, 6 files / 127 tests PASS:
+`npm --prefix web test -- --maxWorkers=1 tests/instance-batch.test.ts tests/instance-batch-production.test.ts tests/frame.test.ts tests/interaction-production.test.ts tests/portals.test.ts tests/placement-preview.test.ts`.
+
+Because real activity/WASM inputs changed, the complete single-worker suite
+was run on the new combined tree, rather than reusing the older total:
+`$env:NODE_OPTIONS = '--max-old-space-size=1024'; npm --prefix web test -- --maxWorkers=1`.
+Exit 0, 117 files / 1759 tests PASS. Typecheck, build, documentation IDs and
+whitespace checks also exited 0. Final frame.ts SHA-256:
+`ed3d7f63bad0af0b53826f5280db604497a1f4549f1e17dbce8f781ca647c74b`.
+Final main.ts remains `fc3551b77dc8091c33bd29432853a87ae10aeb0186e3caf217acd251a383a45d`.
+Combined production `index-BQx-xRrq.js` SHA-256:
+`9a785ef0d706a1e5ab4be3bd13f46f45221768399043ef807f34a4bcf8581cf3`.
+
+Root played this rebuilt output independently. Desktop and phone floor checks
+again showed dynamic 45 to 46 and opaque 394 to 395, with the cyan sprite-12
+ring. Desktop/phone/desktop help transitions passed. Phone table preview had
+48 rows and parked original row 7; Cancel restored 45 and the table. Fresh save
+bytes remained identical, 3159 bytes. All three `activity-integrated-*.png`
+screenshots were inspected; the owned page and server closed. This is renderer
+integration evidence, not a replacement for PR 190's separate full activity
+pairing review or either held audio feature's memory acceptance.
+
+Both scoped integration reviews approved merge with no Critical, Important or
+Minor findings. Reports are retained beside the screenshots as
+`dock-integration-review.md` and `activity-integration-review.md`; the complete
+implementation/check record is `implementation-report.md`. The final integration
+review compares shipped main `46e6b0a7` with `07fdd9b9`. Root accepts the already
+shipped PR 189/190 evidence for their standalone work, not a fresh certification
+of those features here. All other declined boundaries remain as recorded above.

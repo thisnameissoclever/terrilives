@@ -1,5 +1,21 @@
 # Alpha Feel Notes
 
+## [A-packed-floor-preview] Drawn floor selection and viewport help
+
+2026-10-01, production build on isolated port 5224. Desktop and 390x844
+reduced-motion checks showed the selected floor tile's cyan ring in the actual
+GPU draw. Dining-table movement displayed one preview, not a duplicate; Cancel
+restored the original table and left save bytes unchanged. The compact build
+dock remained usable. Screenshots were inspected, not only captured.
+
+Resizing revealed that Floors kept keyboard instructions on a phone viewport.
+The missing compact-layout notification was corrected. A rebuilt production
+pass verified desktop to phone to desktop help transitions and inspected each
+view. Evidence and exact check boundaries are in
+`specs/2026-10-01-packed-instance-count-verification.md`. Owned pages and servers
+were closed. No audio-memory, complete world-visual or sleep-animation acceptance
+is inferred from this renderer pass.
+
 ## [A-door-recordings] Quiet recordings on physical door transitions
 
 The following observation predates the owner's rejection of the squeak. Current

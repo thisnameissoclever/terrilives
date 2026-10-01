@@ -790,8 +790,8 @@ describe('the Buy tool in the page', () => {
       'new BuyToolControls(document, buyTool, sim.needNames())']) {
       expect(MAIN_TS).toContain(wiring);
     }
-    // The ghost reaches both the instance writer and the instance count.
-    expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(3);
+    // The ghost reaches the one packer; its batch publishes the live count.
+    expect(MAIN_TS.split('buyTool.ghost() ?? builder.preview')).toHaveLength(2);
     // [RC-render]: the ghost of a purchase is drawn in the Buy tool's colourway,
     // a moved object's in the object's own.
     expect(MAIN_TS).toContain('buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,');
