@@ -32,15 +32,15 @@ permissions:
 # One deploy at a time. Cancelling an in-flight run would be wrong here:
 # unlike a test run, a half-finished deploy is a state someone might be
 # looking at, so let it finish and queue the next. The queue is set on the
-# build and deploy jobs rather than the workflow, so a documentation-only
+# build and deploy jobs rather than the workflow, so an unpublished-docs-only
 # run, whose build is skipped, never joins it. GitHub keeps one waiting
 # entry per queue and cancels the older one, so a run that joined only to
 # deploy nothing could otherwise cancel a waiting deploy of real code.
 
 jobs:
-  # A documentation-only push skips CI's web job (see the `changes` job in
-  # ci.yml), and it changes nothing the site serves, so it is not deployed.
-  # Deploy only when that run's web job built and tested the game.
+  # Publish game changes and public changelog edits. Other documentation
+  # still skips publication. CI compares from the last tested game revision,
+  # so a notes-only edit cannot hide code whose own CI never passed.
   decide:
     # `workflow_run` fires for every conclusion, and CI also supports manual
     # dispatch. Only a successful push to main is a releasable revision.
@@ -49,28 +49,27 @@ jobs:
       github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     outputs:
-      game: ${{ steps.web.outputs.game }}
+      site: ${{ steps.content.outputs.site }}
     steps:
-      - name: Find whether CI tested the game
-        id: web
+      - name: Find whether CI tested published content
+        id: content
         env:
           GH_TOKEN: ${{ github.token }}
           RUN: ${{ github.event.workflow_run.id }}
         run: |
           set -eu
-          web=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN/jobs" \
-            --jq '[.jobs[] | select(.name == "web") | .conclusion][0] // "missing"')
-          echo "CI web job: $web"
-          if [ "$web" = "success" ]; then
-            echo "game=true" >> "$GITHUB_OUTPUT"
+          tested=$(gh api "repos/${{ github.repository }}/actions/runs/$RUN/jobs" \
+            --jq '[.jobs[] | select(.name == "web" or .name == "changelog") | .conclusion] | any(. == "success")')
+          if [ "$tested" = "true" ]; then
+            echo "site=true" >> "$GITHUB_OUTPUT"
           else
-            echo "game=false" >> "$GITHUB_OUTPUT"
-            echo "Documentation only; the published site stays as it is."
+            echo "site=false" >> "$GITHUB_OUTPUT"
+            echo "No published content changed; the site stays as it is."
           fi
 
   build:
     needs: decide
-    if: needs.decide.outputs.game == 'true'
+    if: needs.decide.outputs.site == 'true'
     concurrency:
       group: pages-build
       cancel-in-progress: false
@@ -116,9 +115,10 @@ jobs:
         run: |
           set -eu
           test -f web/dist/index.html
+          test -f web/dist/changelog/index.html
           wasm=$(find web/dist -name '*.wasm' | head -1)
           test -n "$wasm"
-          echo "index.html and $wasm present"
+          echo "Game, changelog and $wasm present"
           du -sh web/dist
 
       - uses: actions/configure-pages@v5
@@ -145,8 +145,8 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      # A tip that differs from the tested revision only in documentation
-      # serves the same game, and its own documentation-only run will not
+      # A tip that differs only in unpublished documentation serves the same
+      # site, and its own documentation-only run will not
       # deploy, so the tested revision is still the one to publish. Without
       # this, a documentation push landing during a deploy would leave the
       # game change before it unpublished.
@@ -163,10 +163,11 @@ jobs:
             echo "Deploying current main revision $TESTED_SHA"
           else
             git fetch --quiet origin main
-            code=$(python3 -B .github/scripts/changes.py compare "$TESTED_SHA" "$current_sha" | cut -d= -f2)
-            if [ "$code" = "false" ]; then
+            classification=$(python3 -B .github/scripts/changes.py compare "$TESTED_SHA" "$current_sha")
+            site=$(printf '%s\n' "$classification" | sed -n 's/^site=//p')
+            if [ "$site" = "false" ]; then
               echo "current=true" >> "$GITHUB_OUTPUT"
-              echo "Deploying $TESTED_SHA; main is $current_sha, which adds only documentation"
+              echo "Deploying $TESTED_SHA; main is $current_sha, which adds only unpublished documentation"
             else
               echo "current=false" >> "$GITHUB_OUTPUT"
               echo "Skipping stale revision $TESTED_SHA; current main is $current_sha"

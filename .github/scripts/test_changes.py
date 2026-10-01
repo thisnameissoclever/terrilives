@@ -1,6 +1,8 @@
 """Tests for changes.py, run by the CI `changes` job before it decides."""
 
 import os
+import contextlib
+import io
 import subprocess
 import tempfile
 import unittest
@@ -28,6 +30,14 @@ class ClassifyPaths(unittest.TestCase):
 
     def test_an_empty_change_runs_the_checks(self):
         self.assertTrue(changes.affects_game([]))
+        self.assertTrue(changes.affects_site([]))
+
+    def test_published_markdown_redeploys_without_running_game_checks(self):
+        paths = ["docs/changelog/2026-10-01-controls.md"]
+        self.assertFalse(changes.affects_game(paths))
+        self.assertTrue(changes.affects_site(paths))
+        self.assertTrue(changes.affects_site(["docs/changelog/deleted-entry.md"]))
+        self.assertFalse(changes.affects_site(["docs/changelog.md", "docs/FEATURES.md"]))
 
 
 class DecideFromGit(unittest.TestCase):
@@ -95,6 +105,35 @@ class DecideFromGit(unittest.TestCase):
         self.git("commit", "-q", "-m", "delete")
         self.assertFalse(changes.decide("compare", self.base, self.git("rev-parse", "HEAD")))
 
+    def test_note_addition_edit_and_deletion_each_require_publication(self):
+        added = self.commit({"docs/changelog/2026-10-01-controls.md": "first"})
+        edited = self.commit({"docs/changelog/2026-10-01-controls.md": "second"})
+        os.remove("docs/changelog/2026-10-01-controls.md")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "remove note")
+        removed = self.git("rev-parse", "HEAD")
+        for before, after in ((self.base, added), (added, edited), (edited, removed)):
+            self.assertFalse(changes.decide("push", before, after))
+            self.assertTrue(changes.decide_site("push", before, after))
+            self.assertTrue(changes.decide_site("compare", before, after), "new notes make old Pages artifacts stale")
+
+    def test_new_notes_cannot_hide_untested_game_changes(self):
+        code = self.commit({"web/main.ts": "untested"})
+        notes = self.commit({"docs/changelog/2026-10-01-controls.md": "first"})
+        self.assertFalse(changes.decide("push", code, notes))
+        self.assertTrue(changes.decide("push", self.base, notes), "compare from the last tested game, not the previous push")
+        self.assertTrue(changes.decide_site("push", self.base, notes))
+
+    def test_unpublished_docs_after_tested_notes_do_not_keep_redeploying(self):
+        notes = self.commit({"docs/changelog/2026-10-01-controls.md": "first"})
+        docs = self.commit({"README.md": "later documentation"})
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            changes.main(["push", self.base, docs, notes])
+        self.assertEqual(output.getvalue(), "code=false\nsite=false\n")
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            changes.main(["push", self.base, docs, self.base])
+        self.assertEqual(output.getvalue(), "code=false\nsite=true\n", "unchecked notes still need publication")
+
     def test_the_answer_is_written_where_the_workflow_reads_it(self):
         docs = self.commit({"README.md": "two"})
         output = os.path.join(self.folder.name, "output.txt")
@@ -110,7 +149,7 @@ class DecideFromGit(unittest.TestCase):
             else:
                 os.environ["GITHUB_OUTPUT"] = previous
         with open(output, encoding="utf-8") as handle:
-            self.assertEqual(handle.read(), "code=false\ncode=true\n")
+            self.assertEqual(handle.read(), "code=false\nsite=false\ncode=true\nsite=true\n")
 
 
 if __name__ == "__main__":
