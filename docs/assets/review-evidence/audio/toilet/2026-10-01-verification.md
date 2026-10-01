@@ -120,6 +120,14 @@ load-test gap and misleading natural-drain label were corrected. The final
 source review found no material integration issues. Reviews did not waive
 memory, display-rate or in-game listening requirements.
 
+After integrating the released footsteps change from main `ba7d1a97`, all six
+source hashes recorded by the memory assessment still matched: harness, toilet
+player, controller, procedural cues, generated WebAssembly and runtime recording.
+The merge changed documentation and reconciled existing regression tests; it did
+not change the measured runtime. The focused memory-report suite passed all 70
+tests. Changelog tests, generation and documentation-ID checks passed. A final
+read-only review agreed that the recorded conclusions do not overclaim.
+
 ## Unavailable evidence and release boundary
 
 The display reports 60 Hz, not the required 120 Hz. Prior measured sampler work
