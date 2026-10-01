@@ -119,8 +119,18 @@ deployment of the corrected asset, not subjective physical-speaker acceptance.
 4. Include floor controls in the existing compact-layout listener. Cost: one
    additional existing-method callback; no label, CSS or saved-state change.
 
-Independent task review approved implementation compliance and quality. Final
-whole-branch review and external delivery are recorded after this evidence is
-committed. No remote check is called passed before its result exists. This slice
+Independent task review approved implementation compliance and quality. Fresh
+whole-branch review of `d6dce671..112e9d21` approved merge with no Critical,
+Important or Minor findings. The complete retained review is
+`../assets/review-evidence/render/packed-count/final-review.md`.
+
+Root resolved all seven declined judgments: the two audio holds stay unchanged;
+speaker acceptance, measured timing, 120Hz, full world/sleep acceptance and
+physical-device coverage remain unverified. Remote CI, remote mutation and
+deployment remain separate delivery evidence. Retaining a batch across a later
+build is outside the documented borrowed-storage contract; the actual production
+consumer is synchronous and performs no intervening batch build.
+
+No remote check is called passed before its result exists. This slice
 does not clear the memory holds on PR 184 or PR 178, establish 120Hz playback,
 approve standing sleep poses, or substitute for a full visual/world acceptance.
