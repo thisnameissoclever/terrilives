@@ -70,9 +70,17 @@ default Voices to 100%. An invalid Voices field defaults only that field.
 11. Object stops and conversation ends cancel matching ownership even while
     audio is suspended or otherwise inaudible. A running clock keeps normal
     release fades; a stopped clock immediately releases the affected nodes.
-    Late decoding cannot revive an ended action. This does not add automatic
-    recovery for start events dropped during external suspension. See
-    `2026-10-01-suspended-audio-cancellation.md` for that distinction.
+    Late decoding cannot revive an ended action. See
+    `2026-10-01-suspended-audio-cancellation.md` for cancellation evidence.
+12. While globally inaudible, fixed ticks finish every scheduler frame but
+    forward no observations. Existing object and conversation ownership ends;
+    footstep, personal, sleep and door history clears through normal absence
+    handling. At the first unavailable frame boundary, unfinished procedural
+    and door cues are stopped so their frozen tails cannot resume. The first
+    audible tick starts only current actions and silently
+    re-anchors footsteps and doors, including automatic context recovery without
+    a new gesture. Continuing recordings restart rather than preserve their
+    frozen position. See `2026-10-01-automatic-audio-recovery.md`.
 
 ## Node graph and bounded playback
 

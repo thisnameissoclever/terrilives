@@ -327,12 +327,16 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginFootstepFrame(): void {
+    this.prepareWorldAudioFrame();
     this.footsteps.beginFrame();
   }
 
-  beginPortalFrame(): void { this.portals.beginFrame(); }
+  beginPortalFrame(): void {
+    this.prepareWorldAudioFrame();
+    this.portals.beginFrame();
+  }
   observePortal(x: number, y: number, farX: number, farY: number, state: number): void {
-    this.portals.observe(x, y, farX, farY, state);
+    if (this.worldAudioAvailable()) this.portals.observe(x, y, farX, farY, state);
   }
   endPortalFrame(): void {
     this.portals.endFrame();
@@ -377,8 +381,19 @@ export class AudioController implements GameAudioEventSink {
     return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0 && !this.objectSoundsPaused;
   }
 
+  private worldAudioAvailable(): boolean {
+    return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0;
+  }
+
+  private prepareWorldAudioFrame(): void {
+    if (this.worldAudioAvailable()) return;
+    // Discard frozen one-shots; ownership-bearing players end through their frames.
+    if ((this.player?.activeVoiceCount() ?? 0) > 0) this.player?.stopAll();
+    if ((this.doors?.activeVoiceCount() ?? 0) > 0) this.doors?.stopAll();
+  }
+
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void {
-    this.footsteps.observe(simId, x, y, walking);
+    if (this.worldAudioAvailable()) this.footsteps.observe(simId, x, y, walking);
   }
 
   endFootstepFrame(): void {
@@ -386,6 +401,7 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginActivityFrame(): void {
+    this.prepareWorldAudioFrame();
     this.activities.beginFrame();
   }
 
@@ -400,7 +416,7 @@ export class AudioController implements GameAudioEventSink {
     // drops every conversation's clips - which is exactly what it did until a
     // run in the browser showed two Sims talking with the pair reaching the
     // render buffer and nothing playing.
-    this.activities.observe(simId, activity, voice);
+    if (this.worldAudioAvailable()) this.activities.observe(simId, activity, voice);
   }
 
   endActivityFrame(): void {
@@ -408,11 +424,12 @@ export class AudioController implements GameAudioEventSink {
   }
 
   beginObjectSoundFrame(): void {
+    this.prepareWorldAudioFrame();
     this.objectSounds.beginFrame();
   }
 
   observeObjectSound(sourceId: number, action: number): void {
-    this.objectSounds.observe(sourceId, action);
+    if (this.worldAudioAvailable()) this.objectSounds.observe(sourceId, action);
   }
 
   endObjectSoundFrame(): void {
