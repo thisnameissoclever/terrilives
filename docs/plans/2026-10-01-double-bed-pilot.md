@@ -983,3 +983,18 @@ reconstruction errors and atlas cost before the renderer interface is fixed.
 Prepare the bed release on a branch based on current main so the unrelated,
 pending aquarium and ottoman changes cannot enter this release accidentally.
 The older pilot branch and immutable experiments remain available for replay.
+
+## Full covered export accepted for integration
+
+The full static batch finished: 288 original passes, 64 scene combinations and
+all four facings. The owner-approved pose is unchanged. Primary and independent
+visual review accepted the complete representative sheet, covered feet and one
+continuous duvet. The source receipts, final export, reconstruction comparisons,
+palette independence and atlas budget are recorded in
+`docs/assets/review-evidence/bed-assignment/covered-double-bed.md`.
+
+The encoding is scene-linear premultiplied visible-additive contributions, not
+display-space ink-over layers. Runtime integration must preserve furniture-only
+post-sampling recolour and use the separate raw visible-owner alpha for picking.
+The runtime task owns that integration and its played/live verification. Export
+acceptance is not proof that the changed sleeping presentation is already live.
