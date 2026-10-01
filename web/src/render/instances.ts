@@ -46,7 +46,9 @@ export type InstanceArray = Float32Array<ArrayBuffer>;
  * recolours draws exactly as before; `writeInstance` resets them.
  *
  * Positive projection modes are wall arm masks; -1 projects a rectangular
- * footprint. Zero retains flat depth. For positive modes, fields 10/11 are
+ * footprint; -2 samples model surface depth from the sprite index in field
+ * 10, relative to the tile offset in field 11. Zero retains flat depth.
+ * For positive modes, fields 10/11 are
  * opacity and raster height: height zero retains full-height opaque art.
  * Short walls use a second depth-tested, non-depth-writing draw.
  */
@@ -89,6 +91,7 @@ export const OFFSET_SHADE = 15;
 export const COLOURWAY_ATTRIBUTE_OFFSET =
   OFFSET_COLOURWAY_HUE * Float32Array.BYTES_PER_ELEMENT;
 export const FOOTPRINT_PROJECTION = -1;
+export const SURFACE_DEPTH_PROJECTION = -2;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */

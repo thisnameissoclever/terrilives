@@ -1,0 +1,17 @@
+
+> build
+> vite build
+
+vite v8.1.5 building client environment for production...
+[2K
+transforming...✓ 90 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/save-worker-Cb-g-Su5.js          2.08 kB
+dist/index.html                             54.61 kB │ gzip:  12.88 kB
+dist/changelog/index.html                   63.00 kB │ gzip:  13.71 kB
+dist/assets/terri_wasm_bg-vAIKtm_S.wasm  2,327.92 kB │ gzip: 738.16 kB
+dist/assets/index-DDnTy7G4.css              17.16 kB │ gzip:   3.79 kB
+dist/assets/index-BNfz4QdV.js              452.56 kB │ gzip: 102.23 kB
+
+✓ built in 158ms

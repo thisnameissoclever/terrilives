@@ -4,7 +4,7 @@ Originally written 2026-09-21. Status reconciled on 2026-09-30 against main at `
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
-**Next build: Edit Sims [B-edit-sims], selected by the owner on 2026-09-30.** The suggested order at the end starts with that slice. Later steps remain recommendations.
+**Next build: Edit Sims [B-edit-sims], selected by the owner on 2026-09-30.** Communal activities and activity-specific seating, including missing sitting poses, follow soon by owner request on 2026-10-01. The remaining order is a recommendation.
 
 ## How to read the status
 
@@ -70,11 +70,13 @@ The owner also accepted and expanded four proposals in that round: [P-nuisance],
 | [S-object-facing] | Object facing and layered depth | Partial | Supported rotation complete; depth layers partial |
 | [S-audio] | Sound, ambience, music, and voices | Partial | Audio foundation and activity cues; broader sound content remains |
 
-### Later owner requests, reviewed 2026-09-30
+### Later owner requests, through 2026-10-01
 
 | Feature | Status | Boundary |
 |---|---|---|
 | [B-edit-sims] | Not started; next build | Existing names, personalities, traits and family ties |
+| [S-communal-activities] | Planned; soon after Edit Sims | Liked Sims prefer compatible shared activities; existing shared meals and relationship rewards are foundations |
+| [S-activity-seating] | Partial; early follow-up | Armchair sitting and seated reading exist; seat preferences and remaining sitting poses are planned |
 | [B-gender] | Not started | Gender and saved appearance choices; new bodies and clothing need art |
 | [B-object-affinities] | Not started | Individual reactions to kinds of objects and others' use |
 | [B-colour-preferences] | Not started | Colour-family preferences, distinct from shipped recolour controls |
@@ -469,6 +471,41 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 **Status: Not started.** The HUD shows "Day N" and a time. There are no weekdays, weekends, dates, or seasons. A job runs every single day. Weekends, bill due dates, birthdays, bin day, and scheduled visits all need a calendar. It is cheap to build and many other systems need it.
 
+### [S-communal-activities] Prefer activities with liked housemates
+
+**Status: Planned; requested 2026-10-01 for early delivery after Edit Sims.**
+Shared meals and relationship rewards for some simultaneous activities provide
+foundations. Choosing compatible activities in order to spend time with liked
+Sims remains planned work.
+
+Sims who like each other should prefer joining or starting activities they can
+share: watching the same TV, listening to the radio together, reading alongside
+each other, and other suitable activities. This is a preference, subject to each
+Sim's needs, activity interests and player orders. Define which activities can
+share a source and which need separate objects or places; do not turn every
+interaction into a communal activity. Joining must respect available capacity
+and reachable positions. Coordinate this with [S-activity-seating].
+
+### [S-activity-seating] Prefer suitable seats for stationary activities
+
+**Status: Partial; requested 2026-10-01 for the same early delivery.** Armchair
+sitting and seated reading already have poses and animations. General seat
+preferences and the remaining seat and activity combinations are planned.
+
+Sims should prefer suitable available seats when eating, reading, watching TV
+or listening to the radio or another source. A seat must be reachable and
+appropriate to the activity: eating needs a usable dining place, and watching
+or listening must preserve access to the source. This is an activity-specific
+preference, not a rule to sit for every interaction. Watching fish requires
+remaining near the fish tank; it must not send the Sim to an unrelated chair.
+
+Include missing sitting poses and animations in this early slice
+[S-action-animation], [A-animations]. Reuse existing sitting and seated-reading
+art where appropriate. Add poses for the remaining seats and activities, with
+credible seat contact, bent knees, planted feet and sensible facing. Review
+them with the actual furniture; reaching a seat or displaying a Sitting label
+alone does not establish a convincing seated pose.
+
 ### [S-action-animation] Action animation coverage
 
 **Status: Partial.** Walking, talking, eating, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, cooking, washing, using the toilet, showering, watching television, sitting at the dining table, and standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
@@ -560,8 +597,9 @@ A bed, a chair, or a room can belong to one person. The armchair has no owner to
 
 ## A suggested build order
 
-**Edit Sims is next, by owner direction on 2026-09-30.** Only that first position
-is an approved priority. The later order remains a recommendation, subject to
+**Edit Sims is next, by owner direction on 2026-09-30.** Communal activities,
+activity-specific seating and missing sitting poses follow soon, by owner
+request on 2026-10-01. The remaining order is a recommendation, subject to
 design and owner choice. Each step must deliver playable behaviour, not isolated
 infrastructure. FEATURES.md owns the same current priority.
 
@@ -570,37 +608,42 @@ infrastructure. FEATURES.md owns the same current priority.
    re-addition before implementation. No new art is required.
    The draft contract is `docs/specs/2026-09-30-edit-sims.md`; its proposed
    removed-trait history policy awaits the owner's answer.
-2. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
+2. **Communal activities and seating [S-communal-activities], [S-activity-seating].**
+   Prefer compatible activities with liked Sims and suitable seats for eating,
+   reading, TV and listening. Keep location-bound activities at their objects,
+   including watching fish near the tank. Deliver missing sitting poses and
+   animations in this slice rather than leaving them in the later art backlog.
+3. **Object and colour affinities [B-object-affinities], [B-colour-preferences].**
    Recommended follow-up: connect different people's preferences to the shared
    room and the shipped mood-to-satisfaction mechanism. Reconcile novelty and
    nuisance rules before choosing the first playable slice.
-3. **[S-skills] and [S-sim-details].** Extend capability progress into a general
+4. **[S-skills] and [S-sim-details].** Extend capability progress into a general
    skills system and show existing and newly added values in the details panel.
-4. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
+5. **[S-calendar] and [F-notifications].** Weekly schedules and a history with
    channels and mutes. Buying, selling and their Funds changes are already done.
-5. **[S-acclimation].** Negative mood from overdoing activities and a fading
+6. **[S-acclimation].** Negative mood from overdoing activities and a fading
    novelty boost. Purchase and sale mechanisms no longer block this work.
-6. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
+7. **[S-deep-traits], remaining [P-mood-feedback], and [S-advanced-controls].**
    Mood already affects satisfaction. Behaviour, performance and despondency
    remain, with empathy and recovery rules designed before implementation.
-7. **[S-careers] and remaining [S-money].** Design career paths, job search,
+8. **[S-careers] and remaining [S-money].** Design career paths, job search,
    performance, bills and a ledger together. A phone or other job-search surface
    needs its own agreed slice; [P-services] remains an undecided broader proposal.
-8. **[S-household-events].** Deliver object state, event scheduling and willingness
+9. **[S-household-events].** Deliver object state, event scheduling and willingness
    through a playable mess-and-clean loop.
-9. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
-   prove the first slice; affinities should share its model where appropriate.
-10. **Further character lifecycle and [F-creature].** Creation and death are
+10. **[S-sensitivities] and [P-nuisance].** A loud television near a sleeper can
+    prove the first slice; affinities should share its model where appropriate.
+11. **Further character lifecycle and [F-creature].** Creation and death are
     complete. Visitors are a proposed human test case, pending acceptance;
     nonhuman needs and behaviour remain separate work required by pets.
-11. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
+12. **[S-pets], one species first.** Build on the care, nuisance and lifecycle
     mechanisms above, with the species art and animation they need.
-12. **Remaining creation, household, building and outside slices.** Gender and
+13. **Remaining creation, household, building and outside slices.** Gender and
     appearance, moving out, larger households, bed assignment, roofs, further
     exterior work and other lot sizes. The wall/room tools, yard, street, floors,
     windows and New housemate are already shipped. Bed assignment can move earlier.
-13. **[P-health].** The full health and medical system, including recovery options.
-14. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
+14. **[P-health].** The full health and medical system, including recovery options.
+15. **[P-upkeep]**, last, as the owner directed. Event and pet messes precede wear,
     breakage and repair.
 
 Aging [DE-slice-age] is the next death slice, but its ages, lifespans and migration

@@ -886,6 +886,14 @@ export class SimBridge {
     return new Uint32Array(this.memory.buffer, this.handle.portal_states_ptr(), this.portalCount);
   }
 
+  portalOpenness(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.portal_openness_ptr(), this.portalCount);
+  }
+
+  portalPreviousOpenness(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.portal_previous_openness_ptr(), this.portalCount);
+  }
+
   /** The tile across each portal row's line, `[x, y]` pairs. */
   portalFarSides(): Float32Array {
     return new Float32Array(this.memory.buffer, this.handle.portal_far_sides_ptr(), this.portalCount * 2);
@@ -933,6 +941,10 @@ export class SimBridge {
    */
   interiorDoorLines(): Uint32Array {
     return this.handle.interior_door_lines();
+  }
+
+  interiorHorizontalDoorLines(): Uint32Array {
+    return this.handle.interior_horizontal_door_lines();
   }
 
   /**

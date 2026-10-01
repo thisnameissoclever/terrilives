@@ -975,6 +975,9 @@ impl Sim {
             .saturating_add(1);
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
+        self.portals
+            .previous_openness
+            .clone_from(&self.portals.openness);
     }
 
     /// Loads a historical V1 payload, including reviewed layout migrations.
@@ -1625,6 +1628,11 @@ impl Sim {
     }
 
     fn sync_render_buffer_inner(&mut self, advance_interpolation: bool) {
+        if advance_interpolation {
+            self.portals
+                .previous_openness
+                .clone_from(&self.portals.openness);
+        }
         portals::sync_portals(&mut self.world, &mut self.portals);
         use std::collections::{HashMap, HashSet};
 

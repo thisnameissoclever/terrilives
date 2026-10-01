@@ -191,7 +191,7 @@ test('the repository history renders and the CLI writes the same standalone page
   const html = readFileSync(output, 'utf8');
   assert.equal(html, buildChangelog());
   assert.ok(html.includes('The first playable alpha'));
-  assert.ok(html.includes('Meals, moods and shared beds'));
+  assert.ok(html.includes('Build controls, meals, shared beds and solid doors'));
   assert.doesNotMatch(html, /github\.com|\bPRs?\b|pull request|\bcommits?\b/i);
   assert.ok(html.includes('window.addEventListener'));
   assert.ok(html.includes('href="../"'));

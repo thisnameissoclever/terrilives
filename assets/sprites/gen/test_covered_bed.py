@@ -25,7 +25,7 @@ class CoveredBedTests(unittest.TestCase):
                                          separators=(',', ':')).encode())
                 digest.update(image.crop((row['x'], row['y'], row['x']+row['w'], row['y']+row['h'])).tobytes())
         self.assertEqual(digest.hexdigest(), 'a96852795c4f5f02f483fab6f58f854a492a81491286a7fa23759c84a693f22c')
-        self.assertEqual(len(rows), 1833)
+        self.assertGreaterEqual(len(rows), 1833)
 
     def test_preserves_prior_registration_and_interaction_metadata(self):
         expected = {

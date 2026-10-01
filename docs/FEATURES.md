@@ -13,11 +13,16 @@ name, personality, traits and family ties, including the starting household.
 The trait-progress rule must be designed before implementation. This slice does
 not depend on new appearance art, gender, or the advanced-controls system.
 
+**Soon after Edit Sims: communal activities and activity-specific seating.**
+Requested by the owner on 2026-10-01. Prioritise [S-communal-activities] and
+[S-activity-seating], including their missing sitting poses, before the later
+proposed priorities. Their scope is in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
+
 | Area | Completed and shipped | Still open |
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
 | Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie | Edit Sims next; appearance and gender choices, random generation and deeper traits later |
-| Building and buying | Furniture movement and supported rotation, walls, rooms, vertical hinged doors, purchases, sales, recolour controls, floor painting, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
+| Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
 | Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
@@ -424,7 +429,14 @@ an unchanged design target is not an unchanged measurement.
    rule for progressed traits, then implement editing through a validated simulation
    command, save/load, and the existing two-page form. Preserving progress for
    retained traits is the recommendation, pending that design decision.
-2. **Later priorities remain proposals.** Object affinities [B-object-affinities]
+2. **Communal activities and seating [S-communal-activities], [S-activity-seating]:
+   soon, owner-requested.** Sims who like each other should prefer sharing
+   compatible activities, including watching TV, listening to the radio and
+   reading together. Prefer suitable available seats for eating, reading, TV
+   and listening. Preserve activity-specific locations: watching fish stays
+   near the tank. Reuse existing sitting and seated-reading art, and deliver
+   missing sitting poses and animations with this slice [A-animations].
+3. **Later priorities remain proposals.** Object affinities [B-object-affinities]
    are the recommended follow-up, alongside the colour-preference design
    [B-colour-preferences]. Aging [DE-slice-age] is the next death slice, but needs
    an age and lifespan design. Neither is selected ahead of Edit Sims.
@@ -840,9 +852,9 @@ from outside and outdoor objects remain.
 **Status: Complete for the per-tile painting slice; room painting and floor effects remain extensions.**
 
 Found while building the yard. Every tile is one floor, and the yard is that
-floor recoloured. Build now has a Floors tool: choose Boards, Tiles or Carpet
-and click a tile to lay it, or Remove to put the tile back to how the house
-came. The choice is saved per tile, sparsely, so a house nobody has painted
+floor recoloured. Build has a Floors tool: select a tile, then apply Boards,
+Tiles or Carpet beside it, or Remove to restore its original floor. Selecting
+another tile never paints it automatically. The choice is saved per tile, sparsely, so a house nobody has painted
 costs one byte and every save written before floors existed still loads and
 still looks the same, read by the yard rule in [OS-yard]. The coverings are
 authored in `content/lot.toml` and are the one floor sprite under a colour
@@ -884,11 +896,11 @@ Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save
 
 Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
 
-### [B-placement-buttons] Confirm and Cancel sit over the moved object
+### [B-placement-buttons] Contextual actions surround the build selection
 
 **Status: Complete.**
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision shares contextual actions across all five tools, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
@@ -1150,7 +1162,8 @@ Every vertical doorway now holds a hinged door that swings open as a sim walks
 through it, drawn with the front door's art, shipped in PR 98 at merge
 `2534ec5`; its design is
 `docs/specs/2026-09-22-interior-doors.md` and its played checks are
-[A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
+[A-interior-doors] and [A-door-steps]. The current implementation adds solid
+models, surface depth and horizontal doors; the owner approved these on 2026-10-01
 ([T-interior-door-art]). Floors and windows are their own entries,
 [B-floors] and [B-windows]. The larger lot is the yard, the first slice of
 [B-outside]. For PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. With rooms, walls,
@@ -1327,6 +1340,11 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 ### [A-animations] Several ordinary actions are still static poses
 
 **Status: Partial: listed rigged actions shipped; remaining action categories are unbuilt.**
+
+The owner requested missing sitting poses and animations soon on 2026-10-01.
+Deliver seating for meals, reading, TV and listening with the early
+[S-activity-seating] slice. Reuse the existing armchair sitting and seated-reading
+poses where they fit, and add the remaining seat and activity combinations.
 
 The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing

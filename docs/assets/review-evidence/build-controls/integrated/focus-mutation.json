@@ -1,0 +1,7 @@
+{
+  "removed": "focused descendant restoration",
+  "mutated_exit": 1,
+  "restored_exit": 0,
+  "before_sha256": "4f1ce7ce5e082befd5d1f99322cca33e3be691ac06c1cb9da0c75073f179e86d",
+  "after_sha256": "4f1ce7ce5e082befd5d1f99322cca33e3be691ac06c1cb9da0c75073f179e86d"
+}

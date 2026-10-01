@@ -1,0 +1,544 @@
+{
+  "errors": [],
+  "frames": [
+    {
+      "tick": 40,
+      "states": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-40.png"
+    },
+    {
+      "tick": 41,
+      "states": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0.25,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-41.png"
+    },
+    {
+      "tick": 42,
+      "states": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0.5,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-42.png"
+    },
+    {
+      "tick": 43,
+      "states": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0.75,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-43.png"
+    },
+    {
+      "tick": 44,
+      "states": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-44.png"
+    },
+    {
+      "tick": 45,
+      "states": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-45.png"
+    },
+    {
+      "tick": 46,
+      "states": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-46.png"
+    },
+    {
+      "tick": 47,
+      "states": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-47.png"
+    },
+    {
+      "tick": 48,
+      "states": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-48.png"
+    },
+    {
+      "tick": 49,
+      "states": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0.75,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-49.png"
+    },
+    {
+      "tick": 50,
+      "states": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0.5,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-50.png"
+    },
+    {
+      "tick": 51,
+      "states": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0.25,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-51.png"
+    },
+    {
+      "tick": 52,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-52.png"
+    },
+    {
+      "tick": 117,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-117.png"
+    },
+    {
+      "tick": 118,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.25
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-118.png"
+    },
+    {
+      "tick": 119,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.5
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-119.png"
+    },
+    {
+      "tick": 120,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.75
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-120.png"
+    },
+    {
+      "tick": 121,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-121.png"
+    },
+    {
+      "tick": 122,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-122.png"
+    },
+    {
+      "tick": 123,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-123.png"
+    },
+    {
+      "tick": 124,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-124.png"
+    },
+    {
+      "tick": 125,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-125.png"
+    },
+    {
+      "tick": 126,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.75
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-126.png"
+    },
+    {
+      "tick": 127,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.5
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-127.png"
+    },
+    {
+      "tick": 128,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.25
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-128.png"
+    },
+    {
+      "tick": 129,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "amounts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "file": ".tmp/door-review-2026-10-01/integrated-play/production-cycle-129.png"
+    }
+  ],
+  "cycles": [
+    {
+      "row": 3,
+      "open": true,
+      "closing": true,
+      "complete": true
+    },
+    {
+      "row": 5,
+      "open": true,
+      "closing": true,
+      "complete": true
+    }
+  ],
+  "small": {
+    "viewport": 390,
+    "document": 390,
+    "portals": 6
+  }
+}
