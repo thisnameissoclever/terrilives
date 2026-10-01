@@ -21,14 +21,14 @@ EXPECTED_METADATA = {
 }
 
 
-def preserved_table(source, name):
+def preserved_table(source, name, cutoff=1346):
     match = re.search(r'^export const '+re.escape(name)+r'\b[^\n]*=\s*(\{.*?^\});', source, re.M | re.S)
     if match is None:
         raise ValueError('Missing table: '+name)
     body = re.sub(r'(?m)^(\s*)(\d+):', r'\1"\2":', match.group(1))
     value = json.loads(re.sub(r',\s*([}\]])', r'\1', body))
     if name not in ('RIGGED_SIM_CLIPS', 'RIGGED_SIM_VARIANTS'):
-        value = {key: item for key, item in value.items() if int(key) < 1346}
+        value = {key: item for key, item in value.items() if int(key) < cutoff}
     return value
 
 

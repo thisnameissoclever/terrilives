@@ -688,7 +688,7 @@ sprite = "offlineFloorLamp"
 id = "coat_rack"
 name = "Vertical Filing for Outerwear"
 price = 35
-sprite = "coatRackStanding"
+sprite = "offlineCoatRack"
 
   # No interactions.
 

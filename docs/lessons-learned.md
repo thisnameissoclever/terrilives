@@ -7705,3 +7705,26 @@ contact and opening guards must break that rejection proof. In the browser,
 reselect before each rotation, wait for the applied command, and compare
 paused save bytes after a complete turn. Use the natural clock for the played
 pass and always close task-owned pages.
+
+## [L-coat-rack-facing-and-contact] Preserve the authored direction and measure surface contact
+
+**What happened.** The coat rack's first model rotated its crossbar 90 degrees
+relative to the old SE sprite. A saved-scene checker then rejected a supported
+upright at an almost exact base joint. The GPU proof also confused received
+room light with an object's own emission.
+
+**Root cause.** The shared exporter rotates its authored basis; a one-tile
+footprint does not expose that mismatch. Bounds differed by a floating-point
+seam before the old contact check could apply its inside tolerance. The
+instance light field combines emission and received illumination.
+
+**Prevention.** Trace the old physical direction before authoring, and bake
+needed corrections into the model rather than changing saved facings. Accept
+exact joints through evaluated surface-distance evidence, not loose bounds.
+Check a drape's whole fold and connectivity as well as interior support
+samples. Compare source emission separately from the final light value.
+
+**Verify.** Inspect all four source views and the played room. Lift the base,
+detach the rail, float or penetrate the fabric, overhang its edge, and add a
+disconnected scrap; require each rejection. Delete the corresponding guards
+to prove that the negative tests notice. Preserve the original model bytes.
