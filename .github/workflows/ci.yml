@@ -15,10 +15,11 @@ on:
 # A new push to a pull request cancels that pull request's older runs. Without
 # this, every push left its eight-shard mutation sweep running beside the new
 # one, and on PR 95 three heads' sweeps queued for the same runners, so the
-# head that could merge waited behind two that never could. A push to main is
-# never cancelled: each merge commit's run is its own record.
+# head that could merge waited behind two that never could. An active main
+# run is not cancelled, but a newer pending main run can replace an older one.
+# Separate events so a manual mutation sweep on main cannot hold up push CI.
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -47,9 +48,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Test the classifier
+      - name: Test CI scripts and workflow guards
         working-directory: .github/scripts
-        run: python3 -B -m unittest test_changes
+        run: python3 -B -m unittest discover -p 'test_*.py'
       - name: Find the newest main revision whose game CI passed
         id: tested
         if: github.event_name == 'push'
@@ -224,6 +225,14 @@ jobs:
   # tested twice.
   mutants:
     runs-on: ubuntu-latest
+    # Share eight mutation slots across PRs and manual runs. A group scoped
+    # to a PR or run would multiply the runner budget for every open PR.
+    # Keep up to 100 pending jobs per shard instead of replacing the previous
+    # pending job. Only the outer workflow cancels obsolete heads of one PR.
+    concurrency:
+      group: ci-mutation-shard-${{ matrix.shard }}
+      cancel-in-progress: false
+      queue: max
     # Nothing bounds the UNMUTATED run, because the cap below is measured
     # from it: a loop introduced in a test would run until GitHub's six hour
     # default. Shards have finished in 3 minutes and in 95, and been
@@ -300,7 +309,7 @@ jobs:
             --shard ${{ matrix.shard }}/8 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a
-      # subset, so four green shards mean exactly what one green full
+      # subset, so eight green shards mean exactly what one green full
       # sweep meant.
       #
       # What does NOT compose is the old "these baseline entries are now
