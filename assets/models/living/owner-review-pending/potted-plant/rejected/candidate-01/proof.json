@@ -1,0 +1,116 @@
+{
+  "state": "complete",
+  "object": "potted-plant",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "living/render_plant.py": "5dd7020d2c96f21937951f9ddcde49d29737f2ab6327bc086ae66170799de03a",
+    "living/plant_model.py": "04cde65705e9c38dc93334474d08a0aa67f4d0689191f4760b1f0037a650c197",
+    "living/plant_layout.py": "2c1eea15bcd49d03fad9c4489cbc315a56519332f30ee253a9d2d21207933e28",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "3b896095d08007735ac390bb822cdf64ccae5702b9148618a1bc2b3e14bf1156"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "76ad76be40860eaab979ebfb5b9f4459304b45ab09285add81de706f6a7b7e66"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "987d15ca36530b4fd0af49abd88097b1d5f9ffb387fa2e3ca289325869e54f33"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "7d52b2847b21ed38d2aaf4a0879a7422d9ed909c45a606b362c156b1a9e916d4"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "base_footprint": [
+      1,
+      1
+    ],
+    "leaf_count": 9,
+    "leaf_thickness": 0.002,
+    "planter_open": true,
+    "maximum_height": 0.941
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Branch 01",
+    "Branch 02",
+    "Branch 03",
+    "Branch 04",
+    "Branch 05",
+    "Branch 06",
+    "Branch 07",
+    "Branch 08",
+    "Branch 09",
+    "Leaf 01",
+    "Leaf 02",
+    "Leaf 03",
+    "Leaf 04",
+    "Leaf 05",
+    "Leaf 06",
+    "Leaf 07",
+    "Leaf 08",
+    "Leaf 09",
+    "Planter",
+    "Soil",
+    "Trunk"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "2a489f49766621d28ccf52992bbe7324ea68ea20b1b0b89c7f7ce322216cb49b"
+}

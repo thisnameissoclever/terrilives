@@ -669,7 +669,7 @@ sprite = "offlineRadio"
 id = "potted_plant"
 name = "Ficus, Under Review"
 price = 30
-sprite = "pottedPlant"
+sprite = "offlinePottedPlant"
 
   # No interactions. Placed twice.
 

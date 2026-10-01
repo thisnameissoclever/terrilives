@@ -1,0 +1,4 @@
+{
+  "state": "failed",
+  "error": "BMElemSeq[index]: outdated internal index table, run ensure_lookup_table() first"
+}
