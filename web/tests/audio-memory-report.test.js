@@ -2,6 +2,33 @@ import { expect, test } from 'vitest';
 import { runInNewContext } from 'node:vm';
 import proof from '../../scripts/audio-browser-proof.cjs';
 
+test('memory endpoint observer pauses at the requested tick and releases its frame callback', () => {
+  const callbacks = [];
+  class Input {
+    checked = false;
+    changes = [];
+    dispatchEvent(event) { this.changes.push(event.type); }
+  }
+  const pause = new Input();
+  let tick = 59;
+  runInNewContext(`(${proof.pauseAtMemoryEndpoint.toString()})(60)`, {
+    __terriStress: { sim: { clockTick: () => tick } },
+    requestAnimationFrame: callback => callbacks.push(callback),
+    HTMLInputElement: Input,
+    document: { querySelector: selector => selector === '#speed-0' ? pause : null },
+    Event,
+  });
+  expect(callbacks).toHaveLength(1);
+  callbacks.shift()();
+  expect(pause.checked).toBe(false);
+  expect(callbacks).toHaveLength(1);
+  tick = 60;
+  callbacks.shift()();
+  expect(pause.checked).toBe(true);
+  expect(pause.changes).toEqual(['change']);
+  expect(callbacks).toHaveLength(0);
+});
+
 test.each([true, false])('memory setup unlocks through visible controls with first-run Help %s', async helpVisible => {
   const calls = [];
   const page = {
@@ -35,7 +62,7 @@ function runsWithDoors(doorTracks) {
       measurementEndpoint:{tick:600,worldHash:'same-end-world'},
       bundleEvidence: [{url:'http://local/index-proof.js',sha256:'same-bundle'},
         {url:'http://local/terri-proof.wasm',sha256:'same-wasm'}],
-      toiletWarmup: { naturallyDrained:true, pausedVoices:0, playedFlushes:audioEnabled?2:0,
+      toiletWarmup: { drainedAfterPlayback:true, pausedVoices:0, playedFlushes:audioEnabled?2:0,
         first:{event:{tick:50,source:29}, voices:audioEnabled?1:0},
         second:{event:{tick:240,source:29}, voices:audioEnabled?1:0}},
       samples: [{...common},
@@ -57,7 +84,7 @@ test('memory acceptance requires exercised toilet lifecycle, paired fixtures and
   for (const mutate of [
     run => { delete run.toiletWarmup; },
     run => { run.toiletWarmup.playedFlushes = 0; },
-    run => { run.toiletWarmup.naturallyDrained = false; },
+    run => { run.toiletWarmup.drainedAfterPlayback = false; },
     run => { run.toiletWarmup.second.voices = 0; },
     run => { run.toiletWarmup.pausedVoices = 1; },
     run => { run.toiletWarmup.second.event.tick = run.toiletWarmup.first.event.tick; },

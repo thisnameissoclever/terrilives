@@ -215,6 +215,25 @@ fn completion_sound_is_unsaved_unhashed_and_world_replacement_drops_it() {
 }
 
 #[test]
+fn world_replacement_discards_an_undrained_completion() {
+    let (mut sim, actor, _) = fixture(1);
+    // Current saves already have instinct; avoid exercising legacy migration here.
+    sim.world_mut()
+        .entity_mut(actor)
+        .insert(terri_core::SelfPreservation(50));
+    sim.tick();
+    assert_eq!(sim.completion_sounds().len(), 2);
+    let save = sim.save_snapshot_v5();
+    let hash = sim.world_hash();
+    sim.load_snapshot_v5(save.clone()).unwrap();
+    assert!(sim.completion_sounds().is_empty());
+    assert_eq!(sim.world_hash(), hash);
+    assert_eq!(sim.save_snapshot_v5(), save);
+    sim.tick();
+    assert!(sim.completion_sounds().is_empty());
+}
+
+#[test]
 fn completion_sound_repeats_real_uses_but_not_cancellation_or_unrelated_objects() {
     let (mut sim, actor, object) = fixture(1);
     let eating = *sim.world().get::<Eating>(actor).unwrap();

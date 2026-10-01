@@ -4,6 +4,7 @@ import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { drainCompletionAudioAfterTick } from '../src/audio/completion-audio.js';
 import type { GameAudioEvent } from '../src/audio/audio-controller.js';
+import { formatActivity } from '../src/ui/game-hud.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -59,13 +60,13 @@ test('paused cancellation and load cannot invent completion, while a loaded live
   try {
     sim.useObject(actor, object, 0);
     for (let tick = 0; tick < 4; tick++) { sim.tick(); drainCompletionAudioAfterTick(sim, sink, true); }
-    expect(sim.activityOf(actor)).toBe(7);
+    expect(formatActivity(sim.activityOf(actor), null, null)).toBe('Using the toilet');
     expect(events).toEqual([]);
     const midUse = sim.saveBytes();
     expect(sim.cancelIntents(actor)).toBe(true);
     sim.flushCommands();
     expect(sim.completionSoundCount).toBe(0);
-    expect(sim.activityOf(actor)).not.toBe(7);
+    expect(formatActivity(sim.activityOf(actor), null, null)).not.toBe('Using the toilet');
     expect(sim.loadBytes(midUse)).toBe(true);
     expect(sim.completionSoundCount).toBe(0);
     for (let tick = 0; tick < 100 && events.length === 0; tick++) {
@@ -77,6 +78,24 @@ test('paused cancellation and load cannot invent completion, while a loaded live
     expect(sim.completionSoundCount).toBe(0);
     sim.tick(); drainCompletionAudioAfterTick(sim, sink, true);
     expect(events).toHaveLength(1);
+  } finally { handle.free(); }
+});
+
+test('loading replaces a world with an undrained completion without replay', () => {
+  const { handle, sim, object, actor } = fixture();
+  const events: GameAudioEvent[] = [];
+  try {
+    expect(sim.useObject(actor, object, 0)).toBe(true);
+    for (let tick = 0; tick < 100 && sim.completionSoundCount === 0; tick++) sim.tick();
+    expect(sim.completionSoundCount).toBe(1);
+    const save = sim.saveBytes();
+    const hash = sim.worldHash();
+    expect(sim.loadBytes(save)).toBe(true);
+    expect(sim.completionSoundCount).toBe(0);
+    expect(sim.worldHash()).toBe(hash);
+    expect(sim.saveBytes()).toEqual(save);
+    drainCompletionAudioAfterTick(sim, { emit: event => events.push(event) }, true);
+    expect(events).toEqual([]);
   } finally { handle.free(); }
 });
 

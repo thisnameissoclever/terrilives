@@ -93,6 +93,22 @@ async function setSpeed(page, multiplier) {
   }, multiplier);
 }
 
+/** Self-contained for browser serialization; stop without a remote polling delay. */
+function pauseAtMemoryEndpoint(target) {
+  function pauseAtEndpoint() {
+    const tick = globalThis.__terriStress.sim.clockTick();
+    if (tick < target) {
+      requestAnimationFrame(pauseAtEndpoint);
+      return;
+    }
+    const pause = document.querySelector('#speed-0');
+    if (!(pause instanceof HTMLInputElement)) throw new Error('Missing memory endpoint pause control');
+    pause.checked = true;
+    pause.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  requestAnimationFrame(pauseAtEndpoint);
+}
+
 function percentile(sorted, fraction) {
   if (sorted.length === 0) return 0;
   return sorted[Math.ceil(sorted.length * fraction) - 1];
@@ -348,7 +364,8 @@ async function warmToiletLifecycle(page, audioEnabled) {
     await page.waitForFunction(start => performance.now() - start >= 4100 &&
       globalThis.__terriStress.audio.toiletVoices === 0,
       first.event.timeMs, { polling: 25, timeout: 10_000 });
-    const naturallyDrained = await page.evaluate(start => ({
+    // This getter may reclaim an expired voice. Passive onended cleanup has a separate proof.
+    const observedDrain = await page.evaluate(start => ({
       elapsedMs: performance.now() - start,
       voices: globalThis.__terriStress.audio.toiletVoices,
       events: globalThis.__toiletMemoryWarmup.events.length,
@@ -356,10 +373,10 @@ async function warmToiletLifecycle(page, audioEnabled) {
     const second = await complete();
     await setSpeed(page, 0);
     await waitForAudioDrain(page);
-    const evidence = { first, second, naturallyDrained: naturallyDrained.voices === 0,
-      naturalDrain: naturallyDrained, pausedVoices: 0,
+    const evidence = { first, second, drainedAfterPlayback: observedDrain.voices === 0,
+      observedDrain, pausedVoices: 0,
       playedFlushes: second.flushes - setup.initialFlushes, target: setup.target };
-    if (!evidence.naturallyDrained || (audioEnabled && (first.voices < 1 || second.voices < 1 || evidence.playedFlushes < 2))) {
+    if (!evidence.drainedAfterPlayback || (audioEnabled && (first.voices < 1 || second.voices < 1 || evidence.playedFlushes < 2))) {
       throw new Error(`Incomplete toilet lifecycle warmup: ${JSON.stringify(evidence)}`);
     }
     return evidence;
@@ -431,21 +448,7 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition, options = {
       if (!sim.select(entity)) throw new Error('Could not restore memory-run selection');
       sim.flushCommands();
     }, selected);
-    await page.evaluate(({ baseline, delta }) => {
-      const target = baseline + delta;
-      function pauseAtEndpoint() {
-        const tick = globalThis.__terriStress.sim.clockTick();
-        if (tick < target) {
-          requestAnimationFrame(pauseAtEndpoint);
-          return;
-        }
-        const pause = document.querySelector('#speed-0');
-        if (!(pause instanceof HTMLInputElement)) throw new Error('Missing memory endpoint pause control');
-        pause.checked = true;
-        pause.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-      requestAnimationFrame(pauseAtEndpoint);
-    }, { baseline: baselineTick, delta: FIXED_TICKS - WARMUP_TICKS });
+    await page.evaluate(pauseAtMemoryEndpoint, baselineTick + FIXED_TICKS - WARMUP_TICKS);
     await setSpeed(page, 3);
     await page.waitForTimeout(250);
     for (
@@ -598,7 +601,7 @@ function analyseMemory(runs) {
       run.bundleEvidence.some(bundle => /\.js(?:\?|$)/.test(bundle.url)) &&
       run.bundleEvidence.some(bundle => /\.wasm(?:\?|$)/.test(bundle.url)) &&
       JSON.stringify(run.bundleEvidence) === JSON.stringify(reference.bundleEvidence) &&
-      warmup?.naturallyDrained === true && warmup.pausedVoices === 0 &&
+      warmup?.drainedAfterPlayback === true && warmup.pausedVoices === 0 &&
       warmup.second?.event?.tick > warmup.first?.event?.tick &&
       warmup.second.event.source === warmup.first.event.source &&
       (run.audioEnabled ? warmup.playedFlushes >= 2 && warmup.first.voices > 0 && warmup.second.voices > 0 :
@@ -750,7 +753,7 @@ async function main() {
         contract: {
           repetitions: 3,
           warmupTicks: WARMUP_TICKS,
-          lifecycleWarmup: 'toilet completion, natural drain, second completion, pause drain',
+          lifecycleWarmup: 'toilet completion, getter-assisted drain after playback, second completion, pause drain',
           measuredTicks: FIXED_TICKS - WARMUP_TICKS,
           sampleEveryTicks: MEMORY_STEP_TICKS,
           audioRetainedAllowanceBytes: AUDIO_RETAINED_ALLOWANCE_BYTES,
@@ -787,7 +790,7 @@ async function main() {
   if (!pass) process.exitCode = 1;
 }
 
-module.exports = { analyseMemory, closeHelpAndSetThreeTimes, runMemory, warmToiletLifecycle, loadPlaywright, memoryHudIsDeselected, normalizeMemoryHud };
+module.exports = { analyseMemory, closeHelpAndSetThreeTimes, pauseAtMemoryEndpoint, runMemory, warmToiletLifecycle, loadPlaywright, memoryHudIsDeselected, normalizeMemoryHud };
 
 if (require.main === module) main().catch((error) => {
   console.error(error);
