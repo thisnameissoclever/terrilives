@@ -61,8 +61,9 @@ default Voices to 100%. An invalid Voices field defaults only that field.
    only for a context that was previously gesture-activated.
 8. Visibility requests are revisioned and serialized. The latest requested
    state wins even when an older browser promise settles late.
-9. Pause stops simulation ticks. It does not suspend audio or cut off an
-   already-playing cue. The Pause control itself is silent.
+9. Pause stops simulation ticks and fades object loops. It does not suspend
+   audio or cut off an already-playing short cue or conversation. Every blocking
+   overlay uses the same object-loop pause path. The Pause control is silent.
 10. Successful Load reads the replacement world's aligned stable identity and
    clears active world phase after replacement. Failed or cancelled Load
    changes no audio world state.
@@ -75,7 +76,9 @@ The graph is:
 
 `procedural cue -> effects gain -> master gain -> destination`
 
-Effects retains its existing meaning: it controls cues and recorded conversation.
+`prepared object recording -> effects gain -> master gain -> destination`
+
+Effects retains its existing meaning: it controls cues, object recordings, and recorded conversation.
 Voices scales conversations further. Mute owns the master gain only. Changing
 Voices, including crossing zero, leaves bounded conversation transport running
 and does not reset any scheduler. Raising it therefore restores the current
@@ -114,8 +117,9 @@ The current semantic events are:
    reached its next sparse motion interval.
 10. `object.sound-started { sourceId, action }` and
     `object.sound-stopped { sourceId, action }`: an exact placed object's
-    authored semantic sound state changed. These events have no audible player
-    yet.
+    authored semantic sound state changed. These events drive the object-loop
+    player when an accepted prepared recording is installed. The shipped
+    catalog is empty pending recording acceptance.
 11. `door.opened` and `door.closed`: reserved event shapes only. No current door
    transition emits them.
 
@@ -256,8 +260,15 @@ Load, backgrounding, first audio unlock, mute changes, and Effects crossing
 zero clear retained source state. The next audible observation therefore begins
 fresh rather than resuming a loop whose start happened while silent.
 
-This bridge deliberately produces no oscillator placeholder and plays no
-downloaded sample. Shower and stove audio remain silent until recordings pass
+The bounded object-loop player now consumes these edges and explicit prepared
+recordings. It admits at most four active loops and retains at most eight
+records including fades. Missing clips cause no placeholder sound or fetch.
+Pending sources clear at lifecycle boundaries; capacity-rejected sources remain
+eligible while observed. Effective pause stops loops and resume waits for a new
+fixed tick. See `2026-10-01-object-loop-playback.md` for the playback contract
+and rendered-signal proof.
+
+The shipped catalog remains empty. Shower and stove audio remain silent until recordings pass
 the documented CC0 intake, source review, editing, and owner listening gates.
 The front door now has authoritative animated portal state, but no producer
 currently emits the reserved door sound events. Door audio remains unbuilt.
@@ -687,7 +698,8 @@ Restored SHA-256 values were:
 
 1. Wire door events to the existing authoritative portal transitions, with
    sound selection and listening review.
-2. Add ambience, object loops, alarms, music, and non-conversation Sim voices.
+2. Select and accept recordings for the object-loop player. Add ambience,
+   alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.
    Voices now has its own multiplier without changing the Effects meaning.
 4. Replace or refine procedural tones only after the event and lifecycle layer

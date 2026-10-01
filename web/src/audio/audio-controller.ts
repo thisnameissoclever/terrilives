@@ -20,8 +20,10 @@ import {
 import { FootstepScheduler } from './footsteps.js';
 import {
   ObjectSoundCueScheduler,
+  type ObjectSoundAction,
   type ObjectSoundCueEvent,
 } from './object-cues.js';
+import { ObjectLoopPlayer, prepareObjectLoopClips, type ObjectLoopClips } from './object-loops.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -115,6 +117,10 @@ export class AudioController implements GameAudioEventSink {
   private voicesGain: GainNodePort | null = null;
   private player: ProceduralCuePlayer | null = null;
   private voices: VoiceClipPlayer | null = null;
+  private objectLoops: ObjectLoopPlayer | null = null;
+  private objectLoopClips: ObjectLoopClips = new Map();
+  private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
+  private objectSoundsPaused = false;
   /** Decoded once and reinstalled on every context rebuild. */
   private voiceClips: readonly (AudioBufferPort | undefined)[] = [];
   private voiceClipIds: readonly string[] = [];
@@ -185,9 +191,9 @@ export class AudioController implements GameAudioEventSink {
     const changed = this.mutedPreference !== muted;
     this.mutedPreference = muted;
     if (changed) this.resetSchedulers();
+    if (muted) this.stopEveryPlayer();
     this.applyMasterGain();
     this.persist();
-    if (muted) this.stopEveryPlayer();
   }
 
   isMuted(): boolean {
@@ -206,8 +212,8 @@ export class AudioController implements GameAudioEventSink {
     if (wasSilent !== (this.effectsLevelPreference === 0)) {
       this.resetSchedulers();
     }
-    this.applyEffectsGain();
     if (this.effectsLevelPreference === 0) this.stopEveryPlayer();
+    this.applyEffectsGain();
   }
 
   effectsLevel(): number {
@@ -241,6 +247,20 @@ export class AudioController implements GameAudioEventSink {
 
     if (event.type === 'sim.conversation-started') {
       this.startConversationVoice(event.voice);
+      return;
+    }
+
+    if (event.type === 'object.sound-started') {
+      if (this.objectSoundsPaused) return;
+      this.desiredObjectLoops.set(event.sourceId, event.action);
+      this.objectLoops?.play(event.sourceId, event.action);
+      return;
+    }
+    if (event.type === 'object.sound-stopped') {
+      if (this.desiredObjectLoops.get(event.sourceId) === event.action) {
+        this.desiredObjectLoops.delete(event.sourceId);
+      }
+      this.objectLoops?.stop(event.sourceId, event.action);
       return;
     }
     if (event.type === 'sim.conversation-ended') {
@@ -312,7 +332,38 @@ export class AudioController implements GameAudioEventSink {
 
   endObjectSoundFrame(): void {
     this.objectSounds.endFrame();
+    this.reconcileObjectLoops();
   }
+
+  /** Installs approved decoded recordings; this boundary never fetches assets. */
+  installObjectLoopClips(clips: ObjectLoopClips): void {
+    this.objectLoopClips = prepareObjectLoopClips(clips);
+    this.objectLoops?.setClips(this.objectLoopClips);
+    this.reconcileObjectLoops();
+  }
+
+  /** Effective simulation pause affects sustained objects, not existing short cues. */
+  setObjectSoundsPaused(paused: boolean): void {
+    if (this.objectSoundsPaused === paused) return;
+    this.objectSoundsPaused = paused;
+    this.objectSounds.reset();
+    this.desiredObjectLoops.clear();
+    if (paused) this.objectLoops?.stopAll();
+  }
+
+  private reconcileObjectLoops(): void {
+    this.objectLoops?.sweep();
+    if (this.objectLoopClips.size === 0 || !this.isUnlocked() || this.mutedPreference || this.effectsLevelPreference === 0 || this.objectSoundsPaused) return;
+    this.desiredObjectLoops.forEach(this.startDesiredObjectLoop);
+  }
+
+  // Map.forEach avoids allocating an entry array for every source on every tick.
+  private readonly startDesiredObjectLoop = (action: ObjectSoundAction, sourceId: number): void => {
+    this.objectLoops?.play(sourceId, action);
+  };
+
+  activeObjectLoopCount(): number { return this.objectLoops?.activeLoopCount() ?? 0; }
+  retainedObjectLoopCount(): number { return this.objectLoops?.retainedLoopCount() ?? 0; }
 
   /**
    * Gates sound synchronously, then serializes hardware suspend or resume.
@@ -395,6 +446,8 @@ export class AudioController implements GameAudioEventSink {
     // the player has already silenced: against a muted master gain, or
     // against a suspended clock that plays it on return to the tab.
     this.pendingVoices.clear();
+    this.desiredObjectLoops.clear();
+    this.objectLoops?.stopAll(true);
     this.player?.stopAll();
     this.voices?.stopAll();
   }
@@ -635,6 +688,8 @@ export class AudioController implements GameAudioEventSink {
         this.effectsGain = effectsGain;
         this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
+        this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
+        this.objectLoops.setClips(this.objectLoopClips);
         // Voices adjusts recordings only; Effects and Sound still govern all audio.
         const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
@@ -655,6 +710,7 @@ export class AudioController implements GameAudioEventSink {
         this.voicesGain = null;
         this.player = null;
         this.voices = null;
+        this.objectLoops = null;
         if (context !== null) {
           try {
             await context.close();

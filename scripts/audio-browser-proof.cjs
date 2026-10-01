@@ -268,6 +268,8 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         objectSoundCapacity: stress.audio.objectSoundCapacity,
         conversationVoices: stress.audio.conversationVoices,
         retainedConversationVoices: stress.audio.retainedConversationVoices,
+        objectLoopVoices: stress.audio.objectLoopVoices,
+        retainedObjectLoopVoices: stress.audio.retainedObjectLoopVoices,
       };
     }),
   ]);
@@ -397,12 +399,16 @@ function analyseMemory(runs) {
         // gate fail the day more than one conversation may sound at once,
         // which is the flake this check already had to have removed once.
         sample.conversationVoices <= 3 &&
-        sample.retainedConversationVoices <= 6,
+        sample.retainedConversationVoices <= 6 &&
+        sample.objectLoopVoices <= 4 &&
+        sample.retainedObjectLoopVoices <= 8,
     );
     return (
       boundedLiveState &&
       baseline.activeVoices === 0 &&
       final.activeVoices === 0 &&
+      baseline.objectLoopVoices === 0 &&
+      final.objectLoopVoices === 0 &&
       // **No assertion that nothing is SOUNDING.** Pausing does not stop a
       // conversation's recordings - `main.ts` says so where it handles speed
       // - and a pair runs six to seven seconds, so a healthy run sampled just

@@ -1031,9 +1031,10 @@ current routine-interface event mapped to a sound.
 
 The `AudioContext` is created or resumed only from a trusted pointer or keyboard
 gesture. Ordinary event emission never creates, resumes, or queues audio. The
-master gain is mute-only and the effects gain owns both procedural cues and
-recorded conversation volume. A separate Voices gain feeds into Effects for
-recordings only. Its saved default is one, including when loading an older v1
+master gain is mute-only and the effects gain owns procedural cues, object
+recordings, and recorded conversation volume. A separate Voices gain feeds into
+Effects for conversations only. Its saved default is one, including when loading
+an older v1
 preference record without that field. Changing Voices does not reset transport
 or other schedulers; even at zero, conversation playback stays bounded and
 advances normally. The simulation chooses two clip indices and
@@ -1055,8 +1056,9 @@ Visibility changes synchronously gate emission, stop voices, clear walking
 phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
-Pause stops fixed ticks but does not stop the context or an already-playing
-cue. A successful Load reads identity from the replacement world's aligned
+Pause stops fixed ticks and fades object loops, but does not suspend the context
+or stop an already-playing short cue or conversation. A successful Load reads
+identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually
 replaced.
 
@@ -1096,8 +1098,13 @@ source-ID-to-slot map, emits one start/change/stop edge per source, collapses
 duplicates, and fails conflicting same-frame actions closed. It creates no
 per-source JavaScript track object and grows no capacity after warm-up. Load,
 backgrounding, first unlock, mute changes, and Effects crossing zero reset its
-phase. The initial shower and stove actions are semantic bridge proof only;
-they have no procedural or sample playback yet.
+phase. The initial shower and stove actions feed a source-owned recording
+player with at most four active loops and eight retained records including
+fades. Prepared recordings specify valid loop boundaries and gain. Its
+production catalog remains empty pending recording acceptance; no placeholder
+or automatic download is used. Every effective pause stops object loops,
+including blocking overlays; resume waits for a new fixed-tick observation.
+Short cues and conversations retain their existing finish-on-pause behavior.
 
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after

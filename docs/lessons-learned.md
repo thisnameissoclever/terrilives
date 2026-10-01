@@ -1,5 +1,25 @@
 # Lessons Learned
 
+## [L-audio-clear-before-hardware] Invalidate pending ownership before changing browser gains
+
+**What happened.** New object-loop regression tests injected a failure into
+gain automation during mute and Effects-zero changes. The old ordering touched
+the browser gain before clearing pending playback. Both tests reproduced a
+late recording installation starting a source whose ownership should have
+been invalidated.
+
+**Root cause.** A synchronous audio hardware failure skipped the cleanup that
+followed it. The preference changed, but the pending source survived.
+
+**Prevention rule.** Clear desired and pending ownership and stop owned players
+before a fallible browser operation at a global silence boundary. Hardware
+cleanup remains failure-isolated; logical invalidation must not depend on it.
+
+**How to verify.** Inject gain-cancellation failures at mute and Effects zero,
+restore the preference, then install a previously missing recording. No source
+may start until a fresh fixed-tick observation. Also require every previously
+retained object node to be released at global silence boundaries.
+
 ## [L-carry-forward-audio-approval] Execute approved routine work without reopening the decision
 
 **What happened.** Automatic continuation turns repeated the pending Voices
