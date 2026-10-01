@@ -95,24 +95,31 @@ for the current name styling and responsive checks.
 Time, Funds and live status remain in the upper-left group, followed by speed,
 Build and Options. The default group is 144px wide on desktop and 182px on
 compact screens. Options contains Light, Death, Sound, Effects, Save, Load,
-New game and Help. Close Options, Escape and an outside press close it.
+New game, New housemate and Help. Close Options, Escape and an outside press close it.
 Opening Options closes the Sim sheet. Cancelling Load or New game returns
 stranded keyboard focus to the visible Options button and releases that
-dialog's pause. A confirmed storage operation retains ownership until it
+dialog's pause. New housemate also closes Options and restores stranded focus
+to its visible toggle when dismissed. A confirmed storage operation retains ownership until it
 settles; neither path steals focus deliberately moved elsewhere. No game
 command is issued by opening a panel.
 
 ### [CUI-dock] Compact Sim dock
 
-The bottom dock shows the selected name, activity/mood, household roster and,
+The bottom dock shows the selected name, activity, mood, life satisfaction,
+household roster and,
 on desktop, all seven need meters. Household death warnings remain in a live status row even when another Sim is
 selected or the roster is collapsed. Critical needs replace the activity summary
 with an explicit warning in every layout, including a collapsed dock. Sim
 names are 20px on desktop and 18px on compact screens; roster names are bold.
-The dock measures 89px high at 1280 by 800 with ordinary names, and 104px at
-390 by 844. Content and warnings can increase these heights.
+Mood has a bold value and meter in the main header, beside life satisfaction.
+The dock measures about 90px high at 1280 by 800 with ordinary names and 117px
+at 800 by 700. Compact screens use a separate two-column wellbeing row; the
+dock measures about 137px at 390 by 844. Content and warnings can increase
+these heights. The original implementation measured 89px and 104px before
+these values moved into the dock.
 
-Collapse folds the roster and meters into the identity/action row. Sim details
+Collapse folds the roster and need meters; mood and life satisfaction remain
+visible. Sim details
 remains available. The same needs DOM moves into Overview when compact or
 collapsed, so folding never removes access to the meters. Compact mode uses
 the existing breakpoint: width at most 600px or height at most 480px. Desktop
@@ -127,18 +134,19 @@ scroll horizontally when they do not fit.
 | Build and all five tools | Build | Build |
 | Light, Death, Sound, Effects, Save, Load, New game, Help | Options | Options |
 | Select household member | Dock roster | Dock roster |
-| Needs, mood, moodlets, career, activity, life satisfaction, waiting count | Sim details / Overview | Sim details / Overview |
+| Mood and life satisfaction | Main dock | Main dock |
+| Needs, moodlets, career, activity, waiting count | Sim details / Overview | Sim details / Overview |
 | Queue preview, Queue mode, Clear orders | Queue | Sim details / Queue |
 | Relationships and family ties | Sim details / People | Sim details / People |
 | Traits and self-preservation | Sim details / Traits | Sim details / Traits |
-| New housemate, including with no selected Sim | Household | Sim details / Household |
+| New housemate, including with no selected Sim | Options | Options |
 
 One detail section appears at a time. The sheet scrolls within the available
 height; its navigation scrolls horizontally on narrow screens. Traits starts
 closed on every load and opens only when requested. Close and Escape return
 focus to a visible opener. Native dialogs and the object action menu take
-Escape before the Sim sheet. Opening New housemate leaves its sheet behind
-the modal so the original button remains a valid focus-return target.
+Escape before the Sim sheet. Sim details contains Overview, Queue, People and
+Traits; household creation belongs to Options, not the selected person.
 
 Queue remains a bounded upcoming-action preview, not a full queue editor.
 Its note explains that orders beyond the visible prefix remain queued.
@@ -157,3 +165,6 @@ dock, including by moving to the right when there is no room below.
 
 See [implementation evidence](../assets/review-evidence/compact-hud/README.md)
 for checks, screenshots and adversarial review results.
+
+See [dock wellbeing evidence](../assets/review-evidence/dock-wellbeing/README.md)
+for the follow-up layout, control-access and enlarged-text checks.
