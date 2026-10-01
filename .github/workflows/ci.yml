@@ -44,6 +44,7 @@ jobs:
       actions: read
     outputs:
       code: ${{ steps.classify.outputs.code }}
+      site: ${{ steps.classify.outputs.site }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,7 +52,7 @@ jobs:
       - name: Test CI scripts and workflow guards
         working-directory: .github/scripts
         run: python3 -B -m unittest discover -p 'test_*.py'
-      - name: Find the newest main revision whose game CI passed
+      - name: Find the newest tested game and site revisions
         id: tested
         if: github.event_name == 'push'
         env:
@@ -59,26 +60,33 @@ jobs:
         run: |
           set -u
           sha=""
+          site_sha=""
           runs=$(gh api "repos/${{ github.repository }}/actions/workflows/ci.yml/runs?branch=main&event=push&status=success&per_page=30" \
             --jq '.workflow_runs[] | "\(.id) \(.head_sha)"' || true)
           while read -r id head; do
             [ -n "$id" ] || continue
-            web=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" \
-              --jq '[.jobs[] | select(.name == "web") | .conclusion][0] // ""' || true)
-            if [ "$web" = "success" ]; then
-              sha=$head
-              break
+            jobs=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" \
+              --jq '[.jobs[] | select(.name == "web" or .name == "changelog") | select(.conclusion == "success") | .name] | join(" ")' || true)
+            if [ -z "$site_sha" ] && [ -n "$jobs" ]; then
+              site_sha=$head
             fi
+            if [ -z "$sha" ] && [[ " $jobs " == *" web "* ]]; then
+              sha=$head
+            fi
+            [ -z "$sha" ] || [ -z "$site_sha" ] || break
           done <<< "$runs"
           echo "Newest tested revision: ${sha:-none found}"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Newest tested site revision: ${site_sha:-none found}"
+          echo "site_sha=$site_sha" >> "$GITHUB_OUTPUT"
       - name: Decide whether anything but documentation changed
         id: classify
         env:
           EVENT: ${{ github.event_name }}
           BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.sha }}
           HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: python3 -B .github/scripts/changes.py "$EVENT" "$BASE" "$HEAD"
+          SITE_BASE: ${{ github.event.pull_request.base.sha || steps.tested.outputs.site_sha }}
+        run: python3 -B .github/scripts/changes.py "$EVENT" "$BASE" "$HEAD" "$SITE_BASE"
 
   # The one check a documentation change can fail: ids it adds or moves.
   docs:
@@ -89,6 +97,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Documentation ids are unique
         run: python3 check-doc-ids.py
+
+  # Public notes are served content. Check them even when Markdown-only edits
+  # correctly skip the Rust, web and mutation jobs.
+  changelog:
+    needs: changes
+    if: needs.changes.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test changelog generation
+        run: node --test scripts/build-changelog.test.mjs
+      - name: Build the published notes
+        run: node scripts/build-changelog.mjs
 
   rust:
     needs: changes

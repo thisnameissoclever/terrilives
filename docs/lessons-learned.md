@@ -1,5 +1,15 @@
 # Lessons Learned
 
+## [L-changelog-has-its-own-tested-history] Published Markdown needs a site history
+
+**What happened.** Adding a generated changelog to a site whose CI skips Markdown exposed two publication gaps: notes would not trigger Pages, and comparing notes only from the last tested game would repeatedly redeploy later unrelated documentation.
+
+**Root cause.** The existing classifier had one history because all served content was game code. The changelog introduces independently editable, published Markdown.
+
+**Prevention rule.** Keep game checks based on the newest successful main push whose web job passed. Compare published notes from the newest successful main push whose changelog or web job passed. Report both `code` and `site`; Pages must use `site` when deciding whether newer content makes an artifact stale. Check all published notes before allowing publication.
+
+**How to verify.** The change-classifier tests use real Git commits to add, edit and delete notes, then add unrelated documentation after a tested note. Notes require site publication without game tests, later unpublished docs skip, and untested code cannot hide behind either. Deleting the published-note classification must fail these assertions. The Pages contracts require successful push CI, the triggering SHA and the generated artifact.
+
 ## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
 
 **What happened.** A browser interruption while simulation ticks were paused
