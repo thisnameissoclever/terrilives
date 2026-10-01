@@ -1,5 +1,55 @@
 # Lessons Learned
 
+## [L-generated-copy-needs-directory] Create the generated bundle directory before copying
+
+**What happened.** The new door checkout could not import generated WASM glue;
+27 test files and the displayed game failed to start.
+
+**Root cause.** Root copied several generated files to `web/src/wasm` before
+creating that directory. PowerShell treated the destination as one file.
+
+**Prevention rule.** Create and verify the destination directory first. Check
+the generated file inventory and WASM hash before starting tests or a preview.
+
+**How to verify.** Require all five bundle files at their expected paths and
+the reviewed WASM SHA-256. Preserve the mistaken copy in ignored scratch, then
+run the failed checks against the corrected bundle.
+
+## [L-door-output-policy-is-separate-from-transition-state] Silent opening still anchors the close
+
+**What happened.** The owner rejected the initial door recordings as loud and
+high-pitched, asking for silent opening and only the closing impact.
+
+**Root cause.** The initial selection retained the squeak and played both
+transition types. Signal bounds alone did not establish listening acceptance.
+
+**Prevention rule.** Keep simulation transition tracking independent of sound
+selection. Silence opening in the controller without removing the scheduler's
+opening anchor; load only the filtered closing asset. Preserve original files.
+
+**How to verify.** After preloading, opening must create zero source and gain
+nodes and keep its play count at zero. The next close must create exactly one
+source, with the only fetch URL `audio/doors/close-thunk.wav`. Delete the silent
+opening guard and restore the old URL separately; both must fail the regression.
+
+## [L-door-install-ownership] One checkout has one dependency installer
+
+**What happened.** Root and a worker started locked dependency installs in the
+same new audio checkout. One run emitted extraction warnings; the other failed
+with ENOTEMPTY, and the following test could not find Vitest.
+
+**Root cause.** Setup ownership was not communicated before dispatch. Each
+installer removed files the other was extracting.
+
+**Prevention rule.** Root completes dependency setup before delegating tests,
+or explicitly assigns installation to the worker. Never overlap installs in
+one checkout. Infrastructure failures do not count as a behavioral RED test.
+
+**How to verify.** After both original installs finish, run one serial locked
+install. Require clean exit and the actual focused tests to start before
+recording regression evidence. The serial recovery installed 48 packages in
+911 ms with exit 0 and no warnings.
+
 ## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
 
 **What happened.** A browser interruption while simulation ticks were paused

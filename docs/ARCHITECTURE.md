@@ -1042,7 +1042,10 @@ translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
 `sim.footstep`, recorded conversation start/end and household sleep cadence, personal eating,
 reading, and exercise cadence, source-owned object sound start and stop edges,
-and geometry-keyed door open and close events. Staged means accepted into the command
+and geometry-keyed door open and close events. Opening remains an observed state
+transition but creates no voice; closing plays only `audio/doors/close-thunk.wav`.
+The closing clip retains bounded demand loading, retry and lifecycle cleanup.
+Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
 Door audio samples the simulation-owned portal columns after fixed ticks, not
 the renderer. First observations anchor silently; closed-boundary transitions
