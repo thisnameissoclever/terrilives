@@ -1,5 +1,24 @@
 # Lessons Learned
 
+## [L-audio-retained-is-not-active] Silence boundaries must include release-only nodes
+
+**What happened.** A recording ended normally, began fading, then the browser
+suspended audio. Its remaining release resumed later despite an empty audio
+frame. Both object and conversation output reproduced the tail.
+
+**Root cause.** The scheduler had removed the owner and the player had removed
+its active record. Only the separate collection of draining nodes still held
+the release. Active counts and repeated exact-owner stops could not find it.
+
+**Prevention rule.** Global unavailable-frame cleanup must inspect retained
+records and immediately dispose active and draining nodes. Preserve default
+fades on a running audible clock and keep direct stops identity-specific.
+
+**How to verify.** End while running, suspend midway through the release,
+process an empty frame, and render the resumed samples. Require zero across
+the entire resumed tail, alongside a positive normal-fade control. Cover
+throwing stops and stale callbacks as well as retained counts.
+
 ## [L-browser-cli-page-argument] Check the CLI callback signature
 
 **What happened.** Two cleanup callbacks destructured `{ page }`, received

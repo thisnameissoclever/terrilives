@@ -52,6 +52,10 @@ provenance and the remaining listening work.
     ownership. On automatic recovery, only currently observed actions restart.
     See `2026-10-01-suspended-audio-cancellation.md` and
     `2026-10-01-automatic-audio-recovery.md`.
+11. Unavailable frame boundaries immediately dispose all retained records,
+    including releases begun before suspension. An already-ended scheduler
+    owner is not needed to find these draining nodes. Available frames retain
+    the normal fade. See `2026-10-01-interrupted-release-cleanup.md`.
 
 ## Verification
 
