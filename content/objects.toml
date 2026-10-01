@@ -78,6 +78,7 @@ roles = ["cold_storage"]
   # them.
   [[object.interaction]]
   id = "grab_snack"
+  activity = "eating"
   label = "Grab a snack"
   advertises = { hunger = 40.0 }
   duration_ticks = 85
@@ -121,6 +122,7 @@ sprite = "offlineBunk"
   # mild deficit.
   [[object.interaction]]
   id = "sleep"
+  activity = "sleeping"
   label = "Sleep"
   advertises = { energy = 100.0 }
   duration_ticks = 180
@@ -144,6 +146,7 @@ sprite = "offlineShower"
   # fraction of the time.
   [[object.interaction]]
   id = "take_shower"
+  activity = "showering"
   label = "Take a shower"
   advertises = { hygiene = 70.0, energy = -12.0 }
   duration_ticks = 45
@@ -170,6 +173,7 @@ sprite = "offlineToilet"
   # most-chosen action outright at 26.4%, ahead of the fridge.
   [[object.interaction]]
   id = "relieve_self"
+  activity = "using_toilet"
   label = "Use the toilet"
   advertises = { bladder = 95.0 }
   duration_ticks = 24
@@ -257,6 +261,7 @@ sprite = "offlineTelevision"
   # a newsreader talking at an empty room.
   [[object.interaction]]
   id = "watch_tv"
+  activity = "watching_tv"
   label = "Watch TV"
   advertises = { social = 24.0, fun = 30.0 }
   duration_ticks = 55
@@ -283,6 +288,7 @@ sprite = "offlineOttoman"
   # rather than clever, so it still reads as an instruction.
   [[object.interaction]]
   id = "lounge"
+  activity = "sitting"
   label = "Sit down"
   # `lounging` is what the couch_averse trait keys on ([TL-library]).
   tags = ["lounging"]
@@ -335,6 +341,7 @@ sprite = "offlineBathroomSink"
   # and 30 is the television's fun.
   [[object.interaction]]
   id = "wash_hands"
+  activity = "washing_hands"
   label = "Wash hands"
   sound_action = "sink_water"
   advertises = { hygiene = 32.0 }
@@ -375,6 +382,7 @@ sprite = "offlineBookcase"
   # least-used object in the house has earned.
   [[object.interaction]]
   id = "read"
+  activity = "reading"
   label = "Read a book"
   advertises = { fun = 26.0 }
   duration_ticks = 34
@@ -482,6 +490,7 @@ roles = ["prep_surface", "dish_sink"]
   # argument the bathroom sink was introduced with, applied one level down.
   [[object.interaction]]
   id = "wash_up"
+  activity = "washing_hands"
   label = "Wash hands"
   sound_action = "sink_water"
   # **20 and 23, raised from 14 and 27 after the first trace.** At 14 hygiene
@@ -532,6 +541,7 @@ roles = ["eating_surface", "meal_table"]
   #
   [[object.interaction]]
   id = "sit_properly"
+  activity = "sitting"
   label = "Sit down to eat"
   advertises = { comfort = 37.0, social = 11.0 }
   duration_ticks = 62
@@ -595,6 +605,7 @@ footprint = { width = 2, depth = 1 }
   # interchangeable: the small one is a perch and this one is a commitment.
   [[object.interaction]]
   id = "stretch_out"
+  activity = "lounging"
   label = "Lie down"
   # `lounging` is what the couch_averse trait keys on ([TL-library]).
   tags = ["lounging"]
@@ -631,6 +642,7 @@ sprite = "offlineArmchair"
   # This is also the cleanest contention fixture in the lot.
   [[object.interaction]]
   id = "take_the_chair"
+  activity = "sitting"
   label = "Sit down"
   # `lounging` is what the couch_averse trait keys on ([TL-library]).
   tags = ["lounging"]
@@ -662,6 +674,7 @@ sprite = "offlineRadio"
   # the moment sims can satisfy each other.
   [[object.interaction]]
   id = "listen"
+  activity = "listening_radio"
   label = "Listen to the radio"
   advertises = { fun = 22.0, social = 5.0 }
   duration_ticks = 38
@@ -729,6 +742,7 @@ footprint = { width = 2, depth = 2 }
   # that the speed controls do something.
   [[object.interaction]]
   id = "sleep_properly"
+  activity = "sleeping"
   label = "Go to bed"
   advertises = { energy = 108.0, comfort = 10.0 }
   duration_ticks = 210
@@ -769,6 +783,7 @@ sprite = "offlineBike"
 
   [[object.interaction]]
   id = "use_exercise_bike"
+  activity = "exercising"
   label = "Use the exercise bike"
   advertises = { fun = 28.0, energy = -8.0, hygiene = -5.0 }
   duration_ticks = 83
@@ -807,6 +822,7 @@ roles = ["eating_surface"]
   # the cost stays and the payoff moves from `fun` to money.
   [[object.interaction]]
   id = "attend_correspondence"
+  activity = "correspondence"
   label = "Work"
   advertises = { fun = 36.0, energy = -7.0 }
   duration_ticks = 58
@@ -867,6 +883,7 @@ sprite = "offlineChair"
   # M2e's hobbies land.
   [[object.interaction]]
   id = "settle_in"
+  activity = "reading"
   label = "Sit and read"
   advertises = { comfort = 15.0, fun = 19.0 }
   duration_ticks = 46
@@ -891,6 +908,7 @@ sprite = "bookcaseClosedWide"
   # rebuilding either from the current lot. Object declaration order is free.
   [[object.interaction]]
   id = "watch_fish"
+  activity = "watching_fish"
   label = "Watch the fish"
   advertises = { fun = 25.0, comfort = 21.0 }
   duration_ticks = 67
@@ -940,6 +958,7 @@ footprint = { width = 1, depth = 2 }
   # wins on hygiene-plus-comfort together and never on comfort alone.
   [[object.interaction]]
   id = "soak"
+  activity = "bathing"
   label = "Take a bath"
   advertises = { hygiene = 58.0, comfort = 31.0, energy = -3.0 }
   duration_ticks = 78

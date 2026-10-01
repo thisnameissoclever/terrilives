@@ -380,17 +380,22 @@ describe('the Traits block in the page', () => {
   it('starts hidden and collapsed inside its own initially closed sheet panel', () => {
     expect(INDEX_HTML).toContain('<details id="traits-block" aria-label="Traits" hidden>');
     expect(INDEX_HTML).toContain('<summary id="traits-caption" class="summary-label">Traits</summary>');
-    const pane = INDEX_HTML.slice(INDEX_HTML.indexOf('id="sim-traits"'), INDEX_HTML.indexOf('id="sim-household"'));
+    const start = INDEX_HTML.indexOf('id="sim-traits"');
+    const end = INDEX_HTML.indexOf('</section>', start);
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const pane = INDEX_HTML.slice(start, end);
     expect(pane).toContain('data-sim-panel="traits" aria-label="Traits" hidden');
     expect(pane).toContain('id="traits-block"');
     expect(pane).not.toContain('id="needs-content"');
   });
 
   it('is not a heading, so it does not file itself under the household roster', () => {
-    const block = INDEX_HTML.slice(
-      INDEX_HTML.indexOf('id="traits-block"'),
-      INDEX_HTML.indexOf('id="sim-household"'),
-    );
+    const start = INDEX_HTML.indexOf('id="traits-block"');
+    const end = INDEX_HTML.indexOf('</details>', start);
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const block = INDEX_HTML.slice(start, end);
     expect(block).not.toMatch(/<h[1-6]/);
   });
 });

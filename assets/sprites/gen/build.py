@@ -1192,6 +1192,12 @@ def main():
         anchors[index] = prop_anchors[sprite[0]]
         densities[index] = prop_density[sprite[0]]
         bounds[index] = prop_bounds[sprite[0]]
+    # Activity replacements follow the complete historical atlas. Logical sizes
+    # stay 26px while density two keeps the strokes legible at camera zoom.
+    import activity_icons
+    for sprite in activity_icons.render_icons():
+        densities[len(sprites)] = 2
+        sprites.append(sprite)
     domestic_registration = None
     for variant in ("green", "blue", "red"):
         domestic = load_export(

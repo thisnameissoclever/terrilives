@@ -260,6 +260,7 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
     assert!(start_cleanup(sim.world_mut(), people[0], vec![0, 1], true));
     let mut seen = BTreeSet::new();
     let mut seen_loads = BTreeSet::new();
+    let mut table_collection = false;
     for _ in 0..1000 {
         sim.tick();
         sim.sync_render_buffer();
@@ -291,12 +292,31 @@ fn cleanup_collects_each_surface_and_washes_only_its_claimed_dishes() {
         );
         if let Some(target) = sim.world().get::<Target>(people[0]) {
             seen.insert(target.object);
+            if target.object == table && sim.world().get::<StepWork>(people[0]).is_some() {
+                table_collection = true;
+                assert_eq!(
+                    sim.render_buffer().activities[carrier],
+                    crate::render_buffer::activity::WASHING_DISHES
+                );
+                assert_eq!(
+                    sim.render_buffer().visual_actions[carrier],
+                    crate::render_buffer::visual_action::PREPARE
+                );
+                assert_eq!(
+                    loaded.render_buffer().activities[carrier],
+                    crate::render_buffer::activity::WASHING_DISHES
+                );
+            }
         }
         if sim.world().resource::<SavedDomestic>().cleanup.is_empty() {
             break;
         }
     }
     assert!(seen.contains(&counter) && seen.contains(&table));
+    assert!(
+        table_collection,
+        "the fixture must reach real dining-table collection work"
+    );
     assert!(seen_loads.contains(&3) && seen_loads.contains(&4) && seen_loads.contains(&0));
     let state = sim.world().resource::<SavedDomestic>();
     assert!(!state.dishes.iter().any(|dish| dish.owner == 0));

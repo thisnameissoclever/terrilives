@@ -46,6 +46,14 @@ function source(overrides: Partial<GameHudSource> = {}): GameHudSource {
 }
 
 describe('game HUD formatting', () => {
+  it.each([
+    [12, 'Showering'], [13, 'Using the toilet'], [14, 'Watching TV'],
+    [15, 'Lying down'], [16, 'Washing hands'], [17, 'Washing dishes'],
+    [18, 'Listening to the radio'], [19, 'Handling correspondence'],
+    [20, 'Bathing'], [21, 'Getting ingredients'], [22, 'Preparing food'], [23, 'Cooking'],
+  ])('names exact authored activity %i as %s', (code, label) => {
+    expect(formatActivity(code, null, null)).toBe(label);
+  });
   it('formats day boundaries and the authored day length', () => {
     expect(formatSimTime(0, 1440)).toBe('Day 1, 00:00');
     expect(formatSimTime(359, 1440)).toBe('Day 1, 05:59');
