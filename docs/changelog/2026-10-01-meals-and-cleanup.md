@@ -1,6 +1,6 @@
-# Build controls, meals and shared beds
+# Build controls, meals, shared beds and solid doors
 
-Build actions beside your selection, shared meals, bathroom boundaries and developing relationships.
+Build actions beside your selection, shared meals, bathroom boundaries, developing relationships and solid doors.
 
 ## New
 - Assign a sleeping place in Sim details under Personality, habits and bed. Each place shows its assignee and current occupant.
@@ -17,6 +17,7 @@ Build actions beside your selection, shared meals, bathroom boundaries and devel
 - Conversations initiated while someone's needs are low or critical can reduce their opinion of the initiator.
 
 ## Improved
+- Doors swing more smoothly as Sims walk through.
 - Wall, doorway and window controls appear around the selected edge. Curved arrows turn the selection without changing the house until you choose an edit.
 - Furniture and purchases have nearby placement, rotation and cancellation controls. Selling shows its return; buying shows its price.
 - Room controls let you choose a doorway or restart its corners.
@@ -27,6 +28,9 @@ Build actions beside your selection, shared meals, bathroom boundaries and devel
 - Friendships and grudges fade more slowly without interaction.
 
 ## Fixed
+- Door leaves and frames overlap Sims correctly during crossings.
+- Sims' feet no longer disappear beneath doorway thresholds.
+- Doorways on both wall directions now show doors with the same crossing and closing sounds.
 - All desktop Build tools keep the same panel width. Action labels are centered, and compact layouts keep navigation and essential controls reachable.
 - Keyboard focus stays on Build controls when the panel moves during resizing.
 - Floor previews show the whole selected tile, with instructions that adapt between desktop and phone controls.
@@ -38,6 +42,7 @@ Build actions beside your selection, shared meals, bathroom boundaries and devel
 - Privacy detours preserve meal pickup, occupied dining spaces and interrupted cleanup.
 
 ## Art
+- Doors have visible thickness, panels and handles on both sides. Lighter frame outlines fit the furniture, and the posts have clean joins.
 - All four double-bed facings show either sleeper or both beneath one duvet. Select each visible Sim separately; furniture colour changes preserve shirt colours. Sleeping poses are static.
 
 ## Sound

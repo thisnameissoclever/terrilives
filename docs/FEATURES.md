@@ -22,7 +22,7 @@ proposed priorities. Their scope is in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
 | Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie | Edit Sims next; appearance and gender choices, random generation and deeper traits later |
-| Building and buying | Furniture movement and supported rotation, walls, rooms, vertical hinged doors, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
+| Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
 | Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
@@ -1157,7 +1157,8 @@ Every vertical doorway now holds a hinged door that swings open as a sim walks
 through it, drawn with the front door's art, shipped in PR 98 at merge
 `2534ec5`; its design is
 `docs/specs/2026-09-22-interior-doors.md` and its played checks are
-[A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
+[A-interior-doors] and [A-door-steps]. The current implementation adds solid
+models, surface depth and horizontal doors; the owner approved these on 2026-10-01
 ([T-interior-door-art]). Floors and windows are their own entries,
 [B-floors] and [B-windows]. The larger lot is the yard, the first slice of
 [B-outside]. For PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. With rooms, walls,

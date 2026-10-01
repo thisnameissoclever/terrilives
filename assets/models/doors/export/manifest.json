@@ -1,0 +1,375 @@
+{
+  "records": [
+    {
+      "name": "doorFrame0",
+      "facing": 0,
+      "phase": -1,
+      "sha256": {
+        "": "782a922bb94c91464f90328e6ea3fdcfaa770af5113602d72c84442f1363510a",
+        "Depth": "0180df39d586288c056a6f9bbc3e2f928c5ce332f2346f1e4cf57b2d3acefc13"
+      }
+    },
+    {
+      "name": "doorLeaf0_0",
+      "facing": 0,
+      "phase": 0,
+      "sha256": {
+        "": "23405f63338732ef23c8ae60b5e5ec3d32f342d0fac5f474897de34210061c29",
+        "Depth": "945023795b29d1ff36d22b989bd96edddb29fd922704c728c09aec2c8ddda04c"
+      }
+    },
+    {
+      "name": "doorLeaf0_1",
+      "facing": 0,
+      "phase": 1,
+      "sha256": {
+        "": "4855c864048d354c91f37d8bcc6a1c070ca643b851f086de9987fefd05d561f2",
+        "Depth": "943db5cd3aeb7dfe4fd58d78ec561748af9a8f508e34d93d8625d64ba2b91ed5"
+      }
+    },
+    {
+      "name": "doorLeaf0_2",
+      "facing": 0,
+      "phase": 2,
+      "sha256": {
+        "": "2bc5016a696f35f1f45c331d0dbb86e25e7b9799502e222c7635f867b241fa53",
+        "Depth": "2dcd59f75ce1f07f0113e7660e8b078df9daed77b81150d1f05d20cbcdb9f53e"
+      }
+    },
+    {
+      "name": "doorLeaf0_3",
+      "facing": 0,
+      "phase": 3,
+      "sha256": {
+        "": "76fecaae308f9b72c44240a362c2452dcb0b18dcc1da35a24820e958bed97377",
+        "Depth": "44a040d5e9a3c0c409e09860486d26358a15bb092bba2e0ffb8eaa2270b1ad40"
+      }
+    },
+    {
+      "name": "doorLeaf0_4",
+      "facing": 0,
+      "phase": 4,
+      "sha256": {
+        "": "a217a44bed01e7dd3101add143d1d7e79539c9f348ecaa7b8ba667aebecf8356",
+        "Depth": "1c77ab9da0c1cdfaa4e4c5bcb62431d5583bc68f69a237b843d079f479d40718"
+      }
+    },
+    {
+      "name": "doorLeaf0_5",
+      "facing": 0,
+      "phase": 5,
+      "sha256": {
+        "": "e9b1d7dabc826a7651f3773544f867a5ff98f82490c25b10cc63fff387c5eb4c",
+        "Depth": "9b8be22500be3000e5b23f208b9f2e507a4315eb7f4138b79f2b079a1ad385f7"
+      }
+    },
+    {
+      "name": "doorLeaf0_6",
+      "facing": 0,
+      "phase": 6,
+      "sha256": {
+        "": "433673825e4501dea61ca85dfa0bc8d6241ca5aabac87ba97e7c12f44aa41c43",
+        "Depth": "1cb3442630ae2984c44b4db4b73f90e3ac957af8e0b97c77d3e490052f25a23c"
+      }
+    },
+    {
+      "name": "doorLeaf0_7",
+      "facing": 0,
+      "phase": 7,
+      "sha256": {
+        "": "b8bb2d4e43ba45e333d257650f263d5cc69d87792d0b621c33bbb65c1c49507b",
+        "Depth": "bdc8998575e3ca4437a1ef8c59045432e425a16115cdb118744f32df1c965ea7"
+      }
+    },
+    {
+      "name": "doorLeaf0_8",
+      "facing": 0,
+      "phase": 8,
+      "sha256": {
+        "": "0210e0cac336bde749c2899903176929af46f7d95ecb94f51911c510833db4be",
+        "Depth": "80aeb7a69a683d6b1bd362bacb4646f4bf3a754b6a1165ef079f08d6249f553e"
+      }
+    },
+    {
+      "name": "doorFrame1",
+      "facing": 1,
+      "phase": -1,
+      "sha256": {
+        "": "c55126f8a3ee4f34cf5f9d69a81d4f8b5c49fdfe2b904c91d7e7ccbdcffaaa87",
+        "Depth": "9ac3924f5c26c04881ed86b9a009096fd059e951afd6a39b76c7c3231869e748"
+      }
+    },
+    {
+      "name": "doorLeaf1_0",
+      "facing": 1,
+      "phase": 0,
+      "sha256": {
+        "": "3a58fb1ba1e2ae0ccbf9b76b927d4d2cecad79d1419abf4403277030e4c7d48d",
+        "Depth": "0dd566b130322370c8172a577d734b4a505e19cc30846865693e409298adf134"
+      }
+    },
+    {
+      "name": "doorLeaf1_1",
+      "facing": 1,
+      "phase": 1,
+      "sha256": {
+        "": "ee557ea3ae7a7dbbba37a0616dd8116e7e5b9b1ae7308a2927fcdf95abfef5f6",
+        "Depth": "f7b25aab6b9bc1d27875919f104bbcf6ce0f72eabb85c9750d9026e62e804535"
+      }
+    },
+    {
+      "name": "doorLeaf1_2",
+      "facing": 1,
+      "phase": 2,
+      "sha256": {
+        "": "6167c34ac94650e15b6fa57736704c62d01547e903c4e33f0f7e2d23d64fc9d5",
+        "Depth": "8938076b3b36a5e79b540ea9e21c5ef28fad140d5f36a1df85d372d56f2eefe0"
+      }
+    },
+    {
+      "name": "doorLeaf1_3",
+      "facing": 1,
+      "phase": 3,
+      "sha256": {
+        "": "d53a7d57a2be76a5082e5de26a568bffce98b38e7fd9dc5462aa3ee9991f595c",
+        "Depth": "943343601f854cd9f2aa251d49d35c594366aec3dab3361c4c62258043cc5110"
+      }
+    },
+    {
+      "name": "doorLeaf1_4",
+      "facing": 1,
+      "phase": 4,
+      "sha256": {
+        "": "5c5f3b9bc59f838692c6c537a91b768fd3e1e17268bf431f281ea0696305a5c8",
+        "Depth": "1ec1def34491747e5bfcd78adaad687f58918a2d8fa0727cfcb8fa3f5b4d459a"
+      }
+    },
+    {
+      "name": "doorLeaf1_5",
+      "facing": 1,
+      "phase": 5,
+      "sha256": {
+        "": "046a3faeb24f32c5a83ca46ed6ddc542831ea2140032fb1fd3ecd0590ec30b15",
+        "Depth": "40f3fd64d065de35c5e8ccccd41a64fcfea7ca4f8ae4cd1ff2c5b59bed1a117e"
+      }
+    },
+    {
+      "name": "doorLeaf1_6",
+      "facing": 1,
+      "phase": 6,
+      "sha256": {
+        "": "09ea5ebd779a2eeff6f71b39a9e13b1d73069d8ea5c2c8995da931585848aade",
+        "Depth": "772cbd874f1d8d28874ae27d23e8a7b6262db0723f10c43988e6e7fd892bd663"
+      }
+    },
+    {
+      "name": "doorLeaf1_7",
+      "facing": 1,
+      "phase": 7,
+      "sha256": {
+        "": "0bf70d060c5f9146927f7108d7e07a971302a3831fd27bcc087aefaf5bc725f2",
+        "Depth": "375daa877a0b19feeaaccfc783e00a75e836d1dc51ce63149dd91ad064ed2c52"
+      }
+    },
+    {
+      "name": "doorLeaf1_8",
+      "facing": 1,
+      "phase": 8,
+      "sha256": {
+        "": "999cc73ba91503606422946bfd04aa85ddbfaed86d9c0115e168380b18acfd3b",
+        "Depth": "77ee0ca16ac3815387b396848ea0d03d244344bb210f0f916146de616a264099"
+      }
+    },
+    {
+      "name": "doorFrame2",
+      "facing": 2,
+      "phase": -1,
+      "sha256": {
+        "": "49ca16bfb58de718f5b5e69c6ce58cb4f381696de85881bf77f2356f65ad8c4e",
+        "Depth": "909b64b1a604c52e0b7d88e77580a4e18c65a51f0ecb17c7732299c2e4995c7c"
+      }
+    },
+    {
+      "name": "doorLeaf2_0",
+      "facing": 2,
+      "phase": 0,
+      "sha256": {
+        "": "e53e4a1d7e8e24b828688e081bf3ab51472e4ad7292ef9e6d7a4a2cd7ba7ca8b",
+        "Depth": "06536eb7d9d9000197f34ce8e42ebc437c7afbe5f1d68811b628bf46bf7907f0"
+      }
+    },
+    {
+      "name": "doorLeaf2_1",
+      "facing": 2,
+      "phase": 1,
+      "sha256": {
+        "": "aa1c19b10a8e2a3ac079c5ebc58c2205b207b9cf79d7e8c71dd4b771eab8507c",
+        "Depth": "dfa8cbd4395908786b7330b52b0552a164c22e3aa2365e07cdc67e9dcbe8cf40"
+      }
+    },
+    {
+      "name": "doorLeaf2_2",
+      "facing": 2,
+      "phase": 2,
+      "sha256": {
+        "": "9f1236e15dd958c3f1b3f501ca7322c92aae10d82a97841424c7bf28b9d6de76",
+        "Depth": "a0a3503cb545cf70323c9913b9a9b668b1a4e3172352fee8bcb342517bb3c03f"
+      }
+    },
+    {
+      "name": "doorLeaf2_3",
+      "facing": 2,
+      "phase": 3,
+      "sha256": {
+        "": "c9dcbfa5637cba2cc5a6b081a02ea951180082f4b89e55b9ef130993d1260824",
+        "Depth": "8104ac4c1762045fafd14088a41f574aacc30331c32db45968fc340483a1fe59"
+      }
+    },
+    {
+      "name": "doorLeaf2_4",
+      "facing": 2,
+      "phase": 4,
+      "sha256": {
+        "": "2331bcb2463c4db82c5ac1cc6160eecba3bbe121397f16acff3240b8c2d1ccbf",
+        "Depth": "962ede93466045689dacc2d6e7dc918940621bdace7c93cf826aa0ee9bfc0913"
+      }
+    },
+    {
+      "name": "doorLeaf2_5",
+      "facing": 2,
+      "phase": 5,
+      "sha256": {
+        "": "6727862894d7cf6d1c42d45ba1121e33ad25beb034d201024b652c87abeb716f",
+        "Depth": "03dbda13c539a9d5cc6ccf0dc0fa6c6db5cb44827d316fbf5d958c81600ca3dd"
+      }
+    },
+    {
+      "name": "doorLeaf2_6",
+      "facing": 2,
+      "phase": 6,
+      "sha256": {
+        "": "eeee7b4467e1ac4993ac4c657316c0846f61efdb40e381dfa281965bf5ba5d46",
+        "Depth": "e14b8674a1574d3fbc276ad96a8d045c5119c4fcb7372b25ea9396a5eeeabe5c"
+      }
+    },
+    {
+      "name": "doorLeaf2_7",
+      "facing": 2,
+      "phase": 7,
+      "sha256": {
+        "": "b1de81ffa522c07f11eb2952104552406d1cfa33e5a2df479248cbd1a54edff1",
+        "Depth": "ce49f58853e3643e70bc6f76f54864f3c642ee88a3483c688694e40d6ac0430b"
+      }
+    },
+    {
+      "name": "doorLeaf2_8",
+      "facing": 2,
+      "phase": 8,
+      "sha256": {
+        "": "a27752a6f3153348fe46171c148c6e2db70e06b5db9f36c3789bb0d8262009f0",
+        "Depth": "024e8a5fa02da9bccf11735a3745b663d0f7f499a999c90b529d7de557c56d03"
+      }
+    },
+    {
+      "name": "doorFrame3",
+      "facing": 3,
+      "phase": -1,
+      "sha256": {
+        "": "53505ff86a929ae3cf86bb3abe2909f94553c95f76e8fdc9cb8f516d901d4732",
+        "Depth": "9b22d7f4c033a9e8e538663ff9401043bc681824bc6769e7c57e914e01bf337f"
+      }
+    },
+    {
+      "name": "doorLeaf3_0",
+      "facing": 3,
+      "phase": 0,
+      "sha256": {
+        "": "34d61edad8a96b09a21ba6605d1b0a1881e5755923ef1315f1ce2d8e4a5dfa02",
+        "Depth": "32ef9c6d97b4baac69805f6b14c947956705731133c8b93628bec6cfdaf0d982"
+      }
+    },
+    {
+      "name": "doorLeaf3_1",
+      "facing": 3,
+      "phase": 1,
+      "sha256": {
+        "": "ba16031b0eba25ea1d13f365e9ae6851261615c9db249119a07cfac7d13553ce",
+        "Depth": "c62204415d0aeb71106711f267a269d39cb0d0a2fd90c20aad7a08e7a128f6ca"
+      }
+    },
+    {
+      "name": "doorLeaf3_2",
+      "facing": 3,
+      "phase": 2,
+      "sha256": {
+        "": "95f2c850996d3a94488f371dd2ddecc21f11889ae22f2134d68ce7eaa6651c22",
+        "Depth": "58cf31784726f1a3c34d02b75ccca0c5d4c19300efdd74d47c8ca4a29b9802d7"
+      }
+    },
+    {
+      "name": "doorLeaf3_3",
+      "facing": 3,
+      "phase": 3,
+      "sha256": {
+        "": "bed6d65e8b5efd4f2cb6e417581db7dac8198ff9e0a3b820191ba5f8f367f342",
+        "Depth": "db67e0e62e598801dfdb50c181012d7c2db94e107361f89d0c81982762c25465"
+      }
+    },
+    {
+      "name": "doorLeaf3_4",
+      "facing": 3,
+      "phase": 4,
+      "sha256": {
+        "": "45a55a049ca1beb1546b0e8fb8f33888a91d4c22802a33989e55a5ce38493a2a",
+        "Depth": "2ceb9e0d11541ed0c0dd2eb1bb54a35a018d5e4a1bd2b047d8bee50f59d350ee"
+      }
+    },
+    {
+      "name": "doorLeaf3_5",
+      "facing": 3,
+      "phase": 5,
+      "sha256": {
+        "": "46eeb3965617940424ead68476bec039f84174c03b7b96e1cc0b9cc93cfe1dae",
+        "Depth": "ca3ef02adb8ef2cb4c813865b2e5be725b9876ec20008bc6912c4de5583c2438"
+      }
+    },
+    {
+      "name": "doorLeaf3_6",
+      "facing": 3,
+      "phase": 6,
+      "sha256": {
+        "": "0caaf178cc12d57b177fd4fc02f83e24ffc218a87511d0a3e5de73e39258d614",
+        "Depth": "3bdbe709de7eab211c27dbd56a601d7868b5a44fdfd475be09cb41ffad42008d"
+      }
+    },
+    {
+      "name": "doorLeaf3_7",
+      "facing": 3,
+      "phase": 7,
+      "sha256": {
+        "": "eb7c15821b7f95ccb1f8edf29e1f7e5cfcb8584a43451fbe3dae33674ab492bf",
+        "Depth": "addf9e428ee413929b3ddcde6dbe30495e1af13bf5064eca43e88ba886135f64"
+      }
+    },
+    {
+      "name": "doorLeaf3_8",
+      "facing": 3,
+      "phase": 8,
+      "sha256": {
+        "": "5bf6a7a3a4d47e7918a353fae572cfa371d5226b4dc57390a006ccc5e7f3e237",
+        "Depth": "dfc31cec462cddee281f5f87a099c6a30f462744ab2d75a6571372216d991f35"
+      }
+    }
+  ],
+  "density": 3,
+  "canvas": [
+    112,
+    120
+  ],
+  "inputs": {
+    "doors\\render_doors.py": "d107111d6d23f47490d9b96775e445131955e144eb300ed2097cbf4b43923672",
+    "furniture\\build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture\\geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+  }
+}

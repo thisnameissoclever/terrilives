@@ -158,9 +158,9 @@ fn v3_portal_return_validation_and_scene_activation_survive_restore() {
     let valid = source.save_snapshot_v3();
     let mut active = Sim::new_from_shipped_lot();
     active.load_snapshot_v3(valid.clone()).unwrap();
-    // The front door, then a door in each of the three vertical doorways
+    // The front door, then a door in each of the three vertical and two horizontal doorways
     // ([DR-derived]).
-    assert_eq!(active.portal_buffer().states.len(), 4);
+    assert_eq!(active.portal_buffer().states.len(), 6);
     let mut blank = Sim::new();
     blank.load_snapshot_v3(valid.clone()).unwrap();
     assert!(blank.portal_buffer().states.is_empty());

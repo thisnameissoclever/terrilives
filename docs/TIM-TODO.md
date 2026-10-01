@@ -95,16 +95,11 @@ complete but voiceless.
 
 ### [T-interior-door-art] Hinged doors for the Walls tool `[YOURS]`
 
-The Walls tool (PR 95) makes doorways: gaps in a wall that draw as a frame.
-Doorways on vertical lines now hold a hinged door that opens as a sim walks
-through, drawn with the front door's art as a stand-in, because that art fits
-that direction. Doorways on horizontal lines stay empty frames: there is no
-art for that direction, and mirroring the front door lights it from the wrong
-side. What is needed: a frame and a leaf in open, ajar and closed states for
-the horizontal direction, and, if you want interior doors to look unlike the
-front door, the vertical direction too, matched to the existing wall art.
-Tell me whether to draft them with the generator for you to accept or reject,
-or whether you would rather supply them. Nothing is blocked meanwhile.
+The replacement solid door model is implemented in `assets/models/doors/`,
+with four orientations, nine swing poses, hardware on both faces and paired
+surface-depth data. Both doorway axes now use it. The owner approved the visuals
+and authorized delivery on 2026-10-01. See
+`specs/2026-10-01-solid-door-verification.md` for the verification record.
 
 ### [T-subobject-art] Parts that need their own depth `[YOURS]`
 

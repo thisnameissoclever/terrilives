@@ -893,6 +893,7 @@ async function main(): Promise<void> {
           // the list by height.
           lot.floors = sim.floorTiles();
           lot.doors = sim.interiorDoorLines();
+          lot.horizontalDoors = sim.interiorHorizontalDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
           lot.street = sim.streetColumn();
@@ -1090,7 +1091,7 @@ async function main(): Promise<void> {
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
-    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
@@ -1615,6 +1616,7 @@ async function main(): Promise<void> {
       lot.windows = sim.windowLines();
       lot.floors = sim.floorTiles();
       lot.doors = sim.interiorDoorLines();
+      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();
