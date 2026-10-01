@@ -66,6 +66,8 @@ export interface BrowserAudioContext
     VoiceAudioContext {
   readonly destination: unknown;
   readonly state: AudioContextState;
+  /** Exclusively owned by the controller for the context it creates. */
+  onstatechange: ((event: Event) => void) | null;
   close(): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
@@ -616,7 +618,7 @@ export class AudioController implements GameAudioEventSink {
     this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
-    this.voices?.stopAll();
+    this.voices?.stopAll(true);
   }
 
   /**
@@ -862,6 +864,13 @@ export class AudioController implements GameAudioEventSink {
         const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
+        const ownedContext = context;
+        ownedContext.onstatechange = () => {
+          if (this.context !== ownedContext || ownedContext.state === 'running') return;
+          // A paused world has no tick to observe a frozen source or release.
+          this.stopEveryPlayer();
+          this.resetSchedulers();
+        };
         // The ids usually arrived before any gesture could create this
         // context, so this is the first moment the bytes can be decoded.
         void this.fetchVoiceLibrary();
@@ -869,6 +878,7 @@ export class AudioController implements GameAudioEventSink {
         this.applyEffectsGain();
         this.applyVoicesGain();
       } catch {
+        if (context !== null) context.onstatechange = null;
         safelyDisconnect(voicesGain);
         safelyDisconnect(effectsGain);
         safelyDisconnect(masterGain);

@@ -1,5 +1,26 @@
 # Lessons Learned
 
+## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
+
+**What happened.** A browser interruption while simulation ticks were paused
+froze existing sources and release-only recordings. Native resume replayed the
+object release at `0.08399999886751175` rather than zero without a new gesture.
+
+**Root cause.** Global unavailability was observed only at fixed-tick boundaries
+and explicit gestures. A paused world supplied neither, so the player graph and
+scheduler history remained owned throughout the stopped audio clock.
+
+**Prevention rule.** Bind one controller-owned context state handler after player
+construction. Non-running events immediately dispose every player, clear pending
+ownership and reset every scheduler. Running events admit no playback. Detach
+failed graphs before close and guard callbacks by captured context identity.
+
+**How to verify.** Start positive object, conversation, door and procedural
+sources, pause or end into release, then interrupt and recover through context
+state events without a fixed tick or another gesture. Render resumed samples
+alongside ordinary-fade controls. Delete event cleanup, scheduler reset and the
+captured-context guard independently; each covering regression must fail.
+
 ## [L-binary-tests-need-bounded-diffs] Compare large binary artifacts without printing every byte
 
 **What happened.** A deliberately changed audio seed caused a deep byte-array
