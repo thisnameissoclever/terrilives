@@ -50,6 +50,7 @@ function runsWithDoors(doorTracks) {
   return [0, 1, 2].flatMap(repetition => [true, false].map(audioEnabled => {
     const common = {
       entities: 1037, wasmMemoryBytes: 65536, jsUsedBytes: 1000, pageMemoryBytes: null,
+      portalCount: 4,
       footstepTracks: 0, footstepCapacity: 8, activityTracks: 0, activityCapacity: 8,
       objectSoundTracks: 0, objectSoundCapacity: 8, activeVoices: 0,
       conversationVoices: 0, retainedConversationVoices: 0,
@@ -78,6 +79,22 @@ test('memory acceptance needs exercised doors and rejects retained door growth o
     runs[0].samples[1][field] = value;
     expect(proof.analyseMemory(runs).structuralPass, field).toBe(false);
   }
+});
+
+test('door tracking is bounded by the actual stable portal layout, not an obsolete four-door fixture', () => {
+  const runs = runsWithDoors(6);
+  for (const run of runs) {
+    for (const sample of run.samples) {
+      sample.portalCount = 6;
+      sample.doorCapacity = run.audioEnabled ? 6 : 0;
+    }
+  }
+  expect(proof.analyseMemory(runs).structuralPass).toBe(true);
+  runs[0].samples[1].doorTracks = 7;
+  expect(proof.analyseMemory(runs).structuralPass).toBe(false);
+  runs[0].samples[1].doorTracks = 6;
+  runs[0].samples[1].portalCount = 7;
+  expect(proof.analyseMemory(runs).structuralPass).toBe(false);
 });
 
 test('memory acceptance requires exercised toilet lifecycle, paired fixtures and same bundles', () => {

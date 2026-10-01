@@ -280,6 +280,7 @@ async function collectMemorySample(page, cdp, includePageMemory) {
       if (stress === undefined) throw new Error('stress handle disappeared');
       return {
         tick: stress.sim.clockTick(),
+        portalCount: stress.sim.portalCount,
         entities: stress.entities,
         wasmMemoryBytes: stress.wasmMemoryBytes,
         activeVoices: stress.audio.activeVoices,
@@ -632,6 +633,8 @@ function analyseMemory(runs) {
     const boundedLiveState = run.samples.every(
       (sample) =>
         sample.entities === 1037 &&
+        Number.isInteger(baseline.portalCount) && baseline.portalCount > 0 &&
+        sample.portalCount === baseline.portalCount &&
         sample.wasmMemoryBytes >= 65_536 &&
         sample.footstepCapacity === baseline.footstepCapacity &&
         sample.footstepTracks <= 3 &&
@@ -641,7 +644,8 @@ function analyseMemory(runs) {
         // Three household Sims can each use one of the shower, stove or sinks.
         sample.objectSoundTracks <= 3 &&
         sample.doorCapacity === baseline.doorCapacity &&
-        sample.doorTracks <= 4 &&
+        sample.doorCapacity <= baseline.portalCount &&
+        sample.doorTracks <= baseline.portalCount &&
         sample.doorVoices <= 4 &&
         sample.toiletVoices <= 4 &&
         sample.activeVoices <= 8 &&

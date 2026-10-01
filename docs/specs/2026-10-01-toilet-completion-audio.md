@@ -29,7 +29,7 @@ The source is rubberduck's [100 CC0 SFX](https://opengameart.org/content/100-cc0
 | toilet_01.ogg | 336,789 | 7.0164375 s | 0.64494073 | 0.04409032 |
 | toilet_02.ogg | 197,986 | 4.1247083 s | 0.75609422 | 0.05450888 |
 
-Selected 02 provisionally: its shorter duration reduces overlap and its final partial second falls to RMS 0.00006870. Both contain finite, unclipped decoded samples. This does not establish pleasant timbre or absence of recording noise. Preserve the selected original at `assets/audio/toilet/toilet_02.ogg`, SHA-256 `9e4a1824ac584bb65ba32406155d37861df7e11b95ef62493246dd2da17f8dbc`.
+Selected 02: its shorter duration reduces overlap and its final partial second falls to RMS 0.00006870. The owner accepted this recording after listening. Both contain finite, unclipped decoded samples. Numerical measurements alone do not establish pleasant timbre or absence of recording noise. In-game mix acceptance remains separate. Preserve the selected original at `assets/audio/toilet/toilet_02.ogg`, SHA-256 `9e4a1824ac584bb65ba32406155d37861df7e11b95ef62493246dd2da17f8dbc`.
 
 `scripts/prepare-toilet-audio.ps1` validates that hash and frame count, then uses the existing task-owned Playwright CLI proof page and shared PCM encoder. It preserves all samples without filtering, trimming, normalization or dithering. Output `web/public/audio/toilet/flush.wav` has 791,988 bytes, stereo PCM16 at 48 kHz, SHA-256 `b0e3384721432cb34733619b6e415c1de78f06f4b5f11bb0486f863088d4fbb5`. The script refuses to overwrite an existing output. At gain 0.08 the rendered peak stays below 0.06050 for one source or 0.24200 for four aligned sources before Effects gain, including PCM16 quantization and browser conversion.
 
@@ -105,11 +105,20 @@ failed whole-page retained-memory check; no causal link was established.
    source review found no remaining material integration findings. Task-owned
    browser pages and both preview/proof servers were closed.
 
-No whole-page memory or refresh-rate acceptance run was repeated. The following
-hold remains in force; this refresh does not represent the feature as shipped.
+### Release decision
 
-### Unchanged release decision
+The feature remains unreleased. The latest endpoint-matched whole-audio memory
+assessment failed the unchanged allowance. Bounded ownership and playback checks
+passed, but those checks do not replace the failed raw-memory requirement. A
+finite comparison with current main does not identify a specific runtime defect
+or establish memory acceptance. Do not repeat the unchanged assessment to seek a
+passing result. Merge requires an explicit release exception or an agreed
+acceptance-contract change. The separate 120 Hz evidence gap must remain visible.
+A draft pull request preserves the work without representing it as shipped.
 
-The corrected raw-memory result remains FAIL: median 67,664 bytes against 65,536. The causal diagnostic found no specific runtime defect to fix, so further whole-page retries are not justified. Merge requires an explicit release exception or an agreed acceptance-contract change. The separate 120 Hz evidence gap must also remain visible. A draft pull request preserves the work without representing it as shipped.
+The dated [current-main verification record](../assets/review-evidence/audio/toilet/2026-10-01-verification.md)
+contains the inspected revisions, exact measurements, playback evidence, review
+findings and unavailable checks. Quieter footsteps and cancellation of indoor
+background noise are delivered separately; neither depends on releasing this feature.
 
 Durable raw reports are [matched memory](../assets/review-evidence/audio/toilet/memory-matched.json), [causal comparison](../assets/review-evidence/audio/toilet/causal-comparison.json), and [performance](../assets/review-evidence/audio/toilet/performance.json). Task-local scripts, fixture saves, failed earlier runs and snapshots remain under `.tmp/toilet-*`; the temporary pre-feature checkout has been archived. Diagnostic browsers and production servers are closed.
