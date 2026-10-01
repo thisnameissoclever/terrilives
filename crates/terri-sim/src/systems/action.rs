@@ -566,7 +566,7 @@ pub fn serve_intents(
             };
             if let Some(target) = target {
                 if target.object != intent.object {
-                    commands.entity(target.object).try_remove::<Reserved>();
+                    crate::reservations::release(&mut commands, agent, *target);
                 }
             }
             // BOTH parties into the claimed list. The partner so no
@@ -629,7 +629,7 @@ pub fn serve_intents(
                     continue;
                 };
                 if let Some(target) = target {
-                    commands.entity(target.object).try_remove::<Reserved>();
+                    crate::reservations::release(&mut commands, agent, *target);
                 }
                 commands
                     .entity(agent)
@@ -693,11 +693,8 @@ pub fn serve_intents(
         // must not hand it to somebody else in between.
         if let Some(target) = target {
             if target.object != intent.object {
-                // try_remove for the same reason `tick_interactions`
-                // uses it: `Commands::entity` does not validate, so a
-                // stale `Target` would otherwise route a removal to the
-                // command error handler.
-                commands.entity(target.object).try_remove::<Reserved>();
+                // Release this commitment while retaining other owners.
+                crate::reservations::release(&mut commands, agent, *target);
             }
         }
         claimed.push(intent.object);
