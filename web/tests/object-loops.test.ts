@@ -45,6 +45,24 @@ function setup() {
 }
 
 describe('ObjectLoopPlayer', () => {
+  it('immediately releases only the exact source and action without waiting for its clock', () => {
+    const { context, player } = setup();
+    player.play(41, 1);
+    player.play(42, 1);
+    player.play(41, 2);
+    player.stop(41, 1, true);
+    expect(player.activeLoopCount()).toBe(2);
+    expect(context.sources[2].disconnected).toBe(false);
+    player.stop(41, 2, true);
+    expect(player.activeLoopCount()).toBe(1);
+    expect(player.retainedLoopCount()).toBe(2);
+    expect(context.sources[2].disconnected).toBe(true);
+    expect(context.sources[2].onended).toBe(null);
+    expect(context.gains[2].disconnected).toBe(true);
+    expect(context.sources[1].stops).toEqual([]);
+    expect(context.sources[1].disconnected).toBe(false);
+  });
+
   it('replaces only changed installed clips and releases removed clips', () => {
     const { context, player } = setup();
     player.play(1, 1);

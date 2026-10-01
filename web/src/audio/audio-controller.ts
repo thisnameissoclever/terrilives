@@ -254,6 +254,22 @@ export class AudioController implements GameAudioEventSink {
   }
 
   emit(event: GameAudioEvent): void {
+    // Ownership ends even when hardware cannot play. A stopped audio clock
+    // cannot render a release fade, so release only this owner's nodes now.
+    if (event.type === 'object.sound-stopped') {
+      if (this.desiredObjectLoops.get(event.sourceId) === event.action) {
+        this.desiredObjectLoops.delete(event.sourceId);
+      }
+      this.objectLoops?.stop(event.sourceId, event.action, this.context?.state !== 'running');
+      return;
+    }
+    if (event.type === 'sim.conversation-ended') {
+      const key = conversationVoiceKey(event.voice);
+      this.pendingVoices.delete(key);
+      this.voices?.stopConversation(key, this.context?.state !== 'running');
+      return;
+    }
+
     if (
       !this.isUnlocked() ||
       this.mutedPreference ||
@@ -295,23 +311,6 @@ export class AudioController implements GameAudioEventSink {
       }
       return;
     }
-    if (event.type === 'object.sound-stopped') {
-      if (this.desiredObjectLoops.get(event.sourceId) === event.action) {
-        this.desiredObjectLoops.delete(event.sourceId);
-      }
-      this.objectLoops?.stop(event.sourceId, event.action);
-      return;
-    }
-    if (event.type === 'sim.conversation-ended') {
-      const key = conversationVoiceKey(event.voice);
-      this.pendingVoices.delete(key);
-      // Only reached when the world outran its own audio, which is what
-      // fast-forward makes routine. At normal speed the recordings finish on
-      // the tick the talking does and have already torn themselves down.
-      this.voices?.stopConversation(key);
-      return;
-    }
-
     const cue = cueForEvent(event);
     if (cue === null) return;
     const pitchScale = pitchScaleForEvent(event);

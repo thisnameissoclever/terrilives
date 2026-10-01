@@ -1,5 +1,41 @@
 # Lessons Learned
 
+## [L-audio-cancellation-without-playback] End ownership even when sound cannot play
+
+**What happened.** Object and conversation end events were discarded while an
+externally suspended audio context could not play. Their schedulers forgot the
+ended actions, but native loops or pending recordings could survive and resume.
+
+**Root cause.** One audibility gate controlled both playback admission and
+ownership cancellation. Gesture-driven recovery hid the missing terminal path
+in earlier tests. A normal fade also cannot finish on a suspended audio clock.
+
+**Prevention rule.** Process exact-source cancellation independently of playback
+availability. Clear pending ownership first. Preserve normal fades when the
+clock runs; release the affected nodes immediately when it does not.
+
+**How to verify.** End an action through public frame APIs during suspension,
+return to running without a gesture, and settle a late recording load. Require
+no revived source or retained nodes. Render samples across native suspension
+to distinguish real cleanup from an active-count change that hides a frozen fade.
+
+## [L-audio-decode-detaches-input] Capture encoded metadata before decoding
+
+**What happened.** A paper-recording screening report showed zero encoded bytes
+for four successfully decoded files.
+
+**Root cause.** `decodeAudioData` detached its input ArrayBuffer before the
+report read `byteLength`. The zero described the consumed buffer, not an empty
+source file.
+
+**Prevention rule.** Capture encoded byte length and hash before decoding. Keep
+source-file identity separate from decoded frames, channels and duration.
+
+**How to verify.** Compare reported byte counts and hashes with the original
+files, then check decoded sample counts and finite-value bounds separately.
+Keep the corrected measurement report rather than silently interpreting zero
+as a valid source size.
+
 ## [L-audio-proof-visible-gesture] Discover visible controls before driving audio checks
 
 **What happened.** A production sink check first used the wrong preview URL
