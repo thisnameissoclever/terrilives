@@ -19,6 +19,7 @@ TOML and fails if they do.
 """
 import argparse
 import hashlib
+from pathlib import Path
 import io
 import json
 import os
@@ -37,6 +38,7 @@ from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
+from offline_architecture import sync_generated_architecture    # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -1248,6 +1250,10 @@ def main():
                        sim_body_indices(sprites, legacy_count, variants))
     bounds = dict(sorted(bounds.items()))
 
+    # Architecture uses a separate texture set after the entire frozen logical
+    # prefix. The generator owns its absolute IDs and validates all source art.
+    sync_generated_architecture(sprites, check=args.check)
+
     placed, width, height = pack_atlas(sprites)
     if height > 8192:
         raise ValueError("atlas exceeds the baseline WebGPU texture dimension limit")
@@ -1321,10 +1327,11 @@ def main():
         "wb",
     ) as fh:
         fh.write(png)
-    with open(ATLAS_TOML, "w") as fh:
-        fh.write(toml)
-    with open(ATLAS_TS, "w") as fh:
-        fh.write(ts)
+    # Preserve the exact existing file bytes when generated text is unchanged.
+    # Windows newline translation must not rewrite the frozen manifest prefix.
+    for path, text in ((ATLAS_TOML, toml), (ATLAS_TS, ts)):
+        if not os.path.exists(path) or Path(path).read_text() != text:
+            Path(path).write_text(text, newline="\n")
     print(f"wrote {len(sprites)} sprites into {width}x{height} "
           f"({len(png) // 1024} KB)")
     for name, _, w, h in sprites:

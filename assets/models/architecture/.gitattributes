@@ -1,0 +1,2 @@
+# Accepted journals bind exact bytes, including Blender's Windows line endings.
+export/reviewed-03/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

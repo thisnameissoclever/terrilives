@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "batch": "export/reviewed-03",
+  "historicalCount": 1700,
+  "historicalPrefixSha256": "2f9c9af7e42864ce151344db1ebd337cd1c533af3501f3359b9b16dfb7310c99",
+  "historicalFiles": {
+    "web/src/render/atlas.ts": "0effc1bbfa9a0ae5d3b010a23a1fdec22ddcf8a03d3a05ef88302faef5f9355d",
+    "assets/sprites/atlas.toml": "3abc59b721bb5e526f7174440ed1afafd724b63439a62acb5e6b461b9c66c583",
+    "web/public/atlas.png": "5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4"
+  }
+}

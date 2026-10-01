@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-01T18:07:22.182Z",
+  "visible": "visible",
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "adapter": {
+    "maxTextureDimension2D": 16384,
+    "maxSampledTexturesPerShaderStage": 48,
+    "maxSamplersPerShaderStage": 16,
+    "maxStorageBuffersPerShaderStage": 16,
+    "maxBindingsPerBindGroup": 1000,
+    "maxBufferSize": 2147483648
+  },
+  "device": {
+    "maxTextureDimension2D": 8192,
+    "maxSampledTexturesPerShaderStage": 16,
+    "maxSamplersPerShaderStage": 16,
+    "maxStorageBuffersPerShaderStage": 8,
+    "maxBindingsPerBindGroup": 1000,
+    "maxBufferSize": 268435456
+  },
+  "purpose": "Task 2 actual device limits; default requestDevice matches current initDevice",
+  "scope": "Disposable proof page; no game or save loaded; device destroyed, page and context explicitly closed, Vite session83002 stopped",
+  "revision": "582aa8e23810c32d61b9feb54e11abe9945b7299",
+  "candidateDimensions": [
+    2048,
+    2926
+  ]
+}

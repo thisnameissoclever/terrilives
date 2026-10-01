@@ -1,0 +1,758 @@
+{
+  "status": "accepted",
+  "independent": true,
+  "reviewer": "root",
+  "date": "2026-10-01",
+  "manifestSha256": "dbd631933ad1290585e95f963ebe7afa10e5bdf7d2e3753905ee098da75f4f64",
+  "sourceProofSha256": "f7e308f9823c66919de8601351ccf2599287bf0d4b19751e1c67807d8f958bf2",
+  "scope": "Source art and physical export evidence; final game integration and owner played-room acceptance remain separate.",
+  "windowEvidence": [
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-1-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-2-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-3-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-4-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-5-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-6-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-7-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-8-original.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-9-original.png"
+  ],
+  "nativeEvidence": [
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-1-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-2-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-3-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-4-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-5-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-7-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-8-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-01/window-9-native.png",
+    "docs/assets/review-evidence/architecture/full-set/candidate-03/window-6-native.png"
+  ],
+  "carriedSourceReview": {
+    "fromCandidate": "full-candidate-02",
+    "count": 102,
+    "comparison": "Color/carrier decoded RGBA equal; raw PNG hashes differ from Blender metadata. Depth/roles/owners byte-identical.",
+    "evidence": [
+      {
+        "geometryKey": "straight.x-front.full",
+        "decodedRGBA": {
+          "color": "64313862ece1dc7d1c93b62d434cdb06fea718e0e95a18cb2f4f1c96ec4c7983",
+          "carrier": "55221531052da2eada7d9693059f7f804f787cad586874b7ec7913b092df769a"
+        }
+      },
+      {
+        "geometryKey": "straight.x-front.cut",
+        "decodedRGBA": {
+          "color": "e10c2dfceaddf6b4a8b2c03764620d28c8e1146d60f4f13fea480926b3f2b00e",
+          "carrier": "464cf5c102b3580e8fad8aaadc002281801b34e44ccfa31853e84ac5aef1b2d5"
+        }
+      },
+      {
+        "geometryKey": "straight.y-front.full",
+        "decodedRGBA": {
+          "color": "54e102c46388f97f95806bfa8c059832d2052ce4694fc21f1d9bd60849bfee3c",
+          "carrier": "ed7dc54996dcc392152dc3a89a167632cb2b4e3abd269b1e3d0e9ca3c8261d79"
+        }
+      },
+      {
+        "geometryKey": "straight.y-front.cut",
+        "decodedRGBA": {
+          "color": "b47d6d83182c60eca07dde50ec8e0b4d962d8d02c8bb29a98764555dd61d09e7",
+          "carrier": "eb56d64a415cb53908f21277860157cd3a5c7b55470b1cfe7d2a3a6269622546"
+        }
+      },
+      {
+        "geometryKey": "straight.x-back.full",
+        "decodedRGBA": {
+          "color": "64313862ece1dc7d1c93b62d434cdb06fea718e0e95a18cb2f4f1c96ec4c7983",
+          "carrier": "55221531052da2eada7d9693059f7f804f787cad586874b7ec7913b092df769a"
+        }
+      },
+      {
+        "geometryKey": "straight.x-back.cut",
+        "decodedRGBA": {
+          "color": "e10c2dfceaddf6b4a8b2c03764620d28c8e1146d60f4f13fea480926b3f2b00e",
+          "carrier": "464cf5c102b3580e8fad8aaadc002281801b34e44ccfa31853e84ac5aef1b2d5"
+        }
+      },
+      {
+        "geometryKey": "straight.y-back.full",
+        "decodedRGBA": {
+          "color": "54e102c46388f97f95806bfa8c059832d2052ce4694fc21f1d9bd60849bfee3c",
+          "carrier": "ed7dc54996dcc392152dc3a89a167632cb2b4e3abd269b1e3d0e9ca3c8261d79"
+        }
+      },
+      {
+        "geometryKey": "straight.y-back.cut",
+        "decodedRGBA": {
+          "color": "b47d6d83182c60eca07dde50ec8e0b4d962d8d02c8bb29a98764555dd61d09e7",
+          "carrier": "eb56d64a415cb53908f21277860157cd3a5c7b55470b1cfe7d2a3a6269622546"
+        }
+      },
+      {
+        "geometryKey": "doorway.x-front.full",
+        "decodedRGBA": {
+          "color": "ac4716b3f784c3e60385e5681d24810c10dac8de9bf20d1cd23cebd61e211f15",
+          "carrier": "412f4b069470b212f55d2efc2ad210ce472982ad147fe354426993db31bd3adf"
+        }
+      },
+      {
+        "geometryKey": "doorway.x-front.cut",
+        "decodedRGBA": {
+          "color": "1e2c15dee2413295f36193ed268f538a9225581214087fdb734b5674346be954",
+          "carrier": "7d626a9d061d45d8c68493884034fbeb457b7968d24ee9d9aa05eb9fc5840098"
+        }
+      },
+      {
+        "geometryKey": "doorway.y-front.full",
+        "decodedRGBA": {
+          "color": "37818f22b4bde1ab9c6261711aaa6d163a0b6f18ccbb4b40372ede19cf15688b",
+          "carrier": "49c01ef1e3dde5669395b78b6856ef56adef799c11ec0f017fefd2b2afc41808"
+        }
+      },
+      {
+        "geometryKey": "doorway.y-front.cut",
+        "decodedRGBA": {
+          "color": "b2c6e27a5c6905e4d3d54222d8a093d13921d50448de4ce6c4383f990e589221",
+          "carrier": "026bd2eac760f5a6b5c718d629821a9f0727981e5415804fc1d06d5ae7e3fab4"
+        }
+      },
+      {
+        "geometryKey": "doorway.x-back.full",
+        "decodedRGBA": {
+          "color": "3269099c673ef6a0ce6e28771da0c56a3e44d2e3efded634ceb6129b8cd05218",
+          "carrier": "ec08de7472cc2a12d01779bfc1a602827bb2fc326110446cbfa2f124b7d4242c"
+        }
+      },
+      {
+        "geometryKey": "doorway.x-back.cut",
+        "decodedRGBA": {
+          "color": "1e2c15dee2413295f36193ed268f538a9225581214087fdb734b5674346be954",
+          "carrier": "7d626a9d061d45d8c68493884034fbeb457b7968d24ee9d9aa05eb9fc5840098"
+        }
+      },
+      {
+        "geometryKey": "doorway.y-back.full",
+        "decodedRGBA": {
+          "color": "edcad3f094ad7726f31f2c867994dbbe6dc6f565a441782f2da0f7a7fb7eaba7",
+          "carrier": "49c01ef1e3dde5669395b78b6856ef56adef799c11ec0f017fefd2b2afc41808"
+        }
+      },
+      {
+        "geometryKey": "doorway.y-back.cut",
+        "decodedRGBA": {
+          "color": "b2c6e27a5c6905e4d3d54222d8a093d13921d50448de4ce6c4383f990e589221",
+          "carrier": "026bd2eac760f5a6b5c718d629821a9f0727981e5415804fc1d06d5ae7e3fab4"
+        }
+      },
+      {
+        "geometryKey": "junction.0001",
+        "decodedRGBA": {
+          "color": "237ebf9da1b90d018595e8ae215c7206ba94052510df401f427fbf62837b6dc6",
+          "carrier": "9ce053fcb8fe507eb0b4af82771e5704a78c037b3dd075063cd00ee93d84b6aa"
+        }
+      },
+      {
+        "geometryKey": "junction.0002",
+        "decodedRGBA": {
+          "color": "2c5db07d0ab48137811566f4da4f6d86838a35566580307e2750fb42f8e7bd53",
+          "carrier": "296353cce0af4aee4ab395f2b7cc52d8d585641d3a3778568a85f9171c487ddb"
+        }
+      },
+      {
+        "geometryKey": "junction.0010",
+        "decodedRGBA": {
+          "color": "898e1f01e886cb3b1880ffd8f3bf3e3347a1b5e266c892f0f790cb53c1edf1bc",
+          "carrier": "3a05a38e686b20b1266ed0d4c538f9ba2ff675dfd2b9cf53c15c3ec74842f391"
+        }
+      },
+      {
+        "geometryKey": "junction.0011",
+        "decodedRGBA": {
+          "color": "d9981077e45e3c6ff2e76cc36a92820be40402bcb82f611a0b5c5320d9a70865",
+          "carrier": "413023e5c55c9d5820c0fc54a035dd635eb3270f521a805693fe302d45529083"
+        }
+      },
+      {
+        "geometryKey": "junction.0012",
+        "decodedRGBA": {
+          "color": "9c2eda0dbb2c18b3e1afd21cea046892b7d7d847f7ed4eff87ce2e499993808a",
+          "carrier": "0b0c2f294a9d5c49a49e533a4aef898935dc4dc217fe99e2574d016dd786918a"
+        }
+      },
+      {
+        "geometryKey": "junction.0020",
+        "decodedRGBA": {
+          "color": "1ae05c6fac9b71a8c1767bc78f21a1460d633c648bd76d8a6b789640b3038870",
+          "carrier": "8e891f5e8a76a04b1c01583446cfd2ceaa32bce1158651ee07e9394877b744d9"
+        }
+      },
+      {
+        "geometryKey": "junction.0021",
+        "decodedRGBA": {
+          "color": "2c20fe6795f41a877bab45430ecb638e2508440bf44ad57123456dd557af2488",
+          "carrier": "cad695a891cc5a2de65c0960034585c864b569fcd327e3112ec42dec61591939"
+        }
+      },
+      {
+        "geometryKey": "junction.0022",
+        "decodedRGBA": {
+          "color": "8b67f8997ab7255597ad7980d1b1aa13d4f4346198cd348bc95fe4a3e6d58122",
+          "carrier": "7ca03bddd5560419dfd92620cdcafb88453eefff926663beb89c8c0401002e1e"
+        }
+      },
+      {
+        "geometryKey": "junction.0100",
+        "decodedRGBA": {
+          "color": "e1ee2ea62717fbd083b8c294d8d0bdacac51050d209174732447e07d63266283",
+          "carrier": "b1957f928789a163a2f31d48a3538a2d70d341a43883093e2dc194adfb9d29f5"
+        }
+      },
+      {
+        "geometryKey": "junction.0101",
+        "decodedRGBA": {
+          "color": "99aed190f6de6c13f2019d7b930c9e43d094e7037e22ba9f2b86e5bb9c37aa64",
+          "carrier": "387f11ccf05591d89824c75187ac0cf1179e44c8e498ef96c12dc95bd755dc41"
+        }
+      },
+      {
+        "geometryKey": "junction.0102",
+        "decodedRGBA": {
+          "color": "25f8cc049c7263d835518f14f595e16465026589ae905e11562ba64f16a88748",
+          "carrier": "75a285dd7613e487372a3ae70c2fe6d9d09da083990e5ede6364ce197747e628"
+        }
+      },
+      {
+        "geometryKey": "junction.0110",
+        "decodedRGBA": {
+          "color": "6ee224dbbcf7fdc8d06aa50095dded47559ee4b2b3f36bbe813dfb097c0c0491",
+          "carrier": "f4050dc22d116d0081c90520f09cedcf8cd6b6f9f8b49306d5f73b57e4e7202c"
+        }
+      },
+      {
+        "geometryKey": "junction.0111",
+        "decodedRGBA": {
+          "color": "646f8a822bc560828a1aabd4fe15d3481f04a1e100acfd9cb886938745b18634",
+          "carrier": "067b266fe3a1986e99825803ed51a3d02bf40aeeefe3f865b0d4ae16413fbc48"
+        }
+      },
+      {
+        "geometryKey": "junction.0112",
+        "decodedRGBA": {
+          "color": "5aede796b5396717fdf455c8d6812f2e0c5075b38b5c55d733ca60fe7daf22bc",
+          "carrier": "eed01fc7a104cb6a8bf6d94e584460706c9f18a0bf4a61126635f89ed4679da2"
+        }
+      },
+      {
+        "geometryKey": "junction.0120",
+        "decodedRGBA": {
+          "color": "2407db7a970f37040feaa2365e13cdf434221f32d4660ee9d78c4c805b898edd",
+          "carrier": "0cbe878be24db4d66f56b9fe53cb066b2ce45433e30d85dd329b137df5d39e2d"
+        }
+      },
+      {
+        "geometryKey": "junction.0121",
+        "decodedRGBA": {
+          "color": "088903c8893e9fad4096cfea910947255c821a12a499200184975c95950ca96a",
+          "carrier": "c470fcc299935ba4e87c9482633af209268b0b200130089272a535eb537b7741"
+        }
+      },
+      {
+        "geometryKey": "junction.0122",
+        "decodedRGBA": {
+          "color": "959d1c073e092e85ab94e1428ec9b1dac91cfa23bcbf8d240be0afd6dafa1d7c",
+          "carrier": "e7b3fca4d70b53d8163a8f8bd2fc9e044b6ea949a84e09c50ef066eb38ab14bb"
+        }
+      },
+      {
+        "geometryKey": "junction.0200",
+        "decodedRGBA": {
+          "color": "0f9efe4f9e7b8872508fb4fa76e1edab186f7632616b4b58b53abbb3b9f2af2d",
+          "carrier": "3b6e2ea2b75d28b25643c569dcea429b2533930f0842e68ef368dd40c23de8c9"
+        }
+      },
+      {
+        "geometryKey": "junction.0201",
+        "decodedRGBA": {
+          "color": "99e2d8ee8c999f9043634ca27f9688b17ef0cbe8cee047d04a90d5bb58e4c2cb",
+          "carrier": "6002950b05fd9c149ef9ea1dc1ef334b6585e1cb767d0cbea3095e0361a7d131"
+        }
+      },
+      {
+        "geometryKey": "junction.0202",
+        "decodedRGBA": {
+          "color": "af4a9d7382841c902b274b21fe26ada69ba6c64c009cc67598560a6887b579c0",
+          "carrier": "067b45a608da137dd0815ddfa5e3d5ee76f19ac66f87035caec0c3edd8b301f2"
+        }
+      },
+      {
+        "geometryKey": "junction.0210",
+        "decodedRGBA": {
+          "color": "fb087c0a5ba8ea121f723e90ab76070b956608f061c22213377b6e0502ef5b0d",
+          "carrier": "7c25c3399c18ef9aa1c5fdad2a805c3778b5fa5226906249880bc8a511c03d95"
+        }
+      },
+      {
+        "geometryKey": "junction.0211",
+        "decodedRGBA": {
+          "color": "2a536c0ad65d222643cc475200642a5d0218213d9ea65ee0fcbcb42500e59daf",
+          "carrier": "89d89ebb6563d023df73ad0dee98b3419fcab0b1796e2fa83c8f4ccce70d80fe"
+        }
+      },
+      {
+        "geometryKey": "junction.0212",
+        "decodedRGBA": {
+          "color": "82767bd82fa0e1897ca9a33072513ece6996e25894789bb68f4be7a8075b8f9b",
+          "carrier": "a294322da262a5540525821f6c666a370b003b6435d095d06a502265aa277395"
+        }
+      },
+      {
+        "geometryKey": "junction.0220",
+        "decodedRGBA": {
+          "color": "aa1d61149536f39d8e1d6f5712d9de30d3d616197b93d6358051666affcc0275",
+          "carrier": "b5f3cc28627c74e6d8c0d7dc8749ec92216d76914413b2f223f726c841eca739"
+        }
+      },
+      {
+        "geometryKey": "junction.0221",
+        "decodedRGBA": {
+          "color": "889dcc066c13a299fa042d609bd2fe54ea24eb210304b4ba912bd7972a47882d",
+          "carrier": "bb86081514b1de9ca5c4db2e100b579fb3a0697b56e8a84b9689b0c520571bca"
+        }
+      },
+      {
+        "geometryKey": "junction.0222",
+        "decodedRGBA": {
+          "color": "a415c8acd46164663dc966f451a1abfc2aefc85540dac6605eb23ca6bf37bb76",
+          "carrier": "ff1c42006ef84f734e0d471817384f5937a817cb60fc3729db13ebc1f19d408c"
+        }
+      },
+      {
+        "geometryKey": "junction.1000",
+        "decodedRGBA": {
+          "color": "18f311ae6d7a2848c9defbbca4d776a77cbdc1f2d0d01d46fdf2ddf7ac42c473",
+          "carrier": "39c7720ada87a861ffbda14c29ea227132f66abdd78625da9b595a8ca0fcbea5"
+        }
+      },
+      {
+        "geometryKey": "junction.1001",
+        "decodedRGBA": {
+          "color": "ef3cdc70f34fb8e4f4ad92944a1ec87c6ea3a3e09bd22b56dc67b21c03866d63",
+          "carrier": "1ba6fd74b3cecf6adcca5909aa61addc7d4b93c4ab599ae837624cdc5c67fbc6"
+        }
+      },
+      {
+        "geometryKey": "junction.1002",
+        "decodedRGBA": {
+          "color": "ca9ac37d70051876d47ad1268b9e70acf4357fba0f6928bb99cc9d8fca7abc4e",
+          "carrier": "6798f59510f176843ca40b34ac8ab7bc80d3d3ff1169d9c8881c4686041968bd"
+        }
+      },
+      {
+        "geometryKey": "junction.1010",
+        "decodedRGBA": {
+          "color": "17cd18b00d6e25bd1ffa76e2b3e6bf60893f83c3eff131cbe73c1a71027b4d24",
+          "carrier": "169d21cd20853c3c6239cb113aeb251e95953d4e9df60eab4f25e4f1e91a680a"
+        }
+      },
+      {
+        "geometryKey": "junction.1011",
+        "decodedRGBA": {
+          "color": "6a89bbb1197f724f4ef8ea7f656a37b21891642201942a5c4f7bef74e51a1ebe",
+          "carrier": "5fb31f8288aca566a1b4eb2797894c5f8eebfe4dbb05f181a5d04576d0c55ae0"
+        }
+      },
+      {
+        "geometryKey": "junction.1012",
+        "decodedRGBA": {
+          "color": "631da90aa09bed7805700eb32e64981c161cb4660006b9db2a3878d3a3d5c66b",
+          "carrier": "37e56381b8d1a13cd1768152a9b7c990c24135e4eaa87d5d31772ae31187a143"
+        }
+      },
+      {
+        "geometryKey": "junction.1020",
+        "decodedRGBA": {
+          "color": "e43f0606179fc3e4b2079048c2ed573521cc11cabcb3b5875becd86921bca049",
+          "carrier": "7e69a2a4ff6e5bc3fbc4378cb97011f7f1f1b59371fce8a1c59f7d9aedb0b967"
+        }
+      },
+      {
+        "geometryKey": "junction.1021",
+        "decodedRGBA": {
+          "color": "5f2075c54d90cda4e3043d147fb0bf14e702d5c555d5036f172e9d4995de8fce",
+          "carrier": "d0517c973393e9748a9f8661ba3610a779f85e69b493db7e98f08e56cc929969"
+        }
+      },
+      {
+        "geometryKey": "junction.1022",
+        "decodedRGBA": {
+          "color": "967f3938a59a1815bdfceadc0528f87fd94822e423cac64e50a0922712951e67",
+          "carrier": "a04ad2faed3f8754bfa7f085b20e2eb8d222c8be3c2abfb6c5b0abd280078823"
+        }
+      },
+      {
+        "geometryKey": "junction.1100",
+        "decodedRGBA": {
+          "color": "368d4a7e0f81b71558167a254cd523c34ab455f11db212a39cec823ed1dbca5c",
+          "carrier": "3c267043f55df55d6e698697f4d330894234d2c42d986b5aec56b49ba50217a7"
+        }
+      },
+      {
+        "geometryKey": "junction.1101",
+        "decodedRGBA": {
+          "color": "5ba284dac0e0958ed0bc71cc4faad32a52d1f71d34699f4d7764f7e8e5b1c23a",
+          "carrier": "6f3e5162482b42eb70e74703972b49ffc470b9bfb9e6e0e3e89a3e0ffe1642dd"
+        }
+      },
+      {
+        "geometryKey": "junction.1102",
+        "decodedRGBA": {
+          "color": "59471b23129e0641a5b6eb513ebd6342eab0440a7f451e856f8035288eb9bc20",
+          "carrier": "0fed7b8f069c14b9fc16fb224a09f236f13f1b201c436e90e9d6f4a4eb15a7b1"
+        }
+      },
+      {
+        "geometryKey": "junction.1110",
+        "decodedRGBA": {
+          "color": "e1c9ca1024076890fd449dc3c1d06a06f576cea661f70fbbd489697b55eb6f9c",
+          "carrier": "375bc14df7fa6dfc025a5d558e9cde2dad513778d692f0a4c2599c609e3a53bd"
+        }
+      },
+      {
+        "geometryKey": "junction.1111",
+        "decodedRGBA": {
+          "color": "265e7512ee437317dbfefde43ef9051c1c31ca7622d7847ff07cf3816831aa20",
+          "carrier": "1afc670f74635f749158f300bd5abcc299762a544f0a6bbcce36216bba1e15af"
+        }
+      },
+      {
+        "geometryKey": "junction.1112",
+        "decodedRGBA": {
+          "color": "549f126092013869d27a62c7e1af36efc18188a37b1f382711456e7ec820226e",
+          "carrier": "a54c1e0f02a952d1d4377ab2b0062b50958355818a8b32964197e7514a871e7b"
+        }
+      },
+      {
+        "geometryKey": "junction.1120",
+        "decodedRGBA": {
+          "color": "dff027e33522423b194c3d6adc419b10c4bcf65947c0497f1b92fe181bf562ae",
+          "carrier": "e1e9dbe532f410e247195125edd7e1acd82b440b4cf7b2b7c1ac709199bf2055"
+        }
+      },
+      {
+        "geometryKey": "junction.1121",
+        "decodedRGBA": {
+          "color": "66650623c914dbca894f74353e5b50a3cc72ddee0e38f21e3d5a8d111b3e5645",
+          "carrier": "7f0617975fb703c7ccd2441e69996b53a502923440d5c5a91c9726bca2991154"
+        }
+      },
+      {
+        "geometryKey": "junction.1122",
+        "decodedRGBA": {
+          "color": "a5a9a9930296a7fe2b14d2e77f57c7186a358927daafe04885be3d617a7b198c",
+          "carrier": "668283bf8e321759e00c678202b9ec953949acbd20a07513a90a6cd9a0fe383a"
+        }
+      },
+      {
+        "geometryKey": "junction.1200",
+        "decodedRGBA": {
+          "color": "e70ab0a8beb3c9bbee2d3b1b9bb53dd0893d1c54948e619309894cac9ffe9b8d",
+          "carrier": "59d7baf6d123d0b19f77dc8d48f848df58b7c469b58a8b8ae96f7138f062e8cf"
+        }
+      },
+      {
+        "geometryKey": "junction.1201",
+        "decodedRGBA": {
+          "color": "8ecee008e9164fcb8095521e087b080c7ec7c913b2e585976a363c563df5c9b4",
+          "carrier": "b479a406fdf3bcb1557c311c99ee65c7f0797e5b8e98ea152a43c8680ff7b1f6"
+        }
+      },
+      {
+        "geometryKey": "junction.1202",
+        "decodedRGBA": {
+          "color": "b8cf12d872c8779f68effc7550dfbda952433d44016119acf2bd8ba182538200",
+          "carrier": "3f14ead2728f9d8f04b55ccafdb49da9561aeb812ce4e29cb45d412c25837a8d"
+        }
+      },
+      {
+        "geometryKey": "junction.1210",
+        "decodedRGBA": {
+          "color": "ae49429e05e3c7b646997bef782cb2b47ffed00e5d62168d4d8b1fe16e3b7028",
+          "carrier": "e5932eea87ca9085f922a6195bc60f8ce8e78e6f05abff94b11e9671f36ec4fc"
+        }
+      },
+      {
+        "geometryKey": "junction.1211",
+        "decodedRGBA": {
+          "color": "0fb27b263b1acd820274b8550b845bf2909a0e57504b5e298451250eabd1bdbd",
+          "carrier": "c2cb1f7e707e6169c5b21cfe5ffb376472fbb0af10de5a29ada616f8875c2f82"
+        }
+      },
+      {
+        "geometryKey": "junction.1212",
+        "decodedRGBA": {
+          "color": "a163d3d0c66524bdc2945dbd554512ee9835eefb95ec4dbd28dc2a93e23eeb70",
+          "carrier": "be5a9be0e6d30f3aeab0328b4a80b859bb3832e6c2ed13d1060695d73e820933"
+        }
+      },
+      {
+        "geometryKey": "junction.1220",
+        "decodedRGBA": {
+          "color": "5265eee575ad8d6aaf33821f7197db933e1b18d64e8aeaa26541e5b693a2a365",
+          "carrier": "130fe8aaeedc3d817f4860ec69c211b429f5361776e07f728121b8819b90a706"
+        }
+      },
+      {
+        "geometryKey": "junction.1221",
+        "decodedRGBA": {
+          "color": "9e5f910a2f845f9304b15742464b75073e5032b5b5faac26fe9fdc6e4a32732e",
+          "carrier": "5757532ce9c1339ca71471eb259360f223af28bdf6fd867bd75c689df16ef2cc"
+        }
+      },
+      {
+        "geometryKey": "junction.1222",
+        "decodedRGBA": {
+          "color": "1094d43075d3ac00c74f7a45bb7fe60a204db041cdb9c1dad0f3af3d3f0508e9",
+          "carrier": "b7b7e63e779756508049e783acd7026a78ee0f15baca684654cb3b34136b7768"
+        }
+      },
+      {
+        "geometryKey": "junction.2000",
+        "decodedRGBA": {
+          "color": "c8962b801e7969302941fec4662302cadcbd0a27828db4bebc4f617537ee44a9",
+          "carrier": "323b68be746cf44441e7160bb5af1412d8b3540e2a025f0223643ff05feae17b"
+        }
+      },
+      {
+        "geometryKey": "junction.2001",
+        "decodedRGBA": {
+          "color": "2a3c81cd820c14eb2d00203610814c66f4a79d616f4f465543c0e6e899be0072",
+          "carrier": "ffad001dc7ea9465fde529ade55e6e658ec4c090a00b9d6c1f24f0d6329cd1fb"
+        }
+      },
+      {
+        "geometryKey": "junction.2002",
+        "decodedRGBA": {
+          "color": "d9b06f8ee3e52cc05aadf543d065976f418c5bf59592bb7eb2720886b1df7f4c",
+          "carrier": "001779d2940d037e9f072fe9f2bbc8c9e7edabcf3a2401eb0272457cf5ed55a3"
+        }
+      },
+      {
+        "geometryKey": "junction.2010",
+        "decodedRGBA": {
+          "color": "2328e8ed6f10dac86c38a1da450e46c15ca9d6e73b0e60dc3144a07e5252d437",
+          "carrier": "ed714a04916c6f2559e800d05754053bfcb174134b40dff869a8551a8d77003d"
+        }
+      },
+      {
+        "geometryKey": "junction.2011",
+        "decodedRGBA": {
+          "color": "e51ee68a3d4abf8d36a5b270a9bbd38932ab822c300e9b306477431f8080e216",
+          "carrier": "e498f0020bc36224bbbfe94d8860f90b1ae24c3becb245e90f3efd63f4d247ee"
+        }
+      },
+      {
+        "geometryKey": "junction.2012",
+        "decodedRGBA": {
+          "color": "da5337e41527cc09be777c0614bdcfedc67663830c694a2a53fc36d04609568a",
+          "carrier": "c09854030da2a4ac8e63cb5b8384e8eabab41a9e0f8caaf569bcbc452cffb6b5"
+        }
+      },
+      {
+        "geometryKey": "junction.2020",
+        "decodedRGBA": {
+          "color": "720efefdfae463d1657939843a65ed0e89a78622190722997a5b7e10b2edcb9f",
+          "carrier": "1950855413131abbd6703e4c966c8238dbf343deff05b29bcab5f1d44884327a"
+        }
+      },
+      {
+        "geometryKey": "junction.2021",
+        "decodedRGBA": {
+          "color": "f74bfefdf80d10d78841d1095823d246bac685fab081d7c704f8ec69b786e800",
+          "carrier": "1d535e90013dbe56270b468c71153586d79b39353d88f697924dcb0085ba375d"
+        }
+      },
+      {
+        "geometryKey": "junction.2022",
+        "decodedRGBA": {
+          "color": "45d4b6afefad75f5701ff92a0816462ad4df5a5ee3d60b84f4378dfb1b47e9a1",
+          "carrier": "3f28bbebe551e7e143cf0cb6f149e4c444891db6507e0e2011f85f7fc02b5238"
+        }
+      },
+      {
+        "geometryKey": "junction.2100",
+        "decodedRGBA": {
+          "color": "36069d29ba399f647f199cf7108e8426e7a7d80682bb08fabb8a84f872bdb843",
+          "carrier": "f443687f7721946c1199041ad4a4f3f9eee2949f47f02f0249905eb1ed4033f8"
+        }
+      },
+      {
+        "geometryKey": "junction.2101",
+        "decodedRGBA": {
+          "color": "ce4b4b18d46137500511b9f24f64c109d3549a2913330db6a7166483d87002a9",
+          "carrier": "9a0c4b74c44055148ae51c31cdd8fe2cbf1e199a8b8178cae4b4e611530776a7"
+        }
+      },
+      {
+        "geometryKey": "junction.2102",
+        "decodedRGBA": {
+          "color": "78077877cd0763e046c172f18fb73a77901e8ce5788308b95463a685ffed8b8f",
+          "carrier": "47d64f15a99c2e59a91f2e8f5ad489fed5baac615dd8587085e0f49c93600fb6"
+        }
+      },
+      {
+        "geometryKey": "junction.2110",
+        "decodedRGBA": {
+          "color": "9f05a3fa54a68ff344dbc75659cff37e67420fec35bd21f7759d20fe841b05cc",
+          "carrier": "26a916d22b317c516acda9977914fe5c954c4d6e1e9bec30cc4fffd0bbaa837c"
+        }
+      },
+      {
+        "geometryKey": "junction.2111",
+        "decodedRGBA": {
+          "color": "433d96c6c36957b03a93c974a433e7654295323f87a27244fe07c571909d727d",
+          "carrier": "212cfd37f4e5bb8013f97e13c862ee461ef8f0e3ca11d2885fe9a7fb0fb37802"
+        }
+      },
+      {
+        "geometryKey": "junction.2112",
+        "decodedRGBA": {
+          "color": "bce88655a8fa9a32b799ed0c9994ae75df282904615e71a691dc74938a285324",
+          "carrier": "94d0fdafac02be120d8a9c0ab965cbdb3dde07139e31e1d50f6b8a8ab110c971"
+        }
+      },
+      {
+        "geometryKey": "junction.2120",
+        "decodedRGBA": {
+          "color": "c5dfeb80bd5e94b02e4cd3f7592d04f6882b9608e0bf91de62dcfe170813e48e",
+          "carrier": "377ea9cd9f7c8bd74ddf4c103ee13b2e2f4349c11f779f80271401602ed048db"
+        }
+      },
+      {
+        "geometryKey": "junction.2121",
+        "decodedRGBA": {
+          "color": "3997d4cdccc6812601e2ebbc2ca163a40ea6912bf642272acaf66967d9f93642",
+          "carrier": "e6c777d117d3cc71189a8ab9954c0616da2c8425a6310f839813f46c1543c504"
+        }
+      },
+      {
+        "geometryKey": "junction.2122",
+        "decodedRGBA": {
+          "color": "7e7b7ceba91d7fdbfba5767841fba4f4782bd435a556d7385d83fa7ab248df6f",
+          "carrier": "8ddd78f0bbf6bc6d4cfe250805676585bce3aeaad7a01a8987626882aff66dc9"
+        }
+      },
+      {
+        "geometryKey": "junction.2200",
+        "decodedRGBA": {
+          "color": "0d5481d8fd2c0f42118e175a5f152654740a82a760879e352a846c4ffa24a6db",
+          "carrier": "41a8f936032bfe4f711d900bdde0b0065cf5e528a1cf7bfa08c8b17560f31368"
+        }
+      },
+      {
+        "geometryKey": "junction.2201",
+        "decodedRGBA": {
+          "color": "1a0fdd316c9715c85bf4de67616deb153d6c6ad741a97c27e71db7d3d3b2f69b",
+          "carrier": "7a166b8dfcb05ed0a337105e1d6cf3f95fbfc5b2d07dba3a6b90be8747bbdb82"
+        }
+      },
+      {
+        "geometryKey": "junction.2202",
+        "decodedRGBA": {
+          "color": "62740f4a3db6c7debff774b019cf76d0931247f8ebb44d2f74b9162bf0b6c4c5",
+          "carrier": "8b296ef2a6ebda139472fa35aeb9a8510bd018d8048b0263406c2c7dd0b762ee"
+        }
+      },
+      {
+        "geometryKey": "junction.2210",
+        "decodedRGBA": {
+          "color": "d6712f49da76da156a3e3392a9294dbfe0ca0722326a991c8a89b5889c00ec1a",
+          "carrier": "182a0e11f6a18ae67313c1366ba2fa0c3658ef1cac8b1ca949edfb25639c3dc2"
+        }
+      },
+      {
+        "geometryKey": "junction.2211",
+        "decodedRGBA": {
+          "color": "9259799c4a05c511f87de975c648177f75294f99eb31f69e6494928b18154c21",
+          "carrier": "9a9c90e841cd2b5fdf92d6c9afdb6c4535a6501a86561eb6ccb85e64d9e9ff2d"
+        }
+      },
+      {
+        "geometryKey": "junction.2212",
+        "decodedRGBA": {
+          "color": "550cfc6dad041f19b83eba7d2c07648f8a3e090311b6e2cddaee8f90d0a19eb8",
+          "carrier": "ff32af615b7ef0b7e619d64f51c5648fd63ee3682261934a01d1e556bac57042"
+        }
+      },
+      {
+        "geometryKey": "junction.2220",
+        "decodedRGBA": {
+          "color": "6fc6f58a2c73cf49d0c270a778a34390f0f1cb39aab22f7349756818e3208976",
+          "carrier": "25993b2a87f7531977765acbfe3e67911aed5e32d7521c5d1448e0262376ca22"
+        }
+      },
+      {
+        "geometryKey": "junction.2221",
+        "decodedRGBA": {
+          "color": "b0936f8afbe7d6e470525a935b59184badc9c314a2353c1a7857d0624cb46724",
+          "carrier": "6fefa94339c2aa0de934acba835c945281e7a12925c59bb03add82a1d734abb5"
+        }
+      },
+      {
+        "geometryKey": "junction.2222",
+        "decodedRGBA": {
+          "color": "e5d1a05cc7a0b10f5d2f76c9d820b558030782e2cc072076120f0c1233556a23",
+          "carrier": "bf9a740219c7d96977894f51bd074085cf7f6d89c3a9f99ef21ccc37f7e30b13"
+        }
+      },
+      {
+        "geometryKey": "floor-patch.boards",
+        "decodedRGBA": {
+          "color": "0400bee617192e90b58378c9c65959b483b663e22a947435f64f7cfcfdf97de4",
+          "carrier": "51eb9bdc3fcdf8cbb8fe94534a4264b52762a07dcec9ceba0d592a3da9568b94"
+        }
+      },
+      {
+        "geometryKey": "floor-patch.tiles",
+        "decodedRGBA": {
+          "color": "996eb2fcb6b088384c3785d00ba74f7e4326d910bfaab4e9727c1cf0cfa484bf",
+          "carrier": "51eb9bdc3fcdf8cbb8fe94534a4264b52762a07dcec9ceba0d592a3da9568b94"
+        }
+      },
+      {
+        "geometryKey": "floor-patch.carpet",
+        "decodedRGBA": {
+          "color": "f3c99ec3a917400041c11b117e0c7109ab43a8885c18ea74ad8262e9931d5b57",
+          "carrier": "51eb9bdc3fcdf8cbb8fe94534a4264b52762a07dcec9ceba0d592a3da9568b94"
+        }
+      },
+      {
+        "geometryKey": "floor-patch.neutral",
+        "decodedRGBA": {
+          "color": "1966a93bfc2cdbbff8ae1ea4030171be8ac965b08b13b8d307da97771a058f89",
+          "carrier": "51eb9bdc3fcdf8cbb8fe94534a4264b52762a07dcec9ceba0d592a3da9568b94"
+        }
+      },
+      {
+        "geometryKey": "floor-patch.grass",
+        "decodedRGBA": {
+          "color": "12a5941c94e6ff2f1cfbb34e5bfdb3bc5bb3ac351a79d6d41dd6c3c58d529d46",
+          "carrier": "51eb9bdc3fcdf8cbb8fe94534a4264b52762a07dcec9ceba0d592a3da9568b94"
+        }
+      },
+      {
+        "geometryKey": "floor-patch.street",
+        "decodedRGBA": {
+          "color": "97c64c393aa2fcbe1e49ad0ceea5eed9c97530ffd7c166fc7f762867e26b5a29",
+          "carrier": "51eb9bdc3fcdf8cbb8fe94534a4264b52762a07dcec9ceba0d592a3da9568b94"
+        }
+      }
+    ]
+  },
+  "resourceHashes": {
+    "color": "609120f44b7afacfc9abb27a54b8d58bc96d3c3313bd440fb1cc6f9275362f9b",
+    "carrier": "9a28f5c6fd16a55d089e9404333e87bef918f5ead098f0350ca3ab0f6f70dbcb",
+    "depth": "0afaf80f77d3aa08f6f119e4d9a4c720d6f8feddec9f0aff3385908b4d70aa7d",
+    "roles": "a72b12eb9ffc5bc6801c653cf6415345d1446e62354e9a57a3f19b6659159cc9"
+  }
+}
