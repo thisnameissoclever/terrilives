@@ -289,7 +289,7 @@ those expectations were corrected and the complete workspace run passed.
 | `cargo clippy --workspace --all-targets -- -D warnings` | PASS: no warnings | 0 |
 | `cargo fmt --all --check` | PASS | 0 |
 | `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS: release WASM | 0 |
-| `npm test -- --maxWorkers=1` in `web/` | PASS: 118 files, 1,770 tests | 0 |
+| `npm test -- --maxWorkers=1` in `web/` | PASS: 118 files, 1,771 tests after changelog integration | 0 |
 | `npm run typecheck` in `web/` | PASS | 0 |
 | `npm run build` in `web/` | PASS: production bundle | 0 |
 | `python -B -m unittest discover -s assets/sprites/gen` | PASS: 126 tests | 0 |
