@@ -1,6 +1,7 @@
 # Sleeping-place navigation checkpoint
 
-2026-10-01, local branch `twcx/bed-place-runtime`. Unpublished work; occupied
+2026-10-01, local branch `twcx/bed-place-runtime`, checkpoint `01abe01d`.
+Merged upstream main `5d332287` locally as `81902f23`. Unpublished work; occupied
 double-bed rendering remains a separate acceptance gate.
 
 ## Behavior
@@ -62,18 +63,20 @@ migration and a second modern save/load.
 | `cargo test --workspace -- --test-threads=1` | Core 109, data 270 plus 1 integration, simulation 747 passed. WASM passed 150 and failed two old expected-digest assertions; see repair below. | 101 |
 | `cargo test -p terri-data -p terri-wasm -- --test-threads=1` | PASS after repair and restored faults: data 270 plus 1 integration; WASM 152 | 0 |
 | `cargo test -p terri-sim beds:: -- --test-threads=1` | PASS: all 28 after fault restoration | 0 |
-| `cargo clippy --workspace --all-targets -- -D warnings` | PASS on production changes and navigation tests; the subsequent WASM edits change only two expected-world fixtures | 0 |
+| `cargo clippy --workspace --all-targets -- -D warnings` | PASS after the final WASM fixture repair and upstream integration | 0 |
 | `cargo fmt --all --check` | PASS | 0 |
 | `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | PASS: rebuilt release artifact | 0 |
 | `npm run typecheck`, in `web` | PASS | 0 |
-| `npm test`, in `web` | PASS: 1,580 against rebuilt WASM | 0 |
+| `npm test`, in `web` | PASS: 1,580 against rebuilt WASM; 1,598 after upstream audio integration | 0 |
 | `npm run build`, in `web` | PASS | 0 |
 | `python check-doc-ids.py`, `git diff --check` | PASS | 0 |
 
 Together these establish 1,279 passing native tests. The full-workspace
 command itself is not reported as a clean run: its two failing expectations
-were repaired and the complete affected crate was rerun. Existing browser
-control evidence remains in `runtime-ui.md`; no new occupied visual or public
+were repaired and the complete affected crate was rerun. The upstream integration adds the paper review page and suspended-audio
+cancellation repair, without changing Rust or bed content. Web typecheck,
+all tests and the production build passed again after that integration.
+Existing browser control evidence remains in `runtime-ui.md`; no new occupied visual or public
 deployment acceptance is claimed.
 
 The fresh reviewer compared the complete failed WASM snapshots: only the
