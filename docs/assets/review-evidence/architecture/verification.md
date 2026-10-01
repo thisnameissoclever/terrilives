@@ -45,7 +45,19 @@ The historical case feeds identical pinned geometry to both renderers and requir
 
 Each visible animation-frame sample measures draw submission through GPU queue completion; presentation cadence is recorded separately. Equal warmup precedes alternating renderer order. The record contains raw samples, p50/p95, upload/draw counts and GPU allocation counts. Compare repeated rounds before accepting cost; more than 10% p95 growth requires investigation. JavaScript heap allocation, graphics-driver padding and GPU timestamp queries are not measured. Source review and existing fade tests cover retained per-frame fade buffers; they do not establish a heap-profiler measurement.
 
-Final benchmark execution is PENDING. Do not infer acceptable performance from the earlier small-scene Task 1 result, a refresh-limited cadence, or a zero-cost helper import.
+`final/task10-performance.json` retains the first final measurements at commit `0ec76988`, helper SHA-256 `1af9f52653e51462e8c74e1dd8c8912f6146f5c1a0966baaba43ece36e195cad`, on Windows Chromium 154 with an NVIDIA Lovelace adapter. Each complete case has four alternating rounds of 60 warmup and 120 measured frames per renderer. Source hashes, input hashes, actual resource dimensions and all phase-two samples are retained.
+
+| Comparable scene | Canvas | Baseline pooled p95 | Current pooled p95 | Growth |
+| --- | --- | --- | --- | --- |
+| Historical geometry, scale 1.75 | 1176x973 | 5.380 ms | 4.700 ms | -12.6% |
+| Final 34x34 stress scene, scale 1 | 2336x1648 | 5.285 ms | 6.235 ms | +18.0% |
+| Final 34x34 stress scene, scale 1.75 | 4088x2884 | 6.780 ms | 7.465 ms | +10.1% |
+
+The stress results exceed the investigation threshold. Individual round growth ranges from -30.9% to +33.6%, and the queue-completion measurement includes browser queue-fence/IPC latency. Root is investigating that distinction before drawing a performance conclusion. These results are not an acceptable-cost PASS. Exact historical pixels match at scale 1.75; GPU validation and uncaptured-error checks pass.
+
+Every measured frame uses two draws, one submit and three buffer writes; no GPU buffer/texture allocation or texture upload occurs after warmup. Stress uploads decrease from 10,688 to 9,536 bytes per frame because the current short-wall batch has fewer pieces. Static/short row counts are 1225/154 historically and 1256/136 currently, with twelve dynamic rows each. The unchanged 8192x5658 RGBA atlas costs 185,401,344 unpadded bytes. Current architecture adds 23,969,792 accepted-color bytes and 11,984,896 paired-depth bytes, with no active alternate patterns/carrier and one 1x1 role placeholder. Depth attachments are `depth24plus`; case records give physical dimensions and a lower bound, not driver storage claims.
+
+The initial historical-native phase has only observed per-round p95 summaries. A worker edited the helper's resource-label bookkeeping after declaring it frozen; Vite hot reload discarded the live raw results before extraction. Those summaries are marked incomplete, and root reloaded the helper for the complete phase-two cases. This coordination failure is not silently treated as retained raw evidence. Do not infer acceptable performance from the earlier small-scene Task 1 result, a refresh-limited cadence, or a successful helper import.
 
 ## Review and delivery boundaries
 
