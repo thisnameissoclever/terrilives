@@ -1,5 +1,24 @@
 # Lessons Learned
 
+## [L-audio-cancellation-without-playback] End ownership even when sound cannot play
+
+**What happened.** Object and conversation end events were discarded while an
+externally suspended audio context could not play. Their schedulers forgot the
+ended actions, but native loops or pending recordings could survive and resume.
+
+**Root cause.** One audibility gate controlled both playback admission and
+ownership cancellation. Gesture-driven recovery hid the missing terminal path
+in earlier tests. A normal fade also cannot finish on a suspended audio clock.
+
+**Prevention rule.** Process exact-source cancellation independently of playback
+availability. Clear pending ownership first. Preserve normal fades when the
+clock runs; release the affected nodes immediately when it does not.
+
+**How to verify.** End an action through public frame APIs during suspension,
+return to running without a gesture, and settle a late recording load. Require
+no revived source or retained nodes. Render samples across native suspension
+to distinguish real cleanup from an active-count change that hides a frozen fade.
+
 ## [L-audio-decode-detaches-input] Capture encoded metadata before decoding
 
 **What happened.** A paper-recording screening report showed zero encoded bytes

@@ -124,6 +124,24 @@ function player(context = new FakeContext()): {
 }
 
 describe('VoiceClipPlayer', () => {
+  it('immediately releases only the requested identity despite a source stop failure', () => {
+    const { context, player: voices } = player();
+    voices.play(0, 1, 1, 'ended');
+    voices.play(0, 1, 1, 'continuing');
+    const continuingStops = context.sources.slice(2).map(source => [...source.stops]);
+    voices.stopConversation('stale', true);
+    expect(voices.activeConversationCount()).toBe(2);
+    context.sources[0].failNextStop = true;
+    expect(() => voices.stopConversation('ended', true)).not.toThrow();
+    expect(voices.activeConversationCount()).toBe(1);
+    expect(voices.retainedConversationCount()).toBe(1);
+    expect(context.sources.slice(0, 2).every(source => source.disconnected && source.onended === null)).toBe(true);
+    expect(context.gains[0].disconnected).toBe(true);
+    expect(context.sources[1].stops.at(-1)).toBe(10);
+    expect(context.sources.slice(2).map(source => source.stops)).toEqual(continuingStops);
+    expect(context.sources.slice(2).every(source => !source.disconnected)).toBe(true);
+  });
+
   it('does not stop a newer instance when an older instance has naturally ended', () => {
     const { context, player: voices } = player();
     voices.play(0, 1, 1, 'old');

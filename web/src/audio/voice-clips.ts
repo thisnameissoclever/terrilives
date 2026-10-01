@@ -243,9 +243,9 @@ export class VoiceClipPlayer {
   }
 
   /** Stops only this instance when the simulation outruns its recording. */
-  stopConversation(key: string): void {
+  stopConversation(key: string, immediate = false): void {
     const conversation = this.active.find((record) => record.key === key);
-    if (conversation !== undefined) this.finish(conversation, true);
+    if (conversation !== undefined) this.finish(conversation, true, immediate);
   }
 
   /** Lifecycle silence: stop every pair, fading rather than cutting. */
@@ -268,16 +268,21 @@ export class VoiceClipPlayer {
     return this.active.length + this.draining.length;
   }
 
-  private finish(conversation: ActiveConversation, stop: boolean): void {
+  private finish(conversation: ActiveConversation, stop: boolean, immediate = false): void {
     if (conversation.ended) return;
     conversation.ended = true;
 
     const index = this.active.indexOf(conversation);
     if (index >= 0) this.active.splice(index, 1);
 
-    if (!stop) {
-      // Reported ended: the audio has already played out, so the nodes can go
-      // immediately.
+    if (!stop || immediate) {
+      if (stop) {
+        for (const source of conversation.sources) {
+          try { source.stop(this.context.currentTime); }
+          catch { /* Still disconnect every node if a source refuses stop. */ }
+        }
+      }
+      // Natural completion or a stopped hardware clock needs no release fade.
       this.tearDown(conversation);
       return;
     }

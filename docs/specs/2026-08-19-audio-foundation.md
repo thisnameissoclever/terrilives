@@ -67,6 +67,12 @@ default Voices to 100%. An invalid Voices field defaults only that field.
 10. Successful Load reads the replacement world's aligned stable identity and
    clears active world phase after replacement. Failed or cancelled Load
    changes no audio world state.
+11. Object stops and conversation ends cancel matching ownership even while
+    audio is suspended or otherwise inaudible. A running clock keeps normal
+    release fades; a stopped clock immediately releases the affected nodes.
+    Late decoding cannot revive an ended action. This does not add automatic
+    recovery for start events dropped during external suspension. See
+    `2026-10-01-suspended-audio-cancellation.md` for that distinction.
 
 ## Node graph and bounded playback
 
