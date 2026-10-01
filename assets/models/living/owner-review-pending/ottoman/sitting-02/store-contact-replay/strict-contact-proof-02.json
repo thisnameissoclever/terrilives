@@ -1,0 +1,317 @@
+{
+  "state": "complete",
+  "pid": 26340,
+  "background": true,
+  "inputs": {
+    "output\\ottoman-sit-candidate-02\\ottoman-sit-authoring.blend": "bc5144165be665cfdc62dae1ce2eb96e7d3b978040aabf2f542785313e55371f",
+    "output\\build-ottoman-sit-refined.py": "a79af9456f436096bc87f7e770eb07471bcec28fa0bf6912c3d55df7b5d99a09",
+    "output\\check-ottoman-sit-candidate-02.py": "50d27e17a351994226d42fb25bc7554010d6dcc3aedad7992c692c623878fb7b",
+    "output\\surface_volume.py": "6822e2307d85cd2d4f5545f5d9bcb76cc1f38a5a443cb878a666bc3cda2a54e9"
+  },
+  "scope": "Strict offline contact only; no runtime acceptance",
+  "samples": [
+    {
+      "frame": 1,
+      "hip_support": {
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "body_pairs_checked": 12,
+      "body_furniture_intersections": [],
+      "body_self_intersections": [],
+      "floor_support": {
+        "Fitted rounded shoe sole": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              0.04624057933688164,
+              0.00014812372683081776
+            ],
+            [
+              -0.4943927526473999,
+              0.20170949399471283,
+              0.0017884263070300221
+            ]
+          ],
+          "xy_hull_area": 0.028307898214811278
+        },
+        "Fitted rounded shoe sole.001": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              -0.20170941948890686,
+              0.00014811631990596652
+            ],
+            [
+              -0.4943927526473999,
+              -0.04624052718281746,
+              0.0017884185072034597
+            ]
+          ],
+          "xy_hull_area": 0.028307897699380802
+        }
+      },
+      "validated_volumes": [
+        "Cushion",
+        "Cushion welt",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "Overshirt body",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Upholstered frame"
+      ],
+      "analysis_only_caps": {
+        "Overshirt body": 96
+      }
+    },
+    {
+      "frame": 2,
+      "hip_support": {
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "body_pairs_checked": 12,
+      "body_furniture_intersections": [],
+      "body_self_intersections": [],
+      "floor_support": {
+        "Fitted rounded shoe sole": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              0.04624057933688164,
+              0.00014812372683081776
+            ],
+            [
+              -0.4943927526473999,
+              0.20170949399471283,
+              0.0017884263070300221
+            ]
+          ],
+          "xy_hull_area": 0.028307898214811278
+        },
+        "Fitted rounded shoe sole.001": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              -0.20170941948890686,
+              0.00014811631990596652
+            ],
+            [
+              -0.4943927526473999,
+              -0.04624052718281746,
+              0.0017884185072034597
+            ]
+          ],
+          "xy_hull_area": 0.028307897699380802
+        }
+      },
+      "validated_volumes": [
+        "Cushion",
+        "Cushion welt",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "Overshirt body",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Upholstered frame"
+      ],
+      "analysis_only_caps": {
+        "Overshirt body": 96
+      }
+    },
+    {
+      "frame": 3,
+      "hip_support": {
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "body_pairs_checked": 12,
+      "body_furniture_intersections": [],
+      "body_self_intersections": [],
+      "floor_support": {
+        "Fitted rounded shoe sole": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              0.04624057933688164,
+              0.00014812372683081776
+            ],
+            [
+              -0.4943927526473999,
+              0.20170949399471283,
+              0.0017884263070300221
+            ]
+          ],
+          "xy_hull_area": 0.028307898214811278
+        },
+        "Fitted rounded shoe sole.001": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              -0.20170941948890686,
+              0.00014811631990596652
+            ],
+            [
+              -0.4943927526473999,
+              -0.04624052718281746,
+              0.0017884185072034597
+            ]
+          ],
+          "xy_hull_area": 0.028307897699380802
+        }
+      },
+      "validated_volumes": [
+        "Cushion",
+        "Cushion welt",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "Overshirt body",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Upholstered frame"
+      ],
+      "analysis_only_caps": {
+        "Overshirt body": 96
+      }
+    },
+    {
+      "frame": 4,
+      "hip_support": {
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "body_pairs_checked": 12,
+      "body_furniture_intersections": [],
+      "body_self_intersections": [],
+      "floor_support": {
+        "Fitted rounded shoe sole": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              0.04624057933688164,
+              0.00014812372683081776
+            ],
+            [
+              -0.4943927526473999,
+              0.20170949399471283,
+              0.0017884263070300221
+            ]
+          ],
+          "xy_hull_area": 0.028307898214811278
+        },
+        "Fitted rounded shoe sole.001": {
+          "point_count": 241,
+          "gap_limit": 0.003,
+          "contact_bounds": [
+            [
+              -0.728894829750061,
+              -0.20170941948890686,
+              0.00014811631990596652
+            ],
+            [
+              -0.4943927526473999,
+              -0.04624052718281746,
+              0.0017884185072034597
+            ]
+          ],
+          "xy_hull_area": 0.028307897699380802
+        }
+      },
+      "validated_volumes": [
+        "Cushion",
+        "Cushion welt",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "Overshirt body",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Upholstered frame"
+      ],
+      "analysis_only_caps": {
+        "Overshirt body": 96
+      }
+    }
+  ],
+  "approved_neck_boundary_sha256": "fc92ab041d93490f921c061921bbd6f281c5036d576e89fb741f2c5ac5f901e1",
+  "accepted": true,
+  "source_bytes_unchanged": true
+}

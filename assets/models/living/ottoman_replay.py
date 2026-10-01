@@ -14,7 +14,7 @@ BASE = 'output/ottoman-sit-candidate-02/'
 STAGES = ('source-tests', 'contact', 'render', 'author')
 
 
-def prepare_stage(bundle, stage, destination):
+def stage_input_names(bundle, stage):
     if stage not in STAGES:
         raise ValueError(f'Unknown ottoman replay stage: {stage}')
     names = {name for name in bundle.records if name.endswith('.py')}
@@ -28,7 +28,11 @@ def prepare_stage(bundle, stage, destination):
                 names.add('output/ottoman-sit-candidate-01/ottoman-sit-authoring.blend')
             else:
                 names.add(BASE + 'strict-contact-proof-02.json')
-    return bundle.materialize(sorted(names), destination)
+    return sorted(names)
+
+
+def prepare_stage(bundle, stage, destination):
+    return bundle.materialize(stage_input_names(bundle, stage), destination)
 
 
 def blender_command(executable, env):

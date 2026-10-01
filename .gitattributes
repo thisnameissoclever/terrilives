@@ -16,6 +16,8 @@ assets/models/living/owner-review-pending/armchair/**/*.json -text whitespace=bl
 # Ottoman historical recipes and receipts keep their accepted byte hashes.
 assets/models/living/owner-review-pending/ottoman/sitting-02/archive/**/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/living/owner-review-pending/ottoman/sitting-02/archive/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/living/owner-review-pending/ottoman/sitting-02/store-contact-replay/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/living/owner-review-pending/ottoman/sitting-02/store-contact-replay/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # **Append-only prose, merged by keeping BOTH sides.**
 #

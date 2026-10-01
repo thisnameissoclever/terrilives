@@ -50,12 +50,58 @@ Each stage gets its own directory; do not reuse a directory between stages.
    Sim rig. The candidate directory starts absent, as the unchanged builder requires.
    Its result is a new candidate, not an approved replacement.
 
-The final three stages require `--blender` pointing to Blender 4.5.14 LTS, build
-`62c1db4208e8`, on Windows. The wrapper checks that exact build before preparing
-the replay. The archived scripts retain Windows path identifiers. These stages
-have not yet been replayed from this package. Embedded Blender resource paths
-have not been audited, so the successful Python replay alone does not establish
-full Blender reproducibility.
+The final three stages require `--blender` pointing to a synchronous Blender
+4.5.14 LTS executable, build `62c1db4208e8`, on Windows. The wrapper checks that
+exact build before preparing the replay. The archived scripts retain Windows
+path identifiers. Do not pass the detached Store launcher to this synchronous
+interface or treat its exit code as the Blender script's result.
+
+### Authorized Store-launcher contact replay
+
+On this machine, use the separately supported detached route below. It audits
+all four copied models before running the unchanged contact and occupancy
+recipes. It does not render or reauthor the candidate. The direct protected
+Store executable previously denied access; do not retry it, change permissions
+or copy it elsewhere. The owner authorized the installed launcher route.
+
+Use a new absolute directory for every job:
+
+```powershell
+$ottomanReplay = 'D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/output/ottoman-store-contact-new'
+python assets/models/living/ottoman_store_replay.py prepare --directory $ottomanReplay
+if ($LASTEXITCODE -ne 0) { throw 'Replay preparation failed' }
+Start-Process -FilePath 'C:/Users/myema/AppData/Local/Microsoft/WindowsApps/blender-launcher.exe' -ArgumentList "--background --factory-startup --threads 2 --python-exit-code 1 --python $ottomanReplay/worker.py -- $ottomanReplay/request.json" -WindowStyle Hidden -PassThru
+python assets/models/living/ottoman_store_replay.py collect --directory $ottomanReplay
+```
+
+The example path contains no spaces. Quote the two file arguments within the
+native argument string if using a path with spaces. A missing `result.json`
+means completion has not been observed. Inspect the actual Blender PID in
+`started.json` before deciding whether it is running; do not infer process state
+from that file alone, relaunch the same job or treat launcher exit as success.
+The worker refuses a duplicate start and publishes its final receipt atomically.
+
+The first contact replay completed in Blender 4.5.14 LTS, build `62c1db4208e8`,
+with background mode true. Its 37 copied input paths and hashes match the pinned
+bundle. All four models report zero external paths, linked libraries and packed
+images. All four contact-sample dictionaries and all seven occupancy-case
+dictionaries equal the accepted receipts. Original and copied input bytes are
+unchanged. `store-contact-replay/` retains the request, exact executed worker,
+result and two fresh output receipts. The copied inputs remain reproducible from
+the original bundle; they are not duplicated again in this evidence folder.
+
+The audit uses Blender's
+[`blend_paths`](https://docs.blender.org/api/4.4/bpy.utils.html#bpy.utils.blend_paths)
+with linked paths included, both with and without packed resources. It checks
+Blender-reported file references, not operating-system sandboxing. Full image
+rerender and pose reauthoring remain unverified; this contact replay does not
+establish either of them or played-game acceptance.
+
+`store-completion-guard-proof.json` records 14 removed completion guards detected
+by their specific assertions and three restored passing tests. The new bundle
+guard proof retains the 11-guard/17-test result after sharing the input inventory
+between preparation and collection. The collector rejects self-consistent but
+incomplete input maps, repeated case identities and changed contact measurements.
 
 ## Checks and evidence boundaries
 

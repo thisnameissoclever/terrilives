@@ -8256,3 +8256,28 @@ Keep those fields with the proof rather than inferring them from exit code 1.
 an intended assertion plus a runtime error. All must fail. Delete the marker
 and runtime-error guards independently, then require those regression tests to
 fail before restoring and passing the focused suite.
+
+## [L-detached-replay-needs-pinned-inventory] Bind completion to the complete source job
+
+**What happened.** The ottoman replay interface assumed a synchronous executable,
+but this machine's approved Store launcher detaches. A separate receipt-based
+collector initially accepted a self-consistent request that omitted a source
+model, or seven copies of one passing occupancy case. Independent review
+reproduced both false-success paths without modifying the real evidence.
+
+**Root cause.** Launcher exit was the wrong execution boundary. The initial
+collector also used the request itself as the authority for required inputs and
+used a count instead of regression-case identity.
+
+**Prevention.** Use a fresh job identity, an exclusive start marker and an atomic
+script result. Pin the engine and background mode. Derive exact input paths and
+hashes from the accepted bundle, not the request being checked. Require full
+expected outputs and regression cases, unchanged source bytes and the accepted
+contact measurements. A missing result is unobserved completion; verify the
+actual process before waiting, declaring failure or considering another launch.
+
+**Verify.** Remove inputs and re-sign the request; duplicate one case seven times;
+alter a measurement and re-sign its output. Each must fail its intended assertion.
+Here 14 completion-guard removals fail, all three restored tests pass, and the
+real copied-source job reproduces four contact samples plus seven cases. Source
+replay remains separate from render and played-game acceptance.

@@ -1,0 +1,46 @@
+{
+  "job_id": "140f47f0d762460dac86347100bf7fc4",
+  "pid": 26340,
+  "state": "complete",
+  "request_sha256": "060e3df89a71616184c206a2cc862e018d95bc4353686919fe9852b4a73549af",
+  "background": true,
+  "engine": [
+    "4.5.14 LTS",
+    "62c1db4208e8"
+  ],
+  "resources": [
+    {
+      "model": "assets/models/living/owner-review-pending/ottoman/candidate-01/ottoman-authoring.blend",
+      "required_external_paths": [],
+      "all_reference_paths": [],
+      "linked_libraries": 0,
+      "packed_images": 0
+    },
+    {
+      "model": "assets/models/sims/sim-01/sim-01-rigged.blend",
+      "required_external_paths": [],
+      "all_reference_paths": [],
+      "linked_libraries": 0,
+      "packed_images": 0
+    },
+    {
+      "model": "output/ottoman-sit-candidate-01/ottoman-sit-authoring.blend",
+      "required_external_paths": [],
+      "all_reference_paths": [],
+      "linked_libraries": 0,
+      "packed_images": 0
+    },
+    {
+      "model": "output/ottoman-sit-candidate-02/ottoman-sit-authoring.blend",
+      "required_external_paths": [],
+      "all_reference_paths": [],
+      "linked_libraries": 0,
+      "packed_images": 0
+    }
+  ],
+  "outputs": {
+    "output/ottoman-sit-candidate-02/strict-contact-proof-02.json": "debc928f32b7ac945f6841586d9004cc3cf3f3deaf2211391978a902e789f819",
+    "output/ottoman-sit-candidate-02/occupancy-regression-proof.json": "baf3061b3c1bce6b4209f9fa887dc055d2a731c2ed909ce7002f55ff4d1e35a9"
+  },
+  "source_bytes_unchanged": true
+}

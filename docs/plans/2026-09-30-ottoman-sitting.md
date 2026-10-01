@@ -249,6 +249,13 @@ passed 157 sprite plus 51 living-model tests. Browser review remains open. See t
 
 ## Current browser boundary
 
+A later copied-source job reproduced all four contact samples and seven
+occupancy cases through the authorized detached Store launcher. All four copied
+models reported no external resources; original and copied inputs stayed
+unchanged. The collector and its rejection tests passed independent review.
+See the [contact replay evidence](../assets/review-evidence/living/ottoman-sitting.md#copied-source-contact-replay).
+This closes contact replay only, not full render replay or played acceptance.
+
 The aquarium's saved gameplay-check script was denied by the browser tool's
 file-access rules. The user has been asked whether the supported inline-code
 interface may be used instead; no answer is recorded. Do not retry through

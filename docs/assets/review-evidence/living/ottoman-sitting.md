@@ -71,6 +71,36 @@ and bundle SHA-256
 Retained copies are in `assets/models/living/owner-review-pending/ottoman/sitting-02/`.
 The production receipt checks evidence; it does not rerun Blender geometry.
 
+## Copied-source contact replay
+
+After the source checkpoint `380d1ae8`, a fresh job ran through the previously
+authorized Store launcher. The synchronous replay interface is unsuitable for
+that detached launcher, so the new prepare/collect tool relies on a script-owned
+receipt instead of launcher exit. It does not change the accepted recipes.
+
+The fresh job `140f47f0d762460dac86347100bf7fc4` used Blender 4.5.14 LTS,
+build `62c1db4208e8`, in background mode. Collection verifies all 37 copied input
+paths and hashes against the pinned bundle, unchanged original and copied bytes,
+four complete model-resource inventories, four contact samples and seven
+occupancy cases. The measurements and complete case dictionaries match the
+accepted receipts exactly. All four models report no external paths, linked
+libraries or packed images. This is not a full render replay, reauthoring test,
+operating-system sandbox or browser review.
+
+The request, executed worker, result and new receipts are retained in
+`assets/models/living/owner-review-pending/ottoman/sitting-02/store-contact-replay/`.
+The package README supplies the preparation, hidden-launch and collection commands.
+The actual Blender process exited after completing the job. No preview server
+or browser was opened.
+
+Independent review accepted the observed replay but found that the first
+collector could trust an incomplete, re-signed input inventory or seven copies
+of one regression case. Collection now requires the exact bundle-derived inputs
+and exact accepted case dictionaries. Fourteen deliberate guard removals fail
+their specific assertions, then all three restored collection tests pass. The
+existing 11 bundle/replay guard checks and 17 restored tests also pass after
+sharing stage-input selection. No accepted model, sprite or runtime code changed.
+
 Independent code review caught and prompted fixes for null dependency digests
 disabling optional hash comparisons, and a verification run accepting a new
 internally valid bundle in place of its starting evidence. The tests reproduce

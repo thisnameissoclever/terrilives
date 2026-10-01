@@ -69,8 +69,8 @@ def main():
     restored_loader_output = capture.getvalue()
     replay_source = paths[3].read_text(encoding='utf-8')
     replay_cases = [
-        ('stage_isolation', 'return bundle.materialize(sorted(names), destination)',
-         'return bundle.materialize(sorted(bundle.records), destination)',
+        ('stage_isolation', 'return sorted(names)',
+         'return sorted(bundle.records)',
          'test_each_stage_seeds_inputs_but_not_its_outputs'),
         ('original_source_recheck', 'bundle.resolve(name)', 'pass',
          'test_changed_source_and_resigned_catalog_leave_a_failed_journal'),

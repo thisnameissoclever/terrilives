@@ -1,0 +1,85 @@
+{
+  "state": "complete",
+  "inputs": {
+    "ottoman_store_replay.py": "5577769c0a224264921477930205c1ef45a11beac8fc62f6b0ce9ea2ed63b0b6",
+    "ottoman_blender_job.py": "6aefbd64259a38d194d5a1103251502d7dace27bf398ac049fe039fda3e1fcb9",
+    "test_ottoman_store_replay.py": "e0c27f3b0a858457631f26937a792b1ac64be56c04f90ceff00502b146895da8",
+    "ottoman_replay.py": "ce589681100c485b05b321165dbe8d5847ccef8290fdcb3fe1135bdf77971e94",
+    "prove_ottoman_store_replay.py": "d8bf32c3a7151f3f671bd040f68367003c29096aa7b0cf464d3078051d1c8e08"
+  },
+  "mutations": [
+    {
+      "guard": "job identity",
+      "test": "test_a_launcher_return_without_a_blender_receipt_is_not_completion",
+      "output": "F\n======================================================================\nFAIL: test_a_launcher_return_without_a_blender_receipt_is_not_completion (test_ottoman_store_replay.OttomanStoreReplayTests.test_a_launcher_return_without_a_blender_receipt_is_not_completion)\n----------------------------------------------------------------------\nValueError: Blender replay request hash differs\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 23, in test_a_launcher_return_without_a_blender_receipt_is_not_completion\n    with self.assertRaisesRegex(ValueError, 'job identity', msg='job identity'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"job identity\" does not match \"Blender replay request hash differs\" : job identity\n\n----------------------------------------------------------------------\nRan 1 test in 0.003s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "request hash",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'request_sha256': '0000000000000000000000000000000000000000000000000000000000000000'})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : request hash\n\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "engine",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'engine': ['5.0', 'other']})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : engine\n\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "background",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'background': False})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : background\n\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "source bytes",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'source_bytes_unchanged': False})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : source bytes\n\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "input hash",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 88, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, 'input hash', msg='input hash'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : input hash\n\n----------------------------------------------------------------------\nRan 1 test in 0.012s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "resource inventory",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'resources': []})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : resource inventory\n\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "external resources",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'resources': [{'model': 'model.blend', 'required_external_paths': ['D:/outside/texture.png']}]})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : external resources\n\n----------------------------------------------------------------------\nRan 1 test in 0.012s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "output inventory",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies) (fields={'outputs': {'output/ottoman-sit-candidate-02/strict-contact-proof-02.json': '23b4c683b2525ac96ba5f0c7ad5fd5b683b27c7e6bd64b1b848626fc4d335d59', 'output/ottoman-sit-candidate-02/occupancy-regression-proof.json': '17f8e5a1388f2b2b8efdb6f337ef86124ff8eef2b74bac92ca0cf9acb2d3e8f6', 'unexpected.json': '0000000000000000000000000000000000000000000000000000000000000000'}})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 71, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, message, msg=message):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : output inventory\n\n----------------------------------------------------------------------\nRan 1 test in 0.012s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "contact samples",
+      "test": "test_completion_requires_engine_resources_outputs_and_unchanged_copies",
+      "output": "F\n======================================================================\nFAIL: test_completion_requires_engine_resources_outputs_and_unchanged_copies (test_ottoman_store_replay.OttomanStoreReplayTests.test_completion_requires_engine_resources_outputs_and_unchanged_copies)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 83, in test_completion_requires_engine_resources_outputs_and_unchanged_copies\n    with self.assertRaisesRegex(ValueError, 'accepted contact samples', msg='contact samples'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : contact samples\n\n----------------------------------------------------------------------\nRan 1 test in 0.010s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "pinned bundle hash",
+      "test": "test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case",
+      "output": "F\n======================================================================\nFAIL: test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case (test_ottoman_store_replay.OttomanStoreReplayTests.test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 116, in test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case\n    with self.assertRaisesRegex(ValueError, 'bundle changed', msg='pinned bundle hash'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : pinned bundle hash\n\n----------------------------------------------------------------------\nRan 1 test in 0.783s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "pinned input inventory",
+      "test": "test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case",
+      "output": "F\n======================================================================\nFAIL: test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case (test_ottoman_store_replay.OttomanStoreReplayTests.test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 123, in test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case\n    with self.assertRaisesRegex(ValueError, 'pinned contact-stage inventory', msg='pinned input inventory'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : pinned input inventory\n\n----------------------------------------------------------------------\nRan 1 test in 0.827s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "equal contact measurements",
+      "test": "test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case",
+      "output": "F\n======================================================================\nFAIL: test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case (test_ottoman_store_replay.OttomanStoreReplayTests.test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 134, in test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case\n    with self.assertRaisesRegex(ValueError, 'contact measurements differ', msg='equal contact measurements'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : equal contact measurements\n\n----------------------------------------------------------------------\nRan 1 test in 0.983s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "distinct occupancy cases",
+      "test": "test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case",
+      "output": "F\n======================================================================\nFAIL: test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case (test_ottoman_store_replay.OttomanStoreReplayTests.test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\test_ottoman_store_replay.py\", line 144, in test_resigned_requests_cannot_omit_inputs_or_repeat_one_regression_case\n    with self.assertRaisesRegex(ValueError, 'occupancy cases differ', msg='distinct occupancy cases'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised : distinct occupancy cases\n\n----------------------------------------------------------------------\nRan 1 test in 1.182s\n\nFAILED (failures=1)\n"
+    }
+  ],
+  "restored_tests": 3,
+  "restored_output": "...\n----------------------------------------------------------------------\nRan 3 tests in 1.173s\n\nOK\n",
+  "source_bytes_unchanged": true
+}
