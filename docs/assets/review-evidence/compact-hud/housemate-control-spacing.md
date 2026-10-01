@@ -49,3 +49,21 @@ from the checkbox's smaller native graphic.
 No runtime logic, content, native sources, dependency or artwork changed.
 Passing main CI `36829533987` supplies the unchanged native and asset checks.
 Local DOM measurements and logs are in `.tmp/bed-assignment/spacing-browser.json`.
+
+## Public release
+
+PR 176 merged as `d0c7f45d0df141418364e38412308272bc588874`. Main CI
+`36831229499` passed, and Pages run `36831676758` completed its deployment
+step for that exact revision. The canonical public HTML, JavaScript, CSS and
+WASM bytes matched Pages artifact `11147129854`. Door and water recordings
+also matched their approved hashes.
+
+At 390 by 844 on the public game, the saved household loaded and the New
+housemate draft showed the separated controls. Disabling Random and pressing
+End set the slider to 100. Its visible size was 252.48 by 44 pixels; neither
+the fieldset nor the dialog overflowed horizontally. Browser warnings and
+errors were empty. The draft was not submitted, the owned tab closed in a
+`finally` block, and the viewport override reset.
+
+Local proof is recorded in `.tmp/bed-assignment/spacing-live-artifact-proof.json`,
+`spacing-live-browser.json` and `spacing-live.png`.

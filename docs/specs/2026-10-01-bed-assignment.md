@@ -42,6 +42,12 @@ Do not enable two sleepers merely by ignoring the marker.
 
 An active sleep place belongs to the Sim's current `Target`, including the
 walk to it. Alternative sleep interactions on one bed share physical places.
+Use one capacity definition throughout admission, assignment, shortage counting
+and save validation: the maximum `slots` across the object's sleep-tagged
+interactions, or zero when there are none. This preserves the existing
+household shortage calculation. Validate the selected interaction's sleep tag;
+validate the place against the bed's shared capacity. Renderer profiles do not
+define capacity.
 A place is occupied by at most one Sim; one Sim occupies at most one place.
 Within-tick claims count immediately despite deferred ECS commands. Leaving,
 cancellation, preemption, invalid-target cleanup and death release only the
@@ -59,18 +65,76 @@ place. Permanent assignment alone does not count as current use.
 
 ## Saved state
 
-Keep frozen entity, target and running-action records unchanged. Append V5
-fields for active places and assignments after the published tail, coordinating
-the order with other unpublished work before encoding. Include these facts and
-queued assignment commands in the deterministic hash.
+Keep frozen entity, target and running-action records unchanged. Append one
+V5 field, `sleeping_places: Option<SavedSleepingPlaces>`, after
+`chronotype_offsets`. Its record contains `active_places: Vec<(u32, u8)>`
+(agent entity index, place ordinal), then `assignments: Vec<(u32, u32, u8)>`
+(SimId, bed entity index, place ordinal). An active row gets its bed from the
+agent's `Target`. New writers must emit `Some`, including empty lists.
+These are implementation decisions, not fields shipped by this documentation
+change. Coordinate publication order with other unpublished save extensions.
+
+Grouping the lists leaves one historical absence boundary and no accepted
+boundary between them. Its `Some` encoding matches the alternative of an
+optional active-place list followed by an assignment list. Follow the existing
+V5 decoder's unexpected-end-only padding, full consumption and canonical
+reserialization checks. With this field appended directly after chronotypes,
+the maximum zero padding becomes nine:
+
+| Padding added | Required result |
+| --- | --- |
+| None | The grouped field is `Some`; an explicitly encoded `None` rejects |
+| One byte | The grouped field is `None`; this is the historical chronotype boundary |
+| Two through nine bytes | The grouped field is `None`; apply the existing invented-data checks to the preceding fields using one fewer padding byte |
+
+While this record is the final field, any padded decode that produces `Some`
+rejects. This covers an incomplete grouped record even when padding could
+finish its lists. After later fields are appended, padding confined to those
+fields permits the physically present `Some`; padding that reaches or completes
+the sleeping-place record must not manufacture `Some`. An empty modern
+active-place list is valid only when no sleep target needs a place; it never
+requests legacy migration. Later appended fields must preserve this presence
+boundary. A byte stream ending exactly at an authentic historical boundary
+cannot be distinguished from an authentic historical save.
 
 A historical save with an active whole-bed action receives a deterministic
 place without restarting its walk, remaining duration or random outcome.
 Historical absence must be distinguished from a malformed current payload;
 an explicitly empty modern place list cannot erase a live sleeping lease.
-Reject duplicate people, conflicting places, invalid owners, non-sleep beds,
-out-of-range places and records inconsistent with live targets. Failed loads
-leave the running world unchanged.
+Use explicit migration routes for V1 through V4 and for a V5 record whose
+grouped field was historically absent. Give each valid historical whole-bed
+commitment ordinal zero; reject conflicting claimants rather than moving them
+to another place. Keep paths, remaining action durations, fumble outcomes,
+random-generator state, tick and queued commands intact. At the native typed
+load interface, `None` explicitly means legacy state; the byte decoder proves
+whether the field was physically absent. Do not infer missing places for every
+world adopted by the simulation. Restore all V5 state before refreshing its
+rendered projections.
+
+Validate sorted, unique active rows against exactly every living agent's sleep
+target, including agents travelling to the bed. Reject conflicting bed/place
+claims, invalid owners, non-sleep interactions, out-of-range places and rows
+inconsistent with running actions. Assignment rows require unique living
+SimIds and unique valid bed/place pairs. An assignee may differ from the current
+occupant. Failed loads leave the running world unchanged.
+
+Append `SetBedAssignment { agent: u32, place: Option<(u32, u8)> }` as command
+19 in both command enums, preserving codes 0 through 18. `None` clears the
+assignment. Validate wire shape, trailing bytes and queue bounds at enqueue;
+resolve the agent to SimId and validate the bed, capacity and conflicts when
+the command drains in order. Preserve stale pending commands in modern saves
+so they replay as refusals, as existing placement commands do. Historical
+loads with absent sleeping-place state must reject command 19: no historical
+writer could have emitted it.
+
+Hash sorted active `(agent, bed, ordinal)` rows and assignments
+`(SimId, bed, ordinal)` with separate tags and lengths. Bed identity must be
+explicit because the existing hash does not include `Target`. Hash assignment
+commands in queue order, distinguishing set from clear. Pin exact command byte
+vectors and test changes to only the bed, ordinal or assignee. Derive historical
+fixture boundaries from serialized field lengths; test every interior
+grouped-record truncation, all legacy migration routes, exact continuation,
+atomic failure and stale-command refusal.
 
 ## Visual acceptance
 
