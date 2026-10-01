@@ -1076,6 +1076,8 @@ observations reach their schedulers. Their normal absence handling releases
 object/conversation ownership and drops activity, stride and door history.
 An unavailable frame boundary also disposes unfinished procedural and door
 cues if they still have active sources, without resetting any open frame.
+Recording cleanup uses retained counts so object and conversation releases
+whose active owners already ended cannot survive the unavailable interval.
 Automatic return to running therefore starts only current actions, without
 requiring another gesture or replaying old motion. This samples availability
 at fixed ticks; it is not an operating-system interruption listener. See

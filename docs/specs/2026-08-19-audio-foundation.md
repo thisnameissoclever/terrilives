@@ -81,6 +81,10 @@ default Voices to 100%. An invalid Voices field defaults only that field.
     re-anchors footsteps and doors, including automatic context recovery without
     a new gesture. Continuing recordings restart rather than preserve their
     frozen position. See `2026-10-01-automatic-audio-recovery.md`.
+13. Unavailable frame cleanup also reclaims retained object and conversation
+    releases whose owners already ended. An active count of zero does not
+    prove those nodes are disconnected. Normal audible fades remain unchanged;
+    see `2026-10-01-interrupted-release-cleanup.md`.
 
 ## Node graph and bounded playback
 

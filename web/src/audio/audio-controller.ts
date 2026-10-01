@@ -387,9 +387,11 @@ export class AudioController implements GameAudioEventSink {
 
   private prepareWorldAudioFrame(): void {
     if (this.worldAudioAvailable()) return;
-    // Discard frozen one-shots; ownership-bearing players end through their frames.
+    // Discard frozen sources, including releases whose scheduler owner is already gone.
     if ((this.player?.activeVoiceCount() ?? 0) > 0) this.player?.stopAll();
     if ((this.doors?.activeVoiceCount() ?? 0) > 0) this.doors?.stopAll();
+    if ((this.objectLoops?.retainedLoopCount() ?? 0) > 0) this.objectLoops?.stopAll(true);
+    if ((this.voices?.retainedConversationCount() ?? 0) > 0) this.voices?.stopAll(true);
   }
 
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void {

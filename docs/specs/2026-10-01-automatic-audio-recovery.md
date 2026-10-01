@@ -1,8 +1,10 @@
 # Automatic audio recovery from current actions
 
-Status: local tests, native rendered checks, production inspection and
-independent review passed. Source publication is pending. No listening
-acceptance or operating-system interruption reproduction is claimed.
+Status: merged in PR 181 at `b7c57d7f8799c261dc2427baefc6bd3b20160bff`.
+Main CI `36844167451` and Pages deployment `36844708525` passed.
+Local tests, native rendered checks, production
+inspection and independent review passed before merge. No listening acceptance
+or operating-system interruption reproduction is claimed.
 
 ## Defect
 
@@ -109,7 +111,7 @@ Independent review approved the stated scope. Native simulation tests and the
 full 120 Hz/retained-memory sweep were not rerun for this shell-only repair.
 The separate PR 178 retained-memory release hold remains in force.
 
-## Known follow-up
+## Release-only follow-up
 
 A recording already fading out before suspension can retain its release-only
 record after its scheduler owner is gone. Review identified a possible resumed
@@ -118,4 +120,6 @@ pre-existing, code-derived finding, not an acoustically reproduced result.
 It is separate from the current-action recovery and unfinished one-shot cleanup
 verified here. Test suspension midway through an existing release, then dispose
 retained release-only records at the unavailable boundary without weakening
-exact-identity direct cancellation.
+exact-identity direct cancellation. The separate
+[interrupted release cleanup](2026-10-01-interrupted-release-cleanup.md)
+records the reproduction and repair of that case.
