@@ -1,5 +1,23 @@
 # Lessons Learned
 
+## [L-render-benchmark-pins-geometry] Freeze every input producer in a baseline
+
+**What happened.** A historical renderer benchmark imported the current geometry
+builder. Later architecture changes could therefore alter its supposedly fixed
+historical scene and send new sprite identifiers to the old renderer.
+
+**Root cause.** Only renderer sources were pinned. The benchmark treated its
+geometry builder as neutral infrastructure even though that builder defined the
+work being measured.
+
+**Prevention.** Pin the geometry producer and its imports with the renderer.
+Record source and input hashes. Distinguish identical-input renderer overhead
+from a comparison of old and new artwork for the same logical scene.
+
+**Verify.** Historical input bytes remain identical between renderer variants.
+Read pixels before yielding the presentation texture, require distinct foreground
+and clear pixels, and compare warmed samples in alternating order.
+
 ## [L-enlarged-text-needs-measured-fonts] Verify the controls actually grew
 
 **What happened.** Increasing the root font size left fixed-pixel window labels
