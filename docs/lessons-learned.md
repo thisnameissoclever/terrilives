@@ -2,13 +2,13 @@
 
 ## [L-build-controls-intrinsic-space-and-focus] Allocate actual control space and retain focus
 
-**What happened.** Compact Build controls overlapped the panel with enlarged text. A later grid correction lost keyboard focus when it moved Options and zoom controls between containers.
+**What happened.** Compact Build controls overlapped the panel with enlarged text. Container moves lost keyboard focus in Options, zoom controls and Build-panel descendants.
 
 **Root cause.** A desktop display selector overrode the compact camera grid. The action positioner bounded its box below the actual buttons' height. Independent fixed boxes could not allocate shared space. DOM reparenting then removed the active control without restoring focus.
 
 **Prevention.** Compare selector specificity at responsive boundaries. Allocate intrinsic control height in one short-screen grid, reserve visible game space, and scroll tool content below navigation. Preserve a focused descendant across the complete move when it remains visible and enabled. Do not treat a smaller container as evidence that its children fit.
 
-**Verify.** Measure every button, its hit target and nearby panels with doubled text, long feedback and expanded disclosures. Check focus through Options opening, closure and viewport resize. Deliberately break pending guards, input ownership, hiding and unchanged-frame guards; retain failures and verify byte-identical restoration. See the dated [Build controls evidence](assets/review-evidence/build-controls/README.md).
+**Verify.** Measure every button, its hit target and nearby panels with doubled text, long feedback and expanded disclosures. Check focus through Options opening and closure, and across 701px/700px in both directions for selectors, Shortcuts and Exit build. Deliberately break pending guards, input ownership, hiding and unchanged-frame guards; retain failures and verify byte-identical restoration. See the dated [Build controls evidence](assets/review-evidence/build-controls/README.md).
 
 ## [L-changelog-has-its-own-tested-history] Published Markdown needs a site history
 

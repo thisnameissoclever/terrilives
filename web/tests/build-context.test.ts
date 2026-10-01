@@ -227,6 +227,10 @@ it.each([1440, 1280, 701, 700, 390, 320, 844])('bounds the complete controls at 
 });
 
 it('shared shortcut definitions describe the changed floor workflow and separate wall actions', () => {
+  const room = shortcutGroups('room', []).flatMap(group => group.rows);
+  expect(room.filter(row => row.keys.includes('Enter')).map(row => row.label))
+    .toEqual(['Set first corner', 'Build completed outline']);
+  expect(room.find(row => row.label === 'Move corner')?.keys).toEqual(['↑', '↓', '←', '→']);
   const floors = shortcutGroups('floors', ['Boards', 'Tiles', 'Carpet']);
   expect(JSON.stringify(floors)).toContain('Boards');
   const walls = shortcutGroups('walls', []);

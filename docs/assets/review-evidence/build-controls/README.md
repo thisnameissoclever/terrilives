@@ -4,6 +4,8 @@ This record describes local verification on `twcx/build-context-controls`, based
 
 ## Automated results
 
+The subsequent [integrated release checks](integrated/README.md) cover fresh main, the adversarial review corrections and the final local suite.
+
 Commands ran from the repository root unless the command specifies `web`. Windows Chrome used the existing bundled Playwright installation, a fresh disposable browser context, WebGPU with Direct3D 11, and muted audio. Each browser closed in `finally`. This evidence uses the running Vite game with freshly built WebAssembly; the production bundle was built separately.
 
 | Command | Relevant result | Exit | Verdict |

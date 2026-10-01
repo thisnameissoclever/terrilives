@@ -49,7 +49,12 @@ export class BuilderControls {
   setCompact(compact: boolean): void {
     const host = this.document.querySelector(compact ? '#builder-dock' : '#builder-desktop');
     if (!host) throw new Error('Missing furniture panel host');
-    host.append(this.panel);
+    if (this.panel.parentElement !== host) {
+      const focused = this.panel.contains(this.document.activeElement)
+        ? this.document.activeElement as HTMLElement : null;
+      host.append(this.panel);
+      focused?.focus({ preventScroll: true });
+    }
     this.keyboardHelp.hidden = false;
     this.touchHelp.hidden = false;
   }

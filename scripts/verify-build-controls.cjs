@@ -226,6 +226,21 @@ const sizes = [[1440,900],[1280,800],[701,800],[700,800],[390,844],[320,568],[84
    await page.evaluate(()=>document.querySelectorAll('[data-proof-font]').forEach(e=>{e.style.fontSize=e.dataset.proofFont;delete e.dataset.proofFont;}));
    await settle();
   }
+  // Panel descendants retain focus across both directions of the Build breakpoint.
+  await page.setViewportSize({width:701,height:800});await select('furniture');
+  for(const selector of ['#builder-object','#builder-colour','#builder-keyboard-help summary','#builder-exit']) {
+   await page.locator(selector).focus();
+   for(const width of [700,701]) {
+    await page.setViewportSize({width,height:800});await settle();
+    assert(await page.locator(selector).evaluate(e=>document.activeElement===e),`Panel focus at ${width}: ${selector}`);
+   }
+  }
+  await select('buy');await page.locator('#buy-object').focus();
+  for(const width of [700,701]) {
+   await page.setViewportSize({width,height:800});await settle();
+   assert.equal(await page.evaluate(()=>document.activeElement.id),'buy-object');
+  }
+  evidence.checks.push('Build selectors, Shortcuts and Exit retain focus across 701/700 in both directions');
   // Review the other panels through their real controls.
   await page.setViewportSize({width:320,height:568});await page.locator('#builder-exit').click();await settle();
   await page.locator('#sim-details').click();

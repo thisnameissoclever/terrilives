@@ -20,6 +20,10 @@ class ElementPort {
   value = '';
   title = '';
   parent: ElementPort | null = null;
+  get parentElement() { return this.parent; }
+  contains(element: ElementPort | null): boolean {
+    return element === this || this.children.some(child => child.contains(element));
+  }
   children: ElementPort[] = [];
   attributes = new Map<string, string>();
   listeners = new Map<string, (() => void)[]>();

@@ -11,8 +11,9 @@ export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[])
     { label: 'Edit the edge', rows: [{ label: 'Wall', keys: ['W'] }, { label: 'Doorway', keys: ['D'] },
       { label: 'Window', keys: ['N'] }, { label: 'Remove', keys: ['Backspace', 'Delete'], alternatives: true }, CANCEL] },
   ];
-  if (tool === 'room') return [{ label: 'Outline', rows: [MOVE, { label: 'Set first corner', keys: ['Enter'] },
-    { label: 'Set opposite corner', keys: ['Enter'] }, { label: 'Build completed outline', keys: ['Enter'] },
+  if (tool === 'room') return [{ label: 'Outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
+    { label: 'Set first corner', keys: ['Enter'] },
+    { label: 'Build completed outline', keys: ['Enter'] },
     { label: 'Cycle doorway', keys: ['D'] }, CANCEL] }];
   if (tool === 'floors') return [{ label: 'Apply to the selected tile', rows: [
     ...coverings.slice(0, 9).map((label, index) => ({ label, keys: [String(index + 1)] })),

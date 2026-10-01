@@ -1,6 +1,6 @@
-# Meals, moods and shared beds
+# Build controls, meals and shared beds
 
-Shared meals, bathroom boundaries, developing relationships and everyday fixes.
+Build actions beside your selection, shared meals, bathroom boundaries and developing relationships.
 
 ## New
 - Assign a sleeping place in Sim details under Personality, habits and bed. Each place shows its assignee and current occupant.
@@ -17,10 +17,18 @@ Shared meals, bathroom boundaries, developing relationships and everyday fixes.
 - Conversations initiated while someone's needs are low or critical can reduce their opinion of the initiator.
 
 ## Improved
+- Wall, doorway and window controls appear around the selected edge. Curved arrows turn the selection without changing the house until you choose an edit.
+- Furniture and purchases have nearby placement, rotation and cancellation controls. Selling shows its return; buying shows its price.
+- Room controls let you choose a doorway or restart its corners.
+- Floors now selects a tile first. Choose its covering afterward; selecting another tile never paints it automatically. Remove restores the original floor.
+- Shortcuts starts collapsed and groups actions with labeled keycaps. Help groups building, people, camera and saved-game controls.
+- Zoom buttons work in Build.
 - Dirty dishes have a smaller effect on relationships; their mood effects stay the same.
 - Friendships and grudges fade more slowly without interaction.
 
 ## Fixed
+- All desktop Build tools keep the same panel width. Action labels are centered, and compact layouts keep navigation and essential controls reachable.
+- Keyboard focus stays on Build controls when the panel moves during resizing.
 - Floor previews show the whole selected tile, with instructions that adapt between desktop and phone controls.
 - Activity bubbles appear when an activity starts, rather than while someone walks toward it.
 - Audio recovers after browser interruptions without restarting sounds from activities that have already ended.
