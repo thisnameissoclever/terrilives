@@ -1,7 +1,8 @@
 # Activity bubbles
 
-Every visible active activity has a bubble above the Sim's displayed head.
-All 22 symbols share a linen circle, charcoal strokes, a logical 26-pixel size,
+Activities and waiting have a bubble above the Sim's displayed head. Walking
+has no bubble because it is travel toward an activity. The 21 displayed symbols
+share a linen circle, charcoal strokes, a logical 26-pixel size,
 and texture density two. Revised existing symbols append alongside new ones;
 the 1,370 historical atlas records retain their indices and decoded pixels.
 
@@ -11,11 +12,12 @@ simulation state or world hash. The exact live target and interaction identity,
 or running chain step and matching station role, must validate before the code
 can reach the renderer. Existing exact body visuals keep their precedence.
 An unauthored or malformed ordinary use retains the generic gear. A walking
-chain carrier shows footprints until the station work actually begins.
+chain carrier shows its carried item; its activity bubble appears when station
+work begins. The unused footprints sprite remains in the append-only atlas.
 
 | Interaction or state | Code | Symbol |
 | --- | --- | --- |
-| Walking, wandering travel, commute travel | 1 | Footprints |
+| Walking, wandering travel, commute travel | 1 | No bubble |
 | Reserved conversation partner or blocked item wait | 2 | Clock |
 | `fridge.grab_snack`, dinner step 3 at table or desk | 3 | Fork and spoon |
 | Both conversation participants | 4 | Speech bubbles |

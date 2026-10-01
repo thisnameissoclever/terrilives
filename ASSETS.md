@@ -414,6 +414,8 @@ reading, exercise and fish symbols have revised runtime artwork. Historical
 indicator records remain unchanged. The complete activity pairing and visual
 review are recorded in `docs/specs/2026-10-01-activity-bubbles.md` and
 `docs/assets/review-evidence/activity-bubbles/README.md`.
+Walking's footprints sprite is retained in the atlas but no longer drawn;
+21 symbols are displayed for activities and waiting.
 
 ## What is not done
 

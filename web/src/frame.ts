@@ -595,13 +595,13 @@ export function simBodySprite(
 }
 
 /**
- * One bubble for every active activity, including travel and generic use.
+ * Bubbles identify activities and waiting; travel has no bubble.
  * Idle Sims have no task; off-lot workers have no visible body. The codes
  * match `render_buffer::activity`, including exact authored object uses.
  */
 const INDICATOR_SPRITES: readonly (number | null)[] = [
   null,
-  spriteIndex('activityWalking'),
+  null,
   spriteIndex('activityWait'),
   spriteIndex('activityEat'),
   spriteIndex('activityTalk'),

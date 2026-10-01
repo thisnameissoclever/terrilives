@@ -2003,18 +2003,18 @@ describe('buildInstances', () => {
 
 describe('activity indicator bubbles', () => {
   // The owner's requirement, as quads: a sim that is doing something
-  // shows it. Only idle and off-lot work draw nothing; each active code
-  // floats a bubble one lift above
-  // the sim, nudged nearer so the pair cannot tie on depth ([V12]).
+  // shows it. Walking, idle and off-lot work draw no bubble. Activity
+  // bubbles float above the sim, nudged nearer so the pair cannot tie
+  // on depth ([V12]).
   const src = new FakeEntities();
 
-  it('floats bubbles over active Sims including walkers, and none over idlers', () => {
+  it('floats a bubble over the activity, and none over walkers or idlers', () => {
     src.set([
       [1, 1, 1, 1, KIND_AGENT, 3, 4], // talking
       [2, 2, 2, 2, KIND_AGENT, 3, 1], // walking
       [3, 3, 3, 3, KIND_AGENT, 3, 0], // idle - no bubble
     ]);
-    expect(instanceCount(src, null)).toBe(5);
+    expect(instanceCount(src, null)).toBe(4);
 
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const bubbleBase = 3 * FLOATS_PER_INSTANCE;
@@ -2055,7 +2055,7 @@ describe('activity indicator bubbles', () => {
   });
 
   it.each([
-    [1, 'Walking'], [2, 'Wait'], [3, 'Eat'], [4, 'Talk'], [5, 'Sleep'],
+    [2, 'Wait'], [3, 'Eat'], [4, 'Talk'], [5, 'Sleep'],
     [7, 'Use'], [8, 'Reading'], [9, 'Exercise'], [10, 'WatchFish'],
     [11, 'Sitting'], [12, 'Shower'], [13, 'Toilet'], [14, 'TV'],
     [15, 'LyingDown'], [16, 'WashHands'], [17, 'WashDishes'], [18, 'Radio'],
@@ -2163,10 +2163,13 @@ describe('the carried badge', () => {
     ]]);
     const built = buildInstances(src, 0.25, 0, 0, GRID, 100);
     const body = 0;
-    const badge = 2 * FLOATS_PER_INSTANCE;
-    const ring = 3 * FLOATS_PER_INSTANCE;
+    const badge = 1 * FLOATS_PER_INSTANCE;
+    const ring = 2 * FLOATS_PER_INSTANCE;
     const groundY = screenY(0.25, 0, 0);
 
+    expect(instanceCount(src, 100)).toBe(3);
+    expect(built[badge + OFFSET_SPRITE]).toBe(spriteIndex('carried_ingredients'));
+    expect(built[ring + OFFSET_SPRITE]).toBe(spriteIndex('selectionRing'));
     expect(built[body + OFFSET_SCREEN_Y]).toBe(drawnPosition(0.25, 0, built[body + OFFSET_SPRITE], 0, 0)[1]);
     expect(built[badge + OFFSET_SCREEN_Y]).toBe(groundY - 24);
     expect(built[ring + OFFSET_SCREEN_Y]).toBe(groundY);
@@ -2573,8 +2576,10 @@ describe('the selection ring', () => {
     ]]);
     // Half way between the two ticks.
     const instances = buildInstances(source, 0.5, ORIGIN_X, ORIGIN_Y, GRID, 100);
-    const ring = slot(instances, 2);
+    const ring = slot(instances, 1);
     const sim = slot(instances, 0);
+    expect(instanceCount(source, 100)).toBe(2);
+    expect(ring.sprite).toBe(RING);
     expect([sim.x, sim.y]).toEqual(drawnPosition(5, 4, sim.sprite));
     expect(ring.y).toBe(screenY(5, 4, ORIGIN_Y));
     // And that really is the interpolated point, not either endpoint - so a
