@@ -194,6 +194,22 @@ Cooking suppresses the logical carried-dinner badge while work is active. A pot
 sits on the exact active stove burner, with a separate stirring pose and utensil.
 Food transport has a contacting held-plate animation. Seated eating uses bent
 legs, table-height food and spoon motion, retaining the ordinary eating activity.
+The seated body fits the dining chair's actual board rather than the lower
+armchair cushion. Evaluated body surfaces must clear every chair and table solid
+in each animation phase, including both half-tile side-setting offsets. Hips need
+a finite supported footprint on the seat; a non-intersecting floating pose fails.
+The meal plate rests on the table and the fixed-length spoon stays in the palm.
+Occupied rendering uses reciprocal body and furniture contributions with a shared
+outline. The claimed chair supplies the visual target while the logical meal
+target remains the table. Picking samples visible body and wood ownership in
+that same canvas, so exposed chair rails remain furniture.
+The render buffer separately identifies the supporting table for each active,
+validated seated meal. A geometry mask assigns the visible hands, cuffs, plate
+and spoon to that table's depth. Complementary draws use the same complete
+occupied colours, so each pixel appears once. Other body and chair pixels retain
+the chair's depth. Picking follows both visible ownership and supporting depth,
+including chair-owned antialias pixels beneath the support mask. Cancelling or
+invalidating the meal clears the supporting table association.
 
 Cooking routes to the stove's actual front contact. Its body, fixed-length wooden
 spoon, pot and nearest large burner share measured model coordinates. The composed

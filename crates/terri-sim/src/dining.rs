@@ -541,7 +541,7 @@ pub(crate) fn projection(world: &World, person: Entity) -> Option<crate::SocketA
         x: p.x,
         y: p.y,
         facing,
-        target_entity: d.station,
+        target_entity: chair.index_u32(),
         visual_action: crate::render_buffer::visual_action::SEATED_EAT,
         activity: crate::render_buffer::activity::EATING,
     })

@@ -149,6 +149,7 @@ struct RenderRow {
     activity: u32,
     visual_action: u32,
     interaction_target: u32,
+    meal_table: u32,
     sleeping_bed: u32,
     sleeping_place: u32,
     facing: u32,
@@ -1714,6 +1715,7 @@ impl Sim {
         self.render.activities.clear();
         self.render.visual_actions.clear();
         self.render.interaction_targets.clear();
+        self.render.meal_tables.clear();
         self.render.sleeping_beds.clear();
         self.render.sleeping_places.clear();
         self.render.facings.clear();
@@ -2135,6 +2137,13 @@ impl Sim {
                     .map_or(render_buffer::NO_INTERACTION_TARGET, |projection| {
                         projection.target_entity
                     }),
+                meal_table: station_visual
+                    .filter(|projection| {
+                        socket_projected
+                            && projection.visual_action == render_buffer::visual_action::SEATED_EAT
+                    })
+                    .and_then(|_| dining::claim(&self.world, entity.index_u32()))
+                    .map_or(render_buffer::NO_INTERACTION_TARGET, |diner| diner.station),
                 sleeping_bed: sleeping.map_or(render_buffer::NO_SLEEPING_BED, |place| {
                     place.bed.index_u32()
                 }),
@@ -2199,6 +2208,7 @@ impl Sim {
             self.render.activities.push(row.activity);
             self.render.visual_actions.push(row.visual_action);
             self.render.interaction_targets.push(row.interaction_target);
+            self.render.meal_tables.push(row.meal_table);
             self.render.sleeping_beds.push(row.sleeping_bed);
             self.render.sleeping_places.push(row.sleeping_place);
             self.render.facings.push(row.facing);

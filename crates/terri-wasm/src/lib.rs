@@ -1651,6 +1651,11 @@ impl SimHandle {
         self.sim.render_buffer().interaction_targets.as_ptr()
     }
 
+    /// Supporting table for an active seated meal, or u32::MAX; refresh after sync.
+    pub fn meal_tables_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().meal_tables.as_ptr()
+    }
+
     /// Exact bed IDs for running sleep-tagged place ownership, or u32::MAX. Aligned with
     /// sleeping_places_ptr; re-read both after sync, Load or memory growth.
     pub fn sleeping_beds_ptr(&self) -> *const u32 {
@@ -5030,6 +5035,96 @@ mod boundary_tests {
         assert_eq!(
             targets[row],
             terri_sim::render_buffer::NO_INTERACTION_TARGET
+        );
+    }
+
+    #[test]
+    fn meal_tables_ptr_keeps_support_distinct_from_chair_after_growth_and_cancel() {
+        let mut handle = SimHandle::from_lot();
+        let mut snapshot = handle.sim.save_snapshot_v5();
+        let cook = snapshot
+            .world
+            .entities
+            .iter()
+            .find(|e| e.agent)
+            .unwrap()
+            .index;
+        for person in &mut snapshot.world.entities {
+            if person.agent {
+                person.career = None;
+                person.needs = Some([100.0; 7]);
+                person.personality.as_mut().unwrap().drain = [0.0; 7];
+            }
+        }
+        handle.sim.load_snapshot_v5(snapshot).unwrap();
+        handle
+            .sim
+            .world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: cook,
+                object: 0,
+                interaction: 1,
+            });
+        let mut row = None;
+        for _ in 0..1500 {
+            handle.tick();
+            row = handle
+                .sim
+                .render_buffer()
+                .ids
+                .iter()
+                .position(|id| *id == cook);
+            if row.is_some_and(|r| handle.sim.render_buffer().meal_tables[r] != u32::MAX) {
+                break;
+            }
+        }
+        let row = row.unwrap();
+        let table = handle.sim.render_buffer().meal_tables[row];
+        let chair = handle.sim.render_buffer().interaction_targets[row];
+        assert_ne!(table, u32::MAX, "fixture must reach a running seated meal");
+        assert_ne!(
+            table, chair,
+            "meal support and visible chair are different entities"
+        );
+        for i in 0..48 {
+            handle.spawn_agent(20.0 + i as f32, 20.0, 50.0);
+        }
+        let values = addressed(
+            handle.meal_tables_ptr(),
+            handle.entity_count(),
+            "meal_tables_ptr",
+        );
+        assert_eq!(values, handle.sim.render_buffer().meal_tables);
+        assert_eq!(values[row], table);
+        assert!(values
+            .iter()
+            .enumerate()
+            .all(|(r, id)| r == row || *id == u32::MAX));
+        let saved = handle.sim.save_snapshot_v5();
+        handle.sim.load_snapshot_v5(saved).unwrap();
+        assert_eq!(
+            addressed(
+                handle.meal_tables_ptr(),
+                handle.entity_count(),
+                "meal_tables_ptr"
+            ),
+            values
+        );
+        handle
+            .sim
+            .world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::CancelIntents { agent: cook });
+        handle.sim.flush_commands();
+        handle.sim.sync_render_buffer_after_commands();
+        assert_eq!(
+            addressed(
+                handle.meal_tables_ptr(),
+                handle.entity_count(),
+                "meal_tables_ptr"
+            )[row],
+            u32::MAX
         );
     }
 

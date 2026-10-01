@@ -1,0 +1,538 @@
+{
+  "state": "complete",
+  "inputs": {
+    "render_dining_meal.py": "aedb23404fd5509d2f11e85f844b01b7cc85af3acbc5a372758fa5c4862d466e",
+    "seated-dining.blend": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+    "seated-dining/proof.json": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-0-meal.png",
+      "sha256": "1fd667547bfe7f489aede8e232e6fc321af1c54b072fc8866d74e9daa2d593fe"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-0-meal_lines.png",
+      "sha256": "e5b7bbbd5884afeaf2a3a4d77ceefdf65a94c63b3d7b432fb0b5ba3166e4830d"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-1-meal.png",
+      "sha256": "bb624c024d0bde24cfb71186206ace03ba61d3347f49ce4efd1fee3900a29db4"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-1-meal_lines.png",
+      "sha256": "804b434f05874d851ca1259be854800974c7e388fff6272d03e97d02505a7d43"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-2-meal.png",
+      "sha256": "002d16400b3505d213fdb4369fdd9b7e864d9885be0a3a685bf5eadfef75844b"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-2-meal_lines.png",
+      "sha256": "42a846a27fd85e50418b3271c6403ab7dc754a14d01e4114a2bfff33a1974bfd"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-3-meal.png",
+      "sha256": "52bfd4731152bb9e35b9b1dc6ad7b21e1703d348ba823485e8a85ec0e1c423fb"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-3-meal_lines.png",
+      "sha256": "7105250eae0e9287a0123a3f0314d356cc3daeec1dfd3701be2a49f82d6a95e2"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-4-meal.png",
+      "sha256": "412615a5a0d20eefc04369c2dc384c014506586cb09ba4dcfa99242abfd9cfc4"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-4-meal_lines.png",
+      "sha256": "c31c5b18677f793c1b52b68f423c3c9bc82e7957fb94bd5572d89b537af97e1f"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-5-meal.png",
+      "sha256": "95bc43a8f95901f7d95e45e7c4dac27f00a1d028f8421513c5ed143128503ad6"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-5-meal_lines.png",
+      "sha256": "cd495f3202d5f02abbec19924688568835572c79fc8396c7bc704dc1bdb580fe"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-6-meal.png",
+      "sha256": "78fc0b5c1d9496b95e75a6e1a6bbb6ba1af28495ce0b4bf0e27a1e46e864afd5"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-6-meal_lines.png",
+      "sha256": "7e13c308dbda78a3b70eea997ad90d37f483b3adc28c76218a997df1f3967343"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-7-meal.png",
+      "sha256": "d75f7697b92616de058d2de59d99a397ea5e76e3882179eb05d3153e45d59632"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SE-7-meal_lines.png",
+      "sha256": "0b283464a1b27bf2ae07c9995e531a066f22951061bccc87099be18919a770b7"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-0-meal.png",
+      "sha256": "631966dcc32fbfa89ebb0788047982a1e17bc927b381e8bfce63f75e307a82fb"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-0-meal_lines.png",
+      "sha256": "bc7ba97fea195974ed56e27e15aaad62e69ca9acfb043157ef9d7b239b11ae88"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-1-meal.png",
+      "sha256": "0cfb94b3c71c6ea23240aa57fedefc2520de3951bc92dfd749571a4051b95b37"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-1-meal_lines.png",
+      "sha256": "35c1a3a6f3d2327dd7785773369c6814ebc476a3f0317c5b1ae42ecb817c984c"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-2-meal.png",
+      "sha256": "753635e0599e5d00b7855535121eb544ac6fd4f8ee9447a4ca8cb00c723dbe79"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-2-meal_lines.png",
+      "sha256": "17f185924e823fffef7823b0b9eee570d9e8d2141c1f5095170230931a3c2b1b"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-3-meal.png",
+      "sha256": "b001319f366e553f96b6f6c3a264f288124191c2e5d9cd5b1b44abaf862b741c"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-3-meal_lines.png",
+      "sha256": "41f8624d56b153547cae6b2763b08a707ad8a1c66be3bc897d66d1e63fbb28f0"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-4-meal.png",
+      "sha256": "4579cfdca8526f5a45faf148fdd85aabdd6ee3a310abecc9599e63ad1fc99174"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-4-meal_lines.png",
+      "sha256": "2c468008163d9d09cea0aea5afbf1e4eace4da05c66cdab9f6a0be5fb242b982"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-5-meal.png",
+      "sha256": "3a198aa5d18b3a47393c537311b008fb491b4e527987b41e1b56f13873f369f2"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-5-meal_lines.png",
+      "sha256": "ff126b35a3c89b079a0d0e573fffb0b79a2215e616e7a7443b86ad1e6e44e111"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-6-meal.png",
+      "sha256": "6c0ddb5f8f6252303648503e858d02e527f860c9a947679a7acbc6d2488d5972"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-6-meal_lines.png",
+      "sha256": "d6efee3d1da03a1e224696c92cb6899a238b0632dae2ed418ab458e125df042c"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-7-meal.png",
+      "sha256": "cff84f792d2e65d724e29b79faef60b55c483f7c4809b0d80918fd1854d91139"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-SW-7-meal_lines.png",
+      "sha256": "271a4235c0351f62f9bbbcc96ca27b3e4a329c4962d8a985165f2790c5750938"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-0-meal.png",
+      "sha256": "ebd99e1c4c1cd5b248a29ee0d36c9f85657a53a3f9bb953fa2b3ed49468d9263"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-0-meal_lines.png",
+      "sha256": "eca37f8c0248242afbed394ad7234b1ffdae2b3f3976a027e7f9791f59c0cf76"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-1-meal.png",
+      "sha256": "fc858e079d72f7c8eeb41113c588d045c09f037375fa891cee35fa6ad2683549"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-1-meal_lines.png",
+      "sha256": "d733a1975a3b958035b8f4d4dad9143f01bbe47d49bea3292598f90ce633d229"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-2-meal.png",
+      "sha256": "8ce59f0777c69efef0e02b97c1d0064c02be159cbb887ba088d08be94ec4627e"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-2-meal_lines.png",
+      "sha256": "df5995ba60b404a46b26d603f8a8cdc10a60acbfe7b8239b13e57a80c5e911dd"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-3-meal.png",
+      "sha256": "3332ed6a27dbc6388217fa50d34fbad41aa103581e1c94d20d7142181e2f8552"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-3-meal_lines.png",
+      "sha256": "f65d20146c2834d1931fde74a4db0a64b5b00291f1708d8635adc842a5ef21ae"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-4-meal.png",
+      "sha256": "09835bd7629d74acedac867f1bd09eb66c1e246500dd3854b0c9446d2ee221fb"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-4-meal_lines.png",
+      "sha256": "6c10c11708b99074194977b1b55188333b63fb43afb25212f292a35d51018422"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-5-meal.png",
+      "sha256": "fd227457bc3a6ff9894723124c958ea292ba6787a8bffb718c59c3493a97b6aa"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-5-meal_lines.png",
+      "sha256": "3c009f237831255fd9621f13781cc324a5e474844963401d0de1669bbcf97287"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-6-meal.png",
+      "sha256": "e919cde715da8b0257193fcb7bc98971882a310b0287a12dcb77597ca9928d60"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-6-meal_lines.png",
+      "sha256": "9f30bac2ac47bd90a4a9e4b8521a94640fe590a085f7ed29b5f1889b58ade728"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-7-meal.png",
+      "sha256": "88e9d8aa9e76733ea033167733ecdb9bf83d6ad6fb5ae36f1ca03a468dbf7d03"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NW-7-meal_lines.png",
+      "sha256": "142effde5b82579f7f13100d2ae675d3f5774723e541a7d54cbedc56b1d7bdfe"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-0-meal.png",
+      "sha256": "cf088178047eeb5874b36ef90780475b33d370be6117a3330ebbdaa1bf3f797b"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-0-meal_lines.png",
+      "sha256": "e51b64012d016639b4c39ea5dd8b30a59fbd4d6ca951deea9929b68dec366517"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-1-meal.png",
+      "sha256": "95df743c86badf21471bbb62c54dc538f5f1a65ec712c61e21daccba5267e457"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-1-meal_lines.png",
+      "sha256": "4f39e67e5bc59302316d44cf53b2daa081b362c72617bc233ce4a0ede70b58f7"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-2-meal.png",
+      "sha256": "debf2794955d4c271b79654717f311f0c96274070b43bad98613128878d23378"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-2-meal_lines.png",
+      "sha256": "9e6b85874a4038ab9e8a7a205c31e22b1952520693d5ca37062095c20e44e05a"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-3-meal.png",
+      "sha256": "16f7fb942ae835c1cc9aafbb8eaa4283c238a42be3086b2543c58f889b907cd8"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-3-meal_lines.png",
+      "sha256": "5f2d557b8b9d976573e071c9a701f7679f5e4be4ea5f6740ccd47f44942f9163"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-4-meal.png",
+      "sha256": "616f9ff46605dab67c5ca6462fa753186d071323fd03675e4a27a24ca260102b"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-4-meal_lines.png",
+      "sha256": "cf38a36b6ceab749383cd41a2ae77f799254ac9fd745cb352e3c490a0b159e76"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-5-meal.png",
+      "sha256": "923645c7f529dc2f551f26f00f0b3342baded0594f4e81ba329a8bcb2a6426bd"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-5-meal_lines.png",
+      "sha256": "111ef7164d6537d7cd903c52b072516405003aa0ef66863ede67b6fbd5b27153"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-6-meal.png",
+      "sha256": "6a249e1441dc107d321fd7a12d7acf948fba2f2b4d30a0b82bc5f013c740dc4b"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-6-meal_lines.png",
+      "sha256": "2d141c9cbdb7188eed1c4e6feda1313aaad2d7a1691aaee706963c8899499f39"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-7-meal.png",
+      "sha256": "b5e9ec30095db28f4dfe6e978fb2f074924a180c45dc90909716bc5f37260437"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal_lines",
+      "path": "green-NE-7-meal_lines.png",
+      "sha256": "701fba47178980aa19546ec679e2ff894040228af0dfd15b589269364fcea262"
+    }
+  ],
+  "support_objects": [
+    "Ceramic dinner plate.001",
+    "Forearm with elbow and wrist sections",
+    "Forearm with elbow and wrist sections.001",
+    "Main serving.001",
+    "Relaxed palm",
+    "Relaxed palm.001",
+    "Resting thumb",
+    "Resting thumb.001",
+    "Turned sleeve cuff",
+    "Turned sleeve cuff.001",
+    "Used wooden spoon",
+    "Vegetable piece.003",
+    "Vegetable piece.004",
+    "Vegetable piece.005"
+  ]
+}

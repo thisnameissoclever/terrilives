@@ -25,6 +25,7 @@ export interface InteractionColumns {
   readonly simIds?: Uint32Array;
   readonly sleepingBeds?: Uint32Array;
   readonly sleepingPlaces?: Uint32Array;
+  readonly mealTables?: Uint32Array;
 }
 
 export interface InteractionSource {
@@ -38,12 +39,14 @@ export interface InteractionSource {
   simIds?(): Uint32Array;
   sleepingBeds?(): Uint32Array;
   sleepingPlaces?(): Uint32Array;
+  mealTables?(): Uint32Array;
 }
 
 /** Reused row tables keep selection, suppression and sampling on one contract. */
 export class InteractionSelection {
   bodies = new Int32Array(0);
   targetRows = new Int32Array(0);
+  mealRows = new Int32Array(0);
   suppressed = new Uint8Array(0);
   readonly bedScenes: (BedScene | undefined)[] = [];
   bedPlaces = new Int8Array(0);
@@ -65,6 +68,10 @@ export class InteractionSelection {
     private readonly shirtVariant: (simId?: number) => ShirtVariant,
     private readonly beds: BedCatalog = {},
   ) {}
+
+  ownerForTarget(row: number): number {
+    return this.owners[row] ?? -1;
+  }
 
   private indexRows(ids: Uint32Array, count: number): void {
     let capacity = 1;
@@ -112,6 +119,7 @@ export class InteractionSelection {
     this.columns.simIds = source.simIds?.();
     this.columns.sleepingBeds = source.sleepingBeds?.();
     this.columns.sleepingPlaces = source.sleepingPlaces?.();
+    this.columns.mealTables = source.mealTables?.();
     this.update(this.columns, tick, reducedMotion);
   }
 
@@ -120,6 +128,7 @@ export class InteractionSelection {
     if (this.bodies.length < count) {
       this.bodies = new Int32Array(count);
       this.targetRows = new Int32Array(count);
+      this.mealRows = new Int32Array(count);
       this.suppressed = new Uint8Array(count);
       this.owners = new Int32Array(count);
       this.place0 = new Int32Array(count);
@@ -130,6 +139,7 @@ export class InteractionSelection {
     }
     this.bodies.fill(-1, 0, count);
     this.targetRows.fill(-1, 0, count);
+    this.mealRows.fill(-1, 0, count);
     this.suppressed.fill(0, 0, count);
     this.owners.fill(-1, 0, count);
     this.place0.fill(-1, 0, count);
@@ -201,6 +211,13 @@ export class InteractionSelection {
       this.bodies[row] = frames[sample];
       this.targetRows[row] = target;
       this.suppressed[target] = 1;
+      const mealTable = columns.mealTables?.[row];
+      if (profile.action === 13 && mealTable !== undefined && mealTable !== 0xffffffff) {
+        const table = this.findRow(mealTable);
+        if (table !== undefined && kinds[table] !== KIND_AGENT && activities[table] !== ACTIVITY_AT_WORK) {
+          this.mealRows[row] = table;
+        }
+      }
     }
   }
 }

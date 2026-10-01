@@ -9331,3 +9331,25 @@ writer cannot replace an existing terminal result.
 **Prevention.** Append new save fields after every published field. Adopt valid legacy diners before re-saving, while retaining strict validation for current saves. Preserve the exact reserved endpoint through privacy detours. Use the same pose predicate in rendering and picking. Compare receipt-bound producer hashes with Git index bytes; a matching working file does not prove that staged newline conversion preserves the receipt.
 
 **Verify.** Load an old active diner, tick, re-save and reload repeatedly. Check seated and standing detours, including blocked endpoints. Pick a carried-food silhouette outside the ordinary body's bounds. Deliberately disable each mechanism and require its regression test to fail.
+
+## [L-dining-chair-fit-and-owned-occlusion] Fit the pose to the actual occupied furniture
+
+**What happened.** Seated diners sank through dining chairs even though the animation review had accepted their appearance. Exposed rear rails also drew behind the entire Sim.
+
+**Root cause.** The generic sitting pose was fitted to a lower armchair cushion. Whole body and chair sprites could not express their partial occlusion. The review checked animation and registration without measuring complete furniture collisions. Its table checks also omitted the half-tile offset beside each side setting.
+
+**Prevention.** Fit each seated pose to the actual support surface. Check every evaluated body part against every named furniture solid and require a finite hip support footprint. Derive relative table placements from runtime footprint centres and every legal setting. Render reciprocal body, furniture and outline contributions from the complete occupied scene. Use the same visible ownership for picking. Treat a screenshot and a passing source test as different evidence; neither establishes the other.
+
+**Verify.** The generic pose must fail for seat penetration. Raising the seat or removing a required solid must fail physical acceptance. Both side offsets must pass in every phase and facing. Compare the actual graphics shader with an independent full-scene render; removing the chair contribution must fail. Pick a visible torso, shoe, rear rail and exposed seat separately. Inspect complete ordered motion and record the exact source hashes.
+
+The supporting table must also appear in the rendered test scene. A chair-only comparison cannot reveal a plate or hand hidden by the table. Preserve complete occupied colours while assigning tabletop geometry to its actual supporting depth. Picking must apply that depth even where antialias pixels belong to chair wood. Deliberately remove table support and the drawn hand contribution separately; both must fail their contact comparisons. Use named geometry ownership to select hand pixels; a skin-colour filter also selects food and wood. Report whole-scene outline differences separately from physical contact acceptance.
+
+## [L-render-reference-framing] Preserve physical pixel scale when expanding reference canvases
+
+**What happened.** Enlarged dining reference canvases still cropped the table because an aspect-ratio change also enlarged the projected scene.
+
+**Root cause.** Blender's automatic camera fit selects its controlling dimension from the canvas aspect ratio. Scaling the orthographic camera by height alone changed pixel density when a portrait canvas became landscape.
+
+**Prevention.** Measure evaluated geometry across every reference state before choosing a canvas. Preserve the camera pose and assert the projected world-unit basis on both axes after resizing. Leave margin for strokes and filtering. Check rendered alpha borders before marking the producer receipt complete.
+
+**Verify.** Project the same world origin and unit vectors through the original and expanded cameras. Require matching pixel scale and complete raw and encoded alpha borders. A completed file count does not replace those checks.

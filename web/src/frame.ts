@@ -14,12 +14,14 @@ import {
   layeredDepth,
   screenX,
   screenY,
+  TILE_HALF_WIDTH,
 } from './render/iso.js';
 import {
   ACTIVITY_AT_WORK,
   EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
   OFFSET_PROJECTION_ANCHOR_X,
+  OFFSET_WALL_MASK,
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
@@ -27,7 +29,8 @@ import {
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, BED_CATALOG, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, BED_CATALOG, spriteIndex } from './render/atlas.js';
+import { DINING_BACKGROUND, DINING_FOREGROUND } from './render/dining-support.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
@@ -821,6 +824,8 @@ export interface RenderSource {
   simIds?(): Uint32Array;
   /** Exact validated action target entity ID, or u32::MAX. */
   interactionTargets?(): Uint32Array;
+  /** Actual supporting table for a running seated meal, or u32::MAX. */
+  mealTables?(): Uint32Array;
   sleepingBeds?(): Uint32Array;
   sleepingPlaces?(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
@@ -1139,6 +1144,10 @@ export function buildInstanceBatch(
     }
     writeFootprintProjection(scratch, i, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
+    if (interactions.mealRows[i] >= 0 && SPRITE_DINING_SUPPORT[sprite]
+        && interactions.mealRows[i] !== replacedRow) {
+      scratch[i * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_BACKGROUND;
+    }
   }
 
   // **Authored object foregrounds, in the slots after the entities.** The
@@ -1146,6 +1155,32 @@ export function buildInstanceBatch(
   // posts, rail and ladder over it without teaching the shell which object
   // owns those pixels.
   let slot = count;
+  for (let row = 0; row < count; row++) {
+    const table = interactions.mealRows[row];
+    const body = interactions.bodies[row];
+    const meal = SPRITE_DINING_SUPPORT[body];
+    if (table < 0 || !meal || row === replacedRow || table === replacedRow) continue;
+    const chair = interactions.targetRows[row];
+    const wx = lerp(previous[chair * 2], current[chair * 2], alpha);
+    const wy = lerp(previous[chair * 2 + 1], current[chair * 2 + 1], alpha);
+    const tableX = lerp(previous[table * 2], current[table * 2], alpha);
+    const tableY = lerp(previous[table * 2 + 1], current[table * 2 + 1], alpha);
+    const light = scratch[row * FLOATS_PER_INSTANCE + 7];
+    writeInstance(scratch, slot,
+      screenX(wx, wy, originX, scale) + spriteDrawOffsetX(body) * scale,
+      screenY(wx, wy, originY, scale) + spriteDrawOffsetY(body) * scale,
+      layeredDepth(tableX, tableY, gridSize, LAYER_FOREGROUND), body,
+      TINT_NONE, TINT_NONE, TINT_NONE, light);
+    for (let field = 12; field < 16; field++) {
+      scratch[slot * FLOATS_PER_INSTANCE + field] = scratch[row * FLOATS_PER_INSTANCE + field];
+    }
+    writeFootprintProjection(scratch, slot, footprintWidths?.[table] ?? 0,
+      footprintDepths?.[table] ?? 0, body, gridSize);
+    scratch[slot * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK] = DINING_FOREGROUND;
+    scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] +=
+      ((wx - tableX) - (wy - tableY)) * TILE_HALF_WIDTH;
+    slot++;
+  }
   for (let row = 0; row < count; row++) {
     if (row === replacedRow || interactions.suppressed[row]) continue;
     const wx = current[row * 2];
@@ -1411,6 +1446,9 @@ export function instanceCount(source: RenderSource, selected: number | null,
   const cookingSources=source.soundSources?.();
   const mealPortions = source.mealPortions?.();
   for (let i = 0; i < source.count; i++) {
+    const mealTable = interactions.mealRows[i];
+    if (mealTable >= 0 && SPRITE_DINING_SUPPORT[interactions.bodies[i]]
+        && i !== replacedRow && mealTable !== replacedRow) extras++;
     if (i !== replacedRow && !interactions.suppressed[i]) {
       extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0, dirtySettings?.[i], cookingSurface(ids[i],cookingActions,cookingSources,facings));
     }

@@ -1,0 +1,91 @@
+{
+  "collisions": [
+    {
+      "body": "Tailored trouser leg",
+      "chair": "Front apron",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 218
+      }
+    },
+    {
+      "body": "Tailored trouser leg",
+      "chair": "Front leg right",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 75
+      }
+    },
+    {
+      "body": "Tailored trouser leg",
+      "chair": "Seat",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 273
+      }
+    },
+    {
+      "body": "Tailored trouser leg",
+      "chair": "Side apron right",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 53
+      }
+    },
+    {
+      "body": "Tailored trouser leg.001",
+      "chair": "Front apron",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 218
+      }
+    },
+    {
+      "body": "Tailored trouser leg.001",
+      "chair": "Front leg left",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 75
+      }
+    },
+    {
+      "body": "Tailored trouser leg.001",
+      "chair": "Seat",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 273
+      }
+    },
+    {
+      "body": "Tailored trouser leg.001",
+      "chair": "Side apron left",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 52
+      }
+    },
+    {
+      "body": "Trouser hip bridge",
+      "chair": "Seat",
+      "hit": {
+        "kind": "surface",
+        "triangle_pairs": 388
+      }
+    }
+  ],
+  "hip_bounds": [
+    [
+      -0.20709577202796936,
+      0.20709577202796936
+    ],
+    [
+      -0.161735400557518,
+      0.07250647991895676
+    ],
+    [
+      0.4042990803718567,
+      0.6251726150512695
+    ]
+  ],
+  "seat_gap": -0.13070088624954224
+}

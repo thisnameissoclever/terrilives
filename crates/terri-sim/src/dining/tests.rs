@@ -83,6 +83,56 @@ fn simultaneous_diners_claim_two_real_chairs_and_the_third_stands() {
 }
 
 #[test]
+fn seated_art_targets_the_claimed_chair_while_food_keeps_the_table_target() {
+    let (mut sim, people, table) = ready();
+    advance(sim.world_mut());
+    let diner = claim(sim.world(), people[0].index_u32()).unwrap().clone();
+    let chair = entity(sim.world(), diner.chair.unwrap()).unwrap();
+    sim.world_mut()
+        .entity_mut(people[0])
+        .remove::<Path>()
+        .insert((
+            Position {
+                x: diner.endpoint.0 as f32,
+                y: diner.endpoint.1 as f32,
+            },
+            StepWork {
+                remaining_ticks: 10,
+            },
+        ));
+    let pose = projection(sim.world(), people[0]).unwrap();
+    let position = sim.world().get::<Position>(chair).unwrap();
+    assert_eq!((pose.x, pose.y), (position.x, position.y));
+    assert_eq!(pose.target_entity, chair.index_u32());
+    assert_eq!(sim.world().get::<Target>(people[0]).unwrap().object, table);
+    assert_eq!(
+        pose.visual_action,
+        crate::render_buffer::visual_action::SEATED_EAT
+    );
+    assert_eq!(pose.activity, crate::render_buffer::activity::EATING);
+    sim.sync_render_buffer();
+    let row = sim
+        .render_buffer()
+        .ids
+        .iter()
+        .position(|id| *id == people[0].index_u32())
+        .unwrap();
+    assert_eq!(
+        sim.render_buffer().meal_tables.len(),
+        sim.render_buffer().ids.len()
+    );
+    assert_eq!(sim.render_buffer().meal_tables[row], table.index_u32());
+    assert_eq!(
+        sim.render_buffer().interaction_targets[row],
+        chair.index_u32()
+    );
+    assert_eq!(sim.render_buffer().sound_actions[row], 0);
+    sim.world_mut().entity_mut(people[0]).remove::<StepWork>();
+    sim.sync_render_buffer();
+    assert_eq!(sim.render_buffer().meal_tables[row], u32::MAX);
+}
+
+#[test]
 fn missing_or_wrong_facing_chairs_cannot_supply_a_seat() {
     let (mut sim, _, table) = ready();
     let chairs: Vec<_> = sim

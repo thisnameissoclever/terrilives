@@ -39,6 +39,7 @@ Build actions beside your selection, shared meals, bathroom boundaries and devel
 - Meals, leftover portions, dirty dishes and interrupted cooking carry over when you save and load.
 - Sim details start narrower and expand when Personal details need more space. Shyness appears alongside personality information.
 - Privacy detours preserve meal pickup, occupied dining spaces and interrupted cleanup.
+- Seated diners rest on dining chairs without sinking through the seat or showing through the back rails. Their hands and plates remain visible above the table. Clicking exposed chair parts selects the chair.
 
 ## Art
 - Cooking shows a pot on the stove and a stirring utensil. Carrying plates and seated eating use separate animations; the floating cooking plate is gone.

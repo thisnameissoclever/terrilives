@@ -30,7 +30,8 @@ it.each(['', 'NW', 'SW', 'NE'])('registers the dining chair without pickable bla
   expect(pickSprite(source, 0, -100, 0, 0)).toBeNull();
   expect(pickSprite(source, 46, -24, 0, 0)).toBeNull();
   expect(atlas.SPRITE_PAIRS[index]).toBeUndefined();
-  expect(atlas.INTERACTION_SPRITES[index]).toBeUndefined();
+  expect(atlas.INTERACTION_SPRITES[index].action).toBe(13);
+  expect(atlas.INTERACTION_SPRITES[index].frames.green).toHaveLength(8);
 });
 
 it('keeps both chairs facing the table and preserves their saved placement through every preview', () => {

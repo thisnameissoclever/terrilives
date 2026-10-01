@@ -798,22 +798,24 @@ def pack_atlas(sprites):
 
 
 def pack(sprites, width=512):
-    """Shelf packing, tallest first. The sheet is small and static, so the
-    simplest algorithm that does not waste half the texture is the right
-    one - there is no runtime cost to a slightly loose pack."""
+    """Pack tallest first and fill existing shelf gaps before adding height."""
     if not 1 <= width <= 8192 or any(sprite[2] + PADDING > width for sprite in sprites):
         raise ValueError("atlas width exceeds texture dimension limit")
     order = sorted(range(len(sprites)), key=lambda i: -sprites[i][3])
-    x = y = shelf = 0
+    shelves = []
+    height = 0
     placed = {}
     for i in order:
         _, _, w, h = sprites[i]
-        if x + w + PADDING > width:
-            x, y, shelf = 0, y + shelf + PADDING, 0
-        placed[i] = (x, y)
-        x += w + PADDING
-        shelf = max(shelf, h)
-    height = y + shelf + PADDING
+        candidates = [s for s in shelves if s['height'] >= h and s['x'] + w + PADDING <= width]
+        if candidates:
+            shelf = max(candidates, key=lambda s: s['x'])
+        else:
+            shelf = dict(x=0, y=height, height=h)
+            shelves.append(shelf)
+            height += h + PADDING
+        placed[i] = (shelf['x'], shelf['y'])
+        shelf['x'] += w + PADDING
     if height > 8192:
         raise AtlasHeightError("atlas height exceeds texture dimension limit")
     return placed, width, height
@@ -895,7 +897,8 @@ def write_toml(sprites, placed, width, height, densities=None):
 
 def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
              hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None,
-             pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None):
+             pairs=None, interactions=None, bounds=None, surfaces=None, bed_catalog=None, bed_layers=None, bed_coverage=None,
+             pair_coverage=None, pair_masks=None, dining_meals=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -918,6 +921,9 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
     bed_catalog_json = json.dumps(bed_catalog or {}, indent=2)
     bed_layers_json = json.dumps(bed_layers or {}, indent=2)
     bed_coverage_json = json.dumps(bed_coverage or [], indent=2)
+    pair_coverage_json = json.dumps(pair_coverage or {}, indent=2)
+    pair_masks_json = json.dumps(pair_masks or [], indent=2)
+    dining_meals_json = json.dumps(dining_meals or {}, indent=2)
     # The export NAMES here are load-bearing: sprites.ts imports `SPRITES`,
     # `ATLAS_WIDTH` and `ATLAS_HEIGHT` by those names. Renaming any of them
     # is a compile error at best and a silently empty atlas at worst.
@@ -973,6 +979,11 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {tops_json}
 export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {bounds_json};
 /** Indices of premultiplied visibility contributions composed in one fragment. */
 export const SPRITE_PAIRS: Readonly<Record<number, {{ readonly furniture: number; readonly outline: number }}>> = {pairs_json};
+/** Raw visible body and furniture ownership, sampled in the paired canvas. */
+export const SPRITE_PAIR_COVERAGE: Readonly<Record<number, readonly [number, number, number, number]>> = {pair_coverage_json};
+export const SPRITE_PAIR_MASKS: readonly import('./bed-sprites.js').EncodedCoverage[] = {pair_masks_json};
+/** Visible meal contributions use their actual table's depth while retaining the diner anchor. */
+export const SPRITE_DINING_SUPPORT: Readonly<Record<number, import('./dining-support.js').DiningSupport>> = {dining_meals_json};
 /** Exact empty-sprite profiles; explicit body indices retain shared-layer deduplication. */
 export const INTERACTION_SPRITES: import('./interaction-sprites.js').InteractionCatalog = {interactions_json};
 /** Furniture support points projected from its authored surface and camera. */
@@ -1277,6 +1288,23 @@ def main():
         densities[len(sprites)]=2
         sprites.append(sprite)
     surfaces.update(stove_layouts(ROOT,sprites))
+    from offline_dining import load_dining, coverage_tables, meal_tables
+    occupied = load_dining(os.path.join(ROOT, 'assets/models/domestic/export/seated-dining/manifest.json'),
+                           existing_names={sprite[0] for sprite in sprites})
+    sprites.extend(occupied.sprites)
+    pair_coverage, pair_masks = coverage_tables(occupied, sprites)
+    more_anchors, more_tops, more_bounds, more_density, more_pairs, more_profiles = furniture_tables(occupied, sprites)
+    anchors.update(more_anchors)
+    tops.update(more_tops)
+    bounds.update(more_bounds)
+    densities.update(more_density)
+    pairs.update(more_pairs)
+    interactions.update(more_profiles)
+    for meal_sprite in occupied.meal_sprites:
+        anchors[len(sprites)] = occupied.meal_anchors[meal_sprite[0]]
+        densities[len(sprites)] = 2
+        sprites.append(meal_sprite)
+    dining_meals = meal_tables(occupied, sprites, pair_masks)
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in bed_layers]
@@ -1314,7 +1342,8 @@ def main():
                   anchors=anchors, hands=hands, tops=tops, clips=clips,
                   hand_fronts=hand_fronts, variants=variants, densities=densities,
                   pairs=pairs, interactions=interactions, bounds=bounds, surfaces=surfaces,
-                  bed_catalog=bed_catalog, bed_layers=bed_layers, bed_coverage=bed_coverage)
+                  bed_catalog=bed_catalog, bed_layers=bed_layers, bed_coverage=bed_coverage,
+                  pair_coverage=pair_coverage, pair_masks=pair_masks, dining_meals=dining_meals)
 
     if args.check:
         bad = []

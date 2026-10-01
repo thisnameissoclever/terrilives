@@ -110,6 +110,10 @@ pub struct RenderBuffer {
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
+    /// Actual supporting table for a validated running seated meal, or u32::MAX.
+    /// The occupied body targets its chair; the separate plate uses this table.
+    /// Walking, standing, interrupted and completed meals carry the sentinel.
+    pub meal_tables: Vec<u32>,
     /// Exact bed entity for running sleep-tagged place ownership, or [`NO_SLEEPING_BED`].
     /// Independent visual metadata still owns the body pose and activity label.
     pub sleeping_beds: Vec<u32>,
