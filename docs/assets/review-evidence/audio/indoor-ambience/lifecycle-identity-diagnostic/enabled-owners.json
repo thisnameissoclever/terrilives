@@ -1,0 +1,5038 @@
+[
+  {
+    "target": {
+      "offset": 436770,
+      "id": 278603,
+      "type": "closure",
+      "name": "",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 435480,
+          "id": 88321,
+          "type": "object",
+          "name": "system / Context / scope @65705",
+          "bytes": 32
+        },
+        "edge": "context:r",
+        "child": {
+          "offset": 436770,
+          "id": 278603,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 435108,
+          "id": 88143,
+          "type": "closure",
+          "name": "render",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 435480,
+          "id": 88321,
+          "type": "object",
+          "name": "system / Context / scope @65705",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 432750,
+          "id": 87215,
+          "type": "object",
+          "name": "Object",
+          "bytes": 16
+        },
+        "edge": "property:render",
+        "child": {
+          "offset": 435108,
+          "id": 88143,
+          "type": "closure",
+          "name": "render",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 280320,
+          "id": 87213,
+          "type": "object",
+          "name": "ii",
+          "bytes": 88
+        },
+        "edge": "property:surface",
+        "child": {
+          "offset": 432750,
+          "id": 87215,
+          "type": "object",
+          "name": "Object",
+          "bytes": 16
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:lt",
+        "child": {
+          "offset": 280320,
+          "id": 87213,
+          "type": "object",
+          "name": "ii",
+          "bytes": 88
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 481758,
+      "id": 218469,
+      "type": "object",
+      "name": "Object",
+      "bytes": 24
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 550566,
+          "id": 221433,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        },
+        "edge": "internal:transition_info",
+        "child": {
+          "offset": 481758,
+          "id": 218469,
+          "type": "object",
+          "name": "Object",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 247074,
+          "id": 133125,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 440
+        },
+        "edge": "hidden:54",
+        "child": {
+          "offset": 550566,
+          "id": 221433,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 247068,
+          "id": 112707,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        },
+        "edge": "internal:value",
+        "child": {
+          "offset": 247074,
+          "id": 133125,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 440
+        }
+      },
+      {
+        "parent": {
+          "offset": 267930,
+          "id": 136543,
+          "type": "closure",
+          "name": "play",
+          "bytes": 28
+        },
+        "edge": "internal:feedback_cell",
+        "child": {
+          "offset": 247068,
+          "id": 112707,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        }
+      },
+      {
+        "parent": {
+          "offset": 268992,
+          "id": 99613,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:play",
+        "child": {
+          "offset": 267930,
+          "id": 136543,
+          "type": "closure",
+          "name": "play",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 248280,
+          "id": 133215,
+          "type": "closure",
+          "name": "Cs",
+          "bytes": 32
+        },
+        "edge": "property:prototype",
+        "child": {
+          "offset": 268992,
+          "id": 99613,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        },
+        "edge": "context:Cs",
+        "child": {
+          "offset": 248280,
+          "id": 133215,
+          "type": "closure",
+          "name": "Cs",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "internal:previous",
+        "child": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 551160,
+      "id": 255085,
+      "type": "object",
+      "name": "Object",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 420882,
+          "id": 255433,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        },
+        "edge": "internal:transition_info",
+        "child": {
+          "offset": 551160,
+          "id": 255085,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 247140,
+          "id": 133131,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 480
+        },
+        "edge": "hidden:68",
+        "child": {
+          "offset": 420882,
+          "id": 255433,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 247134,
+          "id": 112721,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        },
+        "edge": "internal:value",
+        "child": {
+          "offset": 247140,
+          "id": 133131,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 480
+        }
+      },
+      {
+        "parent": {
+          "offset": 260532,
+          "id": 134397,
+          "type": "closure",
+          "name": "play",
+          "bytes": 28
+        },
+        "edge": "internal:feedback_cell",
+        "child": {
+          "offset": 247134,
+          "id": 112721,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        }
+      },
+      {
+        "parent": {
+          "offset": 260526,
+          "id": 99601,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:play",
+        "child": {
+          "offset": 260532,
+          "id": 134397,
+          "type": "closure",
+          "name": "play",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 249858,
+          "id": 133271,
+          "type": "closure",
+          "name": "Ds",
+          "bytes": 32
+        },
+        "edge": "property:prototype",
+        "child": {
+          "offset": 260526,
+          "id": 99601,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        },
+        "edge": "context:Ds",
+        "child": {
+          "offset": 249858,
+          "id": 133271,
+          "type": "closure",
+          "name": "Ds",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "internal:previous",
+        "child": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 554100,
+      "id": 289051,
+      "type": "object",
+      "name": "Object",
+      "bytes": 24
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 556248,
+          "id": 289123,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        },
+        "edge": "internal:transition_info",
+        "child": {
+          "offset": 554100,
+          "id": 289051,
+          "type": "object",
+          "name": "Object",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 242148,
+          "id": 243179,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 128
+        },
+        "edge": "hidden:17",
+        "child": {
+          "offset": 556248,
+          "id": 289123,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 242142,
+          "id": 111713,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        },
+        "edge": "internal:value",
+        "child": {
+          "offset": 242148,
+          "id": 243179,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 128
+        }
+      },
+      {
+        "parent": {
+          "offset": 249270,
+          "id": 113263,
+          "type": "closure",
+          "name": "Ri",
+          "bytes": 32
+        },
+        "edge": "internal:feedback_cell",
+        "child": {
+          "offset": 242142,
+          "id": 111713,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        }
+      },
+      {
+        "parent": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        },
+        "edge": "context:Ri",
+        "child": {
+          "offset": 249270,
+          "id": 113263,
+          "type": "closure",
+          "name": "Ri",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "internal:previous",
+        "child": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 554160,
+      "id": 255913,
+      "type": "object",
+      "name": "Object",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 555936,
+          "id": 255985,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        },
+        "edge": "internal:transition_info",
+        "child": {
+          "offset": 554160,
+          "id": 255913,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 242262,
+          "id": 243181,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 184
+        },
+        "edge": "hidden:26",
+        "child": {
+          "offset": 555936,
+          "id": 255985,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 242256,
+          "id": 111731,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        },
+        "edge": "internal:value",
+        "child": {
+          "offset": 242262,
+          "id": 243181,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 184
+        }
+      },
+      {
+        "parent": {
+          "offset": 249996,
+          "id": 113281,
+          "type": "closure",
+          "name": "Zi",
+          "bytes": 32
+        },
+        "edge": "internal:feedback_cell",
+        "child": {
+          "offset": 242256,
+          "id": 111731,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        }
+      },
+      {
+        "parent": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        },
+        "edge": "context:Zi",
+        "child": {
+          "offset": 249996,
+          "id": 113281,
+          "type": "closure",
+          "name": "Zi",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "internal:previous",
+        "child": {
+          "offset": 131634,
+          "id": 55805,
+          "type": "object",
+          "name": "system / Context / scope @54935",
+          "bytes": 1980
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 556638,
+      "id": 289233,
+      "type": "object",
+      "name": "Object",
+      "bytes": 32
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 440358,
+          "id": 278767,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        },
+        "edge": "internal:transition_info",
+        "child": {
+          "offset": 556638,
+          "id": 289233,
+          "type": "object",
+          "name": "Object",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 265776,
+          "id": 90393,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 128
+        },
+        "edge": "hidden:10",
+        "child": {
+          "offset": 440358,
+          "id": 278767,
+          "type": "code",
+          "name": "system / AllocationSite",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 265770,
+          "id": 87285,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        },
+        "edge": "internal:value",
+        "child": {
+          "offset": 265776,
+          "id": 90393,
+          "type": "code",
+          "name": "system / FeedbackVector",
+          "bytes": 128
+        }
+      },
+      {
+        "parent": {
+          "offset": 280818,
+          "id": 87283,
+          "type": "closure",
+          "name": "R",
+          "bytes": 28
+        },
+        "edge": "internal:feedback_cell",
+        "child": {
+          "offset": 265770,
+          "id": 87285,
+          "type": "code",
+          "name": "system / FeedbackCell",
+          "bytes": 16
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:R",
+        "child": {
+          "offset": 280818,
+          "id": 87283,
+          "type": "closure",
+          "name": "R",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 556764,
+      "id": 289275,
+      "type": "closure",
+      "name": "",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 556770,
+          "id": 289277,
+          "type": "object",
+          "name": "system / Context / scope @289259",
+          "bytes": 20
+        },
+        "edge": "context:resolve",
+        "child": {
+          "offset": 556764,
+          "id": 289275,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 556770,
+          "id": 289277,
+          "type": "object",
+          "name": "system / Context / scope @289259",
+          "bytes": 20
+        }
+      },
+      {
+        "parent": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        },
+        "edge": "element:2",
+        "child": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        }
+      },
+      {
+        "parent": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        }
+      },
+      {
+        "parent": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        }
+      },
+      {
+        "parent": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        },
+        "edge": "element:3",
+        "child": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        }
+      },
+      {
+        "parent": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        },
+        "edge": "element:34",
+        "child": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        }
+      },
+      {
+        "parent": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        },
+        "edge": "property:global",
+        "child": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:148 / DevTools console",
+        "child": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 556776,
+      "id": 289279,
+      "type": "closure",
+      "name": "",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        },
+        "edge": "element:2",
+        "child": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        }
+      },
+      {
+        "parent": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        }
+      },
+      {
+        "parent": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        }
+      },
+      {
+        "parent": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        },
+        "edge": "element:3",
+        "child": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        }
+      },
+      {
+        "parent": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        },
+        "edge": "element:34",
+        "child": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        }
+      },
+      {
+        "parent": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        },
+        "edge": "property:global",
+        "child": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:148 / DevTools console",
+        "child": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 556794,
+      "id": 289285,
+      "type": "closure",
+      "name": "",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 556752,
+          "id": 289271,
+          "type": "native",
+          "name": "system / PromiseReaction",
+          "bytes": 24
+        },
+        "edge": "hidden:2",
+        "child": {
+          "offset": 556794,
+          "id": 289285,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 556746,
+          "id": 289269,
+          "type": "object",
+          "name": "Promise",
+          "bytes": 20
+        },
+        "edge": "internal:reactions_or_result",
+        "child": {
+          "offset": 556752,
+          "id": 289271,
+          "type": "native",
+          "name": "system / PromiseReaction",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 556758,
+          "id": 289273,
+          "type": "object",
+          "name": "system / Context / scope @111",
+          "bytes": 24
+        },
+        "edge": "hidden:1",
+        "child": {
+          "offset": 556746,
+          "id": 289269,
+          "type": "object",
+          "name": "Promise",
+          "bytes": 20
+        }
+      },
+      {
+        "parent": {
+          "offset": 556764,
+          "id": 289275,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 556758,
+          "id": 289273,
+          "type": "object",
+          "name": "system / Context / scope @111",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 556770,
+          "id": 289277,
+          "type": "object",
+          "name": "system / Context / scope @289259",
+          "bytes": 20
+        },
+        "edge": "context:resolve",
+        "child": {
+          "offset": 556764,
+          "id": 289275,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 556770,
+          "id": 289277,
+          "type": "object",
+          "name": "system / Context / scope @289259",
+          "bytes": 20
+        }
+      },
+      {
+        "parent": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        },
+        "edge": "element:2",
+        "child": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        }
+      },
+      {
+        "parent": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        }
+      },
+      {
+        "parent": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        }
+      },
+      {
+        "parent": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        },
+        "edge": "element:3",
+        "child": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        }
+      },
+      {
+        "parent": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        },
+        "edge": "element:34",
+        "child": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        }
+      },
+      {
+        "parent": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        },
+        "edge": "property:global",
+        "child": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:148 / DevTools console",
+        "child": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 556800,
+      "id": 289287,
+      "type": "closure",
+      "name": "",
+      "bytes": 28
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 556752,
+          "id": 289271,
+          "type": "native",
+          "name": "system / PromiseReaction",
+          "bytes": 24
+        },
+        "edge": "hidden:1",
+        "child": {
+          "offset": 556800,
+          "id": 289287,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 556746,
+          "id": 289269,
+          "type": "object",
+          "name": "Promise",
+          "bytes": 20
+        },
+        "edge": "internal:reactions_or_result",
+        "child": {
+          "offset": 556752,
+          "id": 289271,
+          "type": "native",
+          "name": "system / PromiseReaction",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 556758,
+          "id": 289273,
+          "type": "object",
+          "name": "system / Context / scope @111",
+          "bytes": 24
+        },
+        "edge": "hidden:1",
+        "child": {
+          "offset": 556746,
+          "id": 289269,
+          "type": "object",
+          "name": "Promise",
+          "bytes": 20
+        }
+      },
+      {
+        "parent": {
+          "offset": 556764,
+          "id": 289275,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 556758,
+          "id": 289273,
+          "type": "object",
+          "name": "system / Context / scope @111",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 556770,
+          "id": 289277,
+          "type": "object",
+          "name": "system / Context / scope @289259",
+          "bytes": 20
+        },
+        "edge": "context:resolve",
+        "child": {
+          "offset": 556764,
+          "id": 289275,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 556770,
+          "id": 289277,
+          "type": "object",
+          "name": "system / Context / scope @289259",
+          "bytes": 20
+        }
+      },
+      {
+        "parent": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 556776,
+          "id": 289279,
+          "type": "closure",
+          "name": "",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        },
+        "edge": "element:2",
+        "child": {
+          "offset": 594654,
+          "id": 31246,
+          "type": "native",
+          "name": "V8Function",
+          "bytes": 32
+        }
+      },
+      {
+        "parent": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 594660,
+          "id": 31248,
+          "type": "native",
+          "name": "ScheduledAction",
+          "bytes": 56
+        }
+      },
+      {
+        "parent": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 653190,
+          "id": 31756,
+          "type": "native",
+          "name": "DOMTimer",
+          "bytes": 176
+        }
+      },
+      {
+        "parent": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 635856,
+          "id": 31632,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<int, blink::KeyValuePair<int, cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<int>, blink::HashTraits<cppgc::internal::BasicMember<blink::DOMTimer, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<int>, blink::HeapAllocator>>",
+          "bytes": 72
+        }
+      },
+      {
+        "parent": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        },
+        "edge": "element:3",
+        "child": {
+          "offset": 635850,
+          "id": 16528,
+          "type": "native",
+          "name": "blink::(anonymous namespace)::DOMTimerCoordinator",
+          "bytes": 64
+        }
+      },
+      {
+        "parent": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        },
+        "edge": "element:34",
+        "child": {
+          "offset": 653496,
+          "id": 24532,
+          "type": "native",
+          "name": "blink::HeapHashTableBacking<blink::HashTable<const char *, blink::KeyValuePair<const char *, cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>, blink::KeyValuePairExtractor, blink::HashMapValueTraits<blink::HashTraits<const char *>, blink::HashTraits<cppgc::internal::BasicMember<blink::Supplement<blink::ExecutionContext>, cppgc::internal::StrongMemberTag, cppgc::internal::DijkstraWriteBarrierPolicy>>>, blink::HashTraits<const char *>, blink::HeapAllocator>>",
+          "bytes": 520
+        }
+      },
+      {
+        "parent": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        },
+        "edge": "property:global",
+        "child": {
+          "offset": 320586,
+          "id": 141145,
+          "type": "native",
+          "name": "Window / http://127.0.0.1:5221",
+          "bytes": 920
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:148 / DevTools console",
+        "child": {
+          "offset": 22950,
+          "id": 7597,
+          "type": "object",
+          "name": "UtilityScript",
+          "bytes": 60
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 273144,
+      "id": 275543,
+      "type": "array",
+      "name": "",
+      "bytes": 1956
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:55",
+        "child": {
+          "offset": 273144,
+          "id": 275543,
+          "type": "array",
+          "name": "",
+          "bytes": 1956
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 273018,
+      "id": 275539,
+      "type": "array",
+      "name": "",
+      "bytes": 732
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:11",
+        "child": {
+          "offset": 273018,
+          "id": 275539,
+          "type": "array",
+          "name": "",
+          "bytes": 732
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 272976,
+      "id": 275537,
+      "type": "array",
+      "name": "",
+      "bytes": 724
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:1",
+        "child": {
+          "offset": 272976,
+          "id": 275537,
+          "type": "array",
+          "name": "",
+          "bytes": 724
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 273030,
+      "id": 275541,
+      "type": "array",
+      "name": "",
+      "bytes": 612
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:13",
+        "child": {
+          "offset": 273030,
+          "id": 275541,
+          "type": "array",
+          "name": "",
+          "bytes": 612
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 274518,
+      "id": 195873,
+      "type": "array",
+      "name": "",
+      "bytes": 428
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:411",
+        "child": {
+          "offset": 274518,
+          "id": 195873,
+          "type": "array",
+          "name": "",
+          "bytes": 428
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 277686,
+      "id": 275589,
+      "type": "array",
+      "name": "",
+      "bytes": 420
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:1573",
+        "child": {
+          "offset": 277686,
+          "id": 275589,
+          "type": "array",
+          "name": "",
+          "bytes": 420
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 274650,
+      "id": 195875,
+      "type": "array",
+      "name": "",
+      "bytes": 356
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:457",
+        "child": {
+          "offset": 274650,
+          "id": 195875,
+          "type": "array",
+          "name": "",
+          "bytes": 356
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 274698,
+      "id": 195877,
+      "type": "array",
+      "name": "",
+      "bytes": 356
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:468",
+        "child": {
+          "offset": 274698,
+          "id": 195877,
+          "type": "array",
+          "name": "",
+          "bytes": 356
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 274704,
+      "id": 195879,
+      "type": "array",
+      "name": "",
+      "bytes": 356
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:469",
+        "child": {
+          "offset": 274704,
+          "id": 195879,
+          "type": "array",
+          "name": "",
+          "bytes": 356
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 274758,
+      "id": 275563,
+      "type": "array",
+      "name": "",
+      "bytes": 356
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:485",
+        "child": {
+          "offset": 274758,
+          "id": 275563,
+          "type": "array",
+          "name": "",
+          "bytes": 356
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 274764,
+      "id": 195881,
+      "type": "array",
+      "name": "",
+      "bytes": 356
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:487",
+        "child": {
+          "offset": 274764,
+          "id": 195881,
+          "type": "array",
+          "name": "",
+          "bytes": 356
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "target": {
+      "offset": 276078,
+      "id": 195907,
+      "type": "array",
+      "name": "",
+      "bytes": 356
+    },
+    "retainingPath": [
+      {
+        "parent": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        },
+        "edge": "internal:838",
+        "child": {
+          "offset": 276078,
+          "id": 195907,
+          "type": "array",
+          "name": "",
+          "bytes": 356
+        }
+      },
+      {
+        "parent": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        },
+        "edge": "internal:feedback_vectors",
+        "child": {
+          "offset": 272964,
+          "id": 138033,
+          "type": "array",
+          "name": "",
+          "bytes": 7936
+        }
+      },
+      {
+        "parent": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        },
+        "edge": "hidden:5",
+        "child": {
+          "offset": 271980,
+          "id": 137759,
+          "type": "native",
+          "name": "system / WasmTrustedInstanceData",
+          "bytes": 136
+        }
+      },
+      {
+        "parent": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        },
+        "edge": "property:__wbindgen_externrefs",
+        "child": {
+          "offset": 532644,
+          "id": 175365,
+          "type": "object",
+          "name": "Table",
+          "bytes": 40
+        }
+      },
+      {
+        "parent": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        },
+        "edge": "context:s",
+        "child": {
+          "offset": 249582,
+          "id": 133261,
+          "type": "object",
+          "name": "Object",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        },
+        "edge": "internal:context",
+        "child": {
+          "offset": 280224,
+          "id": 87179,
+          "type": "object",
+          "name": "system / Context / scope @67557",
+          "bytes": 512
+        }
+      },
+      {
+        "parent": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        },
+        "edge": "property:step",
+        "child": {
+          "offset": 437904,
+          "id": 89263,
+          "type": "closure",
+          "name": "step",
+          "bytes": 28
+        }
+      },
+      {
+        "parent": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        },
+        "edge": "property:__terriStress",
+        "child": {
+          "offset": 325878,
+          "id": 142579,
+          "type": "object",
+          "name": "Object",
+          "bytes": 12
+        }
+      },
+      {
+        "parent": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        },
+        "edge": "internal:global_object",
+        "child": {
+          "offset": 320592,
+          "id": 141147,
+          "type": "object",
+          "name": "Window [JSGlobalObject] / http://127.0.0.1:5221",
+          "bytes": 24
+        }
+      },
+      {
+        "parent": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        },
+        "edge": "internal:157 / blink::ScriptStateProtectingContext::context_",
+        "child": {
+          "offset": 23004,
+          "id": 7607,
+          "type": "native",
+          "name": "system / NativeContext / http://127.0.0.1:5221",
+          "bytes": 1244
+        }
+      },
+      {
+        "parent": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        },
+        "edge": "element:10",
+        "child": {
+          "offset": 66,
+          "id": 23,
+          "type": "synthetic",
+          "name": "(Global handles)",
+          "bytes": 0
+        }
+      },
+      {
+        "parent": {
+          "offset": 0,
+          "id": 1,
+          "type": "synthetic",
+          "name": "",
+          "bytes": 0
+        },
+        "edge": "element:1",
+        "child": {
+          "offset": 6,
+          "id": 3,
+          "type": "synthetic",
+          "name": "(GC roots)",
+          "bytes": 0
+        }
+      }
+    ]
+  }
+]

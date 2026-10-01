@@ -1,0 +1,65 @@
+{
+  "checks": [
+    {
+      "label": "Independent quarter Ambience",
+      "actual": 0.0010877102496094128,
+      "expected": 0.0010877102496094128
+    },
+    {
+      "label": "Voices bypass",
+      "actual": 0.004350840998437651,
+      "expected": 0.004350840998437651
+    },
+    {
+      "label": "Effects routing",
+      "actual": 0.0021754204992188255,
+      "expected": 0.0021754204992188255
+    },
+    {
+      "label": "Ambience zero",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "label": "Effects zero",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "label": "Master mute",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "label": "Pause drained",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "label": "suspended resumed tail",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "label": "release-suspended resumed tail",
+      "actual": 0,
+      "expected": 0
+    },
+    {
+      "label": "toggles resumed tail",
+      "actual": 0,
+      "expected": 0
+    }
+  ],
+  "rms": 0.004350840998437651,
+  "rmsEffectsLevel": 0.7,
+  "peak": 0.020989106968045235,
+  "peakEffectsLevel": 1,
+  "peakAmbienceLevel": 1,
+  "counts": {
+    "active": 1,
+    "retained": 1,
+    "starts": 1
+  },
+  "subjectiveListening": "not claimed"
+}
