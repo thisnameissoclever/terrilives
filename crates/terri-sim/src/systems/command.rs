@@ -10,12 +10,14 @@
 
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, CommandQueue, Eating, Intent, IntentQueue, Path, Reserved, Selected, SimCommand,
-    SmartObject, Target,
+    Agent, CommandQueue, Eating, Intent, IntentQueue, Path, Selected, SimCommand, SmartObject,
+    Target,
 };
 
 pub use super::lot_edit::drain_commands;
 use crate::Content;
+#[cfg(test)]
+use terri_core::Reserved;
 
 /// Player-visible results produced while staged commands become simulation
 /// state.
@@ -175,11 +177,9 @@ fn place_in(
 /// `Without<Eating>`, and the sim would freeze while its needs drained.
 /// That is [L17] reached by a button rather than by a distance metric.
 fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
-    // try_remove for the same reason `tick_interactions` uses it:
-    // `Commands::entity` does not validate, so a `Target` naming an
-    // entity that has gone away would otherwise route the removal to
-    // the command error handler.
-    commands.entity(target.object).try_remove::<Reserved>();
+    // Resolve occupancy after preceding deferred releases, keeping any
+    // other owner of the object. A vanished target is safe to release.
+    crate::reservations::release(commands, agent, target);
     commands
         .entity(agent)
         .remove::<Target>()
@@ -540,7 +540,7 @@ pub(crate) fn drain_ordinary_commands(
                 // unconditionally, no-ops for everyone else.
                 if let Some(target) = released {
                     if target.interaction == crate::systems::chain::CHAIN_STEP {
-                        commands.entity(target.object).try_remove::<Reserved>();
+                        crate::reservations::release(&mut commands, agent, target);
                         commands.entity(agent).remove::<Target>().remove::<Path>();
                     }
                 }

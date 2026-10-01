@@ -358,7 +358,11 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-bed-assignment] Assigning a Sim to a bed
 
-**Status: Not started.** Any Sim sleeps in any free bed. The starting house has a bunk and a double bed.
+**Status: In progress.** Owner-aware reservation release is implemented and
+tested as groundwork. Assignment, simultaneous double-bed admission and the
+two-person sleeping display remain unbuilt. Any Sim still sleeps in any free
+bed. The starting house has a bunk and a double bed. See
+`docs/specs/2026-10-01-bed-assignment.md`.
 
 Bed assignment remains unbuilt. A separate household capacity rule now gives
 every living member a -20 Not enough beds moodlet when sleep places are fewer

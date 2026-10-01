@@ -1,7 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{
-    Eating, Habituation, IntentQueue, NeedId, Needs, Personality, Reserved, SimRng, Target,
-};
+use terri_core::{Eating, Habituation, IntentQueue, NeedId, Needs, Personality, SimRng, Target};
 
 use crate::Content;
 
@@ -271,17 +269,9 @@ pub fn tick_interactions(
                 .entity(entity)
                 .remove::<Eating>()
                 .remove::<Target>();
-            // try_remove, not remove: `Commands::entity` deliberately
-            // does not validate, so a `Target` pointing at an entity
-            // that no longer exists routes the queued removal to the
-            // command error handler. `try_remove` silences it instead,
-            // which keeps the failure a no-op rather than something
-            // whose severity depends on the configured handler.
-            //
-            // Death releases the owner's reservation before despawn.
-            // mortality::cleanup also releases actions when their agent loses
-            // Needs or their target loses SmartObject before movement.
-            commands.entity(target.object).try_remove::<Reserved>();
+            // Check ownership after deferred target removals, so one
+            // completion cannot free an object another person still uses.
+            crate::reservations::release(&mut commands, entity, *target);
         }
     }
 }

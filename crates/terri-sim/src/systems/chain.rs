@@ -282,7 +282,7 @@ pub fn tick_chain_steps(
         // The station is released either way: done with the counter is
         // done with the counter.
         if let Some(target) = target {
-            commands.entity(target.object).try_remove::<Reserved>();
+            crate::reservations::release(&mut commands, sim, *target);
         }
         commands.entity(sim).remove::<Target>().remove::<StepWork>();
 

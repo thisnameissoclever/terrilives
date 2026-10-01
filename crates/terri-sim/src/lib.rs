@@ -11,6 +11,9 @@ pub mod mortality;
 pub mod placement;
 pub mod portals;
 pub mod render_buffer;
+mod reservations;
+#[cfg(test)]
+mod reservations_tests;
 mod save;
 pub mod systems;
 #[cfg(test)]
