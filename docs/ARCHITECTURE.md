@@ -1147,15 +1147,20 @@ See `docs/specs/2026-10-01-toilet-completion-audio.md` for verification status.
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after
 warm-up. Three alternating enabled/disabled memory pairs compare quiescent
-paused endpoints after explicit garbage collection. Preparation proves natural
-flush completion and pause cleanup, then restores a shared measurement fixture
-before the baseline. Matching baseline world hashes, ticks and loaded JS/WASM
+paused endpoints after explicit garbage collection. Preparation exercises flush
+playback, waits for expiry and verifies pause cleanup, then restores a shared
+measurement fixture before the baseline. Matching baseline world hashes, ticks and loaded JS/WASM
 response hashes are required. No world reset occurs during measurement; heap
 snapshot callbacks mark a run diagnostic-only. The median audio-enabled
 retained-JavaScript differential must stay within a predeclared 64 KiB allowance
 while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
 page and WASM growth is reported separately. A production 40-walker, 600-tick
 scheduler run exercises retained audio state directly.
+
+The voice-count getter can sweep expired records. Its zero result proves an
+empty observed player, not natural `onended` cleanup without assistance. That
+narrower claim requires passive inspection before a getter, pause, stop or later
+play can release the record.
 
 The stress-only browser handle exposes cumulative successful cue starts by
 semantic cue name. The ordinary-Chrome listening harness pairs that counter

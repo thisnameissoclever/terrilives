@@ -1,5 +1,24 @@
 # Lessons Learned
 
+## [L-audio-observer-can-clean-up] A cleanup counter is not a passive observer
+
+**What happened.** Memory-proof wording treated a zero voice count after playback
+as proof that the natural `onended` handler had released ownership.
+
+**Root cause.** The count getter calls expiry cleanup. Pause also stops voices.
+Either operation can clear the records before the assertion observes them.
+
+**Prevention rule.** Trace the observation path as well as the playback path.
+Label getter-assisted and pause-assisted cleanup accurately. To prove natural
+cleanup, wait for native ended events and inspect ownership directly before
+calling a cleanup getter, pause, stop or another play operation. Do not use a
+passing narrow lifecycle proof to override a failed whole-page memory budget.
+
+**How to verify.** Check one real decoded voice and a four-source batch. After
+their native ended events, require an empty ownership Map, cleared handlers and
+disconnected nodes without invoking a cleanup helper. Preserve raw memory
+failures separately from this lifecycle evidence.
+
 ## [L-audio-memory-matched-baseline] Match the measured world after audio preparation
 
 **What happened.** The audio memory check warmed random worlds for a fixed time
