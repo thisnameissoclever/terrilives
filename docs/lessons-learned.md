@@ -1,5 +1,23 @@
 # Lessons Learned
 
+## [L-proof-freeze-includes-metadata] Keep browser proof sources frozen until extraction
+
+**What happened.** A benchmark helper changed after its freeze was announced.
+The change only labeled resource measurements, but the development server
+reloaded the proof page and discarded its in-memory sample arrays.
+
+**Root cause.** The worker treated measurement metadata as independent from an
+active proof. The controller initially stored a tool response without checking
+that it contained results rather than an execution error.
+
+**Prevention.** Freeze the entire imported proof, including measurement metadata,
+until results have been extracted and the controller confirms page cleanup.
+Check every tool response before claiming that evidence was saved.
+
+**Verify.** Record the loaded proof revision with each case. Validate result shape
+before writing the receipt. If a reload destroys samples, identify the lost data
+and keep surviving summaries distinct from complete raw measurements.
+
 ## [L-render-benchmark-pins-geometry] Freeze every input producer in a baseline
 
 **What happened.** A historical renderer benchmark imported the current geometry
