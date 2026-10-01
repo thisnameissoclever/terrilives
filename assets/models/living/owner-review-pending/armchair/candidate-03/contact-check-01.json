@@ -1,0 +1,4 @@
+{
+  "state": "failed",
+  "error": "Traceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\check_armchair_scene.py\", line 38, in run\n    samples.append(measure(root, body, frame))\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\armchair_contact.py\", line 102, in measure\n    support = seat_support(body_surfaces['Trouser hip bridge'][0], solids['Seat cushion'], deps)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\living\\armchair_contact.py\", line 77, in seat_support\n    assert len(near) >= 3, 'Hip support lacks contact samples'\n           ^^^^^^^^^^^^^^\nAssertionError: Hip support lacks contact samples\n"
+}

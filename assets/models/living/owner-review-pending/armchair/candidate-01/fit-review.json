@@ -1,0 +1,856 @@
+{
+  "state": "complete",
+  "scope": "read-only hypothetical fit review",
+  "source_model_sha256": "e49cf1c3c08cc55c4e5626d02f4db6bba9e2178d2eefdb6eab8477239244a623",
+  "samples": [
+    {
+      "seat_top": 0.408,
+      "frame": 1,
+      "intersections": [
+        {
+          "body": "Trouser hip bridge",
+          "chair": "Seat cushion",
+          "witness": [
+            -0.06872101128101349,
+            0.0,
+            0.40746408700942993
+          ]
+        }
+      ],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": -0.003700852394104004,
+          "hits": 1346,
+          "near_count": 120,
+          "near_bounds": [
+            [
+              -0.12034294754266739,
+              -0.12965846061706543,
+              0.4095315933227539
+            ],
+            [
+              0.028433214873075485,
+              0.12965846061706543,
+              0.4168631136417389
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.008989512920379639,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              0.1005597859621048,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              0.126478374004364,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.008989393711090088,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              -0.12647835910320282,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              -0.1005597710609436,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.18056505918502808,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.1805649995803833,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.1530439257621765,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.15304386615753174,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.408,
+      "frame": 2,
+      "intersections": [
+        {
+          "body": "Trouser hip bridge",
+          "chair": "Seat cushion",
+          "witness": [
+            -0.06872101128101349,
+            0.0,
+            0.40746408700942993
+          ]
+        }
+      ],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": -0.003700852394104004,
+          "hits": 1346,
+          "near_count": 120,
+          "near_bounds": [
+            [
+              -0.12034294754266739,
+              -0.12965846061706543,
+              0.4095315933227539
+            ],
+            [
+              0.028433214873075485,
+              0.12965846061706543,
+              0.4168631136417389
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.008989512920379639,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              0.1005597859621048,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              0.126478374004364,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.008989393711090088,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              -0.12647835910320282,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              -0.1005597710609436,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.18440622091293335,
+          "hits": 881,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.0318719744682312,
+          "hits": 961,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.18440616130828857,
+          "hits": 881,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.03187203407287598,
+          "hits": 961,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.15704381465911865,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.15704387426376343,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.408,
+      "frame": 3,
+      "intersections": [
+        {
+          "body": "Trouser hip bridge",
+          "chair": "Seat cushion",
+          "witness": [
+            -0.06872101128101349,
+            0.0,
+            0.40746408700942993
+          ]
+        }
+      ],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": -0.003700852394104004,
+          "hits": 1346,
+          "near_count": 120,
+          "near_bounds": [
+            [
+              -0.12034294754266739,
+              -0.12965846061706543,
+              0.4095315933227539
+            ],
+            [
+              0.028433214873075485,
+              0.12965846061706543,
+              0.4168631136417389
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.008989512920379639,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              0.1005597859621048,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              0.126478374004364,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.008989393711090088,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              -0.12647835910320282,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              -0.1005597710609436,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.18056505918502808,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.1805649995803833,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.1530439257621765,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.15304386615753174,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.408,
+      "frame": 4,
+      "intersections": [
+        {
+          "body": "Trouser hip bridge",
+          "chair": "Seat cushion",
+          "witness": [
+            -0.06872101128101349,
+            0.0,
+            0.40746408700942993
+          ]
+        }
+      ],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": -0.003700852394104004,
+          "hits": 1346,
+          "near_count": 120,
+          "near_bounds": [
+            [
+              -0.12034294754266739,
+              -0.12965846061706543,
+              0.4095315933227539
+            ],
+            [
+              0.028433214873075485,
+              0.12965846061706543,
+              0.4168631136417389
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.008989512920379639,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              0.1005597859621048,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              0.126478374004364,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.008989393711090088,
+          "hits": 740,
+          "near_count": 5,
+          "near_bounds": [
+            [
+              -0.17044928669929504,
+              -0.12647835910320282,
+              0.4169893264770508
+            ],
+            [
+              -0.1702554076910019,
+              -0.1005597710609436,
+              0.41775140166282654
+            ]
+          ]
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.17672580480575562,
+          "hits": 899,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.026762008666992188,
+          "hits": 956,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.17672592401504517,
+          "hits": 899,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.026762008666992188,
+          "hits": 956,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.1490442156791687,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.14904391765594482,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.404,
+      "frame": 1,
+      "intersections": [],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": 0.00029912590980529785,
+          "hits": 1346,
+          "near_count": 49,
+          "near_bounds": [
+            [
+              -0.10361909866333008,
+              -0.09995636343955994,
+              0.4042990803718567
+            ],
+            [
+              0.011437717825174332,
+              0.09995635598897934,
+              0.4115723669528961
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.18456491827964783,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.18456485867500305,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.15704390406608582,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.15704384446144104,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.404,
+      "frame": 2,
+      "intersections": [],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": 0.00029912590980529785,
+          "hits": 1346,
+          "near_count": 49,
+          "near_bounds": [
+            [
+              -0.10361909866333008,
+              -0.09995636343955994,
+              0.4042990803718567
+            ],
+            [
+              0.011437717825174332,
+              0.09995635598897934,
+              0.4115723669528961
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.1884060800075531,
+          "hits": 881,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.0318719744682312,
+          "hits": 961,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.18840602040290833,
+          "hits": 881,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.03187203407287598,
+          "hits": 961,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.1610439121723175,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.16104397177696228,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.404,
+      "frame": 3,
+      "intersections": [],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": 0.00029912590980529785,
+          "hits": 1346,
+          "near_count": 49,
+          "near_bounds": [
+            [
+              -0.10361909866333008,
+              -0.09995636343955994,
+              0.4042990803718567
+            ],
+            [
+              0.011437717825174332,
+              0.09995635598897934,
+              0.4115723669528961
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.18456491827964783,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.18456485867500305,
+          "hits": 891,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.029305994510650635,
+          "hits": 958,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.15704390406608582,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.15704384446144104,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    },
+    {
+      "seat_top": 0.404,
+      "frame": 4,
+      "intersections": [],
+      "contacts": {
+        "Trouser hip bridge / Seat cushion": {
+          "min_gap": 0.00029912590980529785,
+          "hits": 1346,
+          "near_count": 49,
+          "near_bounds": [
+            [
+              -0.10361909866333008,
+              -0.09995636343955994,
+              0.4042990803718567
+            ],
+            [
+              0.011437717825174332,
+              0.09995635598897934,
+              0.4115723669528961
+            ]
+          ]
+        },
+        "Tailored trouser leg / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Tailored trouser leg.001 / Seat cushion": {
+          "min_gap": 0.01298937201499939,
+          "hits": 740,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Seat cushion": {
+          "min_gap": 0.18072578310966492,
+          "hits": 899,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections / Arm right": {
+          "min_gap": 0.026762008666992188,
+          "hits": 956,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Seat cushion": {
+          "min_gap": 0.18072578310966492,
+          "hits": 899,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Forearm with elbow and wrist sections.001 / Arm left": {
+          "min_gap": 0.026762008666992188,
+          "hits": 956,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm / Seat cushion": {
+          "min_gap": 0.15304407477378845,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        },
+        "Relaxed palm.001 / Seat cushion": {
+          "min_gap": 0.15304377675056458,
+          "hits": 422,
+          "near_count": 0,
+          "near_bounds": null
+        }
+      }
+    }
+  ],
+  "part_bounds": {
+    "Arm left": [
+      [
+        -0.29999998211860657,
+        -0.42000001668930054,
+        0.20000001788139343
+      ],
+      [
+        0.3400000035762787,
+        -0.26999998092651367,
+        0.5900000333786011
+      ]
+    ],
+    "Arm right": [
+      [
+        -0.29999998211860657,
+        0.26999998092651367,
+        0.20000001788139343
+      ],
+      [
+        0.3400000035762787,
+        0.42000001668930054,
+        0.5900000333786011
+      ]
+    ],
+    "Back cushion": [
+      [
+        0.13499999046325684,
+        -0.2800000011920929,
+        0.38999998569488525
+      ],
+      [
+        0.2750000059604645,
+        0.2800000011920929,
+        1.0099999904632568
+      ]
+    ],
+    "Foot -0.28 -0.3": [
+      [
+        -0.23500001430511475,
+        -0.35500001907348633,
+        0.0
+      ],
+      [
+        -0.125,
+        -0.24500000476837158,
+        0.23999999463558197
+      ]
+    ],
+    "Foot -0.28 0.3": [
+      [
+        -0.23500001430511475,
+        0.24500000476837158,
+        0.0
+      ],
+      [
+        -0.125,
+        0.35500001907348633,
+        0.23999999463558197
+      ]
+    ],
+    "Foot 0.28 -0.3": [
+      [
+        0.22499999403953552,
+        -0.35500001907348633,
+        0.0
+      ],
+      [
+        0.33500000834465027,
+        -0.24500000476837158,
+        0.23999999463558197
+      ]
+    ],
+    "Foot 0.28 0.3": [
+      [
+        0.22499999403953552,
+        0.24500000476837158,
+        0.0
+      ],
+      [
+        0.33500000834465027,
+        0.35500001907348633,
+        0.23999999463558197
+      ]
+    ],
+    "Seat cushion": [
+      [
+        -0.2199999988079071,
+        -0.28999999165534973,
+        0.2939999997615814
+      ],
+      [
+        0.25999999046325684,
+        0.28999999165534973,
+        0.40400001406669617
+      ]
+    ],
+    "Upholstered back": [
+      [
+        0.21000000834465027,
+        -0.38999998569488525,
+        0.30000001192092896
+      ],
+      [
+        0.39000001549720764,
+        0.38999998569488525,
+        1.059999942779541
+      ]
+    ],
+    "Upholstered base": [
+      [
+        -0.22999998927116394,
+        -0.4099999964237213,
+        0.14000000059604645
+      ],
+      [
+        0.3400000035762787,
+        0.4099999964237213,
+        0.32999998331069946
+      ]
+    ]
+  },
+  "support_witnesses": {
+    "Foot -0.28 -0.3": [
+      -0.21949999034404755,
+      -0.3440000116825104,
+      0.1599999964237213
+    ],
+    "Foot -0.28 0.3": [
+      -0.21949999034404755,
+      0.25600001215934753,
+      0.1599999964237213
+    ],
+    "Foot 0.28 -0.3": [
+      0.23600000143051147,
+      -0.3440000116825104,
+      0.15000000596046448
+    ],
+    "Foot 0.28 0.3": [
+      0.23600000143051147,
+      0.25600001215934753,
+      0.15000000596046448
+    ]
+  },
+  "source_unchanged": true
+}

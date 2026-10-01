@@ -605,14 +605,13 @@ id = "armchair"
 name = "Staying In"
 presentation = { object_type = "Armchair", description = "A chair for sitting. Leaving it remains a personal decision." }
 price = 140
-sprite = "loungeChair"
-foreground_sprite = "loungeChairForeground"
+sprite = "offlineArmchair"
 
   [[object.action_socket]]
   id = "seat"
   x = 0.0
   y = 0.0
-  # The source chair opens toward +Y, unlike the +X-facing wingback.
+  # The default exported chair opens toward +Y, unlike the +X-facing wingback.
   facing = "SW"
 
   # One slot, and 29 comfort at 41 ticks - the best comfort-per-tick in the

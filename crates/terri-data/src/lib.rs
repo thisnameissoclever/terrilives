@@ -1497,17 +1497,23 @@ mod tests {
 
     #[test]
     fn the_fingerprint_allows_foreground_sprite_presentation_changes() {
-        let original = pack().clone();
-        let base = content_fingerprint(&original);
+        let mut original = pack().clone();
         let bed = original
             .find("armchair")
-            .expect("the split armchair exists");
+            .expect("the fixture armchair exists");
         let placement = original
             .lot
             .placements
             .iter()
             .position(|candidate| candidate.object == bed)
-            .expect("the shipped lot places the split armchair");
+            .expect("the shipped lot places the armchair");
+        // Optional foregrounds remain supported even when no shipped object uses one.
+        let foreground = original.object(original.find("floor_lamp").unwrap()).sprite;
+        assert_ne!(foreground, original.object(bed).sprite);
+        original.objects[bed.0 as usize].foreground_sprite = Some(foreground);
+        original.objects[bed.0 as usize].facing_foreground_sprites.0 = [Some(foreground); 4];
+        original.lot.placements[placement].foreground_sprite = Some(foreground);
+        let base = content_fingerprint(&original);
         assert!(original.object(bed).foreground_sprite.is_some());
         assert!(original.lot.placements[placement]
             .foreground_sprite
@@ -1515,11 +1521,14 @@ mod tests {
 
         let mut presentation_only = original;
         presentation_only.objects[bed.0 as usize].foreground_sprite = None;
+        presentation_only.objects[bed.0 as usize]
+            .facing_foreground_sprites
+            .0 = [None; 4];
         presentation_only.lot.placements[placement].foreground_sprite = None;
         assert_eq!(
             base,
             content_fingerprint(&presentation_only),
-            "foreground bedding is reconstructed presentation and must not invalidate Save V1"
+            "foreground layers are reconstructed presentation and must not invalidate Save V1"
         );
     }
 

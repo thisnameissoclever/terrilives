@@ -1,0 +1,2278 @@
+{
+  "signature": {
+    "inputs": {
+      "living/armchair_batch.py": "a38c6ab5578ebb910271bb78ed25dfb268e67ca35fc64b2a70a63b69bfe632c5",
+      "living/armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+      "living/armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+      "living/render_armchair_contributions.py": "153a2b8ed1685b3b79fd15f7cc825760027e1df62da4d16158b765a3e40b23b7",
+      "living/armchair_layout.py": "c5cd8cc02aba1779a1e8676cb1a6a5b808005a455b6b58cb96bd113acb1fb8c8",
+      "living/armchair_model.py": "1660bbba35569bf047f9eddfb9e52aae3b347a75f1f9aadd664a3bbb880d5c11",
+      "living/render_armchair.py": "5dee3db7ff50459171c7ff9f512657af5db5c24ceb6b184f89953a6f1b3e3b9d",
+      "bedroom/bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+      "bathroom/check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+      "kitchen/check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+      "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+      "furniture/animation_export.py": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30",
+      "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+      "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+      "furniture/preview.py": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c",
+      "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+      "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+      "sims/sim-01/render_shirt_variants.py": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b",
+      "sims/sim-01/shirt_colors.py": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0",
+      "sims/sim-01/render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+      "sims/sim-01/build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+      "sims/sim-01/rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+      "sims/sim-01/food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+      "living/owner-review-pending/armchair/candidate-03/armchair-authoring.blend": "541790d85c22ab6577481bf8a6488018b777573dbbeb19d62431748e40a90622",
+      "living/owner-review-pending/armchair/candidate-03/proof.json": "1bfbad9b2c611628f1510af61f231ff634b49e1542d854e39d84d7cecaeddc88"
+    },
+    "source_density": 8,
+    "logical_canvas": [
+      96,
+      120
+    ],
+    "body_action": "sit",
+    "body_offset": [
+      0,
+      0,
+      0
+    ],
+    "body_degrees_offset": -90
+  },
+  "state": "complete",
+  "renders": [
+    {
+      "path": "armchair-green-SE-0-empty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "61304f90cac36d17ced73e46707f5903b7dce738f33decbf6cf5609b72e37588"
+    },
+    {
+      "path": "armchair-green-SE-0-beauty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "56e54365ea1cdc91cbb10111be54a6a3d518e0c95a37baec6afada9287fac179"
+    },
+    {
+      "path": "armchair-green-SE-0-sim.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "8f80bb8772e028343621c07b1c8cf21e42c5992275093d0668c8ddbc9fa36797"
+    },
+    {
+      "path": "armchair-green-SE-0-furniture.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "96c2f580a2c9a3739966d47a98185d590346b4b3e7e8dd6be8224091b83a4716"
+    },
+    {
+      "path": "armchair-green-SE-0-lines.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "f933e57c3dd294b69a3a70c854e7021fe01fef2609647ff3709b0c50d108f821"
+    },
+    {
+      "path": "armchair-green-SE-1-beauty.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "fd40a5d5b549e052f29ce27b0da55ad604e1962fa4583585cc946c2c9c65f4be"
+    },
+    {
+      "path": "armchair-green-SE-1-sim.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "cc20c5c9f645868f28211b9d2837ffc92069b4aa78f13fb4c72b25fe5877ee29"
+    },
+    {
+      "path": "armchair-green-SE-1-furniture.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "e19f2a6156536440c6ef73f610f91db450018cde72658e293dab9e0d2064a7e3"
+    },
+    {
+      "path": "armchair-green-SE-1-lines.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "4f2b39cde1b4c0270a59be83b8df92557ee36e68c0b059de8b7077aed3e9c5f0"
+    },
+    {
+      "path": "armchair-green-SE-2-beauty.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "4b5646fe33de0397cb1ae9ec5f9a06867f6772158b47174eb981d2fe6c69eb86"
+    },
+    {
+      "path": "armchair-green-SE-2-sim.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "c8974793715bc22707d7a16087112c066bb15012c7fa93768024f2a2b3a119c7"
+    },
+    {
+      "path": "armchair-green-SE-2-furniture.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "206271b2f14de1a4f6618f29d97d16e6a1afe55b85ad57eea2bf8b1b1edc264e"
+    },
+    {
+      "path": "armchair-green-SE-2-lines.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "1bec4916ee159ed7f5b32cf3294c7e28e9a072e2d7f5dde7c486a3e2f2cfe685"
+    },
+    {
+      "path": "armchair-green-SE-3-beauty.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "1c1af52884914fdc3d2446cefeafab1348add000ac464534b2a94ad642acb8a2"
+    },
+    {
+      "path": "armchair-green-SE-3-sim.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "fb135417a28dc811f0f8a6e3378ce08fe973dbea4a7ac1d8055b0b8db58029d3"
+    },
+    {
+      "path": "armchair-green-SE-3-furniture.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "57da8c43be90c2ef7a92ff3d08cbe2f3ccee17676739b39756f9ce12ecddcf17"
+    },
+    {
+      "path": "armchair-green-SE-3-lines.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "4c7b026e3c82436cb355e5ef3783ffd2fc4d51ec079cc2e6748e6316c6a0c393"
+    },
+    {
+      "path": "armchair-green-NW-0-empty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "1c17eaf4c27fa8b2a10f2e516306885cceebb129566f376a9d3d6d90713c5258"
+    },
+    {
+      "path": "armchair-green-NW-0-beauty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "145816bb9bbebd653e9e9060cff03a8c81b993ba9ee904f5bab5c8c24cc681ac"
+    },
+    {
+      "path": "armchair-green-NW-0-sim.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "0a1430add03ef8ff480b04ba6221d4ddbdb37864af042daf62c3da5d3de90cb3"
+    },
+    {
+      "path": "armchair-green-NW-0-furniture.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "ae20030fe024b69dccf8163548ea40c4735061e01626c0c609faca303fff7219"
+    },
+    {
+      "path": "armchair-green-NW-0-lines.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "b2e7fd40d3715648885838fc274cf849d9bfb93fcaaf4b4616c49e0c2fd40272"
+    },
+    {
+      "path": "armchair-green-NW-1-beauty.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "5b378185229b2d5d6396f6ea0c6456a82cbd3ed5fe5e55872da679e48ef06cd9"
+    },
+    {
+      "path": "armchair-green-NW-1-sim.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "ed2605906eb5bac9355d77c65ab911f8771c7884dabcf51de65262f73883c0fe"
+    },
+    {
+      "path": "armchair-green-NW-1-furniture.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "0dfb9471ba50aae81e82f622d687115b6bf8c5d21dc5dae6c7df48c2719ef6c2"
+    },
+    {
+      "path": "armchair-green-NW-1-lines.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "5690dac6b883007c5429dca04c44d0c7a8a960b4e8016c639aef77fc72d92a5e"
+    },
+    {
+      "path": "armchair-green-NW-2-beauty.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "d099de158debb6606cb2b47af9957e7634db0b00cfa25d7d5f900c8b72e1b180"
+    },
+    {
+      "path": "armchair-green-NW-2-sim.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "3f9d8ffaa9a227db03ae202aa694ce8b9ebc8ed99de80e9044ff556e6fba2b91"
+    },
+    {
+      "path": "armchair-green-NW-2-furniture.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "52761121f3d8f5e2f6435116ebc38a72db24f52e220d6f9b356252eddfc80807"
+    },
+    {
+      "path": "armchair-green-NW-2-lines.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "8e35d03041a58351793df8df07de286e66935199f808da6c9d0717158d06d3f2"
+    },
+    {
+      "path": "armchair-green-NW-3-beauty.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "ad674dd169e1dc01f182a388a7e6e419b47fcb0479c10b4eadc38939be597888"
+    },
+    {
+      "path": "armchair-green-NW-3-sim.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "52956f9c46a019bdddbc65abcbc5a7de43457937f6c11140856860cfa175d9a0"
+    },
+    {
+      "path": "armchair-green-NW-3-furniture.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "71aaaaf0e48d64da1eddb6256bb5577f69a3a446199b986baa4e23aeea8f0071"
+    },
+    {
+      "path": "armchair-green-NW-3-lines.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "3c98d63ff44cd135121b71a579429f73336c704e1a4e345f5fffe351dceb8bbf"
+    },
+    {
+      "path": "armchair-green-SW-0-empty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "fabe5ee81672c78dee6c75e1a0bb69535d5a5fa3497dfadbccfe60d8a4cbc40d"
+    },
+    {
+      "path": "armchair-green-SW-0-beauty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "01d0378f7ef7682cf3f9f31988ba8fc6bfc448f2a6ff419417b6c93d5b28fd7a"
+    },
+    {
+      "path": "armchair-green-SW-0-sim.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "a10cd73e4334b3d3d6421c45e4bff1beb42169d46404dfc080497ddaf19379d0"
+    },
+    {
+      "path": "armchair-green-SW-0-furniture.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "3bb87a4d51457fc9ba58dadbbdf30834c9c4b5c719801afb9a32478389e75b94"
+    },
+    {
+      "path": "armchair-green-SW-0-lines.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "a161becf107448b9797aa2454aa0833f4ecdd824cfb2eb8c439c19cde638c1c5"
+    },
+    {
+      "path": "armchair-green-SW-1-beauty.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "690d9b7ce3386c474fa823ef096265e724604f328bce96e33638ed201ea2930d"
+    },
+    {
+      "path": "armchair-green-SW-1-sim.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "4ec8e1cd3e167e7a14dc528670f93d6b11cf2bebfc99aac420b2982f926ec3a5"
+    },
+    {
+      "path": "armchair-green-SW-1-furniture.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "1e629f7caa4387079911a67a3a7d9624303c9f6577c649f40a07cd9cbbda3d70"
+    },
+    {
+      "path": "armchair-green-SW-1-lines.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "2771f089bc0597d6ecca155b5a6eea3684604de8a3e7c5f18b930702c97f0b4d"
+    },
+    {
+      "path": "armchair-green-SW-2-beauty.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "b08b769256aaf9c4de934d20f9f9d6220283b79a5307d99106ef31907a01ac7c"
+    },
+    {
+      "path": "armchair-green-SW-2-sim.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "386550dce74a18c34d833bf700834eb7df324fffe861f4c143317ebe38710c86"
+    },
+    {
+      "path": "armchair-green-SW-2-furniture.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "39245479debfc3b3118d1330b0496c231c533afb3af3e1ff3a40ad2f227994ce"
+    },
+    {
+      "path": "armchair-green-SW-2-lines.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "2d88a47b179625917c699b719c3a56454084551392bde9a7bb97ee06827d9bf8"
+    },
+    {
+      "path": "armchair-green-SW-3-beauty.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "89e41ba7d6eb9b4ae06f27ff636ddb8182b3bc5978241caffd34842154d49ec6"
+    },
+    {
+      "path": "armchair-green-SW-3-sim.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "87d4aedd54b5798976f70ba439ef4dbbbf055138bc5b1af126843eed6a48b785"
+    },
+    {
+      "path": "armchair-green-SW-3-furniture.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "a3c9d8aba896f5eafd7896d94667abb99e912bac6527d2413ed2d7e35e9eaca2"
+    },
+    {
+      "path": "armchair-green-SW-3-lines.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "a9de9b2fc535df1c1efc2d6f23c4a55424e2bcdf8a5114a8193b8bd9f1dcc242"
+    },
+    {
+      "path": "armchair-green-NE-0-empty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "d779a092eb952741e54e1bee64d4780e0f55f5e6f4cf0bfaa4c402fa2648da3a"
+    },
+    {
+      "path": "armchair-green-NE-0-beauty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "92f5dbe2750a7424062065a4a3281caa569c30cfe4d698adae27ff0c2e38b0f6"
+    },
+    {
+      "path": "armchair-green-NE-0-sim.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "cbd68e97bee01bc624eabc2900418ed0e26cdfb65dedeae0582f0b172d584a9c"
+    },
+    {
+      "path": "armchair-green-NE-0-furniture.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "e79c3b2cd6e1738ff9e7f36aaf2b4f8f0be0e4e0b99fa50cc4f174637f6daa4f"
+    },
+    {
+      "path": "armchair-green-NE-0-lines.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "1f86c2d645b99d2c49c661b1dd7666b23251bf266537f58239f9f759de82356c"
+    },
+    {
+      "path": "armchair-green-NE-1-beauty.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "7254ebca8f42030674298d4e84ae92d975e37ba91bf7302ba75801ca4e6716de"
+    },
+    {
+      "path": "armchair-green-NE-1-sim.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "ec17d7f8564e842afb4d4ead9543b31641186bb450fae52b7948928dba4c42a8"
+    },
+    {
+      "path": "armchair-green-NE-1-furniture.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "54fc33a23a9ead42d26161ddb8b7e21fc91df8d8829042a4076bb283cff768f2"
+    },
+    {
+      "path": "armchair-green-NE-1-lines.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "0f84229c7666cd5769ba5d5f049169a14178255cac1566ba3fe12409135ba358"
+    },
+    {
+      "path": "armchair-green-NE-2-beauty.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "a629851a431640e58ea081b96b1da1a6a207050e62e03fb6c0a777788d177f60"
+    },
+    {
+      "path": "armchair-green-NE-2-sim.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "71693bfe4d6b34632ff85753e08c9205ef8470a3f1bb8d56d4a8dbfccfac5f34"
+    },
+    {
+      "path": "armchair-green-NE-2-furniture.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "e854ea9a01ee640aad7c974fd2a67a35733e52a12933333643604388c63601af"
+    },
+    {
+      "path": "armchair-green-NE-2-lines.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "3567bf44113017e5e0cfbc98a179813375e959b73608168062245030b5b76d79"
+    },
+    {
+      "path": "armchair-green-NE-3-beauty.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "5a33a453a9ecd9a85973158bf8bd51982cfe0373c12e343be0248d9e421129e7"
+    },
+    {
+      "path": "armchair-green-NE-3-sim.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "24be16e3e15f3a06c93dacc6438c4a81f1376a82360a3ab0c065d25678c76041"
+    },
+    {
+      "path": "armchair-green-NE-3-furniture.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "d40a1bb156837ded28983229b329e827a3ce94fc1bf5f2dcecfc307236ed03fd"
+    },
+    {
+      "path": "armchair-green-NE-3-lines.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "c59873867e3da645ff4b6d8b62c46e75b836d02b78a24938b30e3bcec9679ca7"
+    },
+    {
+      "path": "armchair-blue-SE-0-beauty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "0ac637d9bdb8550bdeb88013f27eebdfca18d84b1d93327630327c5d05559c11"
+    },
+    {
+      "path": "armchair-blue-SE-0-sim.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "e409e947297101ee81a75b445cc581ad5f590de7584332690c558d40b35eb020"
+    },
+    {
+      "path": "armchair-blue-SE-0-furniture.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "2dd1d40ff252299d6fd8d2423c6055d3f151d7e007f6ff44a799da97491cd513"
+    },
+    {
+      "path": "armchair-blue-SE-0-lines.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "ef8c039582ec3383c22a69c2dec4f6064ec7e0b66b60d6446b863ee6d2a85e60"
+    },
+    {
+      "path": "armchair-blue-SE-1-beauty.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "4f330d4e5d01e107f12c9fa106df9861c02f75791f034005a0db83255e583529"
+    },
+    {
+      "path": "armchair-blue-SE-1-sim.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "61a2df252cc489997f756b48a1ce5268fea0fb30ddbbb75115674081d9c4f434"
+    },
+    {
+      "path": "armchair-blue-SE-1-furniture.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "bf4f1d92870e90c9287d86e27ef6c65b89934655871aff42bdedb274c08c148f"
+    },
+    {
+      "path": "armchair-blue-SE-1-lines.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "90d75329bd6e2666b6b6b1e9fb1649ce9f497b3d663de8a9ff83561ce0ab3d96"
+    },
+    {
+      "path": "armchair-blue-SE-2-beauty.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "476dd4016b1e63eaf9cb7795210f60ffd588623556a6b7f69b27f2a86861efd9"
+    },
+    {
+      "path": "armchair-blue-SE-2-sim.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "b8ba2b1b63aecf567f46a02440aa5d2ec72e9dbecc594a0d06803119fd687a92"
+    },
+    {
+      "path": "armchair-blue-SE-2-furniture.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "d3fe1d095ddefe5a6f5491ced37354709adac3de69af0fb5314d88da05273d62"
+    },
+    {
+      "path": "armchair-blue-SE-2-lines.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "06c5ee4891ccd857e77f626c818b0613cdf0f7db730873b4d36034068ac1c333"
+    },
+    {
+      "path": "armchair-blue-SE-3-beauty.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "76877271e047da398ca084a4800337cde000cbf0e22eccf37396e9521a66269b"
+    },
+    {
+      "path": "armchair-blue-SE-3-sim.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "4e2e5a95075d856db202b2510172ba85a1b38c2e49c6bbb653694b1aaac99446"
+    },
+    {
+      "path": "armchair-blue-SE-3-furniture.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "26d1b553cddf7a829d69d8447f5f788eb3bcbd3caa87916f8b42559a638f3a5d"
+    },
+    {
+      "path": "armchair-blue-SE-3-lines.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "707bbae09d12d0f5226a73b4708c8f4e77f2808c0ce9901148f9851fde40a21d"
+    },
+    {
+      "path": "armchair-blue-NW-0-beauty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "6bfb0ffb877bfe304ae5eb15a45fb250ac1cb9b0d3d4c98210ee084f0f2ec46c"
+    },
+    {
+      "path": "armchair-blue-NW-0-sim.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "a28e10418b14e3ac9bfa9e58555baf4288ce0d962da579f1d9732f9e29c5dd80"
+    },
+    {
+      "path": "armchair-blue-NW-0-furniture.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "b83816a6899d0314258db124de207ffebf2cdb737e85e916d9ff3c08047a9ec8"
+    },
+    {
+      "path": "armchair-blue-NW-0-lines.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "685cefb149334fe03fd22ed9367556c6b18a1875c1d66d183b534b7b3950a1e5"
+    },
+    {
+      "path": "armchair-blue-NW-1-beauty.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "05af393dd3ea30d1b31b3fe29f6c7d06eae4032609f6fccd0768b5faedc4595a"
+    },
+    {
+      "path": "armchair-blue-NW-1-sim.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "649e3d7c430389ebcc5b3ad8096ae53aac3e1e14bf939f05f055451b436567d9"
+    },
+    {
+      "path": "armchair-blue-NW-1-furniture.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "850828604aafb8597df78aa39b9314b5082960d5c09118400a4cf0d4fe94c94e"
+    },
+    {
+      "path": "armchair-blue-NW-1-lines.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "f00ffcaabb6baa9e783330eea7b1780226722adb5838abce39fcd9040ed71bc4"
+    },
+    {
+      "path": "armchair-blue-NW-2-beauty.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "ada1f23b2a2f53665a133a58495d7ade69b8c9d524357f957da39e4392ba52da"
+    },
+    {
+      "path": "armchair-blue-NW-2-sim.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "73d5887ecf543b395ba1186a7591d3d991af6731e1429ea90d26b963044b48ad"
+    },
+    {
+      "path": "armchair-blue-NW-2-furniture.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "a0ed9393b8165896273d7e371f516d19625c4ccf71035e4d8efbe34e7fe498d2"
+    },
+    {
+      "path": "armchair-blue-NW-2-lines.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "dc65b8753a2a650c86bb582f950a69a723d26b60d8417bd67c7c3170e7b5c85a"
+    },
+    {
+      "path": "armchair-blue-NW-3-beauty.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "0b7e077a02fb8ae3b02de2968523c7858207c3b08373207daddba1f48d6728e9"
+    },
+    {
+      "path": "armchair-blue-NW-3-sim.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "d616898faa66f0e2e783f96abf30f6d436935410916abc6d95b251fbdb1785cf"
+    },
+    {
+      "path": "armchair-blue-NW-3-furniture.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "22111f80bd2bb4af0c798494ac29ec4a9da7783ef5b17cf3d26f2c657b1e6e31"
+    },
+    {
+      "path": "armchair-blue-NW-3-lines.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "9cef5847c55e386ec27fbd44c5bc395ae6bd15a093f5f362270adcf01d56046f"
+    },
+    {
+      "path": "armchair-blue-SW-0-beauty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "d23bcc697c0ed1f2900c51182089bdc58aee4c457ac64709930652c2b912ad9e"
+    },
+    {
+      "path": "armchair-blue-SW-0-sim.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "3b470d9d7bb0c803c5e786e5e89f5464d19bafacb3911a6a97bd0b8ce745d84d"
+    },
+    {
+      "path": "armchair-blue-SW-0-furniture.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "9c38b6c4db61f928d3c5709ba93b41e67280d3098928dc7cb2c3e88591bf3fb0"
+    },
+    {
+      "path": "armchair-blue-SW-0-lines.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "a1ccafba8a500dd915f65266042726ed161b6d4983d54b389d37ae6bdeddc45f"
+    },
+    {
+      "path": "armchair-blue-SW-1-beauty.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "0e1a03f68098371279341c65ae019d5708841ffe04eea2a2a9828c05062b3eca"
+    },
+    {
+      "path": "armchair-blue-SW-1-sim.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "cf31c1f7a317bf414fd6e989e5480212d41fa8108faa137f4296eda9ddb70ba4"
+    },
+    {
+      "path": "armchair-blue-SW-1-furniture.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "09b34427c8fc3a8be8d22a9bf2158080c464e51b8d74cdbe7ec8c3facc88335b"
+    },
+    {
+      "path": "armchair-blue-SW-1-lines.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "fa251097ea60703c382f7b5b238a01131f4b1702714b5f0f96d83cd1ddd07a34"
+    },
+    {
+      "path": "armchair-blue-SW-2-beauty.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "2665f581f00a76516cc36f39b18b416d2e9020c5050a96d373a5a8092c26d26c"
+    },
+    {
+      "path": "armchair-blue-SW-2-sim.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "06b40052645d64b2db75e25ff43d8b332ae78b2d6b23e71c1caa7585fb16d054"
+    },
+    {
+      "path": "armchair-blue-SW-2-furniture.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "9e239dceae716693d45489cdb549e11e956c1873ce73d4f8a5fde117e79d5812"
+    },
+    {
+      "path": "armchair-blue-SW-2-lines.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "aac55e1120acb1e630b63eb5a449c323cb40de38ea06ee636d341c5df9e7c2f8"
+    },
+    {
+      "path": "armchair-blue-SW-3-beauty.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "f54401d2fa707c78e6c4ad758713bbcf9045771977a950abaea826dd6b3c6acc"
+    },
+    {
+      "path": "armchair-blue-SW-3-sim.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "668d61653767edf6a0ff12b2e84e9729c7f5aa155a43ff25d84918c29c2a480a"
+    },
+    {
+      "path": "armchair-blue-SW-3-furniture.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "0a5448579ce98d234e226d919d6f467dff1f05f293cc24c064d2b0f619331cd8"
+    },
+    {
+      "path": "armchair-blue-SW-3-lines.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "daffca7a35f3d99f71595bbc101728dfbc47311501f5f190c9509508d4381fd1"
+    },
+    {
+      "path": "armchair-blue-NE-0-beauty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "b04a51ec0e96789757bea104a710cc24e68cc26a3d1e5c70368f788aae2bbc74"
+    },
+    {
+      "path": "armchair-blue-NE-0-sim.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "dbd8adf3708b8ef215867f755e7cde4d0d22fe6025c13cb764cc371c5b967740"
+    },
+    {
+      "path": "armchair-blue-NE-0-furniture.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "d39a1ddb9933436766efc50c19987c1e13d7c011529151dbc43fbe96dccd9905"
+    },
+    {
+      "path": "armchair-blue-NE-0-lines.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "3be17c013af66a38f91088dbae37f28bc8dc52959c9cee6950fa1b71d3f67d6e"
+    },
+    {
+      "path": "armchair-blue-NE-1-beauty.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "279bd180900812d0e59887b5a06d9628493b33877e49bf4ba7630c1302dd5b99"
+    },
+    {
+      "path": "armchair-blue-NE-1-sim.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "250188022ad17cb51a77cae97cfad614575a554264ae5788f03a2718d8678862"
+    },
+    {
+      "path": "armchair-blue-NE-1-furniture.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "7850dd58b35807c33ad6d5acdf9161ee9f8b7d59fdbf9f10eee435ca5a0b32c6"
+    },
+    {
+      "path": "armchair-blue-NE-1-lines.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "248dd1d13b7b505b79c8749e6a1a7979b1e8db79890948444ea12edb27ae6332"
+    },
+    {
+      "path": "armchair-blue-NE-2-beauty.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "a647ab16b80fbd9acb2bd066b6df7be5cf060491e2762a8962b6a33b09aa5d98"
+    },
+    {
+      "path": "armchair-blue-NE-2-sim.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "61d95ad15959a575d5345efa26159fc0d3213d4a2d90acf72a6363c4ca0c5d7c"
+    },
+    {
+      "path": "armchair-blue-NE-2-furniture.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "4f8b16202734e537a7eaa05373ac49aed07d15fd198c4476fd3522cd116a3f87"
+    },
+    {
+      "path": "armchair-blue-NE-2-lines.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "ffce62fac49f0e314e34cf161618308e62b828bd31e0d660dfd16e6b95b0a05a"
+    },
+    {
+      "path": "armchair-blue-NE-3-beauty.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "145fd9c95e1040da4cc768501e3befa7b2354d2372c800b13e25e4734ba3aef1"
+    },
+    {
+      "path": "armchair-blue-NE-3-sim.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "50e96c3023a222a91073e8cda1e55e323426520317832b0a6b0b23f08bf4eb38"
+    },
+    {
+      "path": "armchair-blue-NE-3-furniture.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "170a2659b6fd9759d03dc6dd4d7d4eea97d5dcbe8432efd787e7c50ee829d4cf"
+    },
+    {
+      "path": "armchair-blue-NE-3-lines.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "b86c30bfe63939dcf6aa64fafa457da9b8c3130e7d1c61c111134805ead26400"
+    },
+    {
+      "path": "armchair-red-SE-0-beauty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "2782ea0dfd6579521b4c6e0db027fde8df2fa1f35e2e1133b2a2786eac769487"
+    },
+    {
+      "path": "armchair-red-SE-0-sim.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "fd9aeb81a7f12c3bfb7229c2a073ac07072ec40e6c8a5d0d8c322681dcb47b06"
+    },
+    {
+      "path": "armchair-red-SE-0-furniture.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "726b280332655a02dd82fb5e6334c917041c61f7c7b426f958ee566703358c39"
+    },
+    {
+      "path": "armchair-red-SE-0-lines.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "2092b9f27635d0766cce2f7d969afa54c60d63e8a77b3b55b06f89e5a291563b"
+    },
+    {
+      "path": "armchair-red-SE-1-beauty.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "c027a4a3216482c8cf93aa627d74c86e4f0096032c76d745b79c4f8372665f93"
+    },
+    {
+      "path": "armchair-red-SE-1-sim.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "5b99ac17622d8eb671b65aeff2a33b7b408ac69a41065ee0797121f59319254c"
+    },
+    {
+      "path": "armchair-red-SE-1-furniture.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "c1906cda5d0a54baf190d7e0bd43aa340e5180051a3e78d5a58c69ff27d0a26a"
+    },
+    {
+      "path": "armchair-red-SE-1-lines.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "0e53a1de41e242867afe0e832c5fbbde9eb7395e034f14193bce8733b500970e"
+    },
+    {
+      "path": "armchair-red-SE-2-beauty.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "4e7371cb05e848173a19ae84f69329c7c113085c9f3441c4379e7434627c7299"
+    },
+    {
+      "path": "armchair-red-SE-2-sim.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "46779ed17fbc0236265387a11a623ae16e176cabe0c78752efa70e6804495a71"
+    },
+    {
+      "path": "armchair-red-SE-2-furniture.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "93231e33304bac6248972caa286efb5fdea4455b07afade1dcac2c9a7c28017d"
+    },
+    {
+      "path": "armchair-red-SE-2-lines.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "1fb65724d4a465d7e7c2115f9aec782630420628817f4dbb2dfd904969e3495c"
+    },
+    {
+      "path": "armchair-red-SE-3-beauty.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "dcdbb5e060fd836a68d44ace8279e913487c11a092997a0d995992050011eb5f"
+    },
+    {
+      "path": "armchair-red-SE-3-sim.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "d6aba53a50894e55376bca4b8fe7fa936e3b11a5537e8cb1ed2c2299648a6a63"
+    },
+    {
+      "path": "armchair-red-SE-3-furniture.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "48d329ed7fc728f0c39cd00eff260ad4055e357555d10747277769c1fa089799"
+    },
+    {
+      "path": "armchair-red-SE-3-lines.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "74ed49df712f93495c386e201367ba1ea00f2e46ecbf74f9c25a6e6938abb95d"
+    },
+    {
+      "path": "armchair-red-NW-0-beauty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "baf9829ee6476117d97e60b20db8f67a555ee5921a6319a3cad31168be237a53"
+    },
+    {
+      "path": "armchair-red-NW-0-sim.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "81832d233eb9906b5a663608ced0262ba4e7b19dba9684b1be0065c8bfc60386"
+    },
+    {
+      "path": "armchair-red-NW-0-furniture.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "f0dcecd1c12a0cb466a66f138f183d940d02128198099ba208d29fbfce3f3123"
+    },
+    {
+      "path": "armchair-red-NW-0-lines.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "4c8a5cf78cb2a00c162606d64d10e7e35e2da67b90efefbb5c97102b55fae0bf"
+    },
+    {
+      "path": "armchair-red-NW-1-beauty.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "dc958fda3473c0b7a708c212286294dc19270fe28d391b0285a90516997c4633"
+    },
+    {
+      "path": "armchair-red-NW-1-sim.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "d0fa889c03ec850e84ba48da31b302d38f443b03f3f041b3e72fc16f2c775568"
+    },
+    {
+      "path": "armchair-red-NW-1-furniture.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "a169d65e7e43defbdd84fd24349111a5db1502d0a9945a5c61dd4b34892411ce"
+    },
+    {
+      "path": "armchair-red-NW-1-lines.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "49c535b9f38203b1654d85afaa17740e3fed22a360880283df85f18cd57f42ce"
+    },
+    {
+      "path": "armchair-red-NW-2-beauty.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "a5697402223e45295042f92a8cda38e5ce160fb80066b2abf0329fb8cd2cec78"
+    },
+    {
+      "path": "armchair-red-NW-2-sim.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "dd46f3a65adc0373737566918b122ea5ed63ce964373a85fc7e7ad1d0f649a5f"
+    },
+    {
+      "path": "armchair-red-NW-2-furniture.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "b11fce4bf6e4bea1b079db7c3c0becb3c159e58fad502a8481f76535b6c9e07f"
+    },
+    {
+      "path": "armchair-red-NW-2-lines.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "b23e2ef264bf1e9681408f2912470c601b3266f6a3189f249eb757a94a495af8"
+    },
+    {
+      "path": "armchair-red-NW-3-beauty.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "9f45ca434dc46eff78f7b0236477d8973f3a18b614d0ab0219a8a1cc1732006f"
+    },
+    {
+      "path": "armchair-red-NW-3-sim.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "38d31d34f12296fa1558025c29a8919afe3355e36ffec614a878343847a5d276"
+    },
+    {
+      "path": "armchair-red-NW-3-furniture.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "8a725c0b0c1971a48ef179af4b24c2a2c8da65e5921854ae11a3a77da96156d9"
+    },
+    {
+      "path": "armchair-red-NW-3-lines.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "c85a6451af0dbfcb57ccd0c2abcea9ddf746bdf3e599f5f62b08ae424d8f8852"
+    },
+    {
+      "path": "armchair-red-SW-0-beauty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "4c8b8cd0d124774b2c0c2c8533c570bac75215dbc9c77e043ece7b7013913556"
+    },
+    {
+      "path": "armchair-red-SW-0-sim.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "b4bdb47eaccd2023e0b2f31fdfbb223fbfff63133908511b29fbe6b8a4e52755"
+    },
+    {
+      "path": "armchair-red-SW-0-furniture.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "47ff6c7615657b3b281195ecb827bb9616366efe2ea3bdda35cea495256c6393"
+    },
+    {
+      "path": "armchair-red-SW-0-lines.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "e11b4f07404628f55dd8f16ed515ff072953a19879a7d5232cc633d0f21ac007"
+    },
+    {
+      "path": "armchair-red-SW-1-beauty.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "a1c9da71c1cf8b53d7cee85e854b1259694e8c8f759e646b098da36d6e8bc6be"
+    },
+    {
+      "path": "armchair-red-SW-1-sim.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "02b4adc651fcba824f3a3b33b8d76a985834a9741ff734e8db9fdfc246f99ac3"
+    },
+    {
+      "path": "armchair-red-SW-1-furniture.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "4cba578568029470ba56dece27ae0c4adfea0a637009bda7ebcaeb7889bccd35"
+    },
+    {
+      "path": "armchair-red-SW-1-lines.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "31f0685f9e884b6efb031efdc70b51204e7dec1aee85e33e8b26eaf0576df44a"
+    },
+    {
+      "path": "armchair-red-SW-2-beauty.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "ad5a9cc4b37be0b5812ecd51ab5e8bb7f800053ea80e35d04e3857825ddba930"
+    },
+    {
+      "path": "armchair-red-SW-2-sim.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "0cc7f60755b1f95a086990542da7f6291f2f62dbfb6aaade8b0bc11b471e21e0"
+    },
+    {
+      "path": "armchair-red-SW-2-furniture.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "a97ef4ce15eb4db7ec2cd10674361d1abc8d008fd47490f939a686f89b6c60a0"
+    },
+    {
+      "path": "armchair-red-SW-2-lines.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "33bb658451bfe75f5db2bb4bc6994250b9e1f282b06700949b99d9fa3fe6c01a"
+    },
+    {
+      "path": "armchair-red-SW-3-beauty.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "78185522d93d9daa606ff7d9bbd6b54e0ca2f1901c2faa5faca64d6ebac75244"
+    },
+    {
+      "path": "armchair-red-SW-3-sim.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "1e4ae7ce12c52d1416af14f3e72ed0a4b469eb8ffc0ce1cdf1e9fb00b5ef848c"
+    },
+    {
+      "path": "armchair-red-SW-3-furniture.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "cf6612b786afc591163d20f667fa149e00f2f79e0e5ebac192ba3db5700f9f6d"
+    },
+    {
+      "path": "armchair-red-SW-3-lines.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "c20141b2877a643c1d24176c98ffa7ba429b17af9e1c265ad296e1676fae4681"
+    },
+    {
+      "path": "armchair-red-NE-0-beauty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "9259de1221c8f1d5f56e4fa617e3d2bf5c88815f4244c76efc1a4331e105fc38"
+    },
+    {
+      "path": "armchair-red-NE-0-sim.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "9c26025dbb547d5f2d5f9ba40ebf75bcb9757b908ece316890aa4f5d0ef13a09"
+    },
+    {
+      "path": "armchair-red-NE-0-furniture.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "617bfc44c286f02c7f372a294ad791f81614f064290db0e0e65641b9835f3e34"
+    },
+    {
+      "path": "armchair-red-NE-0-lines.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "6a0ac1db4c458f6720a0a875f1ea955affd82f8e3bf8810b389929b7cd9231e5"
+    },
+    {
+      "path": "armchair-red-NE-1-beauty.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "e5b09794435cce52193269222bdbe335debd1c25a0bc1e90bd2a6662a493ff90"
+    },
+    {
+      "path": "armchair-red-NE-1-sim.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "ef6658b84cc7fa46e6e2d8b7749dbdf31b9f0f4800d4e36ea871c7b9384eaabd"
+    },
+    {
+      "path": "armchair-red-NE-1-furniture.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "29f9804e9ad418d63ab5d62605fa561cafbd0c8bd73cee3a8628de6d5eaf10ee"
+    },
+    {
+      "path": "armchair-red-NE-1-lines.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "853c4afad61eb3299b74149958b2e9915bcefac0bd4534fe4fc439adf7fe7614"
+    },
+    {
+      "path": "armchair-red-NE-2-beauty.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "db678edd0e0beaca05cc7c43d4c4a3842ad076eaaa9445a67edb51a42917249b"
+    },
+    {
+      "path": "armchair-red-NE-2-sim.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "47ad4a35ff238f95d1805c9a085cad89a0c50b7edc62270a79a81b0e25ca0881"
+    },
+    {
+      "path": "armchair-red-NE-2-furniture.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "8b27a7a26729266bace537af65a3b7dc1239f8f19bf1b3a7120ee32ae0e49f2a"
+    },
+    {
+      "path": "armchair-red-NE-2-lines.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "f9dd287e0b9ed106fd96715e1d3e3388fa56586efc6d9fd4bcb4dd1b23e86bd5"
+    },
+    {
+      "path": "armchair-red-NE-3-beauty.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "dba8ffa90982f1f164ea7fb43950059c5a7236001a90d0e83a8006d2ef8fb978"
+    },
+    {
+      "path": "armchair-red-NE-3-sim.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "24912c0585ecc549e0a99327769d13f67d4ff19e4c1012e5488d988d88a08f5a"
+    },
+    {
+      "path": "armchair-red-NE-3-furniture.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "05bb2d97fb011f2bc193e42efd34c165337366d01ddf66f657b1be59c2b3564c"
+    },
+    {
+      "path": "armchair-red-NE-3-lines.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "232894ade65be8ce732a4245d50696f30751c16a77f0ca019e051b4a5193090d"
+    }
+  ],
+  "anchor": [
+    48.0000114440918,
+    116.0004369020462
+  ],
+  "blender_version": "4.5.14 LTS",
+  "blender_build_hash": "62c1db4208e8",
+  "contact_samples": [
+    {
+      "frame": 1,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    },
+    {
+      "frame": 2,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    },
+    {
+      "frame": 3,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    },
+    {
+      "frame": 4,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    }
+  ]
+}

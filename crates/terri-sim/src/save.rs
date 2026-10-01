@@ -2751,19 +2751,31 @@ mod tests {
 
     #[test]
     fn authored_foreground_sprite_reconstructs_without_entering_save_v1_or_hash_state() {
-        let pack = terri_data::pack();
-        let bed = pack.find("armchair").expect("shipped split armchair");
+        let mut fixture = terri_data::pack().clone();
+        let bed = fixture.find("armchair").expect("fixture armchair");
+        let expected = fixture.object(fixture.find("floor_lamp").unwrap()).sprite;
+        assert_ne!(expected, fixture.object(bed).sprite);
+        fixture.objects[bed.0 as usize].foreground_sprite = Some(expected);
+        fixture.objects[bed.0 as usize].facing_foreground_sprites.0 = [Some(expected); 4];
+        for placement in &mut fixture.lot.placements {
+            if placement.object == bed {
+                placement.foreground_sprite = Some(expected);
+            }
+        }
+        let pack: &'static ContentPack = Box::leak(Box::new(fixture));
         let placement = pack
             .lot
             .placements
             .iter()
             .find(|placement| placement.object == bed)
-            .expect("the shipped split armchair is placed");
-        let expected = placement
-            .foreground_sprite
-            .expect("the split armchair placement has a foreground");
+            .expect("the fixture armchair is placed");
+        let make_sim = || {
+            let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
+            sim.world_mut().insert_resource(Content(pack));
+            sim
+        };
 
-        let mut source = Sim::new_from_shipped_lot();
+        let mut source = make_sim();
         let authored = {
             let world = source.world_mut();
             let mut query = world.query::<(Entity, &Position, &SmartObject)>();
@@ -2773,7 +2785,7 @@ mod tests {
                     object.0 == bed && position.x == placement.x && position.y == placement.y
                 })
                 .map(|(entity, _, _)| entity)
-                .expect("the authored split armchair spawned")
+                .expect("the authored foreground fixture spawned")
         };
         assert_eq!(
             source.world().get::<ForegroundSprite>(authored),
@@ -2790,7 +2802,7 @@ mod tests {
         assert_eq!(source.world_hash(), hash);
 
         let index = authored.index_u32();
-        let mut restored = Sim::new_from_shipped_lot();
+        let mut restored = make_sim();
         restored
             .load_snapshot(snapshot)
             .expect("foreground-free Save V1 restores");
@@ -2800,7 +2812,7 @@ mod tests {
         assert_eq!(
             restored.world().get::<ForegroundSprite>(restored_entity),
             Some(&ForegroundSprite(expected)),
-            "Load reconstructs authored foreground bedding from the current placement"
+            "Load reconstructs the authored foreground layer from the current placement"
         );
     }
 

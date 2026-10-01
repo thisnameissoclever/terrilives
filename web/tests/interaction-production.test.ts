@@ -15,15 +15,16 @@ beforeAll(async () => {
 });
 
 it('contains all registered production facings, palettes and samples after the stable prefix', () => {
-  expect(Object.keys(INTERACTION_SPRITES)).toHaveLength(12);
-  expect(Object.keys(SPRITE_PAIRS)).toHaveLength(192);
-  for (const [object, action, count] of [['Bike', 6, 8], ['Chair', 3, 4], ['Bunk', 9, 4]] as const) {
+  expect(Object.keys(INTERACTION_SPRITES)).toHaveLength(16);
+  expect(Object.keys(SPRITE_PAIRS)).toHaveLength(240);
+  for (const [object, action, count] of [['Bike', 6, 8], ['Chair', 3, 4], ['Bunk', 9, 4], ['Armchair', 8, 4]] as const) {
     for (const facing of ['', 'NW', 'SW', 'NE']) {
       const empty = spriteIndex(`offline${object}${facing}`);
       expect(empty).toBeGreaterThanOrEqual(847);
       const profile = INTERACTION_SPRITES[empty];
       expect(profile.action).toBe(action);
       if (object === 'Bunk') expect(profile.halfCycleTicks).toBe(32);
+      if (object === 'Armchair') expect(profile.halfCycleTicks).toBe(24);
       for (const variant of ['blue', 'red', 'green'] as const) {
         expect(profile.frames[variant]).toHaveLength(count);
         for (const body of profile.frames[variant]) {
@@ -42,7 +43,7 @@ it('contains all registered production facings, palettes and samples after the s
   }
 });
 
-it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3], ['bed', 'offlineBunk', 9]] as const)(
+it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3], ['bed', 'offlineBunk', 9], ['armchair', 'offlineArmchair', 8]] as const)(
   'compiled %s selects its exact occupied pair and restores the empty body', (object, sprite, action) => {
     const handle = new SimHandle(16, 16);
     const source = new SimBridge(handle, memory);
@@ -65,8 +66,9 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
         const body = data[FLOATS_PER_INSTANCE + 3];
         const profile = INTERACTION_SPRITES[spriteIndex(sprite)];
         expect(profile.frames[simShirtVariant(source.simIds()[1])]).toContain(body);
-        expect(instanceCount(source, null)).toBe(3); // Two rows and the activity bubble.
-        if (action === 9) {
+        // Sitting is text-only; the other three activities have a bubble.
+        expect(instanceCount(source, null)).toBe(action === 8 ? 2 : 3);
+        if (action === 9 || action === 8) {
           const [left,top,right,bottom] = SPRITE_CONTENT_BOUNDS[body];
           const [anchorX,anchorY] = SPRITE_ANCHORS[body];
           const [wx,wy] = source.positions();
@@ -83,7 +85,7 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
           const saved = source.saveBytes();
           for (let step=0; step<20; step++) source.tick();
           expect(source.loadBytes(saved)).toBe(true);
-          expect(source.visualActions()[1]).toBe(9);
+          expect(source.visualActions()[1]).toBe(action);
           expect(source.interactionTargets()[1]).toBe(objectId);
           expect(source.foregroundSprites()[0]).toBe(0xffffffff);
           expect(Array.from(buildInstances(source,1,0,0,16,null,1,false,source.clockTick())
@@ -102,6 +104,47 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
     }
   },
 );
+
+it.each(['', 'SW', 'NW', 'NE'])('uses every armchair sample and shirt in facing %s', suffix => {
+  const variants = new Set<string>();
+  for (let agentCount = 1; agentCount <= 3; agentCount++) {
+    const handle = SimHandle.from_lot();
+    const source = new SimBridge(handle, memory);
+    try {
+      const chair = 12;
+      const chairRow = Array.from(source.ids()).indexOf(chair);
+      const facing = ['', 'SW', 'NW', 'NE'].indexOf(suffix);
+      expect(source.placeObject(chair, 13, 4, facing)).toBe(true);
+      source.flushCommands();
+      expect(source.lastPlacementResult()).toEqual({ object: chair, reason: null });
+      const agent = 33 + agentCount;
+      const row = Array.from(source.ids()).indexOf(agent);
+      expect(source.useObjectFirst(agent, chair, 0)).toBe(true);
+      for (let tick = 0; tick < 1200 && source.visualActions()[row] !== 8; tick++) source.tick();
+      expect(source.visualActions()[row]).toBe(8);
+      expect(source.interactionTargets()[row]).toBe(chair);
+      const variant = simShirtVariant(source.simIds()[row]);
+      variants.add(variant);
+      const empty = spriteIndex(`offlineArmchair${suffix}`);
+      expect(source.sprites()[chairRow]).toBe(empty);
+      const profile = INTERACTION_SPRITES[empty];
+      for (let sample = 0; sample < 4; sample++) {
+        const drawTick = 48 + 12 * sample - agent % 24;
+        const data = buildInstances(source, 1, 0, 0, 16, null, 1, false, drawTick);
+        expect(data[chairRow * FLOATS_PER_INSTANCE]).toBe(-1e6);
+        expect(data[row * FLOATS_PER_INSTANCE + 3]).toBe(profile.frames[variant][sample]);
+        expect(SPRITE_PAIRS[data[row * FLOATS_PER_INSTANCE + 3]]).toBeDefined();
+      }
+      const reduced = buildInstances(source, 1, 0, 0, 16, null, 1, true, 100);
+      expect(reduced[row * FLOATS_PER_INSTANCE + 3]).toBe(profile.frames[variant][0]);
+      const saved = source.saveBytes();
+      expect(source.loadBytes(saved)).toBe(true);
+      expect(source.objectFacing(chair)).toBe(facing);
+      expect(source.interactionTargets()[row]).toBe(chair);
+    } finally { handle.free(); }
+  }
+  expect([...variants].sort()).toEqual(['blue', 'green', 'red']);
+});
 
 it('an empty reading chair is not picked through the transparent space above its art', () => {
   const handle = new SimHandle(16, 16);

@@ -1,0 +1,418 @@
+{
+  "result": {
+    "pass": true,
+    "validation": null,
+    "errors": [],
+    "atlas": "atlas-d8ba23808b8253ec030a28cfbbc41a521d99348955e07186ebdfb855a5bb61c4.png",
+    "records": [
+      {
+        "facing": 0,
+        "empty": 1270
+      },
+      {
+        "facing": 1,
+        "empty": 1272
+      },
+      {
+        "facing": 2,
+        "empty": 1271
+      },
+      {
+        "facing": 3,
+        "empty": 1273
+      },
+      {
+        "facing": 0,
+        "variant": "blue",
+        "sample": 0,
+        "body": 1284,
+        "tick": 38
+      },
+      {
+        "facing": 0,
+        "variant": "blue",
+        "sample": 1,
+        "body": 1285,
+        "tick": 50
+      },
+      {
+        "facing": 0,
+        "variant": "blue",
+        "sample": 2,
+        "body": 1286,
+        "tick": 62
+      },
+      {
+        "facing": 0,
+        "variant": "blue",
+        "sample": 3,
+        "body": 1287,
+        "tick": 74
+      },
+      {
+        "facing": 1,
+        "variant": "blue",
+        "sample": 0,
+        "body": 1320,
+        "tick": 38
+      },
+      {
+        "facing": 1,
+        "variant": "blue",
+        "sample": 1,
+        "body": 1321,
+        "tick": 50
+      },
+      {
+        "facing": 1,
+        "variant": "blue",
+        "sample": 2,
+        "body": 1322,
+        "tick": 62
+      },
+      {
+        "facing": 1,
+        "variant": "blue",
+        "sample": 3,
+        "body": 1323,
+        "tick": 74
+      },
+      {
+        "facing": 2,
+        "variant": "blue",
+        "sample": 0,
+        "body": 1302,
+        "tick": 38
+      },
+      {
+        "facing": 2,
+        "variant": "blue",
+        "sample": 1,
+        "body": 1303,
+        "tick": 50
+      },
+      {
+        "facing": 2,
+        "variant": "blue",
+        "sample": 2,
+        "body": 1304,
+        "tick": 62
+      },
+      {
+        "facing": 2,
+        "variant": "blue",
+        "sample": 3,
+        "body": 1305,
+        "tick": 74
+      },
+      {
+        "facing": 3,
+        "variant": "blue",
+        "sample": 0,
+        "body": 1338,
+        "tick": 38
+      },
+      {
+        "facing": 3,
+        "variant": "blue",
+        "sample": 1,
+        "body": 1339,
+        "tick": 50
+      },
+      {
+        "facing": 3,
+        "variant": "blue",
+        "sample": 2,
+        "body": 1340,
+        "tick": 62
+      },
+      {
+        "facing": 3,
+        "variant": "blue",
+        "sample": 3,
+        "body": 1341,
+        "tick": 74
+      },
+      {
+        "facing": 0,
+        "variant": "green",
+        "sample": 0,
+        "body": 1274,
+        "tick": 37
+      },
+      {
+        "facing": 0,
+        "variant": "green",
+        "sample": 1,
+        "body": 1277,
+        "tick": 49
+      },
+      {
+        "facing": 0,
+        "variant": "green",
+        "sample": 2,
+        "body": 1280,
+        "tick": 61
+      },
+      {
+        "facing": 0,
+        "variant": "green",
+        "sample": 3,
+        "body": 1281,
+        "tick": 73
+      },
+      {
+        "facing": 1,
+        "variant": "green",
+        "sample": 0,
+        "body": 1310,
+        "tick": 37
+      },
+      {
+        "facing": 1,
+        "variant": "green",
+        "sample": 1,
+        "body": 1313,
+        "tick": 49
+      },
+      {
+        "facing": 1,
+        "variant": "green",
+        "sample": 2,
+        "body": 1316,
+        "tick": 61
+      },
+      {
+        "facing": 1,
+        "variant": "green",
+        "sample": 3,
+        "body": 1317,
+        "tick": 73
+      },
+      {
+        "facing": 2,
+        "variant": "green",
+        "sample": 0,
+        "body": 1292,
+        "tick": 37
+      },
+      {
+        "facing": 2,
+        "variant": "green",
+        "sample": 1,
+        "body": 1295,
+        "tick": 49
+      },
+      {
+        "facing": 2,
+        "variant": "green",
+        "sample": 2,
+        "body": 1298,
+        "tick": 61
+      },
+      {
+        "facing": 2,
+        "variant": "green",
+        "sample": 3,
+        "body": 1299,
+        "tick": 73
+      },
+      {
+        "facing": 3,
+        "variant": "green",
+        "sample": 0,
+        "body": 1328,
+        "tick": 37
+      },
+      {
+        "facing": 3,
+        "variant": "green",
+        "sample": 1,
+        "body": 1331,
+        "tick": 49
+      },
+      {
+        "facing": 3,
+        "variant": "green",
+        "sample": 2,
+        "body": 1334,
+        "tick": 61
+      },
+      {
+        "facing": 3,
+        "variant": "green",
+        "sample": 3,
+        "body": 1335,
+        "tick": 73
+      },
+      {
+        "facing": 0,
+        "variant": "red",
+        "sample": 0,
+        "body": 1288,
+        "tick": 36
+      },
+      {
+        "facing": 0,
+        "variant": "red",
+        "sample": 1,
+        "body": 1289,
+        "tick": 48
+      },
+      {
+        "facing": 0,
+        "variant": "red",
+        "sample": 2,
+        "body": 1290,
+        "tick": 60
+      },
+      {
+        "facing": 0,
+        "variant": "red",
+        "sample": 3,
+        "body": 1291,
+        "tick": 72
+      },
+      {
+        "facing": 1,
+        "variant": "red",
+        "sample": 0,
+        "body": 1324,
+        "tick": 36
+      },
+      {
+        "facing": 1,
+        "variant": "red",
+        "sample": 1,
+        "body": 1325,
+        "tick": 48
+      },
+      {
+        "facing": 1,
+        "variant": "red",
+        "sample": 2,
+        "body": 1326,
+        "tick": 60
+      },
+      {
+        "facing": 1,
+        "variant": "red",
+        "sample": 3,
+        "body": 1327,
+        "tick": 72
+      },
+      {
+        "facing": 2,
+        "variant": "red",
+        "sample": 0,
+        "body": 1306,
+        "tick": 36
+      },
+      {
+        "facing": 2,
+        "variant": "red",
+        "sample": 1,
+        "body": 1307,
+        "tick": 48
+      },
+      {
+        "facing": 2,
+        "variant": "red",
+        "sample": 2,
+        "body": 1308,
+        "tick": 60
+      },
+      {
+        "facing": 2,
+        "variant": "red",
+        "sample": 3,
+        "body": 1309,
+        "tick": 72
+      },
+      {
+        "facing": 3,
+        "variant": "red",
+        "sample": 0,
+        "body": 1342,
+        "tick": 36
+      },
+      {
+        "facing": 3,
+        "variant": "red",
+        "sample": 1,
+        "body": 1343,
+        "tick": 48
+      },
+      {
+        "facing": 3,
+        "variant": "red",
+        "sample": 2,
+        "body": 1344,
+        "tick": 60
+      },
+      {
+        "facing": 3,
+        "variant": "red",
+        "sample": 3,
+        "body": 1345,
+        "tick": 72
+      },
+      {
+        "colourway": 0,
+        "name": "As drawn"
+      },
+      {
+        "colourway": 1,
+        "name": "Colour 2"
+      },
+      {
+        "colourway": 2,
+        "name": "Colour 3"
+      },
+      {
+        "colourway": 3,
+        "name": "Muted"
+      },
+      {
+        "colourway": 4,
+        "name": "Rich"
+      },
+      {
+        "night": true
+      },
+      {
+        "preview": true
+      },
+      {
+        "occupied": true,
+        "colourway": 0,
+        "name": "As drawn"
+      },
+      {
+        "occupied": true,
+        "colourway": 1,
+        "name": "Colour 2"
+      },
+      {
+        "occupied": true,
+        "colourway": 2,
+        "name": "Colour 3"
+      },
+      {
+        "occupied": true,
+        "colourway": 3,
+        "name": "Muted"
+      },
+      {
+        "occupied": true,
+        "colourway": 4,
+        "name": "Rich"
+      },
+      {
+        "occupied": true,
+        "night": true
+      }
+    ]
+  },
+  "errors": []
+}

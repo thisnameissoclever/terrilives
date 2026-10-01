@@ -1,0 +1,705 @@
+{
+  "state": "passed",
+  "scope": "Four occupied contact samples; visual review is separate",
+  "model_sha256": "541790d85c22ab6577481bf8a6488018b777573dbbeb19d62431748e40a90622",
+  "samples": [
+    {
+      "frame": 1,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    },
+    {
+      "frame": 2,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    },
+    {
+      "frame": 3,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    },
+    {
+      "frame": 4,
+      "body_inventory": [
+        "Collar stand",
+        "Dark pupil",
+        "Dark pupil.001",
+        "Ear",
+        "Ear.001",
+        "Eye white",
+        "Eye white.001",
+        "Fitted rounded shoe sole",
+        "Fitted rounded shoe sole.001",
+        "Folded fabric collar leaf",
+        "Folded fabric collar leaf.001",
+        "Forearm with elbow and wrist sections",
+        "Forearm with elbow and wrist sections.001",
+        "HAIR_01_TRIPO_CURL",
+        "Hazel iris",
+        "Hazel iris.001",
+        "Inner ear",
+        "Inner ear.001",
+        "Natural neck",
+        "One sewn breast pocket",
+        "Overshirt body",
+        "Pocket top seam",
+        "Quiet closed smile",
+        "Relaxed palm",
+        "Relaxed palm.001",
+        "Relaxed shirt sleeve",
+        "Relaxed shirt sleeve.001",
+        "Resting thumb",
+        "Resting thumb.001",
+        "Sculpted head",
+        "Shaped shoe",
+        "Shaped shoe.001",
+        "Shirt lower hem",
+        "Shirt placket",
+        "Shoe apron stitch",
+        "Shoe apron stitch.001",
+        "Small eye catchlight",
+        "Small eye catchlight.001",
+        "Small horn button",
+        "Small horn button.001",
+        "Small horn button.002",
+        "Small horn button.003",
+        "Small rounded nose",
+        "Soft eyebrow",
+        "Soft eyebrow.001",
+        "Tailored trouser leg",
+        "Tailored trouser leg.001",
+        "Trouser hem",
+        "Trouser hem.001",
+        "Trouser hip bridge",
+        "Turned sleeve cuff",
+        "Turned sleeve cuff.001",
+        "Upper lid outline",
+        "Upper lid outline.001"
+      ],
+      "chair_inventory": [
+        "Arm left",
+        "Arm right",
+        "Back cushion",
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3",
+        "Seat cushion",
+        "Upholstered back",
+        "Upholstered base"
+      ],
+      "excluded_visible_geometry": [],
+      "body_chair_intersections": [],
+      "hip_support": {
+        "min_gap": 0.00029912590980529785,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.10361909866333008,
+            -0.09995636343955994,
+            0.4042990803718567
+          ],
+          [
+            0.011437717825174332,
+            0.09995635598897934,
+            0.4115723669528961
+          ]
+        ],
+        "xy_hull_area": 0.017859539117304923
+      },
+      "shoe_floor_clearance": {
+        "Fitted rounded shoe sole": 0.019148141145706177,
+        "Fitted rounded shoe sole.001": 0.019148103892803192
+      },
+      "grounded_chair_feet": [
+        "Foot -0.18 -0.3",
+        "Foot -0.18 0.3",
+        "Foot 0.28 -0.3",
+        "Foot 0.28 0.3"
+      ],
+      "structural_contacts": {
+        "Upholstered base / Foot -0.18 -0.3": [
+          -0.21949999034404755,
+          -0.3440000116825104,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot -0.18 0.3": [
+          -0.21949999034404755,
+          0.25600001215934753,
+          0.1599999964237213
+        ],
+        "Upholstered base / Foot 0.28 -0.3": [
+          0.23600000143051147,
+          -0.3440000116825104,
+          0.15000000596046448
+        ],
+        "Upholstered base / Foot 0.28 0.3": [
+          0.23600000143051147,
+          0.25600001215934753,
+          0.15000000596046448
+        ],
+        "Upholstered back / Upholstered base": [
+          0.22300000488758087,
+          -0.31199997663497925,
+          0.32099997997283936
+        ],
+        "Arm left / Upholstered base": [
+          -0.17299999296665192,
+          -0.3959999978542328,
+          0.21300001442432404
+        ],
+        "Arm left / Upholstered back": [
+          0.22300000488758087,
+          -0.3659999966621399,
+          0.3580000102519989
+        ],
+        "Arm right / Upholstered base": [
+          -0.17299999296665192,
+          0.2839999794960022,
+          0.21300001442432404
+        ],
+        "Arm right / Upholstered back": [
+          0.22300000488758087,
+          0.28199997544288635,
+          0.3290000259876251
+        ],
+        "Seat cushion / Upholstered base": [
+          -0.1720000058412552,
+          -0.23199999332427979,
+          0.29760000109672546
+        ],
+        "Back cushion / Upholstered back": [
+          0.21650001406669617,
+          -0.2240000069141388,
+          0.4429999887943268
+        ],
+        "Back cushion / Seat cushion": [
+          0.14749999344348907,
+          -0.2240000069141388,
+          0.3944000005722046
+        ]
+      }
+    }
+  ],
+  "query_tests": [
+    "separated solids",
+    "body containment",
+    "chair containment",
+    "crossed thin surfaces"
+  ],
+  "caught_mutations": [
+    {
+      "mutation": "raised seat",
+      "rejection": "Body intersects chair: Trouser hip bridge / Seat cushion / {'kind': 'surface', 'triangle_pairs': 48}"
+    },
+    {
+      "mutation": "floating hip",
+      "rejection": "Hip lost non-penetrating seat support"
+    },
+    {
+      "mutation": "lowered seat",
+      "rejection": "Hip lost non-penetrating seat support"
+    },
+    {
+      "mutation": "raised arm",
+      "rejection": "Body intersects chair: Forearm with elbow and wrist sections.001 / Arm left / {'kind': 'surface', 'triangle_pairs': 424}"
+    },
+    {
+      "mutation": "raised foot",
+      "rejection": "Foot -0.18 -0.3 lost floor contact"
+    },
+    {
+      "mutation": "detached foot",
+      "rejection": "Upholstered base detached from Foot -0.18 -0.3"
+    },
+    {
+      "mutation": "hidden hip",
+      "rejection": "Visible Sim inventory changed"
+    },
+    {
+      "mutation": "wrong chair facing",
+      "rejection": "Armchair authored basis changed"
+    }
+  ],
+  "blender_version": "4.5.14 LTS",
+  "blender_build_hash": "62c1db4208e8"
+}

@@ -1,6 +1,14 @@
 # Armchair seating animation
 
-Status: implemented and locally played. Merge, exact-head CI, public Pages
+Historical implementation record, August 2026. The SE socket, two procedural
+frames, atlas indices and release status below describe that original slice,
+not the current asset contract. Current content uses the centered SW seat
+socket and the approved rig's four Sit samples. The living-room model work
+preserves that current contract; see `assets/models/living/README.md` for its
+source-generation and verification flow. Do not restore the older facing or
+sprite counts from this document.
+
+Status at the original checkpoint: implemented and locally played. Merge, exact-head CI, public Pages
 deployment, physical-phone review, operating-system reduced motion, and final
 owner acceptance remain open. This specification owns the first ordinary
 seating slice: `armchair.take_the_chair` only. It extends the shipped
