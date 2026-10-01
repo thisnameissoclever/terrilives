@@ -26,6 +26,8 @@ import {
 } from './object-cues.js';
 import { ObjectLoopPlayer, prepareObjectLoopClips, type ObjectLoopClips } from './object-loops.js';
 import { loadObjectRecordings } from './object-recordings.js';
+import { PortalAudioScheduler } from './portal-audio.js';
+import { RecordedDoorPlayer } from './recorded-doors.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -127,6 +129,12 @@ export class AudioController implements GameAudioEventSink {
   private nextObjectRecordingRetryAt = 0;
   private readonly desiredObjectLoops = new Map<number, ObjectSoundAction>();
   private objectSoundsPaused = false;
+  private doors: RecordedDoorPlayer | null = null;
+  private readonly doorClips: Partial<Record<'opened' | 'closed', AudioBufferPort>> = {};
+  private doorFetch: Promise<void> | null = null;
+  private nextDoorRetryAt = 0;
+  private doorDemandObserved = false;
+  private readonly portals: PortalAudioScheduler;
   /** Successful decodes survive retries and context rebuilds. */
   private voiceClips: readonly (AudioBufferPort | undefined)[] = [];
   private voiceClipIds: readonly string[] = [];
@@ -164,6 +172,7 @@ export class AudioController implements GameAudioEventSink {
     this.footsteps = new FootstepScheduler(this);
     this.activities = new ActivityCueScheduler(this);
     this.objectSounds = new ObjectSoundCueScheduler(this);
+    this.portals = new PortalAudioScheduler(this);
   }
 
   preferences(): AudioPreferences {
@@ -264,6 +273,16 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
 
+    if (event.type === 'door.opened' || event.type === 'door.closed') {
+      if (this.objectSoundsPaused) return;
+      this.doorDemandObserved = true;
+      const opened = event.type === 'door.opened';
+      const clip = this.doorClips[opened ? 'opened' : 'closed'];
+      if (clip !== undefined && this.doors?.play(clip)) this.playedCueCounts[opened ? 6 : 7]++;
+      void this.loadDoorRecordings();
+      return;
+    }
+
     if (event.type === 'object.sound-started') {
       if (this.objectSoundsPaused) return;
       const alreadyDesired = this.desiredObjectLoops.get(event.sourceId) === event.action;
@@ -308,6 +327,53 @@ export class AudioController implements GameAudioEventSink {
 
   beginFootstepFrame(): void {
     this.footsteps.beginFrame();
+  }
+
+  beginPortalFrame(): void { this.portals.beginFrame(); }
+  observePortal(x: number, y: number, farX: number, farY: number, state: number): void {
+    this.portals.observe(x, y, farX, farY, state);
+  }
+  endPortalFrame(): void {
+    this.portals.endFrame();
+    if (!this.doorDemandObserved && this.portals.activeTrackCount() > 0 && this.doorsAudible()) {
+      this.doorDemandObserved = true;
+      void this.loadDoorRecordings();
+    }
+  }
+  activeDoorVoiceCount(): number { return this.doors?.activeVoiceCount() ?? 0; }
+  doorTrackCount(): number { return this.portals.activeTrackCount(); }
+  doorTrackCapacity(): number { return this.portals.trackCapacity(); }
+
+  /** Demand only; a decode never replays the event that requested it. */
+  async loadDoorRecordings(): Promise<void> {
+    if (this.doorFetch !== null) { await this.doorFetch; return; }
+    const context = this.context;
+    if (context === null || !this.doorsAudible() || !this.doorDemandObserved ||
+      performance.now() < this.nextDoorRetryAt ||
+      (this.doorClips.opened !== undefined && this.doorClips.closed !== undefined)) return;
+    const fetching = this.fetchDoorClips(context);
+    this.doorFetch = fetching;
+    try { await fetching; }
+    finally { if (this.doorFetch === fetching) this.doorFetch = null; }
+  }
+
+  private async fetchDoorClips(context: BrowserAudioContext): Promise<void> {
+    await Promise.all((['opened', 'closed'] as const).map(async kind => {
+      if (this.doorClips[kind] !== undefined) return;
+      try {
+        const response = await fetch(`audio/doors/${kind === 'opened' ? 'open' : 'close'}.wav`);
+        if (!response.ok) throw new Error(`door recording: ${response.status}`);
+        const clip = await context.decodeAudioData(await response.arrayBuffer());
+        if (!Number.isFinite(clip.duration) || clip.duration < 0.024) throw new Error('invalid door recording');
+        this.doorClips[kind] = clip;
+      } catch {
+        this.nextDoorRetryAt = performance.now() + 5000;
+      }
+    }));
+  }
+
+  private doorsAudible(): boolean {
+    return this.isUnlocked() && !this.mutedPreference && this.effectsLevelPreference > 0 && !this.objectSoundsPaused;
   }
 
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void {
@@ -401,6 +467,8 @@ export class AudioController implements GameAudioEventSink {
   setObjectSoundsPaused(paused: boolean): void {
     if (this.objectSoundsPaused === paused) return;
     this.objectSoundsPaused = paused;
+    this.portals.reset();
+    this.doorDemandObserved = false;
     this.objectSounds.reset();
     this.desiredObjectLoops.clear();
     if (paused) this.objectLoops?.stopAll();
@@ -431,9 +499,7 @@ export class AudioController implements GameAudioEventSink {
     // Clear on both edges. Hidden fixed ticks may still sample positions after
     // the first reset; the foreground reset makes the first audible tick a new
     // anchor instead of completing a stride travelled while inaudible.
-    this.footsteps.reset();
-    this.activities.reset();
-    this.objectSounds.reset();
+    this.resetSchedulers();
     if (backgrounded) {
       this.stopEveryPlayer();
     }
@@ -476,9 +542,7 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
     this.stopEveryPlayer();
-    this.footsteps.reset();
-    this.activities.reset();
-    this.objectSounds.reset();
+    this.resetSchedulers();
   }
 
   /**
@@ -502,6 +566,7 @@ export class AudioController implements GameAudioEventSink {
     // against a suspended clock that plays it on return to the tab.
     this.pendingVoices.clear();
     this.desiredObjectLoops.clear();
+    this.doors?.stopAll();
     this.objectLoops?.stopAll(true);
     this.player?.stopAll();
     this.voices?.stopAll();
@@ -702,7 +767,7 @@ export class AudioController implements GameAudioEventSink {
     return this.objectSounds.trackCapacity();
   }
 
-  /** Successful procedural cue starts, exposed through `?stress=N` only. */
+  /** Successful cue starts, exposed through `?stress=N` only. */
   cuePlayCounts(): AudioCuePlayCounts {
     return {
       rejected: this.playedCueCounts[0] ?? 0,
@@ -720,6 +785,8 @@ export class AudioController implements GameAudioEventSink {
     this.footsteps.reset();
     this.activities.reset();
     this.objectSounds.reset();
+    this.portals.reset();
+    this.doorDemandObserved = false;
   }
 
   private async resumeFromGesture(): Promise<boolean> {
@@ -741,6 +808,7 @@ export class AudioController implements GameAudioEventSink {
         this.effectsGain = effectsGain;
         this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
+        this.doors = new RecordedDoorPlayer(context, effectsGain);
         this.objectLoops = new ObjectLoopPlayer(context, effectsGain);
         this.objectLoops.setClips(this.objectLoopClips);
         // Voices adjusts recordings only; Effects and Sound still govern all audio.
@@ -764,6 +832,7 @@ export class AudioController implements GameAudioEventSink {
         this.player = null;
         this.voices = null;
         this.objectLoops = null;
+        this.doors = null;
         if (context !== null) {
           try {
             await context.close();
@@ -908,9 +977,8 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
     case 'object.sound-stopped':
       return null;
     case 'door.opened':
-      return 'door-opened';
     case 'door.closed':
-      return 'door-closed';
+      return null;
   }
 }
 

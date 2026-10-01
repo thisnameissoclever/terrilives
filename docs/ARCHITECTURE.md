@@ -1031,10 +1031,11 @@ translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
 `sim.footstep`, recorded conversation start/end and household sleep cadence, personal eating,
 reading, and exercise cadence, source-owned object sound start and stop edges,
-and reserved door open and close events. Staged means accepted into the command
+and geometry-keyed door open and close events. Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
-Door audio events remain reserved and are not emitted by the animated portal
-renderer. Semantic events do not imply audible feedback. Routine staged
+Door audio samples the simulation-owned portal columns after fixed ticks, not
+the renderer. First observations anchor silently; closed-boundary transitions
+play bounded recorded cues. Semantic events do not imply audible feedback. Routine staged
 commands and completed controls remain silent; `command.rejected` is the only
 current routine-interface event mapped to a sound.
 

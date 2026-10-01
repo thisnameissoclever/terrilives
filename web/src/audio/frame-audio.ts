@@ -56,6 +56,35 @@ export interface SimAudioFrameSink {
 }
 
 const NO_SIM_ID = 0xffff_ffff;
+export interface PortalAudioFrameSource {
+  readonly portalCount: number;
+  portalPositions(): Float32Array;
+  portalFarSides(): Float32Array;
+  portalStates(): Uint32Array;
+}
+
+export interface PortalAudioFrameSink {
+  beginPortalFrame(): void;
+  observePortal(x: number, y: number, farX: number, farY: number, state: number): void;
+  endPortalFrame(): void;
+}
+
+/** Acquire fresh WASM views after each fixed tick, independently of Sim rows. */
+export function samplePortalAudioAfterTick(source: PortalAudioFrameSource, sink: PortalAudioFrameSink): void {
+  const count = source.portalCount;
+  const positions = source.portalPositions();
+  const farSides = source.portalFarSides();
+  const states = source.portalStates();
+  sink.beginPortalFrame();
+  try {
+    for (let row = 0; row < count; row++) {
+      sink.observePortal(positions[row * 2], positions[row * 2 + 1],
+        farSides[row * 2], farSides[row * 2 + 1], states[row]);
+    }
+  } finally {
+    sink.endPortalFrame();
+  }
+}
 /** Matches `render_buffer::NO_VOICE_CLIP`: this row is not in a talk. */
 const NO_VOICE_CLIP = 0xffff_ffff;
 

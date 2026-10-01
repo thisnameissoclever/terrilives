@@ -994,8 +994,10 @@ for eight. The current candidate aligns both at eight ticks and
 replaces it with a quieter 520 to 340 Hz triangle sweep, but that correction
 also remains owner-listening evidence rather than accepted sound design.
 
-This is not the complete audio feature. Door open and close event types are
-reserved but no authoritative door transition emits them yet. Routine controls
+This is not the complete audio feature. Front and interior door transitions now
+play two quiet provisional recordings, keyed by physical portal geometry with
+silent initial anchoring and no replay after audio lifecycle resets. See
+`specs/2026-10-01-door-audio.md`. Routine controls
 are silent by design rather than waiting for blanket click sounds. Room and
 outdoor ambience, alarms, music, and non-conversation Sim voices remain unbuilt.
 Object-loop playback exists; its audible content still needs selection and

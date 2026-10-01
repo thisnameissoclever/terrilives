@@ -100,7 +100,7 @@ import {
   AudioController,
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
-import { sampleSimAudioAfterTick, withObjectSoundPause } from './audio/frame-audio.js';
+import { sampleSimAudioAfterTick, samplePortalAudioAfterTick, withObjectSoundPause } from './audio/frame-audio.js';
 import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
@@ -155,6 +155,9 @@ export interface StressHandle {
     /** Conversations still holding audio nodes, sounding or fading out. */
     readonly retainedConversationVoices: number;
     readonly objectLoopVoices: number;
+    readonly doorVoices: number;
+    readonly doorTracks: number;
+    readonly doorCapacity: number;
     readonly retainedObjectLoopVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
@@ -407,9 +410,11 @@ async function main(): Promise<void> {
       if (footstepSampling) {
         if (footstepSamplerTimer === null) {
           sampleSimAudioAfterTick(sim, audio);
+          samplePortalAudioAfterTick(sim, audio);
         } else {
           const sampleStartedMs = performance.now();
           sampleSimAudioAfterTick(sim, audio);
+          samplePortalAudioAfterTick(sim, audio);
           footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
         }
       }
@@ -1643,6 +1648,9 @@ async function main(): Promise<void> {
         get objectLoopVoices() {
           return audio.activeObjectLoopCount();
         },
+        get doorVoices() { return audio.activeDoorVoiceCount(); },
+        get doorTracks() { return audio.doorTrackCount(); },
+        get doorCapacity() { return audio.doorTrackCapacity(); },
         get retainedObjectLoopVoices() {
           return audio.retainedObjectLoopCount();
         },

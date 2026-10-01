@@ -270,6 +270,9 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         retainedConversationVoices: stress.audio.retainedConversationVoices,
         objectLoopVoices: stress.audio.objectLoopVoices,
         retainedObjectLoopVoices: stress.audio.retainedObjectLoopVoices,
+        doorVoices: stress.audio.doorVoices,
+        doorTracks: stress.audio.doorTracks,
+        doorCapacity: stress.audio.doorCapacity,
       };
     }),
   ]);
@@ -305,9 +308,15 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
 
     const samples = [];
     await setSpeed(page, 0);
-    await page.waitForTimeout(250);
+    const selected = await normalizeMemoryHud(page);
+    await waitForAudioDrain(page);
     samples.push(await collectMemorySample(page, cdp, true));
     const baselineTick = samples[0].tick;
+    await page.evaluate(entity => {
+      const sim = globalThis.__terriStress.sim;
+      if (!sim.select(entity)) throw new Error('Could not restore memory-run selection');
+      sim.flushCommands();
+    }, selected);
     await setSpeed(page, 3);
     await page.waitForTimeout(250);
     for (
@@ -328,13 +337,45 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
       { polling: 100, timeout: 30_000 },
     );
     await setSpeed(page, 0);
-    await page.waitForTimeout(250);
+    await normalizeMemoryHud(page);
+    await waitForAudioDrain(page);
     samples.push(await collectMemorySample(page, cdp, true));
 
     return { repetition, audioEnabled, samples };
   } finally {
     await context.close();
   }
+}
+
+async function normalizeMemoryHud(page) {
+  const selected = await page.evaluate(() => {
+    const sim = globalThis.__terriStress.sim;
+    const previous = sim.selectedIndex();
+    if (!sim.select(null)) throw new Error('Could not clear memory-run selection');
+    sim.flushCommands();
+    return previous;
+  });
+  // Compare identical empty selected-person panels, while the measured
+  // interval still renders normal changing moodlets and action cards.
+  await page.waitForFunction(() => {
+    const warnings = document.querySelectorAll('#needs-content .need-state');
+    return globalThis.__terriStress.sim.selectedIndex() === null &&
+      document.querySelector('#moodlet-list')?.childNodes.length === 0 &&
+      document.querySelector('#action-queue')?.childNodes.length === 0 &&
+      warnings.length === 7 && Array.from(warnings).every(span => span.childNodes.length === 0);
+  }, undefined, { polling: 50, timeout: 5000 });
+  return selected;
+}
+
+async function waitForAudioDrain(page) {
+  // Pause allows short cues and conversations to finish. Their onended
+  // listeners are live ownership, not leaked listeners.
+  await page.waitForFunction(() => {
+    const audio = globalThis.__terriStress.audio;
+    return audio.activeVoices === 0 && audio.doorVoices === 0 &&
+      audio.conversationVoices === 0 && audio.retainedConversationVoices === 0 &&
+      audio.objectLoopVoices === 0 && audio.retainedObjectLoopVoices === 0;
+  }, undefined, { polling: 50, timeout: 10_000 });
 }
 
 function growth(run, field) {
@@ -381,6 +422,9 @@ function analyseMemory(runs) {
         sample.activityTracks <= 3 &&
         sample.objectSoundCapacity === baseline.objectSoundCapacity &&
         sample.objectSoundTracks <= 2 &&
+        sample.doorCapacity === baseline.doorCapacity &&
+        sample.doorTracks <= 4 &&
+        sample.doorVoices <= 4 &&
         sample.activeVoices <= 8 &&
         // The recorded conversation voices are a retained scheduler like the
         // rest, and `activeVoices` cannot see them: that counts oscillators
@@ -405,16 +449,12 @@ function analyseMemory(runs) {
     );
     return (
       boundedLiveState &&
-      baseline.activeVoices === 0 &&
-      final.activeVoices === 0 &&
-      baseline.objectLoopVoices === 0 &&
-      final.objectLoopVoices === 0 &&
-      // **No assertion that nothing is SOUNDING.** Pausing does not stop a
-      // conversation's recordings - `main.ts` says so where it handles speed
-      // - and a pair runs six to seven seconds, so a healthy run sampled just
-      // after a pause can legitimately still be playing one. Bounding the
-      // retained count is the claim that holds; demanding silence here would
-      // fail at random.
+      (!run.audioEnabled || run.samples.some(sample => sample.doorTracks > 0)) &&
+      // Intermediate samples may be sounding. Endpoints wait for natural
+      // completion so listener comparisons measure retained ownership.
+      [baseline, final].every(sample => ['activeVoices', 'objectLoopVoices',
+        'doorVoices', 'conversationVoices', 'retainedConversationVoices',
+        'retainedObjectLoopVoices'].every(field => sample[field] === 0)) &&
       final.domDocuments === baseline.domDocuments &&
       final.domNodes === baseline.domNodes &&
       final.eventListeners === baseline.eventListeners
@@ -528,7 +568,9 @@ async function main() {
   if (!pass) process.exitCode = 1;
 }
 
-main().catch((error) => {
+module.exports = { analyseMemory };
+
+if (require.main === module) main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });

@@ -1,5 +1,46 @@
 # Lessons Learned
 
+## [L-memory-endpoints-need-equivalent-ui] Compare matching HUD and audio states
+
+**What happened.** The door-audio memory run passed its retained-heap allowance
+and scheduler bounds but failed exact DOM-node and listener comparisons.
+
+**Root cause.** The selected person's moodlets and action cards changed during
+the run, including in audio-disabled controls. Pause intentionally allowed short
+recordings to finish, so a 250 ms delay still counted door `onended` listeners.
+After those differences were removed, a tree comparison found one hidden
+` (low)` text node retained in the deselected needs panel. This was bounded
+view state, not a memory leak. The empty-panel lifecycle now clears obsolete
+warning labels; selecting a person again renders their current warnings.
+
+**Prevention rule.** At both paused measurement endpoints, clear selection through
+the public simulation command and wait for empty moodlet/action rows. Restore
+selection before the measured gameplay interval. Wait boundedly for all audio
+players to drain before collection. Retain exact node/document/listener equality;
+subtracting every connected node would hide connected leaks.
+
+**How to verify.** Enabled and disabled browser pairs must pass with equivalent
+endpoints. Negative report fixtures independently add one node, document or
+listener; deleting each equality check must fail its regression. Clone fixture
+endpoints separately so modifying the final sample cannot also change baseline.
+
+## [L-door-proof-needs-live-tracks] A bounded scheduler must also be exercised
+
+**What happened.** Independent review found that the new door memory checks
+would accept an audio-enabled run with zero door tracks throughout.
+
+**Root cause.** Upper bounds constrain growth but cannot prove the fixed-tick
+sampler ran. Omitting the sampler would satisfy every zero-friendly limit.
+
+**Prevention rule.** Require a positive observed track sample in enabled runs,
+alongside live-count, retained-capacity and voice bounds. Keep disabled controls
+silent. Test geometry coordinates independently and churn removed identities
+to distinguish reusable storage from a growing history.
+
+**How to verify.** The memory-report regression rejects all-zero enabled door
+samples. Removing that guard must fail the regression with expected false,
+received true. The actual browser run must also exercise portal tracks.
+
 ## [L-provisional-audio-is-not-listening-approval] Keep evidence limits separate from authorization
 
 **What happened.** Successive audio slices left household objects silent despite
