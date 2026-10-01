@@ -20,7 +20,7 @@ const LIBRARY: TraitLibrary = {
   descriptions: [
     'Loves watching television.',
     'Ruins most meals at first, and gets better with every attempt.',
-    'Gets less out of everything; attending to correspondence eases it.',
+    'Less activity satisfaction; correspondence helps; starts 6 points lower.',
   ],
 };
 
@@ -155,7 +155,7 @@ describe('traitsPanelState', () => {
         key: 2,
         label: 'Low spirits',
         description:
-          'Gets less out of everything; attending to correspondence eases it.',
+          'Less activity satisfaction; correspondence helps; starts 6 points lower.',
         state: 'Severity 60%',
       },
     ]);

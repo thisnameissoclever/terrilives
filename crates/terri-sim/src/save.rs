@@ -692,9 +692,7 @@ fn restore_entity(
         });
     }
     if let Some(value) = saved.satisfaction {
-        let mut satisfaction = Satisfaction::default();
-        satisfaction.add(value);
-        target.insert(satisfaction);
+        target.insert(Satisfaction::from_value(value));
     }
     if let Some(hobbies) = &saved.hobbies {
         target.insert(Hobbies(hobbies.clone()));
@@ -1785,7 +1783,7 @@ mod tests {
             partner: agents[1],
             remaining_ticks: 11,
         });
-        agent.satisfaction = Some(123.5);
+        agent.satisfaction = Some(83.5);
         agent.fumbled_delta_scale = Some(0.5);
         agent.commuting = true;
         agent.at_work_ticks = Some(19);
@@ -1940,6 +1938,41 @@ mod tests {
             "the counter has to survive the round trip - it counts elapsed \
              ticks and nothing in a loaded world can recompute it"
         );
+    }
+
+    #[test]
+    fn satisfaction_restores_without_reapplying_baseline_or_trait_bias() {
+        for (saved_value, expected) in [
+            (0.0, 0.0),
+            (46.0, 46.0),
+            (50.0, 50.0),
+            (100.0, 100.0),
+            (12345.0, 100.0),
+        ] {
+            let mut sim = Sim::new_from_shipped_lot();
+            let mut snapshot = sim.save_snapshot_v5();
+            let person = snapshot
+                .world
+                .entities
+                .iter_mut()
+                .find(|person| person.satisfaction.is_some())
+                .unwrap();
+            let index = person.index;
+            person.satisfaction = Some(saved_value);
+            sim.load_snapshot_v5(snapshot.clone()).unwrap();
+            assert_eq!(sim.satisfaction_of(index), Some(expected));
+            snapshot
+                .world
+                .entities
+                .iter_mut()
+                .find(|person| person.index == index)
+                .unwrap()
+                .satisfaction = Some(expected);
+            let captured = sim.save_snapshot_v5();
+            assert_eq!(captured, snapshot, "only the historical score may saturate");
+            sim.load_snapshot_v5(captured.clone()).unwrap();
+            assert_eq!(sim.save_snapshot_v5(), captured, "load must be idempotent");
+        }
     }
 
     #[test]

@@ -8567,3 +8567,13 @@ after reload. Deliberately reinstate the generic override and break the exact
 claim comparison; both assertions fail. Review actual moving wash frames with
 the media preference recorded, rather than treating identical screenshots as
 animation evidence.
+
+## [L-long-term-score-needs-exact-restoration] Defaults and restoration use different constructors
+
+**What happened.** Introducing a neutral starting score exposed fixtures that assumed an empty ledger or no upper bound. A tuning comment also expressed a per-tick rate in real-time hours while the simulation clock uses game minutes.
+
+**Root cause.** Creation, save restoration and test setup shared a default constructor with different intended meanings. Small per-tick values also approach the precision limit of a single-precision floating-point score near its ceiling.
+
+**Prevention.** Apply neutral values and trait offsets only when creating a Sim. Restore saved scores directly, validate them before changing the live world, and define saturation explicitly. Give test fixtures an explicit score. State rates in game ticks and game days; check that small losses still change a score at its maximum.
+
+**Verify.** Restore zero, an in-range score and an old total above the ceiling twice. Exercise trait offsets through the public move-in command. Run the actual neglect system at 100 with the shipped small rate. Measure month-scale extreme mood and year-scale ordinary mood. Deliberately replace exact restoration with additive restoration and omit creation offsets; the causal assertions must fail. See [dated evidence](assets/review-evidence/dock-controls/README.md).

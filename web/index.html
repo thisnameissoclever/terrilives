@@ -1095,8 +1095,14 @@
             </div>
           </section>
           <div id="dock-satisfaction">
+            <div id="satisfaction-summary" tabindex="0" role="group" aria-label="Life satisfaction unavailable">
+            <div class="summary-row">
             <span class="summary-label">Life satisfaction</span>
-            <strong id="satisfaction-value" class="summary-value">unavailable</strong>
+            <strong id="satisfaction-label" class="summary-value">Unavailable</strong>
+            </div>
+            <meter id="satisfaction-meter" min="0" max="100" low="40" high="80" optimum="100" value="0" aria-label="Life satisfaction" hidden></meter>
+            <span id="satisfaction-score" role="tooltip"><span id="satisfaction-value">unavailable</span> / 100</span>
+            </div>
           </div>
         </div>
         <button id="sim-details" class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-sheet" aria-expanded="false">Sim details</button>
@@ -1143,8 +1149,8 @@
           id="queue-mode"
           class="hud-button"
           type="button"
-          aria-pressed="false"
-        >Queue</button><button id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
+          aria-pressed="true"
+        >Queue mode</button><button id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
             <p id="queue-preview-note">Upcoming actions. The preview shows as many as fit; all waiting orders remain queued.</p>
             <p id="queue-empty" hidden>No actions queued.</p>
             <aside id="action-queue" aria-label="Selected person actions" hidden></aside>
@@ -1283,10 +1289,10 @@
           <li>In Build, Room builds a whole room at once: choose two opposite corner tiles, then a line of the outline for its doorway, and press Build room.</li>
             <li>In Build, Buy lists everything for sale with its price. Choose something, point at the floor, turn it with Rotate, and press Buy; the price comes out of Funds. Items the household cannot afford are greyed out.</li>
             <li>In Build, Floors lays a floor: choose Boards, Tiles or Carpet, then click a tile. Remove puts the tile back to how the house came.</li>
-          <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
+          <li>Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.</li>
           <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
-          <li>The dock shows mood and life satisfaction. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li>
+          <li>The dock shows mood and life satisfaction. Life satisfaction ranges from 0 to 100 and changes over months or years. Hover or focus its meter for the exact score. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li>
           <li>Choose People inside Sim details to see how the selected person feels about everyone else.</li>
           <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
         </ol>

@@ -72,6 +72,7 @@ import {
   restorePersistenceFocus,
 } from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
+import { createSatisfactionSurface } from './ui/satisfaction-meter.js';
 import { LightingMode } from './ui/lighting-mode.js';
 import {
   advanceFrameWithCommandFeedback,
@@ -545,6 +546,9 @@ async function main(): Promise<void> {
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
+  const satisfactionSummary = document.querySelector<HTMLElement>('#satisfaction-summary');
+  const satisfactionLabel = document.querySelector<HTMLElement>('#satisfaction-label');
+  const satisfactionMeter = document.querySelector<HTMLMeterElement>('#satisfaction-meter');
   const careerRow = document.querySelector<HTMLElement>('#career-row');
   const careerValue = document.querySelector<HTMLElement>('#career-value');
   const activityValue = document.querySelector<HTMLElement>('#activity-value');
@@ -559,6 +563,9 @@ async function main(): Promise<void> {
     !clockValue ||
     !fundsValue ||
     !satisfactionValue ||
+    !satisfactionSummary ||
+    !satisfactionLabel ||
+    !satisfactionMeter ||
     !careerRow ||
     !careerValue ||
     !activityValue ||
@@ -642,6 +649,7 @@ async function main(): Promise<void> {
       orders: ordersValue,
     },
     sim.needBarRefreshMs(),
+    createSatisfactionSurface(satisfactionSummary, satisfactionLabel, satisfactionMeter),
   );
   const householdRoster = new HouseholdRoster(
     sim,

@@ -1229,6 +1229,17 @@ fn compile_traits(
         if def.description.trim().is_empty() {
             return Err(ContentError::EmptyTraitDescription { id: def.id.clone() });
         }
+        check_finite(
+            def.starting_satisfaction_offset,
+            &format!("starting_satisfaction_offset on trait '{}'", def.id),
+        )?;
+        if !(-9.0..=9.0).contains(&def.starting_satisfaction_offset) {
+            return Err(ContentError::TraitFieldOutOfRange {
+                id: def.id.clone(),
+                field: "starting_satisfaction_offset".to_string(),
+                value: def.starting_satisfaction_offset,
+            });
+        }
         if !known_tags.contains(def.tag.as_str()) {
             return Err(ContentError::TraitAboutNothing {
                 id: def.id.clone(),
@@ -1350,6 +1361,7 @@ fn compile_traits(
 
         compiled.push(CompiledTrait {
             id: def.id.clone(),
+            starting_satisfaction_offset: def.starting_satisfaction_offset,
             label: def.label.clone(),
             tag: def.tag.clone(),
             kind,
@@ -7571,6 +7583,7 @@ mod tests {
     fn a_trait(id: &str) -> TraitDef {
         TraitDef {
             id: id.to_string(),
+            starting_satisfaction_offset: 0.0,
             label: format!("The {id} one"),
             // "Likes", the verb 1.25 earns between the fixture's lines.
             description: format!("Likes the {id} snack."),
@@ -7583,6 +7596,22 @@ mod tests {
             accrual_scale: None,
             manage_per_completion: None,
             start_severity: None,
+        }
+    }
+
+    /// Starting offsets are finite and remain strictly below ten points.
+    #[test]
+    fn starting_satisfaction_offset_is_optional_finite_and_bounded() {
+        for offset in [-9.0, 0.0, 9.0] {
+            let mut definition = a_trait("initial");
+            definition.starting_satisfaction_offset = offset;
+            let pack = compile_people_with_traits(vec![], vec![], vec![definition]).unwrap();
+            assert_eq!(pack.traits[0].starting_satisfaction_offset, offset);
+        }
+        for offset in [-9.01, 9.01, f32::NAN, f32::INFINITY] {
+            let mut definition = a_trait("initial");
+            definition.starting_satisfaction_offset = offset;
+            assert!(compile_people_with_traits(vec![], vec![], vec![definition]).is_err());
         }
     }
 

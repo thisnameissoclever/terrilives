@@ -26,6 +26,21 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('exposes trait-adjusted starting satisfaction from the rebuilt simulation', () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const scores = Array.from(bridge.ids())
+      .filter(entity => bridge.simName(entity).length > 0)
+      .map(entity => [bridge.simName(entity), bridge.satisfactionOf(entity)])
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+    expect(scores).toEqual([['Bill', 50], ['Casey', 52], ['Tim', 46]]);
+    const saved = bridge.saveBytes();
+    expect(bridge.loadBytes(saved)).toBe(true);
+    for (const entity of bridge.ids()) {
+      const expected = scores.find(row => row[0] === bridge.simName(entity));
+      if (expected) expect(bridge.satisfactionOf(entity)).toBe(expected[1]);
+    }
+  });
+
   it('refreshes aligned dish views after save/load replaces WASM memory', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
@@ -154,7 +169,7 @@ describe('SimBridge', () => {
     expect(library.kinds).toHaveLength(15);
     expect(library.descriptions).toHaveLength(15);
     expect(library.labels[3]).toBe('Bookworm');
-    expect(library.descriptions[3]).toBe('Likes reading.');
+    expect(library.descriptions[3]).toBe('Likes reading; starts life satisfaction 2 points higher.');
 
     const ids = Array.from(bridge.ids());
     const tim = ids.find((id) => bridge.simName(id) === 'Tim');
@@ -169,10 +184,10 @@ describe('SimBridge', () => {
         {
           key: 2,
           label: 'Low spirits',
-          description: 'Gets less out of everything; attending to correspondence eases it.',
+          description: 'Less activity satisfaction; correspondence helps; starts 6 points lower.',
           state: 'Severity 60%',
         },
-        { key: 3, label: 'Bookworm', description: 'Likes reading.', state: '' },
+        { key: 3, label: 'Bookworm', description: 'Likes reading; starts life satisfaction 2 points higher.', state: '' },
         {
           key: 11,
           label: 'Out of shape',

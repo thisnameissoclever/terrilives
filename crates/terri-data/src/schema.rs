@@ -748,6 +748,9 @@ pub struct TraitsFile {
 #[derive(Debug, Deserialize)]
 pub struct TraitDef {
     pub id: String,
+    /// Initial life-satisfaction bias in points. Combined biases stay within nine.
+    #[serde(default)]
+    pub starting_satisfaction_offset: f32,
     /// What the UI calls it. Required and non-blank: unlike an
     /// interaction label there is no id-shaped fallback that reads as
     /// anything but a bug in a trait list.

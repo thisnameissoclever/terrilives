@@ -93,7 +93,7 @@ These work in normal play today. They appear here because every new system must 
 | Sleep rhythm | Substantial | A daily sleep-drive curve, a personal offset per personality, and an exhaustion ramp that guarantees a tired person eventually sleeps. |
 | Player orders | Substantial | Unlimited stored orders per person, front or back placement, and current/queued action cards. The display reads only the visible prefix. |
 | Time | Substantial | Pause and three speeds. One tick is one game minute and a day is 1,440 ticks. The HUD shows a day number and a time. |
-| Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting, instinct and accumulated life satisfaction persist. |
+| Save and load | Substantial | Save format version 5, with older versions still loadable. One browser save slot, daily autosave and New game; family, mortality, waiting, instinct and bounded life satisfaction persist. |
 | Pathfinding | Substantial | Shortest-path walking on one floor, through rooms and the yard to the street. Walls sit on tile edges; lot edits validate reachability from the front door. |
 | HUD | Substantial | Roster, needs, mood, relationships, career, action cards, audio, saves, help and compact controls. Speed sits below Time and Funds; Build and Exit build sit at the sidebar's bottom. |
 | Tuning file | Complete | Every system-wide tunable number lives in `content/tuning.toml`. Numbers that belong to one piece of content, such as a job's pay or an object's benefit, live in that content file. The build rejects invalid values in both. New systems follow the same split. |
@@ -385,6 +385,9 @@ assigning ownership or adding a separate drain.
 ### [S-moods] Moods and moodlets
 
 **Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and foreign dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+
+Future facial expressions and unique animations should reflect both current mood and overall life satisfaction. The owner requested this direction on 2026-10-01; expression states remain unbuilt. [Life satisfaction](specs/2026-10-01-life-satisfaction.md) defines the implemented score and meter.
+
 
 ### [S-chains] Multi-step activities
 

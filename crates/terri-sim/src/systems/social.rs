@@ -171,7 +171,7 @@ pub fn tick_social(
                         tuning.hobby_multiplier,
                     ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0);
                 if payout > 0.0 {
-                    ledger.add(payout);
+                    ledger.reward(payout);
                 }
                 if let Some(mut traits) = traits {
                     super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
