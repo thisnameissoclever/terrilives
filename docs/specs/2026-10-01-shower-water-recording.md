@@ -93,3 +93,10 @@ original 0.00226826; a lower endpoint-jump number is not claimed.
 6. Independent read-only review found no actionable runtime defect and requested
    the additional editor/channel/file-corruption mutation checks above. Acoustic
    suitability, pleasant repetition and owner listening approval remain unverified.
+
+After integrating main `8ea22167` (Sim details), the first integration run exposed
+the expected stale local WASM export. Rebuilding with `wasm-pack build
+crates/terri-wasm --target web --out-dir ../../web/src/wasm` resolved it. The final
+`npm test -- --maxWorkers=1` passed all 1,494 tests in 107 files; typecheck, build,
+and documentation ID checks also passed with exit 0. The audio source hashes
+remained unchanged from independent review.
