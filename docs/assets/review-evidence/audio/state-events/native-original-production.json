@@ -1,0 +1,6 @@
+{
+  "generatedAt": "2026-10-01T12:26:38.303Z",
+  "passed": false,
+  "pageErrors": [],
+  "error": "page.evaluate: Error: object, state-event interruption: first resumed sample: expected 0, rendered 0.08399999886751175\n    at near (http://127.0.0.1:5224/proofs/audio-state-events.js:8:11)\n    at proveAudioStateEvents (http://127.0.0.1:5224/proofs/audio-state-events.js:102:22)\n    at async eval (eval at evaluate (:367:30), <anonymous>:3:14)\n    at async <anonymous>:393:30\n    at main (D:\\VIBES\\.worktrees\\audio-state-events\\terrilives\\web\\output\\playwright\\verify-audio-state-events.cjs:13:32)"
+}

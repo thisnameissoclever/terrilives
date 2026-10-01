@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-10-01T12:31:08.709Z",
+  "pageErrors": [],
+  "checks": {
+    "listenerInstalled": true,
+    "pauseTick": 12,
+    "recovered": {
+      "tick": 12,
+      "state": "running",
+      "audio": {
+        "activeVoices": 0,
+        "conversationVoices": 0,
+        "retainedConversationVoices": 0,
+        "objectLoopVoices": 0,
+        "doorVoices": 0,
+        "doorTracks": 0,
+        "doorCapacity": 4,
+        "retainedObjectLoopVoices": 0,
+        "footstepTracks": 0,
+        "footstepCapacity": 8,
+        "activityTracks": 0,
+        "activityCapacity": 8,
+        "objectSoundTracks": 0,
+        "objectSoundCapacity": 8,
+        "cuePlayCounts": {
+          "rejected": 0,
+          "footstep": 18,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 1,
+          "door-closed": 0
+        }
+      }
+    },
+    "effects": "70",
+    "voices": "100"
+  },
+  "passed": true
+}
