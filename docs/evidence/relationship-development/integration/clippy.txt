@@ -1,0 +1,2 @@
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.55s

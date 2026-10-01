@@ -50,6 +50,7 @@ pub(crate) fn spawn_member(
         member.position,
         needs,
         sim_id,
+        terri_core::Shyness::initial(sim_id),
         terri_core::SimName(member.name),
         personality,
         // The second axis starts at zero - a life is judged from

@@ -1,0 +1,1847 @@
+.......................................................................................................................
+----------------------------------------------------------------------
+Ran 119 tests in 20.758s
+
+OK
+..........................
+----------------------------------------------------------------------
+Ran 26 tests in 3.917s
+
+OK
+......D:\VIBES\.worktrees\b770\terrilives\assets\models\furniture\layer_partition.py:22: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for sim, prop, ink in zip(body.getdata(), furniture.getdata(), outline.getdata()):
+D:\VIBES\.worktrees\b770\terrilives\assets\models\furniture\export_contributions.py:54: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for left,right in zip(actual.getdata(),reference.getdata()) if left[3] or right[3])
+........................
+----------------------------------------------------------------------
+Ran 30 tests in 0.694s
+
+OK
+...............
+----------------------------------------------------------------------
+Ran 15 tests in 0.284s
+
+OK
+PASS: four hashed, padded source views; review sheet uses only resampling and layout.
+PASS: four hashed, padded source views; review sheet uses only resampling and layout.
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.006s
+
+OK
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 0.001s
+
+OK
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+atlas is up to date: 1370 sprites, 8192x4806
+...............
+----------------------------------------------------------------------
+Ran 15 tests in 3.359s
+
+OK
+code=false
+code=true
+Documentation ids are unique and allocation-free.
+terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+├── bevy_ecs v0.18.1
+│   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+│   │   ├── bevy_macro_utils v0.18.1
+│   │   │   ├── proc-macro2 v1.0.107
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   ├── quote v1.0.47
+│   │   │   │   └── proc-macro2 v1.0.107 (*)
+│   │   │   ├── syn v2.0.119
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   └── toml_edit v0.23.10+spec-1.0.0
+│   │   │       ├── indexmap v2.14.0
+│   │   │       │   ├── equivalent v1.0.2
+│   │   │       │   └── hashbrown v0.17.1
+│   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+│   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+│   │   │       │   └── winnow v1.0.4
+│   │   │       └── winnow v0.7.15
+│   │   ├── proc-macro2 v1.0.107 (*)
+│   │   ├── quote v1.0.47 (*)
+│   │   └── syn v2.0.119 (*)
+│   ├── bevy_platform v0.18.1
+│   │   ├── foldhash v0.2.0
+│   │   ├── hashbrown v0.16.1
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── serde_core v1.0.229
+│   │   ├── serde v1.0.229
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── serde_derive v1.0.229 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3
+│   │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │           ├── quote v1.0.47 (*)
+│   │   │           └── unicode-ident v1.0.24
+│   │   └── spin v0.10.1
+│   ├── bevy_ptr v0.18.1
+│   ├── bevy_reflect v0.18.1
+│   │   ├── assert_type_match v0.1.1 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+│   │   │   ├── bevy_macro_utils v0.18.1 (*)
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_utils v0.18.1
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   └── thread_local v1.1.10
+│   │   │       └── cfg-if v1.0.4
+│   │   ├── derive_more v2.1.1
+│   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+│   │   │       ├── convert_case v0.10.0
+│   │   │       │   └── unicode-segmentation v1.13.3
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       ├── syn v2.0.119 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   │       [build-dependencies]
+│   │   │       └── rustc_version v0.4.1
+│   │   │           └── semver v1.0.28
+│   │   ├── disqualified v1.0.0
+│   │   ├── downcast-rs v2.0.2
+│   │   ├── erased-serde v0.4.10
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── typeid v1.0.3
+│   │   ├── foldhash v0.2.0
+│   │   ├── indexmap v2.14.0
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── hashbrown v0.17.1
+│   │   ├── serde v1.0.229 (*)
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19
+│   │   │   └── thiserror-impl v2.0.19 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro)
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── syn v2.0.119 (*)
+│   ├── bevy_tasks v0.18.1
+│   │   ├── async-executor v1.14.0
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── fastrand v2.5.0
+│   │   │   ├── futures-lite v2.6.1
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   ├── parking v2.2.1
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── pin-project-lite v0.2.17
+│   │   │   └── slab v0.4.12
+│   │   ├── async-task v4.7.1
+│   │   ├── atomic-waker v1.1.2
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── crossbeam-queue v0.3.13
+│   │   │   └── crossbeam-utils v0.8.22
+│   │   ├── derive_more v2.1.1 (*)
+│   │   └── futures-lite v2.6.1 (*)
+│   ├── bevy_utils v0.18.1 (*)
+│   ├── bitflags v2.13.1
+│   ├── bumpalo v3.20.3
+│   ├── concurrent-queue v2.5.0 (*)
+│   ├── derive_more v2.1.1 (*)
+│   ├── fixedbitset v0.5.7
+│   ├── indexmap v2.14.0 (*)
+│   ├── log v0.4.33
+│   ├── nonmax v0.5.5
+│   ├── slotmap v1.1.1
+│   │   [build-dependencies]
+│   │   └── version_check v0.9.5
+│   ├── smallvec v1.15.2
+│   ├── thiserror v2.0.19 (*)
+│   └── variadics_please v1.1.0 (proc-macro) (*)
+└── serde v1.0.229 (*)
+[dev-dependencies]
+└── postcard v1.1.3
+    ├── cobs v0.3.0
+    │   └── thiserror v2.0.19 (*)
+    └── serde v1.0.229 (*)
+terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+├── postcard v1.1.3
+│   ├── cobs v0.3.0
+│   │   └── thiserror v2.0.19
+│   │       └── thiserror-impl v2.0.19 (proc-macro)
+│   │           ├── proc-macro2 v1.0.107
+│   │           │   └── unicode-ident v1.0.24
+│   │           ├── quote v1.0.47
+│   │           │   └── proc-macro2 v1.0.107 (*)
+│   │           └── syn v3.0.3
+│   │               ├── proc-macro2 v1.0.107 (*)
+│   │               ├── quote v1.0.47 (*)
+│   │               └── unicode-ident v1.0.24
+│   └── serde v1.0.229
+│       ├── serde_core v1.0.229
+│       └── serde_derive v1.0.229 (proc-macro)
+│           ├── proc-macro2 v1.0.107 (*)
+│           ├── quote v1.0.47 (*)
+│           └── syn v3.0.3 (*)
+├── serde v1.0.229 (*)
+└── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+    ├── bevy_ecs v0.18.1
+    │   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+    │   │   ├── bevy_macro_utils v0.18.1
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   ├── syn v2.0.119
+    │   │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   │   └── unicode-ident v1.0.24
+    │   │   │   └── toml_edit v0.23.10+spec-1.0.0
+    │   │   │       ├── indexmap v2.14.0
+    │   │   │       │   ├── equivalent v1.0.2
+    │   │   │       │   └── hashbrown v0.17.1
+    │   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+    │   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+    │   │   │       │   └── winnow v1.0.4
+    │   │   │       └── winnow v0.7.15
+    │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   ├── quote v1.0.47 (*)
+    │   │   └── syn v2.0.119 (*)
+    │   ├── bevy_platform v0.18.1
+    │   │   ├── foldhash v0.2.0
+    │   │   ├── hashbrown v0.16.1
+    │   │   │   ├── equivalent v1.0.2
+    │   │   │   └── serde_core v1.0.229
+    │   │   ├── serde v1.0.229 (*)
+    │   │   └── spin v0.10.1
+    │   ├── bevy_ptr v0.18.1
+    │   ├── bevy_reflect v0.18.1
+    │   │   ├── assert_type_match v0.1.1 (proc-macro)
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── syn v2.0.119 (*)
+    │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   ├── bevy_ptr v0.18.1
+    │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+    │   │   │   ├── bevy_macro_utils v0.18.1 (*)
+    │   │   │   ├── indexmap v2.14.0 (*)
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── syn v2.0.119 (*)
+    │   │   ├── bevy_utils v0.18.1
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── disqualified v1.0.0
+    │   │   │   └── thread_local v1.1.10
+    │   │   │       └── cfg-if v1.0.4
+    │   │   ├── derive_more v2.1.1
+    │   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+    │   │   │       ├── convert_case v0.10.0
+    │   │   │       │   └── unicode-segmentation v1.13.3
+    │   │   │       ├── proc-macro2 v1.0.107 (*)
+    │   │   │       ├── quote v1.0.47 (*)
+    │   │   │       ├── syn v2.0.119 (*)
+    │   │   │       └── unicode-xid v0.2.6
+    │   │   │       [build-dependencies]
+    │   │   │       └── rustc_version v0.4.1
+    │   │   │           └── semver v1.0.28
+    │   │   ├── disqualified v1.0.0
+    │   │   ├── downcast-rs v2.0.2
+    │   │   ├── erased-serde v0.4.10
+    │   │   │   ├── serde_core v1.0.229
+    │   │   │   └── typeid v1.0.3
+    │   │   ├── foldhash v0.2.0
+    │   │   ├── indexmap v2.14.0
+    │   │   │   ├── equivalent v1.0.2
+    │   │   │   └── hashbrown v0.17.1
+    │   │   ├── serde v1.0.229 (*)
+    │   │   ├── smallvec v1.15.2
+    │   │   ├── thiserror v2.0.19 (*)
+    │   │   └── variadics_please v1.1.0 (proc-macro)
+    │   │       ├── proc-macro2 v1.0.107 (*)
+    │   │       ├── quote v1.0.47 (*)
+    │   │       └── syn v2.0.119 (*)
+    │   ├── bevy_tasks v0.18.1
+    │   │   ├── async-executor v1.14.0
+    │   │   │   ├── async-task v4.7.1
+    │   │   │   ├── concurrent-queue v2.5.0
+    │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   ├── fastrand v2.5.0
+    │   │   │   ├── futures-lite v2.6.1
+    │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   ├── futures-core v0.3.33
+    │   │   │   │   ├── futures-io v0.3.33
+    │   │   │   │   ├── parking v2.2.1
+    │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   ├── pin-project-lite v0.2.17
+    │   │   │   └── slab v0.4.12
+    │   │   ├── async-task v4.7.1
+    │   │   ├── atomic-waker v1.1.2
+    │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   ├── crossbeam-queue v0.3.13
+    │   │   │   └── crossbeam-utils v0.8.22
+    │   │   ├── derive_more v2.1.1 (*)
+    │   │   └── futures-lite v2.6.1 (*)
+    │   ├── bevy_utils v0.18.1 (*)
+    │   ├── bitflags v2.13.1
+    │   ├── bumpalo v3.20.3
+    │   ├── concurrent-queue v2.5.0 (*)
+    │   ├── derive_more v2.1.1 (*)
+    │   ├── fixedbitset v0.5.7
+    │   ├── indexmap v2.14.0 (*)
+    │   ├── log v0.4.33
+    │   ├── nonmax v0.5.5
+    │   ├── slotmap v1.1.1
+    │   │   [build-dependencies]
+    │   │   └── version_check v0.9.5
+    │   ├── smallvec v1.15.2
+    │   ├── thiserror v2.0.19 (*)
+    │   └── variadics_please v1.1.0 (proc-macro) (*)
+    └── serde v1.0.229 (*)
+[build-dependencies]
+├── postcard v1.1.3
+│   ├── cobs v0.3.0
+│   │   └── thiserror v2.0.19
+│   │       └── thiserror-impl v2.0.19 (proc-macro) (*)
+│   └── serde v1.0.229
+│       ├── serde_core v1.0.229
+│       └── serde_derive v1.0.229 (proc-macro) (*)
+├── serde v1.0.229 (*)
+├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+│   ├── bevy_ecs v0.18.1
+│   │   ├── bevy_ecs_macros v0.18.1 (proc-macro) (*)
+│   │   ├── bevy_platform v0.18.1
+│   │   │   ├── foldhash v0.2.0
+│   │   │   ├── hashbrown v0.16.1
+│   │   │   │   ├── equivalent v1.0.2
+│   │   │   │   └── serde_core v1.0.229
+│   │   │   ├── serde v1.0.229 (*)
+│   │   │   └── spin v0.10.1
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect v0.18.1
+│   │   │   ├── assert_type_match v0.1.1 (proc-macro) (*)
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── bevy_ptr v0.18.1
+│   │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro) (*)
+│   │   │   ├── bevy_utils v0.18.1
+│   │   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   │   ├── disqualified v1.0.0
+│   │   │   │   └── thread_local v1.1.10
+│   │   │   │       └── cfg-if v1.0.4
+│   │   │   ├── derive_more v2.1.1
+│   │   │   │   └── derive_more-impl v2.1.1 (proc-macro) (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   ├── downcast-rs v2.0.2
+│   │   │   ├── erased-serde v0.4.10
+│   │   │   │   ├── serde_core v1.0.229
+│   │   │   │   └── typeid v1.0.3
+│   │   │   ├── foldhash v0.2.0
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── serde v1.0.229 (*)
+│   │   │   ├── smallvec v1.15.2
+│   │   │   ├── thiserror v2.0.19 (*)
+│   │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+│   │   ├── bevy_tasks v0.18.1
+│   │   │   ├── async-executor v1.14.0
+│   │   │   │   ├── async-task v4.7.1
+│   │   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-lite v2.6.1
+│   │   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   │   ├── parking v2.2.1
+│   │   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   │   ├── pin-project-lite v0.2.17
+│   │   │   │   └── slab v0.4.12
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── atomic-waker v1.1.2
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── crossbeam-queue v0.3.13
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── derive_more v2.1.1 (*)
+│   │   │   └── futures-lite v2.6.1 (*)
+│   │   ├── bevy_utils v0.18.1 (*)
+│   │   ├── bitflags v2.13.1
+│   │   ├── bumpalo v3.20.3
+│   │   ├── concurrent-queue v2.5.0 (*)
+│   │   ├── derive_more v2.1.1 (*)
+│   │   ├── fixedbitset v0.5.7
+│   │   ├── indexmap v2.14.0 (*)
+│   │   ├── log v0.4.33
+│   │   ├── nonmax v0.5.5
+│   │   ├── slotmap v1.1.1
+│   │   │   [build-dependencies]
+│   │   │   └── version_check v0.9.5
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro) (*)
+│   └── serde v1.0.229 (*)
+└── toml v1.1.3+spec-1.1.0
+    ├── serde_core v1.0.229
+    ├── serde_spanned v1.1.1
+    │   └── serde_core v1.0.229
+    ├── toml_datetime v1.1.1+spec-1.1.0
+    │   └── serde_core v1.0.229
+    ├── toml_parser v1.1.3+spec-1.1.0 (*)
+    ├── toml_writer v1.1.2+spec-1.1.0
+    └── winnow v1.0.4
+[dev-dependencies]
+└── toml v1.1.3+spec-1.1.0
+    ├── serde_core v1.0.229
+    ├── serde_spanned v1.1.1
+    │   └── serde_core v1.0.229
+    ├── toml_datetime v1.1.1+spec-1.1.0
+    │   └── serde_core v1.0.229
+    ├── toml_parser v1.1.3+spec-1.1.0
+    │   └── winnow v1.0.4
+    ├── toml_writer v1.1.2+spec-1.1.0
+    └── winnow v1.0.4
+terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+├── bevy_ecs v0.18.1
+│   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+│   │   ├── bevy_macro_utils v0.18.1
+│   │   │   ├── proc-macro2 v1.0.107
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   ├── quote v1.0.47
+│   │   │   │   └── proc-macro2 v1.0.107 (*)
+│   │   │   ├── syn v2.0.119
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   └── toml_edit v0.23.10+spec-1.0.0
+│   │   │       ├── indexmap v2.14.0
+│   │   │       │   ├── equivalent v1.0.2
+│   │   │       │   └── hashbrown v0.17.1
+│   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+│   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+│   │   │       │   └── winnow v1.0.4
+│   │   │       └── winnow v0.7.15
+│   │   ├── proc-macro2 v1.0.107 (*)
+│   │   ├── quote v1.0.47 (*)
+│   │   └── syn v2.0.119 (*)
+│   ├── bevy_platform v0.18.1
+│   │   ├── foldhash v0.2.0
+│   │   ├── hashbrown v0.16.1
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── serde_core v1.0.229
+│   │   ├── serde v1.0.229
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── serde_derive v1.0.229 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3
+│   │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │           ├── quote v1.0.47 (*)
+│   │   │           └── unicode-ident v1.0.24
+│   │   └── spin v0.10.1
+│   ├── bevy_ptr v0.18.1
+│   ├── bevy_reflect v0.18.1
+│   │   ├── assert_type_match v0.1.1 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+│   │   │   ├── bevy_macro_utils v0.18.1 (*)
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_utils v0.18.1
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   └── thread_local v1.1.10
+│   │   │       └── cfg-if v1.0.4
+│   │   ├── derive_more v2.1.1
+│   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+│   │   │       ├── convert_case v0.10.0
+│   │   │       │   └── unicode-segmentation v1.13.3
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       ├── syn v2.0.119 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   │       [build-dependencies]
+│   │   │       └── rustc_version v0.4.1
+│   │   │           └── semver v1.0.28
+│   │   ├── disqualified v1.0.0
+│   │   ├── downcast-rs v2.0.2
+│   │   ├── erased-serde v0.4.10
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── typeid v1.0.3
+│   │   ├── foldhash v0.2.0
+│   │   ├── indexmap v2.14.0
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── hashbrown v0.17.1
+│   │   ├── serde v1.0.229 (*)
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19
+│   │   │   └── thiserror-impl v2.0.19 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro)
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── syn v2.0.119 (*)
+│   ├── bevy_tasks v0.18.1
+│   │   ├── async-executor v1.14.0
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── fastrand v2.5.0
+│   │   │   ├── futures-lite v2.6.1
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   ├── parking v2.2.1
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── pin-project-lite v0.2.17
+│   │   │   └── slab v0.4.12
+│   │   ├── async-task v4.7.1
+│   │   ├── atomic-waker v1.1.2
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── crossbeam-queue v0.3.13
+│   │   │   └── crossbeam-utils v0.8.22
+│   │   ├── derive_more v2.1.1 (*)
+│   │   └── futures-lite v2.6.1 (*)
+│   ├── bevy_utils v0.18.1 (*)
+│   ├── bitflags v2.13.1
+│   ├── bumpalo v3.20.3
+│   ├── concurrent-queue v2.5.0 (*)
+│   ├── derive_more v2.1.1 (*)
+│   ├── fixedbitset v0.5.7
+│   ├── indexmap v2.14.0 (*)
+│   ├── log v0.4.33
+│   ├── nonmax v0.5.5
+│   ├── slotmap v1.1.1
+│   │   [build-dependencies]
+│   │   └── version_check v0.9.5
+│   ├── smallvec v1.15.2
+│   ├── thiserror v2.0.19 (*)
+│   └── variadics_please v1.1.0 (proc-macro) (*)
+├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+│   ├── bevy_ecs v0.18.1 (*)
+│   └── serde v1.0.229 (*)
+└── terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+    ├── postcard v1.1.3
+    │   ├── cobs v0.3.0
+    │   │   └── thiserror v2.0.19 (*)
+    │   └── serde v1.0.229 (*)
+    ├── serde v1.0.229 (*)
+    └── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core) (*)
+    [build-dependencies]
+    ├── postcard v1.1.3
+    │   ├── cobs v0.3.0
+    │   │   └── thiserror v2.0.19
+    │   │       └── thiserror-impl v2.0.19 (proc-macro) (*)
+    │   └── serde v1.0.229
+    │       ├── serde_core v1.0.229
+    │       └── serde_derive v1.0.229 (proc-macro) (*)
+    ├── serde v1.0.229 (*)
+    ├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+    │   ├── bevy_ecs v0.18.1
+    │   │   ├── bevy_ecs_macros v0.18.1 (proc-macro) (*)
+    │   │   ├── bevy_platform v0.18.1
+    │   │   │   ├── foldhash v0.2.0
+    │   │   │   ├── hashbrown v0.16.1
+    │   │   │   │   ├── equivalent v1.0.2
+    │   │   │   │   └── serde_core v1.0.229
+    │   │   │   ├── serde v1.0.229 (*)
+    │   │   │   └── spin v0.10.1
+    │   │   ├── bevy_ptr v0.18.1
+    │   │   ├── bevy_reflect v0.18.1
+    │   │   │   ├── assert_type_match v0.1.1 (proc-macro) (*)
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── bevy_ptr v0.18.1
+    │   │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro) (*)
+    │   │   │   ├── bevy_utils v0.18.1
+    │   │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   │   ├── disqualified v1.0.0
+    │   │   │   │   └── thread_local v1.1.10
+    │   │   │   │       └── cfg-if v1.0.4
+    │   │   │   ├── derive_more v2.1.1
+    │   │   │   │   └── derive_more-impl v2.1.1 (proc-macro) (*)
+    │   │   │   ├── disqualified v1.0.0
+    │   │   │   ├── downcast-rs v2.0.2
+    │   │   │   ├── erased-serde v0.4.10
+    │   │   │   │   ├── serde_core v1.0.229
+    │   │   │   │   └── typeid v1.0.3
+    │   │   │   ├── foldhash v0.2.0
+    │   │   │   ├── indexmap v2.14.0 (*)
+    │   │   │   ├── serde v1.0.229 (*)
+    │   │   │   ├── smallvec v1.15.2
+    │   │   │   ├── thiserror v2.0.19 (*)
+    │   │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+    │   │   ├── bevy_tasks v0.18.1
+    │   │   │   ├── async-executor v1.14.0
+    │   │   │   │   ├── async-task v4.7.1
+    │   │   │   │   ├── concurrent-queue v2.5.0
+    │   │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   ├── futures-lite v2.6.1
+    │   │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   │   ├── futures-core v0.3.33
+    │   │   │   │   │   ├── futures-io v0.3.33
+    │   │   │   │   │   ├── parking v2.2.1
+    │   │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   │   ├── pin-project-lite v0.2.17
+    │   │   │   │   └── slab v0.4.12
+    │   │   │   ├── async-task v4.7.1
+    │   │   │   ├── atomic-waker v1.1.2
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── crossbeam-queue v0.3.13
+    │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   ├── derive_more v2.1.1 (*)
+    │   │   │   └── futures-lite v2.6.1 (*)
+    │   │   ├── bevy_utils v0.18.1 (*)
+    │   │   ├── bitflags v2.13.1
+    │   │   ├── bumpalo v3.20.3
+    │   │   ├── concurrent-queue v2.5.0 (*)
+    │   │   ├── derive_more v2.1.1 (*)
+    │   │   ├── fixedbitset v0.5.7
+    │   │   ├── indexmap v2.14.0 (*)
+    │   │   ├── log v0.4.33
+    │   │   ├── nonmax v0.5.5
+    │   │   ├── slotmap v1.1.1
+    │   │   │   [build-dependencies]
+    │   │   │   └── version_check v0.9.5
+    │   │   ├── smallvec v1.15.2
+    │   │   ├── thiserror v2.0.19 (*)
+    │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+    │   └── serde v1.0.229 (*)
+    └── toml v1.1.3+spec-1.1.0
+        ├── serde_core v1.0.229
+        ├── serde_spanned v1.1.1
+        │   └── serde_core v1.0.229
+        ├── toml_datetime v1.1.1+spec-1.1.0
+        │   └── serde_core v1.0.229
+        ├── toml_parser v1.1.3+spec-1.1.0 (*)
+        ├── toml_writer v1.1.2+spec-1.1.0
+        └── winnow v1.0.4
+terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+├── bevy_ecs v0.18.1
+│   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+│   │   ├── bevy_macro_utils v0.18.1
+│   │   │   ├── proc-macro2 v1.0.107
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   ├── quote v1.0.47
+│   │   │   │   └── proc-macro2 v1.0.107 (*)
+│   │   │   ├── syn v2.0.119
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   └── toml_edit v0.23.10+spec-1.0.0
+│   │   │       ├── indexmap v2.14.0
+│   │   │       │   ├── equivalent v1.0.2
+│   │   │       │   └── hashbrown v0.17.1
+│   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+│   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+│   │   │       │   └── winnow v1.0.4
+│   │   │       └── winnow v0.7.15
+│   │   ├── proc-macro2 v1.0.107 (*)
+│   │   ├── quote v1.0.47 (*)
+│   │   └── syn v2.0.119 (*)
+│   ├── bevy_platform v0.18.1
+│   │   ├── foldhash v0.2.0
+│   │   ├── hashbrown v0.16.1
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── serde_core v1.0.229
+│   │   ├── serde v1.0.229
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── serde_derive v1.0.229 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3
+│   │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │           ├── quote v1.0.47 (*)
+│   │   │           └── unicode-ident v1.0.24
+│   │   └── spin v0.10.1
+│   ├── bevy_ptr v0.18.1
+│   ├── bevy_reflect v0.18.1
+│   │   ├── assert_type_match v0.1.1 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+│   │   │   ├── bevy_macro_utils v0.18.1 (*)
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_utils v0.18.1
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   └── thread_local v1.1.10
+│   │   │       └── cfg-if v1.0.4
+│   │   ├── derive_more v2.1.1
+│   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+│   │   │       ├── convert_case v0.10.0
+│   │   │       │   └── unicode-segmentation v1.13.3
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       ├── syn v2.0.119 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   │       [build-dependencies]
+│   │   │       └── rustc_version v0.4.1
+│   │   │           └── semver v1.0.28
+│   │   ├── disqualified v1.0.0
+│   │   ├── downcast-rs v2.0.2
+│   │   ├── erased-serde v0.4.10
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── typeid v1.0.3
+│   │   ├── foldhash v0.2.0
+│   │   ├── indexmap v2.14.0
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── hashbrown v0.17.1
+│   │   ├── serde v1.0.229 (*)
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19
+│   │   │   └── thiserror-impl v2.0.19 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro)
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── syn v2.0.119 (*)
+│   ├── bevy_tasks v0.18.1
+│   │   ├── async-executor v1.14.0
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── fastrand v2.5.0
+│   │   │   ├── futures-lite v2.6.1
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   ├── parking v2.2.1
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── pin-project-lite v0.2.17
+│   │   │   └── slab v0.4.12
+│   │   ├── async-task v4.7.1
+│   │   ├── atomic-waker v1.1.2
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── crossbeam-queue v0.3.13
+│   │   │   └── crossbeam-utils v0.8.22
+│   │   ├── derive_more v2.1.1 (*)
+│   │   └── futures-lite v2.6.1 (*)
+│   ├── bevy_utils v0.18.1 (*)
+│   ├── bitflags v2.13.1
+│   ├── bumpalo v3.20.3
+│   ├── concurrent-queue v2.5.0 (*)
+│   ├── derive_more v2.1.1 (*)
+│   ├── fixedbitset v0.5.7
+│   ├── indexmap v2.14.0 (*)
+│   ├── log v0.4.33
+│   ├── nonmax v0.5.5
+│   ├── slotmap v1.1.1
+│   │   [build-dependencies]
+│   │   └── version_check v0.9.5
+│   ├── smallvec v1.15.2
+│   ├── thiserror v2.0.19 (*)
+│   └── variadics_please v1.1.0 (proc-macro) (*)
+└── serde v1.0.229 (*)
+[dev-dependencies]
+└── postcard v1.1.3
+    ├── cobs v0.3.0
+    │   └── thiserror v2.0.19 (*)
+    └── serde v1.0.229 (*)
+terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+├── postcard v1.1.3
+│   ├── cobs v0.3.0
+│   │   └── thiserror v2.0.19
+│   │       └── thiserror-impl v2.0.19 (proc-macro)
+│   │           ├── proc-macro2 v1.0.107
+│   │           │   └── unicode-ident v1.0.24
+│   │           ├── quote v1.0.47
+│   │           │   └── proc-macro2 v1.0.107 (*)
+│   │           └── syn v3.0.3
+│   │               ├── proc-macro2 v1.0.107 (*)
+│   │               ├── quote v1.0.47 (*)
+│   │               └── unicode-ident v1.0.24
+│   └── serde v1.0.229
+│       ├── serde_core v1.0.229
+│       └── serde_derive v1.0.229 (proc-macro)
+│           ├── proc-macro2 v1.0.107 (*)
+│           ├── quote v1.0.47 (*)
+│           └── syn v3.0.3 (*)
+├── serde v1.0.229 (*)
+└── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+    ├── bevy_ecs v0.18.1
+    │   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+    │   │   ├── bevy_macro_utils v0.18.1
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   ├── syn v2.0.119
+    │   │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   │   └── unicode-ident v1.0.24
+    │   │   │   └── toml_edit v0.23.10+spec-1.0.0
+    │   │   │       ├── indexmap v2.14.0
+    │   │   │       │   ├── equivalent v1.0.2
+    │   │   │       │   └── hashbrown v0.17.1
+    │   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+    │   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+    │   │   │       │   └── winnow v1.0.4
+    │   │   │       └── winnow v0.7.15
+    │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   ├── quote v1.0.47 (*)
+    │   │   └── syn v2.0.119 (*)
+    │   ├── bevy_platform v0.18.1
+    │   │   ├── foldhash v0.2.0
+    │   │   ├── hashbrown v0.16.1
+    │   │   │   ├── equivalent v1.0.2
+    │   │   │   └── serde_core v1.0.229
+    │   │   ├── serde v1.0.229 (*)
+    │   │   └── spin v0.10.1
+    │   ├── bevy_ptr v0.18.1
+    │   ├── bevy_reflect v0.18.1
+    │   │   ├── assert_type_match v0.1.1 (proc-macro)
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── syn v2.0.119 (*)
+    │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   ├── bevy_ptr v0.18.1
+    │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+    │   │   │   ├── bevy_macro_utils v0.18.1 (*)
+    │   │   │   ├── indexmap v2.14.0 (*)
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── syn v2.0.119 (*)
+    │   │   ├── bevy_utils v0.18.1
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── disqualified v1.0.0
+    │   │   │   └── thread_local v1.1.10
+    │   │   │       └── cfg-if v1.0.4
+    │   │   ├── derive_more v2.1.1
+    │   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+    │   │   │       ├── convert_case v0.10.0
+    │   │   │       │   └── unicode-segmentation v1.13.3
+    │   │   │       ├── proc-macro2 v1.0.107 (*)
+    │   │   │       ├── quote v1.0.47 (*)
+    │   │   │       ├── syn v2.0.119 (*)
+    │   │   │       └── unicode-xid v0.2.6
+    │   │   │       [build-dependencies]
+    │   │   │       └── rustc_version v0.4.1
+    │   │   │           └── semver v1.0.28
+    │   │   ├── disqualified v1.0.0
+    │   │   ├── downcast-rs v2.0.2
+    │   │   ├── erased-serde v0.4.10
+    │   │   │   ├── serde_core v1.0.229
+    │   │   │   └── typeid v1.0.3
+    │   │   ├── foldhash v0.2.0
+    │   │   ├── indexmap v2.14.0
+    │   │   │   ├── equivalent v1.0.2
+    │   │   │   └── hashbrown v0.17.1
+    │   │   ├── serde v1.0.229 (*)
+    │   │   ├── smallvec v1.15.2
+    │   │   ├── thiserror v2.0.19 (*)
+    │   │   └── variadics_please v1.1.0 (proc-macro)
+    │   │       ├── proc-macro2 v1.0.107 (*)
+    │   │       ├── quote v1.0.47 (*)
+    │   │       └── syn v2.0.119 (*)
+    │   ├── bevy_tasks v0.18.1
+    │   │   ├── async-executor v1.14.0
+    │   │   │   ├── async-task v4.7.1
+    │   │   │   ├── concurrent-queue v2.5.0
+    │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   ├── fastrand v2.5.0
+    │   │   │   ├── futures-lite v2.6.1
+    │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   ├── futures-core v0.3.33
+    │   │   │   │   ├── futures-io v0.3.33
+    │   │   │   │   ├── parking v2.2.1
+    │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   ├── pin-project-lite v0.2.17
+    │   │   │   └── slab v0.4.12
+    │   │   ├── async-task v4.7.1
+    │   │   ├── atomic-waker v1.1.2
+    │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   ├── crossbeam-queue v0.3.13
+    │   │   │   └── crossbeam-utils v0.8.22
+    │   │   ├── derive_more v2.1.1 (*)
+    │   │   └── futures-lite v2.6.1 (*)
+    │   ├── bevy_utils v0.18.1 (*)
+    │   ├── bitflags v2.13.1
+    │   ├── bumpalo v3.20.3
+    │   ├── concurrent-queue v2.5.0 (*)
+    │   ├── derive_more v2.1.1 (*)
+    │   ├── fixedbitset v0.5.7
+    │   ├── indexmap v2.14.0 (*)
+    │   ├── log v0.4.33
+    │   ├── nonmax v0.5.5
+    │   ├── slotmap v1.1.1
+    │   │   [build-dependencies]
+    │   │   └── version_check v0.9.5
+    │   ├── smallvec v1.15.2
+    │   ├── thiserror v2.0.19 (*)
+    │   └── variadics_please v1.1.0 (proc-macro) (*)
+    └── serde v1.0.229 (*)
+[build-dependencies]
+├── postcard v1.1.3
+│   ├── cobs v0.3.0
+│   │   └── thiserror v2.0.19
+│   │       └── thiserror-impl v2.0.19 (proc-macro) (*)
+│   └── serde v1.0.229
+│       ├── serde_core v1.0.229
+│       └── serde_derive v1.0.229 (proc-macro) (*)
+├── serde v1.0.229 (*)
+├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+│   ├── bevy_ecs v0.18.1
+│   │   ├── bevy_ecs_macros v0.18.1 (proc-macro) (*)
+│   │   ├── bevy_platform v0.18.1
+│   │   │   ├── foldhash v0.2.0
+│   │   │   ├── hashbrown v0.16.1
+│   │   │   │   ├── equivalent v1.0.2
+│   │   │   │   └── serde_core v1.0.229
+│   │   │   ├── serde v1.0.229 (*)
+│   │   │   └── spin v0.10.1
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect v0.18.1
+│   │   │   ├── assert_type_match v0.1.1 (proc-macro) (*)
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── bevy_ptr v0.18.1
+│   │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro) (*)
+│   │   │   ├── bevy_utils v0.18.1
+│   │   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   │   ├── disqualified v1.0.0
+│   │   │   │   └── thread_local v1.1.10
+│   │   │   │       └── cfg-if v1.0.4
+│   │   │   ├── derive_more v2.1.1
+│   │   │   │   └── derive_more-impl v2.1.1 (proc-macro) (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   ├── downcast-rs v2.0.2
+│   │   │   ├── erased-serde v0.4.10
+│   │   │   │   ├── serde_core v1.0.229
+│   │   │   │   └── typeid v1.0.3
+│   │   │   ├── foldhash v0.2.0
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── serde v1.0.229 (*)
+│   │   │   ├── smallvec v1.15.2
+│   │   │   ├── thiserror v2.0.19 (*)
+│   │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+│   │   ├── bevy_tasks v0.18.1
+│   │   │   ├── async-executor v1.14.0
+│   │   │   │   ├── async-task v4.7.1
+│   │   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-lite v2.6.1
+│   │   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   │   ├── parking v2.2.1
+│   │   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   │   ├── pin-project-lite v0.2.17
+│   │   │   │   └── slab v0.4.12
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── atomic-waker v1.1.2
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── crossbeam-queue v0.3.13
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── derive_more v2.1.1 (*)
+│   │   │   └── futures-lite v2.6.1 (*)
+│   │   ├── bevy_utils v0.18.1 (*)
+│   │   ├── bitflags v2.13.1
+│   │   ├── bumpalo v3.20.3
+│   │   ├── concurrent-queue v2.5.0 (*)
+│   │   ├── derive_more v2.1.1 (*)
+│   │   ├── fixedbitset v0.5.7
+│   │   ├── indexmap v2.14.0 (*)
+│   │   ├── log v0.4.33
+│   │   ├── nonmax v0.5.5
+│   │   ├── slotmap v1.1.1
+│   │   │   [build-dependencies]
+│   │   │   └── version_check v0.9.5
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro) (*)
+│   └── serde v1.0.229 (*)
+└── toml v1.1.3+spec-1.1.0
+    ├── serde_core v1.0.229
+    ├── serde_spanned v1.1.1
+    │   └── serde_core v1.0.229
+    ├── toml_datetime v1.1.1+spec-1.1.0
+    │   └── serde_core v1.0.229
+    ├── toml_parser v1.1.3+spec-1.1.0 (*)
+    ├── toml_writer v1.1.2+spec-1.1.0
+    └── winnow v1.0.4
+[dev-dependencies]
+└── toml v1.1.3+spec-1.1.0
+    ├── serde_core v1.0.229
+    ├── serde_spanned v1.1.1
+    │   └── serde_core v1.0.229
+    ├── toml_datetime v1.1.1+spec-1.1.0
+    │   └── serde_core v1.0.229
+    ├── toml_parser v1.1.3+spec-1.1.0
+    │   └── winnow v1.0.4
+    ├── toml_writer v1.1.2+spec-1.1.0
+    └── winnow v1.0.4
+terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+├── bevy_ecs v0.18.1
+│   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+│   │   ├── bevy_macro_utils v0.18.1
+│   │   │   ├── proc-macro2 v1.0.107
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   ├── quote v1.0.47
+│   │   │   │   └── proc-macro2 v1.0.107 (*)
+│   │   │   ├── syn v2.0.119
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   └── toml_edit v0.23.10+spec-1.0.0
+│   │   │       ├── indexmap v2.14.0
+│   │   │       │   ├── equivalent v1.0.2
+│   │   │       │   └── hashbrown v0.17.1
+│   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+│   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+│   │   │       │   └── winnow v1.0.4
+│   │   │       └── winnow v0.7.15
+│   │   ├── proc-macro2 v1.0.107 (*)
+│   │   ├── quote v1.0.47 (*)
+│   │   └── syn v2.0.119 (*)
+│   ├── bevy_platform v0.18.1
+│   │   ├── foldhash v0.2.0
+│   │   ├── hashbrown v0.16.1
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── serde_core v1.0.229
+│   │   ├── serde v1.0.229
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── serde_derive v1.0.229 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3
+│   │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │           ├── quote v1.0.47 (*)
+│   │   │           └── unicode-ident v1.0.24
+│   │   └── spin v0.10.1
+│   ├── bevy_ptr v0.18.1
+│   ├── bevy_reflect v0.18.1
+│   │   ├── assert_type_match v0.1.1 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+│   │   │   ├── bevy_macro_utils v0.18.1 (*)
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_utils v0.18.1
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   └── thread_local v1.1.10
+│   │   │       └── cfg-if v1.0.4
+│   │   ├── derive_more v2.1.1
+│   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+│   │   │       ├── convert_case v0.10.0
+│   │   │       │   └── unicode-segmentation v1.13.3
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       ├── syn v2.0.119 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   │       [build-dependencies]
+│   │   │       └── rustc_version v0.4.1
+│   │   │           └── semver v1.0.28
+│   │   ├── disqualified v1.0.0
+│   │   ├── downcast-rs v2.0.2
+│   │   ├── erased-serde v0.4.10
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── typeid v1.0.3
+│   │   ├── foldhash v0.2.0
+│   │   ├── indexmap v2.14.0
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── hashbrown v0.17.1
+│   │   ├── serde v1.0.229 (*)
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19
+│   │   │   └── thiserror-impl v2.0.19 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro)
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── syn v2.0.119 (*)
+│   ├── bevy_tasks v0.18.1
+│   │   ├── async-executor v1.14.0
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── fastrand v2.5.0
+│   │   │   ├── futures-lite v2.6.1
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   ├── parking v2.2.1
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── pin-project-lite v0.2.17
+│   │   │   └── slab v0.4.12
+│   │   ├── async-task v4.7.1
+│   │   ├── atomic-waker v1.1.2
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── crossbeam-queue v0.3.13
+│   │   │   └── crossbeam-utils v0.8.22
+│   │   ├── derive_more v2.1.1 (*)
+│   │   └── futures-lite v2.6.1 (*)
+│   ├── bevy_utils v0.18.1 (*)
+│   ├── bitflags v2.13.1
+│   ├── bumpalo v3.20.3
+│   ├── concurrent-queue v2.5.0 (*)
+│   ├── derive_more v2.1.1 (*)
+│   ├── fixedbitset v0.5.7
+│   ├── indexmap v2.14.0 (*)
+│   ├── log v0.4.33
+│   ├── nonmax v0.5.5
+│   ├── slotmap v1.1.1
+│   │   [build-dependencies]
+│   │   └── version_check v0.9.5
+│   ├── smallvec v1.15.2
+│   ├── thiserror v2.0.19 (*)
+│   └── variadics_please v1.1.0 (proc-macro) (*)
+├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+│   ├── bevy_ecs v0.18.1 (*)
+│   └── serde v1.0.229 (*)
+└── terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+    ├── postcard v1.1.3
+    │   ├── cobs v0.3.0
+    │   │   └── thiserror v2.0.19 (*)
+    │   └── serde v1.0.229 (*)
+    ├── serde v1.0.229 (*)
+    └── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core) (*)
+    [build-dependencies]
+    ├── postcard v1.1.3
+    │   ├── cobs v0.3.0
+    │   │   └── thiserror v2.0.19
+    │   │       └── thiserror-impl v2.0.19 (proc-macro) (*)
+    │   └── serde v1.0.229
+    │       ├── serde_core v1.0.229
+    │       └── serde_derive v1.0.229 (proc-macro) (*)
+    ├── serde v1.0.229 (*)
+    ├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+    │   ├── bevy_ecs v0.18.1
+    │   │   ├── bevy_ecs_macros v0.18.1 (proc-macro) (*)
+    │   │   ├── bevy_platform v0.18.1
+    │   │   │   ├── foldhash v0.2.0
+    │   │   │   ├── hashbrown v0.16.1
+    │   │   │   │   ├── equivalent v1.0.2
+    │   │   │   │   └── serde_core v1.0.229
+    │   │   │   ├── serde v1.0.229 (*)
+    │   │   │   └── spin v0.10.1
+    │   │   ├── bevy_ptr v0.18.1
+    │   │   ├── bevy_reflect v0.18.1
+    │   │   │   ├── assert_type_match v0.1.1 (proc-macro) (*)
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── bevy_ptr v0.18.1
+    │   │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro) (*)
+    │   │   │   ├── bevy_utils v0.18.1
+    │   │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   │   ├── disqualified v1.0.0
+    │   │   │   │   └── thread_local v1.1.10
+    │   │   │   │       └── cfg-if v1.0.4
+    │   │   │   ├── derive_more v2.1.1
+    │   │   │   │   └── derive_more-impl v2.1.1 (proc-macro) (*)
+    │   │   │   ├── disqualified v1.0.0
+    │   │   │   ├── downcast-rs v2.0.2
+    │   │   │   ├── erased-serde v0.4.10
+    │   │   │   │   ├── serde_core v1.0.229
+    │   │   │   │   └── typeid v1.0.3
+    │   │   │   ├── foldhash v0.2.0
+    │   │   │   ├── indexmap v2.14.0 (*)
+    │   │   │   ├── serde v1.0.229 (*)
+    │   │   │   ├── smallvec v1.15.2
+    │   │   │   ├── thiserror v2.0.19 (*)
+    │   │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+    │   │   ├── bevy_tasks v0.18.1
+    │   │   │   ├── async-executor v1.14.0
+    │   │   │   │   ├── async-task v4.7.1
+    │   │   │   │   ├── concurrent-queue v2.5.0
+    │   │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   ├── futures-lite v2.6.1
+    │   │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   │   ├── futures-core v0.3.33
+    │   │   │   │   │   ├── futures-io v0.3.33
+    │   │   │   │   │   ├── parking v2.2.1
+    │   │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   │   ├── pin-project-lite v0.2.17
+    │   │   │   │   └── slab v0.4.12
+    │   │   │   ├── async-task v4.7.1
+    │   │   │   ├── atomic-waker v1.1.2
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── crossbeam-queue v0.3.13
+    │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   ├── derive_more v2.1.1 (*)
+    │   │   │   └── futures-lite v2.6.1 (*)
+    │   │   ├── bevy_utils v0.18.1 (*)
+    │   │   ├── bitflags v2.13.1
+    │   │   ├── bumpalo v3.20.3
+    │   │   ├── concurrent-queue v2.5.0 (*)
+    │   │   ├── derive_more v2.1.1 (*)
+    │   │   ├── fixedbitset v0.5.7
+    │   │   ├── indexmap v2.14.0 (*)
+    │   │   ├── log v0.4.33
+    │   │   ├── nonmax v0.5.5
+    │   │   ├── slotmap v1.1.1
+    │   │   │   [build-dependencies]
+    │   │   │   └── version_check v0.9.5
+    │   │   ├── smallvec v1.15.2
+    │   │   ├── thiserror v2.0.19 (*)
+    │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+    │   └── serde v1.0.229 (*)
+    └── toml v1.1.3+spec-1.1.0
+        ├── serde_core v1.0.229
+        ├── serde_spanned v1.1.1
+        │   └── serde_core v1.0.229
+        ├── toml_datetime v1.1.1+spec-1.1.0
+        │   └── serde_core v1.0.229
+        ├── toml_parser v1.1.3+spec-1.1.0 (*)
+        ├── toml_writer v1.1.2+spec-1.1.0
+        └── winnow v1.0.4
+terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+├── bevy_ecs v0.18.1
+│   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+│   │   ├── bevy_macro_utils v0.18.1
+│   │   │   ├── proc-macro2 v1.0.107
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   ├── quote v1.0.47
+│   │   │   │   └── proc-macro2 v1.0.107 (*)
+│   │   │   ├── syn v2.0.119
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   └── toml_edit v0.23.10+spec-1.0.0
+│   │   │       ├── indexmap v2.14.0
+│   │   │       │   ├── equivalent v1.0.2
+│   │   │       │   └── hashbrown v0.17.1
+│   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+│   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+│   │   │       │   └── winnow v1.0.4
+│   │   │       └── winnow v0.7.15
+│   │   ├── proc-macro2 v1.0.107 (*)
+│   │   ├── quote v1.0.47 (*)
+│   │   └── syn v2.0.119 (*)
+│   ├── bevy_platform v0.18.1
+│   │   ├── foldhash v0.2.0
+│   │   ├── futures-channel v0.3.33
+│   │   │   └── futures-core v0.3.33
+│   │   ├── hashbrown v0.16.1
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── serde_core v1.0.229
+│   │   ├── serde v1.0.229
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── serde_derive v1.0.229 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3
+│   │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │           ├── quote v1.0.47 (*)
+│   │   │           └── unicode-ident v1.0.24
+│   │   └── spin v0.10.1
+│   ├── bevy_ptr v0.18.1
+│   ├── bevy_reflect v0.18.1
+│   │   ├── assert_type_match v0.1.1 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+│   │   │   ├── bevy_macro_utils v0.18.1 (*)
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_utils v0.18.1
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   └── thread_local v1.1.10
+│   │   │       └── cfg-if v1.0.4
+│   │   ├── derive_more v2.1.1
+│   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+│   │   │       ├── convert_case v0.10.0
+│   │   │       │   └── unicode-segmentation v1.13.3
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       ├── syn v2.0.119 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   │       [build-dependencies]
+│   │   │       └── rustc_version v0.4.1
+│   │   │           └── semver v1.0.28
+│   │   ├── disqualified v1.0.0
+│   │   ├── downcast-rs v2.0.2
+│   │   ├── erased-serde v0.4.10
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── typeid v1.0.3
+│   │   ├── foldhash v0.2.0
+│   │   ├── indexmap v2.14.0
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── hashbrown v0.17.1
+│   │   ├── serde v1.0.229 (*)
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19
+│   │   │   └── thiserror-impl v2.0.19 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro)
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── syn v2.0.119 (*)
+│   ├── bevy_tasks v0.18.1
+│   │   ├── async-channel v2.5.0
+│   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── event-listener-strategy v0.5.4
+│   │   │   │   ├── event-listener v5.4.2
+│   │   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── futures-core v0.3.33
+│   │   │   └── pin-project-lite v0.2.17
+│   │   ├── async-executor v1.14.0
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── concurrent-queue v2.5.0 (*)
+│   │   │   ├── fastrand v2.5.0
+│   │   │   ├── futures-lite v2.6.1
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   ├── parking v2.2.1
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── pin-project-lite v0.2.17
+│   │   │   └── slab v0.4.12
+│   │   ├── async-task v4.7.1
+│   │   ├── atomic-waker v1.1.2
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── crossbeam-queue v0.3.13
+│   │   │   └── crossbeam-utils v0.8.22
+│   │   ├── derive_more v2.1.1 (*)
+│   │   ├── futures-lite v2.6.1 (*)
+│   │   └── pin-project v1.1.13
+│   │       └── pin-project-internal v1.1.13 (proc-macro)
+│   │           ├── proc-macro2 v1.0.107 (*)
+│   │           ├── quote v1.0.47 (*)
+│   │           └── syn v2.0.119 (*)
+│   ├── bevy_utils v0.18.1 (*)
+│   ├── bitflags v2.13.1
+│   ├── bumpalo v3.20.3
+│   ├── concurrent-queue v2.5.0 (*)
+│   ├── derive_more v2.1.1 (*)
+│   ├── fixedbitset v0.5.7
+│   ├── indexmap v2.14.0 (*)
+│   ├── log v0.4.33
+│   ├── nonmax v0.5.5
+│   ├── slotmap v1.1.1
+│   │   [build-dependencies]
+│   │   └── version_check v0.9.5
+│   ├── smallvec v1.15.2
+│   ├── thiserror v2.0.19 (*)
+│   └── variadics_please v1.1.0 (proc-macro) (*)
+└── serde v1.0.229 (*)
+[dev-dependencies]
+└── postcard v1.1.3
+    ├── cobs v0.3.0
+    │   └── thiserror v2.0.19 (*)
+    └── serde v1.0.229 (*)
+terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+├── postcard v1.1.3
+│   ├── cobs v0.3.0
+│   │   └── thiserror v2.0.19
+│   │       └── thiserror-impl v2.0.19 (proc-macro)
+│   │           ├── proc-macro2 v1.0.107
+│   │           │   └── unicode-ident v1.0.24
+│   │           ├── quote v1.0.47
+│   │           │   └── proc-macro2 v1.0.107 (*)
+│   │           └── syn v3.0.3
+│   │               ├── proc-macro2 v1.0.107 (*)
+│   │               ├── quote v1.0.47 (*)
+│   │               └── unicode-ident v1.0.24
+│   └── serde v1.0.229
+│       ├── serde_core v1.0.229
+│       └── serde_derive v1.0.229 (proc-macro)
+│           ├── proc-macro2 v1.0.107 (*)
+│           ├── quote v1.0.47 (*)
+│           └── syn v3.0.3 (*)
+├── serde v1.0.229 (*)
+└── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+    ├── bevy_ecs v0.18.1
+    │   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+    │   │   ├── bevy_macro_utils v0.18.1
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   ├── syn v2.0.119
+    │   │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   │   └── unicode-ident v1.0.24
+    │   │   │   └── toml_edit v0.23.10+spec-1.0.0
+    │   │   │       ├── indexmap v2.14.0
+    │   │   │       │   ├── equivalent v1.0.2
+    │   │   │       │   └── hashbrown v0.17.1
+    │   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+    │   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+    │   │   │       │   └── winnow v1.0.4
+    │   │   │       └── winnow v0.7.15
+    │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   ├── quote v1.0.47 (*)
+    │   │   └── syn v2.0.119 (*)
+    │   ├── bevy_platform v0.18.1
+    │   │   ├── foldhash v0.2.0
+    │   │   ├── futures-channel v0.3.33
+    │   │   │   └── futures-core v0.3.33
+    │   │   ├── hashbrown v0.16.1
+    │   │   │   ├── equivalent v1.0.2
+    │   │   │   └── serde_core v1.0.229
+    │   │   ├── serde v1.0.229 (*)
+    │   │   └── spin v0.10.1
+    │   ├── bevy_ptr v0.18.1
+    │   ├── bevy_reflect v0.18.1
+    │   │   ├── assert_type_match v0.1.1 (proc-macro)
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── syn v2.0.119 (*)
+    │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   ├── bevy_ptr v0.18.1
+    │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+    │   │   │   ├── bevy_macro_utils v0.18.1 (*)
+    │   │   │   ├── indexmap v2.14.0 (*)
+    │   │   │   ├── proc-macro2 v1.0.107 (*)
+    │   │   │   ├── quote v1.0.47 (*)
+    │   │   │   └── syn v2.0.119 (*)
+    │   │   ├── bevy_utils v0.18.1
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── disqualified v1.0.0
+    │   │   │   └── thread_local v1.1.10
+    │   │   │       └── cfg-if v1.0.4
+    │   │   ├── derive_more v2.1.1
+    │   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+    │   │   │       ├── convert_case v0.10.0
+    │   │   │       │   └── unicode-segmentation v1.13.3
+    │   │   │       ├── proc-macro2 v1.0.107 (*)
+    │   │   │       ├── quote v1.0.47 (*)
+    │   │   │       ├── syn v2.0.119 (*)
+    │   │   │       └── unicode-xid v0.2.6
+    │   │   │       [build-dependencies]
+    │   │   │       └── rustc_version v0.4.1
+    │   │   │           └── semver v1.0.28
+    │   │   ├── disqualified v1.0.0
+    │   │   ├── downcast-rs v2.0.2
+    │   │   ├── erased-serde v0.4.10
+    │   │   │   ├── serde_core v1.0.229
+    │   │   │   └── typeid v1.0.3
+    │   │   ├── foldhash v0.2.0
+    │   │   ├── indexmap v2.14.0
+    │   │   │   ├── equivalent v1.0.2
+    │   │   │   └── hashbrown v0.17.1
+    │   │   ├── serde v1.0.229 (*)
+    │   │   ├── smallvec v1.15.2
+    │   │   ├── thiserror v2.0.19 (*)
+    │   │   └── variadics_please v1.1.0 (proc-macro)
+    │   │       ├── proc-macro2 v1.0.107 (*)
+    │   │       ├── quote v1.0.47 (*)
+    │   │       └── syn v2.0.119 (*)
+    │   ├── bevy_tasks v0.18.1
+    │   │   ├── async-channel v2.5.0
+    │   │   │   ├── concurrent-queue v2.5.0
+    │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   ├── event-listener-strategy v0.5.4
+    │   │   │   │   ├── event-listener v5.4.2
+    │   │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   ├── futures-core v0.3.33
+    │   │   │   └── pin-project-lite v0.2.17
+    │   │   ├── async-executor v1.14.0
+    │   │   │   ├── async-task v4.7.1
+    │   │   │   ├── concurrent-queue v2.5.0 (*)
+    │   │   │   ├── fastrand v2.5.0
+    │   │   │   ├── futures-lite v2.6.1
+    │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   ├── futures-core v0.3.33
+    │   │   │   │   ├── futures-io v0.3.33
+    │   │   │   │   ├── parking v2.2.1
+    │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   ├── pin-project-lite v0.2.17
+    │   │   │   └── slab v0.4.12
+    │   │   ├── async-task v4.7.1
+    │   │   ├── atomic-waker v1.1.2
+    │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   ├── crossbeam-queue v0.3.13
+    │   │   │   └── crossbeam-utils v0.8.22
+    │   │   ├── derive_more v2.1.1 (*)
+    │   │   ├── futures-lite v2.6.1 (*)
+    │   │   └── pin-project v1.1.13
+    │   │       └── pin-project-internal v1.1.13 (proc-macro)
+    │   │           ├── proc-macro2 v1.0.107 (*)
+    │   │           ├── quote v1.0.47 (*)
+    │   │           └── syn v2.0.119 (*)
+    │   ├── bevy_utils v0.18.1 (*)
+    │   ├── bitflags v2.13.1
+    │   ├── bumpalo v3.20.3
+    │   ├── concurrent-queue v2.5.0 (*)
+    │   ├── derive_more v2.1.1 (*)
+    │   ├── fixedbitset v0.5.7
+    │   ├── indexmap v2.14.0 (*)
+    │   ├── log v0.4.33
+    │   ├── nonmax v0.5.5
+    │   ├── slotmap v1.1.1
+    │   │   [build-dependencies]
+    │   │   └── version_check v0.9.5
+    │   ├── smallvec v1.15.2
+    │   ├── thiserror v2.0.19 (*)
+    │   └── variadics_please v1.1.0 (proc-macro) (*)
+    └── serde v1.0.229 (*)
+[build-dependencies]
+├── postcard v1.1.3
+│   ├── cobs v0.3.0
+│   │   └── thiserror v2.0.19
+│   │       └── thiserror-impl v2.0.19 (proc-macro) (*)
+│   └── serde v1.0.229
+│       ├── serde_core v1.0.229
+│       └── serde_derive v1.0.229 (proc-macro) (*)
+├── serde v1.0.229 (*)
+├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+│   ├── bevy_ecs v0.18.1
+│   │   ├── bevy_ecs_macros v0.18.1 (proc-macro) (*)
+│   │   ├── bevy_platform v0.18.1
+│   │   │   ├── foldhash v0.2.0
+│   │   │   ├── hashbrown v0.16.1
+│   │   │   │   ├── equivalent v1.0.2
+│   │   │   │   └── serde_core v1.0.229
+│   │   │   ├── serde v1.0.229 (*)
+│   │   │   └── spin v0.10.1
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect v0.18.1
+│   │   │   ├── assert_type_match v0.1.1 (proc-macro) (*)
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── bevy_ptr v0.18.1
+│   │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro) (*)
+│   │   │   ├── bevy_utils v0.18.1
+│   │   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   │   ├── disqualified v1.0.0
+│   │   │   │   └── thread_local v1.1.10
+│   │   │   │       └── cfg-if v1.0.4
+│   │   │   ├── derive_more v2.1.1
+│   │   │   │   └── derive_more-impl v2.1.1 (proc-macro) (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   ├── downcast-rs v2.0.2
+│   │   │   ├── erased-serde v0.4.10
+│   │   │   │   ├── serde_core v1.0.229
+│   │   │   │   └── typeid v1.0.3
+│   │   │   ├── foldhash v0.2.0
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── serde v1.0.229 (*)
+│   │   │   ├── smallvec v1.15.2
+│   │   │   ├── thiserror v2.0.19 (*)
+│   │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+│   │   ├── bevy_tasks v0.18.1
+│   │   │   ├── async-executor v1.14.0
+│   │   │   │   ├── async-task v4.7.1
+│   │   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-lite v2.6.1
+│   │   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   │   ├── parking v2.2.1
+│   │   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   │   ├── pin-project-lite v0.2.17
+│   │   │   │   └── slab v0.4.12
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── atomic-waker v1.1.2
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── crossbeam-queue v0.3.13
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── derive_more v2.1.1 (*)
+│   │   │   └── futures-lite v2.6.1 (*)
+│   │   ├── bevy_utils v0.18.1 (*)
+│   │   ├── bitflags v2.13.1
+│   │   ├── bumpalo v3.20.3
+│   │   ├── concurrent-queue v2.5.0 (*)
+│   │   ├── derive_more v2.1.1 (*)
+│   │   ├── fixedbitset v0.5.7
+│   │   ├── indexmap v2.14.0 (*)
+│   │   ├── log v0.4.33
+│   │   ├── nonmax v0.5.5
+│   │   ├── slotmap v1.1.1
+│   │   │   [build-dependencies]
+│   │   │   └── version_check v0.9.5
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro) (*)
+│   └── serde v1.0.229 (*)
+└── toml v1.1.3+spec-1.1.0
+    ├── serde_core v1.0.229
+    ├── serde_spanned v1.1.1
+    │   └── serde_core v1.0.229
+    ├── toml_datetime v1.1.1+spec-1.1.0
+    │   └── serde_core v1.0.229
+    ├── toml_parser v1.1.3+spec-1.1.0 (*)
+    ├── toml_writer v1.1.2+spec-1.1.0
+    └── winnow v1.0.4
+[dev-dependencies]
+└── toml v1.1.3+spec-1.1.0
+    ├── serde_core v1.0.229
+    ├── serde_spanned v1.1.1
+    │   └── serde_core v1.0.229
+    ├── toml_datetime v1.1.1+spec-1.1.0
+    │   └── serde_core v1.0.229
+    ├── toml_parser v1.1.3+spec-1.1.0
+    │   └── winnow v1.0.4
+    ├── toml_writer v1.1.2+spec-1.1.0
+    └── winnow v1.0.4
+terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+├── bevy_ecs v0.18.1
+│   ├── bevy_ecs_macros v0.18.1 (proc-macro)
+│   │   ├── bevy_macro_utils v0.18.1
+│   │   │   ├── proc-macro2 v1.0.107
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   ├── quote v1.0.47
+│   │   │   │   └── proc-macro2 v1.0.107 (*)
+│   │   │   ├── syn v2.0.119
+│   │   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   │   ├── quote v1.0.47 (*)
+│   │   │   │   └── unicode-ident v1.0.24
+│   │   │   └── toml_edit v0.23.10+spec-1.0.0
+│   │   │       ├── indexmap v2.14.0
+│   │   │       │   ├── equivalent v1.0.2
+│   │   │       │   └── hashbrown v0.17.1
+│   │   │       ├── toml_datetime v0.7.5+spec-1.1.0
+│   │   │       ├── toml_parser v1.1.3+spec-1.1.0
+│   │   │       │   └── winnow v1.0.4
+│   │   │       └── winnow v0.7.15
+│   │   ├── proc-macro2 v1.0.107 (*)
+│   │   ├── quote v1.0.47 (*)
+│   │   └── syn v2.0.119 (*)
+│   ├── bevy_platform v0.18.1
+│   │   ├── foldhash v0.2.0
+│   │   ├── futures-channel v0.3.33
+│   │   │   └── futures-core v0.3.33
+│   │   ├── hashbrown v0.16.1
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── serde_core v1.0.229
+│   │   ├── serde v1.0.229
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── serde_derive v1.0.229 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3
+│   │   │           ├── proc-macro2 v1.0.107 (*)
+│   │   │           ├── quote v1.0.47 (*)
+│   │   │           └── unicode-ident v1.0.24
+│   │   └── spin v0.10.1
+│   ├── bevy_ptr v0.18.1
+│   ├── bevy_reflect v0.18.1
+│   │   ├── assert_type_match v0.1.1 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── bevy_ptr v0.18.1
+│   │   ├── bevy_reflect_derive v0.18.1 (proc-macro)
+│   │   │   ├── bevy_macro_utils v0.18.1 (*)
+│   │   │   ├── indexmap v2.14.0 (*)
+│   │   │   ├── proc-macro2 v1.0.107 (*)
+│   │   │   ├── quote v1.0.47 (*)
+│   │   │   └── syn v2.0.119 (*)
+│   │   ├── bevy_utils v0.18.1
+│   │   │   ├── bevy_platform v0.18.1 (*)
+│   │   │   ├── disqualified v1.0.0
+│   │   │   └── thread_local v1.1.10
+│   │   │       └── cfg-if v1.0.4
+│   │   ├── derive_more v2.1.1
+│   │   │   └── derive_more-impl v2.1.1 (proc-macro)
+│   │   │       ├── convert_case v0.10.0
+│   │   │       │   └── unicode-segmentation v1.13.3
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       ├── syn v2.0.119 (*)
+│   │   │       └── unicode-xid v0.2.6
+│   │   │       [build-dependencies]
+│   │   │       └── rustc_version v0.4.1
+│   │   │           └── semver v1.0.28
+│   │   ├── disqualified v1.0.0
+│   │   ├── downcast-rs v2.0.2
+│   │   ├── erased-serde v0.4.10
+│   │   │   ├── serde_core v1.0.229
+│   │   │   └── typeid v1.0.3
+│   │   ├── foldhash v0.2.0
+│   │   ├── indexmap v2.14.0
+│   │   │   ├── equivalent v1.0.2
+│   │   │   └── hashbrown v0.17.1
+│   │   ├── serde v1.0.229 (*)
+│   │   ├── smallvec v1.15.2
+│   │   ├── thiserror v2.0.19
+│   │   │   └── thiserror-impl v2.0.19 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.107 (*)
+│   │   │       ├── quote v1.0.47 (*)
+│   │   │       └── syn v3.0.3 (*)
+│   │   └── variadics_please v1.1.0 (proc-macro)
+│   │       ├── proc-macro2 v1.0.107 (*)
+│   │       ├── quote v1.0.47 (*)
+│   │       └── syn v2.0.119 (*)
+│   ├── bevy_tasks v0.18.1
+│   │   ├── async-channel v2.5.0
+│   │   │   ├── concurrent-queue v2.5.0
+│   │   │   │   └── crossbeam-utils v0.8.22
+│   │   │   ├── event-listener-strategy v0.5.4
+│   │   │   │   ├── event-listener v5.4.2
+│   │   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── futures-core v0.3.33
+│   │   │   └── pin-project-lite v0.2.17
+│   │   ├── async-executor v1.14.0
+│   │   │   ├── async-task v4.7.1
+│   │   │   ├── concurrent-queue v2.5.0 (*)
+│   │   │   ├── fastrand v2.5.0
+│   │   │   ├── futures-lite v2.6.1
+│   │   │   │   ├── fastrand v2.5.0
+│   │   │   │   ├── futures-core v0.3.33
+│   │   │   │   ├── futures-io v0.3.33
+│   │   │   │   ├── parking v2.2.1
+│   │   │   │   └── pin-project-lite v0.2.17
+│   │   │   ├── pin-project-lite v0.2.17
+│   │   │   └── slab v0.4.12
+│   │   ├── async-task v4.7.1
+│   │   ├── atomic-waker v1.1.2
+│   │   ├── bevy_platform v0.18.1 (*)
+│   │   ├── crossbeam-queue v0.3.13
+│   │   │   └── crossbeam-utils v0.8.22
+│   │   ├── derive_more v2.1.1 (*)
+│   │   ├── futures-lite v2.6.1 (*)
+│   │   └── pin-project v1.1.13
+│   │       └── pin-project-internal v1.1.13 (proc-macro)
+│   │           ├── proc-macro2 v1.0.107 (*)
+│   │           ├── quote v1.0.47 (*)
+│   │           └── syn v2.0.119 (*)
+│   ├── bevy_utils v0.18.1 (*)
+│   ├── bitflags v2.13.1
+│   ├── bumpalo v3.20.3
+│   ├── concurrent-queue v2.5.0 (*)
+│   ├── derive_more v2.1.1 (*)
+│   ├── fixedbitset v0.5.7
+│   ├── indexmap v2.14.0 (*)
+│   ├── log v0.4.33
+│   ├── nonmax v0.5.5
+│   ├── slotmap v1.1.1
+│   │   [build-dependencies]
+│   │   └── version_check v0.9.5
+│   ├── smallvec v1.15.2
+│   ├── thiserror v2.0.19 (*)
+│   └── variadics_please v1.1.0 (proc-macro) (*)
+├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+│   ├── bevy_ecs v0.18.1 (*)
+│   └── serde v1.0.229 (*)
+└── terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+    ├── postcard v1.1.3
+    │   ├── cobs v0.3.0
+    │   │   └── thiserror v2.0.19 (*)
+    │   └── serde v1.0.229 (*)
+    ├── serde v1.0.229 (*)
+    └── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core) (*)
+    [build-dependencies]
+    ├── postcard v1.1.3
+    │   ├── cobs v0.3.0
+    │   │   └── thiserror v2.0.19
+    │   │       └── thiserror-impl v2.0.19 (proc-macro) (*)
+    │   └── serde v1.0.229
+    │       ├── serde_core v1.0.229
+    │       └── serde_derive v1.0.229 (proc-macro) (*)
+    ├── serde v1.0.229 (*)
+    ├── terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+    │   ├── bevy_ecs v0.18.1
+    │   │   ├── bevy_ecs_macros v0.18.1 (proc-macro) (*)
+    │   │   ├── bevy_platform v0.18.1
+    │   │   │   ├── foldhash v0.2.0
+    │   │   │   ├── hashbrown v0.16.1
+    │   │   │   │   ├── equivalent v1.0.2
+    │   │   │   │   └── serde_core v1.0.229
+    │   │   │   ├── serde v1.0.229 (*)
+    │   │   │   └── spin v0.10.1
+    │   │   ├── bevy_ptr v0.18.1
+    │   │   ├── bevy_reflect v0.18.1
+    │   │   │   ├── assert_type_match v0.1.1 (proc-macro) (*)
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── bevy_ptr v0.18.1
+    │   │   │   ├── bevy_reflect_derive v0.18.1 (proc-macro) (*)
+    │   │   │   ├── bevy_utils v0.18.1
+    │   │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   │   ├── disqualified v1.0.0
+    │   │   │   │   └── thread_local v1.1.10
+    │   │   │   │       └── cfg-if v1.0.4
+    │   │   │   ├── derive_more v2.1.1
+    │   │   │   │   └── derive_more-impl v2.1.1 (proc-macro) (*)
+    │   │   │   ├── disqualified v1.0.0
+    │   │   │   ├── downcast-rs v2.0.2
+    │   │   │   ├── erased-serde v0.4.10
+    │   │   │   │   ├── serde_core v1.0.229
+    │   │   │   │   └── typeid v1.0.3
+    │   │   │   ├── foldhash v0.2.0
+    │   │   │   ├── indexmap v2.14.0 (*)
+    │   │   │   ├── serde v1.0.229 (*)
+    │   │   │   ├── smallvec v1.15.2
+    │   │   │   ├── thiserror v2.0.19 (*)
+    │   │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+    │   │   ├── bevy_tasks v0.18.1
+    │   │   │   ├── async-executor v1.14.0
+    │   │   │   │   ├── async-task v4.7.1
+    │   │   │   │   ├── concurrent-queue v2.5.0
+    │   │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   ├── futures-lite v2.6.1
+    │   │   │   │   │   ├── fastrand v2.5.0
+    │   │   │   │   │   ├── futures-core v0.3.33
+    │   │   │   │   │   ├── futures-io v0.3.33
+    │   │   │   │   │   ├── parking v2.2.1
+    │   │   │   │   │   └── pin-project-lite v0.2.17
+    │   │   │   │   ├── pin-project-lite v0.2.17
+    │   │   │   │   └── slab v0.4.12
+    │   │   │   ├── async-task v4.7.1
+    │   │   │   ├── atomic-waker v1.1.2
+    │   │   │   ├── bevy_platform v0.18.1 (*)
+    │   │   │   ├── crossbeam-queue v0.3.13
+    │   │   │   │   └── crossbeam-utils v0.8.22
+    │   │   │   ├── derive_more v2.1.1 (*)
+    │   │   │   └── futures-lite v2.6.1 (*)
+    │   │   ├── bevy_utils v0.18.1 (*)
+    │   │   ├── bitflags v2.13.1
+    │   │   ├── bumpalo v3.20.3
+    │   │   ├── concurrent-queue v2.5.0 (*)
+    │   │   ├── derive_more v2.1.1 (*)
+    │   │   ├── fixedbitset v0.5.7
+    │   │   ├── indexmap v2.14.0 (*)
+    │   │   ├── log v0.4.33
+    │   │   ├── nonmax v0.5.5
+    │   │   ├── slotmap v1.1.1
+    │   │   │   [build-dependencies]
+    │   │   │   └── version_check v0.9.5
+    │   │   ├── smallvec v1.15.2
+    │   │   ├── thiserror v2.0.19 (*)
+    │   │   └── variadics_please v1.1.0 (proc-macro) (*)
+    │   └── serde v1.0.229 (*)
+    └── toml v1.1.3+spec-1.1.0
+        ├── serde_core v1.0.229
+        ├── serde_spanned v1.1.1
+        │   └── serde_core v1.0.229
+        ├── toml_datetime v1.1.1+spec-1.1.0
+        │   └── serde_core v1.0.229
+        ├── toml_parser v1.1.3+spec-1.1.0 (*)
+        ├── toml_writer v1.1.2+spec-1.1.0
+        └── winnow v1.0.4

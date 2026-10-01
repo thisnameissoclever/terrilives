@@ -92,6 +92,14 @@ the wrong world axis and was corrected before navigation implementation.
 This establishes side correspondence only; occupied pose fit and compositing
 remain unproved.
 
+The new-game double bed moves from `(0, 6)` to `(0, 8)`, retaining its SE facing
+and 2x2 footprint. At the former origin, place zero's approach crossed a solid
+bedroom wall. The new position exposes row seven to place zero and `(1, 10)`
+to place one, beside the one-tile dresser. Furniture, walls and household
+spawns otherwise stay as authored. Existing saves retain their own positions;
+the content fingerprint does not include these prefab placement coordinates.
+See `docs/assets/review-evidence/bed-assignment/starting-layout.md`.
+
 Resolve reachable free place options before scoring. Compute each option's
 normal utility and survival risk using its actual distance. Collapse them to
 one object/interaction candidate, prioritizing lower survival risk, then

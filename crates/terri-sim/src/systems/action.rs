@@ -55,7 +55,7 @@ use crate::Content;
 /// Both admission systems read the same ownership inputs before recording local claims.
 #[derive(SystemParam)]
 pub struct BedState<'w, 's> {
-    assignments: Res<'w, crate::beds::BedAssignments>,
+    pub(super) assignments: Res<'w, crate::beds::BedAssignments>,
     targets: Query<
         'w,
         's,
@@ -71,7 +71,7 @@ pub struct BedState<'w, 's> {
 }
 
 impl BedState<'_, '_> {
-    fn occupancy(&self) -> crate::beds::Occupancy {
+    pub(super) fn occupancy(&self) -> crate::beds::Occupancy {
         crate::beds::Occupancy::new(
             self.targets.iter().map(|(owner, target, place, agent)| {
                 (owner, *target, place.copied().filter(|_| agent))
@@ -443,12 +443,14 @@ mod sampler_tests {
 /// [`select_action`]: the query tuple is what pushes past clippy's
 /// threshold, and a type alias would only move it somewhere less
 /// readable.
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn serve_intents(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
     beds: BedState,
+    mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
+    identities: Query<&SimId>,
     // Work outranks the queue - [E4]. serve_intents deliberately sees
     // mid-walk and mid-meal sims because a player intent preempts, but
     // the clock's preemption is not preemptable back: a commuting or
@@ -684,6 +686,20 @@ pub fn serve_intents(
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
                     .insert(terri_core::ChainState::begin(global as u32));
+                if let Ok(id) = identities.get(agent) {
+                    boundaries
+                        .0
+                        .entry(id.0)
+                        .or_insert(terri_core::save::SavedBoundaryDecision {
+                            actor: id.0,
+                            expires: 0,
+                            lapse: false,
+                            waiting_since: None,
+                            goal: None,
+                            directed_chain: None,
+                        })
+                        .directed_chain = Some(global as u32);
+                }
                 claimed.push(agent);
                 queue.pop();
                 continue;
@@ -832,6 +848,7 @@ pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
     clock: Res<SimClock>,
     mut rng: ResMut<SimRng>,
     mortality: Res<terri_core::save::SavedMortality>,
@@ -1100,6 +1117,9 @@ pub fn select_action(
                         false,
                     );
                     score -= risk;
+                    if let Some(phase) = &interpersonal {
+                        score -= phase.object_cost(agent, object, &advert.tags);
+                    }
                     (score, risk)
                 };
                 let chosen = reachable
@@ -1278,6 +1298,9 @@ pub fn select_action(
                     false,
                 );
                 score -= risk;
+                if let Some(phase) = &interpersonal {
+                    score -= phase.social_cost(agent, other, index as u32, content.0);
+                }
                 if contested {
                     waiting_rows.push((other, contested_score(score, contested_multiplier), None));
                 }

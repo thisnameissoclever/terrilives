@@ -100,6 +100,12 @@ pub fn follow_path(
     content: Res<Content>,
     grid: Res<TileGrid>,
     mut rng: ResMut<SimRng>,
+    mut interpersonal: ResMut<super::interpersonal::InterpersonalPhase>,
+    mut boundaries: ResMut<crate::privacy::BoundaryDecisions>,
+    clock: Res<terri_core::SimClock>,
+    mut diagnostics: ResMut<crate::relationship_effects::RelationshipDiagnostics>,
+    identities: Query<&terri_core::SimId>,
+    beds: super::action::BedState,
     mut agents: Query<(
         Entity,
         &mut Position,
@@ -109,9 +115,31 @@ pub fn follow_path(
         Option<&mut terri_core::ChainState>,
     )>,
     objects: Query<&SmartObject>,
+    furniture: Query<
+        (
+            Entity,
+            &Position,
+            &SmartObject,
+            Option<&terri_core::ObjectFacing>,
+            Option<&Reserved>,
+        ),
+        Without<Path>,
+    >,
     sims: Query<(), With<Agent>>,
     partners: Query<(&Position, Option<&Reserved>, Option<&Target>), (With<Agent>, Without<Path>)>,
 ) {
+    let furniture: Vec<_> = furniture
+        .iter()
+        .map(|(entity, &position, placed, facing, _reserved)| {
+            super::interpersonal::BoundaryFurniture {
+                entity,
+                position,
+                definition: placed.0,
+                facing: facing.map_or(content.0.object(placed.0).base_facing, |f| f.0),
+            }
+        })
+        .collect();
+    let occupancy = beds.occupancy();
     let mut walking: Vec<Entity> = agents
         .iter()
         .map(|(entity, _, _, _, _, _)| entity)
@@ -189,6 +217,35 @@ pub fn follow_path(
                 // read them out of this same pack when it scored the advert,
                 // and the pack is fixed at build time.
                 let act = &content.0.object(placed.0).interactions[target.interaction as usize];
+                if act
+                    .tags
+                    .iter()
+                    .any(|tag| tag == super::interpersonal::PRIVATE_USE_TAG)
+                    && interpersonal.start_blocked(entity, target.object)
+                    && !interpersonal.permit(
+                        entity,
+                        Some(target),
+                        content.0,
+                        Some(placed.0),
+                        *pos,
+                        &grid,
+                        &furniture,
+                        &occupancy,
+                        &beds.assignments,
+                        clock.tick,
+                        &mut boundaries,
+                        &mut rng,
+                    )
+                {
+                    if let Ok(&id) = identities.get(entity) {
+                        diagnostics.waits.push((
+                            id,
+                            true,
+                            clock.tick - boundaries.0[&id.0].waiting_since.unwrap_or(clock.tick),
+                        ));
+                    }
+                    continue;
+                }
                 // The content duration is a CENTRE, per [D-4]. This is the
                 // one place the actual length of an interaction is decided,
                 // so it is the one place that draws for it - and it draws
@@ -227,27 +284,37 @@ pub fn follow_path(
                     interaction: target.interaction,
                     remaining_ticks,
                 });
+                if act
+                    .tags
+                    .iter()
+                    .any(|tag| tag == super::interpersonal::PRIVATE_USE_TAG)
+                {
+                    interpersonal.private_start(
+                        entity,
+                        target.object,
+                        tuning.bathroom_privacy_penalty,
+                    );
+                }
             } else if sims.get(target.object).is_ok() {
                 // A reserved partner can be redirected while this route is
                 // in flight. Edge worlds must recheck contact before drawing
                 // voices or duration. Without<Path> also keeps this position
                 // query disjoint from the walkers' mutable positions.
-                if grid.blocked_edges().next().is_some()
-                    && !partners.get(target.object).is_ok_and(
-                        |(partner_position, reserved, partner_target)| {
-                            reserved.is_some()
-                                && partner_target.is_none()
-                                && grid.can_interact_with_rect(
-                                    (pos.x.round() as i32, pos.y.round() as i32),
-                                    (
-                                        partner_position.x.round() as i32,
-                                        partner_position.y.round() as i32,
-                                    ),
-                                    Footprint::SINGLE,
-                                )
-                        },
-                    )
-                {
+                let valid_contact = partners.get(target.object).is_ok_and(
+                    |(partner_position, reserved, partner_target)| {
+                        reserved.is_some()
+                            && partner_target.is_none()
+                            && grid.can_interact_with_rect(
+                                (pos.x.round() as i32, pos.y.round() as i32),
+                                (
+                                    partner_position.x.round() as i32,
+                                    partner_position.y.round() as i32,
+                                ),
+                                Footprint::SINGLE,
+                            )
+                    },
+                );
+                if grid.blocked_edges().next().is_some() && !valid_contact {
                     commands.entity(entity).remove::<Path>().remove::<Target>();
                     commands.entity(target.object).remove::<Reserved>();
                     continue;
@@ -258,6 +325,16 @@ pub fn follow_path(
                 // partner stays as it was - standing, `Reserved` - until
                 // `tick_social` releases it on completion.
                 let act = &content.0.social[target.interaction as usize];
+                // Legacy movement retains its historical random draws on a
+                // failed approach, but only actual contact leaves an impression.
+                if valid_contact {
+                    interpersonal.conversation_start(
+                        entity,
+                        target.object,
+                        target.interaction,
+                        content.0,
+                    );
+                }
                 // The voice clips decide the length when the pack has them,
                 // and the ordinary draw decides it when it does not. Both
                 // read the same generator in the same place, so a pack with
@@ -312,6 +389,43 @@ pub fn follow_path(
         let dy = ty as f32 - pos.y;
         let dist = (dx * dx + dy * dy).sqrt();
 
+        let next = if dist <= SPEED {
+            Position {
+                x: tx as f32,
+                y: ty as f32,
+            }
+        } else {
+            Position {
+                x: pos.x + dx / dist * SPEED,
+                y: pos.y + dy / dist * SPEED,
+            }
+        };
+        if interpersonal.entry_blocked(entity, next)
+            && !interpersonal.permit(
+                entity,
+                target,
+                content.0,
+                target.and_then(|t| objects.get(t.object).ok()).map(|o| o.0),
+                *pos,
+                &grid,
+                &furniture,
+                &occupancy,
+                &beds.assignments,
+                clock.tick,
+                &mut boundaries,
+                &mut rng,
+            )
+        {
+            if let Ok(&id) = identities.get(entity) {
+                diagnostics.waits.push((
+                    id,
+                    false,
+                    clock.tick - boundaries.0[&id.0].waiting_since.unwrap_or(clock.tick),
+                ));
+            }
+            continue;
+        }
+
         if dist <= SPEED {
             pos.x = tx as f32;
             pos.y = ty as f32;
@@ -320,6 +434,7 @@ pub fn follow_path(
             pos.x += dx / dist * SPEED;
             pos.y += dy / dist * SPEED;
         }
+        interpersonal.moved(entity, *pos, content.0.tuning.bathroom_privacy_penalty);
     }
 }
 

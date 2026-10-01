@@ -35,6 +35,19 @@ This does not add controls, personality identity, saved state, commands or
 new simulation behavior. Future sensitivities, skills and editing remain
 their own roadmap work. Traits and People retain their existing panels.
 
+Shyness appears inside the personality disclosure, alongside the need factors
+and sleep rhythm. It uses the existing 1-100 value. Periodic refresh runs only
+while this section is visible. Opening it, switching people or loading refreshes the
+display; an absent selection clears the value. Overview no longer gives
+shyness a standalone summary row.
+
+The desktop sheet starts at 360 pixels wide. Expanding this disclosure allows
+540 pixels for its tables and bed controls. Other tabs return to the narrower
+width. Navigation wraps so all tabs stay reachable. Compact screens retain
+their available-width sheet and 44-pixel controls.
+The local follow-up's checks and captures are in
+`docs/assets/review-evidence/sim-details-layout/README.md`.
+
 ## Data contract
 
 `Sim::details_of` requires Agent and Personality; Habituation is optional.

@@ -23,8 +23,8 @@
 # ---------------------------------------------------------------------------
 #
 # Kitchen x0..7 and living x8..15 occupy y0..5. Below y=5.5, bedroom
-# x0..5, study x6..11, and bathroom x12..15 occupy y6..11. Furniture
-# origins are unchanged. The former blocked wall cells are now usable floor.
+# x0..5, study x6..11, and bathroom x12..15 occupy y6..11. The former
+# blocked wall cells are now usable floor.
 # Doors: V(8,2), H(3,6), H(13,6), V(6,9), V(12,8).
 #
 # Five rooms, and the circulation is a **ring** rather than a tree:
@@ -222,9 +222,9 @@ place = [
 
   # ---- Bedroom, x 0..5, y 6..11 ----------------------------------------
   #
-  # The double bed is in the corner furthest from everything, which is
-  # what makes "I am tired" a journey rather than a step to the left.
-  { object = "double_bed", x = 0.0, y = 6.0 },
+  # Both sleeping sides need open approaches. The north side has row 7;
+  # the south side uses (1, 10), beside the one-tile dresser.
+  { object = "double_bed", x = 0.0, y = 8.0 },
   { object = "nightstand", x = 2.0, y = 6.0, facing = "SW" },
   { object = "dresser", x = 0.0, y = 10.0 },
   # `moving_box` is the bike's historical Save V1 persistence key. Keep the

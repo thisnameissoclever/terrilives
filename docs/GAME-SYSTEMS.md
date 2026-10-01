@@ -393,12 +393,14 @@ assigning ownership or adding a separate drain.
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades feelings toward living people. Affinity toward a dead person is preserved for grief. The shipped waiting moodlet does not implement the relationship penalty in [H12]. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Talking, pleasant company and recognized shared activities can raise it; incompatible preferences create friction, and time slowly fades it toward neutral for living people. Affinity toward a dead person remains preserved for grief. The local unmet-needs/privacy slice adds directional losses for inconvenient conversations, walking in during private bathroom use, and starting private use beside existing occupants. It follows the furniture's actual room, including an open-plan living room. Each Sim also has shyness from 1 to 100: higher values amplify their annoyance and strengthen deliberate privacy avoidance. Cached choices, safe alternatives, urgent-need overrides and player orders preserve access. [The behavior spec](specs/2026-09-30-need-social-privacy.md) records the incident rules, and [relationship development](specs/2026-09-30-relationship-development.md) records the contact rules and measured balance. One social action exists, a two-person chat, with recorded voice clips that set its length. The shared-time, activity and compatibility portion of `[H13]` is implemented locally. Items `[H12]`, `[H14]` and `[H15]` remain planned. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
-- `[H13]` Slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
+- `[H13]` Very small gains from pleasant shared time without smell or personality incompatibility, substantially larger gains from doing an activity together, and negative drift from incompatible personalities. The owner's privacy balance target is roughly one violation per normal Sim per simulated week, with about two days of ordinary cohabitation and interaction to recover for average-compatibility Sims; the [implementation specification](specs/2026-09-30-relationship-development.md) records the mechanics and measurement contract.
 - `[H14]` Autonomous friendly conversations above a positive threshold, and fights below a negative one.
 - `[H15]` Extroversion changing how readily a person starts either.
+
+Visible directional hostility, reactions and mild room-based avoidance are planned in [B-hostility-expression](FEATURES.md#b-hostility-expression-make-interpersonal-hostility-visible).
 
 Also missing: more social actions than chat, group conversations (the content already declares a slot count that nothing reads), and a romance axis.
 

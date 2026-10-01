@@ -7,6 +7,8 @@
 pub mod compile;
 pub mod error;
 pub mod pack;
+mod relationship_tuning;
+pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
 
 pub use compile::{compile, SIM_SPRITE};

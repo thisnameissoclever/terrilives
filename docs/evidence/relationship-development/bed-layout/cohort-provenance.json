@@ -1,0 +1,34 @@
+[
+  {
+    "cohort": "calibration",
+    "fresh": "docs/evidence/relationship-development/bed-layout/calibration-shipped.txt",
+    "retained": "docs/evidence/relationship-development/bed-integration/calibration.txt",
+    "retained_scenarios": [
+      "two",
+      "three",
+      "four",
+      "recovery0",
+      "recovery5",
+      "incompatible"
+    ],
+    "combined": "docs/evidence/relationship-development/bed-layout/calibration-combined.txt",
+    "prior_sha256": "df2e9130f9bb271d4d344e175048348ff3d5219cf4a921ccb681f44bedc0a68f",
+    "fresh_sha256": "4b6d6fc98dc6a6e5fccb18e1abe02987e2eb6ff2c96948ceee74748ca5f4df77"
+  },
+  {
+    "cohort": "validation",
+    "fresh": "docs/evidence/relationship-development/bed-layout/validation-shipped.txt",
+    "retained": "docs/evidence/relationship-development/bed-integration/validation.txt",
+    "retained_scenarios": [
+      "two",
+      "three",
+      "four",
+      "recovery0",
+      "recovery5",
+      "incompatible"
+    ],
+    "combined": "docs/evidence/relationship-development/bed-layout/validation-combined.txt",
+    "prior_sha256": "83012978ba9cd19f81b45773d766c4528c9bb8599b2693ab9e68935b8220aa32",
+    "fresh_sha256": "d5f422cb803708ec043153e6b5e29ce72e637a5528f7e2d0f7fc2de810596d2e"
+  }
+]

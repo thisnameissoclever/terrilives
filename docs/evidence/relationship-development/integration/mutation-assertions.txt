@@ -1,0 +1,175 @@
+
+running 1 test
+test relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity ... FAILED
+
+failures:
+
+---- relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity stdout ----
+
+thread 'relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity' (65304) panicked at crates\terri-sim\src\relationship_dynamics.rs:417:9:
+assertion failed: (feeling(&sim, a, SimId(1)) - 0.02 / 60.0).abs() < 0.0000001
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    relationship_dynamics::tests::shared_reading_pays_ten_times_proximity_and_does_not_also_pay_proximity
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 740 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.87s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears' (59100) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:91:5:
+assertion `left == right` failed
+  left: 1.5
+ right: 1.25
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 740 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.68s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+running 1 test
+test privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not ... FAILED
+
+failures:
+
+---- privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not stdout ----
+
+thread 'privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not' (68124) panicked at crates\terri-sim\src\privacy.rs:505:13:
+assertion `left != right` failed: field 0
+  left: 10764083894741568085
+ right: 10764083894741568085
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    privacy::tests::every_boundary_field_changes_the_hash_and_diagnostics_do_not
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 740 filtered out; finished in 0.00s
+
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+warning: function `hash` is never used
+   --> crates\terri-sim\src\privacy.rs:139:15
+    |
+139 | pub(crate) fn hash(world: &World, hasher: &mut terri_core::FnvHasher) {
+    |               ^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `terri-sim` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.65s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+running 1 test
+test save_v3_tests::published_v5_instinct_and_chronotype_prefix_survives_privacy_extension ... FAILED
+
+failures:
+
+---- save_v3_tests::published_v5_instinct_and_chronotype_prefix_survives_privacy_extension stdout ----
+
+thread 'save_v3_tests::published_v5_instinct_and_chronotype_prefix_survives_privacy_extension' (41528) panicked at crates\terri-wasm\src\save_v3_tests.rs:93:5:
+assertion failed: postcard::to_allocvec(&snapshot).unwrap().starts_with(&published)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    save_v3_tests::published_v5_instinct_and_chronotype_prefix_survives_privacy_extension
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 150 filtered out; finished in 0.00s
+
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-wasm)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.82s
+     Running unittests src\lib.rs (target\debug\deps\terri_wasm-dd3bb79986d069a6.exe)
+error: test failed, to rerun pass `-p terri-wasm --lib`
+
+running 1 test
+test systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event stdout ----
+
+thread 'systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event' (71984) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:600:5:
+assertion `left == right` failed
+  left: 0.0
+ right: -0.25
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::interpersonal_entry_offends_the_active_user_and_reentry_is_a_new_event
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 740 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.96s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override' (76576) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:251:9:
+assertion `left == right` failed: wait
+  left: true
+ right: false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 740 filtered out; finished in 0.00s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.47s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`
+
+running 1 test
+test systems::interpersonal::integration_tests::privacy_wander_detours_keep_the_entire_stroll_within_its_budget ... FAILED
+
+failures:
+
+---- systems::interpersonal::integration_tests::privacy_wander_detours_keep_the_entire_stroll_within_its_budget stdout ----
+
+thread 'systems::interpersonal::integration_tests::privacy_wander_detours_keep_the_entire_stroll_within_its_budget' (62996) panicked at crates\terri-sim\src\systems\interpersonal_tests.rs:908:9:
+assertion failed: after.steps.len() <= cap
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    systems::interpersonal::integration_tests::privacy_wander_detours_keep_the_entire_stroll_within_its_budget
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 740 filtered out; finished in 0.01s
+
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.80s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+error: test failed, to rerun pass `-p terri-sim --lib`

@@ -96,3 +96,8 @@ It also lacks the later empty sleep-pressure tail. Tests reproduce the failed
 public load, decode the frozen historical shape, preserve all saved entities,
 resave through V5, and compare 300 ticks of replay. The browser file was read
 without clearing or replacing its saved bytes.
+
+
+The three `bed-era-two-*.bin` files are independent V5 saves from optimized bed-only WASM at `e356b949`, with its new-game double bed moved from (0,6) to (0,8) for accessible approaches. They were produced from the shipped household with seed 2301 using only assignments and ordinary use commands. No saved world was patched. The source build has no shyness or privacy-decision fields. `bed-era-manifest.json` records source, WASM and binding digests, each file's SHA-256 and observed state.
+
+The walking and sleeping fixtures preserve both physical claims and assignments. The pending-clear fixture additionally queues command 19 to clear only the first person's permanent assignment. Tests require exact preservation of all old fields and bytes, append only the two absent privacy vectors, preserve both active leases during the command drain, and replay 40 ticks identically after a current save/load. These locally generated fixtures do not contain player saves or establish bed visual approval.

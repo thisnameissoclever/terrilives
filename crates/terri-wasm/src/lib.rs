@@ -235,17 +235,16 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 9;
+    const APPENDED_LISTS: usize = 11;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                if snapshot.sleeping_places.is_some() != (pad == 0) {
+                if snapshot.sleeping_places.is_some() != (pad <= 2) {
                     return None;
                 }
-                // The final grouped sleep record has its own presence boundary above.
-                // Only the LAST `pad - 1` preceding fields must be zero-valued.
-                // Before that record: chronotypes, instincts, waiting, migration flag, mortality, SimId
+                // Only the LAST `pad` appended fields must be zero-valued.
+                // From the tail: boundaries, shyness, sleeping places, chronotypes, instincts, waiting, migration flag, mortality, SimId
                 // ties, legacy ties, floors. Asking every appended field
                 // to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
@@ -265,28 +264,22 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let mortality = usize::from(snapshot.mortality.is_some());
                 let waiting = snapshot.waiting_needs.len();
                 let migrated = usize::from(snapshot.death_default_applied);
-                let instinct = snapshot.self_preservation.len();
-                let chronotype = snapshot.chronotype_offsets.len();
-                let invented = match pad.saturating_sub(1) {
-                    0 => 0,
-                    1 => chronotype,
-                    2 => chronotype + instinct,
-                    3 => chronotype + instinct + waiting,
-                    4 => chronotype + instinct + waiting + migrated,
-                    5 => chronotype + instinct + waiting + migrated + mortality,
-                    6 => chronotype + instinct + waiting + migrated + mortality + family,
-                    7 => chronotype + instinct + waiting + migrated + mortality + family + by_index,
-                    _ => {
-                        chronotype
-                            + instinct
-                            + waiting
-                            + migrated
-                            + mortality
-                            + family
-                            + by_index
-                            + snapshot.floors.tiles().len()
-                    }
-                };
+                let invented: usize = [
+                    snapshot.boundaries.len(),
+                    snapshot.shyness.len(),
+                    usize::from(snapshot.sleeping_places.is_some()),
+                    snapshot.chronotype_offsets.len(),
+                    snapshot.self_preservation.len(),
+                    waiting,
+                    migrated,
+                    mortality,
+                    family,
+                    by_index,
+                    snapshot.floors.tiles().len(),
+                ]
+                .iter()
+                .take(pad)
+                .sum();
                 return (invented == 0).then_some(snapshot);
             }
             Err(postcard::Error::DeserializeUnexpectedEnd) => padded.push(0),
@@ -2254,6 +2247,11 @@ impl SimHandle {
         NEED_MAX
     }
 
+    /// Zero denotes a missing person; every real stat is in 1..=100.
+    pub fn shyness_of(&self, index: u32) -> u32 {
+        self.sim.shyness_of(index).map_or(0, u32::from)
+    }
+
     /// How often the shell should re-read a selected sim's needs, in real
     /// milliseconds, from `content/tuning.toml`.
     ///
@@ -2349,6 +2347,13 @@ mod boundary_tests {
         let current = SimHandle::from_lot();
         let pack = current.sim.world().resource::<Content>().0;
         let mut lot = pack.lot.clone();
+        let origins = include!("../../test-fixtures/pre-yard-placements.rs");
+        assert_eq!(lot.placements.len(), origins.len());
+        for (placement, (id, x, y, facing)) in lot.placements.iter_mut().zip(origins) {
+            assert_eq!(pack.object(placement.object).id, id);
+            (placement.x, placement.y) = (x, y);
+            placement.facing = facing;
+        }
         // The cell-wall house stood on the lot before the yard ([OS-grow]).
         (lot.width, lot.height) = lot.house;
         lot.wall_edges.clear();
@@ -2619,7 +2624,7 @@ mod boundary_tests {
 
     #[test]
     fn rotated_bathtub_loads_public_v1_bytes_and_resaves_idempotently() {
-        let mut old = SimHandle::from_lot().sim.save_snapshot();
+        let mut old = legacy_cell_handle().sim.save_snapshot();
         before_the_yard(&mut old);
         set_legacy_walls(&mut old, true);
         old.content_fingerprint = 0xa020_602a_6acd_3a90;
@@ -2877,6 +2882,52 @@ mod boundary_tests {
             let (at, ..) = tick_until(&mut handle, |state| state.1);
             assert_eq!(at, exit, "{name}: the next shift goes to the street");
         }
+    }
+
+    #[test]
+    fn shyness_save_tail_preserves_values_and_accepts_the_previous_v5_shape() {
+        let mut handle = SimHandle::from_lot();
+        let entity = {
+            let world = handle.sim.world_mut();
+            let mut people = world.query::<(terri_core::Entity, &terri_core::Agent)>();
+            people
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .min_by_key(|e| e.index())
+                .unwrap()
+        };
+        let initial = handle.shyness_of(entity.index_u32());
+        assert!((1..=100).contains(&initial));
+        assert_eq!(handle.shyness_of(u32::MAX), 0);
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(entity)
+            .insert(terri_core::Shyness::new(100).unwrap());
+        let bytes = handle.save_bytes();
+        let hash = handle.world_hash();
+        assert!(handle.load_bytes(&bytes));
+        assert_eq!(handle.shyness_of(entity.index_u32()), 100);
+        assert_eq!(handle.world_hash(), hash);
+        let mut snapshot = handle.sim.save_snapshot_v5();
+        snapshot.shyness.clear();
+        let mut previous = postcard::to_allocvec(&snapshot).unwrap();
+        assert_eq!(previous.pop(), Some(0)); // Boundary decisions.
+        assert_eq!(previous.pop(), Some(0)); // Shyness.
+        let old = decode_v5(&previous).unwrap();
+        assert!(old.shyness.is_empty());
+        let mut previous_bytes = bytes[..SAVE_HEADER_BYTES].to_vec();
+        previous_bytes.extend(previous);
+        assert!(handle.load_bytes(&previous_bytes));
+        assert_eq!(handle.shyness_of(entity.index_u32()), initial);
+        let before = handle.world_hash();
+        assert!(!handle.load_bytes(&bytes[..bytes.len() - 2]));
+        assert_eq!(handle.world_hash(), before);
+        snapshot.shyness = vec![(0, 101)];
+        let mut invalid = bytes[..SAVE_HEADER_BYTES].to_vec();
+        invalid.extend(postcard::to_allocvec(&snapshot).unwrap());
+        assert!(!handle.load_bytes(&invalid));
+        assert_eq!(handle.world_hash(), before);
     }
 
     /// [OS-migrate], with real bytes: a Save V5 written by the build before the
@@ -3258,7 +3309,7 @@ mod boundary_tests {
 
     #[test]
     fn a_legacy_fingerprint_crosses_the_public_byte_loader_and_migrates_names() {
-        let source = SimHandle::from_lot();
+        let source = legacy_cell_handle();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         before_the_yard(&mut snapshot);
@@ -3318,7 +3369,7 @@ mod boundary_tests {
 
     #[test]
     fn the_prior_structural_fingerprint_crosses_the_public_byte_loader_without_renaming() {
-        let source = SimHandle::from_lot();
+        let source = legacy_cell_handle();
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         before_the_yard(&mut snapshot);
@@ -5353,16 +5404,27 @@ mod boundary_tests {
             "the legacy wall export must not become empty"
         );
 
-        let pack = handle.sim.world().resource::<Content>().0;
+        let world = handle.sim.world();
+        let pack = world.resource::<Content>().0;
         let mut covered = 0usize;
-        for placement in &pack.lot.placements {
-            let object = pack.object(placement.object);
-            let footprint = object.footprint;
+        let mut objects = world
+            .try_query::<(
+                &Position,
+                &terri_core::SmartObject,
+                Option<&terri_core::ObjectFacing>,
+            )>()
+            .unwrap();
+        let mut object_count = 0;
+        for (position, smart, facing) in objects.iter(world) {
+            object_count += 1;
+            let object = pack.object(smart.0);
+            let footprint =
+                object.footprint_at(facing.map_or(object.base_facing, |facing| facing.0));
             for dx in 0..footprint.width {
                 for dy in 0..footprint.depth {
                     let tile = (
-                        placement.x.round() as u32 + dx,
-                        placement.y.round() as u32 + dy,
+                        position.x.floor() as u32 + dx,
+                        position.y.floor() as u32 + dy,
                     );
                     covered += 1;
                     assert!(
@@ -5378,7 +5440,7 @@ mod boundary_tests {
         // wider than a single tile - otherwise the multi-tile half of this is
         // untested and the whole thing could pass on an empty lot.
         assert!(
-            covered > 8,
+            object_count > 0 && covered > object_count,
             "expected more tiles than objects; got {covered}"
         );
     }
@@ -7988,15 +8050,9 @@ mod instinct_boundary_tests {
         snapshot.self_preservation.clear();
         snapshot.chronotype_offsets.clear();
         let mut payload = postcard::to_allocvec(&snapshot).unwrap();
-        let suffix = postcard::to_allocvec(&snapshot.self_preservation)
-            .unwrap()
-            .len()
-            + postcard::to_allocvec(&snapshot.chronotype_offsets)
-                .unwrap()
-                .len()
-            + postcard::to_allocvec(&snapshot.sleeping_places)
-                .unwrap()
-                .len();
+        let suffix: usize = super::save_v3_tests::v5_appended_lengths(&snapshot)[6..]
+            .iter()
+            .sum();
         payload.truncate(payload.len() - suffix);
         let decoded = decode_v5(&payload).unwrap();
         assert!(decoded.self_preservation.is_empty());
@@ -8014,12 +8070,9 @@ mod instinct_boundary_tests {
         current.chronotype_offsets.clear();
         let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
         truncated.extend(postcard::to_allocvec(&current).unwrap());
-        let suffix = postcard::to_allocvec(&current.chronotype_offsets)
-            .unwrap()
-            .len()
-            + postcard::to_allocvec(&current.sleeping_places)
-                .unwrap()
-                .len();
+        let suffix: usize = super::save_v3_tests::v5_appended_lengths(&current)[7..]
+            .iter()
+            .sum();
         truncated.truncate(truncated.len() - suffix - 1);
         let before = loaded.save_bytes();
         assert!(!loaded.load_bytes(&truncated));

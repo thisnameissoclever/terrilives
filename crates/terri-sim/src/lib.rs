@@ -2,6 +2,7 @@
 
 mod action_queue;
 pub mod beds;
+mod compatibility;
 pub mod details;
 #[cfg(test)]
 mod facing_tests;
@@ -11,11 +12,16 @@ mod mood;
 pub mod mortality;
 pub mod placement;
 pub mod portals;
+mod privacy;
+mod relationship_dynamics;
+pub mod relationship_effects;
 pub mod render_buffer;
 mod reservations;
 #[cfg(test)]
 mod reservations_tests;
+mod room_regions;
 mod save;
+mod shyness;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
@@ -748,6 +754,14 @@ impl Sim {
             self_preservation: save::self_preservation::capture(&self.world),
             chronotype_offsets: save::chronotype::capture(&self.world),
             sleeping_places: Some(save::sleeping_places::capture(&self.world)),
+            shyness: shyness::deviations(&self.world),
+            boundaries: self
+                .world
+                .resource::<privacy::BoundaryDecisions>()
+                .0
+                .values()
+                .cloned()
+                .collect(),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -848,6 +862,9 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+        world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
+        world.insert_resource(relationship_dynamics::RelationshipContext::default());
+        world.insert_resource(privacy::BoundaryDecisions::default());
         world.insert_resource(terri_core::save::SavedMortality {
             enabled: true,
             ..Default::default()
@@ -921,6 +938,7 @@ impl Sim {
         world.register_component::<terri_core::SimId>();
         world.register_component::<terri_core::SimName>();
         world.register_component::<terri_core::Personality>();
+        world.register_component::<terri_core::Shyness>();
         // M2d's two. `Relationships` is in `world_hash`'s query, so [L3]
         // bites the way it does for Habituation: unregistered, the digest
         // goes EMPTY rather than wrong, and empty compares equal to
@@ -1041,7 +1059,11 @@ impl Sim {
                 // which `select_action` deliberately does not, because
                 // an intent PREEMPTS a running interaction. See that
                 // function's docs for why that is the choice.
-                systems::action::serve_intents,
+                (
+                    systems::action::serve_intents,
+                    systems::interpersonal::prepare,
+                )
+                    .chain(),
                 systems::action::select_action,
                 // Directly after selection, so a chain chosen this
                 // tick (or resumed after an interruption) gets its
@@ -1058,7 +1080,13 @@ impl Sim {
                 // exactly like a path to an object - a wander that had
                 // to wait a tick would read as a hesitation.
                 systems::idle::wander,
-                systems::movement::follow_path,
+                (
+                    privacy::route,
+                    systems::movement::follow_path,
+                    systems::interpersonal::apply,
+                    relationship_dynamics::tick,
+                )
+                    .chain(),
                 // Directly after movement, because arrival at the door
                 // is a fact `follow_path` establishes (an exhausted
                 // target-less path is removed there - the wander shape,
@@ -1091,7 +1119,7 @@ impl Sim {
                 // lives.
                 systems::satisfaction::bleed_neglect,
                 mortality::tick,
-                mood::accrue_satisfaction,
+                (mood::accrue_satisfaction, privacy::maintain).chain(),
             )
                 .chain(),
         );
@@ -1290,7 +1318,7 @@ impl Sim {
                 .filter(|edge| edge.in_bounds(width, height))
                 .copied()
                 .collect(),
-            ..pack.lot.clone()
+            ..test_content::historical_lot(pack)
         };
         let mut sim = Self::new_from_lot(&lot, &pack.objects);
         sim.world
@@ -1352,6 +1380,7 @@ impl Sim {
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
         self.command_schedule.run(&mut self.world);
+        privacy::maintain(&mut self.world);
     }
 
     /// Returns and clears the number of object or social orders refused
@@ -2413,6 +2442,13 @@ impl Sim {
         state.iter(&self.world).map(|e| e.index_u32()).min()
     }
 
+    pub fn shyness_of(&self, index: u32) -> Option<u8> {
+        let index = bevy_ecs::entity::EntityIndex::from_raw_u32(index)?;
+        let entity = self.world.entities().resolve_from_index(index);
+        self.world.get::<terri_core::Agent>(entity)?;
+        Some(shyness::of(&self.world, entity).value())
+    }
+
     /// Hashes all simulation-visible state. Entities are sorted by index
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
@@ -3049,6 +3085,16 @@ impl Sim {
             for (index, offset) in offsets {
                 hasher.write_u64(u64::from(index));
                 hasher.write_u64(offset as i64 as u64);
+            }
+        }
+        privacy::hash(&self.world, &mut hasher);
+        let shyness = shyness::deviations(&self.world);
+        if !shyness.is_empty() {
+            hasher.write_u64(0x5348_594E_4553);
+            hasher.write_u64(shyness.len() as u64);
+            for (id, value) in shyness {
+                hasher.write_u64(u64::from(id));
+                hasher.write_u64(u64::from(value));
             }
         }
         hasher.finish()
@@ -3705,18 +3751,18 @@ mod lot_tests {
         // **The double bed is the 2x2 object, and all four of its tiles are
         // solid.** Literal coordinates for the same reason as the doorways
         // above. The depth axis matters as much as the width: a rule that
-        // walked `width` twice would leave (0, 7) and (1, 7) walkable and a
+        // walked `width` twice would leave (0, 9) and (1, 9) walkable and a
         // sim would path straight through the bed, which is the transposition
         // trap in [L34] wearing a footprint.
-        for tile in [(0, 6), (1, 6), (0, 7), (1, 7)] {
+        for tile in [(0, 8), (1, 8), (0, 9), (1, 9)] {
             assert!(
                 !grid.is_walkable(tile.0, tile.1),
                 "the double bed covers {tile:?} and it must be solid"
             );
         }
         assert!(
-            grid.is_walkable(2, 7),
-            "(2, 7) is beside the bed and is where a sim sleeps from"
+            grid.is_walkable(1, 7) && grid.is_walkable(1, 10),
+            "both sleeping sides need a walkable approach"
         );
     }
 }

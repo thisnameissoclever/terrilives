@@ -50,7 +50,14 @@ fn arrival(edge_mode: bool) -> (Sim, Entity, Entity) {
 
 fn run_arrival(sim: &mut Sim) {
     let mut schedule = Schedule::default();
-    schedule.add_systems(follow_path);
+    schedule.add_systems(
+        (
+            crate::systems::interpersonal::prepare,
+            follow_path,
+            crate::systems::interpersonal::apply,
+        )
+            .chain(),
+    );
     schedule.run(sim.world_mut());
 }
 
@@ -141,6 +148,14 @@ fn edge_social_arrival_accepts_open_door_contact_using_rounded_positions() {
 fn legacy_social_arrival_without_solid_edges_keeps_its_previous_draws_and_behavior() {
     let (mut sim, initiator, partner) = arrival(false);
     sim.world_mut()
+        .entity_mut(initiator)
+        .insert((terri_core::SimId(0), terri_core::Needs::all_at(100.0)));
+    let mut needs = terri_core::Needs::all_at(100.0);
+    needs.set(NeedId::Bladder, 10.0);
+    sim.world_mut()
+        .entity_mut(partner)
+        .insert((terri_core::SimId(1), needs));
+    sim.world_mut()
         .entity_mut(partner)
         .remove::<Reserved>()
         .insert(Position { x: 6.0, y: 2.0 });
@@ -157,4 +172,8 @@ fn legacy_social_arrival_without_solid_edges_keeps_its_previous_draws_and_behavi
     assert_eq!(social.remaining_ticks, 74);
     assert!(sim.world().get::<Path>(initiator).is_none());
     assert!(sim.world().get::<Target>(initiator).is_some());
+    assert!(sim
+        .world()
+        .get::<terri_core::Relationships>(partner)
+        .is_none());
 }

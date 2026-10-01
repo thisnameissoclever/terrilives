@@ -1,0 +1,223 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `release` profile [optimized] target(s) in 13.47s
+     Running `target\release\examples\trace.exe 120000`
+(Bill's fridge interaction was still running at tick 120000: 21 ticks so far, not counted)
+
+120000 ticks (200.0 min at 1x), household of 3
+
+INTERACTIONS  2827 total, all sims
+object               count  share   min   max   mean  content     
+fridge                 446  15.8%    18    42   25.9  30          
+bed                    178   6.3%   108   252  157.8  180         
+shower                 321  11.4%    27    62   38.2  45          
+toilet                 638  22.6%    14    34   20.7  24          
+television             236   8.3%    33    77   47.1  55          
+sofa                    67   2.4%    30    70   42.5  50          
+sink                    89   3.1%    13    29   18.9  21          
+bookshelf              125   4.4%    20    47   28.9  34          
+stove                    -      -     -     -      -               (scenery)
+counter                  -      -     -     -      -               (scenery)
+kitchen_sink            92   3.3%    14    32   20.2  23          
+dining_table            32   1.1%    37    85   49.1  62          
+chair                    -      -     -     -      -               (scenery)
+trashcan                 -      -     -     -      -               (scenery)
+long_sofa               70   2.5%    43   101   64.3  72          
+armchair                57   2.0%    25    55   37.7  41          
+radio                   96   3.4%    23    53   32.8  38          
+potted_plant             -      -     -     -      -               (scenery)
+floor_lamp               -      -     -     -      -               (scenery)
+coat_rack                -      -     -     -      -               (scenery)
+double_bed             120   4.2%   126   293  181.1  210         
+nightstand               -      -     -     -      -               (scenery)
+dresser                  -      -     -     -      -               (scenery)
+moving_box               4   0.1%    50    59   52.8  83          
+desk                    60   2.1%    35    79   50.1  58          
+desk_chair               -      -     -     -      -               (scenery)
+reading_chair           44   1.6%    28    64   41.2  46          
+reference_shelf         15   0.5%    41    87   55.9  67          
+bathtub                 54   1.9%    47   107   71.0  78          
+laundry                  -      -     -     -      -               (scenery)
+
+CONVERSATIONS  83 total
+initiator -> partner   count   min   max   mean
+Tim -> Bill               14    58    75   66.6
+Tim -> Casey              25    56    79   66.1
+Casey -> Tim               2    71    81   76.0
+Casey -> Bill             42    54    81   66.5
+
+WHO DOES WHAT
+Tim      839 interactions, 86 back to back  |  toilet 140, bookshelf 122, fridge 112, shower 85, desk 53, bed 52, reading_chair 42, double_bed 37, kitchen_sink 37, sink 30, chat with Casey 25, television 24, radio 23, chat with Bill 14, long_sofa 11, bathtub 10, dining_table 10, sofa 8, reference_shelf 4
+Bill     988 interactions, 27 back to back  |  toilet 252, fridge 165, television 133, shower 132, armchair 56, bed 55, long_sofa 46, double_bed 39, sink 38, kitchen_sink 30, sofa 15, bathtub 12, reference_shelf 11, bookshelf 2, dining_table 1, reading_chair 1
+Casey    1000 interactions, 21 back to back  |  toilet 246, fridge 169, shower 104, television 79, radio 73, bed 71, double_bed 44, sofa 44, chat with Bill 42, bathtub 32, kitchen_sink 25, dining_table 21, sink 21, long_sofa 13, desk 7, moving_box 4, chat with Tim 2, armchair 1, bookshelf 1, reading_chair 1
+
+CANDIDATE TABLE at tick 120000: Tim at (19, 2)
+object          dist    hab   disp  trait  scale     score  contributions
+toilet            10   0.00   1.00   1.00   1.00    0.0513  Bladder 0.0513 (lvl 67) 
+kitchen_sink      18   0.00   1.00   1.00   1.00    0.0158  Hygiene 0.0165 (lvl 57) Comfort -0.0007 (lvl 78) 
+fridge            22   0.00   1.00   1.00   1.00    0.0127  Hunger 0.0127 (lvl 66) 
+moving_box        23   0.00   1.00   1.00   1.00    0.0050  Energy -0.0031 (lvl 59) Hygiene -0.0022 (lvl 57) Fun 0.0103 (lvl 58) 
+bed               16   0.00   1.00   1.00   1.00    0.0319  Energy 0.0319 (lvl 59) 
+reading_chair     16   0.00   1.28   1.35   1.73    0.0217  Fun 0.0192 (lvl 58) Comfort 0.0024 (lvl 78) 
+armchair           9   0.00   1.00   1.00   1.00    0.0039  Comfort 0.0039 (lvl 78) 
+sofa               7   0.00   1.00   1.00   1.00    0.0193  Fun 0.0148 (lvl 58) Comfort 0.0045 (lvl 78) 
+desk              19   0.00   1.70   1.00   1.70    0.0259  Energy -0.0035 (lvl 59) Fun 0.0295 (lvl 58) 
+television        11   0.00   0.55   1.00   0.55    0.0113  Social 0.0006 (lvl 84) Fun 0.0107 (lvl 58) 
+dining_table      18   0.00   1.00   1.00   1.00    0.0032  Social 0.0004 (lvl 84) Comfort 0.0029 (lvl 78) 
+long_sofa         11   0.00   1.00   1.00   1.00    0.0171  Energy 0.0060 (lvl 59) Fun 0.0072 (lvl 58) Comfort 0.0038 (lvl 78) 
+radio             13   0.00   1.00   1.00   1.00    0.0160  Social 0.0002 (lvl 84) Fun 0.0157 (lvl 58) 
+double_bed        24   0.00   1.00   1.00   1.00    0.0278  Energy 0.0275 (lvl 59) Comfort 0.0003 (lvl 78) 
+sink              14   0.00   1.00   1.00   1.00    0.0325  Hygiene 0.0325 (lvl 57) 
+bathtub           13   0.00   1.00   1.00   1.00    0.0359  Energy -0.0016 (lvl 59) Hygiene 0.0350 (lvl 57) Comfort 0.0025 (lvl 78) 
+reference_shelf    20   0.00   1.00   1.00   1.00    0.0125  Fun 0.0110 (lvl 58) Comfort 0.0015 (lvl 78) 
+bookshelf         14   0.18   1.45   1.35   1.76    0.0326  Fun 0.0326 (lvl 58) 
+shower            10   0.00   1.00   1.00   1.00    0.0549  Energy -0.0095 (lvl 59) Hygiene 0.0644 (lvl 57) 
+Bill              21  -0.76   0.62   1.00   0.62    0.0036  Social 0.0009 (lvl 84) Fun 0.0027 (lvl 58)  (chat) (busy)
+Casey             22   0.19   1.09   1.00   1.09    0.0062  Social 0.0016 (lvl 84) Fun 0.0046 (lvl 58)  (chat) (busy)
+
+CANDIDATE TABLE at tick 120000: Bill at (0, 1)
+object          dist    hab   disp  trait  scale     score  contributions
+toilet            18   0.03   1.00   1.00   0.98    0.0217  Bladder 0.0217 (lvl 72) 
+kitchen_sink       4   0.00   1.00   1.00   1.00    0.0070  Hygiene 0.0133 (lvl 70) Comfort -0.0063 (lvl 65) 
+fridge             0   0.19   1.00   1.00   0.90    0.0029  Hunger 0.0029 (lvl 86) 
+moving_box        13   0.00   1.00   0.55   0.55    0.0006  Energy -0.0032 (lvl 62) Hygiene -0.0010 (lvl 70) Fun 0.0048 (lvl 65) 
+bed               19   0.00   1.00   1.00   1.00    0.0213  Energy 0.0213 (lvl 62) 
+reading_chair     16   0.00   1.00   1.00   1.00    0.0144  Fun 0.0073 (lvl 65) Comfort 0.0071 (lvl 65) 
+armchair          15   0.00   1.85   1.00   1.85    0.0276  Comfort 0.0276 (lvl 65) 
+sofa              13   0.00   1.00   1.00   1.00    0.0247  Fun 0.0074 (lvl 65) Comfort 0.0173 (lvl 65) 
+desk              17   0.00   0.45   1.00   0.45    0.0024  Energy -0.0030 (lvl 62) Fun 0.0054 (lvl 65) 
+television        11   0.11   1.00   1.50   1.41    0.0180  Social 0.0001 (lvl 95) Fun 0.0179 (lvl 65) 
+dining_table       3   0.00   1.00   1.00   1.00    0.0259  Social 0.0000 (lvl 95) Comfort 0.0259 (lvl 65) 
+long_sofa         12   0.00   1.35   1.00   1.35    0.0368  Energy 0.0055 (lvl 62) Fun 0.0062 (lvl 65) Comfort 0.0252 (lvl 65) 
+radio              9   0.00   1.00   1.00   1.00    0.0125  Social 0.0000 (lvl 95) Fun 0.0124 (lvl 65) 
+double_bed        10   0.00   1.00   1.00   1.00    0.0256  Energy 0.0235 (lvl 62) Comfort 0.0021 (lvl 65) 
+sink              22   0.19   1.00   1.00   0.89    0.0069  Hygiene 0.0069 (lvl 70) 
+bathtub           21   0.00   1.00   1.00   1.00    0.0185  Energy -0.0010 (lvl 62) Hygiene 0.0095 (lvl 70) Comfort 0.0100 (lvl 65) 
+reference_shelf    14   0.00   1.00   1.45   1.45    0.0253  Fun 0.0124 (lvl 65) Comfort 0.0129 (lvl 65) 
+bookshelf         10   0.00   1.00   1.00   1.00    0.0147  Fun 0.0147 (lvl 65) 
+shower            18   0.00   1.00   1.00   1.00    0.0103  Energy -0.0056 (lvl 62) Hygiene 0.0158 (lvl 70) 
+Tim               21  -0.96   0.52   0.65   0.34    0.0010  Social 0.0000 (lvl 95) Fun 0.0010 (lvl 65)  (chat)
+Casey             10   0.77   1.38   0.65   0.90    0.0036  Social 0.0001 (lvl 95) Fun 0.0035 (lvl 65)  (chat) (busy)
+
+CANDIDATE TABLE at tick 120000: Casey at (5, 7)
+object          dist    hab   disp  trait  scale     score  contributions
+toilet            11   0.00   1.00   1.00   1.00    0.0692  Bladder 0.0692 (lvl 63) 
+kitchen_sink      11   0.00   1.00   1.00   1.00    0.0172  Hygiene 0.0181 (lvl 61) Comfort -0.0008 (lvl 79) 
+fridge            11   0.30   1.00   1.00   0.84    0.0016  Hunger 0.0016 (lvl 85) 
+moving_box         4   0.00   1.00   1.60   1.60    0.0275  Energy -0.0000 (lvl 99) Hygiene -0.0031 (lvl 61) Fun 0.0305 (lvl 59) 
+bed                8   0.00   1.00   1.00   1.00    0.0000  Energy 0.0000 (lvl 99) 
+reading_chair      5   0.00   1.00   1.00   1.00    0.0215  Fun 0.0193 (lvl 59) Comfort 0.0021 (lvl 79) 
+armchair          18   0.00   1.00   1.00   1.00    0.0024  Comfort 0.0024 (lvl 79) 
+sofa              16   0.00   1.00   1.00   1.00    0.0135  Fun 0.0107 (lvl 59) Comfort 0.0028 (lvl 79) 
+desk               6   0.00   1.00   1.00   1.00    0.0295  Energy -0.0000 (lvl 99) Fun 0.0295 (lvl 59) 
+television        14   0.00   1.20   1.00   1.20    0.0219  Social 0.0000 (lvl 96) Fun 0.0219 (lvl 59) 
+dining_table       5   0.00   1.05   1.00   1.05    0.0045  Social 0.0000 (lvl 96) Comfort 0.0045 (lvl 79) 
+long_sofa         15   0.00   1.00   1.00   1.00    0.0097  Energy 0.0000 (lvl 99) Fun 0.0067 (lvl 59) Comfort 0.0031 (lvl 79) 
+radio             12   0.00   1.60   1.00   1.60    0.0276  Social 0.0000 (lvl 96) Fun 0.0276 (lvl 59) 
+double_bed         3   0.32   1.00   1.00   0.82    0.0004  Energy 0.0000 (lvl 99) Comfort 0.0004 (lvl 79) 
+sink              11   0.00   1.00   1.00   1.00    0.0298  Hygiene 0.0298 (lvl 61) 
+bathtub           12   0.00   1.00   1.00   1.00    0.0304  Energy -0.0000 (lvl 99) Hygiene 0.0280 (lvl 61) Comfort 0.0023 (lvl 79) 
+reference_shelf     3   0.00   1.00   1.00   1.00    0.0238  Fun 0.0213 (lvl 59) Comfort 0.0025 (lvl 79) 
+bookshelf         13   0.00   1.00   1.00   1.00    0.0204  Fun 0.0204 (lvl 59) 
+shower            13   0.00   1.00   1.00   1.00    0.0438  Energy -0.0000 (lvl 99) Hygiene 0.0438 (lvl 61) 
+Tim               22   0.79   1.39   1.30   1.81    0.0080  Social 0.0000 (lvl 96) Fun 0.0079 (lvl 59)  (chat)
+Bill              10   0.46   1.23   1.30   1.60    0.0101  Social 0.0000 (lvl 96) Fun 0.0101 (lvl 59)  (chat) (busy)
+(action_threshold 0.050, idle_threshold 0.040, temperature 0.060; person rows: `hab` is the feeling and `disp` the relationship scale)
+
+RELATIONSHIPS at tick 120000 (row feels about column)
+             Tim    Bill   Casey
+Tim            -  -0.755   0.186
+Bill      -0.957       -   0.766
+Casey      0.786   0.456       -
+
+SUPPLY vs DRAIN over 120000 ticks, all sims
+need        supplied   drained    ratio   floors:     Tim    Bill   Casey
+hunger         18516     22320     0.83               0.0    20.0    10.5  <-- floor near zero: somebody is barely being served
+energy         32784     17136     1.91               0.0    24.5    28.2  <-- floor near zero: somebody is barely being served
+hygiene        30290     25056     1.21               0.0    36.4    24.3  <-- floor near zero: somebody is barely being served
+bladder        60610     36720     1.65               0.0    20.0     3.5  <-- floor near zero: somebody is barely being served
+social         13348     10608     1.26               0.0    63.3    27.3  <-- floor near zero: somebody is barely being served
+fun            18524     19008     0.97               0.0    40.2    39.2  <-- floor near zero: somebody is barely being served
+comfort        13263     12288     1.08              32.8    42.8    38.5
+
+NEED BANDS, per sim
+Tim:
+  hunger        0.0 to  100.0  <-- hit zero
+  energy        0.0 to  100.0  <-- hit zero
+  hygiene       0.0 to  100.0  <-- hit zero
+  bladder       0.0 to  100.0  <-- hit zero
+  social        0.0 to  100.0  <-- hit zero
+  fun           0.0 to   95.6  <-- hit zero
+  comfort      32.8 to  100.0
+Bill:
+  hunger       20.0 to  100.0
+  energy       24.5 to  100.0
+  hygiene      36.4 to  100.0
+  bladder      20.0 to  100.0
+  social       63.3 to  100.0
+  fun          40.2 to  100.0
+  comfort      42.8 to  100.0
+Casey:
+  hunger       10.5 to  100.0
+  energy       28.2 to  100.0
+  hygiene      24.3 to  100.0
+  bladder       3.5 to  100.0
+  social       27.3 to  100.0
+  fun          39.2 to  100.0
+  comfort      38.5 to  100.0
+
+MOTION, all sims
+walking     107497   29.9%
+interacting 125375   34.8%
+talking      10508    2.9%
+waiting       2487    0.7%   <-- reserved for a talk, initiator inbound
+wander pause 54032   15.0%
+frozen           4    0.0%   <-- dead band plus anything unexplained
+at work      47008   13.1%   <-- the rabbit hole, commute included
+chaining     13089    3.6%   <-- mid-errand: walks, stations, waits
+  Tim      walk 23.1%  interact 29.7%  talk  2.1%  work 39.2%  idle  1.4%
+  Bill     walk 33.1%  interact 37.0%  talk  4.3%  work  0.0%  idle 22.4%
+  Casey    walk 33.3%  interact 37.8%  talk  4.4%  work  0.0%  idle 21.2%
+
+WANDER PATHS, newly observed natural strolls
+count 1057  min 1  mean 2.22  p95 3  max 3  tuned cap 3
+
+LIFE SATISFACTION (accrued over the whole run)
+  Tim         341.5   loves: correspondence, reading   works: Office clerk
+           traits: Low spirits (condition, severity 0.35)
+           traits: Bookworm (disposition x1.35)
+           traits: Out of shape (capability, level 0.42)
+  Bill       1085.6   loves: television, cooking
+           traits: Television devotee (disposition x1.5)
+           traits: Avoids exercise (disposition x0.55)
+           traits: Fish watcher (disposition x1.45)
+           traits: Private person (disposition x0.65)
+  Casey       587.1   loves: socialising
+           traits: Can't cook (capability, level 0.52)
+           traits: Keen cyclist (disposition x1.6)
+           traits: Chatterbox (disposition x1.3)
+           traits: Slow reader (capability, level 0.60)
+
+CHAINS (started / completed / abandoned)
+  Tim       24 /  24 /   0
+  Bill      18 /  18 /   0
+  Casey     18 /  18 /   0
+
+FUNDS 9960
+
+world hash 0x97dde33234d60406
+
+RELATIONSHIP EFFECTS (records / requested / actual after clamping)
+  Conversation: 152 / 19.389690 / 15.753829
+  LowNeedInterruption: 1 / -0.099000 / -0.099000
+  PrivacyEntry: 19 / -4.667500 / -4.631171
+  PrivacyStart: 57 / -13.406250 / -12.933739
+  Proximity: 21927 / 5.847200 / 4.380506
+  Incompatibility: 28424 / -0.675925 / -0.674492
+  Decay: 652768 / -1.311060 / -1.314783
+  privacy actions: 50 ordinary / 25 emergency / 0 player-directed
+  directional contact hours: 1058.20; privacy waiting minutes: 5104; longest wait: 255
+  recoveries: 53 finished / 23 unfinished (subsequent incidents remain in each recovery)
+  recovery days: mean 10.081 / median 5.312 / p90 23.972
+  hostile: 1 toward 0 (-0.9569)
+  hostile: 0 toward 1 (-0.7554)

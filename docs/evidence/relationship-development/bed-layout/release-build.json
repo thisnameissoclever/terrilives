@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "-p",
+    "terri-sim",
+    "--example",
+    "relationship_balance"
+  ],
+  "exit": 0,
+  "sha256": "e15b433e1134feaff74b64d2f7396825413835979e7c763f029414a4aee35888"
+}

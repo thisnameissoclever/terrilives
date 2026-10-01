@@ -65,6 +65,9 @@ pub struct SaveSnapshotV5 {
     pub chronotype_offsets: Vec<(u32, i32)>,
     /// Absent only in historical payloads; current writers emit Some, even empty.
     pub sleeping_places: Option<SavedSleepingPlaces>,
+    /// Stable SimId and nondefault shyness. Earlier payloads omit this tail.
+    pub shyness: Vec<(u32, u8)>,
+    pub boundaries: Vec<SavedBoundaryDecision>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -73,6 +76,17 @@ pub struct SavedSleepingPlaces {
     pub active_places: Vec<(u32, u8)>,
     /// Stable SimId, bed entity index and ordinal, ascending by SimId.
     pub assignments: Vec<(u32, u32, u8)>,
+}
+
+/// Sparse autonomous boundary decisions. Actor uses stable identity; goal uses entity index.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedBoundaryDecision {
+    pub actor: u32,
+    pub expires: u64,
+    pub lapse: bool,
+    pub waiting_since: Option<u64>,
+    pub goal: Option<(u32, u32)>,
+    pub directed_chain: Option<u32>,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
