@@ -112,6 +112,26 @@ verified their SHA-256. Restored files:
 
 These targeted faults are additional evidence, not a full mutation sweep.
 
+## Ownership integration follow-up
+
+Four additional tests in `beds/tests/lifecycle.rs` exercise actual system
+boundaries rather than only the release helper:
+
+1. Staggered and simultaneous completions preserve permanent assignments,
+   keep the bed reserved for the remaining sleeper and release the last lease.
+2. Starting a worker's shift clears only that person's sleep commitment. The
+   partner's target, remaining duration and place stay unchanged; both permanent
+   assignments remain and the worker cannot reacquire the bed while commuting.
+3. Losing the target's furniture definition at arrival clears both travelling
+   leases and the final reservation marker.
+4. A single autonomous selection pass assigns distinct places to two Sims and
+   makes the third wait without acquiring a target or place.
+
+`cargo test -p terri-sim beds::tests::lifecycle -- --test-threads=1` passed all
+four with exit 0. `cargo clippy -p terri-sim --all-targets -- -D warnings` passed
+with exit 0. Only test code changed in this follow-up; the prior full simulation
+run remains applicable. The combined native count is now 1,283.
+
 ## Review
 
 Two read-only adversarial reviews found no production routing or fingerprint

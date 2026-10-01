@@ -269,6 +269,41 @@ The source of the body envelope is the accepted lower-bunk full-scene proof at
 Atlas measurements use the existing pack function with added image dimensions;
 they are capacity estimates, not generated-art or runtime acceptance.
 
+### Integration boundaries after the visual proof
+
+A read-only impact review identified the following seams. These preserve
+runtime identity and do not approve an unproved image format.
+
+1. `authored_socket_action_visual` in `terri-sim/src/lib.rs` validates a running
+   `Eating` action, its exact target and authored socket before projecting it.
+   A sleep-specific helper should additionally validate `SleepPlace` and return
+   the exact bed and ordinal. Travelling leases remain walking; permanent
+   assignment alone must never create a sleeping visual.
+2. `RenderBuffer` can carry an aligned derived ordinal column, with `u32::MAX`
+   outside a validated occupied-bed projection. Its clear/push lifecycle,
+   WASM pointer and bridge view must remain aligned through memory growth.
+   This is derived rendering state and requires no further save field. Keep
+   action 9, activity 5 and existing facing codes stable.
+3. `InteractionSelection.update` currently picks one owner per target by raw
+   entity ID. Add a bed-specific group beside that path, keyed by exact target
+   and physical place. Preserve both logical Sim rows, stable shirt identities
+   and independent animation samples while drawing shared furniture once.
+   Keep duplicate-owner rejection for ordinary single-user furniture.
+4. `buildInstances` and `instanceCount` must agree. Occupancy determines draw
+   count independently of animation sample because count currently selects at
+   tick zero with reduced motion. The proven asset contract must define any
+   changes to sprite pairs, the instance layout and shader together; ordinary
+   alpha-over of two existing paired sprites is not an acceptable substitute.
+5. `pickSprite` needs occupant-specific visible coverage and ordering rather
+   than identical whole-bed bounds or row order. The bed remains clickable
+   outside the occupied body coverage. Give each person's bubble and selection
+   ring a distinct anchor, separate from shared-composite registration.
+
+Regression coverage must include empty, either single occupant and both;
+independent palettes/samples; all facings; furniture colourways; both selections;
+one departure; paused commands; immediate post-Load projection; sparse or
+reordered rows; memory growth; reduced motion; and unchanged non-bed visuals.
+
 ## Verification
 
 1. Prove two simultaneous claims choose distinct places and a third waits.

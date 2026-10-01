@@ -1,4 +1,5 @@
 use super::*;
+mod lifecycle;
 mod navigation;
 use crate::{test_content, Sim};
 use terri_core::{
