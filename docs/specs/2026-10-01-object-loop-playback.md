@@ -47,9 +47,11 @@ provenance and the remaining listening work.
 10. Ending an object cancels its exact source/action even if the context is
     externally suspended. Pending ownership is removed before player cleanup.
     A stopped clock disposes that source immediately rather than retaining an
-    unrenderable fade. Other sources are not cancelled. Automatic recovery of
-    starts dropped during suspension is a separate unresolved transition; see
-    `2026-10-01-suspended-audio-cancellation.md`.
+    unrenderable fade. A direct stop leaves other sources alone. An unavailable
+    sampled frame instead treats all observations as absent and releases their
+    ownership. On automatic recovery, only currently observed actions restart.
+    See `2026-10-01-suspended-audio-cancellation.md` and
+    `2026-10-01-automatic-audio-recovery.md`.
 
 ## Verification
 

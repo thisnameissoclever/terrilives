@@ -1,6 +1,9 @@
 # Cancellation during audio suspension
 
-Status: implementation, local regression tests, rendered browser checks and independent review passed. Source publication is pending.
+Status: merged in PR 180 at `5d3322874132df17dfd3f5e7e83b4472580e55e5`.
+Main CI `36841687002` and Pages deployment `36842154005` passed. The public
+page served bundle `index-BjejT1Us.js` on 2026-10-01. Local regression tests,
+rendered browser checks and independent review passed before merge.
 
 ## Defect and scope
 
@@ -8,7 +11,9 @@ The controller gated every semantic event on audibility, including object stops 
 
 The fix separates cancellation from playback admission. End events must clear matching desired or pending ownership regardless of audibility. A running clock retains the ordinary release fade. A stopped clock immediately releases the exact affected source; it must not retain a fade that cannot advance. Unrelated sources, replacement actions, decoded caches, gains, assets, pause policy and simulation state remain unchanged. Semantic events still cannot create or resume an audio context.
 
-This does not introduce automatic recovery for new actions whose start events were dropped during suspension. That remains a separate context-transition issue requiring its own design and tests. Do not describe this cancellation repair as complete automatic interruption recovery.
+This cancellation repair did not introduce recovery for new actions whose starts
+were dropped during suspension. The separate
+[automatic recovery work](2026-10-01-automatic-audio-recovery.md) covers that path.
 
 ## Reproduction
 

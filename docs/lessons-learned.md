@@ -1,5 +1,43 @@
 # Lessons Learned
 
+## [L-browser-cli-page-argument] Check the CLI callback signature
+
+**What happened.** Two cleanup callbacks destructured `{ page }`, received
+undefined and failed before closing their task-owned page. Explicit session
+close then closed both browsers.
+
+**Root cause.** The callback shape was borrowed from a different browser API.
+This installed CLI passes the page directly, not an object containing it.
+
+**Prevention rule.** Check `playwright-cli run-code --help` before authoring
+its callback. Use `async (page) => { try { ... } finally { await page.close(); } }`.
+Keep session close as a fallback, and never include another task's browser.
+
+**How to verify.** A task-owned `about:blank` callback returns its URL and closes
+the page in `finally` without an exception. The corrected callback passed that
+check before this lesson was recorded.
+
+## [L-audio-observations-require-playback-availability] Do not consume starts that cannot play
+
+**What happened.** An action first observed during external audio suspension
+could remain silent after the browser resumed automatically. Gesture-driven
+recovery worked and concealed the missing automatic path.
+
+**Root cause.** Playback rejected an inaudible start after the scheduler had
+already recorded it. The unchanged next action could not emit another start.
+
+**Prevention rule.** Gate observations across every scheduler family on the
+same global playback predicate, while always finishing begin/end frames. Let
+absence handling release ownership and phase. Never reset an open frame from
+inside emission. At the first unavailable frame boundary, also stop unfinished
+procedural and door cues; otherwise their frozen tails can overlap fresh audio.
+Keep direct cancellation independent of playback availability.
+
+**How to verify.** Begin and replace actions while suspended, then return to
+running without a gesture. Require current actions to start, departed actions
+to stay silent, and footsteps/doors to re-anchor without replay. Include native
+rendered samples as well as controller and nested fixed-tick sampler tests.
+
 ## [L-audio-cancellation-without-playback] End ownership even when sound cannot play
 
 **What happened.** Object and conversation end events were discarded while an
@@ -6184,8 +6222,10 @@ footstep lifecycle. Two explicit scheduler lists evolved independently: the
 audible re-entry branch and the browser proof's diagnostics. Each list was
 partially updated, so neither represented the complete controller contract.
 
-**Prevention rule.** Every global transition from inaudible to audible must call the
-controller's single all-scheduler reset. Every bounded-state proof must sample
+**Prevention rule.** Explicit global lifecycle boundaries use the controller's
+single all-scheduler reset. Fixed-tick observations must also apply the same
+availability gate to every scheduler, so automatic context recovery cannot
+retain silent history. Every bounded-state proof must sample
 and constrain every retained scheduler's live count and capacity. Adding a
 scheduler requires updating both contracts in the same change.
 

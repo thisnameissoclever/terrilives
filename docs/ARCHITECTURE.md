@@ -1076,6 +1076,15 @@ Visibility changes synchronously gate emission, stop voices, clear walking
 phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
+While globally inaudible, fixed-tick audio frames still begin and end, but no
+observations reach their schedulers. Their normal absence handling releases
+object/conversation ownership and drops activity, stride and door history.
+An unavailable frame boundary also disposes unfinished procedural and door
+cues if they still have active sources, without resetting any open frame.
+Automatic return to running therefore starts only current actions, without
+requiring another gesture or replaying old motion. This samples availability
+at fixed ticks; it is not an operating-system interruption listener. See
+`docs/specs/2026-10-01-automatic-audio-recovery.md`.
 Pause stops fixed ticks and fades object loops, but does not suspend the context
 or stop an already-playing short cue or conversation. A successful Load reads
 identity from the replacement world's aligned
