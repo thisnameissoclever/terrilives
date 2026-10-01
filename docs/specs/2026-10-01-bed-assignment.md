@@ -4,6 +4,15 @@ Status: implementation in progress. This document records the bounded plan for
 the accepted `[S-bed-assignment]` roadmap item. Two-person sleeping and the
 assignment interface are not shipped.
 
+The local implementation now includes shared admission, assignment commands,
+V1 through V5 save migration and validation, hashing, lifecycle cleanup and the
+assignment control inside the existing Sim details disclosure. Its label is
+now Personality, habits and bed. Keyboard focus, same-Sim Load and responsive
+control checks have passed, as have the native and web suites. This remains
+unpublished: per-place navigation is implemented locally; the occupied double-bed
+composite is still required before shared sleeping can ship. See
+`docs/assets/review-evidence/bed-assignment/runtime-ui.md` for this checkpoint.
+
 The reservation-release foundation is implemented with 20 new tests. All
 1,241 native tests, strict Clippy, formatting and the WASM build passed before
 integrating door audio, which changed no simulation sources. Web typecheck,
@@ -62,6 +71,48 @@ calculations before applying assignment preference.
 
 The existing occupied-object move and sale guards must cover every active
 place. Permanent assignment alone does not count as current use.
+
+### Place-specific navigation decision
+
+The local implementation authors each place's perimeter approach tiles in the
+object definition, independently of presentation sockets. Use integer offsets
+from the definition's base-facing footprint and rotate with the object's
+relative facing. Multi-place beds require an ordered record per physical
+place; single-place beds without records retain whole-perimeter access.
+Validate unique stable place IDs, nonempty cardinal perimeter approaches and
+the shared capacity. Include the ordered IDs and access layout in the content
+fingerprint, with the existing explicit historical compatibility route.
+
+The visual task checked the existing model's axis mapping: in the default SE
+facing, world X runs from head to foot. Ordinal zero uses approach tiles
+`(0, -1)` and `(1, -1)`, corresponding to the model-local positive-X lane;
+ordinal one uses `(0, 2)` and `(1, 2)`, corresponding to model-local negative X.
+Rotate those offsets with the placed footprint. The initial proposal used
+the wrong world axis and was corrected before navigation implementation.
+This establishes side correspondence only; occupied pose fit and compositing
+remain unproved.
+
+Resolve reachable free place options before scoring. Compute each option's
+normal utility and survival risk using its actual distance. Collapse them to
+one object/interaction candidate, prioritizing lower survival risk, then
+assignment preference, utility and stable ordinal. A distant assigned side
+must not hide a safer reachable side of the same bed. Reconstruct only the
+winning route. The existing pathfinder, fractional-position anchoring and
+contact-edge checks remain authoritative.
+
+Apply this access policy when issuing new or replacement paths. Preserve
+physically valid saved paths and running actions exactly, including historical
+ordinal-zero commitments whose approach predates the new side mapping. Do not
+silently repath a save or add an ordinal-side rejection to the loader. This
+also applies after a historical walk is re-saved as modern V5; its second
+load must remain valid. Physical reachability and ownership still validate.
+
+The authored access extension hashes ordered place IDs and canonical approach
+sets. Its exact reviewed live digest `b38e71a123bb8273` maps back to
+`c2cf291984ed61f7`; the reconstructed pre-rotation shape `9ac7e41e24d4c921`
+maps back to `d396b3f39e3c6685`. Both then use the existing migration
+classification. No arbitrary pack may obtain compatibility by stripping access
+metadata, and old bathtub geometry still requires its physical migration.
 
 ## Saved state
 

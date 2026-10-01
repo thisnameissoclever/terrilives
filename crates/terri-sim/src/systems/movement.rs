@@ -151,7 +151,12 @@ pub fn follow_path(
                     // A chain target with no counter is a preemption
                     // artefact (the cancel removed the chain but the
                     // walk survived a tick); the walk just ends.
-                    commands.entity(entity).remove::<Path>().remove::<Target>();
+                    crate::reservations::release(&mut commands, entity, *target);
+                    commands
+                        .entity(entity)
+                        .remove::<Path>()
+                        .remove::<Target>()
+                        .remove::<terri_core::SleepPlace>();
                     continue;
                 };
                 let chain = &content.0.chains[chain_state.chain as usize];
@@ -292,11 +297,13 @@ pub fn follow_path(
                     }
                 }
             } else {
-                // Neither an object nor a sim: the target lost its
-                // defining component mid-walk. Known leak - see the
-                // reclamation note in `tick_interactions` - the walk
-                // ends and the stale reservation is the recorded cost.
-                commands.entity(entity).remove::<Path>().remove::<Target>();
+                // The target lost its defining component while this agent walked.
+                crate::reservations::release(&mut commands, entity, *target);
+                commands
+                    .entity(entity)
+                    .remove::<Path>()
+                    .remove::<Target>()
+                    .remove::<terri_core::SleepPlace>();
             }
             continue;
         };

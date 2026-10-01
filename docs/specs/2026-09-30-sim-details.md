@@ -6,9 +6,12 @@ at the bottom, with detail available on request.
 
 ## Player behavior
 
-Overview contains a native Personality and habits disclosure, initially
+Overview contains a native Personality, habits and bed disclosure, initially
 closed. Its 44-pixel summary responds to Enter, Space and pointer input. The
 existing sheet owns scrolling and Escape; the closed dock gains no height.
+The original read-only slice shipped as Personality and habits. Its local
+bed-assignment extension and remaining release checks are documented in
+`2026-10-01-bed-assignment.md`.
 
 1. Personality factors show Drain and Refill percentages for all seven needs.
    100% is the normal personality factor. These values do not incorporate

@@ -13,6 +13,14 @@ pub(crate) fn release(commands: &mut Commands, owner: Entity, expected: Target) 
 /// action state. A replacement target on the same object remains an owner,
 /// as does every other Sim still travelling or acting.
 pub(crate) fn release_now(world: &mut World, owner: Entity, expected: Target) {
+    if world
+        .get::<Target>(owner)
+        .is_none_or(|target| *target == expected)
+    {
+        if let Ok(mut owner) = world.get_entity_mut(owner) {
+            owner.remove::<terri_core::SleepPlace>();
+        }
+    }
     let occupied = world
         .query::<(Entity, &Target)>()
         .iter(world)

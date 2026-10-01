@@ -90,6 +90,15 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #personal-details th:first-child { text-align: left; }
 #personal-details tbody th { font-weight: 400; }
 .personal-details-note { color: var(--hud-muted); font-size: 12px; }
+.bed-assignment { min-width: 0; margin: 12px 0 0; padding: 8px; border: 1px solid var(--hud-edge); }
+.bed-assignment fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+.bed-assignment:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+.bed-assignment legend { font-size: 13px; font-weight: 700; }
+.bed-assignment p { margin: 4px 0 8px; overflow-wrap: anywhere; }
+.bed-assignment label { display: grid; gap: 4px; }
+.bed-assignment select { width: 100%; min-width: 0; min-height: 44px; }
+.bed-assignment-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.bed-assignment-actions button { min-height: 44px; }
 .personal-repetition { padding: 0; margin: 0; list-style: none; }
 .personal-repetition li { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 10px; padding-block: 6px; }
 .personal-repetition li strong, .personal-repetition li .personal-details-note { display: block; overflow-wrap: anywhere; }

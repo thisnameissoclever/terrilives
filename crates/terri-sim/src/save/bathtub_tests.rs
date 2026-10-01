@@ -64,7 +64,7 @@ fn bathtub_migration_rejects_an_unreviewed_return_landing_before_grid_validation
     changed.portals[0].inward = (14, 3);
     assert_ne!(
         terri_data::content_fingerprint(&changed),
-        0xc2cf_2919_84ed_61f7
+        0xb38e_71a1_23bb_8273
     );
     assert_eq!(
         restore_without_portals(source, Box::leak(Box::new(changed))).err(),
@@ -73,12 +73,37 @@ fn bathtub_migration_rejects_an_unreviewed_return_landing_before_grid_validation
 }
 
 #[test]
+fn bathtub_rotation_refuses_unreviewed_sleep_access_without_mutating_the_world() {
+    let source = old_snapshot();
+    assert!(restore_without_portals(source.clone(), destination()).is_ok());
+    for offset in [false, true] {
+        let mut changed = destination().clone();
+        let bed = changed.find("double_bed").unwrap();
+        let place = &mut changed.objects[bed.0 as usize].sleep_places[0];
+        if offset {
+            place.approaches[0].0 += 1;
+        } else {
+            place.id.push_str("_changed");
+        }
+        let mut live = Sim::new_from_shipped_lot();
+        live.world
+            .insert_resource(Content(Box::leak(Box::new(changed))));
+        let before = live.save_snapshot_v5();
+        assert_eq!(
+            live.load_snapshot(source.clone()),
+            Err(SaveError::IncompatibleContent)
+        );
+        assert_eq!(live.save_snapshot_v5(), before);
+    }
+}
+
+#[test]
 fn bathtub_migration_pins_the_reviewed_facing_destination_before_reconstructing_the_source() {
     let source = old_snapshot();
     let current = destination();
     assert_eq!(
         terri_data::content_fingerprint(current),
-        0xc2cf_2919_84ed_61f7
+        0xb38e_71a1_23bb_8273
     );
     assert!(restore_without_portals(source.clone(), current).is_ok());
     let mut presentation = current.clone();
@@ -91,7 +116,7 @@ fn bathtub_migration_pins_the_reviewed_facing_destination_before_reconstructing_
     portal.open_sprite = portal.open_sprite.wrapping_add(1);
     assert_eq!(
         terri_data::content_fingerprint(&presentation),
-        0xc2cf_2919_84ed_61f7
+        0xb38e_71a1_23bb_8273
     );
     assert!(restore_without_portals(source.clone(), Box::leak(Box::new(presentation))).is_ok());
     let mut moved = current.clone();
@@ -620,7 +645,7 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
     (source_pack.lot.width, source_pack.lot.height) = source_pack.lot.house;
     assert_eq!(
         terri_data::content_fingerprint(&source_pack),
-        0xd396_b3f3_9e3c_6685
+        0x9ac7_e41e_24d4_c921
     );
     let source_pack = Box::leak(Box::new(source_pack));
     let mut source = Sim::new_from_lot(&source_pack.lot, &source_pack.objects);

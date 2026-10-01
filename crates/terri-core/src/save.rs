@@ -63,6 +63,16 @@ pub struct SaveSnapshotV5 {
     /// Person index and exact nonzero sleep-schedule offset, ascending by index.
     /// Missing entries retain the historical zero; never infer them from content.
     pub chronotype_offsets: Vec<(u32, i32)>,
+    /// Absent only in historical payloads; current writers emit Some, even empty.
+    pub sleeping_places: Option<SavedSleepingPlaces>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedSleepingPlaces {
+    /// Agent entity index and physical place ordinal, ascending by agent.
+    pub active_places: Vec<(u32, u8)>,
+    /// Stable SimId, bed entity index and ordinal, ascending by SimId.
+    pub assignments: Vec<(u32, u32, u8)>,
 }
 
 /// Previous envelope - [SL-save] in `docs/specs/2026-09-22-selling-furniture.md`:
@@ -398,6 +408,10 @@ pub enum SavedCommand {
         personality: Option<String>,
         traits: Vec<Option<String>>,
         instinct: u8,
+    },
+    SetBedAssignment {
+        agent: u32,
+        place: Option<(u32, u8)>,
     },
 }
 

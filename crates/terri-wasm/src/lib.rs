@@ -11,6 +11,8 @@ use wasm_bindgen::prelude::*;
 mod save_before_voice;
 
 #[cfg(test)]
+mod bed_assignment_tests;
+#[cfg(test)]
 mod placement_tests;
 #[cfg(test)]
 mod save_before_voice_tests;
@@ -233,13 +235,17 @@ fn floor_edit_arguments(
 fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
     /// The lists appended to V5 since it shipped, so an older payload is
     /// this many zero bytes short of a current one.
-    const APPENDED_LISTS: usize = 8;
+    const APPENDED_LISTS: usize = 9;
     let mut padded = payload.to_vec();
     for pad in 0..=APPENDED_LISTS {
         match postcard::take_from_bytes::<terri_core::SaveSnapshotV5>(&padded) {
             Ok((snapshot, [])) => {
-                // Only the LAST `pad` appended fields must be zero-valued.
-                // From the tail: chronotypes, instincts, waiting, migration flag, mortality, SimId
+                if snapshot.sleeping_places.is_some() != (pad == 0) {
+                    return None;
+                }
+                // The final grouped sleep record has its own presence boundary above.
+                // Only the LAST `pad - 1` preceding fields must be zero-valued.
+                // Before that record: chronotypes, instincts, waiting, migration flag, mortality, SimId
                 // ties, legacy ties, floors. Asking every appended field
                 // to be empty at every pad level is how
                 // review finding [F1] on PR 131 refused those saves.
@@ -261,7 +267,7 @@ fn decode_v5(payload: &[u8]) -> Option<terri_core::SaveSnapshotV5> {
                 let migrated = usize::from(snapshot.death_default_applied);
                 let instinct = snapshot.self_preservation.len();
                 let chronotype = snapshot.chronotype_offsets.len();
-                let invented = match pad {
+                let invented = match pad.saturating_sub(1) {
                     0 => 0,
                     1 => chronotype,
                     2 => chronotype + instinct,
@@ -2043,6 +2049,75 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// Status header (1 for a live person, 0 otherwise), then six-value rows:
+    /// bed, place, tile x, tile y, assignee entity, occupant entity. Missing owners use -1.
+    pub fn bed_places_of(&self, entity_index: f64) -> Vec<f64> {
+        let Some(places) =
+            placement_u32(entity_index).and_then(|index| self.sim.bed_places_of(index))
+        else {
+            return vec![0.0];
+        };
+        std::iter::once(1.0)
+            .chain(places.into_iter().flat_map(|place| {
+                [
+                    f64::from(place.bed),
+                    f64::from(place.ordinal),
+                    f64::from(place.x),
+                    f64::from(place.y),
+                    place.assignee.map_or(-1.0, f64::from),
+                    place.occupant.map_or(-1.0, f64::from),
+                ]
+            }))
+            .collect()
+    }
+
+    /// Enqueue a set or clear without narrowing invalid JavaScript numbers.
+    pub fn set_bed_assignment(&mut self, agent: f64, bed: Option<f64>, ordinal: f64) -> bool {
+        let Some(agent) = placement_u32(agent) else {
+            return false;
+        };
+        let Some(ordinal) = placement_u32(ordinal).filter(|value| *value <= u8::MAX.into()) else {
+            return false;
+        };
+        let place = match bed {
+            Some(bed) => match placement_u32(bed) {
+                Some(bed) => Some((bed, ordinal as u8)),
+                None => return false,
+            },
+            None if ordinal == 0 => None,
+            None => return false,
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::SetBedAssignment { agent, place })
+            .expect("bed assignment serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// u64 crosses as bigint, preserving the counter without floating-point rounding.
+    pub fn bed_assignment_sequence(&self) -> u64 {
+        self.sim
+            .world()
+            .resource::<terri_sim::beds::AssignmentFeedback>()
+            .sequence
+    }
+
+    /// [agent, has place, bed, ordinal, refusal]. Empty before the first handled command.
+    pub fn last_bed_assignment_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::beds::AssignmentFeedback>()
+            .last
+            .map_or_else(Vec::new, |result| {
+                let (bed, ordinal) = result.place.unwrap_or((0, 0));
+                vec![
+                    result.agent,
+                    u32::from(result.place.is_some()),
+                    bed,
+                    ordinal.into(),
+                    result.refusal.map_or(0, |reason| reason as u32),
+                ]
+            })
+    }
+
     /// Interleaved `[sim_id, feeling, ...]` pairs, or empty. See
     /// `Sim::relationships_of` for the f32-id bound.
     pub fn relationships_of(&self, entity_index: u32) -> Vec<f32> {
@@ -2844,9 +2919,13 @@ mod boundary_tests {
             "a save from before the yard must load"
         );
         let current = loaded.sim.save_snapshot_v5();
+        let mut expected_world = old.world;
+        expected_world.content_fingerprint = Sim::new_from_shipped_lot()
+            .save_snapshot()
+            .content_fingerprint;
         assert_eq!(
             house_part(current.world.clone()),
-            after_legacy_instinct_migration(old.world)
+            after_legacy_instinct_migration(expected_world)
         );
         assert_eq!(current.layout, grown_layout(&old.layout));
         assert_eq!(current.object_facings, old.object_facings);
@@ -3014,7 +3093,9 @@ mod boundary_tests {
         // the house's outside walls after them ([OS-migrate]).
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
-        expected_world.content_fingerprint = 0xc2cf_2919_84ed_61f7;
+        expected_world.content_fingerprint = Sim::new_from_shipped_lot()
+            .save_snapshot()
+            .content_fingerprint;
         assert_eq!(
             house_part(current.world.clone()),
             after_legacy_instinct_migration(expected_world)
@@ -7907,8 +7988,16 @@ mod instinct_boundary_tests {
         snapshot.self_preservation.clear();
         snapshot.chronotype_offsets.clear();
         let mut payload = postcard::to_allocvec(&snapshot).unwrap();
-        assert_eq!(payload.pop(), Some(0));
-        assert_eq!(payload.pop(), Some(0));
+        let suffix = postcard::to_allocvec(&snapshot.self_preservation)
+            .unwrap()
+            .len()
+            + postcard::to_allocvec(&snapshot.chronotype_offsets)
+                .unwrap()
+                .len()
+            + postcard::to_allocvec(&snapshot.sleeping_places)
+                .unwrap()
+                .len();
+        payload.truncate(payload.len() - suffix);
         let decoded = decode_v5(&payload).unwrap();
         assert!(decoded.self_preservation.is_empty());
         let mut loaded = SimHandle::from_lot();
@@ -7925,8 +8014,13 @@ mod instinct_boundary_tests {
         current.chronotype_offsets.clear();
         let mut truncated = source.save_bytes()[..SAVE_HEADER_BYTES].to_vec();
         truncated.extend(postcard::to_allocvec(&current).unwrap());
-        truncated.pop();
-        truncated.pop();
+        let suffix = postcard::to_allocvec(&current.chronotype_offsets)
+            .unwrap()
+            .len()
+            + postcard::to_allocvec(&current.sleeping_places)
+                .unwrap()
+                .len();
+        truncated.truncate(truncated.len() - suffix - 1);
         let before = loaded.save_bytes();
         assert!(!loaded.load_bytes(&truncated));
         assert_eq!(before, loaded.save_bytes());

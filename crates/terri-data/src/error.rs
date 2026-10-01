@@ -9,6 +9,10 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidSleepPlaces {
+        object: String,
+        reason: String,
+    },
     InvalidAutonomyTuning,
     EmptyObjectText {
         object: String,
@@ -1141,6 +1145,9 @@ pub enum ContentError {
 impl fmt::Display for ContentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ContentError::InvalidSleepPlaces { object, reason } => write!(
+                f, "object '{object}' has invalid sleep places: {reason}"
+            ),
             ContentError::UnknownNeed {
                 object,
                 interaction,

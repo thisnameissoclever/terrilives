@@ -138,6 +138,7 @@ pub fn object_sized(
     footprint: Footprint,
 ) -> CompiledObject {
     CompiledObject {
+        sleep_places: Vec::new(),
         id: id.to_string(),
         name: id.to_string(),
         presentation: None,

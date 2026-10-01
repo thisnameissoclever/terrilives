@@ -448,11 +448,15 @@ actions; Queue mode and Clear orders live in Queue. Build retains its existing
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
-Overview also has a collapsed Personality and habits section: personal drain
+Overview also has a collapsed Personality, habits and bed section: personal drain
 and refill factors, sleep timing, and recent activity repetition. Its meters
 have text values, and it uses the sheet's existing scrolling area. Opening it
 does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
 `docs/specs/2026-09-30-sim-details.md` for the projection and verification.
+The bed-assignment extension is implemented locally within that disclosure,
+with explicit Assign and Clear controls. It remains unpublished until the
+occupied-bed visual checks pass. Place-specific routing is implemented locally; see
+`docs/specs/2026-10-01-bed-assignment.md`.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the

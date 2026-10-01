@@ -703,6 +703,15 @@ price = 400
 sprite = "offlineDoubleBed"
 footprint = { width = 2, depth = 2 }
 
+  # Place order is saved. Offsets follow the base-facing footprint, not the camera.
+  [[object.sleep_place]]
+  id = "place_0"
+  approaches = [[0, -1], [1, -1]]
+
+  [[object.sleep_place]]
+  id = "place_1"
+  approaches = [[0, 2], [1, 2]]
+
   # **The only 2x2 object in the house**, and the one that most needed real
   # footprints to exist: a bed is genuinely a four-tile thing, and before [F1]
   # a sim standing "beside" one had 88% of its own sprite inside the bed's.

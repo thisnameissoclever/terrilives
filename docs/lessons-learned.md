@@ -8120,3 +8120,85 @@ random-value row kept a 150px slider without horizontal overflow. The manual
 value 100 retained a 102px by 44px slider and accepted keyboard input. The
 fixture changes only the fieldset font size; it is separate from the shipped
 page and is not a claim about browser or operating-system text scaling.
+
+## [L-bed-pending-focus] Preserve focus before disabling command controls
+
+**What happened.** Keyboard activation of Assign in the first bed-assignment
+surface moved browser focus to BODY while the simulation command was pending.
+The successful result left Assign disabled, so focus never returned.
+
+**Root cause.** Disabling the fieldset disabled its focused native button.
+Controller-only tests covered command feedback but did not instantiate the
+DOM surface or exercise its event listeners and focus transitions.
+
+**Prevention.** Before disabling controls that own focus, move it to an enabled
+section. After feedback, return it to the chooser only if it is still on that
+section. Do not take focus back after the user has navigated elsewhere. Test
+the real surface callbacks and keyed options as well as controller state.
+
+**Verify.** Actual keyboard Assign and Clear return to the chooser at desktop,
+phone and short landscape sizes. Removing any of the three change/click
+listeners, the pending-focus handoff or result-focus recovery must fail a
+named DOM assertion. All five faults failed and original bytes were restored.
+
+## [L-bed-migration-fixture-ownership] Pin every claimant in historical save fixtures
+
+**What happened.** A historical single-bed migration fixture directed one Sim,
+but left two others autonomous. A second Sim claimed the new second place;
+the legacy loader correctly rejected the resulting two-claimant state.
+Another malformed-save test retained a sleep-place row after changing its
+owner to an exclusive action, allowing row-count validation to mask the
+exclusive-owner check it was meant to exercise.
+
+**Root cause.** The fixtures specified one directed action without accounting
+for all autonomous claims created by the same tick.
+
+**Prevention.** Isolate the intended historical claimant and assert its exact
+active-place list before loading. In malformed fixtures, remove unrelated
+invalid state so the intended validation mechanism is responsible for refusal.
+
+**Verify.** Every historical loader preserves the isolated walk and running
+sleep. Removing the mixed exclusive/sleep owner guard must make its targeted
+atomic-refusal test fail, independently of active-row count validation.
+
+## [L-bed-model-world-axes] Confirm bed lanes in world coordinates before routing
+
+**What happened.** The first place-access proposal used the double bed's world
+X perimeter for its two sleeping lanes. Asset review found that default-SE
+world X runs from head to foot; the sleeping lanes meet the world Y edges.
+The plan was corrected before navigation code or assets were changed.
+
+**Root cause.** Model-local lane names were treated as world-tile axes without
+checking the existing model's registration.
+
+**Prevention.** Agree the mapping from model-local lanes to base-facing tile
+approaches with the asset owner before routing or generating occupied art.
+Transform the agreed tiles by relative object facing, not camera orientation.
+
+**Verify.** Default-SE place zero maps model-local positive X to approaches
+`(0, -1)` and `(1, -1)`; place one maps model-local negative X to `(0, 2)` and
+`(1, 2)`. Prove all four placed facings during navigation and occupied-art
+verification. Agreement on axes alone does not establish pose fit.
+
+
+## [L-fingerprint-fixtures-by-role] Classify every digest expectation before changing a hash
+
+**What happened.** The sleeping-access digest update exposed old expected-current
+values in the data, simulation and WASM suites on successive runs. The two WASM
+assertions printed whole worlds even though only their fingerprint differed.
+
+**Root cause.** The initial impact scan covered compatibility tables and their
+nearby tests, but missed whole-snapshot comparisons against historical fixtures.
+Historical source constants and expected current outputs had been treated as
+one search problem despite requiring opposite edits.
+
+**Prevention.** Inventory digest literals and whole-snapshot fixture assertions
+across all crates before rerunning. Preserve source bytes and frozen-algorithm
+pins. Update only the explicitly migrated current output, then compare the
+remaining world unchanged. After repeated fallout, use a fresh-context reviewer
+rather than continuing one assertion at a time.
+
+**Verify.** Parse or isolate large snapshot differences before changing an
+expectation. Pin both current and reconstructed migration endpoints, prove the
+unmodified historical source loads, and require unrelated metadata changes to
+close the bridge without replacing the live world.

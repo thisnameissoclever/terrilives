@@ -427,7 +427,12 @@ mappings, footprints, trait state kind, and the current-content front door a
 restored career still follows. Missing object, career, trait, chain, and
 carried-item ids are validated directly. Known fingerprints from the retired
 full-pack algorithm map only to the exact reviewed replacement shape; they do
-not bypass normal snapshot validation. The one shipped household rename is
+not bypass normal snapshot validation. The local, unpublished bed-assignment
+extension also hashes ordered sleep-place IDs and canonical approach tiles.
+Only its pinned live and reconstructed pre-rotation shapes inherit the prior
+bridges. Access rules apply to newly selected routes; valid saved paths retain
+their geometry across migration and subsequent re-save/load cycles.
+The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.

@@ -1,6 +1,7 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod action_queue;
+pub mod beds;
 pub mod details;
 #[cfg(test)]
 mod facing_tests;
@@ -655,7 +656,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -744,6 +747,7 @@ impl Sim {
             waiting_needs: waiting::snapshot(&self.world),
             self_preservation: save::self_preservation::capture(&self.world),
             chronotype_offsets: save::chronotype::capture(&self.world),
+            sleeping_places: Some(save::sleeping_places::capture(&self.world)),
             family_by_index: terri_core::layout::FamilyTies::default(),
             family: self
                 .world
@@ -772,7 +776,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore_v4(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -784,7 +790,9 @@ impl Sim {
     ) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -819,7 +827,9 @@ impl Sim {
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::restore(snapshot, content, active_portals)?;
+        let mut restored = save::restore(snapshot, content, active_portals)?;
+        save::sleeping_places::migrate_legacy(&mut restored.world)?;
+        restored.sync_render_buffer_after_commands();
         self.adopt(restored);
         Ok(())
     }
@@ -866,6 +876,8 @@ impl Sim {
         world.insert_resource(terri_core::CommandQueue::default());
         world.insert_resource(systems::command::CommandFeedback::default());
         world.insert_resource(placement::LotEditState::default());
+        world.insert_resource(beds::BedAssignments::default());
+        world.insert_resource(beds::AssignmentFeedback::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -882,6 +894,7 @@ impl Sim {
         world.register_component::<terri_core::Reserved>();
         world.register_component::<terri_core::Path>();
         world.register_component::<terri_core::Target>();
+        world.register_component::<terri_core::SleepPlace>();
         world.register_component::<terri_core::Eating>();
         world.register_component::<terri_core::Restless>();
         world.register_component::<terri_core::Wander>();
@@ -2782,6 +2795,7 @@ impl Sim {
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
+        beds::hash(&self.world, &mut hasher);
         hasher.write_u64(self.world.resource::<terri_core::Funds>().0 as u64);
 
         let commands = self.world.resource::<terri_core::CommandQueue>();
@@ -2792,6 +2806,12 @@ impl Sim {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
                     SetDeathEnabled(enabled) => vec![17, u64::from(*enabled)],
+                    SetBedAssignment { agent, place } => match place {
+                        Some((bed, ordinal)) => {
+                            vec![19, *agent as u64, 1, *bed as u64, *ordinal as u64]
+                        }
+                        None => vec![19, *agent as u64, 0],
+                    },
                     Select(id) => vec![0, id.map_or(u64::MAX, |id| id as u64)],
                     UseObject {
                         agent,
@@ -3117,6 +3137,7 @@ mod lot_tests {
             .iter()
             .enumerate()
             .map(|(index, footprint)| CompiledObject {
+                sleep_places: Vec::new(),
                 id: format!("object_{index}"),
                 name: format!("Object {index}"),
                 presentation: None,

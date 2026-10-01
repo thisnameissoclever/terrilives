@@ -1662,6 +1662,9 @@ mod tests {
         let bed_agent_position = Position { x: 23.0, y: 24.0 };
         let (sleeper, bed_target, _, _) =
             spawn_shipped_sleeper(&mut sim, bed_position, bed_agent_position);
+        sim.world_mut()
+            .entity_mut(sleeper)
+            .insert(terri_core::SleepPlace(0));
         let lower_bunk = sim
             .world()
             .get::<crate::ResolvedActionSockets>(bed_target)

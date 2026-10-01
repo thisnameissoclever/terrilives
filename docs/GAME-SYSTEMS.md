@@ -43,7 +43,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
-| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Reservation release foundation; assignment and shared sleeping remain |
+| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves and controls; place access and occupied visuals remain |
 
 The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
@@ -336,7 +336,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Partial.** Overview now contains a collapsed Personality and habits section. It shows the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. These are read-only projections of existing state, with no save or simulation changes. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md).
+**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. The shipped read-only slice shows the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. The local bed-assignment extension adds Assign and Clear controls; its place-specific routing is implemented locally, while occupied-bed visual checks remain open before publication. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -359,12 +359,13 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 ### [S-bed-assignment] Assigning a Sim to a bed
 
 **Status: In progress.** Owner-aware reservation release is implemented and
-tested as groundwork. Assignment, simultaneous double-bed admission and the
-two-person sleeping display remain unbuilt. Any Sim still sleeps in any free
-bed. The starting house has a bunk and a double bed. See
+tested as groundwork. Assignment, simultaneous double-bed admission, save
+migration and assignment controls are implemented locally. Per-place approach
+paths and the two-person sleeping display remain unfinished, so this feature
+has not been published. The starting house has a bunk and a double bed. See
 `docs/specs/2026-10-01-bed-assignment.md`.
 
-Bed assignment remains unbuilt. A separate household capacity rule now gives
+A separate shipped household capacity rule gives
 every living member a -20 Not enough beds moodlet when sleep places are fewer
 than people. The double bed counts as two places and the supported lower bunk
 as one. This affects the shared sustained-mood satisfaction mechanism, without

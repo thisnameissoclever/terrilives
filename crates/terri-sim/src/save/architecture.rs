@@ -67,6 +67,7 @@ pub(crate) fn restore_v5(
         waiting_needs,
         self_preservation,
         chronotype_offsets,
+        sleeping_places,
     } = snapshot;
     if object_colourways
         .windows(2)
@@ -147,6 +148,10 @@ pub(crate) fn restore_v5(
     crate::waiting::restore(&mut candidate.world, waiting_needs)?;
     super::self_preservation::restore(&mut candidate.world, self_preservation)?;
     super::chronotype::restore(&mut candidate.world, chronotype_offsets)?;
+    match sleeping_places {
+        Some(saved) => super::sleeping_places::restore(&mut candidate.world, saved)?,
+        None => super::sleeping_places::migrate_legacy(&mut candidate.world)?,
+    }
     if !death_default_applied {
         candidate
             .world

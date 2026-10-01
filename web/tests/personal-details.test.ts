@@ -192,7 +192,15 @@ describe('personal details surface', () => {
     const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
     expect(html.match(/<details\b[^>]*id="personal-details"[^>]*>/)?.[0]).toBe('<details id="personal-details">');
     expect(main).toContain('() => personalDetails.open && !simOverview.hidden && !simSheet.hidden');
-    expect(main).toContain("personalDetails.addEventListener('toggle', () => {\n    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);");
+    const toggle = main.slice(main.indexOf("personalDetails.addEventListener('toggle'"), main.indexOf('const peopleCaption'));
+    expect(toggle).toContain('if (personalDetails.open) {');
+    expect(toggle).toContain('personalDetailsPanel.update(nowMs, true);');
+    expect(toggle).toContain('bedAssignmentPanel.update(nowMs, true);');
+    const load = main.slice(main.indexOf('housemateForm.resetAfterLoad();'), main.indexOf('housemateForm.resetAfterLoad();') + 1700);
+    expect(load).toContain('bedAssignmentPanel.resetAfterLoad();');
+    expect(load).toContain('bedAssignmentPanel.update(nowMs, true);');
+    expect(main).toContain('bedAssignmentPanel.afterCommands();');
+    expect(main).toContain('bedAssignmentPanel.update(nowMs);');
     expect(main).toContain('personalDetailsPanel.update(nowMs, true);');
     expect(main).toContain('personalDetailsPanel.update(nowMs);');
   });
