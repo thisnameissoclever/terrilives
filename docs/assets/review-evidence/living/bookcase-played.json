@@ -1,0 +1,20 @@
+{
+  "interface": "Production browser UI; stress handle used for read-only inspection",
+  "viewport": [1600, 1100],
+  "resources": ["index-CO6VWDyF.js", "terri_wasm_bg-CQ6ekp_o.wasm", "atlas-ce8e654ca1369c9d467845046f769c2f591d4b8e05551f05ce43dca08b570c43.png"],
+  "entity": 10,
+  "position": [8, 0],
+  "rotation_tick": 0,
+  "turns": [
+    {"facing": 1, "sprite": 1368, "world_hash": "2799874174218464016", "save_sha256": "79fb6a546c67c75789a21c6b57f5582fca58774c3b3ee3404738d4329e20df43"},
+    {"facing": 2, "sprite": 1367, "world_hash": "8999774176288922439", "save_sha256": "5ae5a3b5abb4781107589683674037c2f107e6c04c6429edd4cb57b13a956a9c"},
+    {"facing": 3, "sprite": 1369, "world_hash": "16407573211856537894", "save_sha256": "e0f1c8ac17a26831f872fa8b5519eb9b772884700fd5bfab38300cca97d5480d"},
+    {"facing": 0, "sprite": 1366, "world_hash": "14407959560176395908", "save_sha256": "d54a12df27cadfd3cb058cc58b1935fef1d2102f78e447c32f42e4ce7e98c9e2"}
+  ],
+  "restored_save_matches_before": true,
+  "restored_world_hash_matches_before": true,
+  "menu": {"title": "Wall of Intent", "entries": ["Read a book", "Nothing"]},
+  "reading": {"entity": 34, "tick": 10, "activity": 8, "visual": 4, "socket_target": 4294967295, "facing": 2, "position": [9, 0], "queue": ["Read a book: Wall of Intent"]},
+  "page_and_console_errors": [],
+  "owned_context_closed": true
+}

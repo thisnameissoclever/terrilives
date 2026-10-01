@@ -30,6 +30,12 @@
       "directory": "kitchen/owner-review-pending/trashcan/candidate-01",
       "proof_sha256": "aa16ddca687c5429b804febfa973b774acc79f9a0350b5bcbde1d009e4b74030",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineBookcase",
+      "directory": "living/owner-review-pending/bookcase/candidate-01",
+      "proof_sha256": "bbe22a421bc086416d86506d579241d7200d7498f97f63532472cff1b55da7ae",
+      "review_status": "accepted-independent-review"
     }
   ]
 }
