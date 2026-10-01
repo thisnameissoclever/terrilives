@@ -4,9 +4,9 @@ Status: [DR-slice-derived] shipped in PR 98 at merge `2534ec5`.
 
 This is [WT-slice-interior-doors] in `docs/specs/2026-09-21-wall-tool.md` and
 the "doors" part of [B-builder] in `docs/FEATURES.md`. The Walls and Room tools
-make doorways: gaps in a wall drawn as an empty frame. The only door in the
-game is the front door, which swings open when someone leaves for work or comes
-home.
+make doorways. Vertical doorways now receive hinged doors through this slice;
+horizontal doorways remain empty frames. The front door also swings open when
+someone leaves for work or comes home.
 
 ## What the player gets
 

@@ -197,6 +197,9 @@ export class NeedsPanel {
 
   private showEmptyState(): void {
     this.caption.textContent = 'Select a person';
+    for (const bar of this.bars) {
+      if (bar.stateText) bar.stateText.textContent = '';
+    }
     if (this.emptyState && this.content) {
       this.root.hidden = false;
       this.emptyState.hidden = false;
