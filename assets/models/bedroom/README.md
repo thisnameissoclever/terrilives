@@ -54,7 +54,8 @@ Headboard is at local +Y, foot at -Y. Two separate linen pillows and a sage
 duvet preserve the existing colors while correcting the old single-width art.
 The duvet top is 0.55, its folded edge 0.568, and pillows 0.59. These are
 different surfaces, not one maximum-height value. The runtime centers the
-unchanged 2x2 placement at (0.5,6.5); do not add another model offset.
+unchanged 2x2 footprint half a tile from its placed origin on each world axis;
+do not add another model offset.
 
 The existing double-bed action has two slots but no sleeping pose or foreground.
 This artwork does not fix that animation gap. A future two-sleeper implementation
@@ -68,6 +69,9 @@ Do not shrink the Sim or extend the frame into unreserved walking tiles.
 A folded sleep pose may fit, but that requires separate evidence. Evaluate
 every visible body part, sample, facing and assigned slot. A starting envelope
 reserves 0.03 at each end and side: 1.80 long by 0.69 wide per sleeper lane.
+Disjoint lanes are a conservative construction rule. If a proposed arrangement
+crosses their X intervals, it needs direct full-surface interbody separation
+and jointly derived visible ownership; do not infer near-body order from a lane.
 Require supported head/torso, no frame penetration or sleeper intersection,
 unchanged rig scale and actual GPU occlusion review before calling sleep done.
 

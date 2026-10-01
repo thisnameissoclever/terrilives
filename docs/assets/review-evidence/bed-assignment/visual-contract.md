@@ -65,6 +65,53 @@ separate beauty render. `layer_partition.py` premultiplies RGB and resamples
 channels separately. It does not replace scene-specific RGB with coverage.
 Existing reconstruction tolerances are nonzero.
 
+## Pose constraints after the rejected arm diagnostic
+
+The visual owner and independent visual review rejected the phase-zero outer-arm
+image: elbows appear held up and the right wrist sharply bent. Root inspected
+the same image, SHA-256
+`b2f86a30920d7342150a6278a51fe1d1d35038e5c8c12cd924d1a0e050131313`,
+at `output/double-bed-outer-arm-inspection-01/unapproved-outer-arms-SE.png`
+in the visual worktree. Passing lane and crossing screens did not make it a
+natural sleeping pose. Same-arm attachment pairs also remained unresolved.
+
+Fresh adversarial review identified three distinct restrictions. The diagnostic
+froze both wrist positions and complete hand rotations, searched only elbow
+heights at or above wrist and shoulder, and selected against a 0.69-wide lane.
+The chosen left and right branches were limited by lane margins of approximately
+0.00004628 and 0.00000486 respectively, while forearm and cuff gap residuals
+were positive. These results are in
+`output/double-bed-arm-clearance-02/status.json`, SHA-256
+`3b98c75080ba926db98a29ca9165ce64ed1ef9521dc84b7fc5804d29b6a4e902`.
+
+An independent direction-only calculation used the recorded elbow circles and
+the nominal hand axis from `build_rig.py`, transformed by the recorded contact
+rotation. The minimum directional wrist angles were approximately 3.94 degrees
+left and 27.33 right over each complete circle. Restricting to the chosen upper
+arc left the first unchanged and raised the second to 33.24 degrees; the posed
+right wrist measured 48.31 degrees. An analytic circle extremum agreed with
+10,000 sampled directions per arm. The source contact receipt hash is
+`62b5e149a49668e589bc7a37143fc9773981e6a09d2d77c53cccb0fdd7a77aca`.
+This calculation excludes twist, evaluated meshes, collisions and comfort; none
+of these angles is an acceptance threshold or proof of a viable alternative.
+
+The spec now distinguishes physical fit from conservative lane construction.
+Preserve body data, bed footprint, support, collision and walking-space rules.
+Record lane bounds without treating them as a necessary shape for every part.
+Do not simply widen the threshold to accept the rejected pose. The next bounded
+family places supported hands beside the hips and solves contacts and complete
+arms together; its feasibility is still unproved. Inspect a credible phase-zero
+silhouette before repeating full certificates, then establish all samples and
+two-body separation before advancing to the export pilot.
+
+If actual bodies cross the assumed X intervals, joint owner coverage must
+replace global near-lane picking. The current renderer admits one owner per
+object, and current picking uses rectangles. A future bed group therefore needs
+both logical Sim rows, three owner contributions, registered CPU ownership
+coverage, and explicit rules for partial pixels and outlines. Each person must
+remain visibly selectable, and furniture must still draw once. None of those
+renderer changes or their costs is accepted by this geometry-contract revision.
+
 ## Required next experiment
 
 After the independent pose-clearance gate, use one facing with maximum overlap,

@@ -202,7 +202,7 @@ atomic failure and stale-command refusal.
 
 ## Visual acceptance
 
-The double bed has no existing two-place sleep projection. Its furniture
+The double bed has no accepted two-place occupied artwork. Its furniture
 approval does not establish occupied fit. Before enabling the full feature,
 provide distinct place-aware approach and pose mapping and verify all four
 facings with one and two occupants. Reuse existing art only if its fit is
@@ -221,7 +221,12 @@ Two copies occupy 1.5837006 units before margins on the double bed's 1.50-unit
 mattress. This is a bounding-envelope failure, not a measured mesh intersection.
 The existing standalone contact probe omits the cuffs and sleeves and cannot
 establish fit. Keep the approved body size and furniture footprint; prove a
-narrower sleeping pose across every body part and animation sample.
+two-person arrangement across every body part and animation sample. Disjoint
+half-bed X intervals are a sufficient construction rule, not the physical
+requirement. Overlapping X bounds neither prove intersection nor excuse it;
+such an arrangement needs direct evaluated interbody separation and joint
+visible ownership. The recorded 0.69-wide starting envelopes remain useful
+diagnostics and must not be widened to relabel a rejected pose as accepted.
 
 The double bed also has different support heights. Its mattress is at 0.47,
 duvet at 0.55, fold edge at 0.568 and pillow at 0.59. Raising the whole bunk
@@ -267,10 +272,17 @@ No occupied double-bed crop or mobile GPU budget has been proved.
 Before changing the renderer, the visual task and runtime task must agree
 ownership and attempt this bounded proof:
 
-1. Establish disjoint local-X body lanes for every part and sample. Under the
-   registered orthographic camera, the nearer lane is negative X for SE and
-   NE, positive X for NW and SW. This ordering only holds after containment
-   is proved and does not settle furniture visibility.
+1. Establish natural supported poses inside the accepted bed and walking-space
+   boundaries, preserving all approved body data. Check complete evaluated
+   bodies against themselves, furniture and each other, including independent
+   animation samples. Begin a new contact family with a phase-zero feasibility
+   screen and source-image review before extensive certification; that early
+   review does not replace full-surface or all-sample proof. Fixed abdomen hand
+   transforms and elbows above wrists are authoring choices, not requirements.
+   Disjoint local-X intervals may simplify ownership if every part and sample
+   proves containment. Only then is the nearer lane negative X for SE and NE,
+   positive X for NW and SW; that ordering still does not settle furniture
+   visibility. Otherwise derive visible ownership jointly from the full scene.
 2. Choose a facing with maximum projected overlap. Independently render sample
    pairs (0, 0), (0, 3), (3, 0), (3, 3), contrasting palettes, either lane alone
    at samples zero and three, and the empty bed. Demonstrate separate material
@@ -281,11 +293,13 @@ ownership and attempt this bounded proof:
    outlines and contact regions separately after actual export resampling;
    a global percentile can hide a narrow seam. A shading residual must remain
    distinct from visibility and has its own unproved palette and atlas costs.
-3. Swap the place-to-mask mapping, choose the wrong near-place picking priority
-   and omit an outline contribution. Each deliberate fault must fail. Reverse
-   compositing order only if the tested route depends on it; adding joint
-   visibility contributions is commutative. Reject the factorization if it cannot
-   reproduce the independent renders; do not conceal mismatches by clamping.
+3. Swap the place-to-owner coverage mapping and omit an outline contribution.
+   Each deliberate fault must fail. If the chosen route uses a proven near-lane
+   picking priority, corrupt that priority too. Reverse compositing order only
+   if the tested route depends on it; adding joint visibility contributions is
+   commutative. Reordering logical Sim rows must leave visible ownership intact.
+   Reject the factorization if it cannot reproduce the independent renders;
+   do not conceal mismatches by clamping.
 4. Prove the actual cropped atlas budget, then inspect fractional zoom,
    furniture colourways, both occupants' selection and one occupant leaving.
    Picking and indicators need explicit place identity and registered body
@@ -338,7 +352,16 @@ runtime identity and do not approve an unproved image format.
 4. `pickSprite` needs occupant-specific visible coverage and ordering rather
    than identical whole-bed bounds or row order. The bed remains clickable
    outside the occupied body coverage. Give each person's bubble and selection
-   ring a distinct anchor, separate from shared-composite registration.
+   ring a distinct anchor, separate from shared-composite registration. Joint
+   owner coverage requires registered CPU picking data, a declared deterministic
+   rule for partial pixels, and an explicit outline-picking policy. No lane
+   shortcut may replace that evidence when bodies cross the assumed intervals.
+
+A three-owner contribution route must combine both bodies and furniture in
+premultiplied colour, then apply the shared outline once. The current shader
+supports only one body with its furniture and outline. Neither three-owner
+composition nor CPU owner-map picking is implemented yet. Their atlas, memory
+and rendering costs belong in the bounded pilot before runtime integration.
 
 Regression coverage must include empty, either single occupant and both;
 independent palettes/samples; all facings; furniture colourways; both selections;

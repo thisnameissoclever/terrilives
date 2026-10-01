@@ -8455,3 +8455,26 @@ Prove independent occupant palettes before counting colour reuse.
 actual resampling. Keep input hashes and per-region errors. The accepted bunk
 comparison disproves exact equality only; it does not prove a second-body shadow
 failure or settle the double bed's visual tolerance or atlas budget.
+
+## [L-bed-lanes-are-a-construction] Keep pose convenience separate from physical fit
+
+**What happened.** A double-bed pose passed its lane and crossing screens but
+looked tense. Review found that the elbow solver was limited by lane edges,
+while fixed abdomen hand transforms and an upper-only elbow arc further
+restricted the available pose. Earlier wording had promoted a starting
+envelope into a mandatory whole-body shape.
+
+**Root cause.** A sufficient construction for separation and simple picking
+became an implicit physical requirement. Contact certificates then encouraged
+preserving hand transforms that had never passed whole-pose visual review.
+
+**Prevention.** Preserve actual body, bed, support, collision and walking-space
+invariants. Treat contact frames and search domains as authoring choices, and
+lane ordering as conditional on proved containment. Inspect a credible early
+silhouette before extensive certification. Any route without containment needs
+direct interbody separation and jointly derived visible-owner picking.
+
+**Verify.** Inspect active constraint residuals, actual rendered posture and
+complete evaluated meshes. Test independent samples, owner-map swaps, row
+reordering and one occupant leaving. A relaxed search limit is not acceptance;
+neither is a kinematic angle bound or a phase-zero lane pass.
