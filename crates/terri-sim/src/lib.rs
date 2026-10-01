@@ -3,6 +3,8 @@
 mod action_queue;
 pub mod details;
 #[cfg(test)]
+mod ecs_lifecycle_tests;
+#[cfg(test)]
 mod facing_tests;
 pub mod family;
 pub mod household;
@@ -1329,6 +1331,8 @@ impl Sim {
 
     pub fn tick(&mut self) {
         self.schedule.run(&mut self.world);
+        // Standalone ECS needs explicit update boundaries to retire removal history.
+        self.world.clear_trackers();
     }
 
     /// Applies staged player input without advancing simulation time.
@@ -1339,6 +1343,8 @@ impl Sim {
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
         self.command_schedule.run(&mut self.world);
+        // Paused frames can remove components too; keep the same observation window.
+        self.world.clear_trackers();
     }
 
     /// Returns and clears the number of object or social orders refused
