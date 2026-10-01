@@ -19,6 +19,7 @@ import {
   VERTICES_PER_QUAD,
   growCapacity,
   decodeArchitectureMode,
+  MAX_ARCHITECTURE_FINISH_SLOT,
   type InstanceArray,
 } from './instances.js';
 import { TILE_HALF_HEIGHT } from './iso.js';
@@ -320,6 +321,7 @@ export class SpriteRenderer {
       vertex: {
         module,
         entryPoint: 'vs',
+        constants: { maxArchitectureFinishSlot: MAX_ARCHITECTURE_FINISH_SLOT },
         buffers: [
           {
             arrayStride: BYTES_PER_INSTANCE,
@@ -347,6 +349,7 @@ export class SpriteRenderer {
       fragment: {
         module,
         entryPoint: 'fs',
+        constants: { maxArchitectureFinishSlot: MAX_ARCHITECTURE_FINISH_SLOT },
         targets: [
           {
             format: gpu.format,

@@ -109,13 +109,25 @@ struct ArchitectureFinishes { entries: array<ArchitectureFinish>, };
 @group(0) @binding(8) var<storage, read> architectureFinishes: ArchitectureFinishes;
 // ARCHITECTURE_PATTERN_BINDINGS
 
+// ARCHITECTURE_MODE_HELPERS_BEGIN
+override maxArchitectureFinishSlot: u32;
 fn isArchitecture(mode: f32) -> bool {
-  return mode <= -2.0 && (u32(-mode) % 4u == 2u || u32(-mode) % 4u == 3u);
+  // Inspect finite bits before float operations, then guard every integer cast.
+  if ((bitcast<u32>(mode) & 0x7f800000u) == 0x7f800000u) { return false; }
+  if (mode > -2.0 || mode < -f32(4u * maxArchitectureFinishSlot + 3u)
+    || floor(mode) != mode) { return false; }
+  let kind = u32(-mode) % 4u;
+  return kind == 2u || kind == 3u;
 }
 fn isArchitectureFloor(mode: f32) -> bool {
-  return mode <= -3.0 && u32(-mode) % 4u == 3u;
+  if (!isArchitecture(mode)) { return false; }
+  return u32(-mode) % 4u == 3u;
 }
-fn architectureFinishSlot(mode: f32) -> u32 { return u32(-mode) / 4u; }
+fn architectureFinishSlot(mode: f32) -> u32 {
+  if (!isArchitecture(mode)) { return 0u; }
+  return u32(-mode) / 4u;
+}
+// ARCHITECTURE_MODE_HELPERS_END
 
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,

@@ -9,6 +9,7 @@ import { architectureMode, decodeArchitectureMode } from '../src/render/instance
 import { architectureFinishSlot, architectureLocalPoint, prepareArchitectureFinishes,
   type FinishCatalogue } from '../src/render/architecture-finishes.js';
 import type { WindowDefinition, WindowModelId } from '../src/architecture/windows.js';
+import { architectureModeVectors } from '../proofs/architecture-mode-vectors.js';
 
 const catalogue: WindowDefinition[] = Array.from({ length: 9 }, (_, index) => ({
   id: (index + 1) as WindowModelId, label: `Window ${index + 1}`,
@@ -163,6 +164,15 @@ describe('authored wall geometry', () => {
 });
 
 describe('finish catalogue and registered source coordinates', () => {
+  it('classifies the same f32 witnesses used by the production shader compute proof', () => {
+    for (const vector of architectureModeVectors) {
+      const mode = Math.fround(vector.mode);
+      const decoded = decodeArchitectureMode(mode);
+      expect(decoded, vector.label).toEqual(vector.floor === null ? null
+        : { floor: vector.floor, finishSlot: vector.slot });
+      if (Number.isFinite(mode)) expect(mode).toBe(vector.mode);
+    }
+  });
   it('encodes independent wall/floor finish slots without altering historical modes', () => {
     for (const slot of [0, 1, 2, 17, 1048575]) for (const floor of [false, true]) {
       const mode = architectureMode(floor, slot);

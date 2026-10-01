@@ -7,7 +7,10 @@ import { architecturePieces, architectureSprite, architectureFloor } from '../sr
 import { buildArchitectureWallGeometry } from '../src/render/architecture-geometry.ts';
 import { buildStaticInstances } from '../src/render/tiles.ts';
 import { architectureFinishSlot } from '../src/render/architecture-finishes.ts';
-import { FLOATS_PER_INSTANCE, writeInstance, writeArchitectureDepth, writeArchitectureFloor } from '../src/render/instances.ts';
+import { FLOATS_PER_INSTANCE, MAX_ARCHITECTURE_FINISH_SLOT, decodeArchitectureMode,
+  writeInstance, writeArchitectureDepth, writeArchitectureFloor } from '../src/render/instances.ts';
+import shaderSource from '../src/render/sprites.wgsl?raw';
+import { architectureModeVectors } from './architecture-mode-vectors.ts';
 import { layeredDepth, LAYER_PROP, FLOOR_DEPTH } from '../src/render/iso.ts';
 import { spriteIndex } from '../src/render/atlas.ts';
 import { acquireWithTimeout } from './owned-timeout.ts';
@@ -110,6 +113,51 @@ export async function createArchitectureDepthProof() {
     return {
       limits: { dimension: gpu.device.limits.maxTextureDimension2D, textures: gpu.device.limits.maxSampledTexturesPerShaderStage },
       reconstructionKeys: Object.keys(reference.sources),
+      async modeCase() {
+        const helpers = shaderSource.split('// ARCHITECTURE_MODE_HELPERS_BEGIN')[1]
+          ?.split('// ARCHITECTURE_MODE_HELPERS_END')[0];
+        assert(helpers, 'Production mode helper block is available');
+        const module = gpu.device.createShaderModule({ code: helpers + `
+          @group(0) @binding(0) var<storage, read> inputs: array<f32>;
+          @group(0) @binding(1) var<storage, read_write> outputs: array<vec4u>;
+          @compute @workgroup_size(32) fn check(@builtin(global_invocation_id) id: vec3u) {
+            if (id.x >= arrayLength(&inputs)) { return; }
+            let mode = inputs[id.x];
+            outputs[id.x] = vec4u(select(0u, 1u, isArchitecture(mode)),
+              select(0u, 1u, isArchitectureFloor(mode)), architectureFinishSlot(mode), bitcast<u32>(mode));
+          }` });
+        const pipeline = await gpu.device.createComputePipelineAsync({ layout: 'auto', compute: {
+          module, entryPoint: 'check', constants: { maxArchitectureFinishSlot: MAX_ARCHITECTURE_FINISH_SLOT },
+        } });
+        const values = Float32Array.from(architectureModeVectors.map(vector => vector.mode));
+        const bits = new Uint32Array(values.buffer), buffers = [];
+        const buffer = (size, usage) => { const result = gpu.device.createBuffer({ size, usage }); buffers.push(result); return result; };
+        try {
+          const input = buffer(values.byteLength, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
+          const output = buffer(values.length * 16, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC);
+          const read = buffer(values.length * 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+          gpu.device.queue.writeBuffer(input, 0, values);
+          const binding = gpu.device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [
+            { binding: 0, resource: { buffer: input } }, { binding: 1, resource: { buffer: output } },
+          ] });
+          const encoder = gpu.device.createCommandEncoder(), pass = encoder.beginComputePass();
+          pass.setPipeline(pipeline); pass.setBindGroup(0, binding); pass.dispatchWorkgroups(Math.ceil(values.length / 32)); pass.end();
+          encoder.copyBufferToBuffer(output, 0, read, 0, values.length * 16); gpu.device.queue.submit([encoder.finish()]);
+          await acquireWithTimeout(read.mapAsync(GPUMapMode.READ), 10000, () => read.unmap(), 'Mode helper readback');
+          const actual = new Uint32Array(read.getMappedRange().slice(0)); read.unmap();
+          const results = architectureModeVectors.map((vector, index) => {
+            const cpu = decodeArchitectureMode(values[index]);
+            const expected = [vector.floor === null ? 0 : 1, vector.floor === true ? 1 : 0, vector.slot, bits[index]];
+            const found = [...actual.slice(index * 4, index * 4 + 4)];
+            assert(same(found, expected) && (cpu?.floor ?? null) === vector.floor && (cpu?.finishSlot ?? 0) === vector.slot,
+              'Production CPU/GPU mode agreement', { label: vector.label, found, expected, cpu });
+            return { label: vector.label, inputBits: bits[index].toString(16), architecture: found[0], floor: found[1], slot: found[2] };
+          });
+          assert(errors.length === 0, 'Mode proof GPU validation', { errors });
+          return { pass: true, count: results.length, maxSlot: MAX_ARCHITECTURE_FINISH_SLOT,
+            productionHelpersSHA256: await sha256(new TextEncoder().encode(helpers)), results };
+        } finally { for (const resource of buffers) { if (resource.mapState === 'mapped') resource.unmap(); resource.destroy(); } }
+      },
       async reconstructionBatch(cases) {
         assert(cases.length <= 16, 'Bounded reconstruction batch');
         const start = performance.now(), results = [];

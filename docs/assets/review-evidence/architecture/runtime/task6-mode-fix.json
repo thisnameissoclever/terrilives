@@ -1,0 +1,240 @@
+{
+  "results": [
+    {
+      "method": "modeCase",
+      "result": {
+        "pass": true,
+        "count": 20,
+        "maxSlot": 1048575,
+        "productionHelpersSHA256": "3fd1f6e26ccc72c1f409352870b5b39a3a5a5dc916e0de7ad9ebd8e5ee453ad6",
+        "results": [
+          {
+            "label": "zero",
+            "inputBits": "0",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "negative zero",
+            "inputBits": "80000000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "footprint",
+            "inputBits": "bf800000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "wall mask",
+            "inputBits": "41700000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "default wall",
+            "inputBits": "c0000000",
+            "architecture": 1,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "default floor",
+            "inputBits": "c0400000",
+            "architecture": 1,
+            "floor": 1,
+            "slot": 0
+          },
+          {
+            "label": "reserved four",
+            "inputBits": "c0800000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "reserved five",
+            "inputBits": "c0a00000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "active wall",
+            "inputBits": "c0c00000",
+            "architecture": 1,
+            "floor": 0,
+            "slot": 1
+          },
+          {
+            "label": "active floor",
+            "inputBits": "c1300000",
+            "architecture": 1,
+            "floor": 1,
+            "slot": 2
+          },
+          {
+            "label": "max wall",
+            "inputBits": "ca7ffff8",
+            "architecture": 1,
+            "floor": 0,
+            "slot": 1048575
+          },
+          {
+            "label": "max floor",
+            "inputBits": "ca7ffffc",
+            "architecture": 1,
+            "floor": 1,
+            "slot": 1048575
+          },
+          {
+            "label": "one past wall",
+            "inputBits": "ca800004",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "one past floor",
+            "inputBits": "ca800006",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "fractional wall",
+            "inputBits": "c0200000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "fractional floor",
+            "inputBits": "c0500000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "fraction below max",
+            "inputBits": "ca7ffffe",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "NaN",
+            "inputBits": "7fc00000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "positive infinity",
+            "inputBits": "7f800000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          },
+          {
+            "label": "negative infinity",
+            "inputBits": "ff800000",
+            "architecture": 0,
+            "floor": 0,
+            "slot": 0
+          }
+        ]
+      }
+    },
+    {
+      "method": "depthCase",
+      "result": {
+        "pass": true,
+        "axis": 1,
+        "side": "front",
+        "scale": 1,
+        "point": {
+          "px": 455,
+          "py": 244,
+          "tx": 10,
+          "ty": 6,
+          "sum": -0.46435546875,
+          "expected": [
+            223,
+            212,
+            193,
+            255
+          ]
+        },
+        "front": [
+          183,
+          0,
+          148,
+          255
+        ],
+        "behind": [
+          223,
+          212,
+          193,
+          255
+        ]
+      }
+    },
+    {
+      "method": "finishCase",
+      "result": {
+        "pass": true,
+        "retained": [
+          3,
+          4,
+          5
+        ],
+        "slots": [
+          1,
+          2,
+          3
+        ],
+        "resources": [
+          "fixture-stripes",
+          "fixture-checks"
+        ],
+        "residentBytes": 66441216,
+        "shortBlend": {
+          "base": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "full": [
+            162,
+            197,
+            231,
+            255
+          ],
+          "single": [
+            58,
+            67,
+            79,
+            255
+          ],
+          "pair": [
+            84,
+            100,
+            117,
+            255
+          ]
+        }
+      }
+    }
+  ],
+  "limits": {
+    "dimension": 8192,
+    "textures": 16
+  }
+}
