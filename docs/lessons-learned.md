@@ -2278,6 +2278,13 @@ builder release checks. Fresh review confirmed the existing rule, not a new
 repository problem. Use directory-scoped discovery before content lookup;
 never turn a no-match result into guesses at adjacent module filenames.
 
+**2026-10-01 recurrence.** Guessed roadmap, package and checker paths failed
+during bed integration review. The README already linked `docs/FEATURES.md`
+and `docs/specs/`; file discovery found root `check-doc-ids.py` and
+`web/package.json`. Fresh review confirmed that filename assumptions caused
+the failures. Start with the README index and a directory-scoped file list,
+then verify each selected path exists before reading it.
+
 **What happened:** a commit was made from the Bash tool with
 `git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
 form, so `@` was passed through as an ordinary character: the commit subject
