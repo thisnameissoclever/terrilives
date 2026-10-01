@@ -43,7 +43,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
-| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves and controls; place access and occupied visuals remain |
+| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves, controls and place-specific routing; occupied visuals remain |
 
 The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
@@ -360,10 +360,11 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 **Status: In progress.** Owner-aware reservation release is implemented and
 tested as groundwork. Assignment, simultaneous double-bed admission, save
-migration and assignment controls are implemented locally. Per-place approach
-paths and the two-person sleeping display remain unfinished, so this feature
-has not been published. The starting house has a bunk and a double bed. See
-`docs/specs/2026-10-01-bed-assignment.md`.
+migration, assignment controls and place-specific approach paths are implemented
+and tested locally. The two-person sleeping display remains unfinished, so this
+feature has not been published. The starting house has a bunk and a double bed.
+See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
+`docs/assets/review-evidence/bed-assignment/navigation.md`.
 
 A separate shipped household capacity rule gives
 every living member a -20 Not enough beds moodlet when sleep places are fewer
