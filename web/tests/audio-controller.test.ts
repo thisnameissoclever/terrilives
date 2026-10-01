@@ -232,6 +232,16 @@ function objectSoundFrame(
 }
 
 describe('AudioController preferences', () => {
+  it.each([
+    [undefined, 1], [null, 1], ['quiet', 1], [-0.1, 1], [1.1, 1],
+    [0, 0], [0.35, 0.35], [1, 1],
+  ])('restores Voices %j without discarding valid v1 mute and Effects', (voicesLevel, expected) => {
+    const store = memoryStore(JSON.stringify({ version: 1, muted: true, effectsLevel: 0.25, voicesLevel }));
+    const controller = new AudioController(() => new FakeContext(), store);
+    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.25, voicesLevel: expected });
+    expect(store.writes).toHaveLength(0);
+  });
+
   it('uses audible bounded defaults and persists one versioned record', () => {
     const store = memoryStore();
     const controller = new AudioController(() => new FakeContext(), store);
@@ -242,13 +252,14 @@ describe('AudioController preferences', () => {
     controller.setMuted(true);
     controller.setEffectsLevel(5);
 
-    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 1 });
+    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 1, voicesLevel: 1 });
     expect(store.writes).toHaveLength(2);
     expect(store.writes[1]?.[0]).toBe(AUDIO_PREFERENCES_KEY);
     expect(JSON.parse(store.writes[1]?.[1] ?? '')).toEqual({
       version: AUDIO_PREFERENCES_VERSION,
       muted: true,
       effectsLevel: 1,
+      voicesLevel: 1,
     });
   });
 
@@ -260,7 +271,7 @@ describe('AudioController preferences', () => {
     });
     expect(
       new AudioController(() => new FakeContext(), memoryStore(valid)).preferences(),
-    ).toEqual({ muted: true, effectsLevel: 0.25 });
+    ).toEqual({ muted: true, effectsLevel: 0.25, voicesLevel: 1 });
 
     for (const invalid of [
       '{',
@@ -273,7 +284,7 @@ describe('AudioController preferences', () => {
           () => new FakeContext(),
           memoryStore(invalid),
         ).preferences(),
-      ).toEqual({ muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL });
+      ).toEqual({ muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, voicesLevel: 1 });
     }
   });
 
@@ -291,11 +302,131 @@ describe('AudioController preferences', () => {
     controller.setMuted(true);
     controller.setEffectsLevel(0.4);
 
-    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.4 });
+    expect(controller.preferences()).toEqual({ muted: true, effectsLevel: 0.4, voicesLevel: 1 });
+  });
+
+  it('bounds Voices previews and persists only the committed setting in v1', () => {
+    const store = memoryStore();
+    const controller = new AudioController(() => new FakeContext(), store);
+    for (const [input, expected] of [[-1, 0], [2, 1], [NaN, 1], [Infinity, 1], [0.35, 0.35]]) {
+      controller.previewVoicesLevel(input);
+      expect(controller.voicesLevel()).toBe(expected);
+    }
+    expect(store.writes).toHaveLength(0);
+    controller.setVoicesLevel(0.35);
+    expect(store.writes).toHaveLength(1);
+    expect(store.writes[0]?.[0]).toBe('terrilives.audio-preferences.v1');
+    const reloaded = new AudioController(() => new FakeContext(), memoryStore(store.writes[0]![1]));
+    expect(reloaded.preferences()).toEqual({ muted: false, effectsLevel: 0.7, voicesLevel: 0.35 });
   });
 });
 
 describe('AudioController gesture and cue lifecycle', () => {
+  it.each(['connect', 'gain'] as const)('disconnects all buses after Voices %s failure and rebuilds cleanly', async (failure) => {
+    const failed = new FakeContext();
+    const createGain = failed.createGain.bind(failed);
+    failed.createGain = () => {
+      const gain = createGain();
+      if (failed.gains.length === 3) {
+        const reject = () => { throw new Error('voices graph failure'); };
+        if (failure === 'connect') gain.connect = reject;
+        else gain.gain.setValueAtTime = reject;
+      }
+      return gain;
+    };
+    const recovered = new FakeContext();
+    let attempts = 0;
+    const controller = new AudioController(() => attempts++ === 0 ? failed : recovered, undefined);
+    controller.setVoicesLevel(0.2);
+    expect(await controller.unlockFromGesture()).toBe(false);
+    expect(failed.gains).toHaveLength(3);
+    expect(failed.gains.every((gain) => gain.disconnected)).toBe(true);
+    expect(failed.closeCalls).toBe(1);
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+    expect(await controller.unlockFromGesture()).toBe(true);
+    expect(recovered.gains[2]?.gain.calls.at(-1)?.value).toBe(0.2);
+  });
+
+  it.each(['voices', 'mute', 'effects', 'load', 'background'] as const)(
+    'respects %s while a held conversation finishes loading', async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      let release!: (response: Response) => void;
+      const response = new Promise<Response>((resolve) => { release = resolve; });
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (async () => (await response).clone()) as typeof fetch;
+      try {
+        const loading = controller.loadVoiceLibrary(['a', 'b']);
+        const voice = { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 };
+        controller.emit({ type: 'sim.conversation-started', simId: 4, voice });
+        controller.previewVoicesLevel(0);
+        if (boundary === 'mute') { controller.setMuted(true); controller.setMuted(false); }
+        else if (boundary === 'effects') { controller.setEffectsLevel(0); controller.setEffectsLevel(0.7); }
+        else if (boundary === 'load') controller.reset('load');
+        else if (boundary === 'background') await controller.setBackgrounded(true);
+        release(new Response(new ArrayBuffer(16)));
+        await loading;
+        if (boundary === 'voices') {
+          expect(controller.activeConversationVoiceCount()).toBe(1);
+          const envelope = context.bufferSources[0]!.connections[0] as FakeGain;
+          expect((envelope.connections[0] as FakeGain).gain.calls.at(-1)?.value).toBe(0);
+          controller.previewVoicesLevel(1);
+          expect(context.bufferSources).toHaveLength(2);
+          controller.emit({ type: 'sim.conversation-ended', voice });
+          expect(controller.activeConversationVoiceCount()).toBe(0);
+          for (const source of context.bufferSources) source.onended?.();
+          expect(controller.retainedConversationVoiceCount()).toBe(0);
+        } else {
+          expect(context.bufferSources).toHaveLength(0);
+          expect(controller.activeConversationVoiceCount()).toBe(0);
+        }
+      } finally { globalThis.fetch = originalFetch; }
+    },
+  );
+
+  it('routes recorded voices through saved Voices gain while procedural cues bypass it', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, memoryStore(JSON.stringify({
+      version: 1, muted: false, effectsLevel: 0.5, voicesLevel: 0.25,
+    })));
+    await controller.unlockFromGesture();
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(new ArrayBuffer(16))) as typeof fetch;
+    try { await controller.loadVoiceLibrary(['a', 'b']); }
+    finally { globalThis.fetch = originalFetch; }
+    controller.emit({ type: 'sim.conversation-started', simId: 4, voice: { owner: 4, endLow: 80, endHigh: 0, first: 0, second: 1 } });
+    controller.emit({ type: 'command.rejected' });
+    const voiceEnvelope = context.bufferSources[0]!.connections[0] as FakeGain;
+    const cueEnvelope = context.oscillators[0]!.connections[0] as FakeGain;
+    const voiceBus = voiceEnvelope.connections[0] as FakeGain;
+    const effectsBus = cueEnvelope.connections[0] as FakeGain;
+    expect(voiceBus).not.toBe(effectsBus);
+    expect(voiceBus.connections).toEqual([effectsBus]);
+    expect(voiceBus.gain.calls.at(-1)).toEqual({ kind: 'set', value: 0.25, time: 4 });
+    expect(effectsBus.gain.calls.at(-1)).toEqual({ kind: 'set', value: 0.5, time: 4 });
+    expect((effectsBus.connections[0] as FakeGain).connections).toEqual([context.destination]);
+
+    footstepFrame(controller, 9, 0);
+    footstepFrame(controller, 9, 0.3);
+    activityFrame(controller, [[8, 'eating']]);
+    const sourceStarts = context.bufferSources.map((source) => [...source.starts]);
+    const sourceStops = context.bufferSources.map((source) => [...source.stops]);
+    const cueCount = context.oscillators.length;
+    controller.previewVoicesLevel(0);
+    expect(voiceBus.gain.calls.at(-1)).toEqual({ kind: 'set', value: 0, time: 4 });
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+    activityFrame(controller, [[8, 'eating']]);
+    expect(context.oscillators).toHaveLength(cueCount);
+    footstepFrame(controller, 9, 0.42);
+    expect(controller.cuePlayCounts().footstep).toBe(1);
+    controller.setVoicesLevel(0.6);
+    expect(voiceBus.gain.calls.at(-1)).toEqual({ kind: 'set', value: 0.6, time: 4 });
+    expect(context.bufferSources.map((source) => source.starts)).toEqual(sourceStarts);
+    expect(context.bufferSources.map((source) => source.stops)).toEqual(sourceStops);
+    expect(context.bufferSources).toHaveLength(2);
+  });
+
   it('drops pre-gesture events without creating or queuing a context', async () => {
     const context = new FakeContext();
     const factory = vi.fn(() => context);
@@ -394,7 +525,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       value: 680,
       time: 4.09,
     });
-    expect(context.gains[2]?.gain.calls).toContainEqual({
+    expect((rejected?.connections[0] as FakeGain).gain.calls).toContainEqual({
       kind: 'ramp',
       value: 0.07,
       time: 4.008,
@@ -653,7 +784,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(eating?.stops[0]).toBeLessThanOrEqual(4.12);
     expect(reading?.stops[0]).toBeLessThanOrEqual(4.16);
     expect(exercise?.stops[0]).toBeLessThanOrEqual(4.09);
-    const cuePeakGains = context.gains.slice(2).map((gain) =>
+    const cuePeakGains = context.oscillators.map((oscillator) => oscillator.connections[0] as FakeGain).map((gain) =>
       Math.max(
         ...gain.gain.calls
           .map((call) => call.value)
@@ -818,7 +949,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     await controller.unlockFromGesture();
     const master = context.gains[0];
     const effects = context.gains[1];
-    expect(context.gains).toHaveLength(2);
+    expect(context.gains).toHaveLength(3);
     expect(effects?.connections).toEqual([master]);
     expect(master?.connections).toEqual([context.destination]);
 
@@ -856,7 +987,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.oscillators).toHaveLength(9);
     expect(context.oscillators[0]?.stops).toEqual([4.09, 4]);
     expect(context.oscillators[0]?.disconnected).toBe(true);
-    expect(context.gains[2]?.disconnected).toBe(true);
+    expect((context.oscillators[0]?.connections[0] as FakeGain).disconnected).toBe(true);
   });
 
   it('disconnects a naturally ended voice and releases it from the cap', async () => {
@@ -869,7 +1000,7 @@ describe('AudioController gesture and cue lifecycle', () => {
 
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);
-    expect(context.gains[2]?.disconnected).toBe(true);
+    expect(context.gains.at(-1)?.disconnected).toBe(true);
   });
 
   it('contains per-cue node creation failures and permits a later footstep', async () => {
@@ -908,7 +1039,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);
-    expect(context.gains[2]?.disconnected).toBe(true);
+    expect(context.gains.at(-1)?.disconnected).toBe(true);
   });
 
   it('removes a registered voice when scheduling its stop fails', async () => {
@@ -928,7 +1059,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.oscillators[0]?.starts).toEqual([4]);
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);
-    expect(context.gains[2]?.disconnected).toBe(true);
+    expect(context.gains.at(-1)?.disconnected).toBe(true);
   });
 
   it('clears partial stride at the load boundary', async () => {

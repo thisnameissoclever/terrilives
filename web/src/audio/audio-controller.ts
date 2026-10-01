@@ -26,10 +26,12 @@ import {
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
 export const DEFAULT_EFFECTS_LEVEL = 0.7;
+export const DEFAULT_VOICES_LEVEL = 1;
 
 export interface AudioPreferences {
   readonly muted: boolean;
   readonly effectsLevel: number;
+  readonly voicesLevel: number;
 }
 
 interface StoredAudioPreferences extends AudioPreferences {
@@ -106,9 +108,11 @@ export function browserAudioPreferenceStore(): AudioPreferenceStore | undefined 
 export class AudioController implements GameAudioEventSink {
   private mutedPreference: boolean;
   private effectsLevelPreference: number;
+  private voicesLevelPreference: number;
   private context: BrowserAudioContext | null = null;
   private masterGain: GainNodePort | null = null;
   private effectsGain: GainNodePort | null = null;
+  private voicesGain: GainNodePort | null = null;
   private player: ProceduralCuePlayer | null = null;
   private voices: VoiceClipPlayer | null = null;
   /** Decoded once and reinstalled on every context rebuild. */
@@ -143,6 +147,7 @@ export class AudioController implements GameAudioEventSink {
     const preferences = readPreferences(store);
     this.mutedPreference = preferences.muted;
     this.effectsLevelPreference = preferences.effectsLevel;
+    this.voicesLevelPreference = preferences.voicesLevel;
     this.footsteps = new FootstepScheduler(this);
     this.activities = new ActivityCueScheduler(this);
     this.objectSounds = new ObjectSoundCueScheduler(this);
@@ -152,6 +157,7 @@ export class AudioController implements GameAudioEventSink {
     return {
       muted: this.mutedPreference,
       effectsLevel: this.effectsLevelPreference,
+      voicesLevel: this.voicesLevelPreference,
     };
   }
 
@@ -206,6 +212,22 @@ export class AudioController implements GameAudioEventSink {
 
   effectsLevel(): number {
     return this.effectsLevelPreference;
+  }
+
+  setVoicesLevel(level: number): void {
+    this.previewVoicesLevel(level);
+    this.persist();
+  }
+
+  /** Changes the mix without restarting conversation or movement state. */
+  previewVoicesLevel(level: number): void {
+    this.voicesLevelPreference = Number.isFinite(level)
+      ? Math.min(1, Math.max(0, level)) : DEFAULT_VOICES_LEVEL;
+    this.applyVoicesGain();
+  }
+
+  voicesLevel(): number {
+    return this.voicesLevelPreference;
   }
 
   emit(event: GameAudioEvent): void {
@@ -599,21 +621,22 @@ export class AudioController implements GameAudioEventSink {
       let context: BrowserAudioContext | null = null;
       let masterGain: GainNodePort | null = null;
       let effectsGain: GainNodePort | null = null;
+      let voicesGain: GainNodePort | null = null;
       try {
         context = this.createContext();
         masterGain = context.createGain();
         effectsGain = context.createGain();
+        voicesGain = context.createGain();
+        voicesGain.connect(effectsGain);
         effectsGain.connect(masterGain);
         masterGain.connect(context.destination);
         this.context = context;
         this.masterGain = masterGain;
         this.effectsGain = effectsGain;
+        this.voicesGain = voicesGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
-        // Same bus as the cues: `Effects` governs both, and `Sound`
-        // governs the master gain above it. Voices must never hang off
-        // the master directly, or muting effects would leave Sims
-        // talking over silence.
-        const voices = new VoiceClipPlayer(context, effectsGain);
+        // Voices adjusts recordings only; Effects and Sound still govern all audio.
+        const voices = new VoiceClipPlayer(context, voicesGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
         // The ids usually arrived before any gesture could create this
@@ -621,12 +644,15 @@ export class AudioController implements GameAudioEventSink {
         void this.fetchVoiceLibrary();
         this.applyMasterGain();
         this.applyEffectsGain();
+        this.applyVoicesGain();
       } catch {
+        safelyDisconnect(voicesGain);
         safelyDisconnect(effectsGain);
         safelyDisconnect(masterGain);
         this.context = null;
         this.masterGain = null;
         this.effectsGain = null;
+        this.voicesGain = null;
         this.player = null;
         this.voices = null;
         if (context !== null) {
@@ -686,11 +712,21 @@ export class AudioController implements GameAudioEventSink {
     );
   }
 
+  private applyVoicesGain(): void {
+    if (this.voicesGain === null || this.context === null) return;
+    this.voicesGain.gain.cancelScheduledValues(this.context.currentTime);
+    this.voicesGain.gain.setValueAtTime(
+      this.voicesLevelPreference,
+      this.context.currentTime,
+    );
+  }
+
   private persist(): void {
     const value: StoredAudioPreferences = {
       version: AUDIO_PREFERENCES_VERSION,
       muted: this.mutedPreference,
       effectsLevel: this.effectsLevelPreference,
+      voicesLevel: this.voicesLevelPreference,
     };
     try {
       this.store?.setItem(AUDIO_PREFERENCES_KEY, JSON.stringify(value));
@@ -826,7 +862,7 @@ function clampLevel(value: number): number {
 }
 
 function readPreferences(store: AudioPreferenceStore | undefined): AudioPreferences {
-  const fallback = { muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL };
+  const fallback = { muted: false, effectsLevel: DEFAULT_EFFECTS_LEVEL, voicesLevel: DEFAULT_VOICES_LEVEL };
   try {
     const raw = store?.getItem(AUDIO_PREFERENCES_KEY);
     if (raw === undefined || raw === null) return fallback;
@@ -841,7 +877,10 @@ function readPreferences(store: AudioPreferenceStore | undefined): AudioPreferen
     ) {
       return fallback;
     }
-    return { muted: parsed.muted, effectsLevel: parsed.effectsLevel };
+    const voicesLevel = typeof parsed.voicesLevel === 'number' &&
+      Number.isFinite(parsed.voicesLevel) && parsed.voicesLevel >= 0 && parsed.voicesLevel <= 1
+      ? parsed.voicesLevel : DEFAULT_VOICES_LEVEL;
+    return { muted: parsed.muted, effectsLevel: parsed.effectsLevel, voicesLevel };
   } catch {
     return fallback;
   }

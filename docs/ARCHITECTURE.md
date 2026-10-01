@@ -1032,7 +1032,11 @@ current routine-interface event mapped to a sound.
 The `AudioContext` is created or resumed only from a trusted pointer or keyboard
 gesture. Ordinary event emission never creates, resumes, or queues audio. The
 master gain is mute-only and the effects gain owns both procedural cues and
-recorded conversation volume. The simulation chooses two clip indices and
+recorded conversation volume. A separate Voices gain feeds into Effects for
+recordings only. Its saved default is one, including when loading an older v1
+preference record without that field. Changing Voices does not reset transport
+or other schedulers; even at zero, conversation playback stays bounded and
+advances normally. The simulation chooses two clip indices and
 derives their duration from compiled voice metadata; the shell owns playback.
 Each conversation has independent ownership: initiator ID, both words of its
 derived completion token, and clip indices. Both participant rows project the

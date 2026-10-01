@@ -436,12 +436,12 @@ The old Kenney Furniture Kit is downloaded and recorded in `ASSETS.md`, but no
 pack art remains in the shipped alpha. Muted Line replaced it with generated
 original sprites.
 
-The first audio shortlist is now exact and ready for approval in
-`docs/specs/2026-09-06-cc0-audio-intake.md`: four CC0 OpenGameArt archives,
-approximately 23.7 MB combined. `scripts/fetch-cc0-audio.cjs --list` reports the
-fixed IDs and sources without network access. The download flag is deliberately
-approval-gated. No pack is approved or accepted into the game merely because it
-appears in that list.
+The owner approved the four CC0 OpenGameArt archives on 2026-09-30. They are
+downloaded and inventoried; five water candidates passed mechanical screening.
+The procedure is `docs/specs/2026-09-06-cc0-audio-intake.md`, and the exact hashes
+and remaining selection work are in `docs/specs/2026-09-30-cc0-audio-intake-results.md`.
+Do not ask for that download approval again. No third-party clip ships yet;
+download approval does not establish a recording's suitability for the game.
 
 ### [T5] Confirm the repository should stay public `[APPROVE]`
 
@@ -486,7 +486,8 @@ On 2026-09-21 you asked for more systems: skills, pets as full characters, rando
 
 The [A-audio-voices] foundation is implemented: gesture-gated native Web Audio,
 quiet rejected-command feedback, fixed-tick distance footsteps, master mute,
-and Effects volume. Routine buttons, menus and slider releases are silent.
+and Effects volume. Voices now has a separate saved volume multiplier beneath
+Effects, defaulting to the unchanged mix. Routine buttons, menus and slider releases are silent.
 Twelve recorded conversation clips play in pairs. Each conversation now starts
 and stops independently, with at most three pairs sounding at once. Sleep cues
 remain household-scoped; eating, reading and exercise cues have per-Sim cadence.
@@ -495,10 +496,10 @@ The playback repairs are merged; remaining owner listening checks are still open
 Authored source identity for shower water and stove cooking is also implemented.
 It covers ordinary interactions and cooking chains and deduplicates state by
 exact placed object. Sample selection, editing, looping and audible playback
-remain mine after the CC0 download approval and listening gates; these sources
+remain mine after the completed CC0 intake and remaining listening checks; these sources
 are currently silent. Door event types remain reserved plumbing. Ambience,
-object loops, alarms, music, non-conversation voices and category controls beyond
-Effects remain unbuilt. The current contract and evidence are in
+object loops, alarms, music, non-conversation voices and music/ambience controls
+remain unbuilt. The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-09-30-conversation-audio-ownership.md`.
 
