@@ -170,3 +170,8 @@ All AudioPreferences, AudioSettings, AudioControls constructors and SimAudioFram
 Concern: retained-memory acceptance is above budget. Do not deliver until causal diagnosis and independent review resolve that hold. This implementation remains available for root review; the coherent local commit will be reported separately after committing.
 
 **Next steps**: Root diagnoses the retained-memory failure and performs independent review before external delivery. Nothing is requested directly from the owner by this implementation handoff.
+
+Review follow-up: corrected the remaining FEATURES.md sentence to list music
+controls alone as future work. Document IDs and diff checks passed; no runtime
+tests were repeated for this documentation-only correction. Root-owned evidence,
+spec links and lessons changes remain unstaged by this implementer.

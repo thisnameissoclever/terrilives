@@ -1,5 +1,9 @@
 # Indoor ambience
 
+Root browser evidence and the unresolved memory diagnosis are recorded in
+[verification](../assets/review-evidence/audio/indoor-ambience/verification.md).
+The failed acceptance is preserved; this slice is not merged or deployed.
+
 Status: implemented, delivery pending. Subjective listening is not approved.
 
 ## Intent and authority

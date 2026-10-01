@@ -1,0 +1,152 @@
+{
+  "url": "http://127.0.0.1:5221/?stress=0",
+  "generatedAt": "2026-10-01T11:18:05.968Z",
+  "pageErrors": [],
+  "requests": [
+    "http://127.0.0.1:5221/audio/ambience/indoor-air.wav"
+  ],
+  "checks": {
+    "startup": {
+      "helpVisible": true,
+      "requests": 0,
+      "audio": {
+        "activeVoices": 0,
+        "conversationVoices": 0,
+        "retainedConversationVoices": 0,
+        "objectLoopVoices": 0,
+        "ambienceVoices": 0,
+        "retainedAmbienceVoices": 0,
+        "ambienceStarts": 0,
+        "doorVoices": 0,
+        "doorTracks": 0,
+        "doorCapacity": 0,
+        "retainedObjectLoopVoices": 0,
+        "footstepTracks": 0,
+        "footstepCapacity": 8,
+        "activityTracks": 0,
+        "activityCapacity": 8,
+        "objectSoundTracks": 0,
+        "objectSoundCapacity": 8,
+        "cuePlayCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0
+        }
+      }
+    },
+    "running": {
+      "activeVoices": 0,
+      "conversationVoices": 0,
+      "retainedConversationVoices": 0,
+      "objectLoopVoices": 0,
+      "ambienceVoices": 1,
+      "retainedAmbienceVoices": 1,
+      "ambienceStarts": 1,
+      "doorVoices": 0,
+      "doorTracks": 4,
+      "doorCapacity": 4,
+      "retainedObjectLoopVoices": 0,
+      "footstepTracks": 3,
+      "footstepCapacity": 8,
+      "activityTracks": 0,
+      "activityCapacity": 8,
+      "objectSoundTracks": 0,
+      "objectSoundCapacity": 8,
+      "cuePlayCounts": {
+        "rejected": 0,
+        "footstep": 0,
+        "sleep-breath": 0,
+        "eating": 0,
+        "page-turn": 0,
+        "exercise": 0,
+        "door-opened": 0,
+        "door-closed": 0
+      }
+    },
+    "paused": {
+      "activeVoices": 0,
+      "conversationVoices": 0,
+      "retainedConversationVoices": 0,
+      "objectLoopVoices": 0,
+      "ambienceVoices": 0,
+      "retainedAmbienceVoices": 0,
+      "ambienceStarts": 1,
+      "doorVoices": 0,
+      "doorTracks": 0,
+      "doorCapacity": 4,
+      "retainedObjectLoopVoices": 0,
+      "footstepTracks": 3,
+      "footstepCapacity": 8,
+      "activityTracks": 0,
+      "activityCapacity": 8,
+      "objectSoundTracks": 0,
+      "objectSoundCapacity": 8,
+      "cuePlayCounts": {
+        "rejected": 0,
+        "footstep": 0,
+        "sleep-breath": 0,
+        "eating": 0,
+        "page-turn": 0,
+        "exercise": 0,
+        "door-opened": 0,
+        "door-closed": 0
+      }
+    },
+    "desktop": {
+      "value": "50",
+      "accessibleValue": "50%",
+      "width": 131.015625,
+      "height": 44,
+      "left": 263.984375,
+      "right": 395,
+      "top": 294.375,
+      "bottom": 338.375,
+      "viewportWidth": 1440,
+      "viewportHeight": 1000,
+      "panelScrollHeight": 426,
+      "panelClientHeight": 426
+    },
+    "saved": {
+      "version": 1,
+      "muted": false,
+      "effectsLevel": 0.7,
+      "voicesLevel": 1,
+      "ambienceLevel": 0.5
+    },
+    "persistence": true,
+    "mobile": {
+      "value": "50",
+      "accessibleValue": "50%",
+      "width": 131.015625,
+      "height": 44,
+      "left": 241.984375,
+      "right": 373,
+      "top": 330.375,
+      "bottom": 374.375,
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "panelScrollHeight": 486,
+      "panelClientHeight": 486
+    },
+    "enlargedText": {
+      "value": "50",
+      "accessibleValue": "50%",
+      "width": 52.0625,
+      "height": 44,
+      "left": 320.9375,
+      "right": 373,
+      "top": 401.171875,
+      "bottom": 445.171875,
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "panelScrollHeight": 590,
+      "panelClientHeight": 590
+    }
+  },
+  "pass": true
+}

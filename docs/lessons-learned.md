@@ -1,5 +1,28 @@
 # Lessons Learned
 
+## [L-audio-memory-pairs-need-the-same-world] Equal entity counts do not make matched workloads
+
+**What happened.** Indoor ambience passed native output and ownership checks,
+but the whole-page memory median exceeded its allowance by 3,584 bytes. Fresh
+review found independent random world seeds and slightly different tick endpoints
+in the enabled and disabled runs.
+
+**Root cause.** The harness subtracted heap growth from different simulation
+histories and labeled the difference audio-specific. A separate snapshot pair
+also found substantial generated-code growth, including sprite rendering and
+audio sampling. This does not explain every byte of the original failure.
+
+**Prevention.** Record and match seeds and exact simulation boundaries before
+attributing paired heap differences. Verify world hashes, not only entity counts.
+Use ownership snapshots to distinguish sources, caches, UI state and generated
+code. Preserve failed acceptance and its limits; diagnostic snapshots perturb
+execution and cannot silently replace that gate.
+
+**Verify.** A future matched harness must reject different seeds, ticks or world
+hashes before calculating an audio difference. Retained sources and extra DOM
+nodes or listeners must still fail. The current indoor-ambience gate remains
+failed while that correction is pending; see its verification report.
+
 ## [L-room-release-cap-applies-on-stop] A replacement stop must also bound fading owners
 
 **What happened.** Rapid room-loop replacements were bounded to two retained
