@@ -8389,3 +8389,22 @@ lighting and zoom levels. Push the fish into its rim and require the geometry
 test to fail. Confirm save bytes, structural fingerprints and historical
 atlas pixels stay unchanged. Evidence:
 `docs/assets/review-evidence/activity-bubbles/README.md`.
+## [L-markup-tests-own-boundaries] Bound markup assertions by the element they test
+
+**What happened.** Removing Household from Sim details broke a Traits assertion even though Traits was unchanged. A second assertion silently included the rest of the page.
+
+**Root cause.** Both tests used the unrelated Household section as their slice endpoint. When that marker disappeared, JavaScript's negative slice endpoint included unrelated Build markup.
+
+**Prevention.** Find the tested section or disclosure's own closing tag and assert that both endpoints exist before slicing. Do not rely on a sibling remaining in the layout.
+
+**Verify.** The Traits section and disclosure assertions now validate their boundaries; the full 1,717-test web suite and final 48-test focused suite pass after Household removal.
+
+## [L-clipped-headers-need-field-bounds] Page width alone does not prove controls fit
+
+**What happened.** The first dock proof passed ten ordinary sizes and enlarged phone text. Adversarial review found that doubled text at 601px and 640px pushed Collapse past the window and reduced the selected identity to zero width.
+
+**Root cause.** A non-wrapping header combined fixed wellbeing width with non-shrinking buttons. The page clipped overflow, so document scroll width stayed unchanged. The longest desktop mood label also overflowed its column.
+
+**Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
+
+**Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.

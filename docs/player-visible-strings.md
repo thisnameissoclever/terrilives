@@ -14,7 +14,7 @@ itself on having personality.
 | Surface | Current strings | Source |
 | --- | --- | --- |
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
-| Compact HUD | Sim details; Overview; Queue; People; Traits; Household; Collapse; Expand; Close; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
+| Compact HUD | Sim details; Overview; Queue; People; Traits; Collapse; Expand; Close; Critical: {needs}; complete household death warnings | `web/index.html`, `web/src/ui/compact-hud.ts`, `web/src/main.ts` |
 | Placement buttons | Confirm; Buy; Cancel, over the piece being placed | `web/index.html`, `web/src/ui/placement-actions.ts` |
 | Options flyout | Options; Close Options; holds Light, Death, Sound, Effects, Voices and game actions in the upper-left world group | `web/index.html`, `web/src/ui/options-menu.ts` |
 | Build sidebar controls | Build; Exit build, in the upper-left world group on every screen size | `web/index.html`, `web/src/ui/builder-controls.ts` |
@@ -39,7 +39,7 @@ itself on having personality.
 | Selling | Sell; Sell for {amount}; Selling…; {name} sold.; The sale could not be sent.; Cannot sell: {refusal}, under Sell while the chosen furniture would not sell; Delete or Backspace sells, in the Furniture tool's keyboard help line | `web/index.html`, `web/src/ui/builder.ts`, `web/src/ui/builder-controls.ts` |
 | Sale refusals | That furniture is no longer available.; This lot layout does not support furniture editing.; Wait until nobody is using or approaching this object.; That furniture is not for sale. | `web/src/bridge.ts` |
 | Colourways | Colour, the Furniture tool's and the Buy tool's list label; Recolouring…; {name} recoloured.; The colour change could not be sent.; That colour is not available.; the colourway names As drawn, Colour 2, Colour 3, Muted and Rich, placeholders | `web/index.html`, `web/src/ui/builder.ts`, `web/src/bridge.ts`, `content/objects.toml` |
-| Game actions | Save; Load; New game; Help, in Options. Clear orders and Queue mode, in Sim details / Queue; No actions queued.; upcoming-action preview explanation | `web/index.html` |
+| Game actions | Save; Load; New game; New housemate; Help, in Options. Clear orders and Queue mode, in Sim details / Queue; No actions queued.; upcoming-action preview explanation | `web/index.html` |
 | Save state | Starting; No save yet; Saving; Game saved; Autosaved; Loading; Saved game loaded; No saved game found; Starting new game | `web/index.html`, `web/src/ui/persistence-controller.ts` |
 | Save failures | Saved game is invalid. Starting a new game.; Saving is unavailable. Starting a new game.; Save failed. The game is still running.; Load failed. Current game kept.; Could not remove the saved game. | `web/src/ui/persistence-controller.ts` |
 | Order and selection feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added; That person's order queue is full; That person's order queue was full, so the order last in line was dropped; That person could not be selected; Selection could not be changed | dedicated `#command-feedback` live region in `web/index.html`; `web/src/main.ts`; `web/src/ui/command-feedback.ts`; `web/src/ui/keyboard-target.ts` |
