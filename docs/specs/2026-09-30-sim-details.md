@@ -27,6 +27,9 @@ existing sheet owns scrolling and Escape; the closed dock gains no height.
 Opening the disclosure forces current values. Closed or hidden sections do
 no periodic reads. Successful Load forces a refresh even if the entity index
 has not changed. Missing selections and missing people clear old rows.
+Visible refreshes preserve unchanged text children. Changed values, including
+text changed outside the panel, are corrected on the next refresh. Evidence:
+`docs/assets/review-evidence/personal-details-text/README.md`.
 
 This does not add controls, personality identity, saved state, commands or
 new simulation behavior. Future sensitivities, skills and editing remain
