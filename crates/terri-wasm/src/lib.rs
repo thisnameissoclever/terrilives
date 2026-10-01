@@ -4094,23 +4094,39 @@ mod boundary_tests {
 
     #[test]
     fn sound_pointers_address_loaded_authored_action_after_growth() {
+        for (object_id, interaction_id, expected_action) in [
+            ("shower", "take_shower", 1),
+            ("sink", "wash_hands", 3),
+            ("kitchen_sink", "wash_up", 3),
+        ] {
+            assert_sound_pointers_after_growth(object_id, interaction_id, expected_action);
+        }
+    }
+
+    fn assert_sound_pointers_after_growth(
+        object_id: &str,
+        interaction_id: &str,
+        expected_action: u32,
+    ) {
         let mut source = SimHandle::from_lot();
-        let (shower_entity, shower_def, take_shower) = {
+        let (object_entity, object_def, interaction_index) = {
             let pack = source.sim.world().resource::<Content>().0;
-            let shower = pack.find("shower").expect("shipped shower");
+            let definition = pack
+                .find(object_id)
+                .expect("shipped sound-producing object");
             let interaction = pack
-                .object(shower)
+                .object(definition)
                 .interactions
                 .iter()
-                .position(|interaction| interaction.id == "take_shower")
-                .expect("shipped shower interaction") as u32;
+                .position(|interaction| interaction.id == interaction_id)
+                .expect("shipped sound-producing interaction") as u32;
             let world = source.sim.world_mut();
             let mut objects = world.query::<(terri_core::Entity, &terri_core::SmartObject)>();
             let entity = objects
                 .iter(world)
-                .find_map(|(entity, object)| (object.0 == shower).then_some(entity))
-                .expect("the shipped lot places a shower");
-            (entity, shower, interaction)
+                .find_map(|(entity, object)| (object.0 == definition).then_some(entity))
+                .expect("the shipped lot places the sound-producing object");
+            (entity, definition, interaction)
         };
         let agent = {
             let world = source.sim.world_mut();
@@ -4121,16 +4137,16 @@ mod boundary_tests {
                 .next()
                 .expect("the shipped lot has a Sim")
         };
-        // Reach the shower through the public command path. Inserting Eating
+        // Reach the object through the public command path. Inserting Eating
         // on a Sim still standing in another room creates an invalid V2 save.
         let command = postcard::to_allocvec(&SimCommand::UseObject {
             agent: agent.index_u32(),
-            object: shower_entity.index_u32(),
-            interaction: take_shower,
+            object: object_entity.index_u32(),
+            interaction: interaction_index,
         })
         .unwrap();
         assert!(source.enqueue_command(&command));
-        let mut reached_shower = false;
+        let mut reached_object = false;
         for _ in 0..600 {
             source.tick();
             if source
@@ -4138,18 +4154,44 @@ mod boundary_tests {
                 .world()
                 .get::<terri_core::Eating>(agent)
                 .is_some_and(|action| {
-                    action.object == shower_def && action.interaction == take_shower
+                    action.object == object_def && action.interaction == interaction_index
                 })
             {
-                reached_shower = true;
+                reached_object = true;
                 break;
             }
         }
         assert!(
-            reached_shower,
-            "the commanded Sim must start the authored shower action"
+            reached_object,
+            "the commanded Sim must start {object_id}/{interaction_id}"
         );
         let bytes = source.save_bytes();
+
+        let mut completed = false;
+        for _ in 0..600 {
+            source.tick();
+            if source
+                .sim
+                .world()
+                .get::<terri_core::Eating>(agent)
+                .is_none()
+            {
+                let buffer = source.sim.render_buffer();
+                let row = buffer
+                    .ids
+                    .iter()
+                    .position(|&id| id == agent.index_u32())
+                    .unwrap();
+                assert_eq!(
+                    (buffer.sound_actions[row], buffer.sound_sources[row]),
+                    (0, u32::MAX),
+                    "completed {object_id}"
+                );
+                completed = true;
+                break;
+            }
+        }
+        assert!(completed, "{object_id} must complete");
 
         let mut handle = SimHandle::new(2, 2);
         assert!(handle.load_bytes(&bytes));
@@ -4169,11 +4211,8 @@ mod boundary_tests {
             .position(|&id| id == agent.index_u32())
             .expect("the loaded active Sim has a render row");
 
-        assert_eq!(
-            actions[row],
-            terri_sim::render_buffer::sound_action::SHOWER_WATER
-        );
-        assert_eq!(sources[row], shower_entity.index_u32());
+        assert_eq!(actions[row], expected_action, "{object_id}");
+        assert_eq!(sources[row], object_entity.index_u32());
         assert!(
             actions.iter().enumerate().any(|(index, &action)| {
                 index != row && action == terri_sim::render_buffer::sound_action::NONE
@@ -4185,6 +4224,21 @@ mod boundary_tests {
                 index != row && source == terri_sim::render_buffer::NO_SOUND_SOURCE
             }),
             "unrelated rows distinguish the source column from entity ids"
+        );
+        let cancel = postcard::to_allocvec(&SimCommand::CancelIntents {
+            agent: agent.index_u32(),
+        })
+        .unwrap();
+        assert!(handle.enqueue_command(&cancel));
+        handle.flush_commands();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let row = ids.iter().position(|&id| id == agent.index_u32()).unwrap();
+        let actions = addressed(handle.sound_actions_ptr(), rows, "sound_actions_ptr");
+        let sources = addressed(handle.sound_sources_ptr(), rows, "sound_sources_ptr");
+        assert_eq!(
+            (actions[row], sources[row]),
+            (0, u32::MAX),
+            "cancelled {object_id}"
         );
     }
 

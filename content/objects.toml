@@ -336,6 +336,7 @@ sprite = "offlineBathroomSink"
   [[object.interaction]]
   id = "wash_hands"
   label = "Wash hands"
+  sound_action = "sink_water"
   advertises = { hygiene = 32.0 }
   duration_ticks = 21
   slots = 1
@@ -482,6 +483,7 @@ roles = ["prep_surface"]
   [[object.interaction]]
   id = "wash_up"
   label = "Wash the dishes"
+  sound_action = "sink_water"
   # **20 and 23, raised from 14 and 27 after the first trace.** At 14 hygiene
   # this was at zero uses in 12 000 ticks, and the candidate table said why: it
   # is the fourth hygiene option in a house where hygiene is over-supplied

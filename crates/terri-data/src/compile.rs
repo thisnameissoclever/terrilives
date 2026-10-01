@@ -1533,6 +1533,7 @@ fn compile_sound_action(
     let compiled = match action {
         "shower_water" => CompiledSoundAction::ShowerWater,
         "stove_cooking" => CompiledSoundAction::StoveCooking,
+        "sink_water" => CompiledSoundAction::SinkWater,
         unknown => {
             return Err(match owner {
                 SoundOwner::Object {
@@ -4072,13 +4073,19 @@ mod tests {
 
     #[test]
     fn compiles_object_sound_actions_and_rejects_unknown_vocabulary() {
-        let mut shower = snack();
-        shower.sound_action = Some("shower_water".to_string());
-        let pack = compile_objects(full_needs(), one_object(shower)).expect("valid sound action");
-        assert_eq!(
-            pack.objects[0].interactions[0].sound_action,
-            Some(CompiledSoundAction::ShowerWater)
-        );
+        for (name, discriminant) in [("shower_water", 0), ("stove_cooking", 1), ("sink_water", 2)] {
+            let mut interaction = snack();
+            interaction.sound_action = Some(name.to_string());
+            let pack =
+                compile_objects(full_needs(), one_object(interaction)).expect("valid sound action");
+            let sound = pack.objects[0].interactions[0]
+                .sound_action
+                .expect("authored sound");
+            assert_eq!(postcard::to_allocvec(&sound).unwrap(), vec![discriminant]);
+            let bytes = postcard::to_allocvec(&pack).unwrap();
+            let restored: ContentPack = postcard::from_bytes(&bytes).unwrap();
+            assert_eq!(restored, pack);
+        }
 
         let mut unknown = snack();
         unknown.sound_action = Some("bathroom_noise".to_string());
@@ -4093,7 +4100,7 @@ mod tests {
         );
         assert!(error
             .to_string()
-            .contains("the current vocabulary is shower_water, stove_cooking"));
+            .contains("the current vocabulary is shower_water, stove_cooking, sink_water"));
     }
 
     /// The accepting half of the sprite rule: a name that IS in the atlas
@@ -10501,13 +10508,18 @@ mod tests {
 
     #[test]
     fn compiles_chain_step_sound_actions_and_rejects_unknown_vocabulary() {
-        let mut chain = a_chain("cook_dinner");
-        chain.step[0].sound_action = Some("stove_cooking".to_string());
-        let pack = compile_chain_world(vec![chain]).expect("valid sound action");
-        assert_eq!(
-            pack.chains[0].steps[0].sound_action,
-            Some(CompiledSoundAction::StoveCooking)
-        );
+        for (name, discriminant) in [("shower_water", 0), ("stove_cooking", 1), ("sink_water", 2)] {
+            let mut chain = a_chain("cook_dinner");
+            chain.step[0].sound_action = Some(name.to_string());
+            let pack = compile_chain_world(vec![chain]).expect("valid sound action");
+            let sound = pack.chains[0].steps[0]
+                .sound_action
+                .expect("authored sound");
+            assert_eq!(postcard::to_allocvec(&sound).unwrap(), vec![discriminant]);
+            let bytes = postcard::to_allocvec(&pack).unwrap();
+            let restored: ContentPack = postcard::from_bytes(&bytes).unwrap();
+            assert_eq!(restored, pack);
+        }
 
         let mut unknown = a_chain("cook_dinner");
         unknown.step[0].sound_action = Some("kitchen_noise".to_string());
@@ -10522,7 +10534,7 @@ mod tests {
         );
         assert!(error
             .to_string()
-            .contains("the current vocabulary is shower_water, stove_cooking"));
+            .contains("the current vocabulary is shower_water, stove_cooking, sink_water"));
     }
 
     /// Chain-step diagnostics name the chain and zero-based step rather than

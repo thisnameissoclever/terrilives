@@ -17,7 +17,7 @@ const MAX_RETAINED_LOOPS = 8;
 export function prepareObjectLoopClips(clips: ObjectLoopClips): ObjectLoopClips {
   const prepared = new Map<ObjectSoundAction, PreparedObjectLoopClip>();
   for (const [action, clip] of clips) {
-    if ((action === 1 || action === 2) &&
+    if ((action === 1 || action === 2 || action === 3) &&
       Number.isFinite(clip.buffer.duration) && clip.buffer.duration > 0 &&
       Number.isFinite(clip.gain) && clip.gain >= 0 &&
       Number.isFinite(clip.loopStart) && clip.loopStart >= 0 &&

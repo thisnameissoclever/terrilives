@@ -271,17 +271,19 @@ fresh rather than resuming a loop whose start happened while silent.
 The bounded object-loop player now consumes these edges and explicit prepared
 recordings. It admits at most four active loops and retains at most eight
 records including fades. Missing clips cause no placeholder sound. The
-controller now fetches the prepared shower clip on playable shower demand.
+controller fetches the shared prepared water clip on playable shower or sink demand.
 Pending sources clear at lifecycle boundaries; capacity-rejected sources remain
 eligible while observed. Effective pause stops loops and resume waits for a new
 fixed tick. See `2026-10-01-object-loop-playback.md` for the playback contract
 and rendered-signal proof.
 
-The shipped catalog contains one provisional CC0 shower-water loop. Success is
-cached; failures retry only on new shower demand after five seconds. Ended or
+The shipped catalog contains one provisional CC0 water loop, shared by showering,
+handwashing and kitchen washing-up. Success is cached; failures retry only on
+new water demand after five seconds. Ended or
 globally invalidated sources cannot revive on late decode. Stove cooking remains
 silent. See `2026-10-01-shower-water-recording.md` for provenance, measured
 levels and the still-unverified listening assessment.
+The sink mapping and lower gain are recorded in `2026-10-01-sink-water-audio.md`.
 Front and interior doors now supply geometry-keyed closed-boundary transitions
 to a bounded one-shot recording player. Loading never queues historical events.
 Door recordings feed Effects independently of Voices.

@@ -496,11 +496,13 @@ refetching successful clips or reviving cancelled playback. The evidence is in
 `docs/specs/2026-10-01-voice-download-recovery.md`.
 The playback repairs are merged; remaining owner listening checks are still open.
 
-Authored source identity for shower water and stove cooking is also implemented.
+Authored source identity for shower water, sink water and stove cooking is implemented.
 It covers ordinary interactions and cooking chains and deduplicates state by
 exact placed object. The bounded loop player now handles source ownership,
 fades, capacity, and effective-pause cleanup. Shower use now has one prepared CC0
-water loop with on-demand loading and bounded failure recovery. Its timbre and
+water loop with on-demand loading and bounded failure recovery. Handwashing and
+kitchen washing-up reuse that decoded recording at lower gain, with independent
+source ownership. Its timbre and
 mix still need listening acceptance; stove selection remains mine. Door opening
 and closing now have quiet provisional recorded cues tied to authoritative portal
 state. Ambience, alarms, music, non-conversation voices

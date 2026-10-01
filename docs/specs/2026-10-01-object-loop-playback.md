@@ -5,7 +5,8 @@
 This slice connected shower and stove sound state to a bounded recording player,
 initially with an empty catalog. The subsequent
 [shower recording slice](2026-10-01-shower-water-recording.md) adds one prepared
-flowing-water loop, fetched only on playable shower demand. Stove cooking stays
+flowing-water loop. The [sink addition](2026-10-01-sink-water-audio.md) reuses it
+at lower gain; either water action fetches missing clips on playable demand. Stove cooking stays
 silent. No placeholder oscillator or new dependency is introduced. Historical
 empty-catalog checks below describe this player's original delivery.
 

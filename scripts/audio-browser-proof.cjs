@@ -71,6 +71,9 @@ async function waitForStress(page) {
 async function closeHelpAndSetThreeTimes(page) {
   const close = page.locator('#close-help');
   if (await close.isVisible()) await close.click();
+  // Always deliver a real gesture, even when first-run Help is already closed.
+  await page.locator('#options-toggle').click();
+  await page.locator('#options-close').click();
   await setSpeed(page, 3);
   await page.waitForTimeout(250);
 }
@@ -421,7 +424,8 @@ function analyseMemory(runs) {
         sample.activityCapacity === baseline.activityCapacity &&
         sample.activityTracks <= 3 &&
         sample.objectSoundCapacity === baseline.objectSoundCapacity &&
-        sample.objectSoundTracks <= 2 &&
+        // Three household Sims can each use one of the shower, stove or sinks.
+        sample.objectSoundTracks <= 3 &&
         sample.doorCapacity === baseline.doorCapacity &&
         sample.doorTracks <= 4 &&
         sample.doorVoices <= 4 &&
@@ -568,7 +572,7 @@ async function main() {
   if (!pass) process.exitCode = 1;
 }
 
-module.exports = { analyseMemory };
+module.exports = { analyseMemory, closeHelpAndSetThreeTimes };
 
 if (require.main === module) main().catch((error) => {
   console.error(error);

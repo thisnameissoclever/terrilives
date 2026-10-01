@@ -200,6 +200,11 @@ The reproducible editor, measured signal and verification limits are in
 remain outside the repository. Conversation recordings above are first-party;
 short cues other than the door recordings below remain synthesized.
 
+Bathroom handwashing and kitchen washing-up reuse this exact WAV and decoded
+buffer at gain 0.35, below the unchanged shower gain of 0.6. No duplicate asset
+or new download is added. Sink timbre and mix remain provisional. See
+`docs/specs/2026-10-01-sink-water-audio.md`.
+
 ## Door recordings
 
 Two provisional recordings accompany actual door state changes. Author:
