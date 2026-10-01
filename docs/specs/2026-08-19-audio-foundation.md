@@ -93,6 +93,13 @@ or invalid, preserving valid mute, Effects and Voices values.
     releases whose owners already ended. An active count of zero does not
     prove those nodes are disconnected. Normal audible fades remain unchanged;
     see `2026-10-01-interrupted-release-cleanup.md`.
+14. The controller owns its context's `onstatechange` handler. A non-running
+    event immediately clears all four player families, including release-only
+    recordings, pending ownership and every scheduler, even while simulation
+    ticks are paused. Returning to running starts nothing by itself; fresh
+    observations may restart current actions. Abandoned graph construction
+    detaches the handler before closing, and queued callbacks from that graph
+    cannot touch a later context. See `2026-10-01-audio-state-events.md`.
 
 ## Node graph and bounded playback
 

@@ -14,9 +14,9 @@ async function render({ambience = 1, voices = 1, effects = 0.7, muted = false, b
     createOscillator: () => offline.createOscillator(), createBufferSource: () => offline.createBufferSource(),
     decodeAudioData: bytes => offline.decodeAudioData(bytes), resume: async () => {}, suspend: async () => {}, close: async () => {},
   };
-  offline.onstatechange = () => {
+  offline.onstatechange = event => {
     if (!clockOwnsState) return;
-    context.onstatechange?.();
+    context.onstatechange?.(event);
     if (offline.state === 'suspended') interrupted();
   };
   // Scheduling begins before native offline rendering, whose initial state is suspended.
