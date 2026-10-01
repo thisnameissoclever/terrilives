@@ -33,4 +33,3 @@ null
       Tests  1 failed | 15 passed (16)
    Start at  11:12:30
    Duration  607ms (transform 288ms, setup 0ms, import 344ms, tests 132ms, environment 0ms)
-
