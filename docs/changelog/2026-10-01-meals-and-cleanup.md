@@ -17,12 +17,13 @@ Share meals and beds, navigate bathroom boundaries and watch doors swing with vi
 - Conversations initiated while someone's needs are low or critical can reduce their opinion of the initiator.
 
 ## Improved
-- Doors swing more smoothly between moments of simulation movement.
+- Doors swing more smoothly as Sims walk through.
 - Dirty dishes have a smaller effect on relationships; their mood effects stay the same.
 - Friendships and grudges fade more slowly without interaction.
 
 ## Fixed
-- Door leaves and frames overlap Sims correctly during crossings, and thresholds stay beneath feet.
+- Door leaves and frames overlap Sims correctly during crossings.
+- Sims' feet no longer disappear beneath doorway thresholds.
 - Doorways on both wall directions now show doors with the same crossing and closing sounds.
 - Floor previews show the whole selected tile, with instructions that adapt between desktop and phone controls.
 - Activity bubbles appear when an activity starts, rather than while someone walks toward it.
