@@ -11,8 +11,8 @@ pub mod layout;
 pub mod needs;
 pub mod rng;
 pub mod save;
-pub mod windows;
 mod save_before_voice;
+pub mod windows;
 
 /// Re-exported because it appears in this crate's own public API -
 /// `Target::object`, `Intent::object` - so a consumer that names those

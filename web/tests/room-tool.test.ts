@@ -440,11 +440,12 @@ describe('the Room tool in the page', () => {
     expect(panel).toContain('<div id="room-tool" class="builder-tool" hidden>');
   });
 
-  // Found in the played check [A-room-tool]: four tool buttons in one row
-  // overflowed the side panel and cut Buy off.
-  it('lays the four tool buttons out two by two', () => {
+  // [A-room-tool] originally exposed clipped tabs. The enlarged-text review
+  // requires wrapping at the actual label width instead of fixed columns.
+  it('lets build tool buttons wrap without forcing the panel wider', () => {
     expect(INDEX_HTML).toContain('<div id="build-tools" role="group" aria-label="Build tool">');
-    expect(INDEX_HTML).toContain('#build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }');
+    expect(INDEX_HTML).toContain('#build-tools { display: flex; flex-wrap: wrap; gap: 8px; }');
+    expect(INDEX_HTML).toContain('#build-tools > * { flex: 1 1 auto; min-width: 0; }');
   });
 
   it('is wired into the frame, the click, Load and leaving Build', () => {

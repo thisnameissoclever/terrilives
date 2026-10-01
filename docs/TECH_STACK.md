@@ -109,6 +109,10 @@ resources while preserving the historical sprite atlas. The
 [architecture source guide](../assets/models/architecture/README.md) documents
 the coordinate and finish contracts. Patterns and palettes reuse geometry;
 only active alternate finishes require their pattern textures in graphics memory.
+The current architecture set contains nine windows in one-, two- and three-unit
+widths, joined wall pieces and boards, tiles and carpet. It uses accepted colour
+and R16Float local depth; alternate finishes add carrier and material-role data.
+This supports catalogue extension without adding a wall-painting interface.
 
 The runtime has baked character looks, per-instance tint
 and emissive strength, a clock-driven ambient cycle, wall-aware lamp and

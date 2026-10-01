@@ -5,7 +5,8 @@ from pathlib import Path
 import subprocess
 
 BASELINE = '22ffd8b6e5f9d03191f521f908a20e1bfc02c70a'
-FILES = ('sprites.ts', 'sprites.wgsl', 'atlas.ts', 'device.ts', 'instances.ts', 'iso.ts', 'daylight.ts')
+FILES = ('sprites.ts', 'sprites.wgsl', 'atlas.ts', 'device.ts', 'instances.ts', 'iso.ts', 'daylight.ts',
+         'tiles.ts', 'sky.ts', 'edge-walls.ts', 'lighting.ts', 'sprite-anchors.ts', 'sprite-size.ts')
 ROOT = Path(__file__).resolve().parents[2]
 DESTINATION = Path(__file__).resolve().parent / '.architecture-baseline' / BASELINE
 

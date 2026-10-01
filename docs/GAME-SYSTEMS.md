@@ -267,10 +267,12 @@ impossible unfinished recipes abandon without payout. Active commitments still
 prevent sales. Bookcase backs meet a tile edge in each supported rotation. Scope
 and local evidence are in `docs/specs/2026-09-30-gameplay-ui.md`.
 
+The 2026-10-01 local implementation adds nine window models, whole-span window edits, authored floor materials and matching beveled walls. The Windows chooser supports both axes and retains its selected model. Final owner acceptance and publication remain separate; see the architecture verification record.
+
 **What remains.**
 
-1. Wall coverings, more floor art and room-wide floor painting.
-2. Horizontal hinged-door art, window art and final recolour palettes.
+1. Wall-painting controls, additional finish choices and room-wide floor painting.
+2. Horizontal hinged-door art and final recolour palettes.
 3. Other lot sizes or player-directed expansion beyond the shipped 20 by 16 lot.
 4. Multiple floors and stairs; pathfinding, rendering and the camera assume one floor.
 5. Roofs and exterior presentation under [S-outside].

@@ -98,3 +98,9 @@ meeting low needs. Very low values can lead to dangerous neglect." These strings
 are functional descriptions of implemented mechanics. The owner authorized
 deployment after fresh-context review on 2026-09-30. The broader voice-session
 acceptance above remains separate.
+
+## Architecture controls added on 2026-10-01
+
+The functional Windows chooser contains Sash, Cottage, Arched, Sliding, Steel-grid, Twin casement, Picture, Craftsman and Clerestory, their wall-unit widths, Fit window, Replace window and Remove window. N opens the chooser from Build; the selected model persists when returning. New refusal messages explain a missing straight wall, a junction or a partial-window Room edit. Sources are `web/src/ui/window-tool.ts`, `web/src/ui/window-tool-controls.ts`, `web/src/bridge.ts` and the Rust window catalogue.
+
+These labels describe implemented controls. The wider object-name/flavor review boundary remains unchanged; this entry does not approve unrelated copy or establish final owner visual acceptance.

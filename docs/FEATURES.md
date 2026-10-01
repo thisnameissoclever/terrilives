@@ -498,7 +498,7 @@ fridge, it eats, hunger recovers. Rendered isometrically in the browser.
 - `bevy_ecs` world with need, position, and interaction components
 - Fixed 10 Hz tick loop with render interpolation ([D2])
 - Zero-copy typed-array bridge into a WebGPU renderer ([D11])
-- One instanced draw call, one texture atlas
+- Instanced opaque and cutaway draws; a historical atlas plus paired architecture resources
 - Tile grid plus single-room pathfinding
 - Determinism test in CI from day one ([D12])
 
@@ -833,34 +833,21 @@ from outside and outdoor objects remain.
 
 ### [B-floors] The player chooses what each floor is
 
-**Status: Complete for the per-tile painting slice; room painting and floor effects remain extensions.**
+**Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Found while building the yard. Every tile is one floor, and the yard is that
-floor recoloured. Build now has a Floors tool: choose Boards, Tiles or Carpet
-and click a tile to lay it, or Remove to put the tile back to how the house
-came. The choice is saved per tile, sparsely, so a house nobody has painted
-costs one byte and every save written before floors existed still loads and
-still looks the same, read by the yard rule in [OS-yard]. The coverings are
-authored in `content/lot.toml` and are the one floor sprite under a colour
-shift, as the yard and the street are, until there is floor art
-([T-floor-art]). Done in PR 128 at merge `6d4a661`. The design is
-`docs/specs/2026-09-22-floors.md` and the played check is [A-floors]. Painting a whole room in one gesture, and a floor
-that changes what happens on it, are not part of this.
+Build > Floors offers Boards, Tiles and Carpet. Choose a covering and click a tile, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Explicit-edge interiors now use distinct authored boards, tile and carpet; yard, street and frozen legacy layouts retain their original art. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
-### [B-windows] Windows let light in and let sims look out
+Room-wide painting and floor-dependent gameplay remain future work. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for current local evidence and acceptance limits.
 
-**Status: Complete for placement, collision and daylight; art and looking-out interactions remain.**
+### [B-windows] Windows admit daylight
 
-Named in [S-build] in [GAME-SYSTEMS.md](GAME-SYSTEMS.md). A window is a wall
-line that stops sims but not the day. Fitted with Window in the Walls tool: it
-stops people exactly as a wall does, lets the sky in as a doorway does so the
-room behind it brightens by day ([OS-daylight]), and stops a lamp's pool as a
-wall does. The saved layout carries the window lines in an appended variant
-that appears only once a house has one, so a house without windows saves as it
-always did. There is no window art, so a window draws as the wall panel it
-stands in, washed pale blue ([T-window-art]). Done in PR 126 at merge `68459eb`. The design is
-`docs/specs/2026-09-22-windows.md` and the played check is [A-windows]. Sims
-looking out of a window is not part of this and has no interaction yet.
+**Status: Placement, collision, daylight and nine-model art implemented; looking-out interactions remain.**
+
+Open Build > Walls > Windows, or press N from any Build tool. Choose Sash, Cottage or Arched for one wall unit; Sliding, Steel-grid or Twin casement for two; Picture, Craftsman or Clerestory for three. Both wall axes are supported. Select a straight wall span and use Fit window. Selecting any part of an existing window targets its whole span for Replace window or Remove window. The selected model is retained when returning to the chooser.
+
+Windows block people and lamp light while admitting outdoor daylight. Their daylight contribution is exactly zero at night; Flat lighting remains neutral. Whole-window validation prevents partial overlaps and fragments caused by another build tool or Room edit. Historical window saves load as one-unit Sash placements. Walls now have matching thickness, joins, caps, reveals and baseboards; cutaway windows follow their owning wall height.
+
+Sims cannot interact by looking out yet. Pattern and palette descriptors support future finish catalogues, but no wall-painting tool or expanded finish library is included. See `docs/specs/2026-09-22-windows.md` and the verification record above.
 
 ### [B-trait-words] A trait says whether they like, love, dislike or hate it
 

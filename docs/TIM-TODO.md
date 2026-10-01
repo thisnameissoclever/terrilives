@@ -120,31 +120,13 @@ is left in [B-facing]; the mechanism needs no further work, and each new split
 costs one instance. Tell me whether to draft them with the generator for you
 to accept or reject, or whether you would rather supply them.
 
-### [T-floor-art] Floors that look like floors `[YOURS]`
+### [T-floor-art] Review integrated floor materials `[YOURS]`
 
-The Floors tool lays a covering on a tile, and there is one floor sprite, so
-Boards, Tiles and Carpet are that sprite under three colour shifts: warmer and
-darker, cooler and paler, deeper and softer. They read as three shades of the
-same floor rather than as three materials. What is needed: floor art per
-covering, tiling cleanly across neighbouring tiles at the isometric angle the
-rest of the art uses, and ideally a name apiece that the tool can show. The
-covering list in `content/lot.toml` grows by appending, so new art is a
-content edit rather than a code change. Tell me whether to draft them with the
-generator for you to accept or reject, or whether you would rather supply
-them. Nothing is blocked meanwhile.
+Boards, tiles and carpet now have authored art in the local 2026-10-01 implementation. Candidate08's wall/floor appearance was accepted; final combined game acceptance is separate. Review the delivered room evidence in `docs/assets/review-evidence/architecture/verification.md`. Additional patterns and palettes can extend the finish catalogue; this batch adds neither a new finish library nor room-wide painting.
 
-### [T-window-art] Glazed wall panels for the Walls tool `[YOURS]`
+### [T-window-art] Review the nine integrated window models `[YOURS]`
 
-The Walls tool now fits windows: a line that stops people and lets the
-daylight through, so a back room brightens at noon instead of sitting dim.
-There is no window art, so a window draws as the wall panel it stands in,
-washed pale blue, which is the only thing telling a player which lines are
-glazed. What is needed: a wall panel with a glazed opening for the vertical
-line and one for the horizontal, matched to the existing wall art, and light
-enough that a window reads as a window at a glance rather than as a wall
-somebody tinted. Tell me whether to draft them with the generator for you to
-accept or reject, or whether you would rather supply them. Nothing is blocked
-meanwhile.
+All nine concepts and their widths were approved. Both axes and full/cut forms are implemented with whole-span placement, replacement and removal. Final owner review covers the assembled game and controls, separately from source sheets and the first-room checkpoint. The verification record tracks that boundary and unobserved devices.
 
 ### [T-death-art] What a death looks like `[YOURS]`
 
