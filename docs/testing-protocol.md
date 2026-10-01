@@ -70,7 +70,7 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   hand. See [L11], where deleting one `std::mem::swap` left all 31 tests green
   under a "0 survivors" report.
 - **A documentation-only change skips it, and the rest of CI.** The `changes`
-  job in `ci.yml` runs the tests for `.github/scripts/changes.py` and then asks
+  job in `ci.yml` runs the CI script and workflow contract tests, then asks
   it whether anything but documentation changed. Documentation means files
   ending `.md` in any letter case, outside `.agents/` and `.claude/`, because a
   web test reads the skill files there. Everything else counts as code,
@@ -84,6 +84,20 @@ surviving mutant is, by definition, behaviour that nothing constrains.
   Anything the script cannot decide runs everything. Local gates are
   unchanged: a change that touches code still runs every step before it is
   pushed.
+- **Mutation jobs share eight runner slots across this repository.** Each
+  shard uses `ci-mutation-shard-${{ matrix.shard }}` as its job concurrency
+  group, without a PR number or run id. `queue: max` retains up to 100 pending
+  jobs per group; GitHub cancels additional jobs when that queue is full.
+  A cancelled sweep is not a passed sweep. The outer workflow still cancels
+  obsolete heads of the same PR. Its groups also separate events so a manual
+  sweep on main cannot block push CI while it waits for mutation slots.
+  Rust, web and Pages jobs do not use these groups, so mutation sweeps cannot
+  consume more than eight runners between
+  them. This is a mutation budget, not a guarantee of available account-wide
+  runners. Previously dispatched workflows retain their old configuration.
+  See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+  `.github/scripts/test_workflow_concurrency.py` pins the shared group, queue,
+  shard count and CI invocation; it does not emulate GitHub's scheduler.
 
 ## 3. Prefer causal assertions to equality assertions
 
