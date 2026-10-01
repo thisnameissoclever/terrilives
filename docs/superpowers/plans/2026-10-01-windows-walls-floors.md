@@ -186,31 +186,31 @@ atlas outputs. Tests also cover `test_geometry.py`.
 **Consumes:** Accepted Task 1 geometry/camera. **Produces:** Reviewed sprite/depth
 assets, an append-only atlas extension and generated architecture registration.
 
-- [ ] Define data-driven wall/floor finish descriptors with separate stable
+- [x] Define data-driven wall/floor finish descriptors with separate stable
   geometry, pattern and palette keys. Retain material-role masks so wall finishes
   exclude glazing, frames and independent trim. Reuse geometry/depth across
   appearances; avoid exporting the Cartesian product of colors and models.
   Keep catalogue metadata separate from loaded texture resources and validate
   budgets for the accepted set and expanded test catalogues.
-- [ ] Render all nine models for both axes and visible sides. Include full and
+- [x] Render all nine models for both axes and visible sides. Include full and
   cutaway forms. Build straight walls, exposed ends, all corner/T/cross masks,
   short/full transitions, door surrounds and shared baseboards. Derive split
   pieces from one rendered surface and ownership mask, not independent redraws.
-- [ ] Author repeatable floor patches for Boards, Tiles, Carpet, neutral interior,
+- [x] Author repeatable floor patches for Boards, Tiles, Carpet, neutral interior,
   grass and street. Render a four-by-four patch per material; crop tile variants
   from the common raster so plank ends and grout match. Coordinates select phases
   deterministically; no simulation random draws and no per-frame generation.
-- [ ] Test extra patterns and at least two palettes as unshipped fixtures. Confirm
+- [x] Test extra patterns and at least two palettes as unshipped fixtures. Confirm
   identical physical bounds/depth across color choices, correct material-mask
   ownership, repeat alignment and rejection of unknown catalogue references.
-- [ ] Export transparent straight-alpha color plus local `x+y` depth. Store
+- [x] Export transparent straight-alpha color plus local `x+y` depth. Store
   model, direction, height mode, origin, logical bounds, physical bounds,
   texture density, owned span and source hashes in `architecture.json`.
   Match color/depth dimensions and registration exactly. Preserve source originals.
-- [ ] Validate physical contacts, window height, width, joins, padding and both
+- [x] Validate physical contacts, window height, width, joins, padding and both
   side views. Reject floating sills, unsupported lintels, pane/bar intersections
   outside their authored joints, clipped arches and mislabeled rotations.
-- [ ] Implement import guards before switching any live sprite mapping. Reject
+- [x] Implement import guards before switching any live sprite mapping. Reject
   incomplete batches, changed hashes, missing models/directions, mismatched depth
   registration and overlapping split ownership. Mechanical test examples:
 
@@ -225,14 +225,14 @@ def test_window_catalogue_is_complete():
     assert batch.depth_registration_errors == []
 ```
 
-- [ ] Give `load_reviewed_architecture()` the fields asserted above and reject
+- [x] Give `load_reviewed_architecture()` the fields asserted above and reject
   bad data before returning. Mutation cases remove model 9, change a width,
   flip one direction, offset depth by one pixel and detach a sill. Each must fail
   a named assertion, then the byte-identical source must pass.
-- [ ] Pack new assets after the current complete atlas prefix. Add companion
+- [x] Pack new assets after the current complete atlas prefix. Add companion
   depth metadata without changing old color UV ownership. Query actual device
   limits in the proof and keep the existing build-time texture-size guard.
-- [ ] Run architecture and generator Python suites, then
+- [x] Run architecture and generator Python suites, then
   `python -B assets/sprites/gen/build.py --check`. Review every original and
   native-scale window independently. Keep rejected candidates with reasons.
 
@@ -360,10 +360,10 @@ losing architecture, covering choices, household state or queued operations.
 
 **Files:** Create `web/src/render/architecture.ts`, `web/tests/architecture.test.ts`
 and `web/proofs/architecture-depth.js`; modify `render/edge-walls.ts`, `tiles.ts`,
-`atlas.ts`, `instances.ts`, `sprites.ts`, `sprites.wgsl`, `wall-fade.ts`,
+`instances.ts`, `sprites.ts`, `sprites.wgsl`, `wall-fade.ts`,
 `main.ts`, and existing edge-wall/cutaway/wall-depth tests.
 
-**Consumes:** Reviewed Task 2 registration and Task 5 descriptors.
+**Consumes:** Generated `architecture-data.ts` from Task 2 and Task 5 descriptors.
 **Produces:** Architecture sprite/depth lookup and full/cutaway wall instances.
 
 - [ ] Add `architectureSprite(modelId, axis, side, cutaway)` using generated,
@@ -440,10 +440,12 @@ expect(floorSpriteName(1, 'house', 4, 4))
   Pass world tile coordinates; adjacent corners must project identically.
   Preserve the fractional-origin, reversed-order, mixed-material and missing-tile
   GPU cases that caught gaps in the initial floor coverage approaches.
-- [ ] Author these replacement sprites for the existing per-covering color
-  transforms so the accepted hue appears once, not twice. Keep saved IDs and
-  content tuning untouched. Add a neutral-color reference test for each final
-  material after its existing transform.
+- [ ] Use each finish's generated authored-content-color baseline to apply
+  current covering settings relative to the accepted art: hue difference,
+  strength ratio and lightness difference. Unchanged content must produce the
+  identity transform, so the accepted hue appears once. Keep saved IDs, content
+  tuning and historical sprite transforms untouched. Test default identity and
+  nondefault transform composition for each final material.
 - [ ] Verify adjacent edges at native/fractional zoom and mixed materials. No
   visible tile border on carpet, no crossed diagonals on any replacement, no
   floor triangle covering a Sim's feet. Grass/street retain their zone behavior.

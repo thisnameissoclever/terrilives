@@ -1,5 +1,54 @@
 # Lessons Learned
 
+## [L-guard-mutations-need-isolation] A failing test must reach the intended mutation
+
+**What happened.** A split-ownership guard mutation was reported as detected, but
+its test failed on clean input before reaching the overlapping-piece case. A
+separate material test asserted values that it had constructed itself.
+
+**Root cause.** Deleting the assertion also removed initialization from the same
+line. The mutation runner accepted the test name in failure output without proving
+which case failed. The material test bypassed production classification entirely.
+
+**Prevention rule.** Separate state initialization from assertions. Require clean
+input to remain valid under a guard deletion, then require the named bad-input
+case to expose the missing guard. Test material ownership through production
+classification and exported carrier data.
+
+**How to verify.** Delete only the overlap check and observe the overlap assertion
+fail after clean validation passes. Misclassify glazing as a paintable surface or
+neutralize an excluded material and require the ownership test to fail. Restore
+exact source bytes and rerun the clean tests.
+
+## [L-mixed-height-wall-mesh] Partition joined solids at shared height boundaries
+
+**What happened.** A mixed-height wall junction failed the exporter’s planar-normal
+check even though the individual wall arms were valid.
+
+**Root cause.** Adjacent cells used different vertical subdivisions. Their internal
+faces did not cancel when joined, so bevel evaluation produced an invalid surface.
+
+**Prevention rule.** Partition every adjoining cell at the same cut-height plane
+before removing shared faces. Preserve the evaluated-normal assertion.
+
+**How to verify.** Export all absent, short and full arm combinations. Check the
+mixed-height junction’s shared face ownership and planar normals, then inspect its
+source image and joined in-game appearance.
+
+## [L-approved-concept-features] Check defining geometry against the approved image
+
+**What happened.** The first complete twin-casement export had the approved paired
+leaves and handles but omitted the horizontal bars visible in the approved image.
+
+**Root cause.** The constructor followed the short model description without checking
+every defining feature in the visual reference.
+
+**Prevention rule.** Compare each model with its approved image before accepting the
+batch. Record structural features in the source tests as well as the review sheet.
+
+**How to verify.** Require the leaf bars in the geometry test. Inspect every authored
+orientation at source resolution and native game scale after export.
+
 ## [L-repeated-wall-shading] Inspect evaluated normals on reusable wall pieces
 
 **What happened.** Full-height wall segments formed a flat top geometrically,
@@ -1187,6 +1236,9 @@ to LF, breaking the manifest, journal and comparison-report acceptance chain.
 
 **Root cause.** The review binds exact file bytes, while the repository applies
 LF conversion by default. A working-tree check alone cannot exercise that boundary.
+Architecture generation exposed a second path: an unconditional Windows text
+write changed an unchanged historical manifest from LF to CRLF. Git's normalized
+diff did not show the byte change.
 
 **Prevention rule.** Mark byte-signed manifests and journals as `-text` before
 staging. Preserve the signed originals rather than rewriting their evidence or
@@ -1194,11 +1246,16 @@ weakening hash validation. Finish staging before exporting the index for review.
 If those files were already staged under text conversion, explicitly re-stage
 them with `git add --renormalize` after changing attributes; ordinary `git add`
 may retain the cached normalized blob when the working file has not changed.
+Generators must preserve an existing text file when its generated content is
+unchanged. Pin the encoding and newline convention when a write is necessary.
 
 **How to verify.** Export the completed index to a new isolated directory and
 run the atlas freshness check there. Confirm it reports the new sprite count,
 not the previous index's count. Missing raw render intermediates must not prevent
 accepted-export import, but must still fail full generation verification.
+For byte-preserved historical files, compare raw hashes before and after a normal
+generation run as well as a check-only run. Do not use a clean Git diff as the
+only evidence of byte identity.
 
 ## [L-room-relative-asset-review] Review the room, not only isolated facings
 

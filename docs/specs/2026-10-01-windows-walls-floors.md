@@ -86,6 +86,24 @@ artwork, not another branch in the placement or rendering code.
    does not invent an unreviewed wallpaper library or require a new wall-painting
    interaction in this task.
 
+Generate the architecture sprite table as a logical suffix after the complete
+historical table, with separate architecture textures. The atlas generator owns
+this registration and verifies the historical prefix. Preserve the historical
+atlas files and decoded pixels.
+
+Export accepted color separately from a neutral surface-shading image and a
+material-role mask. Replacement patterns use the neutral image, so old grout or
+plank lines cannot remain underneath. Independent frames, glazing and trim keep
+their own appearance. Share the physical depth resource across finishes. Derive
+pattern coordinates from registered geometry and world phase; document crop,
+texture density and depth precision. Load pattern resources for active finishes,
+and keep catalogue entries separate from allocated textures. Each authored floor
+finish records the content color settings used as its baseline. For the new art,
+apply the current settings relative to that baseline: hue difference, color
+strength ratio and lightness difference. Unchanged settings preserve the accepted
+art exactly; content adjustments still change its appearance. Preserve saved
+covering identities, content tuning and the historical sprite color path.
+
 Starting model dimensions are wall height 2.0, thickness 0.12 and baseboard height
 0.14 world units. Match the existing 32-by-21 half-tile projection and 38-pixel
 vertical unit. Standard glazing starts approximately 0.65 units above the floor
