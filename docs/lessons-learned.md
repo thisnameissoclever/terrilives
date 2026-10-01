@@ -9315,6 +9315,16 @@ writer cannot replace an existing terminal result.
 
 **Verify.** The original full-suite failures name the missing physical records and mismatched scene aliases. The corrected atlas passes all 130 generator tests, including the independently pinned original sprite prefix.
 
+## [L-audio-policy-documentation] Check documented sound transitions against playback code
+
+**What happened.** The task list still described door-opening recordings after the sound design changed to silent opening and a closing thunk.
+
+**Root cause.** Updating the sound contract did not update every maintained description of the same behavior.
+
+**Prevention.** Search maintained documentation when changing sound timing, source or gain. Check each claim against the actual playback transition. Keep proposed sound content distinct from released behavior.
+
+**Verify.** Search for the old behavior and inspect each remaining reference. Historical evidence may retain its original claim; maintained task and feature descriptions must match current playback.
+
 ## [L-calibration-load-and-rate-composition] Verify timed checks without unrelated simulation load
 
 **What happened.** An atlas source-hash test exceeded its existing timeout while eleven native calibration processes ran. The unchanged test passed after those processes ended, followed by the complete web suite. Recovery calibration also reached conflicting cohort bounds when only the contact rate changed.

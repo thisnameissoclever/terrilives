@@ -1495,6 +1495,21 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(Math.min(...(pitchedValues ?? []))).toBeGreaterThanOrEqual(120);
   });
 
+  it('plays footsteps at the reduced peak amplitude', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    footstepFrame(controller, 3, 0);
+    footstepFrame(controller, 3, FOOTSTEP_DISTANCE_TILES);
+
+    const footstep = context.oscillators[0];
+    const gain = footstep?.connections[0] as FakeGain;
+    const peaks = gain.gain.calls.map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(Math.max(...peaks)).toBe(0.0225);
+  });
+
   it('drops a held conversation when the player silences the game', async () => {
     // A conversation can begin while the recordings are still decoding, and
     // is held so it can start when they land. If the player mutes in that
