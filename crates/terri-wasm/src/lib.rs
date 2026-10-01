@@ -3178,7 +3178,7 @@ mod boundary_tests {
         assert_eq!(labels[14], "Cooped up");
         assert_eq!(
             descriptions[14],
-            "Gets less out of everything; exercise eases it."
+            "Less activity satisfaction; exercise helps; starts 3 points lower."
         );
 
         let worn: Vec<usize> = handle
@@ -7225,7 +7225,7 @@ mod boundary_tests {
         let mut feelings = Relationships::default();
         feelings.bump(SimId(9), 0.5);
         feelings.bump(SimId(2), -0.25);
-        let mut ledger = terri_core::Satisfaction::default();
+        let mut ledger = terri_core::Satisfaction::from_value(0.0);
         ledger.add(6.5);
         let agent = handle
             .sim

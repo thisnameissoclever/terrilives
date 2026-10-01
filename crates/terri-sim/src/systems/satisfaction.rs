@@ -135,7 +135,7 @@ mod tests {
                 Agent,
                 Position { x: 1.0, y: 1.0 },
                 needs,
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
             ))
             .id();
         // Seed the ledger so the bleed has something to take: the
@@ -159,6 +159,26 @@ mod tests {
         // difference the fixture exists to see. No decay confound:
         // satisfaction has no clock of its own.
         assert_eq!(after, 9.0);
+    }
+
+    #[test]
+    fn shipped_neglect_rate_still_costs_points_at_the_ceiling() {
+        let mut sim = crate::Sim::new();
+        let mut needs = terri_core::Needs::all_at(NEED_MAX);
+        needs.set(terri_core::NeedId::Fun, 5.0);
+        let entity = sim
+            .world_mut()
+            .spawn((Agent, needs, terri_core::Satisfaction::from_value(100.0)))
+            .id();
+        let mut only_neglect = Schedule::default();
+        only_neglect.add_systems(bleed_neglect);
+        only_neglect.run(sim.world_mut());
+        let after = sim
+            .world()
+            .get::<terri_core::Satisfaction>(entity)
+            .unwrap()
+            .value();
+        assert!(after < 100.0 && after > 99.9999);
     }
 
     #[test]
@@ -189,7 +209,7 @@ mod tests {
                 Agent,
                 Position { x: 1.0, y: 1.0 },
                 needs,
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
             ))
             .id();
         sim.world_mut()
@@ -239,7 +259,7 @@ mod tests {
                 Agent,
                 Position { x: 1.0, y: 1.0 },
                 terri_core::Needs::all_at(NEED_MAX),
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
             ))
             .id();
         sim.world_mut()
@@ -266,7 +286,7 @@ mod tests {
         // A life cannot owe. The clamp lives in Satisfaction::add, and
         // this is the one input on which it decides anything: a bleed
         // larger than the balance.
-        let mut ledger = Satisfaction::default();
+        let mut ledger = Satisfaction::from_value(0.0);
         ledger.add(0.3);
         ledger.add(-5.0);
         assert_eq!(ledger.value(), 0.0);
@@ -298,8 +318,8 @@ mod tests {
     #[test]
     fn a_completed_hobby_pays_triple_and_a_mere_pleasure_pays_base() {
         for (hobbies, expected) in [
-            (vec!["whittling".to_string()], 6.0_f32),
-            (vec!["philately".to_string()], 2.0),
+            (vec!["whittling".to_string()], 0.006_f32),
+            (vec!["philately".to_string()], 0.002),
         ] {
             let mut sim = test_content::sim_with(8, 8, hobby_pack());
             let bench_def = hobby_pack().find("bench").expect("fixture");
@@ -315,7 +335,7 @@ mod tests {
                     Agent,
                     Position { x: 2.0, y: 1.0 },
                     needs,
-                    terri_core::Satisfaction::default(),
+                    terri_core::Satisfaction::from_value(0.0),
                     terri_core::Hobbies(hobbies.clone()),
                 ))
                 .id();
@@ -363,7 +383,7 @@ mod tests {
                 Agent,
                 Position { x: 2.0, y: 1.0 },
                 needs,
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
                 terri_core::Hobbies(vec!["whittling".to_string()]),
             ))
             .id();
@@ -386,7 +406,11 @@ mod tests {
                 }
                 _ => {
                     if ledger > 0.0 {
-                        assert_eq!(ledger, 6.0, "one completion, one payout");
+                        assert_eq!(
+                            ledger,
+                            6.0 * terri_core::Satisfaction::REWARD_SCALE,
+                            "one completion, one payout"
+                        );
                         assert!(
                             mid_interaction_reads > 2,
                             "the run must have OBSERVED mid-interaction ticks, \
@@ -427,7 +451,7 @@ mod tests {
                 terri_core::SimId(0),
                 Position { x: 1.0, y: 1.0 },
                 terri_core::Needs::with(terri_core::NeedId::Social, 20.0),
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
                 terri_core::Hobbies(vec!["socialising".to_string()]),
             ))
             .id();
@@ -438,7 +462,7 @@ mod tests {
                 terri_core::SimId(1),
                 Position { x: 4.0, y: 1.0 },
                 terri_core::Needs::with(terri_core::NeedId::Social, 60.0),
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
                 terri_core::Hobbies(vec![]),
             ))
             .id();
@@ -457,8 +481,14 @@ mod tests {
                 // company, 1x for the cornered. Checked the moment the
                 // initiator's ledger moves, before a second chat can
                 // muddy the totals.
-                assert_eq!(ledger(&sim, lonely), 6.0);
-                assert_eq!(ledger(&sim, cornered), 2.0);
+                assert_eq!(
+                    ledger(&sim, lonely),
+                    6.0 * terri_core::Satisfaction::REWARD_SCALE
+                );
+                assert_eq!(
+                    ledger(&sim, cornered),
+                    2.0 * terri_core::Satisfaction::REWARD_SCALE
+                );
                 return;
             }
         }

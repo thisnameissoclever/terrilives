@@ -253,7 +253,7 @@ pub fn tick_interactions(
                 // changed every meal - `add(0.0)` is arithmetic nothing
                 // but change-detection something.
                 if payout > 0.0 {
-                    ledger.add(payout);
+                    ledger.reward(payout);
                 }
             }
 
