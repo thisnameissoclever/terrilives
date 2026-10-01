@@ -132,6 +132,10 @@ four with exit 0. `cargo clippy -p terri-sim --all-targets -- -D warnings` passe
 with exit 0. Only test code changed in this follow-up; the prior full simulation
 run remains applicable. The combined native count is now 1,283.
 
+Five targeted lifecycle faults then failed their named assertions, and all four
+tests passed after byte-for-byte restoration. See [lifecycle-faults.md](lifecycle-faults.md)
+for the deleted mechanisms, actual failure output and restored source hashes.
+
 ## Review
 
 Two read-only adversarial reviews found no production routing or fingerprint
