@@ -16,4 +16,3 @@ Housemates make more varied choices, keep their own sleep rhythms, and show more
 
 ## Art & sound
 - **Voices have their own volume control.** Voices adjusts conversation volume within the overall Effects mix. Activity recordings can loop while the activity continues; showers and front-door movement have recorded sound. [PR #164](https://github.com/thisnameissoclever/terrilives/pull/164), [PR #165](https://github.com/thisnameissoclever/terrilives/pull/165), [PR #169](https://github.com/thisnameissoclever/terrilives/pull/169) and [PR #171](https://github.com/thisnameissoclever/terrilives/pull/171)
-

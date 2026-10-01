@@ -10,4 +10,3 @@ Conversation and eating have their own animations, idle housemates wander locall
 
 ## Bug fixes
 - **Existing saves survive renamed household content.** Progress remains loadable after the starting household's name changes. Startup also reports missing artwork files accurately. [PR #39](https://github.com/thisnameissoclever/terrilives/pull/39) and [PR #40](https://github.com/thisnameissoclever/terrilives/pull/40)
-

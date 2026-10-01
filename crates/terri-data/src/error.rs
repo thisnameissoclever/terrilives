@@ -640,6 +640,11 @@ pub enum ContentError {
         interaction: String,
         action: String,
     },
+    /// An activity indicator outside the compiled presentation vocabulary.
+    UnknownActivity {
+        owner: String,
+        activity: String,
+    },
     /// A social interaction cannot name a SmartObject sound source.
     SocialSoundAction {
         interaction: String,
@@ -1713,6 +1718,10 @@ impl fmt::Display for ContentError {
                 f,
                 "'{object}' interaction '{interaction}' declares unknown sound action \
                  '{action}'; the current vocabulary is shower_water, stove_cooking, sink_water"
+            ),
+            ContentError::UnknownActivity { owner, activity } => write!(
+                f,
+                "{owner} declares unknown activity '{activity}'"
             ),
             ContentError::SocialSoundAction {
                 interaction,

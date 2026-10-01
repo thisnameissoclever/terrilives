@@ -16,9 +16,9 @@ beforeAll(async () => {
 
 const media = [
   { id: 17, name: 'Cathode Companion', prefix: 'offlineTelevision', start: 1262,
-    x: 10, y: 3, price: 350, action: 'Watch TV' },
+    x: 10, y: 3, price: 350, action: 'Watch TV', activity: 14 },
   { id: 16, name: 'Frequency of Record', prefix: 'offlineRadio', start: 1266,
-    x: 8, y: 3, price: 60, action: 'Listen to the radio' },
+    x: 8, y: 3, price: 60, action: 'Listen to the radio', activity: 18 },
 ] as const;
 
 for (const item of media) {
@@ -95,7 +95,7 @@ for (const item of media) {
     } finally { handle.free(); }
   });
 
-  it(`${item.prefix} keeps the existing standing generic-use action and static art`, () => {
+  it(`${item.prefix} keeps the standing body and static art with its exact activity`, () => {
     const handle = SimHandle.from_lot();
     try {
       const sim = new SimBridge(handle, memory);
@@ -103,7 +103,7 @@ for (const item of media) {
       let observed = false;
       for (let tick = 0; tick < 1200 && !observed; tick++) {
         sim.tick();
-        if (sim.activityOf(34) !== 7 || !sim.actionQueueOf(34)[0]?.startsWith(item.action)) continue;
+        if (sim.activityOf(34) !== item.activity || !sim.actionQueueOf(34)[0]?.startsWith(item.action)) continue;
         const row = Array.from(sim.ids()).indexOf(34);
         expect(sim.actionQueueOf(34)[0]).toMatch(new RegExp(`^${item.action}`));
         expect(sim.visualActions()[row]).toBe(0);

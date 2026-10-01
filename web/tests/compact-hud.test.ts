@@ -5,7 +5,7 @@ import { CompactHud, createCompactHud, householdWarningText, COMPACT_HUD_MEDIA_Q
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../src/ui/compact-hud.css', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../src/ui/compact-hud.ts', import.meta.url), 'utf8');
-const panels: SimPanel[] = ['overview', 'queue', 'people', 'traits', 'household'];
+const panels: SimPanel[] = ['overview', 'queue', 'people', 'traits'];
 
 function setup() {
   let state: Readonly<CompactHudState>;

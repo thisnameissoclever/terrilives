@@ -15,7 +15,7 @@ height = 4806
 
 [[sprite]]
 name = "floor"
-x = 4459
+x = 5625
 y = 4733
 w = 64
 h = 42
@@ -78,7 +78,7 @@ h = 88
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 3995
+x = 5161
 y = 4733
 w = 54
 h = 51
@@ -99,7 +99,7 @@ h = 136
 
 [[sprite]]
 name = "selectionRing"
-x = 4524
+x = 5690
 y = 4733
 w = 64
 h = 42
@@ -309,42 +309,42 @@ h = 76
 
 [[sprite]]
 name = "indicatorTalk"
-x = 4589
+x = 5755
 y = 4733
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorEat"
-x = 4616
+x = 5782
 y = 4733
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorSleep"
-x = 4643
+x = 5809
 y = 4733
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWait"
-x = 4670
+x = 5836
 y = 4733
 w = 26
 h = 26
 
 [[sprite]]
 name = "carried_ingredients"
-x = 4778
+x = 5944
 y = 4733
 w = 16
 h = 20
 
 [[sprite]]
 name = "carried_dinner"
-x = 4795
+x = 5961
 y = 4733
 w = 18
 h = 14
@@ -869,7 +869,7 @@ h = 88
 
 [[sprite]]
 name = "indicatorReading"
-x = 4697
+x = 5863
 y = 4733
 w = 26
 h = 26
@@ -1212,7 +1212,7 @@ h = 88
 
 [[sprite]]
 name = "heldSnack"
-x = 4814
+x = 5980
 y = 4733
 w = 14
 h = 10
@@ -1226,14 +1226,14 @@ h = 104
 
 [[sprite]]
 name = "indicatorExercise"
-x = 4724
+x = 5890
 y = 4733
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWatchFish"
-x = 4751
+x = 5917
 y = 4733
 w = 26
 h = 26
@@ -1681,21 +1681,21 @@ h = 88
 
 [[sprite]]
 name = "loungeSofaOttomanSW"
-x = 4050
+x = 5216
 y = 4733
 w = 54
 h = 51
 
 [[sprite]]
 name = "loungeSofaOttomanNW"
-x = 4105
+x = 5271
 y = 4733
 w = 54
 h = 51
 
 [[sprite]]
 name = "loungeSofaOttomanNE"
-x = 4160
+x = 5326
 y = 4733
 w = 54
 h = 51
@@ -1912,21 +1912,21 @@ h = 70
 
 [[sprite]]
 name = "radioSW"
-x = 4215
+x = 5381
 y = 4733
 w = 48
 h = 50
 
 [[sprite]]
 name = "radioNW"
-x = 4264
+x = 5430
 y = 4733
 w = 46
 h = 50
 
 [[sprite]]
 name = "radioNE"
-x = 4311
+x = 5477
 y = 4733
 w = 48
 h = 50
@@ -9461,7 +9461,7 @@ h = 58
 
 [[sprite]]
 name = "wallLow2"
-x = 4360
+x = 5526
 y = 4733
 w = 32
 h = 48
@@ -9475,7 +9475,7 @@ h = 58
 
 [[sprite]]
 name = "wallLow4"
-x = 4393
+x = 5559
 y = 4733
 w = 32
 h = 48
@@ -9489,7 +9489,7 @@ h = 58
 
 [[sprite]]
 name = "wallLow6"
-x = 4426
+x = 5592
 y = 4733
 w = 32
 h = 48
@@ -10561,4 +10561,180 @@ x = 5790
 y = 3068
 w = 192
 h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "activityWalking"
+x = 3995
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityWait"
+x = 4048
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityEat"
+x = 4101
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityTalk"
+x = 4154
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activitySleep"
+x = 4207
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityUse"
+x = 4260
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityReading"
+x = 4313
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityExercise"
+x = 4366
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityWatchFish"
+x = 4419
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activitySitting"
+x = 4472
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityShower"
+x = 4525
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityToilet"
+x = 4578
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityTV"
+x = 4631
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityLyingDown"
+x = 4684
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityWashHands"
+x = 4737
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityWashDishes"
+x = 4790
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityRadio"
+x = 4843
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityCorrespondence"
+x = 4896
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityBath"
+x = 4949
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityIngredients"
+x = 5002
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityPrepareFood"
+x = 5055
+y = 4733
+w = 52
+h = 52
+pixel_density = 2
+
+[[sprite]]
+name = "activityCooking"
+x = 5108
+y = 4733
+w = 52
+h = 52
 pixel_density = 2

@@ -34,17 +34,20 @@ satisfaction = 3.0
 
   [[chain.step]]
   role = "cold_storage"
+  activity = "getting_ingredients"
   label = "Get ingredients"
   duration_ticks = 20
   yields = "ingredients"
 
   [[chain.step]]
   role = "prep_surface"
+  activity = "preparing_food"
   label = "Prepare food"
   duration_ticks = 35
 
   [[chain.step]]
   role = "hob"
+  activity = "cooking"
   # The step Bill's hobby loves and Casey's capability may fumble -
   # the cooking tag moved here from the stove's retired standalone
   # interaction (retirement lands in PR 2, when the chain runs).
@@ -56,6 +59,7 @@ satisfaction = 3.0
 
   [[chain.step]]
   role = "eating_surface"
+  activity = "eating"
   label = "Eat dinner"
   duration_ticks = 45
   consumes = "dinner"

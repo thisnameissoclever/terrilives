@@ -11,4 +11,3 @@ The playable alpha gains persistence, accessible household controls, relationshi
 
 ## Bug fixes
 - **Persistence operations cannot overwrite one another.** Save and load operations are serialized, and failed loads retain the current game. The alpha acceptance pass also corrects saving, at-work need drain and unused reading-chair behavior. [PR #28](https://github.com/thisnameissoclever/terrilives/pull/28) and [PR #27](https://github.com/thisnameissoclever/terrilives/pull/27)
-

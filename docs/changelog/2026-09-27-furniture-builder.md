@@ -7,4 +7,3 @@ Furniture editing and wall visibility received another pass so the house is easi
 
 ## Bug fixes
 - **Walls reveal the interior during play.** Cutaway behavior and furniture overlap are checked together so walls do not hide the activity the player is trying to see. [PR #133](https://github.com/thisnameissoclever/terrilives/pull/133)
-

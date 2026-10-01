@@ -9,4 +9,3 @@ The household gains a shared rigged character model, distinctive shirt colours, 
 
 ## Bug fixes
 - **Wall corners and doorways are clearer.** Wall joins, doorway edges, exterior alignment and visible corner definition were corrected. [PR #61](https://github.com/thisnameissoclever/terrilives/pull/61)
-

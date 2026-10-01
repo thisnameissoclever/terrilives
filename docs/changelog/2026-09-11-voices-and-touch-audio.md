@@ -7,4 +7,3 @@ Conversation recordings are longer, and touch input can unlock audio on mobile b
 
 ## Bug fixes
 - **Touch interactions can unlock sound.** Mobile gesture handling starts the audio system through a supported player action. [PR #66](https://github.com/thisnameissoclever/terrilives/pull/66)
-

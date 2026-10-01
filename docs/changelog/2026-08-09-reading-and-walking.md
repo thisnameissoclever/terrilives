@@ -8,4 +8,3 @@ Reading has distinct seated and standing poses, and walking uses directional lim
 
 ## Bug fixes
 - **Full queues report a refusal.** Attempts to add too many orders produce feedback without being overwritten by saving status. Activity labels also distinguish generic object use from named actions. [PR #46](https://github.com/thisnameissoclever/terrilives/pull/46) and [PR #47](https://github.com/thisnameissoclever/terrilives/pull/47)
-

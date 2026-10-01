@@ -691,10 +691,21 @@ exported hand anchor of the same selected body frame. An exact authored snack an
 work step project the existing `EATING` activity so the fork bubble remains visible. A
 valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
-`USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
-but no indicator sprite because one 26-pixel glyph cannot honestly cover
-washing, television, bathing, and toilet use. Generic object
-use never selects eating body art.
+`USING_OBJECT` activity code 7 when no narrower activity is authored. Ordinary
+interactions and chain steps may author presentation-only `activity` metadata.
+Render sync validates the exact running target, interaction or chain station
+before publishing that code. Codes 12 through 23 distinguish showering, toilet
+use, television, lying down, handwashing, dishwashing, radio, correspondence,
+bathing, ingredients, preparation and cooking. Existing body-action precedence
+remains authoritative. Generic object use never selects eating body art.
+
+Every active visible activity has a distinct 26-pixel bubble, exported at texture
+density two. Walking uses footprints, and unauthored generic use has a gear.
+Idle Sims have no active task and draw no bubble; at-work Sims remain off the
+lot. Actual blocked waits and reserved conversation waits share the clock.
+The icons append after the historical atlas and use the displayed body's
+content top and its occupied owner's footprint depth projection. See
+`docs/specs/2026-10-01-activity-bubbles.md` for the complete pairing inventory.
 
 Seated reading adds an object-local action position without widening the
 render bridge. Definitions author sockets relative to their base-facing
@@ -888,7 +899,7 @@ the world hash.
 11, the compiled seat facing, and the seat coordinates. The shell chooses four
 52 by 104 sitting bodies per facing on a 12-tick, stable-id phase;
 reduced motion pins frame zero. Activity 11 maps to the HUD label `Sitting` and
-has no indicator. The compiled visual enum, render action code, and activity
+has a chair indicator. The compiled visual enum, render action code, and activity
 code are append-only. The presentation does not add a simulation component,
 save field, bridge column, object reservation rule, or world-hash input.
 
@@ -1042,7 +1053,10 @@ translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
 `sim.footstep`, recorded conversation start/end and household sleep cadence, personal eating,
 reading, and exercise cadence, source-owned object sound start and stop edges,
-and geometry-keyed door open and close events. Staged means accepted into the command
+and geometry-keyed door open and close events. Opening remains an observed state
+transition but creates no voice; closing plays only `audio/doors/close-thunk.wav`.
+The closing clip retains bounded demand loading, retry and lifecycle cleanup.
+Staged means accepted into the command
 channel; it does not overclaim that the simulation later started the intent.
 Door audio samples the simulation-owned portal columns after fixed ticks, not
 the renderer. First observations anchor silently; closed-boundary transitions

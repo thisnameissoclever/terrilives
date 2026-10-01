@@ -11,4 +11,3 @@ Sound recovers more reliably after browser interruptions, and household controls
 
 ## Art & sound
 - **Running sinks and cooking have recorded sound.** Sink use plays water audio, and stove cooking has its own cooking texture. [PR #175](https://github.com/thisnameissoclever/terrilives/pull/175) and [PR #183](https://github.com/thisnameissoclever/terrilives/pull/183)
-

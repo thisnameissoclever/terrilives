@@ -7,4 +7,3 @@ The house has a day/night cycle, a new visual style and sleep behavior that foll
 
 ## Features & changes
 - **Sleep follows a daily rhythm and reduces need drain.** Sleeping costs less than being awake, while the daily sleep drive helps guide bedtimes. [PR #37](https://github.com/thisnameissoclever/terrilives/pull/37) and [PR #38](https://github.com/thisnameissoclever/terrilives/pull/38)
-

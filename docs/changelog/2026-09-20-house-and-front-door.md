@@ -8,4 +8,3 @@ The house has corrected room boundaries, furniture fit and an animated front doo
 
 ## Bug fixes
 - **Walls no longer cut through nearby wide furniture.** Interior joins and boundary clipping received corrections alongside the builder. [PR #85](https://github.com/thisnameissoclever/terrilives/pull/85)
-

@@ -8,4 +8,3 @@ Sim details shows mood and its contributing conditions. Dialogs pause game time,
 
 ## Bug fixes
 - **Keyboard targeting is safer.** Target selection handles changing world objects without directing actions to stale targets. Startup failures explain what prevents the game from running. [PR #32](https://github.com/thisnameissoclever/terrilives/pull/32) and [PR #33](https://github.com/thisnameissoclever/terrilives/pull/33)
-

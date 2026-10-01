@@ -16,4 +16,3 @@ Build mode gains rooms, doors, purchases, sales, colour choices and floor painti
 
 ## Art & sound
 - **The house has a yard and street.** Housemates commute outside, daylight reaches indoors, and windows contribute light. [PR #106](https://github.com/thisnameissoclever/terrilives/pull/106), [PR #107](https://github.com/thisnameissoclever/terrilives/pull/107), [PR #116](https://github.com/thisnameissoclever/terrilives/pull/116) and [PR #126](https://github.com/thisnameissoclever/terrilives/pull/126)
-

@@ -1059,6 +1059,7 @@
         />
         </section>
         <section id="game-actions" aria-label="Game actions">
+        <button id="new-housemate" class="hud-button" type="button">New housemate</button>
         <button id="save-game" class="hud-button" type="button">Save</button>
         <button id="load-game" class="hud-button" type="button">Load</button>
 
@@ -1080,9 +1081,26 @@
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
         <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span id="dock-activity"></span></div>
+        <div id="dock-wellbeing">
+          <section id="mood-block" aria-label="Mood">
+            <p id="mood-empty">Select a person to see their mood.</p>
+            <div id="mood-content" hidden>
+              <div class="summary-row">
+                <span class="summary-label">Mood</span>
+                <strong id="mood-label" class="summary-value"></strong>
+              </div>
+              <div id="mood-meter" class="mood-track">
+                <span id="mood-marker" class="mood-marker" aria-hidden="true"></span>
+              </div>
+            </div>
+          </section>
+          <div id="dock-satisfaction">
+            <span class="summary-label">Life satisfaction</span>
+            <strong id="satisfaction-value" class="summary-value">unavailable</strong>
+          </div>
+        </div>
         <button id="sim-details" class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-sheet" aria-expanded="false">Sim details</button>
         <button id="dock-queue" class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-sheet" aria-expanded="false">Queue</button>
-        <button id="dock-household" class="hud-button" type="button" data-open-sim-panel="household" aria-controls="sim-sheet" aria-expanded="false">Household</button>
         <button id="sim-dock-collapse" class="hud-button" type="button" aria-controls="sim-dock-body" aria-expanded="true">Collapse</button>
       </div>
       <p id="dock-alert" role="status" aria-live="polite"></p>
@@ -1099,27 +1117,10 @@
         <div id="sim-sheet-header"><nav aria-label="Sim information"><button class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-overview" aria-expanded="false">Overview</button>
 <button class="hud-button" type="button" data-open-sim-panel="queue" aria-controls="sim-queue" aria-expanded="false">Queue</button>
 <button class="hud-button" type="button" data-open-sim-panel="people" aria-controls="sim-people" aria-expanded="false">People</button>
-<button class="hud-button" type="button" data-open-sim-panel="traits" aria-controls="sim-traits" aria-expanded="false">Traits</button>
-<button class="hud-button" type="button" data-open-sim-panel="household" aria-controls="sim-household" aria-expanded="false">Household</button></nav><button id="sim-sheet-close" class="hud-button" type="button">Close</button></div>
+<button class="hud-button" type="button" data-open-sim-panel="traits" aria-controls="sim-traits" aria-expanded="false">Traits</button></nav><button id="sim-sheet-close" class="hud-button" type="button">Close</button></div>
         <div id="sim-sheet-content">
           <section id="sim-overview" data-sim-panel="overview" aria-label="Overview" hidden><div id="overview-needs"></div><div id="selected-summary">
-          <div class="summary-row">
-            <span class="summary-label">Life satisfaction</span>
-            <strong id="satisfaction-value" class="summary-value">0.0</strong>
-          </div>
-          <section id="mood-block" aria-label="Mood">
-            <p id="mood-empty">Select a person to see their mood.</p>
-            <div id="mood-content" hidden>
-              <div class="summary-row">
-                <span class="summary-label">Mood</span>
-                <strong id="mood-label" class="summary-value"></strong>
-              </div>
-              <div id="mood-meter" class="mood-track">
-                <span id="mood-marker" class="mood-marker" aria-hidden="true"></span>
-              </div>
-              <ul id="moodlet-list" hidden></ul>
-            </div>
-          </section>
+          <section id="mood-details" aria-label="Mood details"><ul id="moodlet-list" hidden></ul></section>
           <div id="career-row" class="summary-row" hidden>
             <span class="summary-label">Career</span>
             <span id="career-value" class="summary-value"></span>
@@ -1158,10 +1159,6 @@
           <p id="traits-empty" hidden></p>
           <ul id="trait-list" hidden></ul>
         </details></section>
-          <section id="sim-household" data-sim-panel="household" aria-label="Household actions" hidden>
-            <p>Choose a household member in the dock, or add a new housemate.</p>
-            <button id="new-housemate" class="hud-button" type="button">New housemate</button>
-          </section>
         </div>
       </section>
     </section>
@@ -1289,9 +1286,9 @@
           <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
           <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
-          <li>Open Sim details for needs, mood, career and life satisfaction. Choose Traits to see their traits; Close returns to the compact dock.</li>
-          <li>Choose People inside Sim details to see how the selected person feels about everyone else. Household contains New housemate.</li>
-          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
+          <li>The dock shows mood and life satisfaction. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li>
+          <li>Choose People inside Sim details to see how the selected person feels about everyone else.</li>
+          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
         </ol>
       </div>
       <div id="help-actions">

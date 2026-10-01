@@ -66,8 +66,8 @@ it.each([['moving_box', 'offlineBike', 6], ['reading_chair', 'offlineChair', 3],
         const body = data[FLOATS_PER_INSTANCE + 3];
         const profile = INTERACTION_SPRITES[spriteIndex(sprite)];
         expect(profile.frames[simShirtVariant(source.simIds()[1])]).toContain(body);
-        // Sitting is text-only; the other three activities have a bubble.
-        expect(instanceCount(source, null)).toBe(action === 8 ? 2 : 3);
+        // Every active occupied interaction has a bubble.
+        expect(instanceCount(source, null)).toBe(3);
         if (action === 9 || action === 8) {
           const [left,top,right,bottom] = SPRITE_CONTENT_BOUNDS[body];
           const [anchorX,anchorY] = SPRITE_ANCHORS[body];

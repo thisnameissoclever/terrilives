@@ -7,4 +7,3 @@ The game expands from a room to a five-room house with three housemates, object 
 - **Housemates have their own personalities.** Three starting people have distinct appearances and need behavior. [Household update](https://github.com/thisnameissoclever/terrilives/commit/5ce9b516)
 - **Housemates satisfy one another's Social need.** Conversations affect directional relationships, and Chat is available from the action menu. Activity indicators show what someone is doing. [Relationships update](https://github.com/thisnameissoclever/terrilives/commit/f3ba4149) and [Activity indicators](https://github.com/thisnameissoclever/terrilives/commit/c705f2af)
 - **Wait for occupied objects.** A person can wait for an item another person is using instead of treating it as unavailable forever. [PR #11](https://github.com/thisnameissoclever/terrilives/pull/11)
-

@@ -95,7 +95,7 @@ it('restores rendered colours immediately without draining a saved edit', () => 
   } finally { handle.free(); }
 });
 
-it('preserves target-bound generic use without claiming a seated pose', () => {
+it('identifies target-bound sitting without claiming a seated body pose', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
@@ -104,7 +104,7 @@ it('preserves target-bound generic use without claiming a seated pose', () => {
     for (let tick = 0; tick < 1200; tick++) {
       sim.tick();
       const first = sim.actionQueueOf(34)[0];
-      if (sim.activityOf(34) === 7 && first === 'Sit down: Chesterfield Regret') {
+      if (sim.activityOf(34) === 11 && first === 'Sit down: Chesterfield Regret') {
         const row = Array.from(sim.ids()).indexOf(34);
         expect(sim.visualActions()[row]).toBe(0);
         expect(sim.interactionTargets()[row]).toBe(0xffffffff);

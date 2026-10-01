@@ -1,16 +1,16 @@
 # Recorded door transitions
 
-Add quiet recorded opening and closing sounds to the existing front and interior
-door animation. This is additive provisional content under the owner's sound
-selection authorization. No previously accepted cue is replaced. Listening
-quality remains unverified in the agent runtime.
+The front and interior doors open silently and play only a filtered closing
+thunk. The owner rejected the loud, high-pitched squeak in the initial recordings.
+The originals remain preserved; the runtime loads only `audio/doors/close-thunk.wav`.
+Listening approval remains a separate owner decision.
 
 ## Authority and event timing
 
 Use the existing simulation-owned portal columns after each fixed tick. Door
 identity is the near/far tile coordinate tuple, not row order, sprite or Sim.
 New observations anchor silently. A transition from closed to any nonclosed
-state emits opening; returning to closed emits closing. Intermediate opening,
+state emits a silent opening event; returning to closed plays closing. Intermediate opening,
 open and closing states do not emit more sounds. A closing-to-opening reversal
 therefore stays within one open excursion. Disappearance is silent; reappearance
 anchors again. Invalid or conflicting observations discard the anchor.
@@ -49,22 +49,40 @@ source and output hashes.
 
 ## Playback contract
 
-1. Feed Effects directly, not Voices, at gain 0.05 with short edge fades. Keep
+The current `scripts/build-door-thunk.mjs` derives a 0.32-second, 48 kHz stereo
+PCM16 impact from the preserved `close.wav`, with a two-pole 1 kHz low-pass filter
+and edge fades. This replaces only the runtime selection, not the source files.
+
+1. Opening must create no audio source or gain node and must not increment the
+   opening play count. Keep observing opening state so the later close remains
+   correctly anchored.
+2. Feed Effects directly, not Voices, at gain 0.05 with short edge fades. Keep
    original playback rate at all game speeds. A single source's un-faded peak
-   is below 0.045; four perfectly aligned sources stay below 0.18 before Effects.
-2. Preload the two same-origin files only after an audible portal observation
-   and a trusted gesture. Cache successful clips and keep one in-flight load.
+   is below 0.023; four perfectly aligned sources stay below 0.092 before Effects.
+3. Preload only the same-origin closing thunk after an audible portal observation
+   and a trusted gesture. Cache the successful clip and keep one in-flight load.
    Failed files may recover on new demand after five seconds. Do not queue old
    door events for playback when decoding eventually finishes.
-3. Keep at most four active door cues. Release source and gain nodes after
+4. Keep at most four active door cues. Release source and gain nodes after
    completion or cancellation. Load, mute, Effects zero and backgrounding stop
    them. Pausing must prevent future door events; short already-started cues may
    finish, matching the existing short-cue policy.
-4. Test the scheduler, fixed-tick adapter, one-shot player and controller through
+5. Test the scheduler, fixed-tick adapter, one-shot player and controller through
    their public interfaces. Verify actual decoded WAV output and observe an
    in-game doorway before delivery. Record listening limitations separately.
 
 ## Verification
+
+Current closing-only preparation, controller, native-output and played
+production evidence is in [door-thunk verification](2026-10-01-door-thunk-verification.md).
+
+The numbered results below document the initial two-recording implementation,
+not current closing-only acceptance. Its signal levels and opening counters are
+historical. The current offline proof requires zero opening output, exactly one
+runtime file request, closing peak below 0.023 per source, and silence from
+0.32 seconds onward. Controller regressions assert silent opening through both
+portal transitions and direct events, then one closing source. Deleting the
+opening guard and restoring the old closing URL must each fail that regression.
 
 1. `npm test -- --maxWorkers=1` in `web/`: PASS, 111 files and 1,535 tests,
    exit 0. `npm run typecheck` and `npm run build`: PASS, exit 0. The real
