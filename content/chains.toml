@@ -17,15 +17,12 @@ id = "cook_dinner"
 # Label plain per [L58]; the voice pass happens with Tim in M2g.
 label = "Cook dinner"
 advertised_by = "fridge"
-# 70 hunger and 15 comfort, delivered WHOLE at the table. RETUNED
-# from the first measurement rather than authored by taste: at the
-# first cut (55 + 10) each sim cooked ONCE in 8.3 game days, because
-# the whole-errand cost (~160 ticks of steps plus the legs) sits in
-# the score's denominator and the snack out-earned it per tick even
-# habituated. At 85 total the dinner loses to a FRESH snack when
-# desperate - a quick bite is the honest desperate choice - and wins
-# once habituation has worn the snack toward its 0.45 floor, which is
-# exactly the rotation the retired stove interaction was tuned for.
+# 70 hunger and 15 comfort, delivered at the table after eating.
+# These benefits were tuned for the original shorter meal. The current
+# six-stage meal costs 500 base work ticks plus travel and gathering;
+# benefit-per-time autonomy often favors the quicker snack. Habituation
+# still affects both choices. The longer cooking sequence does not add
+# a separate preference that forces Sims to choose a full meal.
 advertises = { hunger = 70.0, comfort = 15.0 }
 # Above the retired stove meal's 2.5: a cooked-and-eaten dinner is the
 # fullest meal the game can express, and the satisfaction axis should

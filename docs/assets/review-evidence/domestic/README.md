@@ -232,7 +232,8 @@ Other conversations' worktrees and documentation were not edited.
 
 The branch incorporates current furniture, autonomy, chronotypes, waiting
 needs, command queues, authored activity bubbles, dock layout and packed
-render batches through main revision `250c73b3`. The merge preserves main's
+render batches through main revision `250c73b3`, followed by the changelog
+integration at `416570d5`. The merge preserves main's
 published sprite prefix and appends the domestic artwork after its icons.
 The final atlas contains 1,700 sprites at 8,192 by 5,658 pixels.
 
@@ -300,7 +301,9 @@ those expectations were corrected and the complete workspace run passed.
 | `python -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'` | PASS: 13 tests | 0 |
 | `python -B -m unittest discover -s assets/models/office -p 'test_*.py'` | PASS: 8 tests | 0 |
 | `python assets/sprites/gen/build.py --check` | PASS: 1,700 sprites; 8,192 by 5,658 | 0 |
-| `python -B -m unittest discover -s .github/scripts -p 'test_*.py'` | PASS: 15 CI guard tests | 0 |
+| `python -B -m unittest discover -s .github/scripts -p 'test_*.py'` | PASS: 23 CI guard tests after changelog integration | 0 |
+| `node --test scripts/build-changelog.test.mjs` | PASS: 7 changelog tests | 0 |
+| `node scripts/build-changelog.mjs` | PASS: generated public notes including this feature | 0 |
 | `cargo tree -p CRATE --target TARGET` for core, data and sim on `x86_64-pc-windows-msvc` and `wasm32-unknown-unknown` | PASS: all six trees generated; no `wasm-bindgen`, `web-sys` or `js-sys` | 0 |
 | `python check-doc-ids.py` | PASS: unique, allocation-free ids | 0 |
 

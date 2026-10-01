@@ -14,6 +14,8 @@ The 2026-09-30 gameplay UI update puts speed controls below Time and Funds,
 with Build and Exit build at the bottom of the sidebar. Exit build returns
 focus to that sidebar button.
 
+The changelog update adds a full-width Changelog link beneath New game and Help. It opens `./changelog/` in a new tab; its accessible name identifies that behavior. The game remains open, and native link activation works by pointer, touch or keyboard.
+
 ## [OF1] Where the gear sits
 
 The gear is a 44 by 44 button, named "Options" for assistive technology, fixed to the window's top-right corner inside the safe-area insets, on every screen size and in and out of Build. Its panel opens beneath it, at most 240 pixels wide and never taller than the window, and scrolls on its own. Both live outside `#hud`, as `#object-menu` does, because they are fixed to the window rather than part of the sidebar's column. They come before the sidebar, so the gear is the first stop after the game view for a keyboard. Any open dialog owns Escape, even when focus has fallen to the page, and New housemate closes the panel as Load, New game and Help do.
