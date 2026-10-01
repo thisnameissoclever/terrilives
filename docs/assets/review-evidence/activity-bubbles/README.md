@@ -47,8 +47,9 @@ No browser warning or error was observed during the pairing pass.
 
 ## Local validation
 
-Each command below exited zero. The web checks include the independently
-merged door-audio change on main at `d6dce671`.
+Each command below exited zero. The final web checks include the independently
+merged door-audio and dock-layout changes on main at `70f56b6e`. Captures precede
+the dock-layout merge; its changes do not alter the reviewed icon renderer.
 
 | Command | Relevant output | Verdict |
 | --- | --- | --- |
@@ -56,7 +57,7 @@ merged door-audio change on main at `d6dce671`.
 | `cargo fmt --all -- --check` | No formatting differences | PASS |
 | `cargo clippy --workspace --all-targets -- -D warnings` | Finished successfully | PASS |
 | `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm` | Release WASM package built | PASS |
-| `npm --prefix web test -- --maxWorkers=1` | 115 files, 1,753 tests passed | PASS |
+| `npm --prefix web test -- --maxWorkers=1` | 115 files, 1,752 tests passed | PASS |
 | `npm --prefix web run typecheck` | `tsc --noEmit` succeeded | PASS |
 | `npm --prefix web run build` | 86 modules transformed; production build succeeded | PASS |
 | `python -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'` | 122 tests passed | PASS |
