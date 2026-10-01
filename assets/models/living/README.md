@@ -215,3 +215,31 @@ and the one-tile footprint. The two plants share artwork, not instance state.
 
 Candidate 02's source and runtime evidence is recorded in
 `../../../docs/assets/review-evidence/living/potted-plant.md`.
+
+## Ottoman
+
+`ottoman_layout.py` defines a low square cushion, upholstered frame and four
+wooden feet. `ottoman_model.py` adds a covered button and a closed, rounded
+welt. Its four sides are symmetric; no physical-front correction is needed.
+The persistence ID remains `sofa`, distinct from `long_sofa`.
+
+1. Run the living-model tests, then hidden background Blender with
+   `render_ottoman.py -- NEW_ABSOLUTE_DIR`.
+2. Run `check_ottoman_scene.py -- ABSOLUTE_MODEL NEW_RESULT`. Require eight
+   closed connected parts, four grounded feet and seven evaluated contacts.
+   Every one of the welt's 132 cross-sections must reach the cushion surface.
+   A partly floating seam can retain some contact, so one overlap is insufficient.
+   The sampled welt must remain modifier-free; reject modifiers rather than
+   treating unmodified vertices as evidence for a deformed surface.
+   Damaged copies and deliberately removed guards must fail.
+3. Produce the four-facing board with `../kitchen/review_fridge.py DIR LABEL`.
+   Review all originals and reduced images independently before appending to
+   `../static-props-04.json`. Preserve earlier sprites and their metadata.
+4. Run `ottomanProof()` from `web/proofs/ottoman.js`, then verify production
+   Build rotations and the actual interaction through the UI. The first active
+   action must name `Chesterfield Regret`; another object also offers Sit down.
+5. Preserve the existing generic standing-use behaviour. This static-art pass
+   does not establish seated contact or introduce a seated animation.
+
+Candidate 01's source and runtime evidence is recorded in
+`../../../docs/assets/review-evidence/living/ottoman.md`.

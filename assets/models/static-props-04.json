@@ -18,6 +18,12 @@
       "directory": "living/owner-review-pending/potted-plant/candidate-02",
       "proof_sha256": "a85664527ed38b04d809fef1d7c06e257b94147d1eb805e7e9e2ab0c28828f25",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineOttoman",
+      "directory": "living/owner-review-pending/ottoman/candidate-01",
+      "proof_sha256": "af10c666ee106d2265e7b27bd19f26e5cef10a0def5fb5bb8bd77aae9d62e61e",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

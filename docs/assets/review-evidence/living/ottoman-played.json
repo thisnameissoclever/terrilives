@@ -1,0 +1,124 @@
+{
+  "initial": {
+    "tick": 0,
+    "worldHash": "4442369640752043036",
+    "saveSha256": "42fab5da88a2814585c1da9364a28f4f9f17239ea039e2dabf20629a0c238fa9",
+    "entity": 18,
+    "position": [
+      12,
+      3
+    ],
+    "facing": 0,
+    "colourway": 0,
+    "sprite": 1358,
+    "lastPlacement": null
+  },
+  "rotations": [
+    {
+      "tick": 0,
+      "worldHash": "17783687145846517488",
+      "saveSha256": "df408b90380543250fe01553cea4f7afc74ddf4567dd8b35812a45be22ab0db6",
+      "entity": 18,
+      "position": [
+        12,
+        3
+      ],
+      "facing": 1,
+      "colourway": 0,
+      "sprite": 1360,
+      "lastPlacement": {
+        "object": 18,
+        "reason": null
+      }
+    },
+    {
+      "tick": 0,
+      "worldHash": "13767133795247755399",
+      "saveSha256": "9a8e6557bb4766ae6f9211d0e82b842ae3fdf3819f704fb54ab5582c42f747f0",
+      "entity": 18,
+      "position": [
+        12,
+        3
+      ],
+      "facing": 2,
+      "colourway": 0,
+      "sprite": 1359,
+      "lastPlacement": {
+        "object": 18,
+        "reason": null
+      }
+    },
+    {
+      "tick": 0,
+      "worldHash": "14108606370277849558",
+      "saveSha256": "0f0bc015f2f24f5f8302c0cf0e03ca2702eec016a48a0f5ded86480c2858fc6a",
+      "entity": 18,
+      "position": [
+        12,
+        3
+      ],
+      "facing": 3,
+      "colourway": 0,
+      "sprite": 1361,
+      "lastPlacement": {
+        "object": 18,
+        "reason": null
+      }
+    },
+    {
+      "tick": 0,
+      "worldHash": "4442369640752043036",
+      "saveSha256": "42fab5da88a2814585c1da9364a28f4f9f17239ea039e2dabf20629a0c238fa9",
+      "entity": 18,
+      "position": [
+        12,
+        3
+      ],
+      "facing": 0,
+      "colourway": 0,
+      "sprite": 1358,
+      "lastPlacement": {
+        "object": 18,
+        "reason": null
+      }
+    }
+  ],
+  "restored": {
+    "tick": 0,
+    "worldHash": "4442369640752043036",
+    "saveSha256": "42fab5da88a2814585c1da9364a28f4f9f17239ea039e2dabf20629a0c238fa9",
+    "entity": 18,
+    "position": [
+      12,
+      3
+    ],
+    "facing": 0,
+    "colourway": 0,
+    "sprite": 1358,
+    "lastPlacement": {
+      "object": 18,
+      "reason": null
+    }
+  },
+  "use": {
+    "tick": 14,
+    "entity": 34,
+    "activity": 7,
+    "visualAction": 0,
+    "target": 4294967295,
+    "queue": [
+      "Sit down: Chesterfield Regret"
+    ],
+    "position": [
+      12,
+      2
+    ],
+    "resources": [
+      "http://127.0.0.1:4183/assets/index-C4hA3bCD.js",
+      "http://127.0.0.1:4183/assets/index-CHOU2kqH.css",
+      "http://127.0.0.1:4183/assets/terri_wasm_bg-DY1c7lfP.wasm",
+      "http://127.0.0.1:4183/atlas-25e299e075239638790be2385e644abc9e6388b4d7b62e0aef658e93ecefa782.png"
+    ]
+  },
+  "errors": []
+}

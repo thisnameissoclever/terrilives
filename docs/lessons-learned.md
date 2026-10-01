@@ -7753,3 +7753,24 @@ new body, while the other plant must stay unchanged.
 the corresponding guards. Require specific failures, not unrelated exceptions.
 Rotate and recolour both plants independently, test preview suppression, and
 compare the paused save after a complete turn through production controls.
+
+## [L-restored-render-state-must-match-components] Check the load boundary before a frame repairs it
+
+**What happened.** Ottoman recolour tests found that V5 loading retained the
+saved colour component and world hash but exposed colourway zero through the
+render buffer. The Build preview used the component and disagreed with the
+normal object until a frame refreshed the buffer.
+
+**Root cause.** Base restoration prepared rendering before the V5 loader added
+colourways. Existing save tests checked components and hashes; subsequent ticks
+or paused-frame flushes concealed the stale derived data.
+
+**Prevention.** Refresh the complete candidate's render metadata at the end of
+V5 restoration, after validating and restoring every field. Do not tick or drain
+saved commands to repair a load. Compare component and rendered state directly
+at the API return boundary, before normal frame processing.
+
+**Verify.** Save differently recoloured objects with a pending recolour command.
+Load and immediately compare component values, render columns, save bytes, world
+hash and clock. The pending command must remain pending. Native and real-WASM
+tests must fail when the final metadata refresh is removed.

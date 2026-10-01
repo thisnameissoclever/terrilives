@@ -1,0 +1,175 @@
+{
+  "result": {
+    "pass": true,
+    "validation": null,
+    "errors": [],
+    "atlas": "atlas-25e299e075239638790be2385e644abc9e6388b4d7b62e0aef658e93ecefa782.png",
+    "records": [
+      {
+        "label": "SE",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "SE: midnight",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "SW",
+        "facing": 1,
+        "sprite": 1360,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "SW: midnight",
+        "facing": 1,
+        "sprite": 1360,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "NW",
+        "facing": 2,
+        "sprite": 1359,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "NW: midnight",
+        "facing": 2,
+        "sprite": 1359,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "NE",
+        "facing": 3,
+        "sprite": 1361,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "NE: midnight",
+        "facing": 3,
+        "sprite": 1361,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "As drawn",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "Colour 2",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 1,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "Colour 3",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 2,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "Muted",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 3,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "Rich",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 4,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "Build preview",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      },
+      {
+        "label": "Existing generic use (standing)",
+        "facing": 0,
+        "sprite": 1358,
+        "colourway": 0,
+        "entity": 18,
+        "sourceEmissive": 0,
+        "renderedLight": 0.03999999910593033,
+        "tileLight": 0.03999999910593033
+      }
+    ],
+    "use": {
+      "tick": 13,
+      "entity": 34,
+      "activity": 7,
+      "visualAction": 0,
+      "target": 4294967295,
+      "queue": [
+        "Sit down: Chesterfield Regret"
+      ],
+      "position": [
+        12,
+        2
+      ]
+    }
+  },
+  "pageErrors": []
+}

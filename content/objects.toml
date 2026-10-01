@@ -271,7 +271,7 @@ sprite = "offlineTelevision"
 id = "sofa"
 name = "Chesterfield Regret"
 price = 200
-sprite = "loungeSofaOttoman"
+sprite = "offlineOttoman"
 
   # Two advertised needs, deliberately. [D6]'s scoring SUMS across
   # advertised deltas, and this is the first object in shipped content
