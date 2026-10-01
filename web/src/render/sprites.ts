@@ -18,12 +18,14 @@ import {
   WALL_ATTRIBUTE_OFFSET,
   VERTICES_PER_QUAD,
   growCapacity,
+  decodeArchitectureMode,
   type InstanceArray,
 } from './instances.js';
 import { TILE_HALF_HEIGHT } from './iso.js';
 import { AMBIENT_NEUTRAL, type Ambient } from './daylight.js';
 import shaderSource from './sprites.wgsl?raw';
-import { validateArchitectureAtlas, type ArchitectureAtlas } from './architecture-atlas.js';
+import { validateArchitectureAtlas, validateArchitectureDevice, type ArchitectureAtlas } from './architecture-atlas.js';
+import { architecturePatternShader } from './architecture-finishes.js';
 
 const INITIAL_CAPACITY = 4096;
 
@@ -192,6 +194,10 @@ export class SpriteRenderer {
   private capacity = INITIAL_CAPACITY;
   private instanceBuffer: GPUBuffer;
   private depthTexture: GPUTexture | null = null;
+  private readonly ownedTextures: GPUTexture[];
+  private readonly ownedBuffers: GPUBuffer[];
+  private readonly finishCount: number;
+  private destroyed = false;
 
   /**
    * The floor and opaque walls, uploaded once and then left alone.
@@ -266,25 +272,46 @@ export class SpriteRenderer {
   static async create(gpu: GpuContext, architecture?: ArchitectureAtlas): Promise<SpriteRenderer> {
     if (architecture) {
       validateArchitectureAtlas(architecture);
+      validateArchitectureDevice(architecture, gpu.device.limits, SPRITES.length);
       validateAtlasDimensions(architecture.width, architecture.height, gpu.device.limits.maxTextureDimension2D);
     }
     const texture = await loadAtlasTexture(gpu.device);
-    return new SpriteRenderer(gpu, texture, architecture);
+    const textures = [texture], buffers: GPUBuffer[] = [];
+    try { return new SpriteRenderer(gpu, texture, architecture, textures, buffers); }
+    catch (error) {
+      for (const resource of textures) resource.destroy();
+      for (const resource of buffers) resource.destroy();
+      throw error;
+    }
   }
 
   private constructor(
     private readonly gpu: GpuContext,
     atlasTexture: GPUTexture,
     architecture?: ArchitectureAtlas,
+    textures: GPUTexture[] = [],
+    buffers: GPUBuffer[] = [],
   ) {
-    const module = gpu.device.createShaderModule({ code: shaderSource });
+    this.ownedTextures = textures;
+    this.ownedBuffers = buffers;
+    this.finishCount = architecture?.finishes?.keys.length ?? 0;
+    this.uniformData[13] = SPRITES.length;
+    const patternCount = architecture?.patterns?.length ?? 0;
+    const module = gpu.device.createShaderModule({ code: shaderSource.replace(
+      '// ARCHITECTURE_PATTERN_BINDINGS', architecturePatternShader(patternCount)) });
     const bindGroupLayout = gpu.device.createBindGroupLayout({ entries: [
       { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
       { binding: 1, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
       { binding: 3, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
       { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } },
-      { binding: 5, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
+      { binding: 5, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float', viewDimension: '2d-array' } },
+      { binding: 6, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'uint' } },
+      { binding: 7, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+      { binding: 8, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
+      ...Array.from({ length: patternCount }, (_, index): GPUBindGroupLayoutEntry => ({
+        binding: 9 + index, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' },
+      })),
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -360,6 +387,7 @@ export class SpriteRenderer {
       size: this.capacity * BYTES_PER_INSTANCE,
       usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
+    buffers.push(this.instanceBuffer);
 
     this.uniformBuffer = gpu.device.createBuffer({
       // 64: viewport, anchor, the camera scale padded to the 16-byte
@@ -369,6 +397,7 @@ export class SpriteRenderer {
       size: 64,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
+    buffers.push(this.uniformBuffer);
 
     // The sprite table never changes after this: the atlas is a
     // committed artifact, so its rects are fixed for the session.
@@ -380,17 +409,46 @@ export class SpriteRenderer {
       size: spriteTable.byteLength,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
+    buffers.push(this.spriteBuffer);
     gpu.device.queue.writeBuffer(this.spriteBuffer, 0, spriteTable);
 
     const architectureSize = { width: architecture?.width ?? 1, height: architecture?.height ?? 1 };
     const architectureDepth = gpu.device.createTexture({ size: architectureSize,
       format: 'r16float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+    textures.push(architectureDepth);
     gpu.device.queue.writeTexture({ texture: architectureDepth }, architecture?.depth ?? new Uint16Array(1),
       { bytesPerRow: architectureSize.width * 2 }, architectureSize);
-    const architectureColor = gpu.device.createTexture({ size: architectureSize, format: 'rgba8unorm',
+    const architectureColor = gpu.device.createTexture({ size: { ...architectureSize,
+      depthOrArrayLayers: architecture?.carrier ? 2 : 1 }, format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT });
+    textures.push(architectureColor);
     if (architecture) gpu.device.queue.copyExternalImageToTexture({ source: architecture.color },
       { texture: architectureColor }, architectureSize);
+    if (architecture?.carrier) gpu.device.queue.copyExternalImageToTexture({ source: architecture.carrier },
+      { texture: architectureColor, origin: { z: 1 } }, architectureSize);
+    const roleSize = architecture?.roles ? architectureSize : { width: 1, height: 1 };
+    const roles = gpu.device.createTexture({ size: roleSize, format: 'r8uint',
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+    textures.push(roles);
+    gpu.device.queue.writeTexture({ texture: roles }, architecture?.roles ?? new Uint8Array(1),
+      { bytesPerRow: roleSize.width }, roleSize);
+    const storage = (data: Float32Array<ArrayBuffer>): GPUBuffer => {
+      const buffer = gpu.device.createBuffer({ size: data.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+      buffers.push(buffer); gpu.device.queue.writeBuffer(buffer, 0, data); return buffer;
+    };
+    const registration = storage(architecture?.registration
+      ?? new Float32Array(Math.max(1, architecture?.sprites.length ?? 0) * 4));
+    const finishes = storage(architecture?.finishes?.table ?? new Float32Array(8));
+    const patternTextures = (architecture?.patterns ?? []).map(bitmap => {
+      const texture = gpu.device.createTexture({ size: { width: bitmap.width, height: bitmap.height },
+        format: 'rgba8unorm', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+          | GPUTextureUsage.RENDER_ATTACHMENT });
+      textures.push(texture);
+      gpu.device.queue.copyExternalImageToTexture({ source: bitmap }, { texture },
+        { width: bitmap.width, height: bitmap.height });
+      return texture;
+    });
     this.bindGroup = gpu.device.createBindGroup({
       layout: this.pipeline.getBindGroupLayout(0),
       entries: [
@@ -412,7 +470,11 @@ export class SpriteRenderer {
         // a second reference to it.
         { binding: 3, resource: atlasTexture.createView() },
         { binding: 4, resource: architectureDepth.createView() },
-        { binding: 5, resource: architectureColor.createView() },
+        { binding: 5, resource: architectureColor.createView({ dimension: '2d-array' }) },
+        { binding: 6, resource: roles.createView() },
+        { binding: 7, resource: { buffer: registration } },
+        { binding: 8, resource: { buffer: finishes } },
+        ...patternTextures.map((texture, index) => ({ binding: 9 + index, resource: texture.createView() })),
       ],
     });
   }
@@ -435,12 +497,31 @@ export class SpriteRenderer {
    * snapshot.
    */
   setStaticGeometry(instances: InstanceArray, count: number, lowWalls: InstanceArray = new Float32Array()): void {
+    this.validateFinishSlots(instances, count);
+    this.validateFinishSlots(lowWalls, lowWalls.length / FLOATS_PER_INSTANCE);
     this.staticInstances = instances;
     this.staticCount = count;
     this.lowWalls = lowWalls;
     this.lowWallCount = lowWalls.length / FLOATS_PER_INSTANCE;
     this.ensureCapacity(count);
     this.uploadStatic();
+  }
+
+  private validateFinishSlots(rows: InstanceArray, count: number): void {
+    for (let index = 0; index < count; index++) {
+      const mode = decodeArchitectureMode(rows[index * FLOATS_PER_INSTANCE + 8]);
+      if (mode && mode.finishSlot > this.finishCount) throw new Error('Architecture finish slot was not loaded');
+    }
+  }
+
+  /** Release only this renderer's resources. The caller owns the shared device. */
+  destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.depthTexture?.destroy();
+    this.instanceBuffer.destroy();
+    for (const resource of this.ownedTextures) resource.destroy();
+    for (const resource of this.ownedBuffers) resource.destroy();
   }
 
   /** Shared camera origin for opt-in canonical floor vertices. Ordinary sprites ignore it. */

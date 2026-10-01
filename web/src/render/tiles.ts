@@ -25,6 +25,8 @@
 import { OPEN_SKY, sampleShade, type SkyExposure } from './sky.js';
 import { spriteIndex } from './atlas.js';
 import { buildEdgeWallGeometry, buildShortEdgeWallGeometry, type EdgeWallPanel } from './edge-walls.js';
+import { buildArchitectureWallGeometry } from './architecture-geometry.js';
+import type { WindowDefinition, WindowPlacement } from '../architecture/windows.js';
 import {
   FLOATS_PER_INSTANCE,
   OFFSET_WALL_HEIGHT,
@@ -36,6 +38,7 @@ import {
   writeShade,
   type InstanceArray,
   writeWindowTint,
+  writeArchitectureDepth,
 } from './instances.js';
 import {
   sampleLight,
@@ -52,6 +55,11 @@ import {
 
 /** What `buildStaticInstances` needs to know about the lot. */
 export interface Lot {
+  /** Explicit opt-in keeps historical snapshots and proof atlases on their original path. */
+  readonly architecture?: { readonly windows: readonly WindowPlacement[];
+    readonly catalogue: readonly WindowDefinition[]; readonly wallFinishSlot?: number;
+    /** Overrides keyed by the panel's stable physical fadeKey, shared by wide-window pieces. */
+    readonly wallFinishSlots?: Readonly<Record<string, number>> };
   readonly width: number;
   readonly height: number;
   /**
@@ -68,8 +76,8 @@ export interface Lot {
    */
   readonly doors?: Uint32Array | null;
   /**
-   * The lines that are windows, three words each ([WN-state]). Drawn in
-   * wall art in a paler tint until there is window art ([WN-art]).
+   * Historical window lines, three words each ([WN-state]), drawn as tinted
+   * wall art. The architecture path uses typed span placements instead.
    */
   readonly windows?: Uint32Array | null;
   /**
@@ -195,7 +203,10 @@ export function buildStaticInstances(
   sky: SkyExposure = OPEN_SKY,
 ): StaticGeometry {
   const house = lot.house ?? [lot.width, lot.height];
-  const edgePanels = lot.edges == null ? null
+  const edgePanels = lot.edges == null ? null : lot.architecture
+    ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, edges: lot.edges,
+      windows: lot.architecture.windows, catalogue: lot.architecture.catalogue,
+      hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], cutaway: lot.showCutAwayWalls !== true })
     : lot.showCutAwayWalls === true
       ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
         [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [])
@@ -400,7 +411,14 @@ export function buildStaticInstances(
     // Doors share that plane; their transparent aperture remains in the atlas.
     const mask = panel.mask || (panel.spriteName === 'doorwayJoinedNS' || panel.spriteName === 'doorwayLowNS'
       || (panel.window === true && (panel.spriteName === 'wallNS' || panel.spriteName === 'wallLow5')) ? 5 : 10);
-    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive, mask, shade);
+    write(panel.x, panel.y, LAYER_PROP, panel.architectureId ?? spriteIndex(panel.spriteName), emissive, mask, shade);
+    if (panel.architectureId !== undefined) {
+      writeArchitectureDepth(instances, slot - 1,
+        layeredDepth(0, 0, gridSize, LAYER_PROP) - layeredDepth(1, 0, gridSize, LAYER_PROP),
+        1, panel.low, (panel.fadeKey ? lot.architecture?.wallFinishSlots?.[panel.fadeKey] : undefined)
+          ?? lot.architecture?.wallFinishSlot ?? 0);
+      continue;
+    }
     if (panel.low) {
       instances[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_WALL_OPACITY] = 1;
       // P(0, 0, 2/3) rasterizes 26 pixels above the ground-plane origin.

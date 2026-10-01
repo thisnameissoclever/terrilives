@@ -27,7 +27,7 @@ export class WallFade {
     const old = new Map(this.panels.map(panel => [panel.key, panel]));
     this.rows = rows;
     this.panels = panels.map(panel => {
-      const key = `${panel.x},${panel.y},${panel.spriteName}`;
+      const key = panel.fadeKey ?? `${panel.x},${panel.y},${panel.spriteName}`;
       const previous = old.get(key);
       return { key, opacity: previous?.opacity ?? 1, active: previous?.active ?? false,
         cells: panel.farTiles ?? [] };

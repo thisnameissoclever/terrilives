@@ -4,11 +4,13 @@ export interface EdgeWallPanel {
   readonly y: number;
   readonly mask: number;
   readonly spriteName: string;
+  readonly architectureId?: number;
+  /** Stable physical ownership across camera rebuilds and split source pieces. */
+  readonly fadeKey?: string;
   readonly lightSamples: readonly (readonly [number, number])[];
   /**
-   * A window rather than a wall or a doorway ([WN-art] in
-   * `docs/specs/2026-09-22-windows.md`). It is drawn in wall art until
-   * there is window art, so the caller tints it to tell them apart.
+   * A window rather than a wall or doorway. Historical panels borrow tinted
+   * wall art; architectureId selects the authored window on the new path.
    */
   readonly window?: boolean;
   readonly low?: boolean;

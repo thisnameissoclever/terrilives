@@ -100,7 +100,22 @@ struct Atlas {
 @group(0) @binding(2) var atlasSampler: sampler;
 @group(0) @binding(3) var atlasTexture: texture_2d<f32>;
 @group(0) @binding(4) var architectureDepth: texture_2d<f32>;
-@group(0) @binding(5) var architectureColor: texture_2d<f32>;
+@group(0) @binding(5) var architectureColor: texture_2d_array<f32>;
+@group(0) @binding(6) var architectureRoles: texture_2d<u32>;
+struct ArchitectureRegistration { entries: array<vec4f>, };
+struct ArchitectureFinish { pattern: vec4f, palette: vec4f, };
+struct ArchitectureFinishes { entries: array<ArchitectureFinish>, };
+@group(0) @binding(7) var<storage, read> architectureRegistration: ArchitectureRegistration;
+@group(0) @binding(8) var<storage, read> architectureFinishes: ArchitectureFinishes;
+// ARCHITECTURE_PATTERN_BINDINGS
+
+fn isArchitecture(mode: f32) -> bool {
+  return mode <= -2.0 && (u32(-mode) % 4u == 2u || u32(-mode) % 4u == 3u);
+}
+fn isArchitectureFloor(mode: f32) -> bool {
+  return mode <= -3.0 && u32(-mode) % 4u == 3u;
+}
+fn architectureFinishSlot(mode: f32) -> u32 { return u32(-mode) / 4u; }
 
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
@@ -115,6 +130,8 @@ struct VertexOut {
   @location(5) localPixel: vec2<f32>,
   @location(6) @interpolate(flat) wall: vec4<f32>,
   @location(7) @interpolate(flat) colourway: vec4<f32>,
+  @location(8) @interpolate(flat) registration: vec4f,
+  @location(9) @interpolate(flat) groundOrigin: vec2f,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -143,10 +160,15 @@ fn vs(
   // toilet, a wall - all stand on the same line. Everything drawn-sized
   // scales with the camera; the instance position already did on the CPU.
   let scale = u.scale.x;
-  let topLeft = instance.xy + (u.anchor - vec2f(size.x * 0.5, size.y)) * scale;
+  var registration = vec4f(size.x * 0.5, size.y - u.anchor.y, 1.0, 0.0);
+  if (isArchitecture(wall.x)) {
+    let registered = architectureRegistration.entries[u32(instance.w - u.sky.y)];
+    if (registered.w > 0.0) { registration = registered; }
+  }
+  let topLeft = instance.xy - registration.xy * scale;
   var screen = topLeft + corner * size * scale;
   var textureCorner = corner;
-  if (wall.x == -3.0) {
+  if (isArchitectureFloor(wall.x)) {
     // A canonical world corner is computed identically by both adjacent tiles.
     // The hardware triangle fill rule owns their shared edge; independent
     // fragment predicates from separately rounded centers cannot open a seam.
@@ -173,6 +195,10 @@ fn vs(
   out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + textureCorner * size;
   out.wall = wall;
   out.colourway = colourway;
+  out.registration = registration;
+  let groundScreen = (instance.xy - u.scale.yz) / scale;
+  out.groundOrigin = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
+    (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5);
   return out;
 }
 
@@ -247,8 +273,8 @@ fn fs(in: VertexOut) -> FragmentOut {
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
   var colour = textureSample(atlasTexture, atlasSampler, uv);
-  let architectureFloor = in.wall.x == -3.0;
-  let architecture = in.wall.x == -2.0 || architectureFloor;
+  let architectureFloor = isArchitectureFloor(in.wall.x);
+  let architecture = isArchitecture(in.wall.x);
   var architecturePixel = vec2i(0);
   if (architecture) {
     let architectureSize = vec2f(textureDimensions(architectureColor));
@@ -257,7 +283,32 @@ fn fs(in: VertexOut) -> FragmentOut {
     architecturePixel = vec2i(floor(architectureUv * architectureSize));
     // Color coverage and depth have the same nearest-texel owner, including
     // antialiased and silhouette pixels. No filtered depth crosses a reveal.
-    colour = textureLoad(architectureColor, architecturePixel, 0);
+    colour = textureLoad(architectureColor, architecturePixel, 0, 0);
+    let finishSlot = architectureFinishSlot(in.wall.x);
+    if (finishSlot > 0u) {
+      let finish = architectureFinishes.entries[finishSlot - 1u];
+      let role = textureLoad(architectureRoles, architecturePixel, 0).r;
+      if (role == u32(finish.pattern.y)) {
+        let localSum = textureLoad(architectureDepth, architecturePixel, 0).r;
+        let localPixel = (vec2f(architecturePixel) + vec2f(0.5)
+          - in.uvBounds.xy * architectureSize) / in.registration.z - in.registration.xy;
+        let height = (21.0 * localSum - localPixel.y) / 38.0;
+        var coordinates = vec2f(in.groundOrigin.x + in.groundOrigin.y + localSum, height);
+        if (architectureFloor) {
+          let groundScreen = (in.clip.xy - u.scale.yz) / u.scale.x;
+          coordinates = vec2f((groundScreen.y / 21.0 + groundScreen.x / 32.0) * 0.5,
+            (groundScreen.y / 21.0 - groundScreen.x / 32.0) * 0.5) + vec2f(0.5);
+        }
+        let pattern = architecturePattern(u32(finish.pattern.x), coordinates / finish.pattern.zw);
+        let carrier = textureLoad(architectureColor, architecturePixel, 1, 0).rgb;
+        let linear = select(pow((carrier + 0.055) / 1.055, vec3f(2.4)), carrier / 12.92,
+          carrier <= vec3f(0.04045));
+        let result = linear * pattern * finish.palette.rgb;
+        let encoded = select(1.055 * pow(result, vec3f(1.0 / 2.4)) - 0.055,
+          result * 12.92, result <= vec3f(0.0031308));
+        colour = vec4f(encoded, colour.a);
+      }
+    }
     if (architectureFloor) {
       // The vertex stage already supplies exact physical coverage. The material
       // apron protects sampling at the silhouette without expanding geometry.

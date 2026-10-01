@@ -27,6 +27,8 @@ import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
+import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
+import { decodeWindowPlacements } from './architecture/windows.js';
 import {
   FixedStepDriver,
   advanceSimulationFrame,
@@ -279,7 +281,10 @@ async function main(): Promise<void> {
   // it synchronously and uploading later would let the first frames
   // sample an empty texture, which is a black room that fixes itself -
   // the hardest kind of glitch to reproduce.
-  const renderer = await SpriteRenderer.create(gpu);
+  const architectureAtlas = await loadArchitectureAtlas(gpu.device.limits);
+  let renderer: SpriteRenderer;
+  try { renderer = await SpriteRenderer.create(gpu, architectureAtlas); }
+  finally { closeArchitectureAtlas(architectureAtlas); }
 
   // The lot, its walls and all eight authored objects come out of
   // content/lot.toml through the compiled pack. Nothing here names a
@@ -866,6 +871,7 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.windows = sim.windowLines();
+          lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
           // [FL-draw]: the loaded house's own painted tiles. Without this the
           // previous game's floors stayed on screen, and on a lot of another
           // height they landed on unrelated tiles, because the renderer keys
@@ -1064,6 +1070,7 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
+    architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue() },
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
@@ -1178,6 +1185,7 @@ async function main(): Promise<void> {
       sky,
     );
     wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
+    renderer.setArchitectureCamera(camera.originX, camera.originY);
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
     cameraDirty = false;
   }
@@ -1545,6 +1553,7 @@ async function main(): Promise<void> {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
       lot.windows = sim.windowLines();
+      lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
       lot.floors = sim.floorTiles();
       lot.doors = sim.interiorDoorLines();
       lightingDirty = true;
