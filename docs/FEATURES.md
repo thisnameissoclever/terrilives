@@ -1018,14 +1018,15 @@ also remains owner-listening evidence rather than accepted sound design.
 This is not the complete audio feature. Front and interior doors open silently
 and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
-`specs/2026-10-01-door-audio.md`. Completed toilet use has a provisional recorded
-flush, sourced from a separate exact-target completion event rather than an
+`specs/2026-10-01-door-audio.md`. The unreleased toilet-audio branch plays a
+recorded flush from a separate exact-target completion event rather than an
 action stopping. Cancellation and Load never fabricate a completion. The cue
 stops on pause and cannot replay after late decoding; technical and listening
 status are in `specs/2026-10-01-toilet-completion-audio.md`. Routine controls
-are silent by design rather than waiting for blanket click sounds. Continuous
-indoor background noise is excluded from the sound design. Outdoor ambience,
-alarms, music, and non-conversation Sim voices remain unbuilt.
+are silent by design rather than waiting for blanket click sounds. Footsteps use
+a quieter peak amplitude without changing pitch or cadence. Continuous indoor
+background noise is excluded from the sound design. Outdoor ambience, alarms,
+music, and non-conversation Sim voices remain unbuilt.
 Object-loop playback exists; its audible content still needs selection and
 listening acceptance. Recorded conversation gain is 0.224 after owner listening;
 Effects still controls it alongside procedural cues. A saved Voices multiplier

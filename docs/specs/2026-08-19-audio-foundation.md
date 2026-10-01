@@ -750,8 +750,8 @@ Restored SHA-256 values were:
 
 ## Open work
 
-Completed toilet use now has a separate authored completion event and a
-provisional recorded flush. It does not infer success from disappearance of the
+The unreleased toilet-audio branch has a separate authored completion event and
+a recorded flush. It does not infer success from disappearance of the
 active action. The bounded transient buffer is drained once per fixed tick;
 cancellation, Load and late decoding stay silent. Unlike sub-second door cues,
 the four-second flush stops on effective pause. See
