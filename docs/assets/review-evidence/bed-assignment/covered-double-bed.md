@@ -61,6 +61,9 @@ offset is applied exactly once before cropping.
    visible raw owner fill alpha, not an encoded reconstruction weight, lane
    rectangle or shared-outline assignment. Blanket/furniture pixels select the
    bed. Shared outline alone is not a separately selectable Sim.
+   Grayscale mode `L` stores coverage in the gray value. After an RGBA decode,
+   read gray/red, not alpha: the decoded alpha is opaque even where the gray
+   coverage is zero. Include a zero-coverage negative picking case.
 5. Reuse static frame 0 while sleeping. Keep the existing non-bed pair path
    unchanged. Do not infer that nonlinear recolour before filtering equals
    post-sampling recolour.

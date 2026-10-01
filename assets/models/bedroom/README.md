@@ -126,6 +126,12 @@ ink-attenuated reconstruction weights or rectangular sleeper lanes. Coverage
 and RGB share the crop and anchor. Shared outline alone does not select an
 arbitrary Sim; bed and blanket-only pixels remain furniture-owned.
 
+Coverage PNGs use grayscale mode `L`: each gray value stores the original
+visible body-fill alpha. Read that value, or the red channel after RGBA decoding,
+not the decoded PNG alpha channel. A grayscale-zero background decodes to
+opaque RGBA alpha and must still have zero picking coverage. Keep a background
+or blanket-only negative picking case to catch an accidentally opaque mask.
+
 The projected full-canvas origin is approximately `(80,123.00044)`. Runtime
 registration adds the existing 21-pixel tile offset once, giving
 `(80,144.00044)`, then subtracts half the physical crop origin at density 2.
