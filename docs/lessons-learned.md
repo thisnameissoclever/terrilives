@@ -1,5 +1,55 @@
 # Lessons Learned
 
+## [L-generated-copy-needs-directory] Create the generated bundle directory before copying
+
+**What happened.** The new door checkout could not import generated WASM glue;
+27 test files and the displayed game failed to start.
+
+**Root cause.** Root copied several generated files to `web/src/wasm` before
+creating that directory. PowerShell treated the destination as one file.
+
+**Prevention rule.** Create and verify the destination directory first. Check
+the generated file inventory and WASM hash before starting tests or a preview.
+
+**How to verify.** Require all five bundle files at their expected paths and
+the reviewed WASM SHA-256. Preserve the mistaken copy in ignored scratch, then
+run the failed checks against the corrected bundle.
+
+## [L-door-output-policy-is-separate-from-transition-state] Silent opening still anchors the close
+
+**What happened.** The owner rejected the initial door recordings as loud and
+high-pitched, asking for silent opening and only the closing impact.
+
+**Root cause.** The initial selection retained the squeak and played both
+transition types. Signal bounds alone did not establish listening acceptance.
+
+**Prevention rule.** Keep simulation transition tracking independent of sound
+selection. Silence opening in the controller without removing the scheduler's
+opening anchor; load only the filtered closing asset. Preserve original files.
+
+**How to verify.** After preloading, opening must create zero source and gain
+nodes and keep its play count at zero. The next close must create exactly one
+source, with the only fetch URL `audio/doors/close-thunk.wav`. Delete the silent
+opening guard and restore the old URL separately; both must fail the regression.
+
+## [L-door-install-ownership] One checkout has one dependency installer
+
+**What happened.** Root and a worker started locked dependency installs in the
+same new audio checkout. One run emitted extraction warnings; the other failed
+with ENOTEMPTY, and the following test could not find Vitest.
+
+**Root cause.** Setup ownership was not communicated before dispatch. Each
+installer removed files the other was extracting.
+
+**Prevention rule.** Root completes dependency setup before delegating tests,
+or explicitly assigns installation to the worker. Never overlap installs in
+one checkout. Infrastructure failures do not count as a behavioral RED test.
+
+**How to verify.** After both original installs finish, run one serial locked
+install. Require clean exit and the actual focused tests to start before
+recording regression evidence. The serial recovery installed 48 packages in
+911 ms with exit 0 and no warnings.
+
 ## [L-audio-state-events-cover-paused-worlds] A paused simulation cannot observe browser interruption
 
 **What happened.** A browser interruption while simulation ticks were paused
@@ -8531,3 +8581,23 @@ neither is a kinematic angle bound or a phase-zero lane pass.
 **Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
 
 The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
+
+## [L-markup-tests-own-boundaries] Bound markup assertions by the element they test
+
+**What happened.** Removing Household from Sim details broke a Traits assertion even though Traits was unchanged. A second assertion silently included the rest of the page.
+
+**Root cause.** Both tests used the unrelated Household section as their slice endpoint. When that marker disappeared, JavaScript's negative slice endpoint included unrelated Build markup.
+
+**Prevention.** Find the tested section or disclosure's own closing tag and assert that both endpoints exist before slicing. Do not rely on a sibling remaining in the layout.
+
+**Verify.** The Traits section and disclosure assertions now validate their boundaries; the full 1,717-test web suite and final 48-test focused suite pass after Household removal.
+
+## [L-clipped-headers-need-field-bounds] Page width alone does not prove controls fit
+
+**What happened.** The first dock proof passed ten ordinary sizes and enlarged phone text. Adversarial review found that doubled text at 601px and 640px pushed Collapse past the window and reduced the selected identity to zero width.
+
+**Root cause.** A non-wrapping header combined fixed wellbeing width with non-shrinking buttons. The page clipped overflow, so document scroll width stayed unchanged. The longest desktop mood label also overflowed its column.
+
+**Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
+
+**Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.

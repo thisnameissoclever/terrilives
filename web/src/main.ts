@@ -598,7 +598,7 @@ async function main(): Promise<void> {
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
     const activity = critical.length ? `Critical: ${critical.join(', ')}`
-      : [activityValue.textContent, moodContent.hidden ? '' : moodLabel.textContent].filter(Boolean).join(' / ');
+      : activityValue.textContent ?? '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
@@ -955,6 +955,7 @@ async function main(): Promise<void> {
   housemateDialog.addEventListener('close', () => {
     overlayPause.resume('housemate');
     syncNewHousemateButton();
+    restorePersistenceFocus(document, housemateDialog, optionsToggle, persistenceFocusFallbacks);
   });
   let clearingForNewGame = false;
   newGameButton.addEventListener('click', () => {
