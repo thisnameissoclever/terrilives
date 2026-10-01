@@ -8274,6 +8274,11 @@ unready. Reject each other incomplete panel and missing required node. Retained
 node, document and listener changes in either direction must still fail the
 unchanged acceptance calculation. Then exercise the actual browser transition.
 
+The ECS lifecycle browser check repeated this timing mistake with the selected
+name: one frame applied the command before the throttled panel refreshed. Wait
+for the displayed name to match the clicked person before asserting the panel,
+while separately checking that paused simulation time stayed fixed.
+
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 
 **What happened.** Separating the New housemate instinct labels fixed their
