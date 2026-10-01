@@ -1,6 +1,6 @@
 # Windows, Walls and Floors Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking. The owner requested a plan, not execution. Start implementation only after the planning handoff.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. The owner approved the plan and selected option 1 on 2026-10-01. Steps use checkbox syntax for tracking. Retain the Task 1 wall/floor appearance checkpoint before the full asset batch.
 
 **Goal:** Replace placeholder architecture with substantial plaster walls, distinct floor materials and all nine approved windows, with reliable placement, preserved saves and daylight that stops at night.
 
@@ -126,10 +126,10 @@ Read `assets/models/kitchen/render_static.py`,
 **Consumes:** Approved image and spec dimensions. **Produces:** One candidate
 room, source geometry, registered trial exports and a measured feasibility result.
 
-- [ ] Record baseline source/atlas hashes and a visible current-game screenshot.
+- [x] Record baseline source/atlas hashes and a visible current-game screenshot.
   Copy the approved board into the review evidence by reference, retaining its
   SHA-256 `40e46fa4b826ea149e8a96c2fb9fdd4ac35446438f70e2f4715354c21bf91820`.
-- [ ] Implement a small pure geometry description for a straight wall, corner,
+- [x] Implement a small pure geometry description for a straight wall, corner,
   reveal, sill and floor patch. Put faces on their authored coordinates; do not
   spread panels apart to accommodate the bevel. Pin geometry with assertions:
 
@@ -143,33 +143,41 @@ def test_architecture_dimensions():
     assert window_span(3) == 3.0
 ```
 
-- [ ] Build a room with an L corner, one doorway, a Sash, Sliding and Picture
+- [x] Build a room with an L corner, one doorway, a Sash, Sliding and Picture
   window, and separate oak, tile and carpet floor patches. Place the accepted
   Sim, desk and bed as scale/contact references without editing their sources.
-- [ ] Render both axes, full height and the cut plane, with the installed hidden
+- [x] Render both axes, full height and the cut plane, with the installed hidden
   Blender launch command from the Sim README. Use a new candidate directory,
   `--threads 2`, `--python-exit-code 1` and an absolute script path. Require a
   fresh proof containing `bpy.app.background`, complete status and output hashes.
-- [ ] Implement the opt-in depth-texture foundation used again by Task 6, and
+- [x] Implement the opt-in depth-texture foundation used again by Task 6, and
   exercise trial color/depth exports through the actual `SpriteRenderer` in the
   isolated GPU proof page. Do not duplicate the shader inside a mock renderer. Prove
   the physical depth formula on a front face, back face, top cap and sill. Include
   a close-up beside the desk and occupied bed; keep the production atlas untouched.
-- [ ] Run `python -B -m unittest discover -s assets/models/architecture -p 'test_*.py'`.
+- [x] Run `python -B -m unittest discover -s assets/models/architecture -p 'test_*.py'`.
   Also run `npm --prefix web test -- --maxWorkers=1 tests/architecture-depth.test.ts
   tests/wall-depth.test.ts tests/cutaway-walls.test.ts` and web typecheck.
   Save native-scale and enlarged images, actual GPU results and baseline/candidate
   texture bytes and render times. A source render alone is not renderer evidence.
-- [ ] Show the room to the owner for the new walls and floors. Keep all nine
+- [x] Show the room to the owner for the new walls and floors. Keep all nine
   window approvals. If thickness, outlines or materials need adjustment, change
   this shared source and repeat only the affected room proof before full export.
 
 **Exit:** The room's appearance is accepted, depth is correct and the current
 renderer can carry the new architecture without relocating existing objects.
 
+The owner accepted candidate08's wall and floor appearance on 2026-10-01.
+[Review evidence](../../assets/review-evidence/architecture/room-01/README.md)
+records the actual-renderer captures, immutable fixture hashes, depth and coverage
+checks, and the original-renderer timing comparison with its measurement limits.
+The generated atlas stays owned by its generator; the optional architecture
+registration lives in a separate helper.
+
 ## Task 2: Export and register the complete architecture set
 
 **Files:** Create `assets/models/architecture/windows.py`, `walls.py`, `floors.py`,
+`materials.py`,
 `render_batch.py`, `check_scene.py`, `review_batch.py`, `export_batch.py` and
 `architecture.json`; create `assets/sprites/gen/offline_architecture.py` and
 `test_offline_architecture.py`; modify `assets/sprites/gen/build.py` and generated
@@ -178,6 +186,12 @@ atlas outputs. Tests also cover `test_geometry.py`.
 **Consumes:** Accepted Task 1 geometry/camera. **Produces:** Reviewed sprite/depth
 assets, an append-only atlas extension and generated architecture registration.
 
+- [ ] Define data-driven wall/floor finish descriptors with separate stable
+  geometry, pattern and palette keys. Retain material-role masks so wall finishes
+  exclude glazing, frames and independent trim. Reuse geometry/depth across
+  appearances; avoid exporting the Cartesian product of colors and models.
+  Keep catalogue metadata separate from loaded texture resources and validate
+  budgets for the accepted set and expanded test catalogues.
 - [ ] Render all nine models for both axes and visible sides. Include full and
   cutaway forms. Build straight walls, exposed ends, all corner/T/cross masks,
   short/full transitions, door surrounds and shared baseboards. Derive split
@@ -186,6 +200,9 @@ assets, an append-only atlas extension and generated architecture registration.
   grass and street. Render a four-by-four patch per material; crop tile variants
   from the common raster so plank ends and grout match. Coordinates select phases
   deterministically; no simulation random draws and no per-frame generation.
+- [ ] Test extra patterns and at least two palettes as unshipped fixtures. Confirm
+  identical physical bounds/depth across color choices, correct material-mask
+  ownership, repeat alignment and rejection of unknown catalogue references.
 - [ ] Export transparent straight-alpha color plus local `x+y` depth. Store
   model, direction, height mode, origin, logical bounds, physical bounds,
   texture density, owned span and source hashes in `architecture.json`.
@@ -353,6 +370,11 @@ and `web/proofs/architecture-depth.js`; modify `render/edge-walls.ts`, `tiles.ts
   validated metadata. Draw one span model rather than stretched or repeated
   one-unit glass. Remove the blue tint from this new path; retain old records
   required by legacy rendering and tests.
+- [ ] Resolve wall appearances through Task 2's finish descriptors, with the
+  accepted plaster as the default. Pattern and palette choices share physical
+  geometry/depth and respect exported material roles. Prove alternate fixture
+  finishes without recoloring glazing/frames, changing wall spans or adding a
+  renderer branch per finish. Keep resource loading bounded by active assets.
 - [ ] Join opaque wall half-segments with windows at exact endpoints. Suppress
   rear-shell solid arms covered by apertures. Add joining arms only outside an
   aperture, and keep material and baseboard continuity around doors.
@@ -407,9 +429,17 @@ expect(floorSpriteName(1, 'house', 4, 4))
 - [ ] Map 1/2/3 to material families explicitly. Test this against the existing
   ordered covering list; never infer a material from hue, translated label or
   name substrings. Unpainted interior uses the accepted neutral surface.
+- [ ] Resolve those mappings through the finish catalogue, not a fixed three-case
+  switch. Prove an appended covering resolves its pattern and palette through
+  data alone and appears through the existing content-driven floor controls.
+  Keep legacy saved IDs stable and test mixed patterns and multiple colors.
 - [ ] Select pattern phase by `(x % 4, y % 4)` for nonnegative lot coordinates.
   Keep one floor instance per tile and the shared `FLOOR_DEPTH`. Preview writes
   the exact same material as commit, with the existing highlight overlay.
+- [ ] Reuse Task 1's canonical floor diamonds and shared camera transform.
+  Pass world tile coordinates; adjacent corners must project identically.
+  Preserve the fractional-origin, reversed-order, mixed-material and missing-tile
+  GPU cases that caught gaps in the initial floor coverage approaches.
 - [ ] Author these replacement sprites for the existing per-covering color
   transforms so the accepted hue appears once, not twice. Keep saved IDs and
   content tuning untouched. Add a neutral-color reference test for each final
@@ -573,8 +603,7 @@ git diff --check
 
 ## Planning handoff
 
-Recommended execution is sequential tasks with independent review at the simulation,
-save and renderer boundaries. If using subagents, use one implementing worker at a
-time in this worktree and fresh read-only reviewers. Native execution can use the same
-task order with a whole-branch review. Do not choose a new model or launch workers
-until the execution method is selected. This document is the plan for review.
+The owner selected sequential subagent implementation with independent reviews.
+Use one implementing worker at a time in this worktree and fresh read-only reviewers.
+Record execution in this plan's local ledger. Task 1 remains the first visual
+checkpoint; its generated room has not yet received owner approval.

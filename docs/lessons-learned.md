@@ -1,5 +1,81 @@
 # Lessons Learned
 
+## [L-repeated-wall-shading] Inspect evaluated normals on reusable wall pieces
+
+**What happened.** Full-height wall segments formed a flat top geometrically,
+but their repeated dark bands looked like notches when joined in the browser.
+A distant-light comparison did not remove the bands.
+
+**Root cause.** An architecture Weighted Normal modifier bent evaluated corner
+normals toward the closed segment ends even though the top polygon was flat.
+The lighting ramp exaggerated the resulting variation on each repeated piece.
+
+**Prevention rule.** Inspect evaluated corner normals as well as polygon normals.
+Preserve authored bevel faces and consistent planar shading on reusable pieces.
+Do not change the lighting or hide joins with larger sprites before establishing
+whether the surface, normals or texture ownership caused the discontinuity.
+
+**How to verify.** Assert planar corner normals agree with their face normals
+during export. Inspect joined full-height walls on both axes in the actual
+renderer, including caps and exposed ends, at native and enlarged scale.
+
+## [L-floor-coverage-needs-shared-edges] Tile coverage must survive pan and zoom
+
+**What happened.** Floor sprites showed dark joins. Exported alpha ownership
+removed most gaps, and a fractional-origin browser test passed, but the actual
+room still had holes. Per-tile fragment clipping then failed two fractional-zoom
+cases after appearing correct at native scale.
+
+**Root cause.** Export texel coverage does not establish framebuffer coverage.
+Neighboring fragments also calculated their local boundaries independently from
+rounded screen centers, so complementary inequalities could both reject a pixel.
+The first coverage test omitted the camera positions that exposed the defect.
+
+**Prevention rule.** Give adjacent floor sprites identical shared vertices from
+canonical world corners and one camera transform. Let rasterization own the shared
+edge. Do not expand tiles, bias the camera, or loosen coverage assertions to hide
+holes. After three failed approaches, obtain a fresh architectural review.
+
+**How to verify.** Retain the failing fractional origins alongside native and
+fractional pan/zoom cases. Check reversed draw order, contrasting materials,
+missing tiles and the immediate exterior boundary. Inspect an actual furnished
+room as well as isolated coverage tests.
+
+## [L-preview-fixture-identity] Give each reviewed export its own resource paths
+
+**What happened.** A browser proof loaded a previous candidate's cached JSON
+manifest with the next candidate's color and depth textures. The renderer rejected
+their disagreeing dimensions.
+
+**Root cause.** Replacing a fixture directory did not invalidate Vite's transformed
+JSON module. The resource paths stayed the same while their contents changed.
+
+**Prevention rule.** Publish each review candidate under a distinct immutable
+directory and reference that candidate's manifest and textures together. Keep
+dimension and byte-length validation at the renderer boundary.
+
+**How to verify.** Compare the served manifest dimensions with the decoded image
+and depth byte count. Run the isolated browser proof after switching candidate
+paths, and retain the candidate identity and hashes with its result.
+
+## [L-architecture-export-isolation] Validate the whole source render before packing
+
+**What happened.** The first architecture trial retained fragments of the reference
+Sim's eyes. A second trial clipped wide panels and floor patches at the source
+canvas edge. Both candidates were rejected before owner review.
+
+**Root cause.** Visibility drivers overrode individual objects' `hide_render`
+settings. Source framing also accounted for wall height without enough room for
+the projected ground extent of wider pieces.
+
+**Prevention rule.** Isolate preserved reference meshes and curves in a
+render-hidden collection, following the existing static-export pipeline. Validate
+the complete alpha bounds before cropping or packing each color/depth pair.
+
+**How to verify.** Require every source image's alpha bounds to sit strictly
+inside the canvas. Inspect both wall axes and all width classes, retain rejected
+candidate evidence, and compare the reference rig hash before and after export.
+
 ## [L-concept-context-is-art-direction] Surroundings in a concept sheet affect approval
 
 **What happened.** A window-selection sheet showed the proposed windows inside

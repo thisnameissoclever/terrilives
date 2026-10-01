@@ -1,7 +1,9 @@
 # Windows, walls and floors
 
-Status: implementation proposal requested by the owner on 2026-10-01. All nine
-window designs below are approved. The owner also requested better walls and
+Status: implementation approved by the owner on 2026-10-01, using task-by-task
+implementation with independent reviews. All nine window designs below are
+approved. The owner accepted candidate08's wall and floor appearance on
+2026-10-01. The owner also requested better walls and
 floors after seeing the window concepts. This document records the intended
 result and proposed engineering decisions; it does not report implemented art.
 
@@ -13,7 +15,8 @@ The owner approved the nine window appearances and their displayed widths.
 The wall appearance in that image is a requested direction: substantial warm
 plaster, visible thickness, restrained bevels, recessed glazing and readable
 sills. It is not an image of the existing game. The image contains no floor
-design, so the floor treatments below are proposals for the first room review.
+design. The owner accepted the floor treatments in the actual candidate08 room
+preview, including oak boards, pale ceramic tile and muted blue carpet.
 
 | Number | Model | Width in wall units | Distinguishing geometry |
 | --- | --- | --- | --- |
@@ -55,6 +58,34 @@ describe its construction; opening animations are outside this change.
    permanent grid lines to make editing easier; the existing selection overlay
    shows the selected tile or window span.
 
+### Wall and floor finish catalogue
+
+The owner clarified on 2026-10-01 that walls and floors must support potentially
+many patterns and colors. The accepted room is the starter set, not a hard-coded
+limit. Keep geometry, pattern and color/palette identities separate in the asset
+and renderer contracts. A new finish should be a catalogue entry and reviewed
+artwork, not another branch in the placement or rendering code.
+
+1. Preserve existing floor covering IDs 1, 2 and 3 and unpainted ID 0. Resolve
+   covering IDs through explicit appearance data; do not infer patterns from
+   names, hue or a switch limited to those three IDs. Additional entries append.
+2. Give wall surfaces and floor patterns stable catalogue keys. Geometry, depth,
+   openings, collision and cutaway rules must not depend on a finish's color.
+3. Preserve material roles when exporting architecture. Wall paint or wallpaper
+   must not recolor glazing, window frames or other independent trim. Retain the
+   material masks/registration needed to apply finishes to the correct surface.
+4. Reuse color/palette transforms and shared geometry/depth where possible. Do
+   not generate a separate model or full texture set for every possible
+   pattern/color/window combination. Validate texture budgets as the catalogue
+   grows; catalogue size must not imply every combination is resident at once.
+5. Keep patterns aligned across adjacent tiles, wall spans, corners and openings.
+   Replacing an appearance cannot change physical dimensions or walkability.
+6. Test additional catalogue entries, mixed patterns and multiple palettes using
+   fixtures beyond the starter set. Preserve the existing content-driven floor
+   choices. The initial delivery uses the accepted finishes; this clarification
+   does not invent an unreviewed wallpaper library or require a new wall-painting
+   interaction in this task.
+
 Starting model dimensions are wall height 2.0, thickness 0.12 and baseboard height
 0.14 world units. Match the existing 32-by-21 half-tile projection and 38-pixel
 vertical unit. Standard glazing starts approximately 0.65 units above the floor
@@ -84,7 +115,11 @@ converts that offset with the same depth scale used for existing wall planes.
 Use signed R16Float data, nearest texel sampling and the same alpha ownership
 as the color pass. Resolve outline pixels to their visible owner. Test the
 mapping against known geometry; do not fix ordering by biasing whole walls.
-Furniture, Sims, floor depth and historical sprites retain their existing paths.
+Furniture, Sims and historical sprites retain their existing paths. New floor
+sprites retain `FLOOR_DEPTH`, but use exact diamond support geometry. Derive shared
+corners from world tile coordinates and one camera origin/scale, so adjacent
+triangles share identical endpoints. Do not calculate floor coverage independently
+from rounded screen centers or enlarge the physical tile to hide gaps.
 
 The first milestone proves this exporter and renderer with a small room before
 authoring all junctions and nine finished models. Measure its extra texture and
@@ -166,16 +201,17 @@ The lighting field is presentation-only and cannot change the world hash.
 ## Review and delivery boundaries
 
 1. The nine window designs are approved; do not ask for those approvals again.
-2. The first actual room preview needs owner review of the new wall/floor
-   treatment, with a Sim and existing furniture for scale. Include one window
-   of each width. Isolated renders cannot prove that the game will look like
-   the approved board.
+2. The owner accepted candidate08's actual-renderer wall/floor room on
+   2026-10-01, including a Sim, existing furniture and one window of each width.
+   Preserve this accepted direction through the full batch. Isolated renders
+   still cannot prove final in-game integration.
 3. Complete the model set only after that visual direction is accepted. Source
    hashes, mechanical checks and independent visual review remain necessary.
 4. Show the final played room and build controls at native and enlarged zoom,
    noon, dusk and midnight. Record evidence separately from tests and deployment.
-5. This request authorizes writing the plan. Implementation, commits, external
-   delivery and publication are not claimed by this document.
+5. The owner approved implementation after reviewing the plan. Local implementation
+   and review commits are in scope. Push, merge and publication require separate
+   authorization. The first wall/floor room appearance checkpoint is complete.
 
 Implementation tasks and commands are in
 [the implementation plan](../superpowers/plans/2026-10-01-windows-walls-floors.md).
