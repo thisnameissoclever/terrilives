@@ -140,6 +140,18 @@ contract is [CUI-world]-[CUI-build] in
 `docs/specs/2026-09-30-control-layout-studies.md`; [CH1]-[CH4] describe the
 superseded layout.
 
+The Overview disclosure `PersonalDetailsPanel` reads only while that section
+and its sheet are visible, at the existing need-bar cadence. Opening the
+disclosure and loading a save force a refresh. `Sim::details_of` projects
+Personality and Habituation without changing either. The WASM numeric copy
+contains one signed sleep offset, seven drain factors, seven positive-refill
+factors, then object-definition/activity-row/repetition triples; a parallel
+text copy supplies object type and activity labels. Both calls are synchronous
+with no tick between them. Numbers use f64 so signed offsets and u32 keys remain
+exact. The bridge rejects malformed columns and out-of-range values. Keyed DOM
+rows are reused, reordered and removed as the selected person changes. These
+are personal factors, not effective drain rates or lifetime satisfaction.
+
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
 the step by `k` produce identical tick counts and identical interpolation
