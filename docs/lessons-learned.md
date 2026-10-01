@@ -8364,3 +8364,23 @@ page and is not a claim about browser or operating-system text scaling.
 **Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
 
 The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
+
+## [L-markup-tests-own-boundaries] Bound markup assertions by the element they test
+
+**What happened.** Removing Household from Sim details broke a Traits assertion even though Traits was unchanged. A second assertion silently included the rest of the page.
+
+**Root cause.** Both tests used the unrelated Household section as their slice endpoint. When that marker disappeared, JavaScript's negative slice endpoint included unrelated Build markup.
+
+**Prevention.** Find the tested section or disclosure's own closing tag and assert that both endpoints exist before slicing. Do not rely on a sibling remaining in the layout.
+
+**Verify.** The Traits section and disclosure assertions now validate their boundaries; the full 1,717-test web suite and final 48-test focused suite pass after Household removal.
+
+## [L-clipped-headers-need-field-bounds] Page width alone does not prove controls fit
+
+**What happened.** The first dock proof passed ten ordinary sizes and enlarged phone text. Adversarial review found that doubled text at 601px and 640px pushed Collapse past the window and reduced the selected identity to zero width.
+
+**Root cause.** A non-wrapping header combined fixed wellbeing width with non-shrinking buttons. The page clipped overflow, so document scroll width stayed unchanged. The longest desktop mood label also overflowed its column.
+
+**Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
+
+**Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.

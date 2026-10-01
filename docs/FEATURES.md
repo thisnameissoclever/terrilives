@@ -442,9 +442,11 @@ watched acceptance evidence is recorded at [A-local-idle-wandering].
 
 The compact HUD now separates world controls at the upper left from a bottom
 Sim dock. Desktop exposes all need meters; compact and collapsed layouts keep
-Sim details available for the same information. People, Traits, Queue and
-Household share one expandable sheet. Options holds world preferences and game
-actions; Queue mode and Clear orders live in Queue. Build retains its existing
+Sim details available for the same information. Mood and life satisfaction
+remain visible in the dock, including when collapsed; phones give them a short
+row beneath the identity and controls. Overview, People, Traits and Queue share
+one expandable sheet. Options holds world preferences and game actions,
+including New housemate even without a selected person; Queue mode and Clear orders live in Queue. Build retains its existing
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
