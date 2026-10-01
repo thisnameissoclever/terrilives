@@ -196,6 +196,56 @@ fn wall_edit_arguments(
     })
 }
 
+fn window_line_arguments(axis: f64, x: f64, y: f64) -> Option<terri_core::layout::WallLine> {
+    Some(terri_core::layout::WallLine {
+        axis: u8::try_from(placement_u32(axis)?)
+            .ok()
+            .and_then(terri_core::layout::EdgeAxis::from_code)?,
+        x: placement_u32(x)?,
+        y: placement_u32(y)?,
+    })
+}
+
+fn window_fit_arguments(
+    axis: f64,
+    x: f64,
+    y: f64,
+    model: f64,
+) -> Option<terri_core::windows::WindowPlacement> {
+    Some(terri_core::windows::WindowPlacement {
+        line: window_line_arguments(axis, x, y)?,
+        model: u8::try_from(placement_u32(model)?)
+            .ok()
+            .and_then(terri_core::windows::WindowModel::from_id)?,
+    })
+}
+
+/// Preview words: refusal, placement count (0/1), optional descriptor, then line triples.
+fn window_preview(sim: &Sim, edit: Option<terri_sim::placement::windows::WindowEdit>) -> Vec<u32> {
+    use terri_sim::placement::{windows::validate_window_edit, PlacementRefusal};
+    let Some(edit) = edit else {
+        return vec![PlacementRefusal::InvalidInput as u32, 0];
+    };
+    match validate_window_edit(sim.world(), edit) {
+        Err(reason) => vec![reason as u32, 0],
+        Ok(plan) => {
+            let mut words = vec![0, u32::from(plan.placement.is_some())];
+            if let Some(window) = plan.placement {
+                words.extend([
+                    window.line.axis.code() as u32,
+                    window.line.x,
+                    window.line.y,
+                    window.model.id() as u32,
+                ]);
+            }
+            for line in plan.affected_lines {
+                words.extend([line.axis.code() as u32, line.x, line.y]);
+            }
+            words
+        }
+    }
+}
+
 /// A floor edit's arguments, or `None` when the numbers are not a tile and a
 /// covering at all - [FL-command]. Hostile input is refused here rather than
 /// rounded into something the simulation would accept.
@@ -451,7 +501,9 @@ impl SimHandle {
         let walls = match self.sim.world().resource::<SavedLayout>() {
             SavedLayout::LegacyAuthoredV1 => LEGACY_WALL_TILES.as_slice(),
             SavedLayout::LegacyCells { walls } => walls.as_slice(),
-            SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. } => &[],
+            SavedLayout::EdgeWallsV1 { .. }
+            | SavedLayout::EdgeWallsV2 { .. }
+            | SavedLayout::EdgeWallsV3 { .. } => &[],
         };
         walls.iter().flat_map(|&(x, y)| [x, y]).collect()
     }
@@ -466,10 +518,110 @@ impl SimHandle {
         self.sim
             .world()
             .resource::<SavedLayout>()
-            .windows()
+            .window_lines()
             .iter()
             .flat_map(|line| [u32::from(line.axis == EdgeAxis::Horizontal), line.x, line.y])
             .collect()
+    }
+
+    /// Canonical descriptors: axis, x, y, public model ID. Stride is four.
+    pub fn window_placements(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_core::layout::SavedLayout>()
+            .window_placements()
+            .iter()
+            .flat_map(|window| {
+                [
+                    window.line.axis.code() as u32,
+                    window.line.x,
+                    window.line.y,
+                    window.model.id() as u32,
+                ]
+            })
+            .collect()
+    }
+
+    /// Stable public model ID and width pairs, in catalogue order.
+    pub fn window_catalogue(&self) -> Vec<u32> {
+        (1..=9)
+            .map(|id| terri_core::windows::WindowModel::from_id(id).unwrap())
+            .flat_map(|model| [model.id() as u32, model.width()])
+            .collect()
+    }
+
+    pub fn window_catalogue_names(&self) -> Vec<String> {
+        [
+            "Sash",
+            "Cottage",
+            "Arched",
+            "Sliding",
+            "Steel-grid",
+            "Twin casement",
+            "Picture",
+            "Craftsman",
+            "Clerestory",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect()
+    }
+
+    pub fn window_edit_preview(&self, axis: f64, x: f64, y: f64, model: f64) -> Vec<u32> {
+        window_preview(
+            &self.sim,
+            window_fit_arguments(axis, x, y, model)
+                .map(terri_sim::placement::windows::WindowEdit::Fit),
+        )
+    }
+
+    pub fn window_removal_preview(&self, axis: f64, x: f64, y: f64) -> Vec<u32> {
+        window_preview(
+            &self.sim,
+            window_line_arguments(axis, x, y)
+                .map(terri_sim::placement::windows::WindowEdit::Remove),
+        )
+    }
+
+    /// Queue acceptance only. An accepted command clears the previous result.
+    pub fn fit_window(&mut self, axis: f64, x: f64, y: f64, model: f64) -> bool {
+        let Some(window) = window_fit_arguments(axis, x, y, model) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::FitWindow {
+            axis: window.line.axis,
+            x: window.line.x,
+            y: window.line.y,
+            model: window.model,
+        })
+        .expect("a window edit serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// Queue acceptance only. Read the result after tick or flush_commands.
+    pub fn remove_window(&mut self, axis: f64, x: f64, y: f64) -> bool {
+        let Some(line) = window_line_arguments(axis, x, y) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::RemoveWindow {
+            axis: line.axis,
+            x: line.x,
+            y: line.y,
+        })
+        .expect("a window removal serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// Empty while pending or before any result, otherwise one refusal code (zero is success).
+    /// Reading does not consume a result; a newly accepted window command clears it.
+    pub fn last_window_edit_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_window_result
+            .map_or_else(Vec::new, |result| {
+                vec![result.reason.map_or(0, |reason| reason as u32)]
+            })
     }
 
     /// 0 uses legacy wall cells; 1 uses explicit edges, including an empty set.
@@ -1760,6 +1912,20 @@ impl SimHandle {
             }
         }
 
+        if let SimCommand::FitWindow { axis, x, y, model } = &command {
+            let placement = terri_core::windows::WindowPlacement {
+                line: terri_core::layout::WallLine {
+                    axis: *axis,
+                    x: *x,
+                    y: *y,
+                },
+                model: *model,
+            };
+            if placement.checked_lines().is_none() {
+                return false;
+            }
+        }
+
         // Read before the queue is borrowed mutably. `Tuning` is `Copy`
         // behind a `&'static ContentPack`, so this is a load rather than
         // a clone.
@@ -1774,7 +1940,17 @@ impl SimHandle {
         if queue.len() >= cap {
             return false;
         }
+        let window_command = matches!(
+            command,
+            SimCommand::FitWindow { .. } | SimCommand::RemoveWindow { .. }
+        );
         queue.push(command);
+        if window_command {
+            self.sim
+                .world_mut()
+                .resource_mut::<terri_sim::placement::LotEditState>()
+                .last_window_result = None;
+        }
         true
     }
 
@@ -7997,5 +8173,290 @@ mod instinct_boundary_tests {
         let before = loaded.save_bytes();
         assert!(!loaded.load_bytes(&truncated));
         assert_eq!(before, loaded.save_bytes());
+    }
+}
+
+#[cfg(test)]
+mod window_boundary_tests {
+    use super::*;
+    use terri_core::{
+        layout::{EdgeAxis, SavedLayout},
+        SavedCommand,
+    };
+
+    fn encode(snapshot: &terri_core::SaveSnapshotV5) -> Vec<u8> {
+        let mut bytes = SAVE_MAGIC.to_vec();
+        bytes.extend(5u16.to_le_bytes());
+        bytes.extend(postcard::to_allocvec(snapshot).unwrap());
+        bytes
+    }
+
+    #[test]
+    fn window_bridge_descriptors_catalogue_and_fresh_pending_results() {
+        let mut handle = SimHandle::from_lot();
+        assert_eq!(
+            handle.window_catalogue(),
+            [1, 1, 2, 1, 3, 1, 4, 2, 5, 2, 6, 2, 7, 3, 8, 3, 9, 3]
+        );
+        assert_eq!(
+            handle.window_catalogue_names(),
+            [
+                "Sash",
+                "Cottage",
+                "Arched",
+                "Sliding",
+                "Steel-grid",
+                "Twin casement",
+                "Picture",
+                "Craftsman",
+                "Clerestory"
+            ]
+        );
+        assert_eq!(
+            handle.window_edit_preview(1., 10., 0., 7.),
+            [0, 1, 1, 10, 0, 7, 1, 10, 0, 1, 11, 0, 1, 12, 0]
+        );
+        for _ in 0..2 {
+            assert!(handle.fit_window(1., 10., 0., 7.));
+            assert!(
+                handle.last_window_edit_result().is_empty(),
+                "old success must not satisfy new work"
+            );
+            handle.flush_commands();
+            assert_eq!(handle.last_window_edit_result(), [0]);
+            assert_eq!(
+                handle.last_window_edit_result(),
+                [0],
+                "reads do not consume"
+            );
+        }
+        assert_eq!(handle.window_placements(), [1, 10, 0, 7]);
+        assert_eq!(handle.window_lines(), [1, 10, 0, 1, 11, 0, 1, 12, 0]);
+        assert!(handle.wall_tiles().is_empty());
+        let before = handle.save_bytes();
+        assert_eq!(
+            handle.window_removal_preview(1., 11., 0.),
+            [0, 0, 1, 10, 0, 1, 11, 0, 1, 12, 0]
+        );
+        assert_eq!(handle.save_bytes(), before, "preview never stages work");
+        for _ in 0..2 {
+            assert!(handle.fit_window(1., 15., 0., 7.));
+            assert!(
+                handle.last_window_edit_result().is_empty(),
+                "old refusal must not satisfy new work"
+            );
+            handle.flush_commands();
+            assert_eq!(handle.last_window_edit_result(), [5]);
+            assert_eq!(handle.save_bytes(), before);
+        }
+        assert!(!handle.fit_window(1., 10., 0., 10.));
+        assert_eq!(
+            handle.last_window_edit_result(),
+            [5],
+            "rejection does not clear the last applied result"
+        );
+        let overflow = postcard::to_allocvec(&SimCommand::FitWindow {
+            axis: EdgeAxis::Horizontal,
+            x: u32::MAX,
+            y: 0,
+            model: terri_core::windows::WindowModel::Picture,
+        })
+        .unwrap();
+        assert!(!handle.fit_window(1., u32::MAX as f64, 0., 7.));
+        assert!(!handle.enqueue_command(&overflow));
+        assert_eq!(handle.last_window_edit_result(), [5]);
+        assert_eq!(handle.save_bytes(), before);
+        // Queue saturation refuses staging and must preserve the prior result too.
+        let select = postcard::to_allocvec(&SimCommand::Select(None)).unwrap();
+        let cap = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .max_queued_commands;
+        for _ in 0..cap {
+            assert!(handle.enqueue_command(&select));
+        }
+        let full = handle.save_bytes();
+        assert!(!handle.fit_window(1., 10., 0., 7.));
+        assert_eq!(handle.last_window_edit_result(), [5]);
+        assert_eq!(handle.save_bytes(), full);
+        handle.flush_commands();
+        assert!(handle.remove_window(1., 11., 0.));
+        assert!(handle.last_window_edit_result().is_empty());
+        handle.flush_commands();
+        assert_eq!(handle.last_window_edit_result(), [0]);
+        assert!(handle.window_placements().is_empty());
+    }
+
+    #[test]
+    fn window_raw_overflow_rejection_preserves_result_and_saved_queue() {
+        let mut handle = SimHandle::from_lot();
+        assert!(handle.fit_window(1., 10., 0., 7.));
+        handle.flush_commands();
+        assert_eq!(handle.last_window_edit_result(), [0]);
+        let before = handle.save_bytes();
+        for axis in [EdgeAxis::Vertical, EdgeAxis::Horizontal] {
+            let overflow = postcard::to_allocvec(&SimCommand::FitWindow {
+                axis,
+                x: u32::MAX,
+                y: u32::MAX,
+                model: terri_core::windows::WindowModel::Picture,
+            })
+            .unwrap();
+            assert!(
+                !handle.enqueue_command(&overflow),
+                "raw overflow must never be staged"
+            );
+            assert_eq!(handle.last_window_edit_result(), [0]);
+            assert_eq!(handle.save_bytes(), before);
+            assert!(!handle.fit_window(axis.code() as f64, u32::MAX as f64, u32::MAX as f64, 7.));
+            assert_eq!(handle.last_window_edit_result(), [0]);
+            assert_eq!(handle.save_bytes(), before);
+        }
+    }
+
+    #[test]
+    fn window_bridge_invalid_numbers_never_enter_the_queue() {
+        let mut handle = SimHandle::from_lot();
+        let before = handle.save_bytes();
+        for bad in [
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            -1.,
+            0.5,
+            u32::MAX as f64 + 1.,
+        ] {
+            for slot in 0..4 {
+                let mut args = [1., 10., 0., 7.];
+                args[slot] = bad;
+                assert!(!handle.fit_window(args[0], args[1], args[2], args[3]));
+                assert_eq!(
+                    handle.window_edit_preview(args[0], args[1], args[2], args[3]),
+                    [1, 0]
+                );
+                if slot < 3 {
+                    assert!(!handle.remove_window(args[0], args[1], args[2]));
+                    assert_eq!(
+                        handle.window_removal_preview(args[0], args[1], args[2]),
+                        [1, 0]
+                    );
+                }
+                assert_eq!(handle.save_bytes(), before);
+            }
+        }
+        for model in [0., 10., 256.] {
+            assert!(!handle.fit_window(1., 10., 0., model));
+        }
+        assert!(!handle.fit_window(2., 10., 0., 7.));
+        assert!(!handle.fit_window(0., 0., u32::MAX as f64, 7.));
+        assert!(!handle.fit_window(1., u32::MAX as f64, 0., 7.));
+        assert_eq!(handle.save_bytes(), before);
+        assert!(handle.last_window_edit_result().is_empty());
+    }
+
+    #[test]
+    fn window_new_records_reject_every_truncation_and_unknown_model_atomically() {
+        let mut live = SimHandle::from_lot();
+        let before = live.save_bytes();
+        let hash = live.world_hash();
+        for model in 1..=9 {
+            for (axis, x, y) in [(0., 0., 1.), (1., 10., 0.)] {
+                let mut source = SimHandle::from_lot();
+                assert!(source.fit_window(axis, x, y, model as f64));
+                source.flush_commands();
+                assert_eq!(source.last_window_edit_result(), [0]);
+                let snapshot = source.sim.save_snapshot_v5();
+                let bytes = encode(&snapshot);
+                let placement = snapshot.layout.window_placements()[0];
+                let record_len = postcard::to_allocvec(&placement).unwrap().len();
+                let end = SAVE_HEADER_BYTES
+                    + postcard::to_allocvec(&snapshot.world).unwrap().len()
+                    + postcard::to_allocvec(&snapshot.layout).unwrap().len();
+                for cut in end - record_len..end {
+                    assert!(
+                        !live.load_bytes(&bytes[..cut]),
+                        "model {model}, layout cut {cut}"
+                    );
+                    assert_eq!(live.save_bytes(), before);
+                    assert_eq!(live.world_hash(), hash);
+                }
+                let mut unknown = bytes.clone();
+                unknown[end - 1] = 9;
+                assert!(!live.load_bytes(&unknown));
+                assert_eq!(live.save_bytes(), before);
+            }
+        }
+        for command in [
+            SavedCommand::FitWindow {
+                axis: EdgeAxis::Horizontal,
+                x: 130,
+                y: 260,
+                model: terri_core::windows::WindowModel::Craftsman,
+            },
+            SavedCommand::RemoveWindow {
+                axis: EdgeAxis::Vertical,
+                x: 130,
+                y: 260,
+            },
+        ] {
+            let mut snapshot = live.sim.save_snapshot_v5();
+            snapshot.world.queued_commands = vec![command.clone()];
+            let bytes = encode(&snapshot);
+            let end = SAVE_HEADER_BYTES + postcard::to_allocvec(&snapshot.world).unwrap().len()
+                - postcard::to_allocvec(&snapshot.world.sleep_pressure)
+                    .unwrap()
+                    .len();
+            let record_len = postcard::to_allocvec(&command).unwrap().len();
+            for cut in end - record_len..end {
+                assert!(!live.load_bytes(&bytes[..cut]), "command cut {cut}");
+                assert_eq!(live.save_bytes(), before);
+            }
+            if matches!(command, SavedCommand::FitWindow { .. }) {
+                let mut unknown = bytes.clone();
+                unknown[end - 1] = 9;
+                assert!(!live.load_bytes(&unknown));
+                assert_eq!(live.save_bytes(), before);
+            }
+            let mut valid = SimHandle::from_lot();
+            assert!(valid.load_bytes(&bytes));
+            assert_eq!(
+                valid.save_bytes(),
+                bytes,
+                "complete stale commands remain pending"
+            );
+        }
+    }
+
+    #[test]
+    fn window_v2_projection_and_coverings_keep_their_historical_shape() {
+        let mut source = SimHandle::from_lot();
+        assert!(source.set_wall_edge(0., 8., 4., 3.));
+        source.flush_commands();
+        assert!(matches!(
+            source.sim.save_snapshot_v5().layout,
+            SavedLayout::EdgeWallsV2 { .. }
+        ));
+        let saved = source.save_bytes();
+        let mut restored = SimHandle::from_lot();
+        assert!(restored.load_bytes(&saved));
+        assert_eq!(restored.window_placements(), [0, 8, 4, 1]);
+        assert_eq!(restored.window_lines(), [0, 8, 4]);
+        assert_eq!(restored.covering_names(), ["Boards", "Tiles", "Carpet"]);
+        for id in 0..=3 {
+            assert!(restored.set_floor(3., 2., id as f64));
+            restored.flush_commands();
+        }
+        assert!(matches!(
+            restored.sim.save_snapshot_v5().layout,
+            SavedLayout::EdgeWallsV2 { .. }
+        ));
+        assert_eq!(restored.window_placements(), [0, 8, 4, 1]);
+        println!(
+            "compiled content fingerprint: {:#018x}",
+            restored.sim.save_snapshot_v5().world.content_fingerprint
+        );
     }
 }

@@ -164,3 +164,222 @@ fn contact_accepts_flush_rectangles_but_rejects_either_overhanging_extent() {
         );
     }
 }
+
+#[test]
+fn window_save_all_models_axes_and_pending_commands_restore_before_any_drain() {
+    use terri_core::{
+        layout::{EdgeAxis, WallLine},
+        windows::{WindowModel, WindowPlacement},
+        CommandQueue, SimCommand,
+    };
+    for id in 1..=9 {
+        for axis in [EdgeAxis::Vertical, EdgeAxis::Horizontal] {
+            let mut source = Sim::new_from_shipped_lot();
+            for _ in 0..13 {
+                source.tick();
+            }
+            let line = if axis == EdgeAxis::Vertical {
+                WallLine { axis, x: 0, y: 1 }
+            } else {
+                WallLine { axis, x: 10, y: 0 }
+            };
+            let model = WindowModel::from_id(id).unwrap();
+            let placement = WindowPlacement { line, model };
+            assert_eq!(
+                crate::placement::windows::apply_window_edit(
+                    source.world_mut(),
+                    crate::placement::windows::WindowEdit::Fit(placement)
+                )
+                .reason,
+                None
+            );
+            // A complete pair stays pending across the load and replays in order.
+            source
+                .world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::RemoveWindow {
+                    axis,
+                    x: line.x,
+                    y: line.y,
+                });
+            source
+                .world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::FitWindow {
+                    axis,
+                    x: line.x,
+                    y: line.y,
+                    model,
+                });
+            source.sync_render_buffer();
+            let saved = source.save_snapshot_v5();
+            let hash = source.world_hash();
+            let mut restored = Sim::new_from_shipped_lot();
+            restored.load_snapshot_v5(saved.clone()).unwrap();
+            assert_eq!(restored.save_snapshot_v5(), saved, "model {id}, {axis:?}");
+            assert_eq!(restored.world_hash(), hash);
+            assert_eq!(
+                restored
+                    .world()
+                    .resource::<SavedLayout>()
+                    .window_placements(),
+                [placement]
+            );
+            assert_eq!(restored.world().resource::<CommandQueue>().len(), 2);
+            assert_eq!(
+                restored.render_buffer().positions,
+                source.render_buffer().positions
+            );
+            assert_eq!(
+                restored.render_buffer().sprites,
+                source.render_buffer().sprites
+            );
+            assert_eq!(
+                restored.render_buffer().colourways,
+                source.render_buffer().colourways
+            );
+            source.flush_commands();
+            restored.flush_commands();
+            assert_eq!(restored.world().resource::<CommandQueue>().len(), 0);
+            assert_eq!(
+                restored
+                    .world()
+                    .resource::<SavedLayout>()
+                    .window_placements(),
+                [placement]
+            );
+            assert_eq!(restored.world_hash(), source.world_hash());
+            assert_eq!(restored.save_snapshot_v5(), source.save_snapshot_v5());
+            for _ in 0..3 {
+                source.tick();
+                restored.tick();
+            }
+            assert_eq!(restored.world_hash(), source.world_hash());
+        }
+    }
+}
+
+#[test]
+fn window_save_preserves_insertion_order_but_hash_ignores_order_and_observes_model() {
+    use terri_core::{
+        layout::{EdgeAxis, WallLine},
+        windows::{WindowModel, WindowPlacement},
+    };
+    let mut source = Sim::new_from_shipped_lot();
+    let a = WindowPlacement {
+        line: WallLine {
+            axis: EdgeAxis::Vertical,
+            x: 0,
+            y: 1,
+        },
+        model: WindowModel::Sash,
+    };
+    let b = WindowPlacement {
+        line: WallLine {
+            axis: EdgeAxis::Horizontal,
+            x: 10,
+            y: 0,
+        },
+        model: WindowModel::Picture,
+    };
+    for placement in [b, a] {
+        assert_eq!(
+            crate::placement::windows::apply_window_edit(
+                source.world_mut(),
+                crate::placement::windows::WindowEdit::Fit(placement)
+            )
+            .reason,
+            None
+        );
+    }
+    let saved = source.save_snapshot_v5();
+    let original_hash = source.world_hash();
+    let mut restored = Sim::new_from_shipped_lot();
+    restored.load_snapshot_v5(saved.clone()).unwrap();
+    assert_eq!(restored.save_snapshot_v5(), saved);
+    assert_eq!(
+        restored
+            .world()
+            .resource::<SavedLayout>()
+            .window_placements(),
+        [b, a]
+    );
+    let mut reordered = saved.clone();
+    if let SavedLayout::EdgeWallsV3 { windows, .. } = &mut reordered.layout {
+        windows.reverse();
+    }
+    restored.load_snapshot_v5(reordered.clone()).unwrap();
+    assert_eq!(restored.save_snapshot_v5(), reordered);
+    assert_eq!(restored.world_hash(), original_hash);
+    if let SavedLayout::EdgeWallsV3 { windows, .. } = &mut reordered.layout {
+        windows[0].model = WindowModel::Cottage;
+    }
+    restored.load_snapshot_v5(reordered).unwrap();
+    assert_ne!(restored.world_hash(), original_hash);
+}
+
+#[test]
+fn window_save_refuses_duplicate_overlap_conflict_bounds_and_overflow_atomically() {
+    use terri_core::{
+        layout::{EdgeAxis, WallLine},
+        windows::{WindowModel, WindowPlacement},
+    };
+    let mut live = Sim::new_from_shipped_lot();
+    let original = live.save_snapshot_v5();
+    let hash = live.world_hash();
+    let a = WindowPlacement {
+        line: WallLine {
+            axis: EdgeAxis::Vertical,
+            x: 0,
+            y: 1,
+        },
+        model: WindowModel::Picture,
+    };
+    let cases = [
+        vec![a, a],
+        vec![
+            a,
+            WindowPlacement {
+                line: WallLine { y: 2, ..a.line },
+                model: WindowModel::Sash,
+            },
+        ],
+        vec![WindowPlacement {
+            line: WallLine { y: 11, ..a.line },
+            ..a
+        }],
+        vec![WindowPlacement {
+            line: WallLine {
+                y: u32::MAX,
+                ..a.line
+            },
+            ..a
+        }],
+        vec![WindowPlacement {
+            line: WallLine {
+                axis: EdgeAxis::Horizontal,
+                x: 15,
+                y: 0,
+            },
+            ..a
+        }],
+        vec![WindowPlacement {
+            line: WallLine {
+                axis: EdgeAxis::Vertical,
+                x: 8,
+                y: 0,
+            },
+            model: WindowModel::Sash,
+        }],
+    ];
+    for windows in cases {
+        let mut saved = original.clone();
+        saved.layout = SavedLayout::EdgeWallsV3 {
+            edges: original.layout.edges().to_vec(),
+            windows,
+        };
+        assert_eq!(live.load_snapshot_v5(saved), Err(SaveError::InvalidGrid));
+        assert_eq!(live.save_snapshot_v5(), original);
+        assert_eq!(live.world_hash(), hash);
+    }
+}

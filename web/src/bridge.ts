@@ -1,4 +1,6 @@
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeWindowCatalogue, decodeWindowPreview, type WindowDefinition,
+  type WindowEditPreview } from './architecture/windows.js';
 
 /** Personal factors and recent repetition, read together without advancing time. */
 export interface SimDetails {
@@ -903,6 +905,38 @@ export class SimBridge {
    */
   windowLines(): Uint32Array {
     return this.handle.window_lines();
+  }
+
+  /** Canonical window descriptors: axis, x, y, public model ID. */
+  windowPlacements(): Uint32Array {
+    return this.handle.window_placements();
+  }
+
+  windowCatalogue(): readonly WindowDefinition[] {
+    return decodeWindowCatalogue(this.handle.window_catalogue(), this.handle.window_catalogue_names());
+  }
+
+  windowEditPreview(axis: number, x: number, y: number, model: number): WindowEditPreview {
+    return decodeWindowPreview(this.handle.window_edit_preview(axis, x, y, model));
+  }
+
+  windowRemovalPreview(axis: number, x: number, y: number): WindowEditPreview {
+    return decodeWindowPreview(this.handle.window_removal_preview(axis, x, y));
+  }
+
+  /** Queue acceptance only; null result means pending until tick or flushCommands. */
+  fitWindow(axis: number, x: number, y: number, model: number): boolean {
+    return this.handle.fit_window(axis, x, y, model);
+  }
+
+  removeWindow(axis: number, x: number, y: number): boolean {
+    return this.handle.remove_window(axis, x, y);
+  }
+
+  /** Read-only. A newly accepted window command clears the previous result. */
+  lastWindowEditResult(): { reason: number } | null {
+    const values = this.handle.last_window_edit_result();
+    return values.length === 0 ? null : { reason: values[0] };
   }
 
   /**
