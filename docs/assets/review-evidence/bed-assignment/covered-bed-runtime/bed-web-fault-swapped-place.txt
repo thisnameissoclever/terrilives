@@ -1,0 +1,101 @@
+
+> test
+> vitest run --maxWorkers=1 tests/bed-sprites.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/2301/terrilives/web
+
+ ❯ tests/bed-sprites.test.ts (9 tests | 4 failed) 108ms
+     × keeps both owners through row reorder, static sampling and one departure without ordinary target columns 4ms
+     × picks both visible owners and furniture at fractional zoom independently of Sim row order 11ms
+     × draws one scene and retains distinct bubbles and visible owner rings 1ms
+     × renders real authored double-bed sleepers across rotation, immediate Load and memory growth 76ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > keeps both owners through row reorder, static sampling and one departure without ordinary target columns
+AssertionError: expected [ +0, +0 ] to deeply equal [ +0, 1 ]
+
+- Expected
++ Received
+
+  [
+    0,
+-   1,
++   0,
+  ]
+
+ ❯ tests/bed-sprites.test.ts:87:64
+     85|       expect(selection.bedScenes[b]).toBe(scene);
+     86|       expect(selection.bedScenes[target]).toBe(scene);
+     87|       expect([selection.bedPlaces[a], selection.bedPlaces[b]]).toEqual…
+       |                                                                ^
+     88|       expect([selection.drawSuppressed[a], selection.drawSuppressed[b]…
+     89|       expect(scene.owners[0]!.marker).not.toEqual(scene.owners[1]!.mar…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > picks both visible owners and furniture at fractional zoom independently of Sim row order
+AssertionError: expected { entity: 400, isAgent: false } to deeply equal { entity: 13, isAgent: true }
+
+- Expected
++ Received
+
+  {
+-   "entity": 13,
+-   "isAgent": true,
++   "entity": 400,
++   "isAgent": false,
+  }
+
+ ❯ tests/bed-sprites.test.ts:134:24
+    132|           const pick = pickSprite(rows, left + (x + 0.5) / 2 * scale,
+    133|             top + (y + 0.5) / 2 * scale, 200, 180, scale, false, selec…
+    134|           expect(pick).toEqual({ entity: expected, isAgent: expected !…
+       |                        ^
+    135|           seen.add(expected);
+    136|         }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > draws one scene and retains distinct bubbles and visible owner rings
+AssertionError: expected 194.49998474121094 not to be 194.49998474121094 // Object.is equality
+ ❯ tests/bed-sprites.test.ts:150:47
+    148|     expect(data[FLOATS_PER_INSTANCE]).toBe(-1e6);
+    149|     expect(data[2 * FLOATS_PER_INSTANCE]).toBe(-1e6);
+    150|     expect(data[3 * FLOATS_PER_INSTANCE]).not.toBe(data[4 * FLOATS_PER…
+       |                                               ^
+    151|     const ring = (batch.count - 1) * FLOATS_PER_INSTANCE;
+    152|     expect(data[ring + 2]).toBeLessThan(data[2]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/bed-sprites.test.ts > covered double-bed scenes and owner coverage > renders real authored double-bed sleepers across rotation, immediate Load and memory growth
+AssertionError: expected [ +0, +0 ] to deeply equal [ +0, 1 ]
+
+- Expected
++ Received
+
+  [
+    0,
+-   1,
++   0,
+  ]
+
+ ❯ check tests/bed-sprites.test.ts:224:66
+    222|           expect(selection.bedScenes[rows[0]]?.owners.every(owner=>own…
+    223|           expect(selection.bedScenes[rows[1]]).toBe(selection.bedScene…
+    224|           expect(rows.map(row=>selection.bedPlaces[row]).sort()).toEqu…
+       |                                                                  ^
+    225|         };
+    226|         check();const saved=sim.saveBytes();
+ ❯ tests/bed-sprites.test.ts:226:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 5 passed (9)
+   Start at  10:17:16
+   Duration  611ms (transform 331ms, setup 0ms, import 393ms, tests 108ms, environment 0ms)
+

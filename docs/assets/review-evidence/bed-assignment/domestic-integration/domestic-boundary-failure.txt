@@ -1,0 +1,18 @@
+running 1 test
+test save_v3_tests::released_domestic_v5_retains_every_field_without_mapping_meals_twice ... FAILED
+
+failures:
+
+---- save_v3_tests::released_domestic_v5_retains_every_field_without_mapping_meals_twice stdout ----
+
+thread 'save_v3_tests::released_domestic_v5_retains_every_field_without_mapping_meals_twice' (19196) panicked at crates\terri-wasm\src\save_v3_tests.rs:134:9:
+accepted incomplete domestic record at 70
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    save_v3_tests::released_domestic_v5_retains_every_field_without_mapping_meals_twice
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 155 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `-p terri-wasm --lib`

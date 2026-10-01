@@ -1,0 +1,13 @@
+
+> test
+> vitest run --maxWorkers=1 tests/agent-skill-mirrors.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/b770/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  11:29:50
+   Duration  155ms (transform 17ms, setup 0ms, import 25ms, tests 4ms, environment 0ms)
+

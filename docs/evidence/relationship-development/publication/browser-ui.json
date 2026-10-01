@@ -1,0 +1,45 @@
+{
+  "uiChecks": [
+    {
+      "view": "default",
+      "width": 360
+    },
+    {
+      "view": "personal",
+      "width": 540,
+      "shyness": ""
+    },
+    {
+      "view": {
+        "width": 320,
+        "height": 568
+      },
+      "width": 304,
+      "overflow": false,
+      "closeHeight": 44
+    },
+    {
+      "view": {
+        "width": 390,
+        "height": 844
+      },
+      "width": 374,
+      "overflow": false,
+      "closeHeight": 44
+    },
+    {
+      "view": {
+        "width": 640,
+        "height": 400
+      },
+      "width": 432,
+      "overflow": false,
+      "closeHeight": 44
+    },
+    {
+      "changelog": 1,
+      "overflow": false
+    }
+  ],
+  "pubErrors": []
+}

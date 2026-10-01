@@ -64,6 +64,7 @@ export function buildEdgeWallGeometry(
   showCutAway = false,
   windows: ArrayLike<number> = [],
   shortWalls = false,
+  horizontalHinged: ArrayLike<number> = [],
 ): EdgeWallPanel[] {
   const inHouse = (x: number, y: number): boolean => x < house[0] && y < house[1];
   // Edges never lie on the lot's own edge, so `x - 1` and `y - 1` are tiles.
@@ -71,6 +72,8 @@ export function buildEdgeWallGeometry(
     ? inHouse(x - 1, y) : inHouse(x, y - 1)) && !inHouse(x, y);
   const hingedAt = new Set<string>();
   for (let i = 0; i + 1 < hinged.length; i += 2) hingedAt.add(`${hinged[i]},${hinged[i + 1]}`);
+  const horizontalAt = new Set<string>();
+  for (let i = 0; i + 1 < horizontalHinged.length; i += 2) horizontalAt.add(`${horizontalHinged[i]},${horizontalHinged[i + 1]}`);
   const vertices = new Map<string, Vertex>();
   const doors: EdgeWallPanel[] = [];
   const addArm = (x: number, y: number, arm: number, cells: [number, number][], low: boolean): void => {
@@ -89,6 +92,7 @@ export function buildEdgeWallGeometry(
     const cells: [number, number][] = vertical ? [[x - 1, y], [x, y]] : [[x, y - 1], [x, y]];
     if (door) {
       if (vertical && hingedAt.has(`${x},${y}`)) return;
+      if (!vertical && horizontalAt.has(`${x},${y}`)) return;
       doors.push({
         x: vertical ? x - 0.5 : x,
         y: vertical ? y : y - 0.5,
@@ -143,6 +147,7 @@ export function buildShortEdgeWallGeometry(
   hinged: ArrayLike<number> = [],
   house: readonly [number, number] = [width, height],
   windows: ArrayLike<number> = [],
+  horizontalHinged: ArrayLike<number> = [],
 ): EdgeWallPanel[] {
-  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true);
+  return buildEdgeWallGeometry(width, height, edges, hinged, house, true, windows, true, horizontalHinged);
 }

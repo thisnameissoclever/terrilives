@@ -1,0 +1,24 @@
+CONFIG,Overrides { talk_gain: None, respect: Some(0.72), proximity: None, friction: None, television: true }
+SETTINGS,two,1,respect=0,proximity=0.016,friction=0.03,talk=0.17,privacy_penalty=0.25,television=true
+RUN,two,1,sims=2,incidents=29,emergencies=0,directed=0,per_week=1.81250,exposure_hours=267.700,wait_minutes=0,entry_wait_minutes=0,start_wait_minutes=0,max_wait=0,low_need_minutes=535,essential_empty_minutes=153,essential_empty_while_waiting=0,chains_completed=63,chains_abandoned=0,alive=2,healthy=1306,samples=2688,recovery_days=unfinished,subsequent=0,during_recovery=0,hash=1b34ee657f83f204,start=10080
+CHAIN,two,1,active_at_end=0,max_age_minutes=317,max_stall_minutes=87
+EFFECT,two,1,Conversation,6,1.02000001,1.02000006
+EFFECT,two,1,LowNeedInterruption,2,-0.22000000,-0.22000001
+EFFECT,two,1,PrivacyEntry,7,-1.75000000,-1.63277048
+EFFECT,two,1,PrivacyStart,22,-5.50000000,-4.80836570
+EFFECT,two,1,Proximity,13888,3.70346671,3.70351559
+EFFECT,two,1,SharedActivity,140,0.37333336,0.37333219
+EFFECT,two,1,Decay,159209,1.04700997,1.04835775
+ELIGIBILITY,two,1,first_positive_minute=none
+NEED,two,1,Hunger,critical_minutes=5520
+NEED,two,1,Energy,critical_minutes=2219
+NEED,two,1,Hygiene,critical_minutes=313
+NEED,two,1,Bladder,critical_minutes=12
+NEED,two,1,Social,critical_minutes=2107
+NEED,two,1,Fun,critical_minutes=0
+NEED,two,1,Comfort,critical_minutes=0
+EMPTY,two,1,Hunger,Chain,recent_wait=false,minutes=109
+EMPTY,two,1,Hunger,Idle,recent_wait=false,minutes=1
+EMPTY,two,1,Hunger,Walk,recent_wait=false,minutes=43
+PAIR,two,1,0,1,compatibility=-0.0000,end=0.108013,hostile_day=8.5458
+PAIR,two,1,1,0,compatibility=-0.0000,end=-0.455937,hostile_day=2.0007

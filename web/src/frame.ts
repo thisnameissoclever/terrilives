@@ -1,3 +1,4 @@
+import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
  * most recent simulation ticks into one frame's worth of GPU instances.
@@ -26,7 +27,7 @@ import {
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, BED_CATALOG, spriteIndex } from './render/atlas.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
@@ -334,7 +335,7 @@ export const VISUAL_ACTION_WATCH_FISH = 7;
 export const VISUAL_ACTION_SIT = 8;
 
 /** The append-only visual-action code for sleeping in the lower bunk. */
-export const VISUAL_ACTION_SLEEP = 9;
+export const VISUAL_ACTION_SLEEP = SLEEP_VISUAL_ACTION;
 
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
@@ -553,8 +554,8 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {
@@ -818,6 +819,8 @@ export interface RenderSource {
   simIds?(): Uint32Array;
   /** Exact validated action target entity ID, or u32::MAX. */
   interactionTargets?(): Uint32Array;
+  sleepingBeds?(): Uint32Array;
+  sleepingPlaces?(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -1024,7 +1027,7 @@ export function buildInstanceBatch(
     // Office Sims, paired objects and drawable move previews keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
+    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || interactions.drawSuppressed[i] || i === replacedRow) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
@@ -1141,7 +1144,7 @@ export function buildInstanceBatch(
     }
   }
   if (portals !== undefined) {
-    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky);
+    slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky, alpha);
   }
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
@@ -1211,15 +1214,17 @@ export function buildInstanceBatch(
             carriedDishes?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
+    const bedOwner = interactions.bedScenes[i]?.owners[interactions.bedPlaces[i]];
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale),
+      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
       // The lift scales with the camera: the sim's sprite is drawn
       // `scale` times taller, so an unscaled lift would sink the bubble
       // into a zoomed head and orbit it high over a zoomed-out one.
-      screenY(wx, wy, originY, scale) -
-        (spriteContentLift(displayedBody) - INDICATOR_INSET) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner
+        ? bedOwner.marker[1] - 24
+        : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
       layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
@@ -1227,6 +1232,7 @@ export function buildInstanceBatch(
     // not merely the owner's center. Its screen X remains that same center.
     writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
+    if (bedOwner) scratch[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += bedOwner.marker[0];
   }
 
   // **The carried and eating props, after the bubbles** - [K3]'s hands on
@@ -1303,12 +1309,14 @@ export function buildInstanceBatch(
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    const bedOwner = interactions.bedScenes[ringRow]?.owners[interactions.bedPlaces[ringRow]];
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale),
-      layeredDepth(wx, wy, gridSize, LAYER_PROP),
+      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] - 6 : 0) * scale,
+      layeredDepth(wx, wy, gridSize, bedOwner ? LAYER_FOREGROUND : LAYER_PROP)
+        - (bedOwner ? INDICATOR_DEPTH_NUDGE : 0),
       SELECTION_RING_SPRITE,
       TINT_NONE,
       TINT_NONE,

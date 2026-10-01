@@ -64,6 +64,16 @@ actually won or lost.
 
 ## [D1] Repository layout
 
+The relationship extension uses `interpersonal` for ordered start/entry consequences,
+`privacy` for cached decisions and derived routes, `compatibility` for authored
+preference comparison, and `relationship_dynamics` for minute-by-minute contact.
+Movement checks current room occupancy before crossing a boundary or starting
+private use. Contact then runs before interaction completion, so a final minute
+of shared activity counts once and a conversation receives only its completion
+reward. `relationship_effects` exposes a read-only causal journal for native
+traces. Boundary decisions are saved and hashed; diagnostics and derived
+compatibility are not. See the [relationship specification](specs/2026-09-30-relationship-development.md).
+
 The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
 `cargo test` at full speed. The CI job of the same name checks all three
@@ -436,7 +446,12 @@ mappings, footprints, trait state kind, and the current-content front door a
 restored career still follows. Missing object, career, trait, chain, and
 carried-item ids are validated directly. Known fingerprints from the retired
 full-pack algorithm map only to the exact reviewed replacement shape; they do
-not bypass normal snapshot validation. The one shipped household rename is
+not bypass normal snapshot validation. The local, unpublished bed-assignment
+extension also hashes ordered sleep-place IDs and canonical approach tiles.
+Only its pinned live and reconstructed pre-rotation shapes inherit the prior
+bridges. Access rules apply to newly selected routes; valid saved paths retain
+their geometry across migration and subsequent re-save/load cycles.
+The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
@@ -839,12 +854,15 @@ with one pair of tiles and a room with its whole outline; the usability proofs
 and the loader's checks run once, on the finished room.
 
 Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
-are presentation only. `portals::interior_door_lines` derives one from every
-vertical doorway of an edge-wall house when the lot's front door has art for a
-vertical line, and `sync_portals` appends each as a row after the front door's,
-with a state worked out every frame from sims' positions and walks, which are
-already saved. Nothing is added to the save, the save digest or the world
-hash.
+are presentation only. `portals::interior_door_lines` and
+`interior_horizontal_door_lines` derive them on both axes of an edge-wall house
+with the authored front-door style. `sync_portals` appends vertical then
+horizontal rows after the front door, deriving state and openness from saved
+positions and walks. Previous openness is retained only for interpolation and
+reset on load or a changed doorway list. Nothing is added to the save, digest
+or world hash. The shell selects one of nine model poses in four orientations.
+Paired surface-depth textures sort the solid leaf and joined casing per pixel;
+the flush threshold follows floor ordering. See `assets/models/doors/README.md`.
 
 The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's

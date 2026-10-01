@@ -1,0 +1,23 @@
+   Compiling terri-core v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-core)
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 05s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+
+thread 'domestic::tests::a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook' (44752) panicked at crates\terri-sim\src\domestic\tests.rs:892:5:
+assertion `left == right` failed: state=SavedDomestic { cleanliness: [(34, 0.5), (35, 0.5), (36, 0.5)], dishes: [SavedDishes { id: 0, surface: 1, owner: 0, units: 3 }], visits: [SavedRoomVisit { person: 34, room: 8, seen: [] }, SavedRoomVisit { person: 35, room: 0, seen: [0] }, SavedRoomVisit { person: 36, room: 0, seen: [0] }], cleanup: [], meals: [SavedMeal { cook: 0, counter: 1, table: None, guests: [1, 2], claimed: [1, 2], collected: [1], eaten: [], scale: 1.0, tick: 384, dining_started: false }], next_dish: 1, serving_meals: [] }; guests=[(35v0, Some(ChainState { chain: 3, step: 1, fumble_scale: 1.0 }), None, None, Some(Position { x: 1.0, y: 1.0 }), Some(Needs([30.0, 100.0, 96.987915, 100.0, 100.0, 100.0, 100.0])), None), (36v0, Some(ChainState { chain: 3, step: 0, fumble_scale: 1.0 }), Some(Target { object: 1v0, interaction: 4294967295 }), None, Some(Position { x: 1.0, y: 1.0 }), Some(Needs([30.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0])), None)]; waits=[]
+  left: 1
+ right: 2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test domestic::tests::a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook ... FAILED
+
+failures:
+
+failures:
+    domestic::tests::a_guest_keeps_its_portion_while_tables_are_busy_and_can_dine_without_the_cook
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 846 filtered out; finished in 1.24s
+
+error: test failed, to rerun pass `-p terri-sim --lib`

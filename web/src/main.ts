@@ -33,7 +33,7 @@ import {
   buildInstanceBatch,
 } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
-import { clampOrigin, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
+import { clampOrigin, clampZoom, lotExtent, openingExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { HousemateForm, HousemateFormView } from './ui/housemate-form.js';
 import { householdMembers } from './ui/household-roster.js';
 import { WallFade } from './render/wall-fade.js';
@@ -50,6 +50,7 @@ import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
+import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
@@ -58,7 +59,10 @@ import {
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
-import { PlacementActions, createPlacementActionsSurface, type KeepOut } from './ui/placement-actions.js';
+import { type KeepOut } from './ui/placement-actions.js';
+import { BuildContextActions, createContextSurface } from './ui/placement-actions.js';
+import { createCompactBuildLayout } from './ui/build-layout.js';
+import { installShortcuts } from './ui/shortcuts.js';
 import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { ActionQueue } from './ui/action-queue.js';
@@ -524,8 +528,19 @@ async function main(): Promise<void> {
   const personalDetailsPanel = new PersonalDetailsPanel(sim, sim.needNames(),
     createPersonalDetailsSurface(document, personalDetailsEmpty, personalDetailsContent), sim.needBarRefreshMs(),
     () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
+  const bedAssignmentSurface = createBedAssignmentSurface(document, personalDetails, {
+    choose: place => bedAssignmentPanel.choose(place),
+    assign: () => bedAssignmentPanel.assign(),
+    clear: () => bedAssignmentPanel.clear(),
+  });
+  const bedAssignmentPanel = new BedAssignmentPanel(sim, bedAssignmentSurface, sim.needBarRefreshMs(),
+    () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
   personalDetails.addEventListener('toggle', () => {
-    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);
+    if (personalDetails.open) {
+      const nowMs = performance.now();
+      personalDetailsPanel.update(nowMs, true);
+      bedAssignmentPanel.update(nowMs, true);
+    }
   });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
@@ -578,6 +593,7 @@ async function main(): Promise<void> {
     throw new Error('missing player status markup');
   }
   const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
+  const compactBuildQuery = window.matchMedia('(max-width: 700px), (max-height: 480px)');
   const actionQueue = new ActionQueue(actionQueueRoot, sim.needBarRefreshMs());
   const compactHud = createCompactHud(document, () => actionQueue.invalidate(), () => optionsMenu.close());
   compactHud.setCompact(compactHudQuery.matches);
@@ -630,11 +646,15 @@ async function main(): Promise<void> {
   );
   compactHudQuery.addEventListener('change', (event) => {
     compactHud.setCompact(event.matches);
+  });
+  compactBuildQuery.addEventListener('change', (event) => {
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
     floorControls?.setCompact(event.matches);
+    placementActions?.invalidate();
+    syncBuildOptionsHost();
   });
   observeHudScrollbar(hudRoot);
   const gameHud = new GameHud(
@@ -671,6 +691,7 @@ async function main(): Promise<void> {
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
   personalDetailsPanel.update(initialHudMs, true);
+  bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -880,6 +901,7 @@ async function main(): Promise<void> {
           // the list by height.
           lot.floors = sim.floorTiles();
           lot.doors = sim.interiorDoorLines();
+          lot.horizontalDoors = sim.interiorHorizontalDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
           lot.street = sim.streetColumn();
@@ -891,6 +913,7 @@ async function main(): Promise<void> {
           keyboardTargets.clear();
           builder.resetAfterLoad();
           housemateForm.resetAfterLoad();
+          bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
@@ -903,6 +926,7 @@ async function main(): Promise<void> {
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
           personalDetailsPanel.update(nowMs, true);
+          bedAssignmentPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -1075,7 +1099,7 @@ async function main(): Promise<void> {
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
-    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
@@ -1191,7 +1215,7 @@ async function main(): Promise<void> {
   }
   // Flagged rather than applied: a drag-resize fires this continuously,
   // and the flag coalesces the burst into one rebuild on the next frame.
-  let placementActions: PlacementActions | undefined;
+  let placementActions: BuildContextActions | undefined;
   window.addEventListener('resize', () => {
     cameraDirty = true;
     placementActions?.invalidate();
@@ -1240,6 +1264,7 @@ async function main(): Promise<void> {
     changed: () => {
       wallControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
   });
   const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
@@ -1255,6 +1280,7 @@ async function main(): Promise<void> {
     changed: () => {
       roomControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
   });
   // [FL-tool]. A covering laid on one tile, beside the tools that move
@@ -1264,33 +1290,34 @@ async function main(): Promise<void> {
     changed: () => {
       floorControls?.render();
       toolSwitch?.render();
+      placementActions?.invalidate();
     },
   });
   const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
-  // [PA-show]: Confirm and Cancel over the piece being placed. They sit
+  // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
   // window.
   const placementRoot = document.querySelector<HTMLElement>('#placement-actions');
-  const placementConfirm = document.querySelector<HTMLButtonElement>('#placement-confirm');
-  const placementCancel = document.querySelector<HTMLButtonElement>('#placement-cancel');
   const builderDock = document.querySelector<HTMLElement>('#builder-dock');
-  if (!placementRoot || !placementConfirm || !placementCancel || !builderDock) {
+  if (!placementRoot || !builderDock) {
     throw new Error('missing the placement buttons');
   }
+  const contextLayout = createCompactBuildLayout(document, placementRoot, () => compactBuildQuery.matches);
   // [PA-place]: clear of the desktop sidebar, which holds the Build panel,
   // and of the compact world controls. The Build dock bounds the bottom.
   const placementKeepOut = (): KeepOut => {
     const gear = hudRoot.getBoundingClientRect();
+    const options = optionsPanel.hidden ? gear : optionsPanel.getBoundingClientRect();
     return {
-      left: compactHudQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
+      left: compactBuildQuery.matches ? 0 : hudRoot.getBoundingClientRect().right,
       gearLeft: gear.left,
-      gearBottom: gear.bottom,
-      gearRight: gear.right,
+      gearBottom: Math.max(gear.bottom, options.bottom),
+      gearRight: Math.max(gear.right, options.right),
     };
   };
   const dockTop = (): number => {
     const panel = builderDock.querySelector<HTMLElement>('#builder-controls');
-    return compactHudQuery.matches && panel !== null && !panel.hidden
+    return compactBuildQuery.matches && panel !== null && !panel.hidden
       ? builderDock.getBoundingClientRect().top
       : document.documentElement.clientHeight;
   };
@@ -1301,27 +1328,51 @@ async function main(): Promise<void> {
     },
     enter() {
       optionsMenu.close();
+      document.querySelectorAll<HTMLDetailsElement>('#builder-controls .shortcuts').forEach(section => { section.open = false; });
       canvas.focus();
       menu.close();
       keyboardTargets.clear();
       compactHud.beginEditing();
+      syncBuildOptionsHost();
       cameraDirty = true;
     },
     exit() {
+      contextLayout.setRows(false);
       wallTool.exit();
       roomTool.exit();
       buyTool.exit();
+      floorTool.exit();
       compactHud.endEditing();
+      syncBuildOptionsHost();
       optionsMenu.close();
       document.querySelector<HTMLButtonElement>('#build-toggle')?.focus();
       cameraDirty = true;
     },
   });
-  const placementButtons = new PlacementActions(
-    createPlacementActionsSurface(document, placementRoot, placementConfirm, placementCancel, stage,
-      dockTop, placementKeepOut, () => placementButtons.confirm(), () => placementButtons.cancel()),
-    builder,
-    buyTool,
+  function syncBuildOptionsHost(): void {
+    if (!optionsRoot) return;
+    const host = document.getElementById(builder.active && compactBuildQuery.matches ? 'build-camera' : 'world-actions')!;
+    if (optionsRoot.parentElement === host) return;
+    const focused = optionsRoot.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
+    host.append(optionsRoot);
+    focused?.focus();
+  }
+  const placementButtons = new BuildContextActions(
+    { furniture: builder, buy: buyTool, walls: wallTool, room: roomTool, floors: floorTool,
+      suspended: () => optionsMenu.isOpen(),
+      focusCatalogue: () => document.querySelector<HTMLSelectElement>('#buy-object')?.focus() },
+    createContextSurface(document, placementRoot, stage,
+      () => {
+        const zoom = document.querySelector<HTMLElement>('#build-camera')!.getBoundingClientRect();
+        return { width: document.documentElement.clientWidth, bottom: dockTop(), keepOut: placementKeepOut(),
+          topRight: { left: zoom.left, bottom: zoom.bottom } };
+      },
+      () => placementActions?.invalidate(), contextLayout, (dx, dy) => {
+        const rect = stage.getBoundingClientRect();
+        camera.originX += dx * stage.width / rect.width;
+        camera.originY += dy * stage.height / rect.height;
+        clampCamera(); applyCamera();
+      }),
     // The visible art: its height from the content bounds, which cover
     // furniture, and the taller of the body and its foreground layer.
     (ghost) => ({
@@ -1332,16 +1383,33 @@ async function main(): Promise<void> {
   );
   // The resize listener above was registered before the buttons existed.
   placementActions = placementButtons;
+  installShortcuts(document, sim.coveringNames());
   builderControls = new BuilderControls(document, builder);
-  builderControls.setCompact(compactHudQuery.matches);
+  builderControls.setCompact(compactBuildQuery.matches);
   wallControls = new WallToolControls(document, wallTool);
-  wallControls.setCompact(compactHudQuery.matches);
+  wallControls.setCompact(compactBuildQuery.matches);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames());
-  buyControls.setCompact(compactHudQuery.matches);
+  buyControls.setCompact(compactBuildQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
-  roomControls.setCompact(compactHudQuery.matches);
+  roomControls.setCompact(compactBuildQuery.matches);
   floorControls = new FloorToolControls(document, floorTool);
-  floorControls.setCompact(compactHudQuery.matches);
+  floorControls.setCompact(compactBuildQuery.matches);
+  document.querySelector<HTMLButtonElement>('#builder-exit')?.addEventListener('click', () => builder.exit());
+  const zoomView = (direction: -1 | 1): void => {
+    const rect = stage.getBoundingClientRect();
+    const bounds = placementKeepOut();
+    const free = contextLayout.freeArea();
+    const anchorX = ((free ? free.left + free.width / 2 : (bounds.left + rect.right) / 2) - rect.left) * stage.width / rect.width;
+    const centerY = free ? free.top + free.height / 2
+      : compactBuildQuery.matches ? (bounds.gearBottom + dockTop()) / 2 : (rect.top + rect.bottom) / 2;
+    const anchorY = (centerY - rect.top) * stage.height / rect.height;
+    const scale = clampZoom(camera.scale * 1.12 ** direction);
+    const origin = zoomAnchoredOrigin(camera.originX, camera.originY, anchorX, anchorY, camera.scale, scale);
+    camera.scale = scale; camera.originX = origin.x; camera.originY = origin.y;
+    clampCamera(); cameraDirty = true;
+  };
+  document.querySelector('#build-zoom-in')?.addEventListener('click', () => zoomView(1));
+  document.querySelector('#build-zoom-out')?.addEventListener('click', () => zoomView(-1));
   toolSwitch = new BuildToolSwitch(document, [
     { tool: wallTool, button: 'build-tool-walls', panel: 'wall-tool' },
     { tool: roomTool, button: 'build-tool-room', panel: 'room-tool' },
@@ -1549,12 +1617,14 @@ async function main(): Promise<void> {
     floorTool.afterCommands();
     buyTool.afterCommands();
     housemateForm.afterCommands();
+    bedAssignmentPanel.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
       lot.windows = sim.windowLines();
       lot.floors = sim.floorTiles();
       lot.doors = sim.interiorDoorLines();
+      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();
@@ -1620,6 +1690,7 @@ async function main(): Promise<void> {
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
     personalDetailsPanel.update(nowMs);
+    bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);

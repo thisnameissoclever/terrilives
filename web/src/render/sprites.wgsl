@@ -100,12 +100,16 @@ struct Atlas {
 @group(0) @binding(2) var atlasSampler: sampler;
 @group(0) @binding(3) var atlasTexture: texture_2d<f32>;
 
+struct BedLayers { records: array<vec4u>, };
+@group(0) @binding(4) var<storage, read> beds: BedLayers;
+
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
   @location(2) @interpolate(flat) uvBounds: vec4<f32>,
   @location(3) corner: vec2<f32>,
   @location(4) @interpolate(flat) pair: vec2<u32>,
+  @location(8) @interpolate(flat) bed: vec4u,
   // Passed straight through. Every vertex of one quad carries the same
   // value, so the interpolation across the triangle is a no-op and the
   // fragment reads exactly what the instance packed.
@@ -157,6 +161,7 @@ fn vs(
   out.uvBounds = sprite.uv;
   out.corner = corner;
   out.pair = vec2u(sprite.size.zw);
+  out.bed = beds.records[u32(instance.w)];
   out.tint = tint;
   out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + corner * size;
   out.wall = wall;
@@ -228,6 +233,24 @@ fn wallSumOffset(pixel: vec2<f32>, mask: u32, height: f32) -> f32 {
   return -distance;
 }
 
+fn srgbToLinear(rgb: vec3f) -> vec3f {
+  return select(pow((rgb + 0.055) / 1.055, vec3f(2.4)), rgb / 12.92, rgb <= vec3f(0.04045));
+}
+
+fn linearToSrgb(rgb: vec3f) -> vec3f {
+  return select(1.055 * pow(max(rgb, vec3f(0.0)), vec3f(1.0 / 2.4)) - 0.055,
+    rgb * 12.92, rgb <= vec3f(0.0031308));
+}
+
+fn bedLayer(reference: u32, corner: vec2f) -> vec4f {
+  if (reference == 0u) { return vec4f(0.0); }
+  let sprite = atlas.sprites[reference - 1u];
+  let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
+  let uv = clamp(mix(sprite.uv.xy, sprite.uv.zw, corner),
+    sprite.uv.xy + halfTexel, sprite.uv.zw - halfTexel);
+  return textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0);
+}
+
 @fragment
 fn fs(in: VertexOut) -> FragmentOut {
   // Linear filtering must stay inside this sprite's edge texels. Sampling
@@ -235,7 +258,16 @@ fn fs(in: VertexOut) -> FragmentOut {
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
   var colour = textureSample(atlasTexture, atlasSampler, uv);
-  if (in.pair.x > 0u) {
+  if (in.bed.x > 0u) {
+    var furniture = bedLayer(in.bed.x, in.corner);
+    if (furniture.a > 0.0 && any(in.colourway.xyz != vec3f(0.0))) {
+      let rgb = recolour(linearToSrgb(furniture.rgb / furniture.a), in.colourway);
+      furniture = vec4f(srgbToLinear(rgb) * furniture.a, furniture.a);
+    }
+    // Fills already include shared-ink attenuation before export filtering.
+    colour = furniture + bedLayer(in.bed.y, in.corner)
+      + bedLayer(in.bed.z, in.corner) + bedLayer(in.bed.w, in.corner);
+  } else if (in.pair.x > 0u) {
     let furniture = atlas.sprites[in.pair.x - 1u];
     let outline = atlas.sprites[in.pair.y - 1u];
     let furnitureUv = clamp(mix(furniture.uv.xy, furniture.uv.zw, in.corner),
@@ -269,7 +301,9 @@ fn fs(in: VertexOut) -> FragmentOut {
   if (colour.a < 0.5) {
     discard;
   }
-  if (in.pair.x > 0u) {
+  if (in.bed.x > 0u) {
+    colour = vec4f(linearToSrgb(colour.rgb / colour.a), clamp(colour.a, 0.0, 1.0));
+  } else if (in.pair.x > 0u) {
     colour = vec4f(colour.rgb / colour.a, colour.a);
   } else {
     // An object's own picture takes its colourway; everything else carries
@@ -303,6 +337,17 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Coverage was tested above. Short walls blend after opaque geometry
     // without claiming depth, including when their current opacity is one.
     if (short) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x == -2.0) {
+    let surface = atlas.sprites[u32(in.wall.z)];
+    let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
+      surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);
+    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, 0.0);
+    // Lossless RG16 encodes the model's game-space X+Y in [-2, 2].
+    let sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0 - in.wall.w;
+    out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);
+    // Flush threshold pixels share the floor's ordering convention, just
+    // ahead of the tile but behind the leaf, casing and every person's feet.
+    if (sample.b > 0.5) { out.depth = 1.0 - 1.0 / 4096.0 * 0.625; }
   } else if (in.wall.x < 0.0) {
     // Intersect the view column x-y=t with the centered rectangular
     // footprint. Its interval midpoint in x+y is this clamped slope.

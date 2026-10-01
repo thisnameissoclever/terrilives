@@ -35,6 +35,7 @@ fn destination() -> &'static ContentPack {
 /// The cell-wall house, on the lot as it stood before the yard ([OS-grow]).
 fn source_sim() -> Sim {
     let mut pack = terri_data::pack().clone();
+    pack.lot = crate::test_content::historical_lot(&pack);
     (pack.lot.width, pack.lot.height) = pack.lot.house;
     pack.lot.wall_edges.clear();
     pack.lot.walls = bathtub::source_layout::WALLS
@@ -87,8 +88,8 @@ fn a_migrated_v1_house_shows_its_doors_before_the_first_tick() {
     ));
     assert_eq!(
         loaded.portal_buffer().states.len(),
-        4,
-        "the front door and a door in each of the three vertical doorways"
+        6,
+        "the front door, three vertical doors and two horizontal doors"
     );
 }
 

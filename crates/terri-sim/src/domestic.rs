@@ -411,10 +411,36 @@ pub(crate) fn tick(world: &mut World) {
             if world.get::<Relationships>(person).is_none() {
                 world.entity_mut(person).insert(Relationships::default());
             }
-            world.get_mut::<Relationships>(person).unwrap().bump(
-                SimId(owner),
-                -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean),
-            );
+            let requested = -(tuning.affinity_penalty_min + tuning.affinity_penalty_bonus * clean);
+            let before = world
+                .get::<Relationships>(person)
+                .unwrap()
+                .feeling(SimId(owner));
+            world
+                .get_mut::<Relationships>(person)
+                .unwrap()
+                .bump(SimId(owner), requested);
+            let actual = world
+                .get::<Relationships>(person)
+                .unwrap()
+                .feeling(SimId(owner))
+                - before;
+            let tick = world.resource::<SimClock>().tick;
+            let affected = *world.get::<SimId>(person).unwrap();
+            world
+                .resource_mut::<crate::relationship_effects::RelationshipDiagnostics>()
+                .effects
+                .push(crate::relationship_effects::RelationshipEffect {
+                    tick,
+                    event: 0,
+                    cause: crate::relationship_effects::RelationshipCause::HouseholdMess,
+                    responsible: SimId(owner),
+                    affected,
+                    requested,
+                    actual,
+                    emergency: false,
+                    directed: false,
+                });
         }
         let mut state = world.resource_mut::<SavedDomestic>();
         state
@@ -1385,4 +1411,105 @@ pub(crate) fn suspend_cleanup(world: &mut World, person: Entity) {
         }
     }
     world.get_mut::<ChainState>(person).unwrap().step = 0;
+}
+
+/// Minimal occupancy snapshot for a privacy detour or late station recheck.
+#[derive(Clone)]
+pub(crate) struct BoundaryOccupant {
+    pub actor: Entity,
+    pub target: Target,
+    pub chain: Option<ChainState>,
+    pub seat: (i32, i32),
+}
+
+pub(crate) fn boundary_occupants(world: &mut World) -> Vec<BoundaryOccupant> {
+    world
+        .query::<(
+            Entity,
+            &Target,
+            &Position,
+            Option<&terri_core::Path>,
+            Option<&ChainState>,
+        )>()
+        .iter(world)
+        .map(|(actor, target, position, path, chain)| BoundaryOccupant {
+            actor,
+            target: *target,
+            chain: chain.copied(),
+            seat: path
+                .and_then(|path| path.steps.last().copied())
+                .unwrap_or((position.x.round() as i32, position.y.round() as i32)),
+        })
+        .collect()
+}
+
+/// Preserve fixed domestic stations, communal capacity and distinct seats while detouring.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn boundary_route(
+    pack: &terri_data::ContentPack,
+    state: Option<&SavedDomestic>,
+    actor: Entity,
+    id: Option<SimId>,
+    chain_state: ChainState,
+    station: Entity,
+    object: terri_core::ObjectDefId,
+    facing: Option<&terri_core::ObjectFacing>,
+    to: Position,
+    from: Position,
+    grid: &terri_core::TileGrid,
+    exclusive: bool,
+    occupants: &[BoundaryOccupant],
+) -> Option<Vec<(i32, i32)>> {
+    let chain = &pack.chains[chain_state.chain as usize];
+    let step = &chain.steps[chain_state.step as usize];
+    let fixed = state
+        .and_then(|state| step_station(state, actor.index_u32(), id, &chain.id, chain_state.step));
+    let awaiting = state.is_some_and(|state| awaiting_meal_table(state, id, chain_state.step));
+    let def = pack.object(object);
+    if (chain.id == SHARED && fixed.is_none() && !awaiting)
+        || fixed.is_some_and(|index| index != station.index_u32())
+        || (fixed.is_none() && !def.roles.contains(&step.role))
+        || (chain.id != CLEANUP
+            && pack.roles[step.role as usize] == "prep_surface"
+            && def
+                .roles
+                .iter()
+                .any(|role| pack.roles[*role as usize] == "dish_sink"))
+    {
+        return None;
+    }
+    let communal = communal(&chain.id, chain_state.step, chain.steps.len());
+    let others: Vec<_> = occupants
+        .iter()
+        .filter(|row| row.actor != actor && row.target.object == station)
+        .collect();
+    let sharing = communal
+        && !others.is_empty()
+        && others.len() < 4
+        && others.iter().all(|row| {
+            row.target.interaction == crate::systems::chain::CHAIN_STEP
+                && row.chain.is_some_and(|c| {
+                    let other = &pack.chains[c.chain as usize];
+                    self::communal(&other.id, c.step, other.steps.len())
+                })
+        });
+    if !exclusive && !sharing {
+        return None;
+    }
+    let start = (from.x.round() as i32, from.y.round() as i32);
+    let mut route_grid = grid.clone();
+    if communal {
+        for row in others {
+            if row.seat != start {
+                route_grid.set_blocked(row.seat.0 as usize, row.seat.1 as usize, true);
+            }
+        }
+    }
+    route_grid
+        .find_path_adjacent(
+            start,
+            (to.x.round() as i32, to.y.round() as i32),
+            crate::placed_footprint(pack, object, facing),
+        )
+        .and_then(|steps| route_grid.anchor_path((from.x, from.y), steps))
 }

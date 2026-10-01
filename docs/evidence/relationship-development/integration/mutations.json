@@ -1,0 +1,51 @@
+[
+  {
+    "name": "missing-hash",
+    "command": "cargo test -p terri-sim every_boundary_field_changes_the_hash --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "c681362a5dc416b4e9650152aa7a7d3bf912b3e9798a466db4ffc177fb4187a5"
+  },
+  {
+    "name": "entry-guard",
+    "command": "cargo test -p terri-sim privacy_entry_waits_at_the_boundary --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "c02043f6c95691482b36e444d21e2b506d9324c4eb6f0de56eb2d00796c837cd"
+  },
+  {
+    "name": "start-guard",
+    "command": "cargo test -p terri-sim privacy_start_waits_and_player_order --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "c02043f6c95691482b36e444d21e2b506d9324c4eb6f0de56eb2d00796c837cd"
+  },
+  {
+    "name": "reversed-direction",
+    "command": "cargo test -p terri-sim interpersonal_entry_offends_the_active_user --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "7047090f2feefd989f327ec09641d9b47e16cf753b32dae5489ca403211cc2a3"
+  },
+  {
+    "name": "duplicate-reward",
+    "command": "cargo test -p terri-sim shared_reading_pays_ten_times_proximity --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "3a0813a591ab7d29c0b77d1211506106be525a6fc296e04c9fea8f292cb2c978"
+  },
+  {
+    "name": "wander-budget",
+    "command": "cargo test -p terri-sim privacy_wander_detours_keep --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "cf483dc351c0356760b5fa5dacc34d00c17d97539dc2df9fa62c984f8cc094fc"
+  },
+  {
+    "name": "published-order",
+    "command": "cargo test -p terri-wasm published_v5_instinct_and_chronotype_prefix --lib -- --test-threads=1",
+    "exit": 101,
+    "detected": true,
+    "restored_sha256": "d2f86add717907cdf44850dfc051603cfaadc7bf167ad636fb2f013adfacd1a0"
+  }
+]

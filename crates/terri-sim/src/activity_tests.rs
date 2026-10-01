@@ -488,6 +488,16 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
                 },
             ))
             .id();
+        if !pack.sleep_tag.is_empty()
+            && pack.object(definition).interactions[0]
+                .tags
+                .contains(&pack.sleep_tag)
+        {
+            source
+                .world_mut()
+                .entity_mut(person)
+                .insert(terri_core::SleepPlace(0));
+        }
         let mut restored = Sim::new_from_shipped_lot();
         restored
             .load_snapshot_v5(source.save_snapshot_v5())
@@ -498,7 +508,14 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
             .resolve_from_index(person.index());
         assert_eq!(
             projection(&restored, person),
-            (expected, visual_action::NONE),
+            (
+                expected,
+                if object == "double_bed" {
+                    visual_action::SLEEP
+                } else {
+                    visual_action::NONE
+                },
+            ),
             "{object} activity must rebuild on Load"
         );
     }

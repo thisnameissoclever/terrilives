@@ -256,12 +256,13 @@ they left open, decided when the code had to exist.
 
 ---
 
-## Future interpersonal dynamics - owner direction, planned
+## Interpersonal dynamics - implementation and planned extensions
 
-Status: **planned, not built.** The shipped relationship scalar changes through
-completed conversations and its drift toward neutral. The following extension
-should make ordinary household friction and affinity change that scalar without
-turning every shared bathroom into a lifelong vendetta.
+Status: **partially implemented.** H13 is implemented and verified locally under the [relationship development specification](2026-09-30-relationship-development.md), with [measured results and limits](../evidence/relationship-development/verification.md). H12, H14 and H15 remain planned. The relationship scalar changes through
+completed conversations, its drift toward neutral, and the locally implemented
+unmet-needs and bathroom-privacy events documented in
+[the interaction spec](2026-09-30-need-social-privacy.md), plus pleasant contact,
+shared activities and compatibility friction. Further extensions remain below.
 
 - **[H12] Waiting on another sim should cause a small directional penalty.**
   When sim A is blocked waiting for an object that sim B is actively using, A's
@@ -273,15 +274,23 @@ turning every shared bathroom into a lifelong vendetta.
   component does not identify the user, so this feature requires stable holder
   attribution, preferably by `SimId`, before it can assign the penalty correctly.
 
-- **[H13] Shared-room proximity should create slow personality-based drift.**
-  Sims who spend time in the same room should gradually feel more positively
-  toward compatible personalities and more negatively toward incompatible
-  personalities. Neutral pairings should have little or no proximity drift. Each
-  ordered relationship is evaluated independently, so one sim may warm faster
-  than the other. Compatibility must come from authored personality data rather
-  than archetype-name checks. Positive and negative rates, evaluation cadence,
-  and clamps are tuning data and must compose explicitly with [H9]'s existing
-  drift toward neutral.
+- **[H13] Pleasant shared time and shared activities have different effects.**
+  The owner's 2026-09-30 clarification calls for a very small affinity gain from
+  pleasant time together, provided the other person does not smell and their
+  personalities are not incompatible. Doing the same activity together should
+  produce a substantially greater gain over the same amount of time. Merely
+  occupying the same room does not establish a shared activity. Recognition must
+  use the actual participants, activity and location; conversations must not
+  receive both their ordinary gain and a duplicate shared-activity payout.
+
+  Incompatible personalities should acquire negative affinity through ordinary
+  autonomous contact over time, even when nobody violates bathroom privacy.
+  Neutral pairings should have little proximity drift. Each ordered relationship
+  is evaluated independently, so one sim may warm faster than the other.
+  Compatibility must come from authored personality data rather than
+  archetype-name checks. Positive and negative rates, activity weighting,
+  evaluation cadence, hygiene eligibility and clamps are tuning data and must
+  compose explicitly with [H9]'s existing drift toward neutral. This extension is implemented locally for proximity and simultaneous reading, exercise and aquarium watching on separate objects. Shared furniture and group scheduling remain outside this slice. Hostility presentation and mild activity avoidance are tracked in [B-hostility-expression](../FEATURES.md#b-hostility-expression-make-interpersonal-hostility-visible).
 
 - **[H14] Strong relationships should unlock autonomous conversations or
   fights.** When a sim passes a tunable "needs met" readiness gate, it may use
@@ -311,3 +320,11 @@ turning every shared bathroom into a lifelong vendetta.
   conversation and fight counts, and the share caused by waiting or proximity so
   a "slight" effect is demonstrated rather than inferred from a small-looking
   constant.
+
+## [H-needs-privacy] Need frustration and bathroom privacy
+
+Implemented locally, 2026-09-30; release verification remains separate. A valid conversation start costs the recipient a base 0.11 affinity toward the initiator when an unhelped need is low, or 0.20 when critical. The worst eligible need wins; conversation benefits exclude the needs they positively improve. The calibrated base completion gain is 0.17, so a completed low-need chat can recover its initial loss; a still-unhelped critical need blocks the positive completion reward. Compatibility scales the gain, and the other person's hygiene gates it.
+
+An entrant into a room during active toilet, shower or bath use costs the user a base 0.25 affinity toward the entrant. Starting such use while someone is already present costs each observer a base 0.25 toward the user. These are one-time start/entry events, with room identity derived from current architecture and action identity from content tags. All magnitudes are tuning data. See the linked interaction spec for replay, exclusions and downstream mood/satisfaction behavior.
+
+Each person has a saved shyness stat from 1 to 100. Higher values increase the offended person's reaction and strengthen deliberate privacy avoidance. A cached decision prevents repeated rerolls, safe routes and substitutes take preference, and critical needs and player orders retain access. The smaller preference against inconvenient conversations remains. The linked interaction specs record the formulas, save compatibility and validation evidence.

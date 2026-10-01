@@ -1,0 +1,9 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\2301\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 47.00s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 1 test
+test render_buffer::tests::every_shipped_interaction_projects_its_exact_activity_without_inventing_body_art ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 790 filtered out; finished in 0.01s
+

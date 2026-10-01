@@ -103,6 +103,11 @@ to its visible toggle when dismissed. A confirmed storage operation retains owne
 settles; neither path steals focus deliberately moved elsewhere. No game
 command is issued by opening a panel.
 
+Build gives every desktop tool a 304px outer panel. At the Build breakpoint
+(700px width or 480px height), Options joins zoom in the upper-right controls.
+When contextual rows need the short-screen grid, the same world controls move
+into its header and retain focus. The Sim dock keeps its separate breakpoint.
+
 ### [CUI-dock] Compact Sim dock
 
 The bottom dock shows the selected name, activity, mood, life satisfaction,
@@ -143,8 +148,10 @@ One detail section appears at a time. Clicking the same dock opener again
 closes its section and returns focus to that button. Sim details stays
 highlighted while the sheet is open and closes it from any section. Queue
 stays highlighted while its section is open. Navigation tabs select sections without toggling
-them closed. The sheet scrolls within the available
-height; its navigation scrolls horizontally on narrow screens. Traits starts
+them closed. The desktop sheet starts at 360 pixels wide, expanding to
+540 pixels while Overview's personality disclosure is open. Compact screens
+use the available width. The sheet scrolls within the available height;
+its navigation wraps to keep every tab reachable. Traits starts
 closed on every load and opens only when requested. Close and Escape return
 focus to a visible opener. Native dialogs and the object action menu take
 Escape before the Sim sheet. Sim details contains Overview, Queue, People and
@@ -163,10 +170,10 @@ remain the data owners; responsive layouts do not duplicate action controls.
 
 Build hides the Sim dock and speed controls, pauses the household through the
 existing controller, and retains Exit build and Options. Desktop Build uses
-the left panel; compact Build keeps the existing bottom tool dock. Leaving
+the left panel; compact Build uses the bottom dock at width <=700px or height <=480px, independently of the Sim dock breakpoint. Desktop Build tools have a fixed 304px outer width. Leaving
 Build restores the prior Sim sheet/collapse state while retaining any viewport
 change. Placement buttons avoid the left world group and the bottom Build
-dock, including by moving to the right when there is no room below.
+dock, including by moving to the right when there is no room below. All five tools now share the surface described in [contextual build controls](2026-10-01-build-context-controls.md). Shortcuts is optional and starts collapsed.
 
 See [implementation evidence](../assets/review-evidence/compact-hud/README.md)
 for checks, screenshots and adversarial review results.

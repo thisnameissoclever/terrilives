@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-10-01T13:30:31Z",
+  "url": "https://thisnameissoclever.github.io/terrilives/?stress=0&audio=0",
+  "commit": "6d2499d407d74f85d00929ac0bfde2bd4fe508dd",
+  "mainCiRun": 36867567115,
+  "pagesRun": 36868086093,
+  "mainCiConclusion": "success",
+  "pagesConclusion": "success",
+  "entryBundle": "https://thisnameissoclever.github.io/terrilives/assets/index-DtZqWziq.js",
+  "proof": "web/proofs/personal-details-text.js",
+  "proofSha256": "128c5670f81cef20083c91ee39d925425b63cc34a61217f4acad1691838e182f",
+  "result": {
+    "pausedTick": 0,
+    "unchangedRefreshes": 20,
+    "leaves": 30,
+    "replacedTextChildren": 0,
+    "nativeTextMutations": 0,
+    "repairedText": "100%",
+    "pageErrors": []
+  },
+  "unrelatedConsoleError": "404 https://thisnameissoclever.github.io/favicon.ico",
+  "taskPageClosed": true
+}

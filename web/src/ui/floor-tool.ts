@@ -1,7 +1,7 @@
 // The Floors tool in Build mode - [FL-tool] in
 // docs/specs/2026-09-22-floors.md.
 //
-// The player picks a covering and clicks a tile to lay it. Rust owns every
+// The player selects a tile, then applies a covering. Rust owns every
 // decision: this controller asks for a preview, stages the change the player
 // asked for, and reads back what the drain did with it.
 
@@ -36,7 +36,7 @@ export function coveringOf(tiles: ArrayLike<number>, x: number, y: number): numb
 export class FloorTool {
   active = false;
   tile: [number, number] | null = null;
-  /** The covering the next click lays, 0 for the Remove button. */
+  /** The last covering requested, 0 for Remove. Selecting a tile never applies it. */
   chosen = 1;
   /** What the chosen tile carries now. */
   current = BARE;
@@ -71,23 +71,24 @@ export class FloorTool {
     else this.hooks.changed();
   }
 
-  /** Picks which covering a click lays. */
+  /** Chooses a covering for validation without staging an edit. */
   choose(covering: number): void {
-    if (!this.active || this.pending !== null) return;
-    if (covering !== BARE && (covering < 1 || covering > this.coverings().length)) return;
+    if (!this.active || this.pending !== null || this.blocked) return;
+    if (!Number.isInteger(covering) || covering < BARE || covering > this.coverings().length) return;
     this.chosen = covering;
     if (this.tile) this.refresh();
     this.hooks.changed();
   }
 
-  /** A click or tap at an unrounded world point lays the chosen covering. */
+  /** A click or tap selects a tile without changing its covering. */
   choosePoint(wx: number, wy: number): void {
     if (!this.active || this.pending !== null || this.blocked) return;
     const tile = tileAt(wx, wy, this.width, this.height);
     if (!tile) return;
     this.tile = tile;
     this.refresh();
-    this.apply();
+    this.status = this.describe();
+    this.hooks.changed();
   }
 
   setBlocked(blocked: boolean): void {
@@ -104,9 +105,11 @@ export class FloorTool {
   }
 
   apply(): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
     const tile = this.tile;
     if (tile === null || !this.canApply()) {
       if (tile !== null && this.chosen === this.current) this.status = this.describe();
+      else if (tile !== null) this.status = this.refusal(this.source.floorEditPreview(tile[0], tile[1], this.chosen));
       this.hooks.changed();
       return;
     }
@@ -118,11 +121,35 @@ export class FloorTool {
     this.hooks.changed();
   }
 
+  applyCovering(covering: number): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
+    if (!Number.isInteger(covering) || covering < BARE || covering > this.coverings().length) return;
+    this.choose(covering);
+    if (this.tile === null) {
+      this.status = 'Select a tile first.';
+      this.hooks.changed();
+      return;
+    }
+    this.apply();
+  }
+
+  clearSelection(): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
+    this.clear();
+  }
+
+  canApplyCovering(covering: number): boolean {
+    return Number.isInteger(covering) && covering >= BARE && covering <= this.coverings().length
+      && this.active && !this.blocked && this.pending === null && this.tile !== null
+      && covering !== this.current
+      && this.source.floorEditPreview(this.tile[0], this.tile[1], covering) === 0;
+  }
+
   handleKey(key: string): boolean {
     if (!this.active) return false;
     if (key === 'Escape') {
       if (this.tile === null) return false;
-      if (this.pending === null) this.clear();
+      this.clearSelection();
       return true;
     }
     // A digit only: `Number(' ')` is 0, which would make Space choose
@@ -130,7 +157,7 @@ export class FloorTool {
     if (/^[0-9]$/.test(key)) {
       const digit = Number(key);
       if (digit <= this.coverings().length) {
-        this.choose(digit);
+        this.applyCovering(digit);
         return true;
       }
     }

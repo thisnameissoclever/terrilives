@@ -1,0 +1,44 @@
+[
+  {
+    "name": "previous-tick",
+    "exit": 101,
+    "failed": true,
+    "assertion": "assertion `left == right` failed",
+    "restored_sha256": "c95efea181b16a8756a3be0ada9e8a6e9a1ec6564bbde3b19ad1b96e39e2c8a9"
+  },
+  {
+    "name": "paused-refresh",
+    "exit": 101,
+    "failed": true,
+    "assertion": "assertion `left == right` failed",
+    "restored_sha256": "c95efea181b16a8756a3be0ada9e8a6e9a1ec6564bbde3b19ad1b96e39e2c8a9"
+  },
+  {
+    "name": "load-reset",
+    "exit": 101,
+    "failed": true,
+    "assertion": "assertion `left == right` failed",
+    "restored_sha256": "c95efea181b16a8756a3be0ada9e8a6e9a1ec6564bbde3b19ad1b96e39e2c8a9"
+  },
+  {
+    "name": "horizontal-rows",
+    "exit": 101,
+    "failed": true,
+    "assertion": "assertion `left == right` failed",
+    "restored_sha256": "b3f92660bba434e5ba0814bd52530f3c45a315758a825814b8c9df31b82228cb"
+  },
+  {
+    "name": "swing-interpolation",
+    "exit": 1,
+    "failed": true,
+    "assertion": "AssertionError: expected 1410 to be 1394 // Object.is equality",
+    "restored_sha256": "c4970816119f37b477381f7a62adb69458a02b1cf50f1aa9cb2214111b916386"
+  },
+  {
+    "name": "horizontal-frame",
+    "exit": 1,
+    "failed": true,
+    "assertion": "AssertionError: expected [ Array(2) ] to deeply equal [ 'doorwayJoinedNS' ]",
+    "restored_sha256": "b6b1422069cf2dfba2001fef64793214805741f6ae6cd853d2ea0027b49d479d"
+  }
+]

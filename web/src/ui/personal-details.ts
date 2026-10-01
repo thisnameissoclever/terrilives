@@ -4,12 +4,13 @@ import { setTextIfChanged } from './set-text-if-changed.js';
 export interface PersonalDetailsSource {
   selectedIndex(): number | null;
   simDetailsOf(entity: number): SimDetails | null;
+  shynessOf(entity: number): number | null;
   dayTicks(): number;
 }
 
 export type PersonalDetailsState =
   | { kind: 'unselected' | 'unavailable' }
-  | { kind: 'ready'; sleep: string; needs: readonly { name: string; drain: string; refill: string }[];
+  | { kind: 'ready'; sleep: string; shyness: number | null; needs: readonly { name: string; drain: string; refill: string }[];
     repeated: readonly { key: string; object: string; activity: string; percent: number }[] };
 
 export interface PersonalDetailsSurface { render(state: PersonalDetailsState): void; }
@@ -29,7 +30,7 @@ export function personalDetailsState(source: PersonalDetailsSource, names: reado
   if (!details || details.drain.length !== names.length || details.refill.length !== names.length) return { kind: 'unavailable' };
   const sleep = sleepTiming(details.sleepOffsetTicks, source.dayTicks());
   if (sleep === null) return { kind: 'unavailable' };
-  return { kind: 'ready', sleep,
+  return { kind: 'ready', sleep, shyness: source.shynessOf(selected),
     needs: names.map((name, index) => ({ name: name.charAt(0).toUpperCase() + name.slice(1),
       drain: `${Math.round(details.drain[index] * 100)}%`, refill: `${Math.round(details.refill[index] * 100)}%` })),
     repeated: details.repeated.map(row => ({ ...row, percent: Math.round(row.repetition * 100) })) };
@@ -60,6 +61,11 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
     element.className = className;
     return element;
   };
+  const shynessRow = doc.createElement('div');
+  shynessRow.className = 'summary-row';
+  const shyness = text('span', '', 'summary-value');
+  shyness.id = 'shyness-value';
+  shynessRow.append(text('span', 'Shyness', 'summary-label'), shyness);
   const table = doc.createElement('table');
   table.append(text('caption', 'Personality factors'));
   const headings = doc.createElement('tr');
@@ -83,13 +89,16 @@ export function createPersonalDetailsSurface(doc: Document, empty: HTMLElement, 
   list.className = 'personal-repetition';
   const needs: { name: HTMLElement; drain: HTMLElement; refill: HTMLElement }[] = [];
   const rows = new Map<string, { root: HTMLElement; object: HTMLElement; activity: HTMLElement; meter: HTMLMeterElement; value: HTMLElement }>();
-  content.append(table, factorsHelp, sleep, sleepHelp, repeatedHeading, repeatedHelp, noRepetition, list);
+  content.append(shynessRow, table, factorsHelp, sleep, sleepHelp, repeatedHeading, repeatedHelp, noRepetition, list);
 
   return { render(state): void {
     content.hidden = state.kind !== 'ready';
     empty.hidden = state.kind === 'ready';
     setTextIfChanged(empty, state.kind === 'unselected' ? 'Select a person to see their personality and habits.' : 'Personal details unavailable.');
     const data = state.kind === 'ready' ? state : null;
+    shynessRow.hidden = data?.shyness == null;
+    const shynessText = data?.shyness == null ? '' : String(data.shyness);
+    setTextIfChanged(shyness, shynessText);
     setTextIfChanged(sleep, data ? `Sleep rhythm: ${data.sleep}` : '');
     const needData = data?.needs ?? [];
     if (needs.length !== needData.length) {

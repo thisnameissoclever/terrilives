@@ -1,0 +1,14 @@
+   Compiling terri-data v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-data)
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-wasm)
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `terri_data`
+    --> crates\terri-wasm\src\save_v3_tests.rs:1146:17
+     |
+1146 |         .object(terri_data::pack().find("fridge").unwrap())
+     |                 ^^^^^^^^^^ use of unresolved module or unlinked crate `terri_data`
+     |
+     = help: if you wanted to use a crate named `terri_data`, use `cargo add terri_data` to add it to your `Cargo.toml`
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `terri-wasm` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

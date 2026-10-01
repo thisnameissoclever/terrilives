@@ -1,0 +1,20 @@
+[
+  {
+    "name": "owned-station",
+    "test": "privacy_station_routes_preserve_owned_counter_and_unique_dining_seats",
+    "exit": 101,
+    "verdict": "KILLED"
+  },
+  {
+    "name": "cleanup-suspension",
+    "test": "privacy_substitution_suspends_collected_cleanup_and_replays",
+    "exit": 101,
+    "verdict": "KILLED"
+  },
+  {
+    "name": "mess-cause",
+    "test": "mess_diagnostics_survive_full_tick_and_report_clamping",
+    "exit": 101,
+    "verdict": "KILLED"
+  }
+]

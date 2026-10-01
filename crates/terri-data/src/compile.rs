@@ -373,6 +373,7 @@ pub fn compile(
                 satisfaction,
                 visual,
                 sound_action,
+                shared_activity: act.shared_activity.clone(),
                 activity: compile_activity(
                     act.activity.as_deref(),
                     format!("'{}' interaction '{}'", object.id, act.id),
@@ -437,6 +438,7 @@ pub fn compile(
             });
         }
         let definition = CompiledObject {
+            sleep_places: object.sleep_place.clone(),
             id: object.id.clone(),
             name: object.name.clone(),
             presentation: object.presentation.clone(),
@@ -477,6 +479,9 @@ pub fn compile(
         &sprite_index,
     )?;
     let (tuning, circadian, sleep_tag, affinity) = compile_tuning(tuning)?;
+    for object in &compiled {
+        check_sleep_places(object, &sleep_tag)?;
+    }
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -1476,6 +1481,7 @@ fn compile_social(
             satisfaction,
             visual,
             sound_action: None,
+            shared_activity: None,
             activity,
         });
     }
@@ -1498,6 +1504,18 @@ fn compile_activity_extras(
     visual_owner: InteractionVisualOwner,
     action_sockets: &[CompiledActionSocket],
 ) -> Result<(Vec<String>, f32, Option<CompiledVisual>), ContentError> {
+    if let Some(group) = &act.shared_activity {
+        if group.trim().is_empty()
+            || !act.tags.contains(group)
+            || matches!(visual_owner, InteractionVisualOwner::Social)
+            || act.tags.iter().any(|tag| tag == "bathroom_privacy")
+        {
+            return Err(ContentError::InvalidSharedActivity {
+                owner: owner.to_string(),
+                interaction: act.id.clone(),
+            });
+        }
+    }
     for tag in &act.tags {
         if tag.trim().is_empty() {
             return Err(ContentError::EmptyActivityTag {
@@ -1840,7 +1858,7 @@ fn compile_visual(
             None
         ) | (
             VisualOwner::Object { .. },
-            CompiledVisualAction::Read,
+            CompiledVisualAction::Read | CompiledVisualAction::Sleep,
             CompiledVisualAnchor::Object,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -2315,6 +2333,11 @@ fn compile_household(
 type CompiledTuning = (Tuning, Option<Circadian>, String, AffinityBands);
 
 fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
+    if !tuning.relationships.valid()
+        || tuning.relationships.privacy_desperate_need_level > tuning.mood_critical_need_level
+    {
+        return Err(ContentError::InvalidInterpersonalTuning);
+    }
     if let Some(domestic) = &tuning.domestic {
         for value in [
             domestic.own_cleanup_min,
@@ -2431,6 +2454,25 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
         || tuning.grief_max_score < tuning.grief_min_score
     {
         return Err(ContentError::InvalidMortalityTuning);
+    }
+    for value in [
+        tuning.social_unmet_need_penalty,
+        tuning.social_critical_need_penalty,
+        tuning.bathroom_privacy_penalty,
+        tuning.social_boundary_avoidance_cost,
+        tuning.shyness_annoyance_strength,
+        tuning.boundary_wander_reconsider_chance,
+        tuning.shyness_wander_reconsider_strength,
+    ] {
+        if !value.is_finite() || !(0.0..=1.0).contains(&value) {
+            return Err(ContentError::InvalidInterpersonalTuning);
+        }
+    }
+    if tuning.social_unmet_need_penalty > tuning.social_critical_need_penalty {
+        return Err(ContentError::InvalidInterpersonalTuning);
+    }
+    if tuning.boundary_wander_reconsider_chance + tuning.shyness_wander_reconsider_strength > 1.0 {
+        return Err(ContentError::InvalidInterpersonalTuning);
     }
     for value in [
         tuning.mood_critical_need_level,
@@ -2830,6 +2872,14 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             waiting_mood_max_penalty: tuning.waiting_mood_max_penalty,
             satisfaction_mood_neutral_band: tuning.satisfaction_mood_neutral_band,
             satisfaction_mood_per_tick: tuning.satisfaction_mood_per_tick,
+            social_unmet_need_penalty: tuning.social_unmet_need_penalty,
+            social_critical_need_penalty: tuning.social_critical_need_penalty,
+            bathroom_privacy_penalty: tuning.bathroom_privacy_penalty,
+            social_boundary_avoidance_cost: tuning.social_boundary_avoidance_cost,
+            shyness_annoyance_strength: tuning.shyness_annoyance_strength,
+            boundary_wander_reconsider_chance: tuning.boundary_wander_reconsider_chance,
+            shyness_wander_reconsider_strength: tuning.shyness_wander_reconsider_strength,
+            relationships: tuning.relationships,
         },
         circadian,
         tuning.sleep_tag,
@@ -2885,6 +2935,45 @@ fn check_socket_bounds(
             x,
             y,
         });
+    }
+    Ok(())
+}
+
+fn check_sleep_places(object: &CompiledObject, sleep_tag: &str) -> Result<(), ContentError> {
+    let invalid = |reason: &str| ContentError::InvalidSleepPlaces {
+        object: object.id.clone(),
+        reason: reason.into(),
+    };
+    let capacity = object.sleep_capacity(sleep_tag) as usize;
+    if object.sleep_places.is_empty() && capacity <= 1 {
+        return Ok(());
+    }
+    if object.sleep_places.len() != capacity {
+        return Err(invalid(
+            "declare one access record per physical sleeping place",
+        ));
+    }
+    let mut ids = BTreeSet::new();
+    let mut approaches = BTreeSet::new();
+    let width = i64::from(object.footprint.width);
+    let depth = i64::from(object.footprint.depth);
+    for place in &object.sleep_places {
+        if place.id.trim().is_empty() || !ids.insert(&place.id) {
+            return Err(invalid("place IDs must be nonempty and unique"));
+        }
+        if place.approaches.is_empty() {
+            return Err(invalid("every place needs at least one approach tile"));
+        }
+        for &(x, y) in &place.approaches {
+            let (x, y) = (i64::from(x), i64::from(y));
+            let on_perimeter = ((0..width).contains(&x) && (y == -1 || y == depth))
+                || ((0..depth).contains(&y) && (x == -1 || x == width));
+            if !on_perimeter || !approaches.insert((x, y)) {
+                return Err(invalid(
+                    "approaches must be distinct cardinal perimeter tiles",
+                ));
+            }
+        }
     }
     Ok(())
 }
@@ -3764,32 +3853,32 @@ mod tests {
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
-    // Measured after appending ordinary activity metadata. The fixture carries
-    // None, whose zero byte follows the existing interaction sound field.
-    // These embedded build bytes are separate from persisted SaveSnapshot DTOs.
-    // Domestic tuning appends one None byte after the autonomy fields.
+    // Measured with relationship tuning, shared activities and bed-place metadata.
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
         116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-        5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0,
-        0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0, 0,
-        62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64, 63, 3,
-        172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80,
-        63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19, 0, 0,
-        192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144, 28, 216,
-        4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0, 0, 160,
-        65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0, 0, 160,
-        65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205, 204, 76,
-        61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0, 0, 128,
-        63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95, 112, 137,
-        48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0, 64, 63,
-        50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2,
+        0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0,
+        0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0, 64,
+        63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0,
+        0, 80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153, 25, 63, 0, 0, 0, 60, 19,
+        0, 0, 192, 62, 29, 0, 0, 208, 62, 23, 5, 0, 0, 32, 62, 0, 0, 96, 62, 144,
+        28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191, 0,
+        0, 160, 65, 0, 0, 32, 66, 0, 0, 140, 66, 0, 0, 200, 65, 0, 0, 64, 65, 0,
+        0, 160, 65, 0, 0, 240, 65, 0, 0, 112, 65, 0, 0, 128, 64, 205, 204, 204, 61, 205,
+        204, 76, 61, 0, 0, 0, 64, 0, 0, 240, 65, 0, 0, 112, 65, 205, 204, 204, 60, 0,
+        0, 128, 63, 10, 215, 163, 59, 205, 204, 76, 62, 143, 194, 245, 61, 0, 0, 160, 64, 95,
+        112, 137, 48, 205, 204, 204, 62, 0, 10, 215, 163, 60, 5, 205, 204, 204, 61, 30, 0, 0,
+        64, 63, 50, 0, 0, 128, 63, 70, 51, 51, 179, 63, 100, 0, 0, 0, 64, 205, 204, 76,
+        62, 51, 51, 179, 62, 102, 102, 230, 62, 10, 215, 35, 60, 0, 0, 128, 62, 205, 204, 204,
+        61, 154, 153, 25, 62, 0, 0, 0, 0, 0, 0, 32, 65, 0, 0, 0, 0, 205, 204, 76,
+        190, 0, 0, 128, 64, 0, 0, 0, 0, 0, 0, 0, 0, 30, 10, 0, 0, 160, 64, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101, 101, 112, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3880,6 +3969,7 @@ mod tests {
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
+                    sleep_place: Vec::new(),
                     roles: vec![],
                     action_socket: vec![],
                     id: (*id).to_string(),
@@ -3935,6 +4025,7 @@ mod tests {
                 (100, 2.0),
             ],
 
+            relationships: crate::RelationshipTuning::default(),
             domestic: None,
             circadian: None,
             // Not "sleep" by accident: `full_tuning` is the fixture the
@@ -4006,6 +4097,13 @@ mod tests {
             waiting_mood_max_penalty: 30.0,
             satisfaction_mood_neutral_band: 15.0,
             satisfaction_mood_per_tick: 0.025,
+            social_unmet_need_penalty: 0.20,
+            social_critical_need_penalty: 0.35,
+            bathroom_privacy_penalty: 0.45,
+            social_boundary_avoidance_cost: 0.01,
+            shyness_annoyance_strength: 0.25,
+            boundary_wander_reconsider_chance: 0.10,
+            shyness_wander_reconsider_strength: 0.15,
 
             decay_per_tick: NeedId::ALL
                 .iter()
@@ -4062,6 +4160,65 @@ mod tests {
         }
     }
 
+    #[test]
+    fn sleeping_access_requires_distinct_valid_places_and_shared_capacity() {
+        let valid = || {
+            let mut action = snack();
+            action.tags = vec!["sleep".into()];
+            action.slots = 2;
+            let mut objects = one_object_sized(action, Footprint { width: 2, depth: 2 });
+            objects.object[0].sleep_place = vec![
+                crate::SleepPlaceAccess {
+                    id: "first".into(),
+                    approaches: vec![(0, -1), (1, -1)],
+                },
+                crate::SleepPlaceAccess {
+                    id: "second".into(),
+                    approaches: vec![(0, 2), (1, 2)],
+                },
+            ];
+            objects
+        };
+        let mut objects = valid();
+        let mut alternate = snack();
+        alternate.id = "nap".into();
+        alternate.tags = vec!["sleep".into()];
+        alternate.slots = 1;
+        objects.object[0].interaction.push(alternate);
+        assert!(compile_objects(full_needs(), objects).is_ok());
+        for change in 0..9 {
+            let mut objects = valid();
+            let object = &mut objects.object[0];
+            match change {
+                0 => object.sleep_place.clear(),
+                1 => {
+                    object.sleep_place.pop();
+                }
+                2 => object.sleep_place[0].id.clear(),
+                3 => object.sleep_place[1].id = "first".into(),
+                4 => object.sleep_place[0].approaches.clear(),
+                5 => object.sleep_place[0].approaches[0] = (0, 0),
+                6 => object.sleep_place[0].approaches[0] = (-1, -1),
+                7 => object.sleep_place[1].approaches[0] = (0, -1),
+                _ => object.interaction[0].tags.clear(),
+            }
+            assert!(
+                matches!(
+                    compile_objects(full_needs(), objects),
+                    Err(ContentError::InvalidSleepPlaces { .. })
+                ),
+                "mutation {change}"
+            );
+        }
+        let mut single = valid();
+        single.object[0].interaction[0].slots = 1;
+        single.object[0].sleep_place.clear();
+        assert!(
+            compile_objects(full_needs(), single).is_ok(),
+            "one unauthored place retains perimeter access"
+        );
+    }
+
     fn one_object(interaction: InteractionDef) -> ObjectsFile {
         one_object_sized(interaction, Footprint::SINGLE)
     }
@@ -4071,6 +4228,7 @@ mod tests {
         ObjectsFile {
             colourway: Vec::new(),
             object: vec![ObjectDef {
+                sleep_place: Vec::new(),
                 roles: vec![],
                 action_socket: vec![],
                 id: "fridge".into(),
@@ -4092,6 +4250,7 @@ mod tests {
             satisfaction: 0.0,
             visual: None,
             sound_action: None,
+            shared_activity: None,
             activity: None,
             id: "grab_snack".into(),
             // Unlabelled, which is the DEFAULTING path and therefore the
@@ -4104,6 +4263,31 @@ mod tests {
             duration_ticks: 15,
             slots: 1,
         }
+    }
+
+    #[test]
+    fn shared_activity_requires_its_own_tag_and_an_ordinary_nonprivate_action() {
+        let mut act = snack();
+        act.tags = vec!["reading".into()];
+        act.shared_activity = Some("reading".into());
+        assert!(compile_activity_extras(&act, "item", InteractionVisualOwner::Object, &[]).is_ok());
+        for group in ["", "aquarium"] {
+            act.shared_activity = Some(group.into());
+            assert!(matches!(
+                compile_activity_extras(&act, "item", InteractionVisualOwner::Object, &[]),
+                Err(ContentError::InvalidSharedActivity { .. })
+            ));
+        }
+        act.shared_activity = Some("reading".into());
+        assert!(matches!(
+            compile_activity_extras(&act, "social", InteractionVisualOwner::Social, &[]),
+            Err(ContentError::InvalidSharedActivity { .. })
+        ));
+        act.tags.push("bathroom_privacy".into());
+        assert!(matches!(
+            compile_activity_extras(&act, "item", InteractionVisualOwner::Object, &[]),
+            Err(ContentError::InvalidSharedActivity { .. })
+        ));
     }
 
     /// comfort (6), energy (1), hunger (0): the `BTreeMap`'s name order
@@ -4545,6 +4729,7 @@ mod tests {
     fn rejects_duplicate_object_ids() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
             id: "fridge".into(),
@@ -4584,6 +4769,7 @@ mod tests {
     fn allows_the_same_interaction_id_on_different_objects() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
             id: "vending".into(),
@@ -5414,6 +5600,43 @@ mod tests {
             set_pack(&mut expected);
             assert_eq!(actual, expected);
         }
+    }
+
+    #[test]
+    fn interpersonal_tuning_rejects_invalid_magnitudes_and_preserves_zero() {
+        for set in [
+            (|t: &mut TuningFile, v| t.social_unmet_need_penalty = v) as fn(&mut TuningFile, f32),
+            |t: &mut TuningFile, v| t.social_critical_need_penalty = v,
+            |t: &mut TuningFile, v| t.bathroom_privacy_penalty = v,
+            |t: &mut TuningFile, v| t.social_boundary_avoidance_cost = v,
+            |t: &mut TuningFile, v| t.shyness_annoyance_strength = v,
+            |t: &mut TuningFile, v| t.boundary_wander_reconsider_chance = v,
+            |t: &mut TuningFile, v| t.shyness_wander_reconsider_strength = v,
+        ] {
+            for value in [f32::NAN, f32::INFINITY, -0.01, 1.01] {
+                assert!(
+                    compile_tuned(tuning_where(|t| set(t, value))).is_err(),
+                    "accepted {value}"
+                );
+            }
+        }
+        assert!(compile_tuned(tuning_where(|t| t.social_critical_need_penalty = 0.10)).is_err());
+        assert!(compile_tuned(tuning_where(|t| {
+            t.boundary_wander_reconsider_chance = 0.8;
+            t.shyness_wander_reconsider_strength = 0.21;
+        }))
+        .is_err());
+        assert!(compile_tuned(tuning_where(|t| {
+            t.boundary_wander_reconsider_chance = 0.8;
+            t.shyness_wander_reconsider_strength = 0.2;
+        }))
+        .is_ok());
+        assert!(compile_tuned(tuning_where(|t| {
+            t.social_unmet_need_penalty = 0.0;
+            t.social_critical_need_penalty = 0.0;
+            t.bathroom_privacy_penalty = 0.0;
+        }))
+        .is_ok());
     }
 
     #[test]
@@ -6415,6 +6638,7 @@ mod tests {
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
+                    sleep_place: Vec::new(),
                     roles: vec![],
                     action_socket: vec![],
                     id: (*id).to_string(),
@@ -7608,7 +7832,20 @@ mod tests {
             let pack = compile_people_with_traits(vec![], vec![], vec![definition]).unwrap();
             assert_eq!(pack.traits[0].starting_satisfaction_offset, offset);
         }
-        for offset in [-9.01, 9.01, f32::NAN, f32::INFINITY] {
+    }
+
+    #[test]
+    fn starting_satisfaction_offset_rejects_out_of_range_values() {
+        for offset in [-9.01, 9.01] {
+            let mut definition = a_trait("initial");
+            definition.starting_satisfaction_offset = offset;
+            assert!(compile_people_with_traits(vec![], vec![], vec![definition]).is_err());
+        }
+    }
+
+    #[test]
+    fn starting_satisfaction_offset_rejects_nonfinite_values() {
+        for offset in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
             let mut definition = a_trait("initial");
             definition.starting_satisfaction_offset = offset;
             assert!(compile_people_with_traits(vec![], vec![], vec![definition]).is_err());
@@ -7907,6 +8144,7 @@ mod tests {
         // A second object so there are two ObjectDefIds to sort between.
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec![],
             action_socket: vec![],
             id: "couch".into(),
@@ -7921,6 +8159,7 @@ mod tests {
                 satisfaction: 0.0,
                 visual: None,
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
                 id: "lounge".into(),
                 label: None,
@@ -9349,6 +9588,7 @@ mod tests {
                     socket: None,
                 }),
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
                 id: "chat".into(),
                 label: Some("Compare complaints".into()),
@@ -9363,6 +9603,7 @@ mod tests {
                 satisfaction: 0.0,
                 visual: None,
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
                 id: "nod_politely".into(),
                 label: None,
@@ -9423,6 +9664,7 @@ mod tests {
             satisfaction: 0.0,
             visual,
             sound_action: None,
+            shared_activity: None,
             activity: None,
             id: "chat".into(),
             label: None,
@@ -9464,7 +9706,8 @@ mod tests {
                     let legal = match owner {
                         VisualOwner::Social { .. } => action == "talk" && anchor == "partner",
                         VisualOwner::Object { .. } => {
-                            matches!(action, "eat" | "read" | "watch") && anchor == "object"
+                            matches!(action, "eat" | "read" | "watch" | "sleep")
+                                && anchor == "object"
                         }
                         VisualOwner::ChainStep { .. } => action == "eat" && anchor == "station",
                     };
@@ -9624,7 +9867,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "eat" | "read" | "watch",
+                                    "eat" | "read" | "watch" | "sleep",
                                     "object",
                                     "toward_anchor",
                                     None
@@ -9724,6 +9967,7 @@ mod tests {
 
     fn reading_object() -> ObjectDef {
         ObjectDef {
+            sleep_place: Vec::new(),
             id: "reading_chair".to_string(),
             name: "Reading chair".to_string(),
             presentation: None,
@@ -9746,6 +9990,7 @@ mod tests {
                     socket: Some("seat".to_string()),
                 }),
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
             }],
             roles: vec![],
@@ -10249,6 +10494,7 @@ mod tests {
                 satisfaction: 0.0,
                 visual: None,
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
                 id: "chat".into(),
                 label: None,
@@ -10325,6 +10571,7 @@ mod tests {
             satisfaction: 0.0,
             visual: None,
             sound_action: None,
+            shared_activity: None,
             activity: None,
             id: "chat".into(),
             label: None,
@@ -10563,6 +10810,7 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec!["eating_surface".to_string()],
             action_socket: vec![],
             id: "sink".into(),
@@ -10988,6 +11236,7 @@ mod tests {
         let mut fridge = one_object(snack()).object.remove(0);
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
+            sleep_place: Vec::new(),
             roles: vec!["eating_surface".to_string()],
             action_socket: vec![],
             id: "sink".into(),

@@ -129,3 +129,117 @@ error: test failed, to rerun pass `-p terri-sim --lib`
 [Satisfaction web restoration digests](satisfaction-web-mutations.json) record the new meter checks. The dock-control cases also compare original source bytes and SHA-256 digests after each restoration.
 
 The first creation/restoration run selected the entire simulation suite. Its expected failures exceeded the harness's default output buffer, so the harness could not record a normal exit. The source was restored. A subsequent run selected the three causal tests explicitly; all three failed and exited 101, and restoration was verified. This was a harness limit, not a passing mutation check.
+
+## Dock-control assertion receipts
+
+[Dock-control restoration digests and actual assertions](dock-control-mutations.json) contain the three previously summarized runs. The source digests still match the combined implementation.
+
+### queue-default
+
+```text
+FAIL  tests/queue-mode.test.ts > QueueMode > starts on and keeps its pressed state in sync through repeated taps
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/queue-mode.test.ts:14:29
+     12|     });
+     13|
+     14|     expect(mode.isActive()).toBe(true);
+       |                             ^
+     15|     expect(attributes.get('aria-pressed')).toBe('true');
+     16|     expect(mode.toggle()).toBe(false);
+```
+
+### repeat-click-close
+
+```text
+FAIL  tests/compact-hud.test.ts > toggles dock-queue closed and returns focus to that dock button
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/compact-hud.test.ts:185:38
+    183|   expect(p.node(id).attributes.get('aria-expanded')).toBe('true');
+    184|   p.node(id).click();
+    185|   expect(p.node('sim-sheet').hidden).toBe(true);
+       |                                      ^
+    186|   expect(p.node(id).attributes.get('aria-expanded')).toBe('false');
+    187|   expect(p.focus()).toBe(id);
+```
+
+### sheet-highlight
+
+```text
+FAIL  tests/compact-hud.test.ts > opens only the chosen section, exposes Traits on request, and refreshes queue capacity
+AssertionError: expected 'false' to be 'true' // Object.is equality
+
+Expected: "true"
+Received: "false"
+
+ ❯ tests/compact-hud.test.ts:148:63
+    146|   hud.show('traits');
+    147|   expect(node('traits-block').open).toBe(true);
+    148|   expect(node('sim-details').attributes.get('aria-expanded')).toBe('tr…
+       |                                                               ^
+    149|   expect(node('sim-traits').hidden).toBe(false);
+    150|   hud.show('queue');
+```
+
+## Independent guard failures from fresh review
+
+The fresh review requested independent evidence for the score floor, both combined creation-offset bounds, authored range validation and non-finite rejection. [Guard receipts](review-guard-mutations.json) record exact commands, failure output and source restoration digests for the integrated source. Each mutation fails an assertion and restores byte-identical source. The finite case removes both validators because the range validator also rejects non-finite values. Separate finite and range tests prevent an earlier failure from masking either input class.
+
+### lower-score-bound
+
+```text
+thread 'components::satisfaction_tests::clamps_both_ends' (14004) panicked at crates\terri-core\src\components.rs:504:9:
+assertion `left == right` failed
+  left: -10.0
+ right: 0.0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+### upper-initial-bias-bound
+
+```text
+thread 'household::satisfaction_tests::starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias' (18984) panicked at crates\terri-sim\src\household.rs:114:9:
+assertion `left == right` failed
+  left: 62.0
+ right: 59.0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+### lower-initial-bias-bound
+
+```text
+thread 'household::satisfaction_tests::starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias' (36928) panicked at crates\terri-sim\src\household.rs:118:9:
+assertion `left == right` failed
+  left: 38.0
+ right: 41.0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+### authored-offset-range
+
+```text
+thread 'compile::tests::starting_satisfaction_offset_rejects_out_of_range_values' (59356) panicked at crates\terri-data\src\compile.rs:7842:13:
+assertion failed: compile_people_with_traits(vec![], vec![], vec![definition]).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+### authored-offset-finite
+
+```text
+thread 'compile::tests::starting_satisfaction_offset_rejects_nonfinite_values' (11792) panicked at crates\terri-data\src\compile.rs:7847:13:
+assertion failed: compile_people_with_traits(vec![], vec![], vec![definition]).is_err()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```

@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "width": 1440,
+      "theme": "dark",
+      "overflow": false,
+      "open": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "overflow": false,
+      "open": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "overflow": false,
+      "open": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "overflow": false,
+      "open": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "overflow": false,
+      "open": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "overflow": false,
+      "open": true
+    }
+  ]
+}
