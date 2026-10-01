@@ -122,7 +122,7 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 | `relationships:` | The overlay's relationship line. |
 | **People panel** | The normal HUD's selected-person view of that same ordered value. It merges the complete live household with sparse relationship entries by stable `SimId`; a missing entry displays as Stranger. |
 | **relationship state** | The panel's plain-language band: Hostile, Dislikes, Wary, Stranger, Warm, Friendly, or Close. The centered meter still carries the exact direction and movement without printing float noise. |
-| **gain** | Each completed conversation adds 0.15 to both sides. Roughly seven chats takes strangers to best friends. |
+| **gain** | A completed conversation has a base affinity gain of 0.17 in each direction, scaled by compatibility. Poor hygiene or an unhelped critical need can block that person's gain. Pleasant proximity and recognized shared activities also contribute; see [relationship development](specs/2026-09-30-relationship-development.md). |
 | **decay** | Every relationship drifts toward zero by 0.00001 per tick - a grudge fades on the same clock a friendship does. Maintenance matters. |
 | **relationship scale** | A friend's conversation is worth up to 1.5x its authored value and a nemesis's 0.5x, so sims visibly prefer their friends. |
 

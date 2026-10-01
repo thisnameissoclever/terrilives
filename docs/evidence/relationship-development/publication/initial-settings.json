@@ -1,0 +1,14 @@
+{
+  "ContentSha256": "B032AF9FFB56FD78EB9B3A9B5DA8EED032AD4064D52A19099B1841C18F38D20B",
+  "NativeExecutableSha256": "37A0F5F4C84F6233DE49457254FD077920223D4D48E8C3A3BB682D5F7BB9486A",
+  "PrivacyRespect": 0.65,
+  "ProximityPerHour": 0.075,
+  "FrictionPerHour": 0.0075,
+  "TalkGain": 0.17,
+  "MessMin": 0.0003,
+  "MessBonus": 0.0027,
+  "PrivacyPenalty": 0.25,
+  "CommandOverrides": "none",
+  "SettlingDays": 7,
+  "MeasuredDays": 56
+}

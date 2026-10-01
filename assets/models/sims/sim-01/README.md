@@ -208,3 +208,17 @@ that reading mismatch. `saved-rig-render-replay.json` preserves the failure;
 it must not be described as an exact reproduction pass. No tolerance was
 relaxed and no renderer warmup sequence was added. Saved mesh motion, material
 identity and contact checks are separate from this failed pixel-level proof.
+
+## Domestic actions
+
+`render_domestic.py` opens the unchanged shared rig and saves its prepare, cook and wash actions in `sim-01-domestic.blend`. Each action has four phase samples, a matching loop endpoint, four facings and blue, green and red shirt renders. The existing body, hair, meshes, camera registration and source rig remain unchanged. `export_domestic.py` checks source and raw-frame hashes before exporting 144 registered RGBA frames at density two. `export/domestic/render-proof.json` retains the Blender background proof, evaluated geometry and camera records. `review/domestic/poses.png` is the contact sheet.
+
+Use the documented Windows Store alias with `--background --threads 2 --python-exit-code 1 --python` followed by the absolute `render_domestic.py` path. Wait for `domestic-status.json` to report complete, then run `python -B assets/models/sims/sim-01/export_domestic.py` and `python assets/sprites/gen/build.py`. The atlas appends these frames after the prior sprite names. The local technical review does not establish owner visual approval.
+
+The runtime wash frames are now supplied by
+[`../../domestic/render_cleanup.py`](../../domestic/render_cleanup.py), which
+adds a modeled ceramic plate, carry walking and carry idle clips. It opens
+this same unchanged rig. Its wider registered wash canvas accommodates the
+forward reach over the sink basin. The original wash exports above remain
+source history; the atlas uses the replacement cleanup set documented in
+[`../../domestic/README.md`](../../domestic/README.md).

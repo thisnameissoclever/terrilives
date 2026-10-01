@@ -110,6 +110,12 @@ pub struct RenderBuffer {
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
+    /// Exact bed entity for running sleep-tagged place ownership, or [`NO_SLEEPING_BED`].
+    /// Independent visual metadata still owns the body pose and activity label.
+    pub sleeping_beds: Vec<u32>,
+    /// Physical place within `sleeping_beds`, or [`NO_SLEEPING_PLACE`].
+    /// Walking leases and permanent assignments alone carry no sleeping pair.
+    pub sleeping_places: Vec<u32>,
     /// Lot-axis direction each projected body action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
     /// [`facing::NONE`].
@@ -132,6 +138,11 @@ pub struct RenderBuffer {
     /// shell resolves the index against `item_kinds()` and the
     /// `carried_<kind>` atlas convention.
     pub carrying: Vec<u32>,
+    /// Visible dirty dish units and unclaimed meal plates on each surface row.
+    pub dirty_dishes: Vec<u32>,
+    /// Collected cleanup load, derived from the saved cleanup claims.
+    pub carried_dishes: Vec<u32>,
+    pub meal_portions: Vec<u32>,
     /// The voice clip played first by the conversation this row is in, or
     /// [`NO_VOICE_CLIP`].
     ///
@@ -164,6 +175,10 @@ pub const NOT_CARRYING: u32 = u32::MAX;
 pub const NO_FOREGROUND_SPRITE: u32 = u32::MAX;
 /// No active, validated socket interaction owns this presentation row.
 pub const NO_INTERACTION_TARGET: u32 = u32::MAX;
+/// No validated current sleeping ownership on this row.
+pub const NO_SLEEPING_BED: u32 = u32::MAX;
+/// No physical sleeping place on this row; zero is a real place.
+pub const NO_SLEEPING_PLACE: u32 = u32::MAX;
 /// The `sim_ids` column's absent authored-identity sentinel.
 pub const NO_SIM_ID: u32 = u32::MAX;
 /// The `sound_sources` column's absent-source sentinel.
@@ -240,6 +255,9 @@ pub mod visual_action {
     pub const SIT: u32 = 8;
     /// Horizontal sleeping body art at an object-local action socket.
     pub const SLEEP: u32 = 9;
+    pub const PREPARE: u32 = 10;
+    pub const COOK: u32 = 11;
+    pub const WASH: u32 = 12;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -598,6 +616,10 @@ mod tests {
         let take_shower = shipped_interaction_index(shower, "take_shower");
         let mut sim = Sim::new_with_lot(24, 24);
         let shower_target = sim.spawn_object(Position { x: 12.0, y: 8.0 }, shower);
+        let person = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 11.0, y: 8.0 }))
+            .id();
         let action = Eating {
             object: shower,
             interaction: take_shower + 1,
@@ -612,6 +634,7 @@ mod tests {
             crate::authored_object_sound(
                 pack,
                 sim.world(),
+                person,
                 Some(&action),
                 None,
                 None,
@@ -1674,6 +1697,9 @@ mod tests {
         let bed_agent_position = Position { x: 23.0, y: 24.0 };
         let (sleeper, bed_target, _, _) =
             spawn_shipped_sleeper(&mut sim, bed_position, bed_agent_position);
+        sim.world_mut()
+            .entity_mut(sleeper)
+            .insert(terri_core::SleepPlace(0));
         let lower_bunk = sim
             .world()
             .get::<crate::ResolvedActionSockets>(bed_target)
@@ -2171,6 +2197,9 @@ mod tests {
             Position { x: 24.0, y: 12.0 },
         );
         for entity in [exerciser, watcher] {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(terri_core::SleepPlace(0));
             assert!(crate::systems::circadian::is_asleep(
                 sim.world().resource::<crate::Content>().0,
                 sim.world().get::<Eating>(entity),
@@ -2178,6 +2207,24 @@ mod tests {
         }
 
         sim.sync_render_buffer();
+
+        for entity in [exerciser, watcher] {
+            let row = sim
+                .render_buffer()
+                .ids
+                .iter()
+                .position(|id| *id == entity.index_u32())
+                .unwrap();
+            assert_eq!(sim.render_buffer().sleeping_places[row], 0);
+            assert_eq!(
+                sim.render_buffer().sleeping_beds[row],
+                sim.world()
+                    .get::<Target>(entity)
+                    .unwrap()
+                    .object
+                    .index_u32()
+            );
+        }
 
         assert_eq!(
             projection_of(sim.render_buffer(), exerciser),
@@ -3750,7 +3797,7 @@ mod tests {
             (
                 "kitchen_sink",
                 "wash_up",
-                activity::WASHING_DISHES,
+                activity::WASHING_HANDS,
                 visual_action::NONE,
             ),
             (
@@ -3781,7 +3828,7 @@ mod tests {
                 "double_bed",
                 "sleep_properly",
                 activity::SLEEPING,
-                visual_action::NONE,
+                visual_action::SLEEP,
             ),
             (
                 "moving_box",
@@ -3971,12 +4018,7 @@ mod tests {
         assert!(pack.object(station).roles.contains(&role));
 
         let mut sim = Sim::new_with_lot(24, 24);
-        let decoy_definition = pack
-            .objects
-            .iter()
-            .position(|object| object.id == "desk")
-            .map(|index| terri_data::ObjectDefId(index as u32))
-            .expect("shipped desk");
+        let decoy_definition = station;
         assert!(pack.object(decoy_definition).roles.contains(&role));
         let _decoy = sim
             .world_mut()
@@ -5097,8 +5139,13 @@ mod tests {
             assert_eq!(buf.activities.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);
             assert_eq!(buf.interaction_targets.len(), expected_count);
+            assert_eq!(buf.sleeping_beds.len(), expected_count);
+            assert_eq!(buf.sleeping_places.len(), expected_count);
             assert_eq!(buf.facings.len(), expected_count);
             assert_eq!(buf.carrying.len(), expected_count);
+            assert_eq!(buf.carried_dishes.len(), expected_count);
+            assert_eq!(buf.dirty_dishes.len(), expected_count);
+            assert_eq!(buf.meal_portions.len(), expected_count);
             assert_eq!(buf.positions.len(), expected_count * 2);
 
             sim.world_mut().spawn((

@@ -1,0 +1,1556 @@
+[
+  {
+    "source": "docs\\evidence\\relationship-development\\publication\\joint-calibration.txt",
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "scenario_runs": 32,
+    "ordinary": {
+      "runs": 0,
+      "sim_weeks": 0,
+      "incidents": 0,
+      "directional_contact_hours": 0,
+      "incidents_per_sim_week": null,
+      "emergencies": 0,
+      "player_directed": 0,
+      "non_incompatible_samples": 0,
+      "above_hostility_percent": null,
+      "wait_minutes": 0,
+      "max_wait_minutes": 0,
+      "low_need_minutes": 0,
+      "essential_empty_minutes": 0,
+      "essential_empty_while_waiting": 0,
+      "entry_wait_minutes": 0,
+      "start_wait_minutes": 0,
+      "alive_at_end": 0,
+      "original_population": 0,
+      "chains_completed": 0,
+      "chains_abandoned": 0,
+      "chains_active_at_end": null,
+      "max_chain_age_minutes": null,
+      "max_chain_stall_minutes": null
+    },
+    "layouts": {
+      "shipped": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      },
+      "two": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      },
+      "three": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      },
+      "four": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      }
+    },
+    "recovery": {
+      "recovery0": {
+        "observations": 16,
+        "finished": 16,
+        "unfinished": 0,
+        "statistics_population": "completed observations only",
+        "censoring_horizon_days": 56,
+        "cohort_mean_lower_bound_days": 2.101125,
+        "mean_days": 2.101125,
+        "median_days": 2.1559,
+        "p90_days": 2.8549,
+        "max_days": 3.5326,
+        "subsequent_incidents_during_recovery": 2,
+        "subsequent_incidents_in_56_days": 22,
+        "effects_until_recovery": {
+          "Proximity": {
+            "events": 4117,
+            "actual": 4.3228404000000005
+          },
+          "Decay": {
+            "events": 48410,
+            "actual": 0.24227344000000003
+          },
+          "HouseholdMess": {
+            "events": 187,
+            "actual": -0.30855064
+          },
+          "Conversation": {
+            "events": 4,
+            "actual": 0.34
+          },
+          "PrivacyStart": {
+            "events": 2,
+            "actual": -0.5
+          },
+          "SharedActivity": {
+            "events": 25,
+            "actual": 0.26249999
+          },
+          "CriticalNeedInterruption": {
+            "events": 2,
+            "actual": -0.39999998
+          },
+          "LowNeedInterruption": {
+            "events": 1,
+            "actual": -0.11000001
+          }
+        }
+      },
+      "recovery5": {
+        "observations": 16,
+        "finished": 16,
+        "unfinished": 0,
+        "statistics_population": "completed observations only",
+        "censoring_horizon_days": 56,
+        "cohort_mean_lower_bound_days": 2.4132,
+        "mean_days": 2.4132,
+        "median_days": 2.59375,
+        "p90_days": 3.2257,
+        "max_days": 3.5229,
+        "subsequent_incidents_during_recovery": 2,
+        "subsequent_incidents_in_56_days": 33,
+        "effects_until_recovery": {
+          "Proximity": {
+            "events": 4586,
+            "actual": 4.81528178
+          },
+          "Decay": {
+            "events": 55576,
+            "actual": -0.27433885
+          },
+          "HouseholdMess": {
+            "events": 203,
+            "actual": -0.33495094
+          },
+          "SharedActivity": {
+            "events": 31,
+            "actual": 0.32550034
+          },
+          "Conversation": {
+            "events": 4,
+            "actual": 0.33999999000000003
+          },
+          "PrivacyStart": {
+            "events": 2,
+            "actual": -0.5
+          },
+          "CriticalNeedInterruption": {
+            "events": 2,
+            "actual": -0.4
+          },
+          "LowNeedInterruption": {
+            "events": 1,
+            "actual": -0.11
+          }
+        }
+      }
+    },
+    "incompatible": {
+      "observations": 0,
+      "finished": 0,
+      "unfinished": 0,
+      "statistics_population": "completed observations only",
+      "censoring_horizon_days": 56,
+      "cohort_mean_lower_bound_days": null,
+      "mean_days": null,
+      "median_days": null,
+      "p90_days": null,
+      "max_days": null,
+      "SharedActivity": 0,
+      "Incompatibility": 0,
+      "Conversation": 0,
+      "Decay": 0
+    },
+    "empty_needs_by_activity": {
+      "recovery0:Hunger:Chain": {
+        "minutes": 88895,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Idle": {
+        "minutes": 3732,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Walk": {
+        "minutes": 15604,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:bed:sleep": {
+        "minutes": 1138,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:reading_chair:settle_in": {
+        "minutes": 70,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Chain": {
+        "minutes": 1339,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Idle": {
+        "minutes": 72,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Walk": {
+        "minutes": 4609,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:shower:take_shower": {
+        "minutes": 312,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:toilet:relieve_self": {
+        "minutes": 233,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:shower:take_shower": {
+        "minutes": 354,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:toilet:relieve_self": {
+        "minutes": 298,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Conversation": {
+        "minutes": 1,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:bookshelf:read": {
+        "minutes": 56,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:television:watch_tv": {
+        "minutes": 49,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:kitchen_sink:wash_up": {
+        "minutes": 15,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:television:watch_tv": {
+        "minutes": 198,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:reference_shelf:watch_fish": {
+        "minutes": 172,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 225,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:moving_box:use_exercise_bike": {
+        "minutes": 12,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:dining_table:sit_properly": {
+        "minutes": 4,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:dining_table:sit_properly": {
+        "minutes": 17,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Chain": {
+        "minutes": 89184,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Idle": {
+        "minutes": 3923,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Walk": {
+        "minutes": 16064,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:bed:sleep": {
+        "minutes": 770,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:reading_chair:settle_in": {
+        "minutes": 39,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Chain": {
+        "minutes": 1822,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Idle": {
+        "minutes": 124,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Walk": {
+        "minutes": 4505,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:shower:take_shower": {
+        "minutes": 242,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:toilet:relieve_self": {
+        "minutes": 228,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:shower:take_shower": {
+        "minutes": 421,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:toilet:relieve_self": {
+        "minutes": 352,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:dining_table:sit_properly": {
+        "minutes": 95,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:reference_shelf:watch_fish": {
+        "minutes": 272,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:kitchen_sink:wash_up": {
+        "minutes": 15,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:television:watch_tv": {
+        "minutes": 270,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Conversation": {
+        "minutes": 65,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:bookshelf:read": {
+        "minutes": 51,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:television:watch_tv": {
+        "minutes": 20,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 90,
+        "within_two_hours_of_privacy_wait": 0
+      }
+    },
+    "active_chains_at_end": [
+      {
+        "scenario": "recovery0",
+        "seed": 4,
+        "actor": "0",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "20",
+        "stall_minutes": "20"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 4,
+        "actor": "1",
+        "chain": "0",
+        "step": "3",
+        "age_minutes": "432",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 6,
+        "actor": "0",
+        "chain": "0",
+        "step": "0",
+        "age_minutes": "38",
+        "stall_minutes": "38"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 6,
+        "actor": "1",
+        "chain": "0",
+        "step": "5",
+        "age_minutes": "446",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 10,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "52",
+        "stall_minutes": "52"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 11,
+        "actor": "0",
+        "chain": "0",
+        "step": "5",
+        "age_minutes": "608",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 11,
+        "actor": "1",
+        "chain": "2",
+        "step": "1",
+        "age_minutes": "138",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 13,
+        "actor": "1",
+        "chain": "0",
+        "step": "0",
+        "age_minutes": "51",
+        "stall_minutes": "51"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 16,
+        "actor": "0",
+        "chain": "3",
+        "step": "0",
+        "age_minutes": "27",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 16,
+        "actor": "1",
+        "chain": "0",
+        "step": "5",
+        "age_minutes": "557",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 4,
+        "actor": "0",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "20",
+        "stall_minutes": "20"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 4,
+        "actor": "1",
+        "chain": "0",
+        "step": "3",
+        "age_minutes": "432",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 5,
+        "actor": "0",
+        "chain": "3",
+        "step": "1",
+        "age_minutes": "92",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 7,
+        "actor": "1",
+        "chain": "0",
+        "step": "1",
+        "age_minutes": "130",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 10,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "52",
+        "stall_minutes": "52"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 11,
+        "actor": "1",
+        "chain": "1",
+        "step": "1",
+        "age_minutes": "110",
+        "stall_minutes": "0"
+      }
+    ],
+    "critical_person_minutes": {
+      "recovery0": {
+        "Bladder": 64219,
+        "Comfort": 7239,
+        "Energy": 104209,
+        "Fun": 22967,
+        "Hunger": 556715,
+        "Hygiene": 47364,
+        "Social": 103097
+      },
+      "recovery5": {
+        "Bladder": 64622,
+        "Comfort": 7636,
+        "Energy": 108071,
+        "Fun": 21487,
+        "Hunger": 547801,
+        "Hygiene": 48721,
+        "Social": 123394
+      }
+    },
+    "first_positive_contact": [
+      {
+        "scenario": "recovery0",
+        "seed": 1,
+        "first_positive_minute": "492"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 2,
+        "first_positive_minute": "15"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 3,
+        "first_positive_minute": "626"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 4,
+        "first_positive_minute": "36"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 5,
+        "first_positive_minute": "1316"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 6,
+        "first_positive_minute": "372"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 7,
+        "first_positive_minute": "33"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 8,
+        "first_positive_minute": "117"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 9,
+        "first_positive_minute": "27"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 10,
+        "first_positive_minute": "274"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 11,
+        "first_positive_minute": "1173"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 12,
+        "first_positive_minute": "414"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 13,
+        "first_positive_minute": "329"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 14,
+        "first_positive_minute": "423"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 15,
+        "first_positive_minute": "198"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 16,
+        "first_positive_minute": "95"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 1,
+        "first_positive_minute": "492"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 2,
+        "first_positive_minute": "15"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 3,
+        "first_positive_minute": "626"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 4,
+        "first_positive_minute": "36"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 5,
+        "first_positive_minute": "1316"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 6,
+        "first_positive_minute": "372"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 7,
+        "first_positive_minute": "33"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 8,
+        "first_positive_minute": "117"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 9,
+        "first_positive_minute": "27"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 10,
+        "first_positive_minute": "274"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 11,
+        "first_positive_minute": "661"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 12,
+        "first_positive_minute": "414"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 13,
+        "first_positive_minute": "329"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 14,
+        "first_positive_minute": "423"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 15,
+        "first_positive_minute": "198"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 16,
+        "first_positive_minute": "95"
+      }
+    ],
+    "contributions": {
+      "recovery0": {
+        "Conversation": {
+          "events": 146,
+          "actual": 4.3019190499999995,
+          "requested": 15.640000180000003
+        },
+        "Proximity": {
+          "events": 254058,
+          "actual": 61.837803599999994,
+          "requested": 266.76089048999995
+        },
+        "SharedActivity": {
+          "events": 1883,
+          "actual": 3.24859865,
+          "requested": 19.77149974
+        },
+        "Decay": {
+          "events": 2580480,
+          "actual": -12.371172440000004,
+          "requested": -12.354419680000001
+        },
+        "HouseholdMess": {
+          "events": 9240,
+          "actual": -15.245790269999997,
+          "requested": -15.245999870000002
+        },
+        "LowNeedInterruption": {
+          "events": 31,
+          "actual": -3.4100003699999992,
+          "requested": -3.4100000000000006
+        },
+        "CriticalNeedInterruption": {
+          "events": 12,
+          "actual": -2.3999998799999998,
+          "requested": -2.4000000399999997
+        },
+        "PrivacyEntry": {
+          "events": 30,
+          "actual": -7.5,
+          "requested": -7.5
+        },
+        "PrivacyStart": {
+          "events": 32,
+          "actual": -8.0,
+          "requested": -8.0
+        }
+      },
+      "recovery5": {
+        "Conversation": {
+          "events": 120,
+          "actual": 3.4003477099999997,
+          "requested": 13.090000160000002
+        },
+        "Proximity": {
+          "events": 253936,
+          "actual": 56.9908329,
+          "requested": 266.63279048999993
+        },
+        "SharedActivity": {
+          "events": 1628,
+          "actual": 2.3933272299999997,
+          "requested": 17.093999779999997
+        },
+        "Decay": {
+          "events": 2580456,
+          "actual": -12.91350444,
+          "requested": -12.896039680000001
+        },
+        "HouseholdMess": {
+          "events": 9170,
+          "actual": -15.130285790000002,
+          "requested": -15.130499879999999
+        },
+        "LowNeedInterruption": {
+          "events": 27,
+          "actual": -2.97000033,
+          "requested": -2.97
+        },
+        "CriticalNeedInterruption": {
+          "events": 11,
+          "actual": -2.19999991,
+          "requested": -2.20000003
+        },
+        "PrivacyEntry": {
+          "events": 31,
+          "actual": -7.75,
+          "requested": -7.75
+        },
+        "PrivacyStart": {
+          "events": 39,
+          "actual": -9.75,
+          "requested": -9.75
+        }
+      }
+    }
+  },
+  {
+    "source": "docs\\evidence\\relationship-development\\publication\\joint-validation.txt",
+    "seeds": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "scenario_runs": 16,
+    "ordinary": {
+      "runs": 0,
+      "sim_weeks": 0,
+      "incidents": 0,
+      "directional_contact_hours": 0,
+      "incidents_per_sim_week": null,
+      "emergencies": 0,
+      "player_directed": 0,
+      "non_incompatible_samples": 0,
+      "above_hostility_percent": null,
+      "wait_minutes": 0,
+      "max_wait_minutes": 0,
+      "low_need_minutes": 0,
+      "essential_empty_minutes": 0,
+      "essential_empty_while_waiting": 0,
+      "entry_wait_minutes": 0,
+      "start_wait_minutes": 0,
+      "alive_at_end": 0,
+      "original_population": 0,
+      "chains_completed": 0,
+      "chains_abandoned": 0,
+      "chains_active_at_end": null,
+      "max_chain_age_minutes": null,
+      "max_chain_stall_minutes": null
+    },
+    "layouts": {
+      "shipped": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      },
+      "two": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      },
+      "three": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      },
+      "four": {
+        "runs": 0,
+        "sim_weeks": 0,
+        "incidents": 0,
+        "directional_contact_hours": 0,
+        "incidents_per_sim_week": null,
+        "emergencies": 0,
+        "player_directed": 0,
+        "non_incompatible_samples": 0,
+        "above_hostility_percent": null,
+        "wait_minutes": 0,
+        "max_wait_minutes": 0,
+        "low_need_minutes": 0,
+        "essential_empty_minutes": 0,
+        "essential_empty_while_waiting": 0,
+        "entry_wait_minutes": 0,
+        "start_wait_minutes": 0,
+        "alive_at_end": 0,
+        "original_population": 0,
+        "chains_completed": 0,
+        "chains_abandoned": 0,
+        "chains_active_at_end": null,
+        "max_chain_age_minutes": null,
+        "max_chain_stall_minutes": null
+      }
+    },
+    "recovery": {
+      "recovery0": {
+        "observations": 8,
+        "finished": 8,
+        "unfinished": 0,
+        "statistics_population": "completed observations only",
+        "censoring_horizon_days": 56,
+        "cohort_mean_lower_bound_days": 1.46355,
+        "mean_days": 1.46355,
+        "median_days": 1.591,
+        "p90_days": 1.9278,
+        "max_days": 1.9278,
+        "subsequent_incidents_during_recovery": 1,
+        "subsequent_incidents_in_56_days": 16,
+        "effects_until_recovery": {
+          "Proximity": {
+            "events": 1791,
+            "actual": 1.8805463199999999
+          },
+          "SharedActivity": {
+            "events": 31,
+            "actual": 0.32550005
+          },
+          "Decay": {
+            "events": 16860,
+            "actual": 0.08436493
+          },
+          "HouseholdMess": {
+            "events": 70,
+            "actual": -0.11550022000000001
+          },
+          "PrivacyStart": {
+            "events": 1,
+            "actual": -0.25
+          }
+        }
+      },
+      "recovery5": {
+        "observations": 8,
+        "finished": 8,
+        "unfinished": 0,
+        "statistics_population": "completed observations only",
+        "censoring_horizon_days": 56,
+        "cohort_mean_lower_bound_days": 1.6485125,
+        "mean_days": 1.6485125,
+        "median_days": 1.76875,
+        "p90_days": 2.5181,
+        "max_days": 2.5181,
+        "subsequent_incidents_during_recovery": 1,
+        "subsequent_incidents_in_56_days": 20,
+        "effects_until_recovery": {
+          "Proximity": {
+            "events": 1866,
+            "actual": 1.9592917400000003
+          },
+          "SharedActivity": {
+            "events": 32,
+            "actual": 0.33600034
+          },
+          "Decay": {
+            "events": 18991,
+            "actual": -0.0950825
+          },
+          "HouseholdMess": {
+            "events": 73,
+            "actual": -0.12045038
+          },
+          "Conversation": {
+            "events": 1,
+            "actual": 0.16999999
+          },
+          "PrivacyStart": {
+            "events": 1,
+            "actual": -0.25
+          }
+        }
+      }
+    },
+    "incompatible": {
+      "observations": 0,
+      "finished": 0,
+      "unfinished": 0,
+      "statistics_population": "completed observations only",
+      "censoring_horizon_days": 56,
+      "cohort_mean_lower_bound_days": null,
+      "mean_days": null,
+      "median_days": null,
+      "p90_days": null,
+      "max_days": null,
+      "SharedActivity": 0,
+      "Incompatibility": 0,
+      "Conversation": 0,
+      "Decay": 0
+    },
+    "empty_needs_by_activity": {
+      "recovery0:Hunger:Chain": {
+        "minutes": 45649,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Idle": {
+        "minutes": 2524,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Walk": {
+        "minutes": 8348,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:bed:sleep": {
+        "minutes": 897,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:television:watch_tv": {
+        "minutes": 121,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Idle": {
+        "minutes": 102,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Walk": {
+        "minutes": 2016,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:shower:take_shower": {
+        "minutes": 162,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:shower:take_shower": {
+        "minutes": 90,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:Chain": {
+        "minutes": 738,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Energy:toilet:relieve_self": {
+        "minutes": 77,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:bookshelf:read": {
+        "minutes": 75,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:kitchen_sink:wash_up": {
+        "minutes": 27,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 103,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:reading_chair:settle_in": {
+        "minutes": 35,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:toilet:relieve_self": {
+        "minutes": 139,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:reference_shelf:watch_fish": {
+        "minutes": 127,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:Conversation": {
+        "minutes": 55,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery0:Hunger:dining_table:sit_properly": {
+        "minutes": 35,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Chain": {
+        "minutes": 41532,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Idle": {
+        "minutes": 2704,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:Walk": {
+        "minutes": 8374,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:bed:sleep": {
+        "minutes": 711,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:reading_chair:settle_in": {
+        "minutes": 52,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Chain": {
+        "minutes": 869,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Idle": {
+        "minutes": 37,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:Walk": {
+        "minutes": 2246,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:moving_box:use_exercise_bike": {
+        "minutes": 35,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:shower:take_shower": {
+        "minutes": 147,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Energy:toilet:relieve_self": {
+        "minutes": 123,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:bookshelf:read": {
+        "minutes": 108,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:kitchen_sink:wash_up": {
+        "minutes": 55,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:moving_box:use_exercise_bike": {
+        "minutes": 103,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:toilet:relieve_self": {
+        "minutes": 119,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:television:watch_tv": {
+        "minutes": 67,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:reference_shelf:watch_fish": {
+        "minutes": 57,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:shower:take_shower": {
+        "minutes": 168,
+        "within_two_hours_of_privacy_wait": 0
+      },
+      "recovery5:Hunger:dining_table:sit_properly": {
+        "minutes": 67,
+        "within_two_hours_of_privacy_wait": 0
+      }
+    },
+    "active_chains_at_end": [
+      {
+        "scenario": "recovery0",
+        "seed": 17,
+        "actor": "1",
+        "chain": "2",
+        "step": "0",
+        "age_minutes": "10",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 18,
+        "actor": "0",
+        "chain": "0",
+        "step": "3",
+        "age_minutes": "365",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 19,
+        "actor": "0",
+        "chain": "1",
+        "step": "1",
+        "age_minutes": "119",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 20,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "18",
+        "stall_minutes": "18"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 21,
+        "actor": "1",
+        "chain": "0",
+        "step": "2",
+        "age_minutes": "202",
+        "stall_minutes": "3"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 22,
+        "actor": "0",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "84",
+        "stall_minutes": "84"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 24,
+        "actor": "0",
+        "chain": "1",
+        "step": "1",
+        "age_minutes": "114",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 17,
+        "actor": "0",
+        "chain": "1",
+        "step": "1",
+        "age_minutes": "55",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 19,
+        "actor": "0",
+        "chain": "1",
+        "step": "1",
+        "age_minutes": "119",
+        "stall_minutes": "0"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 20,
+        "actor": "1",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "18",
+        "stall_minutes": "18"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 21,
+        "actor": "1",
+        "chain": "1",
+        "step": "1",
+        "age_minutes": "93",
+        "stall_minutes": "13"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 22,
+        "actor": "0",
+        "chain": "1",
+        "step": "0",
+        "age_minutes": "84",
+        "stall_minutes": "84"
+      }
+    ],
+    "critical_person_minutes": {
+      "recovery0": {
+        "Bladder": 27385,
+        "Comfort": 3144,
+        "Energy": 50709,
+        "Fun": 7978,
+        "Hunger": 287420,
+        "Hygiene": 22946,
+        "Social": 59023
+      },
+      "recovery5": {
+        "Bladder": 30816,
+        "Comfort": 2991,
+        "Energy": 50490,
+        "Fun": 7159,
+        "Hunger": 285966,
+        "Hygiene": 29071,
+        "Social": 49911
+      }
+    },
+    "first_positive_contact": [
+      {
+        "scenario": "recovery0",
+        "seed": 17,
+        "first_positive_minute": "223"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 18,
+        "first_positive_minute": "267"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 19,
+        "first_positive_minute": "428"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 20,
+        "first_positive_minute": "99"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 21,
+        "first_positive_minute": "14"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 22,
+        "first_positive_minute": "18"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 23,
+        "first_positive_minute": "14"
+      },
+      {
+        "scenario": "recovery0",
+        "seed": 24,
+        "first_positive_minute": "501"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 17,
+        "first_positive_minute": "223"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 18,
+        "first_positive_minute": "267"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 19,
+        "first_positive_minute": "428"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 20,
+        "first_positive_minute": "99"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 21,
+        "first_positive_minute": "14"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 22,
+        "first_positive_minute": "18"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 23,
+        "first_positive_minute": "14"
+      },
+      {
+        "scenario": "recovery5",
+        "seed": 24,
+        "first_positive_minute": "501"
+      }
+    ],
+    "contributions": {
+      "recovery0": {
+        "Conversation": {
+          "events": 50,
+          "actual": 1.88696968,
+          "requested": 5.100000059999999
+        },
+        "LowNeedInterruption": {
+          "events": 15,
+          "actual": -1.6500001800000001,
+          "requested": -1.6500000000000001
+        },
+        "Proximity": {
+          "events": 126498,
+          "actual": 31.435510119999996,
+          "requested": 132.82289527
+        },
+        "SharedActivity": {
+          "events": 1129,
+          "actual": 2.1067969399999997,
+          "requested": 11.85449985
+        },
+        "Decay": {
+          "events": 1290189,
+          "actual": -6.2529699800000005,
+          "requested": -6.24450484
+        },
+        "HouseholdMess": {
+          "events": 4645,
+          "actual": -7.66414483,
+          "requested": -7.6642499299999995
+        },
+        "PrivacyEntry": {
+          "events": 16,
+          "actual": -4.0,
+          "requested": -4.0
+        },
+        "PrivacyStart": {
+          "events": 18,
+          "actual": -4.5,
+          "requested": -4.5
+        },
+        "CriticalNeedInterruption": {
+          "events": 3,
+          "actual": -0.5999999699999999,
+          "requested": -0.6000000000000001
+        }
+      },
+      "recovery5": {
+        "Conversation": {
+          "events": 74,
+          "actual": 2.2803913000000002,
+          "requested": 9.18000009
+        },
+        "LowNeedInterruption": {
+          "events": 20,
+          "actual": -2.20000029,
+          "requested": -2.1999999999999997
+        },
+        "PrivacyEntry": {
+          "events": 15,
+          "actual": -3.75,
+          "requested": -3.75
+        },
+        "PrivacyStart": {
+          "events": 25,
+          "actual": -6.25,
+          "requested": -6.25
+        },
+        "Proximity": {
+          "events": 125147,
+          "actual": 29.617582679999998,
+          "requested": 131.4043453
+        },
+        "SharedActivity": {
+          "events": 1490,
+          "actual": 1.8169235400000001,
+          "requested": 15.644999789999998
+        },
+        "Decay": {
+          "events": 1290240,
+          "actual": -6.44073498,
+          "requested": -6.43199984
+        },
+        "HouseholdMess": {
+          "events": 4671,
+          "actual": -7.70704023,
+          "requested": -7.707149920000001
+        },
+        "CriticalNeedInterruption": {
+          "events": 3,
+          "actual": -0.5999999699999999,
+          "requested": -0.6000000000000001
+        }
+      }
+    }
+  }
+]

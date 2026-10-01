@@ -11,7 +11,7 @@ pub(super) mod source_layout;
 mod mutation_tests;
 
 const SOURCE_FINGERPRINT: u64 = 0xa020_602a_6acd_3a90;
-const REVIEWED_DESTINATION_FINGERPRINTS: [u64; 4] = [
+const REVIEWED_DESTINATION_FINGERPRINTS: [u64; 5] = [
     0xbcdd_476e_1e23_8ab0,
     0xfdf5_87d9_437f_bfd0,
     0x4dab_6950_757c_1f15,
@@ -20,6 +20,8 @@ const REVIEWED_DESTINATION_FINGERPRINTS: [u64; 4] = [
     // named by id in a save and no old id changed, so the rotation below
     // is exactly as valid here as at the digest above.
     0xc2cf_2919_84ed_61f7,
+    // Authored sleeping-place access changes new routes, not valid saved walks.
+    0xb38e_71a1_23bb_8273,
 ];
 const OLD: Footprint = Footprint { width: 2, depth: 1 };
 const NEW: Footprint = Footprint { width: 1, depth: 2 };
@@ -51,6 +53,9 @@ pub(super) fn prepare(
 }
 
 pub(super) fn reviewed_source(destination: &ContentPack) -> Option<ContentPack> {
+    if let Some(source) = terri_data::pre_meals_content(destination) {
+        return reviewed_source(&source);
+    }
     if !REVIEWED_DESTINATION_FINGERPRINTS.contains(&terri_data::content_fingerprint(destination)) {
         return None;
     }

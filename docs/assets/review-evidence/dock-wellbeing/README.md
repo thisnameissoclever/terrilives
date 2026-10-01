@@ -31,3 +31,11 @@ Build/load projection and controller ownership were inspected during review; thi
 ## Adversarial review
 
 A fresh independent read-only reviewer returned PASS after the header, longest mood label, Help routes and tab-proof corrections. It inspected the final source, refreshed measurements, and enlarged 601px/320px screenshots. No unresolved merge blocker remained. Selection/load ownership, separate moodlet visibility, Collapse, Build visibility and Options focus restoration also passed source review.
+
+## Production verification
+
+PR 189 merged as `70f56b6ee1e96dff4f5182e8f678612bb3a2b0e8`. Pages skipped that revision and the next one after reviewed changes advanced main. The final release published `250c73b3f86e38c709f30d5682fb65acbb949e4b`, including this UI change. Main CI 36880551157 and Pages 36881825452 succeeded; the Pages log confirmed deployment of the current main tip. Main's mutation job was skipped, not passed.
+
+The public entry was `index-D3yc7B0O.js`. The actual live WebGPU proof passed all ten ordinary viewport cases and five enlarged-text cases, all four detail tabs, real roster selection, Collapse, selected/unselected New housemate from Options, and cancellation focus. Twenty unchanged refreshes produced zero text mutations at paused tick 0; there were no application page errors or measured field overflow. Results: [production-browser.json](production-browser.json), [desktop](production-desktop.png), [phone](production-phone.png). The initial desktop measurement includes startup text projection; subsequent ordinary desktop and phone measurements match the local layout. No physical-device or operating-system text-scaling claim is made.
+
+The game page closed in the proof's finally block. The preview server stopped, and the completed UI worktree was submitted for archival after synchronization with main. This production evidence concerns the deployed UI, not the held sleeping-place implementation in the ongoing development branch.

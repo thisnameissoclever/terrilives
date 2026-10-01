@@ -1,0 +1,107 @@
+[
+  {
+    "mutation": "critical-boundary",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal.rs:230:13:\nassertion `left == right` failed\n  left: 0.35\n right: 0.2",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "direction",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:150:9:\nassertion `left == right` failed: toilet\n  left: 0.0\n right: -0.45",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "doorway-separation",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\room_regions.rs:167:9:\nassertion `left != right` failed\n  left: Some(0)\n right: Some(0)",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "entry-hook",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:174:5:\nassertion `left == right` failed\n  left: 0.0\n right: -0.45",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "furniture-independence",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\room_regions.rs:167:9:\nassertion `left == right` failed\n  left: Some(0)\n right: None",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "helped-exclusion",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal.rs:234:13:\nassertion `left == right` failed\n  left: 0.2\n right: 0.0",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "private-start-hook",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:150:9:\nassertion `left == right` failed: toilet\n  left: 0.0\n right: -0.45",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-hash-value",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:136:5:\nassertion `left != right` failed\n  left: 14744607004355680799\n right: 14744607004355680799",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-initial-golden",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-core\\src\\shyness.rs:56:9:\nassertion `left == right` failed\n  left: [27, 97, 4, 100, 54, 30, 22, 89]\n right: [89, 22, 30, 54, 100, 4, 97, 27]",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-object-choice",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:167:5:\nassertion `left == right` failed\n  left: 2v0\n right: 3v0",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-older-v5-tail",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-wasm\\src\\lib.rs:2650:40:\ncalled `Option::unwrap()` on a `None` value",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-save-value",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:113:5:\nassertion `left == right` failed\n  left: []\n right: [(0, 100)]",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-social-choice",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:717:5:\nassertion `left == right` failed\n  left: 1v0\n right: 2v0",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-victim-scale",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:207:9:\nassertion failed: (feeling(&sim, offended, responsible) +\n                0.30 * stat.annoyance_scale(0.25)).abs() < 0.000001",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  },
+  {
+    "mutation": "shyness-wander-choice",
+    "exit": 101,
+    "detected_by_assertion": true,
+    "failure_output": "panicked at crates\\terri-sim\\src\\systems\\interpersonal_tests.rs:671:13:\nassertion `left == right` failed: stat=100, disabled=false, alternative=0\n  left: [(2, 1), (3, 1), (3, 2)]\n right: [(0, 1), (0, 2), (0, 3)]",
+    "restored": "Original file bytes restored in finally and compared byte for byte by the mutation helper."
+  }
+]

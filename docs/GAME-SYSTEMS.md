@@ -28,7 +28,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 |---|---|---|---|
 | [S-skills] | Skills | Foundation only | Three capability traits; no general skills system |
 | [S-pets] | Pets as full characters | Not started | None |
-| [S-household-events] | Random household events and messes | Not started | None |
+| [S-household-events] | Random household events and messes | Partial | Meals, attributed dishes and cleanup |
 | [S-money] | Money: deep earning and spending | Partial | Wages, purchases and sale proceeds |
 | [S-catalogue] | Furniture and visual asset volume | Partial | 30 object types, reviewed replacements and recolour controls |
 | [S-household-size] | More people in the house | Partial | Six-member capacity, creation and removal by death |
@@ -43,7 +43,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
-| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Reservation release foundation; assignment and shared sleeping remain |
+| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves, controls and place-specific routing; occupied visuals remain |
 
 The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
@@ -123,13 +123,13 @@ Pet accidents, breakages, visitors, bills, and emergencies all need one schedule
 
 ### [F-object-state] Objects and tiles that carry state
 
-**Status: Not started.** An object today is a fixed definition placed on a tile. It cannot be dirty, broken, full, empty, or owned. A floor tile cannot hold a mess.
+**Status: Partial.** Meals and snacks leave attributed dish piles on counters and tables. Prepared portions, cleanup claims and room visits are saved and hashed. General wear, breakage and floor messes remain unbuilt. See [MC-dishes].
 
 Messes on the floor, a litter box that fills, a food bowl that empties, a sink that breaks, and a bin that overflows all need mutable state on objects or tiles. That state must be saved and hashed like everything else.
 
 ### [F-task-willingness] A willingness gate for unpleasant tasks
 
-**Status: Not started.** The owner's pet example needs this: a person cleans up after the dog only when they are happy or motivated enough and are not too tired. The game has no such gate. Any person will start any action that scores well.
+**Status: Partial.** Dish cleanup balances a saved cleanliness personality value against current needs. Autonomous chores yield to critical energy, hunger or bladder; explicit player orders retain priority. A shared mood-based refusal rule for all unpleasant tasks remains unbuilt. See [MC-willingness].
 
 The proposal is one general rule. A task can declare a minimum mood and a maximum tiredness, and a person below the bar refuses the task, both on their own and when ordered. The same rule then serves cleaning, repairs, chores, homework, and exercise. Mood already changes life satisfaction under [MW-satisfaction]; task refusal remains unbuilt.
 
@@ -189,9 +189,9 @@ The chance of the accident should follow from the simulation and not be a flat d
 
 ### [S-household-events] Random household events and messes
 
-**Status: Not started.**
+**Status: Partial, domestic first slice.**
 
-**What exists.** Nothing. The bin and the laundry machine are decorative and have no actions. The kitchen sink's washing-up action restores the person's own hygiene and changes no object.
+**What exists.** Cooking and snacks leave visible, attributed dishes. Sims can collect and wash them at the kitchen sink; other Sims notice foreign messes, lose mood and directional affinity, and may clean them. These are activity consequences rather than random events. The existing personal-hygiene sink interaction remains separate.
 
 **What is missing.** The owner described this system through pets, and it is broader than pets. It covers things that happen to the household and demand a response: a pet accident, a spilled meal, dirty dishes left on the table, a full bin, a blocked toilet, a broken shower, a tripped fuse, a leaking tap.
 
@@ -229,7 +229,7 @@ Paid services through [P-services]: a cleaner, a repair person, a dog walker. Re
 
 **Status: Partial.**
 
-**What exists.** 30 object types, all of them placed in the starting house. 19 have an action of their own. 18 of those offer one action, and the fridge offers two: a snack, and the start of cooking dinner. Of the other 11, the stove and the counter are working stations in the cooking activity, and 9 are decorative. 13 objects use the newer reviewed 3D-modelled art, plus the bunk, the exercise bike, and the reading chair. The original plan called for about 40 interactive objects at this stage.
+**What exists.** 30 object types, all of them placed in the starting house. 19 have an action of their own. 17 of those offer one action. The fridge offers a snack and a meal whose label follows the time of day; the kitchen sink offers washing hands and cleaning dishes. Of the other 11, the stove and the counter are working stations in the cooking activity, and 9 are decorative. 13 objects use the newer reviewed 3D-modelled art, plus the bunk, the exercise bike, and the reading chair. The original plan called for about 40 interactive objects at this stage.
 
 **What is missing.** Volume, in several directions. More objects per need, at several quality and price tiers, so that buying a better bed means something. Several actions per object as the normal case. Objects for every new system: pet bowls, pet beds, a litter box, a lead hook, skill objects such as an easel or a workbench, a phone, outdoor furniture.
 
@@ -336,7 +336,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Partial.** Overview now contains a collapsed Personality and habits section. It shows the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. These are read-only projections of existing state, with no save or simulation changes. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md).
+**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -358,13 +358,15 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-bed-assignment] Assigning a Sim to a bed
 
-**Status: In progress.** Owner-aware reservation release is implemented and
-tested as groundwork. Assignment, simultaneous double-bed admission and the
-two-person sleeping display remain unbuilt. Any Sim still sleeps in any free
-bed. The starting house has a bunk and a double bed. See
-`docs/specs/2026-10-01-bed-assignment.md`.
+**Status: Implemented.** Owner-aware reservation release, assignment, simultaneous
+double-bed admission, save migration, assignment controls and place-specific
+approach paths are implemented. The covered double-bed display supports either
+sleeper or both in all four facings; the sleeping poses are static. The starting
+house has a bunk and a double bed.
+See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
+`docs/assets/review-evidence/bed-assignment/navigation.md`.
 
-Bed assignment remains unbuilt. A separate household capacity rule now gives
+A separate shipped household capacity rule gives
 every living member a -20 Not enough beds moodlet when sleep places are fewer
 than people. The double bed counts as two places and the supported lower bunk
 as one. This affects the shared sustained-mood satisfaction mechanism, without
@@ -384,11 +386,11 @@ assigning ownership or adding a separate drain.
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages and death records. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
+**Status: Substantial.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, nearby relationships, occupied-item waiting, bed shortages death records and foreign dirty dishes in the room. Grief lasts 10 to 60 game days according to affinity at death (PR 141). Sustained mood changes life satisfaction, and waiting for an occupied item adds a penalty scaled by the relevant need. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 ### [S-chains] Multi-step activities
 
-**Status: Partial.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Exactly one such activity exists: cooking dinner. It needs cold storage, then a preparation surface, then a hob, then an eating surface, and at each step the person uses the nearest free object that fills that role. In the starting house that usually means fridge, counter, stove, and dining table. Candidates for more: laundry, washing up after a meal, making coffee, a full morning routine, feeding a pet, and cleaning a litter box.
+**Status: Partial.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Meals now use six stages across fridge, counter, stove and dining table. Snacks use three stages at fridge and counter. Dish cleanup visits each actual dirty surface and then the kitchen sink. Hungry friends can claim prepared portions and eat at the cook's table, which admits up to four diners at distinct positions. Station roles, walking, interruption and player-order priority remain shared mechanisms. Laundry, coffee, a morning routine and pet care remain candidates.
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
@@ -536,7 +538,7 @@ People who are not in the household come to the door: friends, a neighbour with 
 
 ### [P-food] Food, groceries, and meal quality
 
-The fridge is bottomless and every meal is the same. Groceries that cost money and run out, meals whose quality depends on cooking skill and the quality of the stove, leftovers, and spoilage would connect [S-money], [S-skills], and [S-catalogue] through the one chain that already exists. Pet food fits the same model.
+The fridge remains bottomless. Meals now have longer cooking stages, time-of-day labels, visible preparation and eating dishes, and up to three extra portions for hungry friends with strong positive affinity. Cooking competence affects every portion. Grocery costs, stock, equipment quality, spoilage and unrestricted leftovers remain proposals. See [MC-actions] and [MC-sharing].
 
 ### [P-services] A phone and paid services
 
@@ -550,7 +552,7 @@ People and pets can get sick or hurt, from neglect, from events, or by chance. I
 
 ### [P-room-quality] Room quality
 
-Each room gets a score from its size, its lighting, its decoration, and any mess or broken object in it. The score feeds the comfort need and moodlets for whoever is in the room. This is what makes decorative objects, of which there are already 9, worth buying. Two inputs are missing today. The game has walls and no notion of a room, so it must first work out which tiles form each room. The light field exists only in the renderer, so the simulation cannot read it yet.
+Each room gets a score from its size, its lighting, its decoration, and any mess or broken object in it. The score feeds the comfort need and moodlets for whoever is in the room. This is what makes decorative objects, of which there are already 9, worth buying. Two inputs are missing today. The domestic system now derives room membership from wall boundaries, including doorways, without treating furniture as room boundaries. A general room-quality score still needs its own inputs. The light field exists only in the renderer, so the simulation cannot read it yet.
 
 ### [P-ownership] Personal belongings and territory
 
@@ -610,6 +612,11 @@ Deprivation death and its grief follow-ups are complete, not future build steps.
 Art and owner acceptance are separate from completed code slices. No art, policy
 or proposal is approved merely by appearing in this order.
 
+The main risk in this plan is art throughput, not engineering. Nearly every system above needs new objects, new character animations, or a whole new species, and each of those passes through the same review pipeline. A pet species is the largest single art commitment in this document.
+
+## Domestic interactions, 2026-09-30
+
+[Meals, dishes and cleanup](specs/2026-09-30-meals-and-cleanup.md) owns the implemented domestic slice and its verification. [Sim interpersonal relations](SIM-RELATIONSHIPS.md) owns how personality, needs, mood, satisfaction and directional affinity compose, including support through shared food and friction from attributed messes. The status updates above describe local implementation; they do not claim a release.
 
 ## [VA-status] Varied autonomy and self-preservation
 

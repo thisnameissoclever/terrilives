@@ -1,0 +1,15 @@
+✔ newest notes come first and only the newest two start open (129.9737ms)
+✔ editing, adding and deleting source notes changes the generated page (9.9428ms)
+✔ HTML is escaped while bold, code and HTTPS links remain usable (6.8818ms)
+✔ literal template markers in a note cannot expand into presentation code (6.1097ms)
+✔ invalid notes and empty collections fail instead of silently dropping content (6.1186ms)
+✔ wrapped summaries and continued list items preserve their meaning (0.1837ms)
+✔ the repository history renders and the CLI writes the same standalone page (925.2277ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1188.2288

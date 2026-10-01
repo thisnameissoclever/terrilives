@@ -33,6 +33,12 @@ def preserved_table(source, name):
         if any(not key.isdecimal() for key in value):
             raise ValueError('Non-index key: '+name)
         value = {key: item for key, item in value.items() if int(key) < 1270}
+    else:
+        def published_clips(clips):
+            return {key: clip for key, clip in clips.items()
+                    if all(index < 1270 for facing in clip['frames'] for index in facing)}
+        value = (published_clips(value) if name == 'RIGGED_SIM_CLIPS' else
+                 {variant: published_clips(clips) for variant, clips in value.items()})
     return value
 
 

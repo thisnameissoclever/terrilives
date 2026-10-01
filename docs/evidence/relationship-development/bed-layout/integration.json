@@ -1,0 +1,20 @@
+{
+  "base_head": "c912fffc9cf997657397ac8154b16c655c93fa79",
+  "applied_patch": "ddb67d62f13cf2bc6a406a35e300e1fa462eb04d",
+  "source_files": {
+    "content/lot.toml": "f2bf900289d1370434f3efdcd0e4f5e304f3cb6da3727e96a72b389ec755b9b8",
+    "crates/terri-sim/src/beds/tests.rs": "ce30de05dffc0f11eb187bfe2f8764c15651b6d962754286bd2c953038cf2d18",
+    "crates/terri-sim/src/beds/tests/shipped.rs": "1713189299a27bc4a36a6f4dbc9e633f9c2cba9efe3ab0c6ecf1dac3d39658bb",
+    "crates/terri-sim/src/facing_tests.rs": "412a3bdf551ed114cfd3bfd91498d506ba5545aaa973695182e3b3a57614104d",
+    "crates/terri-sim/src/lib.rs": "f5e65905bb648954c7758804c7f12834e42e374b9789fb9cf85bad4848ea8164",
+    "crates/terri-sim/src/save/bathtub_tests.rs": "0bb28c6566d73443cb316111d7d4a7e5619c966bfab19c7f213ed91203a82778",
+    "crates/terri-sim/src/save/wall_migration_tests.rs": "1a13e86786e83e32295439cfd511298494ab7a306cf502dd22e65b1e3332144f",
+    "crates/terri-sim/src/save/yard_tests.rs": "ae8b614eb4a3973ee96260430d73481f86b7d9cb521bc2a6b710608173354649",
+    "crates/terri-sim/src/test_content.rs": "c0a9888043572cfbea552881b461b7713c130afb1079d24a5fa8dab6962bea4a",
+    "crates/terri-wasm/src/lib.rs": "81a49f3e6fa7f801285c962ab5b5fb81b465736a224eb62d6adb5dd6c849411c",
+    "crates/test-fixtures/pre-yard-placements.rs": "6723a7690da821f333217a20071b5445a7d132f082a15323c4c8aaf0d9b50439",
+    "docs/assets/review-evidence/bed-assignment/starting-layout.md": "1ae2fe8d78e7d004843821abc7ebc23928eb52548de093cc46377886cfb0b47c",
+    "docs/lessons-learned.md": "2ef9527d3c89b38f7fb84968b5334a63eee5b8baec6cc03c6d8261ac1d2b2947",
+    "docs/specs/2026-10-01-bed-assignment.md": "27ed4ac3fb83ad770b9a91f3c04c0fd25647ee42e64ea53a7a2b988a290ab107"
+  }
+}

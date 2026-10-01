@@ -47,3 +47,22 @@ closed and the task-owned preview server stopped after verification.
 The separate ambience JavaScript-memory gate remains failed. This panel is
 normally closed in that workload; these results do not attribute its remaining
 growth to personal details or alter its acceptance limit.
+
+## Production verification
+
+PR #187 merged at `6d2499d407d74f85d00929ac0bfde2bd4fe508dd`.
+Main CI `36867567115` and Pages `36868086093` completed successfully.
+On 2026-10-01 at 13:30 UTC, the public game loaded `index-DtZqWziq.js`.
+The committed proof ran through the browser provider's file interface from
+the original checkout, which is within that provider's allowed workspace.
+
+The live result matched the fixed local measurement: 20 unchanged paused
+refreshes, 30 observed leaves, zero text-child replacements and zero native
+text mutations. The deliberately changed cell returned to `100%`; simulation
+time remained at tick 0 and the proof reported no page errors. The browser
+console contained the separate favicon 404. `production-text.json` retains
+the result and proof hash. The task-owned page closed in `finally`; only the
+original blank tab remained. No preview server was needed for this check.
+
+This proves the deployed panel behavior. It does not complete the separately
+held bed artwork, ambience-memory acceptance or a whole-game performance test.

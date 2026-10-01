@@ -1,0 +1,34 @@
+[
+  {
+    "name": "owner2",
+    "path": "web/src/render/interaction-sprites.ts",
+    "mutatedExit": 1,
+    "restoredExit": 0,
+    "byteIdentical": true,
+    "sha256": "80e031afce5b32e128054d4e6d166df1f03d5ba529d25f4713790b70da430441"
+  },
+  {
+    "name": "swapped-place",
+    "path": "web/src/render/interaction-sprites.ts",
+    "mutatedExit": 1,
+    "restoredExit": 0,
+    "byteIdentical": true,
+    "sha256": "80e031afce5b32e128054d4e6d166df1f03d5ba529d25f4713790b70da430441"
+  },
+  {
+    "name": "clamped-cpu-alpha",
+    "path": "web/src/render/bed-sprites.ts",
+    "mutatedExit": 1,
+    "restoredExit": 0,
+    "byteIdentical": true,
+    "sha256": "dba7abd0ae35065d540f2be79c31ea08365b13a3f1315d6d1c71250203dda99b"
+  },
+  {
+    "name": "logical-row-depth",
+    "path": "web/src/input.ts",
+    "mutatedExit": 1,
+    "restoredExit": 0,
+    "byteIdentical": true,
+    "sha256": "521df3dfd19406aa3e6a7bd8bf85420ae404d432deb09753a1c05503dd9762cc"
+  }
+]

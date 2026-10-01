@@ -128,81 +128,94 @@ fn every_shipped_chain_step_projects_activity_only_while_running_at_its_exact_st
     let pack = terri_data::pack();
     assert_eq!(
         pack.chains.len(),
-        1,
-        "new chains need an activity and icon review"
+        4,
+        "new chains need activity and icon review"
     );
-    let chain = &pack.chains[0];
-    let expected = [
-        activity::GETTING_INGREDIENTS,
-        activity::PREPARING_FOOD,
-        activity::COOKING,
-        activity::EATING,
-    ];
-    assert_eq!(chain.steps.len(), expected.len());
-    for (index, (&expected, step)) in expected.iter().zip(&chain.steps).enumerate() {
-        assert!(
-            step.activity.is_some(),
-            "each shipped step needs authored identity"
-        );
-        let definition = pack
-            .objects
-            .iter()
-            .position(|object| object.roles.contains(&step.role))
-            .unwrap();
-        let mut sim = Sim::new_with_lot(16, 16);
-        let station = sim.spawn_object(
-            Position { x: 5.0, y: 5.0 },
-            terri_data::ObjectDefId(definition as u32),
-        );
-        let person = sim
-            .world_mut()
-            .spawn((
-                Agent,
-                Position { x: 4.0, y: 5.0 },
-                ChainState {
-                    chain: 0,
-                    step: index as u32,
-                    fumble_scale: 1.0,
-                },
-                Target {
-                    object: station,
-                    interaction: systems::chain::CHAIN_STEP,
-                },
-            ))
-            .id();
-        sim.sync_render_buffer();
-        assert_eq!(
-            projection(&sim, person),
-            (activity::NONE, visual_action::NONE),
-            "resumable progress alone is not running work"
-        );
-        sim.world_mut().entity_mut(person).insert(StepWork {
-            remaining_ticks: 10,
-        });
-        let before = sim.save_snapshot_v5();
-        let before_hash = sim.world_hash();
-        sim.sync_render_buffer();
-        assert_eq!(
-            projection(&sim, person),
-            (
-                expected,
-                if index == 3 {
-                    visual_action::EAT
-                } else {
-                    visual_action::NONE
-                }
-            ),
-            "dinner step {index}"
-        );
-        assert_eq!(sim.save_snapshot_v5(), before);
-        assert_eq!(sim.world_hash(), before_hash);
-        sim.world_mut().entity_mut(person).remove::<StepWork>();
-        sim.sync_render_buffer();
-        assert_eq!(
-            projection(&sim, person),
-            (activity::NONE, visual_action::NONE),
-            "completed or paused step clears its bubble"
-        );
+    for (chain_index, chain) in pack.chains.iter().enumerate() {
+        let expected: &[(u32, u32)] = match chain.id.as_str() {
+            "cook_dinner" => &[
+                (activity::GETTING_INGREDIENTS, visual_action::NONE),
+                (activity::PREPARING_FOOD, visual_action::PREPARE),
+                (activity::COOKING, visual_action::COOK),
+                (activity::COOKING, visual_action::COOK),
+                (activity::PREPARING_FOOD, visual_action::PREPARE),
+                (activity::EATING, visual_action::EAT),
+            ],
+            "prepare_snack" => &[
+                (activity::GETTING_INGREDIENTS, visual_action::NONE),
+                (activity::PREPARING_FOOD, visual_action::PREPARE),
+                (activity::EATING, visual_action::EAT),
+            ],
+            "clean_dishes" => &[
+                (activity::WASHING_DISHES, visual_action::PREPARE),
+                (activity::WASHING_DISHES, visual_action::WASH),
+            ],
+            "eat_shared_meal" => &[
+                (activity::PREPARING_FOOD, visual_action::PREPARE),
+                (activity::EATING, visual_action::EAT),
+            ],
+            id => panic!("unreviewed activity chain {id}"),
+        };
+        assert_eq!(chain.steps.len(), expected.len());
+        for (index, (&(expected, pose), step)) in expected.iter().zip(&chain.steps).enumerate() {
+            assert!(
+                step.activity.is_some(),
+                "each shipped step needs authored identity"
+            );
+            let definition = pack
+                .objects
+                .iter()
+                .position(|object| object.roles.contains(&step.role))
+                .unwrap();
+            let mut sim = Sim::new_with_lot(16, 16);
+            let station = sim.spawn_object(
+                Position { x: 5.0, y: 5.0 },
+                terri_data::ObjectDefId(definition as u32),
+            );
+            let person = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x: 4.0, y: 5.0 },
+                    ChainState {
+                        chain: chain_index as u32,
+                        step: index as u32,
+                        fumble_scale: 1.0,
+                    },
+                    Target {
+                        object: station,
+                        interaction: systems::chain::CHAIN_STEP,
+                    },
+                ))
+                .id();
+            sim.sync_render_buffer();
+            assert_eq!(
+                projection(&sim, person),
+                (activity::NONE, visual_action::NONE),
+                "resumable progress alone is not running work"
+            );
+            sim.world_mut().entity_mut(person).insert(StepWork {
+                remaining_ticks: 10,
+            });
+            let before = sim.save_snapshot_v5();
+            let before_hash = sim.world_hash();
+            sim.sync_render_buffer();
+            assert_eq!(
+                projection(&sim, person),
+                (expected, pose),
+                "{} step {index}",
+                chain.id
+            );
+            assert_eq!(sim.save_snapshot_v5(), before);
+            assert_eq!(sim.world_hash(), before_hash);
+            sim.world_mut().entity_mut(person).remove::<StepWork>();
+            sim.sync_render_buffer();
+            assert_eq!(
+                projection(&sim, person),
+                (activity::NONE, visual_action::NONE),
+                "completed or paused step clears its bubble"
+            );
+        }
     }
 }
 
@@ -329,11 +342,8 @@ fn missing_activity_does_not_guess_from_label_tags_or_sprite() {
         ))
         .id();
     sim.sync_render_buffer();
-    for person in [ordinary, cook] {
-        assert_eq!(
-            projection(&sim, person),
-            (activity::USING_OBJECT, visual_action::NONE)
-        );
+    for (person, pose) in [(ordinary, visual_action::NONE), (cook, visual_action::COOK)] {
+        assert_eq!(projection(&sim, person), (activity::USING_OBJECT, pose));
     }
 }
 
@@ -451,7 +461,7 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
         ("television", activity::WATCHING_TV),
         ("sofa", activity::SITTING),
         ("sink", activity::WASHING_HANDS),
-        ("kitchen_sink", activity::WASHING_DISHES),
+        ("kitchen_sink", activity::WASHING_HANDS),
         ("dining_table", activity::SITTING),
         ("long_sofa", activity::LOUNGING),
         ("radio", activity::LISTENING_RADIO),
@@ -478,6 +488,16 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
                 },
             ))
             .id();
+        if !pack.sleep_tag.is_empty()
+            && pack.object(definition).interactions[0]
+                .tags
+                .contains(&pack.sleep_tag)
+        {
+            source
+                .world_mut()
+                .entity_mut(person)
+                .insert(terri_core::SleepPlace(0));
+        }
         let mut restored = Sim::new_from_shipped_lot();
         restored
             .load_snapshot_v5(source.save_snapshot_v5())
@@ -488,7 +508,14 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
             .resolve_from_index(person.index());
         assert_eq!(
             projection(&restored, person),
-            (expected, visual_action::NONE),
+            (
+                expected,
+                if object == "double_bed" {
+                    visual_action::SLEEP
+                } else {
+                    visual_action::NONE
+                },
+            ),
             "{object} activity must rebuild on Load"
         );
     }
@@ -501,6 +528,8 @@ fn load_rebuilds_every_chain_step_activity_before_the_next_tick() {
         activity::GETTING_INGREDIENTS,
         activity::PREPARING_FOOD,
         activity::COOKING,
+        activity::COOKING,
+        activity::PREPARING_FOOD,
         activity::EATING,
     ];
     for (index, (step, &expected)) in pack.chains[0].steps.iter().zip(&expected).enumerate() {
@@ -537,7 +566,7 @@ fn load_rebuilds_every_chain_step_activity_before_the_next_tick() {
             let kind = pack
                 .item_kinds
                 .iter()
-                .position(|kind| kind == if index == 3 { "dinner" } else { "ingredients" })
+                .position(|kind| kind == if index >= 3 { "dinner" } else { "ingredients" })
                 .unwrap();
             source
                 .world_mut()
@@ -556,11 +585,14 @@ fn load_rebuilds_every_chain_step_activity_before_the_next_tick() {
             projection(&restored, person),
             (
                 expected,
-                if index == 3 {
+                [
+                    visual_action::NONE,
+                    visual_action::PREPARE,
+                    visual_action::COOK,
+                    visual_action::COOK,
+                    visual_action::PREPARE,
                     visual_action::EAT
-                } else {
-                    visual_action::NONE
-                }
+                ][index]
             ),
             "dinner step {index} must rebuild on Load"
         );

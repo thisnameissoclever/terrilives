@@ -301,6 +301,45 @@ class FakeEntities implements RenderSource {
   }
 }
 
+describe('domestic surface clutter', () => {
+  it('draws cooking clutter and separate waiting meals, and removes them when the live columns clear', () => {
+    const source = new FakeEntities() as FakeEntities & { dirtyDishes(): Uint32Array; mealPortions(): Uint32Array };
+    source.set([[2, 3, 2, 3, 1, spriteIndex('offlineCounter')]]);
+    source.dirtyDishes = () => new Uint32Array([3]);
+    source.mealPortions = () => new Uint32Array([3]);
+    const count = instanceCount(source, null);
+    expect(count).toBe(5);
+    const packed = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null);
+    expect(packed[1 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex('dirtyPrep'));
+    for (let plate = 2; plate < 5; plate++) {
+      expect(packed[plate * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex('mealPlate'));
+    }
+    expect(packed[2 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).not.toBe(packed[3 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]);
+    source.dirtyDishes = () => new Uint32Array([0]);
+    source.mealPortions = () => new Uint32Array([0]);
+    expect(instanceCount(source, null)).toBe(1);
+  });
+  it('changes table clutter as diners finish, without growing a single giant stack', () => {
+    const source = new FakeEntities() as FakeEntities & { dirtyDishes(): Uint32Array };
+    source.set([[2, 3, 2, 3, 1, spriteIndex('table')]]);
+    for (const units of [1, 2, 3, 4, 5]) {
+      source.dirtyDishes = () => new Uint32Array([units]);
+      expect(instanceCount(source, null)).toBe(1 + Math.min(units, 4));
+      const packed = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID);
+      expect(packed[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex(units > 4 ? 'dirtyDishesPair' : 'dirtyDishes'));
+    }
+  });
+  it('uses distance-driven carrying poses, with held dishes in all facings and palettes', () => {
+    for (const simId of [0, 1, 2]) for (const facing of [1, 2, 3, 4]) {
+      const moving = simBodySprite(0, 5, facing, 0, false, .25, .25, simId, 3);
+      expect(SPRITES[moving].name).toContain('CarryWalk');
+      const stopped = simBodySprite(0, 0, facing, 0, false, 0, 0, simId, 3);
+      expect(SPRITES[stopped].name).toContain('CarryIdle');
+      expect(SPRITES[simBodySprite(0, 0, facing, 0, false, 0, 0, simId, 0)].name).not.toContain('Carry');
+    }
+  });
+});
+
 describe('FixedStepDriver', () => {
   it('runs one tick per step at the configured rate, not at a fixed rate', () => {
     const tenHz = new FixedStepDriver(10, 5);
@@ -1135,10 +1174,13 @@ describe('approved rigged Sim selector', () => {
     ['sit', 'Sit', VISUAL_ACTION_SIT, SIT_FRAME_TICKS, 4],
     ['sleep', 'Sleep', VISUAL_ACTION_SLEEP, SLEEP_FRAME_TICKS, 4],
     ['exercise', 'Exercise', VISUAL_ACTION_EXERCISE, EXERCISE_FRAME_TICKS, 2],
+    ['prepare', 'Prepare', 10, 10, 4],
+    ['cook', 'Cook', 11, 10, 4],
+    ['wash', 'Wash', 12, 10, 4],
   ] as const;
 
-  it('selects every authored sample in all ten actions and four actual facings', () => {
-    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual(actions.map(([name]) => name).sort());
+  it('selects every authored sample in all thirteen actions and four actual facings', () => {
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...actions.map(([name]) => name), 'carry_walk', 'carry_idle'].sort());
     for (const [name, stem, action, halfCycle, count] of actions) {
       for (const [direction, suffix] of ['SE', 'NW', 'SW', 'NE'].entries()) {
         const facing = direction + 1;
@@ -1961,18 +2003,18 @@ describe('buildInstances', () => {
 
 describe('activity indicator bubbles', () => {
   // The owner's requirement, as quads: a sim that is doing something
-  // shows it. Only idle and off-lot work draw nothing; each active code
-  // floats a bubble one lift above
-  // the sim, nudged nearer so the pair cannot tie on depth ([V12]).
+  // shows it. Walking, idle and off-lot work draw no bubble. Activity
+  // bubbles float above the sim, nudged nearer so the pair cannot tie
+  // on depth ([V12]).
   const src = new FakeEntities();
 
-  it('floats bubbles over active Sims including walkers, and none over idlers', () => {
+  it('floats a bubble over the activity, and none over walkers or idlers', () => {
     src.set([
       [1, 1, 1, 1, KIND_AGENT, 3, 4], // talking
       [2, 2, 2, 2, KIND_AGENT, 3, 1], // walking
       [3, 3, 3, 3, KIND_AGENT, 3, 0], // idle - no bubble
     ]);
-    expect(instanceCount(src, null)).toBe(5);
+    expect(instanceCount(src, null)).toBe(4);
 
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const bubbleBase = 3 * FLOATS_PER_INSTANCE;
@@ -2013,7 +2055,7 @@ describe('activity indicator bubbles', () => {
   });
 
   it.each([
-    [1, 'Walking'], [2, 'Wait'], [3, 'Eat'], [4, 'Talk'], [5, 'Sleep'],
+    [2, 'Wait'], [3, 'Eat'], [4, 'Talk'], [5, 'Sleep'],
     [7, 'Use'], [8, 'Reading'], [9, 'Exercise'], [10, 'WatchFish'],
     [11, 'Sitting'], [12, 'Shower'], [13, 'Toilet'], [14, 'TV'],
     [15, 'LyingDown'], [16, 'WashHands'], [17, 'WashDishes'], [18, 'Radio'],
@@ -2121,10 +2163,13 @@ describe('the carried badge', () => {
     ]]);
     const built = buildInstances(src, 0.25, 0, 0, GRID, 100);
     const body = 0;
-    const badge = 2 * FLOATS_PER_INSTANCE;
-    const ring = 3 * FLOATS_PER_INSTANCE;
+    const badge = 1 * FLOATS_PER_INSTANCE;
+    const ring = 2 * FLOATS_PER_INSTANCE;
     const groundY = screenY(0.25, 0, 0);
 
+    expect(instanceCount(src, 100)).toBe(3);
+    expect(built[badge + OFFSET_SPRITE]).toBe(spriteIndex('carried_ingredients'));
+    expect(built[ring + OFFSET_SPRITE]).toBe(spriteIndex('selectionRing'));
     expect(built[body + OFFSET_SCREEN_Y]).toBe(drawnPosition(0.25, 0, built[body + OFFSET_SPRITE], 0, 0)[1]);
     expect(built[badge + OFFSET_SCREEN_Y]).toBe(groundY - 24);
     expect(built[ring + OFFSET_SCREEN_Y]).toBe(groundY);
@@ -2339,8 +2384,9 @@ describe('buildInstances over a real SimBridge', () => {
     // `a + (b - a) * 0`, which is exactly `a`, and both sides of each
     // comparison run the identical projection over identical inputs.
     const bridge = new SimBridge(new SimHandle(GRID, GRID), wasmMemory);
-    bridge.spawnObject(12, 2, 'fridge');
+    bridge.spawnObject(12, 2, 'sink');
     bridge.spawnAgent(1, 1, 20);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
     for (let i = 0; i < 5; i++) bridge.tick();
 
     const at = (alpha: number): number[] =>
@@ -2370,8 +2416,9 @@ describe('buildInstances over a real SimBridge', () => {
 
   it('rebuilds walking facing and distance phase from the saved tick position', () => {
     const bridge = new SimBridge(new SimHandle(GRID, GRID), wasmMemory);
-    bridge.spawnObject(12, 2, 'fridge');
+    bridge.spawnObject(12, 2, 'sink');
     bridge.spawnAgent(1, 1, 20);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
 
     let walkingRow = -1;
     for (let tick = 0; tick < 40 && walkingRow < 0; tick++) {
@@ -2529,8 +2576,10 @@ describe('the selection ring', () => {
     ]]);
     // Half way between the two ticks.
     const instances = buildInstances(source, 0.5, ORIGIN_X, ORIGIN_Y, GRID, 100);
-    const ring = slot(instances, 2);
+    const ring = slot(instances, 1);
     const sim = slot(instances, 0);
+    expect(instanceCount(source, 100)).toBe(2);
+    expect(ring.sprite).toBe(RING);
     expect([sim.x, sim.y]).toEqual(drawnPosition(5, 4, sim.sprite));
     expect(ring.y).toBe(screenY(5, 4, ORIGIN_Y));
     // And that really is the interpolated point, not either endpoint - so a

@@ -1,0 +1,31 @@
+
+> test
+> vitest run --maxWorkers=1
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/b770/terrilives/web
+
+ ❯ tests/atlas.test.ts (14 tests | 1 failed) 20733ms
+     × preserves registration, sample counts and source hashes for the blue shirt palette 11891ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/atlas.test.ts > the atlas manifest > preserves registration, sample counts and source hashes for the blue shirt palette
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/atlas.test.ts:398:36
+    396|   });
+    397|
+    398|   it.each(['blue', 'red'] as const)(
+       |                                    ^
+    399|     'preserves registration, sample counts and source hashes for the %…
+    400|     (variant) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 122 passed (123)
+      Tests  1 failed | 1798 passed (1799)
+   Start at  11:15:04
+   Duration  75.54s (transform 16.14s, setup 0ms, import 22.29s, tests 35.92s, environment 8ms)
+

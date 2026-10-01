@@ -50,6 +50,7 @@ import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import { PersonalDetailsPanel, createPersonalDetailsSurface } from './ui/personal-details.js';
+import { BedAssignmentPanel, createBedAssignmentSurface } from './ui/bed-assignment.js';
 import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
@@ -523,8 +524,19 @@ async function main(): Promise<void> {
   const personalDetailsPanel = new PersonalDetailsPanel(sim, sim.needNames(),
     createPersonalDetailsSurface(document, personalDetailsEmpty, personalDetailsContent), sim.needBarRefreshMs(),
     () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
+  const bedAssignmentSurface = createBedAssignmentSurface(document, personalDetails, {
+    choose: place => bedAssignmentPanel.choose(place),
+    assign: () => bedAssignmentPanel.assign(),
+    clear: () => bedAssignmentPanel.clear(),
+  });
+  const bedAssignmentPanel = new BedAssignmentPanel(sim, bedAssignmentSurface, sim.needBarRefreshMs(),
+    () => personalDetails.open && !simOverview.hidden && !simSheet.hidden);
   personalDetails.addEventListener('toggle', () => {
-    if (personalDetails.open) personalDetailsPanel.update(performance.now(), true);
+    if (personalDetails.open) {
+      const nowMs = performance.now();
+      personalDetailsPanel.update(nowMs, true);
+      bedAssignmentPanel.update(nowMs, true);
+    }
   });
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
@@ -663,6 +675,7 @@ async function main(): Promise<void> {
   moodPanel.update(initialHudMs, true);
   traitsPanel.update(initialHudMs, true);
   personalDetailsPanel.update(initialHudMs, true);
+  bedAssignmentPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -884,6 +897,7 @@ async function main(): Promise<void> {
           keyboardTargets.clear();
           builder.resetAfterLoad();
           housemateForm.resetAfterLoad();
+          bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
@@ -896,6 +910,7 @@ async function main(): Promise<void> {
           moodPanel.update(nowMs, true);
           traitsPanel.update(nowMs, true);
           personalDetailsPanel.update(nowMs, true);
+          bedAssignmentPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -1542,6 +1557,7 @@ async function main(): Promise<void> {
     floorTool.afterCommands();
     buyTool.afterCommands();
     housemateForm.afterCommands();
+    bedAssignmentPanel.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
@@ -1614,6 +1630,7 @@ async function main(): Promise<void> {
     moodPanel.update(nowMs);
     traitsPanel.update(nowMs);
     personalDetailsPanel.update(nowMs);
+    bedAssignmentPanel.update(nowMs);
     if (needsUpdated) syncDockSummary();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);

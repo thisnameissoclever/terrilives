@@ -1,0 +1,12 @@
+{
+  "head": "c912fffc9cf997657397ac8154b16c655c93fa79",
+  "release_executable_sha256": "88b0bc82f122ceb7b71d1d5a462e7f1a772a34a3e760335a4f115f67c7854277",
+  "browser_wasm_asset": "terri_wasm_bg-CqB6LUri.wasm",
+  "source_hashes": {
+    "crates\\terri-sim\\src\\privacy.rs": "1ce42a4386859ea16000a4780b758ccea5c564a11e0c930d249707aea5fdd2a4",
+    "crates\\terri-sim\\src\\systems\\interpersonal.rs": "cfc871a7dddc8bfec706933ea3d8f8475e4285a4d87fb5e610b826a8e67c0e69",
+    "crates\\terri-sim\\src\\systems\\movement.rs": "5ecd2f24e163ac573b3b70aaa688b42c3e71b041e73c428086844275ed8f1c7a",
+    "crates\\terri-wasm\\src\\lib.rs": "46c992714bca85f0adcbf9d49f7f1447ecaee0e82f940df68a47c1d50dbb7bc5",
+    "crates\\terri-core\\src\\save.rs": "6e22b9f28b116050264581056f5ecc4c9e734a2a2a486e36daf1a194c361c1f3"
+  }
+}

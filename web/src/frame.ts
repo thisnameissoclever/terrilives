@@ -1,3 +1,4 @@
+import { SLEEP_VISUAL_ACTION } from './render/bed-sprites.js';
 /**
  * The frame loop's two halves: pacing the simulation, and turning the two
  * most recent simulation ticks into one frame's worth of GPU instances.
@@ -18,6 +19,7 @@ import {
   ACTIVITY_AT_WORK,
   EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
+  OFFSET_PROJECTION_ANCHOR_X,
   KIND_AGENT,
   TINT_NONE,
   writeInstance,
@@ -25,13 +27,14 @@ import {
   writeColourway,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, BED_CATALOG, spriteIndex } from './render/atlas.js';
 import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
 import { writeFootprintProjection } from './render/footprint-depth.js';
+import { surfaceLayout, surfaceItemCount, surfaceItemSprite, surfacePointIndex } from './render/surface-items.js';
 import type { PlacementPreview } from './bridge.js';
 import {
   placementInstanceCount,
@@ -332,7 +335,7 @@ export const VISUAL_ACTION_WATCH_FISH = 7;
 export const VISUAL_ACTION_SIT = 8;
 
 /** The append-only visual-action code for sleeping in the lower bunk. */
-export const VISUAL_ACTION_SLEEP = 9;
+export const VISUAL_ACTION_SLEEP = SLEEP_VISUAL_ACTION;
 
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
@@ -551,8 +554,8 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
-const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
-const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant, BED_CATALOG);
 
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {
@@ -561,20 +564,26 @@ export function simSprite(_id: number, simId = 0xffff_ffff): number {
 
 const RIGGED_ACTIONS: readonly string[] = [
   'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
-  'watch_fish', 'sit', 'sleep',
+  'watch_fish', 'sit', 'sleep', 'prepare', 'cook', 'wash',
 ];
 const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
   1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
   1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
+  10, 10, 10,
 ];
 
 /** Sample the baked rig from simulation state, without an animation clock. */
 export function simBodySprite(
   id: number, visualAction: number, facing: number, simulationTick: number,
-  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff,
+  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff, carriedDishes = 0,
 ): number {
-  if (!validFacing(facing)) return simSprite(id, simId);
-  const action = RIGGED_ACTIONS[visualAction] ?? 'idle';
+  if (!validFacing(facing)) {
+    if (carriedDishes === 0) return simSprite(id, simId);
+    facing = 1;
+  }
+  const action = carriedDishes > 0 && (visualAction === VISUAL_ACTION_WALK || visualAction === 0)
+    ? (visualAction === VISUAL_ACTION_WALK ? 'carry_walk' : 'carry_idle')
+    : RIGGED_ACTIONS[visualAction] ?? 'idle';
   const clip = RIGGED_SIM_VARIANTS[simShirtVariant(simId)][action];
   const frames = clip.frames[facing - 1];
   const halfCycle = ACTION_HALF_CYCLE_TICKS[visualAction] ?? 1;
@@ -587,13 +596,13 @@ export function simBodySprite(
 }
 
 /**
- * One bubble for every active activity, including travel and generic use.
+ * Bubbles identify activities and waiting; travel has no bubble.
  * Idle Sims have no task; off-lot workers have no visible body. The codes
  * match `render_buffer::activity`, including exact authored object uses.
  */
 const INDICATOR_SPRITES: readonly (number | null)[] = [
   null,
-  spriteIndex('activityWalking'),
+  null,
   spriteIndex('activityWait'),
   spriteIndex('activityEat'),
   spriteIndex('activityTalk'),
@@ -810,6 +819,8 @@ export interface RenderSource {
   simIds?(): Uint32Array;
   /** Exact validated action target entity ID, or u32::MAX. */
   interactionTargets?(): Uint32Array;
+  sleepingBeds?(): Uint32Array;
+  sleepingPlaces?(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -848,6 +859,9 @@ export interface RenderSource {
    * u32::MAX empty-hands sentinel. Read every frame.
    */
   carrying(): Uint32Array;
+  dirtyDishes?(): Uint32Array;
+  carriedDishes?(): Uint32Array;
+  mealPortions?(): Uint32Array;
   /**
    * One name per pack item kind - `carried_<kind>` atlas resolution's
    * input. Stable for the life of the pack; read lazily once.
@@ -978,7 +992,7 @@ export function buildInstanceBatch(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
+  const needed = (count * 8 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
     + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
@@ -1003,6 +1017,9 @@ export function buildInstanceBatch(
   const colourwayShifts = source.colourwayShifts?.() ?? null;
   const footprintWidths = source.footprintWidths?.();
   const footprintDepths = source.footprintDepths?.();
+  const dirtyDishes = source.dirtyDishes?.();
+  const carriedDishes = source.carriedDishes?.();
+  const mealPortions = source.mealPortions?.();
   interactions.updateSource(source, simulationTick, reducedMotion);
   const replacedRow = placementReplacedRow(source, selected, placement);
 
@@ -1010,7 +1027,7 @@ export function buildInstanceBatch(
     // Office Sims, paired objects and drawable move previews keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
+    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || interactions.drawSuppressed[i] || i === replacedRow) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
@@ -1058,6 +1075,7 @@ export function buildInstanceBatch(
             wx,
             wy,
             simIds?.[i],
+            carriedDishes?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     const localLight = lighting === null
@@ -1100,6 +1118,31 @@ export function buildInstanceBatch(
   // posts, rail and ladder over it without teaching the shell which object
   // owns those pixels.
   let slot = count;
+  for (let row = 0; row < count; row++) {
+    if (row === replacedRow || interactions.suppressed[row]) continue;
+    const wx = current[row * 2];
+    const wy = current[row * 2 + 1];
+    const layout = surfaceLayout(sprites[row]);
+    if (!layout) continue;
+    const dirty = dirtyDishes?.[row] ?? 0;
+    const items = surfaceItemCount(layout, dirty, mealPortions?.[row] ?? 0);
+    for (let item = 0; item < items; item++) {
+      const sprite = surfaceItemSprite(layout, dirty, item);
+      const point = layout.points[surfacePointIndex(layout, dirty, item)];
+      const light = lighting === null ? EMISSIVE_NONE : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
+      writeInstance(scratch, slot,
+        screenX(wx, wy, originX, scale) + (spriteDrawOffsetX(sprite) + point[0]) * scale,
+        screenY(wx, wy, originY, scale) + (spriteDrawOffsetY(sprite) + point[1]) * scale,
+        layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND), sprite,
+        TINT_NONE, TINT_NONE, TINT_NONE, light);
+      writeShade(scratch, slot, sampleShade(sky, Math.floor(wx), Math.floor(wy)));
+      // Continue the supporting furniture's depth field at this displaced point.
+      writeFootprintProjection(scratch, slot, footprintWidths?.[row] ?? 0,
+        footprintDepths?.[row] ?? 0, sprite, gridSize);
+      scratch[slot * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += point[0];
+      slot++;
+    }
+  }
   if (portals !== undefined) {
     slot = writePortals(scratch, slot, portals, originX, originY, gridSize, scale, reducedMotion, lighting, sky, alpha);
   }
@@ -1168,17 +1211,20 @@ export function buildInstanceBatch(
             wx,
             wy,
             simIds?.[i],
+            carriedDishes?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
+    const bedOwner = interactions.bedScenes[i]?.owners[interactions.bedPlaces[i]];
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale),
+      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
       // The lift scales with the camera: the sim's sprite is drawn
       // `scale` times taller, so an unscaled lift would sink the bubble
       // into a zoomed head and orbit it high over a zoomed-out one.
-      screenY(wx, wy, originY, scale) -
-        (spriteContentLift(displayedBody) - INDICATOR_INSET) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner
+        ? bedOwner.marker[1] - 24
+        : -(spriteContentLift(displayedBody) - INDICATOR_INSET)) * scale,
       layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
@@ -1186,6 +1232,7 @@ export function buildInstanceBatch(
     // not merely the owner's center. Its screen X remains that same center.
     writeFootprintProjection(scratch, slot - 1, footprintWidths?.[positionRow] ?? 0,
       footprintDepths?.[positionRow] ?? 0, sprite, gridSize);
+    if (bedOwner) scratch[(slot - 1) * FLOATS_PER_INSTANCE + OFFSET_PROJECTION_ANCHOR_X] += bedOwner.marker[0];
   }
 
   // **The carried and eating props, after the bubbles** - [K3]'s hands on
@@ -1262,12 +1309,14 @@ export function buildInstanceBatch(
     const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
     const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
+    const bedOwner = interactions.bedScenes[ringRow]?.owners[interactions.bedPlaces[ringRow]];
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale),
-      layeredDepth(wx, wy, gridSize, LAYER_PROP),
+      screenX(wx, wy, originX, scale) + (bedOwner?.marker[0] ?? 0) * scale,
+      screenY(wx, wy, originY, scale) + (bedOwner ? bedOwner.marker[1] - 6 : 0) * scale,
+      layeredDepth(wx, wy, gridSize, bedOwner ? LAYER_FOREGROUND : LAYER_PROP)
+        - (bedOwner ? INDICATOR_DEPTH_NUDGE : 0),
       SELECTION_RING_SPRITE,
       TINT_NONE,
       TINT_NONE,
@@ -1316,6 +1365,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
   interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null,
   highlight: TileHighlight | null = null): number {
   let extras = 0;
+  const sprites = source.sprites();
   const activities = source.activities();
   const carrying = source.carrying();
   const kinds = source.kinds();
@@ -1324,7 +1374,12 @@ export function instanceCount(source: RenderSource, selected: number | null,
   const foregroundSprites = source.foregroundSprites?.() ?? null;
   interactions.updateSource(source, 0, true);
   const replacedRow = placementReplacedRow(source, selected, placement);
+  const dirtyDishes = source.dirtyDishes?.();
+  const mealPortions = source.mealPortions?.();
   for (let i = 0; i < source.count; i++) {
+    if (i !== replacedRow && !interactions.suppressed[i]) {
+      extras += surfaceItemCount(surfaceLayout(sprites[i]), dirtyDishes?.[i] ?? 0, mealPortions?.[i] ?? 0);
+    }
     if (
       foregroundSprites !== null &&
       foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&

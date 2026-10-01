@@ -73,6 +73,8 @@ pub struct CircadianFile {
 
 #[derive(Debug, Deserialize)]
 pub struct TuningFile {
+    #[serde(default)]
+    pub domestic: Option<crate::pack::DomesticTuning>,
     /// The circadian rhythm, optional so every existing tuning fixture
     /// still parses. See `CircadianFile`.
     #[serde(default)]
@@ -254,6 +256,15 @@ pub struct TuningFile {
     pub choice_probability_floor: f32,
     pub wander_pause_variance: f32,
     pub self_preservation_curve: [(u8, f32); 6],
+    pub social_unmet_need_penalty: f32,
+    pub social_critical_need_penalty: f32,
+    pub bathroom_privacy_penalty: f32,
+    pub social_boundary_avoidance_cost: f32,
+    pub shyness_annoyance_strength: f32,
+    pub boundary_wander_reconsider_chance: f32,
+    pub shyness_wander_reconsider_strength: f32,
+    #[serde(default)]
+    pub relationships: crate::RelationshipTuning,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -392,6 +403,9 @@ pub struct ObjectDef {
     /// Appended so existing authored objects remain valid unchanged.
     #[serde(default)]
     pub action_socket: Vec<ActionSocketDef>,
+    /// Ordered sleeping-place access, in base-facing footprint coordinates.
+    #[serde(default)]
+    pub sleep_place: Vec<crate::pack::SleepPlaceAccess>,
 }
 
 /// A named presentation point in object-local lot coordinates.
@@ -481,6 +495,8 @@ pub struct InteractionDef {
     /// field because they have no SmartObject sound source.
     #[serde(default)]
     pub sound_action: Option<String>,
+    #[serde(default)]
+    pub shared_activity: Option<String>,
     /// Optional activity bubble identity, independent of body art and tags.
     /// Unknown values are reported with the owning content row by the compiler.
     #[serde(default)]
@@ -661,6 +677,8 @@ pub struct PersonalitiesFile {
 
 #[derive(Debug, Deserialize)]
 pub struct ArchetypeDef {
+    #[serde(default = "default_cleanliness")]
+    pub cleanliness: f32,
     pub id: String,
     /// Sleep-schedule displacement in ticks: negative is earlier, positive later.
     ///
@@ -1042,6 +1060,10 @@ pub struct PlacementDef {
     pub facing: Option<String>,
 }
 
+fn default_cleanliness() -> f32 {
+    0.5
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1054,7 +1076,7 @@ mod tests {
     /// The integer knobs are deliberately different numbers for the same
     /// reason, and every float is exact in binary32 so the assertions can be
     /// equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 63] = [
+    const TUNING_LINES: [(&str, &str); 70] = [
         ("choice_comfort_temperature", "1.0"),
         ("choice_exploration", "0.005"),
         ("choice_comfort_exploration", "0.20"),
@@ -1120,6 +1142,13 @@ mod tests {
         ("waiting_mood_max_penalty", "30.0"),
         ("satisfaction_mood_neutral_band", "15.0"),
         ("satisfaction_mood_per_tick", "0.025"),
+        ("social_unmet_need_penalty", "0.20"),
+        ("social_critical_need_penalty", "0.35"),
+        ("bathroom_privacy_penalty", "0.45"),
+        ("social_boundary_avoidance_cost", "0.01"),
+        ("shyness_annoyance_strength", "0.25"),
+        ("boundary_wander_reconsider_chance", "0.10"),
+        ("shyness_wander_reconsider_strength", "0.15"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.

@@ -1,0 +1,186 @@
+{
+  "scope": "Bed-only release WASM saves for independent privacy-extension compatibility checks",
+  "checkoutCommit": "e356b949fa8ca6375de6f8a145c0f068463636ff",
+  "wasmSha256": "564035eedbc13836565dd93afda3bcb62aafc3d753f5c3f82d4d070411cd5eb1",
+  "bindingsSha256": "a1b767eb78e8b32deefee7d86034ba11ddc4bd38d88b9ebc50d6eed162fdbbcb",
+  "seed": {
+    "low": 2301,
+    "high": 0
+  },
+  "fixtures": [
+    {
+      "file": "two-walking-assigned.bin",
+      "byteLength": 3234,
+      "sha256": "fadfcb1a1404eaa557a72f2ba018b4f99801adde34220cb6841161125f1a3b2c",
+      "tick": "1",
+      "worldHash": "3422107401275436187",
+      "places": [
+        {
+          "bed": 19,
+          "ordinal": 0,
+          "x": 0,
+          "y": 8,
+          "assignee": 34,
+          "occupant": 34
+        },
+        {
+          "bed": 19,
+          "ordinal": 1,
+          "x": 0,
+          "y": 8,
+          "assignee": 35,
+          "occupant": 35
+        }
+      ],
+      "people": [
+        {
+          "id": 34,
+          "simId": 0,
+          "activity": 1,
+          "position": [
+            8.75,
+            2
+          ]
+        },
+        {
+          "id": 35,
+          "simId": 1,
+          "activity": 1,
+          "position": [
+            2,
+            8.25
+          ]
+        }
+      ],
+      "pendingCommand": null
+    },
+    {
+      "file": "two-sleeping-assigned.bin",
+      "byteLength": 3216,
+      "sha256": "e5e806e578f0c770800466a77afe6093e54964442770bfda2bffe65060271ea8",
+      "tick": "53",
+      "worldHash": "10417476473638248242",
+      "places": [
+        {
+          "bed": 19,
+          "ordinal": 0,
+          "x": 0,
+          "y": 8,
+          "assignee": 34,
+          "occupant": 34
+        },
+        {
+          "bed": 19,
+          "ordinal": 1,
+          "x": 0,
+          "y": 8,
+          "assignee": 35,
+          "occupant": 35
+        }
+      ],
+      "people": [
+        {
+          "id": 34,
+          "simId": 0,
+          "activity": 5,
+          "position": [
+            1,
+            7
+          ]
+        },
+        {
+          "id": 35,
+          "simId": 1,
+          "activity": 5,
+          "position": [
+            1,
+            10
+          ]
+        }
+      ],
+      "pendingCommand": null
+    },
+    {
+      "file": "two-sleeping-pending-clear.bin",
+      "byteLength": 3219,
+      "sha256": "974e6b669f710c974b4aa949e2ef0ea4b146851f4945e6312fa24c5c2e1a56c3",
+      "tick": "53",
+      "worldHash": "17055943955836210022",
+      "places": [
+        {
+          "bed": 19,
+          "ordinal": 0,
+          "x": 0,
+          "y": 8,
+          "assignee": 34,
+          "occupant": 34
+        },
+        {
+          "bed": 19,
+          "ordinal": 1,
+          "x": 0,
+          "y": 8,
+          "assignee": 35,
+          "occupant": 35
+        }
+      ],
+      "people": [
+        {
+          "id": 34,
+          "simId": 0,
+          "activity": 5,
+          "position": [
+            1,
+            7
+          ]
+        },
+        {
+          "id": 35,
+          "simId": 1,
+          "activity": 5,
+          "position": [
+            1,
+            10
+          ]
+        }
+      ],
+      "pendingCommand": {
+        "code": 19,
+        "agent": 34,
+        "place": null
+      }
+    }
+  ],
+  "agents": [
+    34,
+    35
+  ],
+  "bed": 19,
+  "bedName": "The Restorative Unit",
+  "interactions": [
+    "Go to bed"
+  ],
+  "continuation": {
+    "ticks": 40,
+    "exactSaveBytes": true,
+    "pendingClearApplied": true,
+    "places": [
+      {
+        "bed": 19,
+        "ordinal": 0,
+        "x": 0,
+        "y": 8,
+        "assignee": -1,
+        "occupant": 34
+      },
+      {
+        "bed": 19,
+        "ordinal": 1,
+        "x": 0,
+        "y": 8,
+        "assignee": 35,
+        "occupant": 35
+      }
+    ]
+  }
+}
