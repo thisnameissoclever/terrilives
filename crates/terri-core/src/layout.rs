@@ -559,6 +559,22 @@ mod tests {
         );
     }
 
+    /// [FM-tie], [FM-show]: labels say the relation from the selected sim's side.
+    #[test]
+    fn family_labels_name_each_relation_from_both_sides() {
+        for (relation, forward, reverse) in [
+            (Relation::Partner, "partner", "partner"),
+            (Relation::Parent, "parent", "child"),
+            (Relation::Child, "child", "parent"),
+            (Relation::Sibling, "sibling", "sibling"),
+        ] {
+            let mut family = FamilyTies::default();
+            assert!(family.set(7, 2, Some(relation)));
+            assert_eq!(family.relation(7, 2).unwrap().word(), forward);
+            assert_eq!(family.relation(2, 7).unwrap().word(), reverse);
+        }
+    }
+
     /// [FM-save]: a saved list is refused whole rather than repaired.
     #[test]
     fn a_saved_family_is_refused_when_it_cannot_be_true() {

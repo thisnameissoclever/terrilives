@@ -7797,3 +7797,28 @@ the explicit overhead-clearance failure. Delete that guard and require the
 negative proof to notice. Test standing reading with its exact active queue,
 visual action, activity and ordinary adjacent position. Test front and rear
 padding separately because their projected bounds differ.
+## [L-mutation-budget-must-span-prs] Bound mutation runners across the repository
+
+**What happened.** Several PRs each started an eight-shard mutation sweep.
+Their combined runner use delayed main CI and Pages for roughly two hours.
+Review of the fix also found that a manual sweep on main shared its outer
+workflow group with push CI, so waiting mutation jobs could still hold up
+deployment after runner use was bounded.
+
+**Root cause.** Per-PR cancellation removes obsolete heads of that PR; it does
+not bound work across different PRs. A shared group with the default pending
+queue would cancel another PR's waiting shard. Grouping manual and push runs
+together also serializes work that has different delivery responsibilities.
+
+**Prevention.** Share one mutation group per shard across the repository, use
+`queue: max` with cancellation disabled in those groups, and separate events
+in the outer workflow group. Keep all eight shards and all mutation gates.
+The queue holds at most 100 pending jobs per group; cancellation at that limit
+is incomplete evidence. Existing dispatched runs retain their configuration.
+
+**Verify.** Run the CI script tests. Remove the shared budget, make it unique
+per run, replace pending jobs, enable cancellation, add a ninth shard, stop
+invoking the guards, cancel main runs, or remove event isolation. Each fault
+must fail a named assertion, and the original workflow bytes must be restored.
+Check that GitHub accepts the updated workflow. This validates configuration;
+it does not measure account-wide runner availability or promise a queue delay.
