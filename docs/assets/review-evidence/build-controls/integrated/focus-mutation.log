@@ -1,0 +1,14 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ ''
+- 'builder-object'
+
+    at C:\Users\myema\.codex\visualizations\2026\10\01\01a0f829-0992-7362-8f7d-9481810ffedc\focus-proof.cjs:13:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '',
+  expected: 'builder-object',
+  operator: 'strictEqual',
+  diff: 'simple'
+}

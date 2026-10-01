@@ -1,9 +1,9 @@
 * text=auto eol=lf
 
 # Cooking receipts bind the exact producer and contact-definition bytes.
-assets/models/domestic/render_dining.py -text
-assets/models/domestic/render_pot.py -text
-assets/models/domestic/cooking-contact.json -text
+assets/models/domestic/render_dining.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/render_pot.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/domestic/cooking-contact.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
 # This accepted source manifest is byte-hashed by the preservation proof.
 # Newline conversion would change the approved input on a clean checkout.

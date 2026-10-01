@@ -1,5 +1,15 @@
 # Lessons Learned
 
+## [L-build-controls-intrinsic-space-and-focus] Allocate actual control space and retain focus
+
+**What happened.** Compact Build controls overlapped the panel with enlarged text. Container moves lost keyboard focus in Options, zoom controls and Build-panel descendants.
+
+**Root cause.** A desktop display selector overrode the compact camera grid. The action positioner bounded its box below the actual buttons' height. Independent fixed boxes could not allocate shared space. DOM reparenting then removed the active control without restoring focus.
+
+**Prevention.** Compare selector specificity at responsive boundaries. Allocate intrinsic control height in one short-screen grid, reserve visible game space, and scroll tool content below navigation. Preserve a focused descendant across the complete move when it remains visible and enabled. Do not treat a smaller container as evidence that its children fit.
+
+**Verify.** Measure every button, its hit target and nearby panels with doubled text, long feedback and expanded disclosures. Check focus through Options opening and closure, and across 701px/700px in both directions for selectors, Shortcuts and Exit build. Deliberately break pending guards, input ownership, hiding and unchanged-frame guards; retain failures and verify byte-identical restoration. See the dated [Build controls evidence](assets/review-evidence/build-controls/README.md).
+
 ## [L-changelog-has-its-own-tested-history] Published Markdown needs a site history
 
 **What happened.** Adding a generated changelog to a site whose CI skips Markdown exposed two publication gaps: notes would not trigger Pages, and comparing notes only from the last tested game would repeatedly redeploy later unrelated documentation.
@@ -9318,6 +9328,6 @@ writer cannot replace an existing terminal result.
 
 **Root cause.** Three consumers treated the same physical interaction differently: loading restored only the historical action, routing selected a generic furniture approach, and picking omitted the displayed carrying pose.
 
-**Prevention.** Append new save fields after every published field. Adopt valid legacy diners before re-saving, while retaining strict validation for current saves. Preserve the exact reserved endpoint through privacy detours. Use the same pose predicate in rendering and picking.
+**Prevention.** Append new save fields after every published field. Adopt valid legacy diners before re-saving, while retaining strict validation for current saves. Preserve the exact reserved endpoint through privacy detours. Use the same pose predicate in rendering and picking. Compare receipt-bound producer hashes with Git index bytes; a matching working file does not prove that staged newline conversion preserves the receipt.
 
 **Verify.** Load an old active diner, tick, re-save and reload repeatedly. Check seated and standing detours, including blocked endpoints. Pick a carried-food silhouette outside the ordinary body's bounds. Deliberately disable each mechanism and require its regression test to fail.

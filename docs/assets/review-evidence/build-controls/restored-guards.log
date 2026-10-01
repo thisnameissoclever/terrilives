@@ -1,0 +1,12 @@
+
+> test
+> vitest run --maxWorkers=1 tests/build-context.test.ts
+
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/9fb8/terrilives/web
+
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  11:14:13
+   Duration  642ms (transform 296ms, setup 0ms, import 360ms, tests 146ms, environment 0ms)

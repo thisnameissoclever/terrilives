@@ -1,5 +1,13 @@
 # Alpha Feel Notes
 
+## [A-build-context-controls] Build actions in the viewport, 2026-10-01
+
+The displayed game was exercised on desktop, phone and short landscape with all five Build tools. Contextual actions followed selection, pan and zoom. Floors selected without painting; applying a covering changed the chosen tile. Furniture sale showed the actual payout. Help and Options suspended contextual actions, and tool changes reset only the relevant shortcut disclosure.
+
+Enlarged text exposed overlapping controls and focus loss during layout changes. One grid now allocates compact controls and scrollable tool content; focus survives container moves. Other reviewed surfaces include Options, object menus, the Sim dock and its detail tabs, both housemate form pages, and confirmation dialogs.
+
+These are local browser observations and automated geometry checks. The owner accepted the displayed screenshots on 2026-10-01. Physical-phone use and spoken screen-reader output remain unverified. Commands, measurements and screenshots belong to the dated [Build controls evidence](assets/review-evidence/build-controls/README.md).
+
 ## [A-packed-floor-preview] Drawn floor selection and viewport help
 
 2026-10-01, production build on isolated port 5224. Desktop and 390x844

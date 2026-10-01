@@ -1,0 +1,38 @@
+[
+  {
+    "path": "assets/models/domestic/render_dining.py",
+    "sha256": "e1638d27547f029c997f24d16eb7f46f4b4be2805b6b3ea9811bf73fe5db175e"
+  },
+  {
+    "path": "assets/models/domestic/cooking-contact.json",
+    "sha256": "c02f2d31ac9b54865db6ecb22865b14bd694fa9a1e961504546ebfee41b1ce39"
+  },
+  {
+    "path": "assets/models/domestic/dishes.py",
+    "sha256": "ba66c899eb7abd5c09cb96d940ca0c4e971bd52a194c033bcf8b816623f69220"
+  },
+  {
+    "path": "assets/models/domestic/render_pot.py",
+    "sha256": "ba80c8c77abf3f1dcffc2d1d663b55416aa433ac7e6a6f959b4492a345c9fd2a"
+  },
+  {
+    "path": "assets/models/domestic/dishes.py",
+    "sha256": "ba66c899eb7abd5c09cb96d940ca0c4e971bd52a194c033bcf8b816623f69220"
+  },
+  {
+    "path": "assets/models/domestic/verify_cooking_contact.py",
+    "sha256": "f8e4b7b12acd4841a406daf68f7da0cccc621b8867cebd63ee36b81415f30a13"
+  },
+  {
+    "path": "assets/models/domestic/cooking-contact.json",
+    "sha256": "c02f2d31ac9b54865db6ecb22865b14bd694fa9a1e961504546ebfee41b1ce39"
+  },
+  {
+    "path": "assets/models/kitchen/stove_model.py",
+    "sha256": "5193bf278a0e2407171c51faf26794c75b3161f0e9a2e624b89dd03a4d7a9642"
+  },
+  {
+    "path": "assets/models/domestic/render_pot.py",
+    "sha256": "ba80c8c77abf3f1dcffc2d1d663b55416aa433ac7e6a6f959b4492a345c9fd2a"
+  }
+]

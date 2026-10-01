@@ -1,6 +1,6 @@
 # Seated dining and cleanup verification
 
-Observed on 2026-10-01 in the Windows development checkout. This evidence covers the cleanup and dining branch integrated with main `85e826ba`, including its published sleeping-place and privacy behavior. [verification.json](verification.json) records exact commands, exit codes and inspected source hashes. These are local results; no deployment or live-game acceptance is asserted.
+Observed on 2026-10-01 in the Windows development checkout. The native and visual evidence covers the cleanup and dining branch integrated with main `85e826ba`, including its published sleeping-place and privacy behavior. The final web checks also include main `ef383246` and its Build controls; that integration does not change the dining simulation or art. [verification.json](verification.json) records exact commands, exit codes and inspected source hashes. These are local results; no deployment or live-game acceptance is asserted.
 
 ## Behavior
 
@@ -24,6 +24,8 @@ The initial full native run passed the core, data and simulation suites but fail
 
 [mutations.json](mutations.json) records seven deliberate native regressions caught by assertions: seat arbitration, chair direction, dirty-setting exclusion, state hashing, exact privacy endpoints, legacy adoption and deferred cleanup. [picking-mutation.json](picking-mutation.json) records the carried-food picking regression. Each mutation was restored byte-for-byte. These targeted checks are separate from a full remote mutation sweep, which was not run.
 
-The final web suite, typecheck and production build passed. The sprite and model suites passed, the generated atlas matches its source, and [atlas-prefix.json](atlas-prefix.json) records preservation of all 1,833 published sprite records and their pixels, including covered-bed aliases. New dining clips append after the published records. Changelog tests and generation passed. The production build retains its existing advisory about large JavaScript chunks.
+The web suite after the final browser binary build passed 1,807 tests with one worker. An earlier concurrent run passed 1,804 tests and timed out in three existing source-hash tests; no thresholds were changed. After integrating the newer Build controls, the complete combined web suite passed 1,782 tests, typecheck and the production build. The differing totals reflect the upstream Build test changes.
+
+The sprite and model suites passed, the generated atlas matches its source, and [atlas-prefix.json](atlas-prefix.json) records preservation of all 1,833 published sprite records and their pixels, including covered-bed aliases. New dining clips append after the published records. [git-receipts.json](git-receipts.json) verifies producer inputs against actual Git index bytes, not only working files. Receipt-bound producer files preserve their original line endings. Changelog tests and generation passed. The production build retains its existing advisory about large JavaScript chunks.
 
 The simulation specification is [meals and cleanup](../../specs/2026-09-30-meals-and-cleanup.md). Personality, needs, mood and directional affinity interactions are documented in [Sim relationships](../../SIM-RELATIONSHIPS.md). Task-owned browser pages and preview servers were closed after verification.

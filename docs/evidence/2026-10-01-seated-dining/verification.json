@@ -79,6 +79,36 @@
       "exit_code": 0,
       "result": "Generated atlas matches source.",
       "log": "dining-atlas-integrated-check.log"
+    },
+    {
+      "command": "npm --prefix web run typecheck",
+      "exit_code": 0,
+      "result": "Passed.",
+      "log": "dining-ui-integration-typecheck.log"
+    },
+    {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exit_code": 0,
+      "result": "124 files; 1782 passed.",
+      "log": "dining-ui-integration-tests.log"
+    },
+    {
+      "command": "npm --prefix web run build",
+      "exit_code": 0,
+      "result": "Production build passed with existing chunk advisory.",
+      "log": "dining-ui-integration-build.log"
+    },
+    {
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "exit_code": 0,
+      "result": "12 passed.",
+      "log": "dining-ui-integration-changelog-tests.log"
+    },
+    {
+      "command": "node scripts/build-changelog.mjs",
+      "exit_code": 0,
+      "result": "Passed.",
+      "log": "dining-ui-integration-changelog-build.log"
     }
   ],
   "native_tests": 1423,
@@ -90,5 +120,19 @@
   "runtime": {
     "cooking": "20 consecutive ticks, facing NE; activity Cooking and visual Cook confirmed in cooking-runtime-rows.json",
     "dining": "One native fixture meal batch; cook and three recipients observed eating simultaneously, two seated and two standing; 14 screenshots across the natural dining interval."
+  },
+  "final_main_integration": "ef383246",
+  "final_web_tests": 1782,
+  "native_and_visual_integration_commit": "5eff7de1",
+  "source_git_index_sha256": {
+    "crates/terri-core/src/save.rs": "9d83edb149b9dcd39230b77d12a2005fd27acfe7eda61f02f15fd7dfd800ab99",
+    "crates/terri-sim/src/dining.rs": "94d9864953966cafea8f67f1a492a13f86f2e5c9bf5f1c26da8d483ed124cb80",
+    "crates/terri-sim/src/dining/tests.rs": "a16758be1593ddca42b74aa8680806e4203b6472893701372cb56b8449fbbcc7",
+    "crates/terri-sim/src/domestic.rs": "ccda805d60877149ceae2bdd5f93533e341d7a5a9f03e671d022779763187333",
+    "crates/terri-wasm/src/lib.rs": "afb1b09d8f8e75207a1272bf43f4d3eb5bf14182ce8a55566da550ab4129aee1",
+    "web/src/input.ts": "a5e94e8b4a50d6ad9bc8cdfa4b010481187511d5781ac899c6b223758718880f",
+    "web/src/frame.ts": "14e176bb3f1749c1061f10184c1a9bb91401ba279ce32c6cb699834ee86461fb",
+    "assets/sprites/atlas.toml": "62b165c3b7a1d9c46cee30dff4f797b30753a08f98d0d4e3339c21ba1cf703c4",
+    "assets/models/domestic/dining.blend": "614e25602e46d82e8f895062eabde80847642980898eb22b3d1fe92da049c22e"
   }
 }

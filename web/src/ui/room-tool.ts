@@ -60,6 +60,7 @@ export class RoomTool {
   status = CHOOSE_CORNER;
   /** Another pause holds, such as a Load in progress: nothing may be staged. */
   blocked = false;
+  doorwayMode = false;
   private preview: RoomPreview | null = null;
   private sent: Sent | null = null;
   private revision: number;
@@ -112,9 +113,11 @@ export class RoomTool {
       const line = nearestLine(wx, wy, this.width, this.height);
       if (line && this.outline().some(edge => sameLine(edge, line))) {
         this.doorway = sameLine(this.doorway, line) ? null : line;
+        this.doorwayMode = false;
         this.refresh();
         return;
       }
+      if (this.doorwayMode) return;
     }
     if (this.first === null || this.second !== null) {
       this.first = tile;
@@ -133,6 +136,18 @@ export class RoomTool {
     const at = lines.findIndex(line => sameLine(line, this.doorway));
     this.doorway = at + 1 < lines.length ? lines[at + 1] : null;
     this.refresh();
+  }
+
+  chooseDoorway(): void {
+    if (!this.active || this.pending || this.blocked || this.second === null) return;
+    this.doorwayMode = true;
+    this.status = 'Choose an edge of the room outline for its doorway.';
+    this.hooks.changed();
+  }
+
+  restartCorners(): void {
+    if (!this.active || this.pending || this.blocked) return;
+    this.clear();
   }
 
   build(): void {
@@ -297,6 +312,7 @@ export class RoomTool {
   }
 
   private clear(): void {
+    this.doorwayMode = false;
     this.sent = null;
     this.first = null;
     this.second = null;
