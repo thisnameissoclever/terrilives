@@ -223,6 +223,19 @@ Opening has 21,698 frames and closing has 41,227. Playback gain and edge fades
 are applied at runtime. The recipe and measured screening are in
 `docs/specs/2026-10-01-door-audio.md`. Subjective listening acceptance remains open.
 
+## Paper recordings for review only
+
+Four unchanged originals from rubberduck's [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx), CC0 1.0, are retained in `assets/audio/review/paper/`. Archive SHA-256 is `a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`. The source page and local archive hash were rechecked on 2026-10-01; no new pack was downloaded.
+
+| Exact archive entry | Original bytes | SHA-256 |
+| --- | ---: | --- |
+| `paper_01.ogg` | 25,529 | `b2b2b55e44761c7a45283bce0196f41f72207180fb08c970d7dcf93b705d280c` |
+| `paper_02.ogg` | 27,205 | `4d0c68b367bd3fbdf9817e764908e5524b2cad6536eb0911fc74f6ab4f60c50a` |
+| `paper_03.ogg` | 29,838 | `90147dde68b9e2082404f439165bbcb6f7c2364e88e9373d1cd1f7446a37f7b2` |
+| `paper_04.ogg` | 32,322 | `afae7236bce275fad555922cc8578882eb0c0b5d822be0a9180c9efdadf4a770` |
+
+The standalone `web/public/audio-review.html` embeds these bytes for comparison. They are not registered in the game audio catalog, and no existing cue is replaced. All four decoded as finite, unclipped stereo at 48 kHz. That is mechanical screening, not listening acceptance. The source, measurements and publication contract are in `docs/specs/2026-10-01-paper-sound-review.md`.
+
 ## What was here before, and why it is gone
 
 The alpha shipped 39 isometric PNGs from the **Kenney Furniture Kit** (CC0,

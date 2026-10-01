@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-audio-decode-detaches-input] Capture encoded metadata before decoding
+
+**What happened.** A paper-recording screening report showed zero encoded bytes
+for four successfully decoded files.
+
+**Root cause.** `decodeAudioData` detached its input ArrayBuffer before the
+report read `byteLength`. The zero described the consumed buffer, not an empty
+source file.
+
+**Prevention rule.** Capture encoded byte length and hash before decoding. Keep
+source-file identity separate from decoded frames, channels and duration.
+
+**How to verify.** Compare reported byte counts and hashes with the original
+files, then check decoded sample counts and finite-value bounds separately.
+Keep the corrected measurement report rather than silently interpreting zero
+as a valid source size.
+
 ## [L-audio-proof-visible-gesture] Discover visible controls before driving audio checks
 
 **What happened.** A production sink check first used the wrong preview URL
