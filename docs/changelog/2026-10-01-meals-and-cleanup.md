@@ -1,6 +1,6 @@
-# Build controls, meals, shared beds and solid doors
+# Build controls, life satisfaction, meals and shared beds
 
-Build actions beside your selection, shared meals, bathroom boundaries, developing relationships and solid doors.
+Build actions beside your selection, shared meals, bathroom boundaries, developing relationships, solid doors and clearer Sim dock controls.
 
 ## New
 - Assign a sleeping place in Sim details under Personality, habits and bed. Each place shows its assignee and current occupant.
@@ -17,6 +17,12 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Conversations initiated while someone's needs are low or critical can reduce their opinion of the initiator.
 
 ## Improved
+- Life satisfaction has a centered meter and a description from Very dissatisfied to Fulfilled. Hover or focus it to see the exact score out of 100.
+- New Sims start at 50 before small trait adjustments. Life satisfaction now changes over game months and years; sustained mood still raises or lowers it.
+- Saved scores from 0 to 100 stay unchanged. Earlier scores above 100 become 100.
+- Queue mode starts enabled. New orders go after the waiting ones until you turn the mode off.
+- The Queue panel names its toggle Queue mode.
+- The mood meter has more room, with a smaller bold mood description.
 - Doors swing more smoothly as Sims walk through.
 - Wall, doorway and window controls appear around the selected edge. Curved arrows turn the selection without changing the house until you choose an edit.
 - Furniture and purchases have nearby placement, rotation and cancellation controls. Selling shows its return; buying shows its price.
@@ -28,6 +34,8 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Friendships and grudges fade more slowly without interaction.
 
 ## Fixed
+- Clicking Sim details again closes the open sheet. Clicking Queue again closes its section.
+- Sim details stays highlighted while the sheet is open; Queue stays highlighted while its section is open.
 - Door leaves and frames overlap Sims correctly during crossings.
 - Sims' feet no longer disappear beneath doorway thresholds.
 - Doorways on both wall directions now show doors with the same crossing and closing sounds.

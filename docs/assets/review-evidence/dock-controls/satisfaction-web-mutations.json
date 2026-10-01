@@ -1,0 +1,14 @@
+[
+  {
+    "name": "satisfaction-band",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "cf2f0ab645ef193ff3366f666f954f660177b91caa35dbf84ad0070248682b83"
+  },
+  {
+    "name": "satisfaction-projection-cap",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "cf2f0ab645ef193ff3366f666f954f660177b91caa35dbf84ad0070248682b83"
+  }
+]

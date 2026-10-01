@@ -1,0 +1,26 @@
+[
+  {
+    "name": "queue-default",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "b6bef323a64ebf36daa03b97b59d171e78a7f1b814a2fc30a77ad6edf182754d",
+    "file": "web/src/ui/queue-mode.ts",
+    "failureExcerpt": "FAIL  tests/queue-mode.test.ts > QueueMode > starts on and keeps its pressed state in sync through repeated taps\nAssertionError: expected false to be true // Object.is equality\n\n- Expected\n+ Received\n\n- true\n+ false\n\n \u276f tests/queue-mode.test.ts:14:29\n     12|     });\n     13|\n     14|     expect(mode.isActive()).toBe(true);\n       |                             ^\n     15|     expect(attributes.get('aria-pressed')).toBe('true');\n     16|     expect(mode.toggle()).toBe(false);"
+  },
+  {
+    "name": "repeat-click-close",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "4eec1b81ecf2437b97befd7e5c7143f1093aed590aebebae606c3a4ebdce2360",
+    "file": "web/src/ui/compact-hud.ts",
+    "failureExcerpt": "FAIL  tests/compact-hud.test.ts > toggles dock-queue closed and returns focus to that dock button\nAssertionError: expected false to be true // Object.is equality\n\n- Expected\n+ Received\n\n- true\n+ false\n\n \u276f tests/compact-hud.test.ts:185:38\n    183|   expect(p.node(id).attributes.get('aria-expanded')).toBe('true');\n    184|   p.node(id).click();\n    185|   expect(p.node('sim-sheet').hidden).toBe(true);\n       |                                      ^\n    186|   expect(p.node(id).attributes.get('aria-expanded')).toBe('false');\n    187|   expect(p.focus()).toBe(id);"
+  },
+  {
+    "name": "sheet-highlight",
+    "exit": 1,
+    "caught": true,
+    "restoredSha256": "4eec1b81ecf2437b97befd7e5c7143f1093aed590aebebae606c3a4ebdce2360",
+    "file": "web/src/ui/compact-hud.ts",
+    "failureExcerpt": "FAIL  tests/compact-hud.test.ts > opens only the chosen section, exposes Traits on request, and refreshes queue capacity\nAssertionError: expected 'false' to be 'true' // Object.is equality\n\nExpected: \"true\"\nReceived: \"false\"\n\n \u276f tests/compact-hud.test.ts:148:63\n    146|   hud.show('traits');\n    147|   expect(node('traits-block').open).toBe(true);\n    148|   expect(node('sim-details').attributes.get('aria-expanded')).toBe('tr\u2026\n       |                                                               ^\n    149|   expect(node('sim-traits').hidden).toBe(false);\n    150|   hud.show('queue');"
+  }
+]

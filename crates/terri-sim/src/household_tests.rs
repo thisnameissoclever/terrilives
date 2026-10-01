@@ -180,6 +180,35 @@ fn a_housemate_moves_in_from_the_street() {
     assert_eq!(household_size(world), 4);
 }
 
+#[test]
+fn move_in_applies_starting_trait_offsets_once() {
+    for (ids, expected) in [
+        (vec![], 50.0),
+        (vec!["bookworm"], 52.0),
+        (vec!["low_spirits"], 44.0),
+        (vec!["bookworm", "low_spirits"], 46.0),
+    ] {
+        let mut sim = Sim::new_from_shipped_lot();
+        let content = sim.world().resource::<Content>().0;
+        let worn: Vec<_> = ids
+            .iter()
+            .map(|id| {
+                content
+                    .traits
+                    .iter()
+                    .position(|definition| definition.id == *id)
+                    .unwrap() as u32
+            })
+            .collect();
+        let result = move_in(&mut sim, "Ann", 1, &worn);
+        let index = result.sim.expect("move-in accepted");
+        assert_eq!(sim.satisfaction_of(index), Some(expected));
+        let saved = sim.save_snapshot_v5();
+        sim.load_snapshot_v5(saved).unwrap();
+        assert_eq!(sim.satisfaction_of(index), Some(expected));
+    }
+}
+
 /// Every refusal writes nothing, not even a sim id, so the next move-in that
 /// succeeds still gets the next one. Each limit's own end is allowed.
 #[test]

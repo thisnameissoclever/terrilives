@@ -53,13 +53,7 @@ pub(crate) fn spawn_member(
         terri_core::Shyness::initial(sim_id),
         terri_core::SimName(member.name),
         personality,
-        // The second axis starts at zero - a life is judged from
-        // move-in day - and the hobbies ride as spawned content
-        // ([E1]/[E2]). Household sims carry both; bare test
-        // agents carry neither, and every consumer treats the
-        // absences as "no hobbies, no ledger", which is what
-        // keeps the pre-M2e golden vectors still.
-        terri_core::Satisfaction::default(),
+        starting_satisfaction(traits, member.traits),
         terri_core::Hobbies(member.hobbies),
         // Worn traits open at their content-defined states: a
         // capability at its start_level, a condition at its
@@ -90,6 +84,59 @@ pub(crate) fn spawn_member(
         spawned.insert(terri_core::Career(career));
     }
     spawned.id()
+}
+
+/// Trait biases apply once at move-in, never during save restoration.
+fn starting_satisfaction(
+    traits: &[terri_data::CompiledTrait],
+    worn: &[u32],
+) -> terri_core::Satisfaction {
+    let offset: f32 = worn
+        .iter()
+        .map(|&index| traits[index as usize].starting_satisfaction_offset)
+        .sum();
+    terri_core::Satisfaction::from_value(
+        terri_core::Satisfaction::INITIAL + offset.clamp(-9.0, 9.0),
+    )
+}
+
+#[cfg(test)]
+mod satisfaction_tests {
+    use super::*;
+
+    #[test]
+    fn starts_exactly_neutral_without_bias_and_bounds_combined_trait_bias() {
+        let mut traits = terri_data::pack().traits.clone();
+        assert_eq!(starting_satisfaction(&traits, &[]).value(), 50.0);
+        traits[0].starting_satisfaction_offset = 7.0;
+        traits[1].starting_satisfaction_offset = 5.0;
+        assert_eq!(starting_satisfaction(&traits, &[0]).value(), 57.0);
+        assert_eq!(starting_satisfaction(&traits, &[0, 1]).value(), 59.0);
+        traits[0].starting_satisfaction_offset = -7.0;
+        traits[1].starting_satisfaction_offset = -5.0;
+        assert_eq!(starting_satisfaction(&traits, &[0]).value(), 43.0);
+        assert_eq!(starting_satisfaction(&traits, &[0, 1]).value(), 41.0);
+        traits[1].starting_satisfaction_offset = 5.0;
+        assert_eq!(starting_satisfaction(&traits, &[0, 1]).value(), 48.0);
+    }
+
+    #[test]
+    fn shipped_household_gets_only_its_authored_initial_trait_bias() {
+        let sim = crate::Sim::new_from_shipped_lot();
+        for (name, expected) in [("Tim", 46.0), ("Bill", 50.0), ("Casey", 52.0)] {
+            let mut people = sim
+                .world()
+                .try_query::<(Entity, &terri_core::SimName)>()
+                .unwrap();
+            let index = people
+                .iter(sim.world())
+                .find(|(_, n)| n.0 == name)
+                .unwrap()
+                .0
+                .index_u32();
+            assert_eq!(sim.satisfaction_of(index), Some(expected));
+        }
+    }
 }
 
 /// Why a move-in was refused - [CS-command]. Stable codes the shell words.
