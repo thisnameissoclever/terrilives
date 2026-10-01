@@ -1,0 +1,113 @@
+{
+  "state": "passed",
+  "parts": 8,
+  "contacts": {
+    "Collar / Base": [
+      -0.04200000315904617,
+      -0.04200000315904617,
+      0.052000001072883606
+    ],
+    "Upright / Base": [
+      -0.023000003769993782,
+      0.023000000044703484,
+      0.0700000524520874
+    ],
+    "Upright / Collar": [
+      -0.025600004941225052,
+      -0.025600004941225052,
+      0.07500004768371582
+    ],
+    "Rail / Upright": [
+      -0.01600000075995922,
+      -0.025600004941225052,
+      1.2619999647140503
+    ],
+    "Left end / Rail": [
+      -0.01600000075995922,
+      0.22280000150203705,
+      1.2619999647140503
+    ],
+    "Right end / Rail": [
+      -0.01600000075995922,
+      -0.29919999837875366,
+      1.2619999647140503
+    ],
+    "Finial / Upright": [
+      -0.025600004941225052,
+      -0.025600004941225052,
+      1.3465999364852905
+    ]
+  },
+  "fabric_support_gaps": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "minimum_rail_radius": 0.019999921446797936,
+  "fabric_clear_of_upright": true,
+  "grounded_base": true,
+  "caught_mutations": [
+    {
+      "mutation": "floating base",
+      "rejection": "Base lost ground contact"
+    },
+    {
+      "mutation": "detached upright",
+      "rejection": "Upright detached from Base"
+    },
+    {
+      "mutation": "detached rail",
+      "rejection": "Rail detached from Upright"
+    },
+    {
+      "mutation": "floating cloth",
+      "rejection": "Fabric lost rail support"
+    },
+    {
+      "mutation": "missing fold",
+      "rejection": "Fabric missing above rail"
+    },
+    {
+      "mutation": "cloth into rail",
+      "rejection": "Fabric lost rail support"
+    },
+    {
+      "mutation": "shifted root",
+      "rejection": "Root changed"
+    },
+    {
+      "mutation": "overhanging fold",
+      "rejection": "Fabric fold overhangs rail"
+    },
+    {
+      "mutation": "disconnected scrap",
+      "rejection": "Fabric has disconnected pieces"
+    }
+  ],
+  "caught_guard_deletions": [
+    {
+      "deleted_guard": "Base lost ground contact",
+      "rejection": "Damaged scene passed: floating base"
+    },
+    {
+      "deleted_guard": "detached from",
+      "rejection": "detached upright failed for the wrong reason: Footprint escaped"
+    },
+    {
+      "deleted_guard": "Fabric lost rail support",
+      "rejection": "floating cloth failed for the wrong reason: Fabric dimensions changed"
+    },
+    {
+      "deleted_guard": "Fabric has disconnected pieces",
+      "rejection": "Damaged scene passed: disconnected scrap"
+    },
+    {
+      "deleted_guard": "Fabric fold overhangs rail",
+      "rejection": "Damaged scene passed: overhanging fold"
+    }
+  ],
+  "model_sha256": "75e4496205ea976efd3336e07fd1bf765dc61807c6161254176feda531d42b49"
+}

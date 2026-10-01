@@ -157,3 +157,31 @@ Candidate 01 is rejected for invalid mesh topology and a mast through the
 bulb. Candidate 02 passes source-art and solid-contact review. See
 `../../../docs/assets/review-evidence/living/floor-lamp.md` for runtime
 evidence and the limits of its acceptance.
+
+## Coat rack
+
+`coat_rack_layout.py` and `coat_rack_model.py` retain the wooden stand and teal
+hanging fabric. Bake a -90 degree correction into each child before using the
+standard exporter: the legacy SE crossbar runs along game X. Leave the root,
+exporter and saved facing values unchanged. The fabric is one authored surface
+with thickness, a continuous fold and two unequal tails, not a cloth simulation.
+
+1. Run the living-model suite, then hidden background Blender with
+   `render_coat_rack.py -- NEW_ABSOLUTE_DIR`.
+2. Run `check_coat_rack_scene.py -- ABSOLUTE_MODEL NEW_RESULT`. Require actual
+   wood contacts, six cloth-to-rail support samples, a connected fabric mesh,
+   complete fold support and clearance from the upright and rail. Exact butt
+   joints may have a floating-point seam; test evaluated surface distance,
+   not only intersecting bounds. Damaged copies and deleted guards must fail.
+3. Build the source review board with `../kitchen/review_fridge.py DIR LABEL`.
+   Preserve rejected batches. Obtain primary and independent source review,
+   then append to `../static-props-04.json` after the lamp.
+4. Run `coatRackProof()` from `web/proofs/coat-rack.js` in the isolated proof
+   document. A non-emitting object can still receive light from nearby sources;
+   compare source emission separately from the instance's received lighting.
+5. Verify actual production Build rotations, paused save equality, day/night
+   rendering and natural playback. Its shipped position remains partly behind
+   the exterior door; artwork replacement does not relocate that door or rack.
+
+Candidate 01 is rejected for its orientation. Candidate 02's evidence is in
+`../../../docs/assets/review-evidence/living/coat-rack.md`.
