@@ -8259,6 +8259,10 @@ Include open disclosures in the writer inventory: personal details and bed
 assignment retained the same redundant writes after the always-visible HUD
 was fixed. Both now use the shared text guard, with repeated-refresh controls
 that also require changed values to appear immediately.
+Include open disclosures in the writer inventory. Personal details retained
+redundant writes after the always-visible HUD was fixed: 20 unchanged public
+refreshes replaced 23 text children and emitted 460 native text mutations.
+The shared text guard reduced both to zero while still repairing changed text.
 
 **Verify.** Check text-child identity across repeated unchanged public updates,
 then change the source value and verify the text updates. The causal diagnostic
