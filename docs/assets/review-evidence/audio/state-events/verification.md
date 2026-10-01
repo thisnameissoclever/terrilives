@@ -38,10 +38,27 @@ Built bundle: `index-D6zT8jXc.js`. Both task-owned servers (5223 and 5224) were
 stopped after verification; all task browser pages closed in finally blocks.
 No subjective listening acceptance is claimed.
 
-## Remaining verification
+## Automated checks and review
 
 The [implementation report](implementation-report.md) records test-first
 failures, six assertion-failing mutations and exact source restoration. The full
 web suite passed 1,713 tests in 114 files; focused suites passed 298 tests.
 Typecheck, production build, proof syntax, documentation IDs and whitespace
-checks passed. Independent reviews are pending.
+checks passed. Task and whole-branch reviews found no production blockers.
+
+Both reviews identified a proof cleanup defect: failure at the first hold could
+leave the second scheduled suspension blocking render completion. Root chose
+to fix it before publication. The cleanup now drains both scheduled holds,
+awaits native rendering, and preserves the original assertion for the caller.
+
+Root ran `node web/output/playwright/verify-audio-state-events.cjs native-cleanup-original.json proveAudioStateEventsFailureCleanup`
+before that fix: exit 1, the proof did not settle within the fixed five-second
+watchdog. After the fix, the same runner with `native-cleanup-fixed.json` exited
+0 and verified both the exact original assertion and the closed native render.
+The default proof rerun with `native-after-cleanup-fix.json` also exited 0 with
+all 18 checks passing. All three receipts are preserved beside this document.
+No timeout increase or error suppression was used.
+
+This final change touches only proof code. Production source and the previously
+inspected build are unchanged, so the passing game checks and full suite were
+not repeated. Scoped fix re-review is pending.

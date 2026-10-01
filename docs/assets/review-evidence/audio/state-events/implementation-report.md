@@ -139,3 +139,64 @@ After commit, only root's evidence directory and `web/output/` remained
 untracked. No push, PR or merge was attempted. Prose scans of this report and
 the state-events spec returned zero hard or soft violations; final doc IDs and
 diff checks passed.
+
+## Final-review fix wave
+
+Base: `ee13a013ff7b5e7183a6763e1ff324eca6a15fc8`. Two independent reviewers
+identified a proof-only cleanup defect. An assertion at the first native hold
+could fail while the second hold remained scheduled. Resuming once then awaiting
+the render hung at that second hold, hiding the original assertion from callers.
+
+Added named export `proveAudioStateEventsFailureCleanup()` before changing
+cleanup. It deliberately fails the first-hold ordinary-fade assertion and
+requires the exact original message to reach its caller after the native
+render closes. Root executed the bounded causal red check:
+
+```text
+node web/output/playwright/verify-audio-state-events.cjs native-cleanup-original.json proveAudioStateEventsFailureCleanup
+exit 1
+Proof did not settle within 5 seconds
+pageErrors: []
+```
+
+Cleanup now drains each scheduled native suspension and resumes each hold before
+awaiting the render. The bound was not increased, and errors are not swallowed.
+The focused helper rethrows any error other than its exact deliberate assertion.
+Default `proveAudioStateEvents()` retains its ordinary 18-check native semantics.
+
+Worker checks after repair:
+
+1. `node --check web/proofs/audio-state-events.js`: exit 0, no output.
+2. `git diff --check`: exit 0, no output.
+3. `Get-FileHash web/src/audio/audio-controller.ts -Algorithm SHA256`: exit 0,
+   production remains `595EA22C083AFFA0528EB306B2EAE376A8F77FFCC48B85402FE9BBF2806C3749`.
+
+No production, TypeScript or dependency file changed in this wave. The existing
+typecheck does not include `web/proofs/`; no full suite, typecheck or build was
+rerun solely for this JavaScript proof correction. Root owns both final native
+reruns and their permanent receipts.
+
+Root final native commands and results:
+
+```text
+node web/output/playwright/verify-audio-state-events.cjs native-cleanup-fixed.json proveAudioStateEventsFailureCleanup
+exit 0, pageErrors: []
+first-hold assertion reaches caller:
+  expected = actual = forced first-hold ordinary-fade assertion: expected 0, rendered 1
+both scheduled suspensions drained before rejection:
+  expected = actual = closed
+
+node web/output/playwright/verify-audio-state-events.cjs native-after-cleanup-fix.json
+exit 0, pageErrors: []
+all 18 original native positive, ordinary-fade and zero-resumed-tail checks passed
+```
+
+The forced assertion now reaches the caller after cleanup finishes. This is
+native failure-path sensitivity, not a timeout extension or suppressed error.
+
+Proof-only fix committed locally as
+`d74c4d06d433f8b89ce4254d62b6b5ff1401c571`,
+`Drain queued native holds when audio proof assertions fail`.
+Only `web/proofs/audio-state-events.js` was staged. The ignored report remains
+available locally; root-owned receipts and verification text were preserved
+unstaged. Final report prose scan returned zero violations and diff check passed.
