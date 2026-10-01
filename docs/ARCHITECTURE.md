@@ -709,10 +709,10 @@ use, television, lying down, handwashing, dishwashing, radio, correspondence,
 bathing, ingredients, preparation and cooking. Existing body-action precedence
 remains authoritative. Generic object use never selects eating body art.
 
-Every active visible activity has a distinct 26-pixel bubble, exported at texture
-density two. Walking uses footprints, and unauthored generic use has a gear.
-Idle Sims have no active task and draw no bubble; at-work Sims remain off the
-lot. Actual blocked waits and reserved conversation waits share the clock.
+Activities and waiting have distinct 26-pixel bubbles, exported at texture
+density two. Walking toward an activity has no bubble; unauthored generic use
+has a gear. Idle Sims draw no bubble, and at-work Sims remain off the lot.
+Actual blocked waits and reserved conversation waits share the clock.
 The icons append after the historical atlas and use the displayed body's
 content top and its occupied owner's footprint depth projection. See
 `docs/specs/2026-10-01-activity-bubbles.md` for the complete pairing inventory.

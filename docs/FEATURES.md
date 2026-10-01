@@ -215,7 +215,7 @@ placement for the same Save V1 reason.
 activity 11 project the displayed Sim to the existing armchair seat without
 moving ECS position or widening the WASM bridge. Every shipped look has two
 directional, planted seated frames on a 24-tick hold; the normal HUD says
-`Sitting` and deliberately adds no generic bubble. Pause, speed, reduced
+`Sitting` and shows the chair activity bubble. Pause, speed, reduced
 motion, entry, and exit follow the same deterministic socket rules as seated
 reading and exercise. Sofas, beds, and other multi-user furniture remain
 separate until the simulation owns deterministic per-user slots.

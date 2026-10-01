@@ -8492,6 +8492,8 @@ interaction and chain work step. Validate the exact runtime target and chain
 role, retain body-action precedence, and give generic uses a visible fallback.
 Keep new artwork appended after the historical atlas records. Review each
 activity/icon pair in the release renderer as well as in the art sheet.
+The owner clarified that walking is travel toward an action, not an action
+requiring a bubble. Show activity and waiting icons; suppress travel bubbles.
 
 **Verify.** Count and test every shipped interaction and dinner step, remove
 ordinary and chain identity checks, reverse body precedence, and remove a
