@@ -134,3 +134,33 @@ consumer is synchronous and performs no intervening batch build.
 No remote check is called passed before its result exists. This slice
 does not clear the memory holds on PR 184 or PR 178, establish 120Hz playback,
 approve standing sleep poses, or substitute for a full visual/world acceptance.
+
+## Integration after publication
+
+Main advanced to `70f56b6e` (shipped PR 189 dock wellbeing) while PR 191 was
+being published. The original worker integrated it without conflicts at
+`e1f2da4e`; both branches' lessons, docs, renderer and dock changes survived.
+No Rust or dependency change required a new artifact.
+
+The focused integration command exited 0, 5 files / 76 tests PASS:
+`npm --prefix web test -- --maxWorkers=1 tests/instance-batch-production.test.ts tests/instance-batch.test.ts tests/floor-tool.test.ts tests/compact-hud.test.ts tests/traits-panel.test.ts`.
+Typecheck, build, documentation IDs and whitespace checks also exited 0.
+Frozen main.ts SHA-256:
+`fc3551b77dc8091c33bd29432853a87ae10aeb0186e3caf217acd251a383a45d`.
+Combined production `index-CvnfsN4A.js` SHA-256:
+`ae06857eec16d1c0df84abab4a02f9a6b6956c7f8e4509e19438d6f020b885e8`.
+
+Root replayed the actual combined production output on desktop and phone,
+including reduced motion. Both floor checks again uploaded 45 to 46 dynamic
+rows and drew 394 to 395 opaque instances; the final cyan ring was sprite 12.
+Keyboard/touch help switched correctly desktop to phone to desktop. Mobile
+table preview had 48 dynamic rows and parked original row 7; Cancel restored
+45 rows and the original. Save bytes were identical before, during and after,
+3159 bytes in this fresh household. Three new `combined-*.png` screenshots
+were individually inspected, and the owned page/server closed.
+
+The first combined script pressed Escape with no floor choice, which correctly
+exited Build mode through the existing keyboard behavior. Its count comparison
+was not a product regression. The corrected script resets selection through
+the observed Furniture/Floors buttons and asserts only while Build is active.
+No production change was made to satisfy the mistaken script.
