@@ -143,6 +143,11 @@ also passed, each with exit 0. The built WASM remains `terri_wasm_bg-DbLSdXLq.wa
 the resulting JavaScript is `index-DkaRgyf3.js`. This is local integration
 evidence, not a deployment claim.
 
+The subsequent shell-only audio fix, main `2705d8bf`, was merged locally as
+`7e24bc2f`. It changes no Rust or bed content. All 1,627 web tests, TypeScript
+checks and the production build passed after integration, each with exit 0.
+The WASM artifact is unchanged; JavaScript is now `index-BMzv-Zgp.js`.
+
 ### Full-tick handoff and replay
 
 `full_ticks_walk_sleep_and_reuse_the_departed_place_across_save_load_and_facings`
