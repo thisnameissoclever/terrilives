@@ -8082,3 +8082,23 @@ its first row, go Back, then Next. Removing either focus return or either
 operation guard, and restoring unconditional first-row focus, each caused a
 named assertion failure. All five faults were restored byte-for-byte before
 the full web suite passed.
+
+## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
+
+**What happened.** Separating the New housemate instinct labels fixed their
+run-together text, but an initial non-wrapping flex row failed at 320px with
+the fieldset text doubled from 13px to 26px. The full random-value label
+overflowed the dialog and reduced the slider to zero width.
+
+**Root cause.** The output could not shrink, while the slider could shrink
+without a lower bound. Ordinary phone text fit and concealed the failure.
+
+**Prevention.** Give an interactive slider a useful minimum width and let
+long labels wrap. Check both automatic and manual values with enlarged text;
+their output lengths differ substantially.
+
+**Verify.** In a local doubled-text fixture at 320 by 568, the corrected
+random-value row kept a 150px slider without horizontal overflow. The manual
+value 100 retained a 102px by 44px slider and accepted keyboard input. The
+fixture changes only the fieldset font size; it is separate from the shipped
+page and is not a claim about browser or operating-system text scaling.

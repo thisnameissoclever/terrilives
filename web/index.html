@@ -618,9 +618,17 @@
         color: var(--hud-text); background: var(--hud-bg); border: 1px solid var(--hud-edge);
         border-radius: 4px;
       }
-      #housemate-personality, #housemate-traits-field {
+      #housemate-personality, #housemate-traits-field, .instinct-controls {
         margin: 10px 0 0; padding: 8px; border: 1px solid var(--hud-edge); border-radius: 4px;
       }
+      .instinct-controls { min-width: 0; }
+      .instinct-controls > label {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px;
+      }
+      .instinct-controls input[type="checkbox"] { flex: none; margin: 0; }
+      .instinct-controls input[type="range"] { flex: 1 1 80px; min-width: 80px; width: 80px; height: 44px; }
+      .instinct-controls output { flex: none; min-width: 3ch; max-width: 100%; overflow-wrap: anywhere; text-align: right; }
+      .instinct-controls p { margin: 6px 0 0; color: var(--hud-muted); }
       #housemate-personality-list, #housemate-traits { max-height: 42vh; overflow-y: auto; }
       /* A control beside a name in bold and its sentence below it; the
          control never stretches. */
