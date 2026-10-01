@@ -39,6 +39,11 @@ or establish that the duplicated traversal caused the audio memory failure.
    an empty preview adds nothing. Selection ownership and exact eating props
    retain their current behavior. No art or geometry is reauthored.
 
+Browser verification also identified a missing resize notification for floor
+instructions. Include the floor controls in the existing compact-layout media
+listener, matching the other build controls. Do not change labels or CSS. Verify
+the displayed help switches when the viewport crosses the existing breakpoint.
+
 ## Verification
 
 Use behavioral regression tests with independent expected counts and rows, not
