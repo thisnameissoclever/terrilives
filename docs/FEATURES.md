@@ -967,7 +967,8 @@ Shower use now loads a prepared CC0 flowing-water loop on audible demand, with
 cached success and bounded recovery after download failure. It is a provisional
 addition, not owner-listening acceptance. Handwashing and kitchen washing-up
 share that recording at lower gain with independent object ownership. See
-`specs/2026-10-01-sink-water-audio.md`. Stove cooking remains silent. See
+`specs/2026-10-01-sink-water-audio.md`. The Cook step now plays a provisional
+first-party cooking texture; see `specs/2026-10-01-stove-cooking-texture.md`. See
 `specs/2026-10-01-shower-water-recording.md` and the source-owned playback spec.
 
 The original foundation's production proof ran in visible Chrome on a display

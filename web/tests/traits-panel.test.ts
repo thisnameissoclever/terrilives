@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 import {
   TraitsPanel,
@@ -219,6 +220,29 @@ describe('traitsPanelState', () => {
 });
 
 describe('createTraitsPanelSurface', () => {
+  it('skips unchanged trait and empty text while reflecting changes', () => {
+    const { empty, list, surface } = surfaceParts();
+    const trait = { key: 1, label: "Can't cook", description: 'Often ruins a meal.', state: 'Skill 25%' };
+    surface.render({ kind: 'ready', traits: [trait] });
+    const label = list.nodes[0].nodes[0].nodes[0];
+    const state = list.nodes[0].nodes[0].nodes[1];
+    const description = list.nodes[0].nodes[1];
+    const probes = [label, state, description, empty].map(textWriteProbe);
+    surface.render({ kind: 'ready', traits: [trait] });
+    expect(probes.map(probe => probe.writes)).toEqual([0, 0, 0, 0]);
+    surface.render({ kind: 'ready', traits: [{ ...trait, state: 'Skill 27%' }] });
+    expect(state.textContent).toBe('Skill 27%');
+    expect(probes.map(probe => probe.writes)).toEqual([0, 1, 0, 0]);
+    description.textContent = 'External change';
+    surface.render({ kind: 'ready', traits: [trait] });
+    expect(description.textContent).toBe('Often ruins a meal.');
+    surface.render({ kind: 'unavailable' });
+    const writes = probes[3].writes;
+    surface.render({ kind: 'unavailable' });
+    expect(probes[3].writes).toBe(writes);
+    expect(empty.textContent).toBe('Traits unavailable');
+  });
+
   it('hides the whole block while nobody is selected, and shows it again after', () => {
     const { root, list, surface } = surfaceParts();
     surface.render({ kind: 'unselected' });

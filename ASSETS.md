@@ -205,6 +205,18 @@ buffer at gain 0.35, below the unchanged shower gain of 0.6. No duplicate asset
 or new download is added. Sink timbre and mix remain provisional. See
 `docs/specs/2026-10-01-sink-water-audio.md`.
 
+## Cooking texture
+
+`web/public/audio/objects/stove-cooking.wav` is a first-party synthetic texture,
+not a sampled or downloaded recording. Its editable source is
+`scripts/build-stove-texture.mjs`: seeded filtered noise, smoothly shaped short
+bursts, 100 ms loop overlap and PCM16 export. No third-party audio or dependency
+is used. The four-second mono 48 kHz WAV is 384,044 bytes, SHA-256
+`c126462490ce29618b9d285ffeb0d3c05883e0723d230cbca80ce3fc7b2b07a8`.
+The existing Cook step plays it at gain 0.6 before Effects. This is a provisional
+interpretation of cooking, not an accepted recording of a particular recipe.
+See `docs/specs/2026-10-01-stove-cooking-texture.md` for preparation and evidence.
+
 ## Door recordings
 
 Two provisional recordings accompany actual door state changes. Author:
