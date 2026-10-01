@@ -5,9 +5,11 @@ the accepted `[S-bed-assignment]` roadmap item. Two-person sleeping and the
 assignment interface are not shipped.
 
 The reservation-release foundation is implemented with 20 new tests. All
-1,241 native tests, strict Clippy, formatting, the WASM build, web typecheck,
-1,494 web tests and the production build passed. Thirteen deliberate faults
-failed named assertions and were restored byte-for-byte. Independent review
+1,241 native tests, strict Clippy, formatting and the WASM build passed before
+integrating door audio, which changed no simulation sources. Web typecheck,
+1,535 web tests and the production build passed after integration.
+Thirteen deliberate faults failed named assertions and were restored
+byte-for-byte. Independent review
 found no blockers in this foundation. See
 `docs/assets/review-evidence/bed-assignment/reservation-release.md` for fault
 evidence. Admission, persistence and visuals require separate implementation
@@ -82,6 +84,75 @@ Follow `[L-bed-body-envelope]`: inspect all body parts and animation samples
 for mattress support, frame and body intersections, and walking-lane clearance,
 then inspect the actual rendered game. Coordinate asset ownership with the
 visual task. Do not mark two-person sleeping playable from runtime tests alone.
+
+### Measured constraints and the next proof
+
+The current lower-bunk body cannot simply be copied into both places. Its
+full evaluated width, including sleeve cuffs, reaches 0.7918503 model units.
+Two copies occupy 1.5837006 units before margins on the double bed's 1.50-unit
+mattress. This is a bounding-envelope failure, not a measured mesh intersection.
+The existing standalone contact probe omits the cuffs and sleeves and cannot
+establish fit. Keep the approved body size and furniture footprint; prove a
+narrower sleeping pose across every body part and animation sample.
+
+The double bed also has different support heights. Its mattress is at 0.47,
+duvet at 0.55, fold edge at 0.568 and pillow at 0.59. Raising the whole bunk
+pose to clear the duvet would lift its existing head contacts above the pillow.
+The new pose needs its own support and intersection measurements.
+
+Existing occupied sprites use complementary visible contributions: the body
+and furniture are each cut against the other, then their premultiplied colour
+is added and one scene outline is overlaid. Furniture and outline visibility
+depend on the pose. Drawing two existing composites would duplicate the bed;
+ordinary alpha-over of their contributions does not preserve the established
+reconstruction contract.
+
+A candidate export contract separates body colour from joint visibility. Keep
+body colour images per facing, place, animation sample and shirt palette, plus
+an empty furniture colour image. Joint visibility and outline images depend
+on both samples, with empty as an additional state. A small draw descriptor
+references the images for one bed composite. This is a proposal to test, not
+an accepted renderer format: another body could change surface shading, and
+partial-pixel visibility may not factor cleanly at antialiased edges.
+
+With four facings, four samples and three palettes, the conservative image
+budget is 96 body images, four furniture images, 96 visibility images and 96
+outlines, before deduplication. The visibility and outline counts cover the
+64 double-occupied and 32 single-occupied states across all facings. There
+are 676 small draw combinations including four fully empty states, which reuse
+the existing complete empty-bed sprites. Measured
+with the current shelf packer, the existing 1,370 sprites occupy 8192 by 4806
+pixels. Adding 196 images at the current 320 by 352 double-bed canvas reaches
+8192 by 7601; adding 260 exceeds the atlas height limit. Transparent-margin
+cropping and reuse are therefore prerequisites for this candidate contract.
+No occupied double-bed crop or mobile GPU budget has been proved.
+
+Before changing the renderer, the visual task and runtime task must agree
+ownership and attempt this bounded proof:
+
+1. Establish disjoint local-X body lanes for every part and sample. Under the
+   registered orthographic camera, the nearer lane is negative X for SE and
+   NE, positive X for NW and SW. This ordering only holds after containment
+   is proved and does not settle furniture visibility.
+2. Choose a facing with maximum projected overlap. Independently render sample
+   pairs (0, 0), (0, 3), (3, 0), (3, 3), contrasting palettes, either single
+   occupant and the empty bed. Compare the candidate reconstruction against
+   those joint renders. Inspect interior colour, partial coverage, outlines
+   and contact regions separately; a global percentile can hide a narrow seam.
+3. Swap the place-to-mask mapping, choose the wrong near-place picking priority
+   and omit an outline contribution. Each deliberate fault must fail. Reverse
+   compositing order only if the tested route depends on it; adding joint
+   visibility contributions is commutative. Reject the factorization if it cannot
+   reproduce the independent renders; do not conceal mismatches by clamping.
+4. Prove the actual cropped atlas budget, then inspect fractional zoom,
+   furniture colourways, both occupants' selection and one occupant leaving.
+   Picking and indicators need explicit place identity and registered body
+   bounds or visibility ownership. Entity order must not stand in for a place.
+
+The source of the body envelope is the accepted lower-bunk full-scene proof at
+`assets/models/bedroom/owner-review-pending/bunk/candidate-03/contributions-01/raw-proof.json`.
+Atlas measurements use the existing pack function with added image dimensions;
+they are capacity estimates, not generated-art or runtime acceptance.
 
 ## Verification
 
