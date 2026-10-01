@@ -182,6 +182,10 @@ variants have fixed append-only order. Leave the fields and encoding of every
 older variant unchanged. Interpret an old `EdgeWallsV2` window as a one-unit
 Sash for presentation. Retain the original layout variant until a new typed
 window edit requires conversion; unrelated floor edits must not rewrite it.
+Placement insertion order has no simulation meaning. Save/load preserves that
+order, while world hashing uses a sorted projection so equivalent layouts hash
+identically. Canonical ownership means one starting line per window; it does not
+require sorted storage.
 
 New FitWindow and RemoveWindow commands append to both live and saved command
 enums. Keep the existing command codes and `window_lines` WASM shape unchanged.

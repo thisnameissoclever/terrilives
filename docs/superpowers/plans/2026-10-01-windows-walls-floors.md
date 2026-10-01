@@ -92,8 +92,9 @@ export interface WindowDefinition {
 }
 // catalogue data comes from Rust; art metadata supplies sprite mappings.
 // decodeWindowPlacements(rows: Uint32Array): readonly WindowPlacement[]
-// coveredWindowLines(window: WindowPlacement): readonly WallLine[]
-// windowAt(windows: readonly WindowPlacement[], line: WallLine): WindowPlacement | null
+// coveredWindowLines(window: WindowPlacement, catalogue: readonly WindowDefinition[]): readonly WallLine[]
+// windowAt(windows: readonly WindowPlacement[], line: WallLine,
+//   catalogue: readonly WindowDefinition[]): WindowPlacement | null
 // WindowEditPreview: { valid: boolean; reason: number;
 //   affectedLines: readonly WallLine[]; placement: WindowPlacement | null }
 // Bridge additions:
@@ -341,25 +342,27 @@ the measured compiled content fingerprint requires a narrow compatibility update
 **Consumes:** Tasks 3 and 4. **Produces:** Safe V3 restoration, saved command
 round trips, hash coverage, catalogue/descriptor exports and TypeScript decoding.
 
-- [ ] Load historical fixtures and current V2 saves. Confirm old windows project
+- [x] Load historical fixtures and current V2 saves. Confirm old windows project
   as Sash, old floor IDs remain unchanged, and unrelated edits do not force V3.
-- [ ] Validate V3 model/span bounds, order, overlap and wall/window exclusivity
-  before restoring the candidate world. Apply the same shell rules as Task 4.
+- [x] Validate V3 model/span bounds, uniqueness, overlap and wall/window exclusivity
+  before restoring the candidate world. Preserve descriptor insertion order;
+  equivalent descriptor orders must produce the same world hash. Apply the same
+  shell rules as Task 4.
   Keep a failed load from replacing the active world.
-- [ ] Round-trip all nine models, both axes, rear-shell apertures and pending
+- [x] Round-trip all nine models, both axes, rear-shell apertures and pending
   FitWindow/RemoveWindow commands. Test every byte truncation inside a new record,
   duplicate spans and unknown IDs. Never default a partial new record to Sash.
-- [ ] Verify save-command conversion and world hashing from Task 4. Swapping Sash for Cottage
+- [x] Verify save-command conversion and world hashing from Task 4. Swapping Sash for Cottage
   on the same line must change the hash; changing light mode must not. Load and
   uninterrupted command replay must reach the same resulting layout and hash.
-- [ ] Add the bridge methods in Shared interfaces. Assert descriptor stride is
+- [x] Add the bridge methods in Shared interfaces. Assert descriptor stride is
   four and old `window_lines` remains expanded triples. Validate catalogue IDs,
   model widths and command-refusal propagation across Rust and TypeScript.
-- [ ] Compare compiled fingerprints before/after art import. Keep existing
+- [x] Compare compiled fingerprints before/after art import. Keep existing
   covering values and simulation content stable. If a fingerprint changes,
   identify its exact cause and test the historical content shape; do not
   disable fingerprint checking or accept arbitrary old hashes.
-- [ ] Run `cargo test -p terri-sim -j 1`, `cargo test -p terri-wasm -j 1`, rebuild
+- [x] Run `cargo test -p terri-sim -j 1`, `cargo test -p terri-wasm -j 1`, rebuild
   WASM, then `npm --prefix web test -- --maxWorkers=1 tests/window-bridge.test.ts
   tests/legacy-save.test.ts tests/save-worker.test.ts`. These commands run serially.
 

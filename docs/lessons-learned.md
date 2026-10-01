@@ -1,5 +1,25 @@
 # Lessons Learned
 
+## [L-queued-commands-must-survive-save] Check stored command bounds before queueing
+
+**What happened.** A new window command could enter the queue with a span that
+overflowed its coordinate type, although the save loader rejected that span.
+A save captured before command processing could therefore contain a command
+that the same game could not reload.
+
+**Root cause.** Queue admission checked individual fields but left their
+combined representational bound to later placement validation.
+
+**Prevention rule.** Validate stored command invariants at every public queue
+entry point. Keep those checks separate from ordinary placement refusals, which
+depend on the world when the command is applied. Clear an earlier edit result
+only after accepting the new command.
+
+**How to verify.** Submit an overflowing span through both typed and raw command
+entry points. Require rejection, an unchanged queue and the previous result.
+Save and reload accepted pending commands before processing them; compare their
+fields and resulting world with uninterrupted execution.
+
 ## [L-guard-mutations-need-isolation] A failing test must reach the intended mutation
 
 **What happened.** A split-ownership guard mutation was reported as detected, but
