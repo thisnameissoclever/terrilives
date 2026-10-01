@@ -433,6 +433,28 @@ describe('VoiceClipPlayer', () => {
 });
 
 describe('loadVoiceClips', () => {
+  it.each(['fetch', 'decode'])('retries a %s failure without downloading successful slots again', async (failure) => {
+    let failing = true;
+    const requests: string[] = [];
+    const fetchBytes = async (url: string) => {
+      requests.push(url);
+      if (failing && failure === 'fetch' && url.includes('two')) throw new Error('offline');
+      return new ArrayBuffer(url.includes('two') ? 2 : 1);
+    };
+    const decode = async (bytes: ArrayBuffer) => {
+      if (failing && failure === 'decode' && bytes.byteLength === 2) throw new Error('decode');
+      return { duration: bytes.byteLength };
+    };
+    const first = await loadVoiceClips(['one', 'two'], fetchBytes, decode);
+    expect(first).toEqual([{ duration: 1 }, undefined]);
+    failing = false;
+    const recovered = await loadVoiceClips(['one', 'two'], fetchBytes, decode, first);
+    expect(recovered).toEqual([{ duration: 1 }, { duration: 2 }]);
+    expect(recovered[0]).toBe(first[0]);
+    expect(first[1]).toBeUndefined();
+    expect(requests).toEqual(['audio/voice/one.wav', 'audio/voice/two.wav', 'audio/voice/two.wav']);
+  });
+
   it('resolves an id to the served path', () => {
     expect(voiceClipUrl('sim-talking-4')).toBe('audio/voice/sim-talking-4.wav');
   });

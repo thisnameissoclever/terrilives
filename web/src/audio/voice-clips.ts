@@ -413,8 +413,8 @@ export interface VoiceClipDecoder {
 }
 
 /**
- * Fetches and decodes the whole library, in the index order the simulation
- * uses.
+ * Fetches missing recordings in simulation index order. Previously decoded
+ * slots must belong to the same IDs in the same order.
  *
  * **A clip that fails to load leaves a hole rather than failing the load.**
  * The library is presentation: a missing recording should cost that one
@@ -429,9 +429,11 @@ export async function loadVoiceClips(
   ids: readonly string[],
   fetchBytes: VoiceClipFetcher,
   decode: VoiceClipDecoder,
+  previous: readonly (AudioBufferPort | undefined)[] = [],
 ): Promise<(AudioBufferPort | undefined)[]> {
   return Promise.all(
-    ids.map(async (id) => {
+    ids.map(async (id, index) => {
+      if (previous[index] !== undefined) return previous[index];
       try {
         return await decode(await fetchBytes(voiceClipUrl(id)));
       } catch {

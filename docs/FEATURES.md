@@ -1002,8 +1002,9 @@ downloaded and inventoried, not yet integrated as runtime sound. The detailed co
 Interrupted recorded voices now retain their current envelope level before
 fading, with no fade extending past the samples' natural end. Failed node
 construction is reclaimed immediately. Rendered-sample evidence is recorded in
-`docs/specs/2026-09-30-conversation-audio.md`. Multiple simultaneous conversations
-still share one household identity; correcting that remains open.
+`docs/specs/2026-09-30-conversation-audio.md`. Simultaneous conversations have
+independent initiator/token ownership; starting or ending one pair does not
+restart another. See `docs/specs/2026-09-30-conversation-audio-ownership.md`.
 
 ### [B-death] Sims can die and leave consequences
 

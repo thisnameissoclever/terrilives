@@ -1030,13 +1030,12 @@ commands and completed controls remain silent; `command.rejected` is the only
 current routine-interface event mapped to a sound.
 
 The `AudioContext` is created or resumed only from a trusted pointer or keyboard
-gesture. Ordinary event emission never creates, resumes, or queues audio. The
-master gain is mute-only and the effects gain owns procedural cues, object
+gesture. Events before activation are dropped; emission never creates or resumes
+the context. The master gain is mute-only and the effects gain owns procedural cues, object
 recordings, and recorded conversation volume. A separate Voices gain feeds into
 Effects for conversations only. Its saved default is one, including when loading
-an older v1
-preference record without that field. Changing Voices does not reset transport
-or other schedulers; even at zero, conversation playback stays bounded and
+an older v1 preference record without that field. Changing Voices does not reset
+transport or other schedulers; even at zero, conversation playback stays bounded and
 advances normally. The simulation chooses two clip indices and
 derives their duration from compiled voice metadata; the shell owns playback.
 Each conversation has independent ownership: initiator ID, both words of its
@@ -1044,6 +1043,12 @@ derived completion token, and clip indices. Both participant rows project the
 same identity. Ending one pair cancels only its playback and pending library
 start, while global lifecycle boundaries still clear all pairs. See
 `docs/specs/2026-09-30-conversation-audio-ownership.md`.
+Failed voice downloads or decoding leave retryable slots. A new conversation
+needing a missing slot may retry after a five-second monotonic cooldown; one
+batch runs at a time, and successful clips remain cached. Pending replay never
+triggers another fetch. Ended or globally invalidated conversations cannot start
+when a late download completes. See
+`docs/specs/2026-10-01-voice-download-recovery.md`.
 Interrupted voice envelopes retain their current level before fading, bounded
 by natural sample completion. Failed construction disconnects every created
 node immediately, even if that node never started. See

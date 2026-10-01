@@ -788,6 +788,173 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(controller.activeConversationVoiceCount()).toBe(0);
   });
 
+  it.each(['fetch', 'decode'] as const)('recovers a %s failure on new conversation demand without restarting a good pair', async (failure) => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    const requests: string[] = [];
+    let failing = true;
+    const clock = vi.spyOn(performance, 'now').mockReturnValue(0);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input) => {
+      const url = String(input);
+      requests.push(url);
+      if (failing && failure === 'fetch' && url.includes('bad')) return new Response(null, { status: 503 });
+      return new Response(new ArrayBuffer(url.includes('bad') ? 2 : 1));
+    }) as typeof fetch;
+    context.decodeAudioData = async (bytes) => {
+      if (failing && failure === 'decode' && bytes.byteLength === 2) throw new Error('decode');
+      return { duration: bytes.byteLength };
+    };
+    try {
+      await controller.loadVoiceLibrary(['good', 'bad']);
+      expect(requests).toEqual([]);
+      await controller.unlockFromGesture();
+      await controller.loadVoiceLibrary(['good', 'bad']);
+      expect(requests).toHaveLength(2);
+      const good = { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 0 };
+      const missing = { ...good, owner: 2, first: 1 };
+      clock.mockReturnValue(5000);
+      activityFrame(controller, [[0, 'conversation', good]]);
+      const goodSources = context.bufferSources.slice();
+      failing = false;
+      clock.mockReturnValue(5000);
+      await controller.unlockFromGesture();
+      activityFrame(controller, [[0, 'conversation', good]]);
+      expect(requests).toHaveLength(2);
+      activityFrame(controller, [[0, 'conversation', good], [2, 'conversation', missing]]);
+      expect(requests).toEqual(['audio/voice/good.wav', 'audio/voice/bad.wav', 'audio/voice/bad.wav']);
+      await controller.loadVoiceLibrary(['good', 'bad']);
+      expect(controller.activeConversationVoiceCount()).toBe(2);
+      expect(context.bufferSources.map((source) => source.buffer?.duration)).toEqual([1, 1, 2, 1]);
+      expect(goodSources.map((source) => source.stops.length)).toEqual([1, 1]);
+      activityFrame(controller, [[0, 'conversation', good]]);
+      expect(controller.activeConversationVoiceCount()).toBe(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+      clock.mockRestore();
+    }
+  });
+
+  it('bounds failed retries by new demand, cooldown and one in-flight batch', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    const clock = vi.spyOn(performance, 'now').mockReturnValue(0);
+    const originalFetch = globalThis.fetch;
+    let requests = 0;
+    let release!: () => void;
+    let gate = Promise.resolve();
+    globalThis.fetch = (async () => {
+      requests += 1;
+      await gate;
+      return new Response(null, { status: 503 });
+    }) as typeof fetch;
+    const voice = { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 1 };
+    const start = (endLow: number) => controller.emit({
+      type: 'sim.conversation-started', simId: 0, voice: { ...voice, endLow },
+    });
+    try {
+      await controller.unlockFromGesture();
+      await controller.loadVoiceLibrary(['a', 'b']);
+      start(80);
+      clock.mockReturnValue(4999);
+      start(81);
+      expect(requests).toBe(2);
+      clock.mockReturnValue(5000);
+      start(80);
+      expect(requests).toBe(2);
+      gate = new Promise<void>((resolve) => { release = resolve; });
+      start(82);
+      expect(requests).toBe(4);
+      clock.mockReturnValue(15000);
+      start(83);
+      start(84);
+      const joining = controller.loadVoiceLibrary(['a', 'b']);
+      expect(requests).toBe(4);
+      release();
+      await joining;
+      expect(requests).toBe(4);
+      start(82);
+      expect(requests).toBe(4);
+      start(85);
+      await controller.loadVoiceLibrary(['a', 'b']);
+      expect(requests).toBe(6);
+      expect(context.bufferSources).toHaveLength(0);
+    } finally {
+      globalThis.fetch = originalFetch;
+      clock.mockRestore();
+    }
+  });
+
+  it.each(['ended', 'mute', 'effects', 'load', 'background', 'recovery'] as const)(
+    'does not revive a pending recovery after the %s boundary', async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      const clock = vi.spyOn(performance, 'now').mockReturnValue(0);
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (async () => new Response(null, { status: 503 })) as typeof fetch;
+      const voice = { owner: 0, endLow: 80, endHigh: 0, first: 1, second: 0 };
+      try {
+        await controller.unlockFromGesture();
+        await controller.loadVoiceLibrary(['a', 'b']);
+        let release!: () => void;
+        const gate = new Promise<void>((resolve) => { release = resolve; });
+        globalThis.fetch = (async () => {
+          await gate;
+          return new Response(new ArrayBuffer(16));
+        }) as typeof fetch;
+        clock.mockReturnValue(5000);
+        activityFrame(controller, [[0, 'conversation', voice]]);
+        const joining = controller.loadVoiceLibrary(['a', 'b']);
+        if (boundary === 'ended') activityFrame(controller, []);
+        else if (boundary === 'mute') {
+          controller.setMuted(true);
+          controller.setMuted(false);
+        } else if (boundary === 'effects') {
+          controller.setEffectsLevel(0);
+          controller.setEffectsLevel(1);
+        } else if (boundary === 'background') {
+          await controller.setBackgrounded(true);
+          await controller.setBackgrounded(false);
+        } else if (boundary === 'recovery') {
+          context.state = 'suspended';
+          await controller.unlockFromGesture();
+        } else controller.reset('load');
+        release();
+        await joining;
+        expect(context.bufferSources).toHaveLength(0);
+        activityFrame(controller, [[0, 'conversation', { ...voice, endLow: 90 }]]);
+        expect(controller.activeConversationVoiceCount()).toBe(1);
+      } finally {
+        globalThis.fetch = originalFetch;
+        clock.mockRestore();
+      }
+    },
+  );
+
+  it('retries missing slots on an explicit load without a conversation', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    const originalFetch = globalThis.fetch;
+    let requests = 0;
+    globalThis.fetch = (async () => {
+      requests += 1;
+      return new Response(null, { status: 503 });
+    }) as typeof fetch;
+    try {
+      await controller.unlockFromGesture();
+      await controller.loadVoiceLibrary(['a', 'b']);
+      globalThis.fetch = (async () => {
+        requests += 1;
+        return new Response(new ArrayBuffer(16));
+      }) as typeof fetch;
+      await controller.loadVoiceLibrary(['a', 'b']);
+      await controller.loadVoiceLibrary(['a', 'b']);
+      expect(requests).toBe(4);
+      activityFrame(controller, [[0, 'conversation', { owner: 0, endLow: 80, endHigh: 0, first: 0, second: 1 }]]);
+      expect(controller.activeConversationVoiceCount()).toBe(1);
+    } finally { globalThis.fetch = originalFetch; }
+  });
+
   it('starts and stops only the matching conversation recording pair', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
