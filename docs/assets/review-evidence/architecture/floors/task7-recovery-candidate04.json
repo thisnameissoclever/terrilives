@@ -1,0 +1,45 @@
+{
+  "paused": {
+    "before": 1,
+    "after": 1,
+    "stage": "hidden",
+    "panel": {
+      "x": 97.5,
+      "y": 309.609375,
+      "width": 195,
+      "height": 140.375,
+      "top": 309.609375,
+      "right": 292.5,
+      "bottom": 449.984375,
+      "left": 97.5
+    },
+    "paragraph": {
+      "x": 114.5,
+      "y": 339.609375,
+      "width": 161,
+      "height": 36.375,
+      "top": 339.609375,
+      "right": 275.5,
+      "bottom": 375.984375,
+      "left": 114.5
+    },
+    "text": "Floor materials could not load. Try again.\n\nRetry"
+  },
+  "resumed": {
+    "before": 2,
+    "after": 7,
+    "stage": "visible",
+    "floors": [
+      0,
+      14,
+      3
+    ],
+    "canvas": [
+      390,
+      844
+    ]
+  },
+  "revision": "5332fdf0c3d4ab50dc24037725652d44cfd52c1e",
+  "previewRetry": "503 failure shown with short message and visible Retry; Retry succeeds before painting.",
+  "setup": "Fresh isolated browser; temporary current Carpet palette addition; no owner saves. UI paint tile0,14, Save, Remove, Load with503, Exit build, then Retry. Simulation pause measured outside Build."
+}

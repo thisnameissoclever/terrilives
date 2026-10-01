@@ -1,5 +1,57 @@
 # Lessons Learned
 
+## [L-resource-readiness-needs-coherent-frames] Keep static and moving objects in the same view
+
+**What happened.** Delaying a material load stopped static camera updates while
+moving objects continued using the new camera. Loading another world could also
+leave its Sims drawn over the previous room.
+
+**Root cause.** One resource-ready flag gated only part of a frame and treated
+preview resources as prerequisites for an otherwise renderable scene.
+
+**Prevention.** Separate preview readiness from placed-scene readiness. Keep the
+current complete scene responsive while a preview loads. If a loaded scene lacks
+required resources, suspend its simulation and complete presentation together,
+show an actionable loading/error state, and restore the current camera before
+revealing it. Release only the pause reason owned by that operation.
+
+**Verify.** Delay and reject a material request. Check camera movement, resize,
+Load, Retry and a second Load before the first request completes. Assert that
+static and moving objects share the same transform, obsolete resources are
+discarded, and unrelated pauses remain active.
+
+## [L-baked-art-needs-independent-identity] Compare finishes with the artwork they represent
+
+**What happened.** An injected catalogue fixture selected alternate materials,
+but additions to the default production catalogue were classified as baked art.
+
+**Root cause.** The implementation compared the editable catalogue with itself.
+The fixture used a separate object and therefore missed the production path.
+
+**Prevention.** Preserve baked-art identity independently from editable finish
+definitions. Exercise catalogue additions through the default production lookup,
+including a new palette for an existing pattern and a new pattern.
+
+**Verify.** Both additions must request alternate resources and use shared carrier
+geometry. Original descriptors must retain the accepted pixels. Reinstating the
+self-comparison must fail those assertions.
+
+## [L-test-session-exit-before-build] Wait for the active check to finish
+
+**What happened.** A production build started while the full web test session
+was still running, despite the requirement to run heavy checks serially.
+
+**Root cause.** A yielded command was treated as ready for the next check before
+its session returned an exit code. An existing atlas test also timed out earlier
+in that run; its timing does not establish that the later overlap caused it.
+
+**Prevention rule.** Keep the current heavy command's session ID until it returns
+an exit code. Start the next heavy check only after that completion is observed.
+
+**How to verify.** Record the full run's actual failed result and the unchanged
+isolated test's result separately. Confirm that the final serial suite passes;
+an isolated pass is not a passing full-suite run.
+
 ## [L-window-height-follows-owning-wall] Match aperture art to its wall
 
 **What happened.** Cutaway mode shortened rear windows while their surrounding
@@ -38,6 +90,10 @@ Create the proof's empty background explicitly. Require an opaque background, a
 distinct marker and a sample matching the expected source surface before using
 their differences as evidence. Decode source references losslessly and verify
 their hashes; do not relax tolerances to accommodate a lossy reference path.
+Count samples excluded at exact raster boundaries. An aligned camera can put
+every pixel on a source-texel boundary, leaving no stable color witnesses.
+Report color comparison as unobserved in those explicit cases, retain physical
+coverage and order checks, and require color witnesses at offset camera origins.
 
 **How to verify.** Draw a known marker in front of and behind an authored surface.
 Require the surface sample to match its source texel. Check a clear-only frame

@@ -1,0 +1,96 @@
+{
+  "events": [
+    {
+      "name": "previewFailureCamera",
+      "camera": [
+        425.9659886040761,
+        170.18571154306107
+      ],
+      "statics": {
+        "xy": [
+          425.96600341796875,
+          170.1857147216797
+        ],
+        "count": 376
+      },
+      "dynamic": {
+        "xy": [
+          425.9659729003906,
+          174.69520568847656
+        ],
+        "count": 45,
+        "scale": 1.1274968515793757
+      },
+      "visible": "visible"
+    },
+    {
+      "name": "loadedFailure",
+      "hidden": "hidden",
+      "tickBefore": 146,
+      "tickAfter": 146,
+      "floors": [
+        7,
+        8,
+        3
+      ]
+    },
+    {
+      "name": "retryRecovered",
+      "visible": "visible",
+      "floors": [
+        7,
+        8,
+        3
+      ],
+      "camera": [
+        120.96598860407607,
+        192.18571154306107
+      ],
+      "statics": {
+        "xy": [
+          120.96598815917969,
+          192.1857147216797
+        ],
+        "count": 376
+      },
+      "dynamic": {
+        "xy": [
+          120.96597290039062,
+          196.69520568847656
+        ],
+        "count": 45,
+        "scale": 1.1274968515793757
+      },
+      "canvas": [
+        390,
+        844
+      ]
+    }
+  ],
+  "fixture": "Current production Carpet finish uses appended recoveryBlue palette; independent baked receipt unchanged. One pattern request held then deliberately503. No saved schema/content edits.",
+  "initialPan": {
+    "before": [
+      536,
+      224
+    ],
+    "after": [
+      566,
+      249
+    ],
+    "staticDelta": [
+      30,
+      25
+    ],
+    "dynamicDelta": [
+      30,
+      25
+    ]
+  },
+  "limitations": [
+    "Tick stability measured while Build also paused; own-pause isolation established by unit test.",
+    "First hidden-HUD tile click timed out; subsequent successful paint verified exact tile triples.",
+    "Rejected error copy displays long resource URL and overflows narrow layout; correction pending."
+  ],
+  "revision": "22a0435caf52571d5cc9581b399f89885c608c19 plus frozen Task7 review-round-1 candidate",
+  "cleanup": "Task-owned isolated page/context closed; preview server stopped after identity check."
+}

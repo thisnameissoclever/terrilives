@@ -428,14 +428,18 @@ the existing movement and cutaway contracts remain intact.
 ## Task 7: Give floor coverings their own material art
 
 **Files:** Create `web/src/render/floor-materials.ts` and
-`web/tests/floor-materials.test.ts`; modify `render/tiles.ts`,
-`ui/floor-tool-controls.ts`, relevant floor-tool tests and Task 1's room proof.
+`web/tests/floor-materials.test.ts`; add a focused floor-finish resource
+coordinator and tests if needed; modify `render/tiles.ts`, `main.ts`,
+`ui/floor-tool-controls.ts`, relevant floor-tool tests and floor proof coverage.
+Generate an independent baked-floor identity receipt in the existing importer
+and cover its source hashes and default production catalogue lookup.
+Preserve the original room proof's prototype and historical input contracts.
 
 **Consumes:** Task 2 floor sprites and unchanged saved covering IDs.
 **Produces:** `floorSpriteName(covering: number, zone: 'house' | 'yard' | 'street',
 x: number, y: number): string` and matching visible swatches.
 
-- [ ] Write mapping tests before changing the current one-sprite selection:
+- [x] Write mapping tests before changing the current one-sprite selection:
 
 ```ts
 expect(floorSpriteName(1, 'house', 0, 0)).toContain('boards');
@@ -447,30 +451,43 @@ expect(floorSpriteName(1, 'house', 4, 4))
   .toBe(floorSpriteName(1, 'house', 0, 0));
 ```
 
-- [ ] Map 1/2/3 to material families explicitly. Test this against the existing
+- [x] Map 1/2/3 to material families explicitly. Test this against the existing
   ordered covering list; never infer a material from hue, translated label or
   name substrings. Unpainted interior uses the accepted neutral surface.
-- [ ] Resolve those mappings through the finish catalogue, not a fixed three-case
+- [x] Resolve those mappings through the finish catalogue, not a fixed three-case
   switch. Prove an appended covering resolves its pattern and palette through
   data alone and appears through the existing content-driven floor controls.
   Keep legacy saved IDs stable and test mixed patterns and multiple colors.
-- [ ] Select pattern phase by `(x % 4, y % 4)` for nonnegative lot coordinates.
+  Compare editable finish definitions with independently recorded baked-art
+  identities; never classify a catalogue entry by comparing it with itself.
+- [x] Prepare graphics resources for placed and previewed alternate finishes,
+  rather than every available catalogue entry. When the active resource set
+  changes, prepare a replacement renderer and swap it only after its resources,
+  static rows and camera are ready. Preserve scene and fade state, dispose stale
+  asynchronous completions and the replaced renderer, and block floor commits
+  until the requested resources are ready. Test failure, rapid selection, Load
+  and resize during preparation. Record temporary overlapping resource use.
+  Pending preview resources must not stop the current scene's camera updates.
+  When a loaded scene needs unavailable resources, pause its simulation and
+  show an explicit loading or retryable error state until the complete scene
+  can be rendered. Keep Options and Load available for recovery.
+- [x] Select pattern phase by `(x % 4, y % 4)` for nonnegative lot coordinates.
   Keep one floor instance per tile and the shared `FLOOR_DEPTH`. Preview writes
   the exact same material as commit, with the existing highlight overlay.
-- [ ] Reuse Task 1's canonical floor diamonds and shared camera transform.
+- [x] Reuse Task 1's canonical floor diamonds and shared camera transform.
   Pass world tile coordinates; adjacent corners must project identically.
   Preserve the fractional-origin, reversed-order, mixed-material and missing-tile
   GPU cases that caught gaps in the initial floor coverage approaches.
-- [ ] Use each finish's generated authored-content-color baseline to apply
+- [x] Use each finish's generated authored-content-color baseline to apply
   current covering settings relative to the accepted art: hue difference,
   strength ratio and lightness difference. Unchanged content must produce the
   identity transform, so the accepted hue appears once. Keep saved IDs, content
   tuning and historical sprite transforms untouched. Test default identity and
   nondefault transform composition for each final material.
-- [ ] Verify adjacent edges at native/fractional zoom and mixed materials. No
+- [x] Verify adjacent edges at native/fractional zoom and mixed materials. No
   visible tile border on carpet, no crossed diagonals on any replacement, no
   floor triangle covering a Sim's feet. Grass/street retain their zone behavior.
-- [ ] Run focused floor/material/static-instance tests and screenshot each
+- [x] Run focused floor/material/static-instance tests and screenshot each
   surface after paint, Remove, save/load and a desktop-to-mobile resize.
 
 **Exit:** Materials are identifiable by structure as well as color, and painting
