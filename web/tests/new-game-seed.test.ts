@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { newGameSeed } from '../src/new-game-seed.js';
+import { parseMemoryProbeSeed, MemoryProbeTarget } from '../src/stress-memory-probe.js';
 
 it('requests fresh entropy for both seed words on each new game', () => {
   let draws = 0;
@@ -18,7 +19,7 @@ it('requests fresh entropy for both seed words on each new game', () => {
 it('forwards fresh browser entropy through the production startup constructor', () => {
   const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
   // Execute the real construction statements without starting the GPU or game loop.
-  const start = main.indexOf('  const [seedLow, seedHigh] =');
+  const start = main.indexOf('  const memoryProbeSeed =');
   const end = main.indexOf('  const sim = new SimBridge(handle, wasm.memory);', start);
   expect(start).toBeGreaterThan(-1);
   expect(end).toBeGreaterThan(start);
@@ -28,10 +29,14 @@ it('forwards fresh browser entropy through the production startup constructor', 
     (array as unknown as Uint32Array).set([++draws, 0xfedcba98]);
     return array;
   } };
-  const construct = () => runInNewContext(`${construction}\nhandle;`, {
+  const construct = (search = '') => runInNewContext(`${construction}\n({handle, initialSpeed});`, {
     newGameSeed: () => newGameSeed(entropy),
+    parseMemoryProbeSeed, MemoryProbeTarget, location: { search }, START_SPEED: 1,
     SimHandle: { from_lot_with_seed: (low: number, high: number) => [low, high] },
   });
-  expect(construct()).toEqual([1, 0xfedcba98]);
-  expect(construct()).toEqual([2, 0xfedcba98]);
+  expect(construct()).toEqual({handle: [1, 0xfedcba98], initialSpeed: 1});
+  expect(construct()).toEqual({handle: [2, 0xfedcba98], initialSpeed: 1});
+  expect(construct('?stress=0&probeSeedLow=104729&probeSeedHigh=130363')).toEqual({handle: [104729, 130363], initialSpeed: 0});
+  expect(draws).toBe(2);
+  expect(construct('?probeSeedLow=1&probeSeedHigh=2')).toEqual({handle: [3, 0xfedcba98], initialSpeed: 1});
 });

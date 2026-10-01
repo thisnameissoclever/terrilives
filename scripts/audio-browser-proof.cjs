@@ -5,6 +5,11 @@ const FIXED_TICKS = 600;
 const WARMUP_TICKS = 60;
 const MEMORY_STEP_TICKS = 60;
 const AUDIO_RETAINED_ALLOWANCE_BYTES = 64 * 1024;
+const MEMORY_PROBE_SEEDS = Object.freeze([
+  Object.freeze({ low: 104729, high: 130363 }),
+  Object.freeze({ low: 155921, high: 196613 }),
+  Object.freeze({ low: 262147, high: 327673 }),
+]);
 
 function parseArgs(argv) {
   const result = {
@@ -68,13 +73,13 @@ async function waitForStress(page) {
   );
 }
 
-async function closeHelpAndSetThreeTimes(page) {
+async function closeHelpAndSetThreeTimes(page, startRunning = true) {
   const close = page.locator('#close-help');
   if (await close.isVisible()) await close.click();
   // Always deliver a real gesture, even when first-run Help is already closed.
   await page.locator('#options-toggle').click();
   await page.locator('#options-close').click();
-  await setSpeed(page, 3);
+  if (startRunning) await setSpeed(page, 3);
   await page.waitForTimeout(250);
 }
 
@@ -260,6 +265,8 @@ async function collectMemorySample(page, cdp, includePageMemory) {
       if (stress === undefined) throw new Error('stress handle disappeared');
       return {
         tick: stress.sim.clockTick(),
+        seed: stress.memoryProbeSeed,
+        worldHash: stress.sim.worldHash().toString(),
         entities: stress.entities,
         wasmMemoryBytes: stress.wasmMemoryBytes,
         activeVoices: stress.audio.activeVoices,
@@ -300,15 +307,27 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   try {
-    await page.goto(withQuery(baseUrl, audioEnabled), { waitUntil: 'networkidle' });
+    const seed = MEMORY_PROBE_SEEDS[repetition];
+    if (seed === undefined) throw new Error('unknown memory repetition');
+    const url = new URL(withQuery(baseUrl, audioEnabled));
+    url.searchParams.set('probeSeedLow', String(seed.low));
+    url.searchParams.set('probeSeedHigh', String(seed.high));
+    await page.goto(url.toString(), { waitUntil: 'networkidle' });
     await page.bringToFront();
     await waitForStress(page);
-    await closeHelpAndSetThreeTimes(page);
+    await closeHelpAndSetThreeTimes(page, false);
 
-    const startTick = await page.evaluate(() => globalThis.__terriStress.sim.clockTick());
+    await page.evaluate(target => {
+      const stress = globalThis.__terriStress;
+      if (!stress?.memoryProbeSeed || typeof stress.runUntilTick !== 'function') {
+        throw new Error('memory proof requires the seeded runUntilTick probe capability');
+      }
+      if (stress.sim.clockTick() !== 0) throw new Error('memory probe did not start paused at tick zero');
+      stress.runUntilTick(target);
+    }, WARMUP_TICKS);
     await page.waitForFunction(
-      (start) => globalThis.__terriStress.sim.clockTick() - start >= 60,
-      startTick,
+      target => globalThis.__terriStress.sim.clockTick() === target,
+      WARMUP_TICKS,
       { polling: 100, timeout: 30_000 },
     );
 
@@ -323,7 +342,7 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
       if (!sim.select(entity)) throw new Error('Could not restore memory-run selection');
       sim.flushCommands();
     }, selected);
-    await setSpeed(page, 3);
+    await page.evaluate(target => globalThis.__terriStress.runUntilTick(target), FIXED_TICKS);
     await page.waitForTimeout(250);
     for (
       let target = MEMORY_STEP_TICKS;
@@ -338,8 +357,8 @@ async function runMemory(browser, baseUrl, audioEnabled, repetition) {
       samples.push(await collectMemorySample(page, cdp, false));
     }
     await page.waitForFunction(
-      ({ baseline, delta }) => globalThis.__terriStress.sim.clockTick() - baseline >= delta,
-      { baseline: baselineTick, delta: FIXED_TICKS - WARMUP_TICKS },
+      target => globalThis.__terriStress.sim.clockTick() === target,
+      FIXED_TICKS,
       { polling: 100, timeout: 30_000 },
     );
     await setSpeed(page, 0);
@@ -432,6 +451,31 @@ function median(values) {
 }
 
 function analyseMemory(runs) {
+  const comparabilityErrors = [];
+  for (let repetition = 0; repetition < MEMORY_PROBE_SEEDS.length; repetition++) {
+    const enabled = runs.filter(run => run.repetition === repetition && run.audioEnabled === true);
+    const disabled = runs.filter(run => run.repetition === repetition && run.audioEnabled === false);
+    if (enabled.length !== 1 || disabled.length !== 1) {
+      comparabilityErrors.push(`repetition ${repetition}: requires one enabled and one disabled run`);
+      continue;
+    }
+    const expectedSeed = MEMORY_PROBE_SEEDS[repetition];
+    for (const endpoint of [0, -1]) {
+      const left = enabled[0].samples?.at(endpoint);
+      const right = disabled[0].samples?.at(endpoint);
+      const expectedTick = endpoint === 0 ? WARMUP_TICKS : FIXED_TICKS;
+      const seeded = sample => sample?.seed?.low === expectedSeed.low && sample?.seed?.high === expectedSeed.high;
+      if (!seeded(left) || !seeded(right)) comparabilityErrors.push(`repetition ${repetition}: seed mismatch or missing seed`);
+      if (left?.tick !== expectedTick || right?.tick !== expectedTick) comparabilityErrors.push(`repetition ${repetition}: endpoint tick mismatch`);
+      const validHash = sample => typeof sample?.worldHash === 'string' && /^\d+$/.test(sample.worldHash);
+      if (!validHash(left) || !validHash(right) || left.worldHash !== right.worldHash) comparabilityErrors.push(`repetition ${repetition}: endpoint hash mismatch or missing hash`);
+    }
+  }
+  if (runs.length !== 6) comparabilityErrors.push('requires exactly six memory runs');
+  if (comparabilityErrors.length > 0) return {
+    comparable: false, comparabilityErrors, allowanceBytes: AUDIO_RETAINED_ALLOWANCE_BYTES,
+    pairs: [], medianAudioSpecificJsGrowthBytes: null, retainedAudioPass: false, structuralPass: false,
+  };
   const pairs = [0, 1, 2].map((repetition) => {
     const enabled = runs.find((run) => run.repetition === repetition && run.audioEnabled);
     const disabled = runs.find((run) => run.repetition === repetition && !run.audioEnabled);
@@ -509,6 +553,8 @@ function analyseMemory(runs) {
     );
   });
   return {
+    comparable: true,
+    comparabilityErrors,
     allowanceBytes: AUDIO_RETAINED_ALLOWANCE_BYTES,
     pairs,
     medianAudioSpecificJsGrowthBytes,
@@ -616,7 +662,7 @@ async function main() {
   if (!pass) process.exitCode = 1;
 }
 
-module.exports = { analyseMemory, closeHelpAndSetThreeTimes, memoryHudIsDeselected, normalizeMemoryHud };
+module.exports = { MEMORY_PROBE_SEEDS, analyseMemory, closeHelpAndSetThreeTimes, memoryHudIsDeselected, normalizeMemoryHud };
 
 if (require.main === module) main().catch((error) => {
   console.error(error);

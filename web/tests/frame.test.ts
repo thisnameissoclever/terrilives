@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
@@ -81,6 +81,37 @@ import {
 const ORIGIN_X = 100;
 const ORIGIN_Y = 50;
 const GRID = 16;
+
+it('finite tick budget stops exactly and discards unspent accumulated time', () => {
+  const driver = new FixedStepDriver(10, 5);
+  const tick = vi.fn();
+  expect(driver.advance(350, tick, 1)).toBe(0);
+  expect(tick).toHaveBeenCalledTimes(1);
+  driver.setSpeed(0);
+  driver.advance(1000, tick, 0);
+  expect(tick).toHaveBeenCalledTimes(1);
+  driver.setSpeed(1);
+  driver.advance(50, tick);
+  expect(tick).toHaveBeenCalledTimes(1);
+});
+
+it.each([-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])('rejects invalid tick budget %s without ticking', budget => {
+  const tick = vi.fn();
+  expect(() => new FixedStepDriver(10, 5).advance(350, tick, budget)).toThrow(RangeError);
+  expect(tick).not.toHaveBeenCalled();
+});
+
+it('zero tick budget drops a running accumulator and paused frames still flush commands', () => {
+  const driver = new FixedStepDriver(10, 5);
+  const sim = { tick: vi.fn(), flushCommands: vi.fn() };
+  expect(advanceSimulationFrame(driver, 350, sim, 0)).toBe(0);
+  driver.setSpeed(0);
+  advanceSimulationFrame(driver, 1000, sim, 0);
+  expect(sim.flushCommands).toHaveBeenCalledTimes(1);
+  driver.setSpeed(1);
+  advanceSimulationFrame(driver, 50, sim);
+  expect(sim.tick).not.toHaveBeenCalled();
+});
 
 /**
  * Copies the live prefix of the instance array out of the scratch buffer.

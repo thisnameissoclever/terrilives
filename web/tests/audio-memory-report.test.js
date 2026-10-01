@@ -2,6 +2,14 @@ import { expect, test } from 'vitest';
 import { runInNewContext } from 'node:vm';
 import proof from '../../scripts/audio-browser-proof.cjs';
 
+test('memory fixture seeds are predeclared in repetition order', () => {
+  expect(proof.MEMORY_PROBE_SEEDS).toEqual([
+    {low: 104729, high: 130363},
+    {low: 155921, high: 196613},
+    {low: 262147, high: 327673},
+  ]);
+});
+
 test.each([true, false])('memory setup unlocks through visible controls with first-run Help %s', async helpVisible => {
   const calls = [];
   const page = {
@@ -22,6 +30,7 @@ test.each([true, false])('memory setup unlocks through visible controls with fir
 function runsWithDoors(doorTracks) {
   return [0, 1, 2].flatMap(repetition => [true, false].map(audioEnabled => {
     const common = {
+      seed: {...proof.MEMORY_PROBE_SEEDS[repetition]}, worldHash: '100', tick: 60,
       entities: 1037, wasmMemoryBytes: 65536, jsUsedBytes: 1000, pageMemoryBytes: null,
       footstepTracks: 0, footstepCapacity: 8, activityTracks: 0, activityCapacity: 8,
       objectSoundTracks: 0, objectSoundCapacity: 8, activeVoices: 0,
@@ -34,9 +43,49 @@ function runsWithDoors(doorTracks) {
     return {repetition, audioEnabled, samples: [{...common},
       {...common, doorTracks: audioEnabled ? doorTracks : 0,
         ambienceVoices: audioEnabled ? 1 : 0, retainedAmbienceVoices: audioEnabled ? 1 : 0,
-        ambienceStarts: audioEnabled ? 1 : 0}, {...common, ambienceStarts: audioEnabled ? 1 : 0}]};
+        ambienceStarts: audioEnabled ? 1 : 0}, {...common, tick: 600, worldHash: '200', ambienceStarts: audioEnabled ? 1 : 0}]};
   }));
 }
+
+test('memory attribution rejects independently changed seeds, ticks, hashes and missing metadata', () => {
+  expect(proof.analyseMemory(runsWithDoors(4)).comparable).toBe(true);
+  for (const repetition of [0, 1, 2]) {
+    for (const endpoint of [0, 2]) {
+      for (const field of ['seed', 'tick', 'worldHash', 'seedHigh']) {
+        for (const mutation of ['change', 'omit']) {
+          const runs = runsWithDoors(4);
+          const sample = runs[repetition * 2].samples[endpoint];
+          if (field === 'seedHigh') {
+            if (mutation === 'omit') delete sample.seed.high;
+            else sample.seed.high++;
+          } else if (mutation === 'omit') delete sample[field];
+          else sample[field] = field === 'seed' ? {...sample.seed, low: sample.seed.low + 1} : field === 'tick' ? sample.tick + 1 : '999';
+          const result = proof.analyseMemory(runs);
+          expect(result.comparable, `${repetition}:${endpoint}:${field}:${mutation}`).toBe(false);
+          expect(result.retainedAudioPass).toBe(false);
+          expect(result.medianAudioSpecificJsGrowthBytes).toBeNull();
+        }
+      }
+    }
+  }
+});
+
+test('equal but unprescribed endpoints and seeds cannot pass a matched pair', () => {
+  for (const field of ['tick', 'seed']) {
+    const runs = runsWithDoors(4);
+    for (const run of runs.slice(0, 2)) {
+      run.samples[0][field] = field === 'tick' ? 61 : {low: 1, high: 2};
+    }
+    expect(proof.analyseMemory(runs).comparable).toBe(false);
+  }
+});
+
+test('memory comparability rejects missing and duplicated pairs', () => {
+  const missing = runsWithDoors(4); missing.pop();
+  expect(proof.analyseMemory(missing).comparable).toBe(false);
+  const duplicated = runsWithDoors(4); duplicated[1] = duplicated[0];
+  expect(proof.analyseMemory(duplicated).comparable).toBe(false);
+});
 
 test('memory acceptance needs exercised doors and rejects retained door growth or excess voices', () => {
   expect(proof.analyseMemory(runsWithDoors(4)).structuralPass).toBe(true);

@@ -297,7 +297,7 @@ describe('sampleSimAudioAfterTick', () => {
       /const frameSimulation = \{[\s\S]*?tick\(\): void \{\s*sim\.tick\(\);[\s\S]*?sampleSimAudioAfterTick\(sim, audio\);[\s\S]*?flushCommands\(\): void \{\s*sim\.flushCommands\(\);/,
     );
     expect(MAIN).toMatch(
-      /advanceSimulationFrame\(driver, deltaMs, frameSimulation\)/,
+      /advanceSimulationFrame\(driver, deltaMs, frameSimulation, memoryProbeTarget\.remaining\(sim\.clockTick\(\)\)\)/,
     );
     expect(MAIN).not.toMatch(
       /flushCommands\(\): void \{[\s\S]{0,120}sampleSimAudioAfterTick/,

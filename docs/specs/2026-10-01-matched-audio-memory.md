@@ -1,6 +1,6 @@
 # Match audio memory workloads
 
-Status: planned harness correction. Indoor ambience and PR 178 remain held.
+Status: harness correction implemented locally. Browser comparability and corrected full acceptance remain unverified. Indoor ambience and PR 178 remain held.
 
 ## Purpose and authority
 
@@ -54,6 +54,15 @@ recorded seeds plus an exact fixed-step stop, retaining the raw heap metric.
    cherry-pick seeds or subtract code memory. Do not import or release PR 178.
 
 ## Verification
+
+The stress handle now exposes `memoryProbeSeed` and `runUntilTick(targetTick)`.
+Each memory snapshot records `seed: {low, high}`, `tick`, and decimal-string
+`worldHash`. The runner starts at zero, stops at 60 and 600 through the existing
+speed controls, and preserves the live interval's 60-tick sampling cadence.
+The analyzer returns `comparable: false`, explicit `comparabilityErrors`, no
+pair attribution and a null median when fixture seeds or endpoint tick/hash
+metadata are missing or mismatched. This rejects historical unmatched reports;
+it does not revise their reported outcomes.
 
 Test the driver with a multi-tick accumulator and a one-tick budget, zero budget,
 invalid values, and later resume. Pin unbudgeted behavior. Test query parsing,

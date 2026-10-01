@@ -8310,6 +8310,27 @@ unready. Reject each other incomplete panel and missing required node. Retained
 node, document and listener changes in either direction must still fail the
 unchanged acceptance calculation. Then exercise the actual browser transition.
 
+## [L-memory-pairs-need-exact-worlds] Match seeds and exact ticks before attributing heap growth
+
+**What happened.** The indoor-ambience memory investigation compared randomly
+seeded worlds and polling endpoints that could overshoot their intended ticks.
+Those differences made audio-specific attribution unreliable.
+
+**Root cause.** Polling observes the clock after a frame has already spent its
+tick accumulator; selecting Pause afterward cannot undo excess ticks. Random
+world generation also changes the measured workload between paired runs.
+
+**Prevention.** Declare seeds before measuring. Enforce the remaining tick
+budget inside the fixed-step driver, discard accumulated time at the endpoint,
+and pause through existing control ownership. Require fixture seed and exact
+endpoint ticks and hashes before calculating paired heap differences. Preserve
+the raw allowance, workload and previous failed reports.
+
+**Verify.** Removing the driver budget or seed/tick/hash comparison guards must
+fail focused tests. Restore byte-identical files. Verify equal seeds, ticks 60
+and 600, and equal hashes in a real pair before full acceptance. Browser proof
+and the corrected full memory result remain separate from unit-test success.
+
 ## [L-flex-controls-enlarged-text] Reserve control width and let labels wrap
 
 **What happened.** Separating the New housemate instinct labels fixed their

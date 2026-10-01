@@ -124,7 +124,7 @@ The single-worker full Web suite passed 1,746 tests in 116 files. TypeScript and
 production Web build passed, using main-matching release WASM built offline.
 Nine targeted mutations each failed their covering test and restored exact
 pre-mutation SHA-256 bytes. Detailed commands, outputs and restoration hashes are
-in `.superpowers/sdd/2026-10-01-indoor-ambience/task-1-report.md`.
+in `docs/assets/review-evidence/audio/indoor-ambience/implementation-report.md`.
 
 The native browser export is `proveRoomAmbience` in `web/proofs/room-ambience.js`.
 Root reports all ten rendered checks passed, including positive signal,

@@ -347,7 +347,16 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
 6. Confirm no allocation grows with entity count and no scheduler typed-array
    capacity grows after warm-up. Fresh bridge view wrappers are required by
    [D11] and must not be misreported as literal zero allocation.
-7. Run three alternating enabled/disabled retained-memory pairs. Measure
+7. Run three alternating enabled/disabled retained-memory pairs using
+   the predeclared seeds `(104729, 130363)`, `(155921, 196613)`, and
+   `(262147, 327673)` in that order. Memory URLs include `probeSeedLow` and
+   `probeSeedHigh` with `stress=1000`; only those opted-in pages start paused
+   at tick zero. Use `runUntilTick(60)` for warm-up and `runUntilTick(600)`
+   for the measured interval. The driver enforces exact stops while rendering
+   and audio clocks continue normally. Record each snapshot's seed and
+   decimal-string world hash; reject seed, baseline tick/hash or final tick/hash
+   mismatches before attributing heap growth. See `2026-10-01-matched-audio-memory.md`.
+   Measure
    quiescent paused endpoints after explicit garbage collection. Clear selection
    through the public command and wait for the complete unselected UI projection
    at both endpoints, including cleared career/mood text, empty panel rows,

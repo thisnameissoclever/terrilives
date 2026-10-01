@@ -1,4 +1,5 @@
 import { newGameSeed } from './new-game-seed.js';
+import { parseMemoryProbeSeed, MemoryProbeTarget, type ProbeSeed } from './stress-memory-probe.js';
 import { DeathControls } from './ui/death-controls.js';
 // Entry point. The simulation runs in WASM at a fixed 10 Hz, its state
 // crosses into JavaScript through the zero-copy bridge, and the renderer
@@ -140,6 +141,8 @@ const REPORT_INTERVAL_MS = 2000;
  * carries no extra surface.
  */
 export interface StressHandle {
+  readonly memoryProbeSeed: ProbeSeed | null;
+  runUntilTick(targetTick: number): void;
   readonly timer: FrameTimer;
   /** Sampler-only timings. A 540-sample ring discards 60 warm-up ticks. */
   readonly footstepSampler: FrameTimer;
@@ -295,7 +298,11 @@ async function main(): Promise<void> {
   // `handle` is kept alongside the bridge because the lot's dimensions
   // are simulation state rather than a memory view, and the bridge's job
   // is the zero-copy views.
-  const [seedLow, seedHigh] = newGameSeed();
+  const memoryProbeSeed = parseMemoryProbeSeed(location.search);
+  const memoryProbeTarget = new MemoryProbeTarget();
+  const initialSpeed = memoryProbeSeed === null ? START_SPEED : 0;
+  const [seedLow, seedHigh] = memoryProbeSeed === null
+    ? newGameSeed() : [memoryProbeSeed.low, memoryProbeSeed.high];
   const handle = SimHandle.from_lot_with_seed(seedLow, seedHigh);
   const sim = new SimBridge(handle, wasm.memory);
   // The names of the conversation recordings come from the compiled content
@@ -403,7 +410,7 @@ async function main(): Promise<void> {
   }
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
-  driver.setSpeed(START_SPEED);
+  driver.setSpeed(initialSpeed);
   const frameSimulation = {
     tick(): void {
       sim.tick();
@@ -429,7 +436,7 @@ async function main(): Promise<void> {
   const overlayPause = new OverlayPauseController(
     withObjectSoundPause(driver, audio),
     (ticksPerFrame) => sim.setSpeed(ticksPerFrame),
-    START_SPEED,
+    initialSpeed,
   );
 
   // The player readouts render simulation state and own nothing ([D-5]):
@@ -711,7 +718,7 @@ async function main(): Promise<void> {
     panel.toggle();
   }
 
-  buildTimeControls(document, speedRoot, START_SPEED, (ticksPerFrame) => {
+  buildTimeControls(document, speedRoot, initialSpeed, (ticksPerFrame) => {
     // Both halves, in one place so neither can be forgotten.
     //
     // The command is what a replay and Layer 2 multiplayer would carry
@@ -726,6 +733,13 @@ async function main(): Promise<void> {
     audio.setGameSpeed(ticksPerFrame > 0 ? ticksPerFrame : 1);
     audio.emit({ type: 'ui.confirmed' });
   });
+
+  function selectProbeSpeed(speed: number): void {
+    const input = document.querySelector<HTMLInputElement>(`#speed-${speed}`);
+    if (input === null) throw new Error('memory probe speed control is missing');
+    input.checked = true;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
 
   const saveButton = document.querySelector<HTMLButtonElement>('#save-game');
   const loadButton = document.querySelector<HTMLButtonElement>('#load-game');
@@ -1531,7 +1545,7 @@ async function main(): Promise<void> {
     // between the last one that ran and the next one that has not. A paused
     // frame drains input without running a full tick.
     const alpha = advanceFrameWithCommandFeedback(
-      () => advanceSimulationFrame(driver, deltaMs, frameSimulation),
+      () => advanceSimulationFrame(driver, deltaMs, frameSimulation, memoryProbeTarget.remaining(sim.clockTick())),
       () => {
         if (!startingNewGame) persistence.updateAutosave();
       },
@@ -1539,6 +1553,9 @@ async function main(): Promise<void> {
       commandStatus,
       () => audio.emit({ type: 'command.rejected' }),
     );
+    if (memoryProbeTarget.complete(sim.clockTick()) && !document.querySelector<HTMLInputElement>('#speed-0')!.checked) {
+      selectProbeSpeed(0);
+    }
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
     buyTool.setBlocked(overlayPause.suspendedExcept('builder'));
@@ -1637,6 +1654,12 @@ async function main(): Promise<void> {
       throw new Error('stress footstep timer was not created');
     }
     globalThis.__terriStress = {
+      memoryProbeSeed,
+      runUntilTick(targetTick: number): void {
+        if (memoryProbeSeed === null) throw new Error('memory probe requires both probe seeds');
+        memoryProbeTarget.arm(targetTick, sim.clockTick());
+        selectProbeSpeed(3);
+      },
       timer,
       footstepSampler: footstepSamplerTimer,
       footstepSampling,
