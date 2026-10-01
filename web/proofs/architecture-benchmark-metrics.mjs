@@ -13,6 +13,21 @@ export function benchmarkOrder(round) {
   return [...ORDERS[round % ORDERS.length]];
 }
 
+/** Select the producer's floor prefix or remaining walls without changing source rows. */
+export function selectGeometryComponent(geometry, component) {
+  if (!['all', 'floors', 'walls'].includes(component)
+    || !Number.isInteger(geometry.floorCount) || !Number.isInteger(geometry.count)
+    || geometry.floorCount < 0 || geometry.floorCount > geometry.count
+    || geometry.instances.length < geometry.count * 16 || geometry.lowInstances.length % 16) {
+    throw new Error('Component selection requires a valid producer floor prefix');
+  }
+  const start = component === 'walls' ? geometry.floorCount : 0;
+  const end = component === 'floors' ? geometry.floorCount : geometry.count;
+  return { instances: geometry.instances.slice(start * 16, end * 16), count: end - start,
+    floorCount: component === 'walls' ? 0 : geometry.floorCount,
+    lowInstances: component === 'floors' ? new Float32Array() : geometry.lowInstances.slice() };
+}
+
 export function distribution(samples) {
   if (!samples.length || samples.some(value => !Number.isFinite(value) || value < 0)) {
     throw new Error('Timing samples must be finite and nonnegative');

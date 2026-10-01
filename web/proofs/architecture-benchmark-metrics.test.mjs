@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { benchmarkOrder, distribution, timestampDurations } from './architecture-benchmark-metrics.mjs';
+import { benchmarkOrder, distribution, timestampDurations, selectGeometryComponent } from './architecture-benchmark-metrics.mjs';
 
 test('six rounds balance arm positions and ordered adjacency', () => {
   const positions = new Map(), adjacency = new Map();
@@ -39,4 +39,24 @@ test('malformed pairs and negative or empty timing samples are rejected', () => 
   assert.throws(() => timestampDurations([0n, 2n ** 64n]));
   assert.throws(() => distribution([])); assert.throws(() => distribution([-1]));
   assert.throws(() => benchmarkOrder(-1));
+});
+
+test('floor and wall selections partition only live rows and retain short walls only with walls', () => {
+  const source = { instances: Float32Array.from({ length: 64 }, (_, i) => i + 1), count: 3,
+    floorCount: 2, lowInstances: new Float32Array(16).fill(99) };
+  const floors = selectGeometryComponent(source, 'floors'), walls = selectGeometryComponent(source, 'walls');
+  const all = selectGeometryComponent(source, 'all');
+  assert.equal(floors.count, 2); assert.equal(floors.floorCount, 2); assert.equal(floors.lowInstances.length, 0);
+  assert.equal(walls.count, 1); assert.equal(walls.floorCount, 0); assert.deepEqual(walls.lowInstances, source.lowInstances);
+  assert.deepEqual([...floors.instances, ...walls.instances], [...all.instances]);
+  assert.equal(all.instances.length, 48); assert.deepEqual(all.lowInstances, source.lowInstances);
+  floors.instances[0] = -1; walls.lowInstances[0] = -1;
+  assert.equal(source.instances[0], 1); assert.equal(source.lowInstances[0], 99);
+});
+
+test('component selection rejects an unknown mode or invalid floor prefix', () => {
+  const source = { instances: new Float32Array(32), count: 2, floorCount: 2, lowInstances: new Float32Array() };
+  assert.throws(() => selectGeometryComponent(source, 'objects'));
+  assert.throws(() => selectGeometryComponent({ ...source, floorCount: 3 }, 'floors'));
+  assert.throws(() => selectGeometryComponent({ ...source, instances: new Float32Array(16) }, 'all'));
 });

@@ -11,7 +11,7 @@ import { ARCHITECTURE } from '../src/render/architecture-data.ts';
 import { writeInstance } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/instances.ts';
 import { layeredDepth, LAYER_PROP } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/iso.ts';
 import { acquireWithTimeout } from './owned-timeout.ts';
-import { benchmarkOrder, distribution, timestampDurations } from './architecture-benchmark-metrics.mjs';
+import { benchmarkOrder, distribution, timestampDurations, selectGeometryComponent } from './architecture-benchmark-metrics.mjs';
 import metricsSource from './architecture-benchmark-metrics.mjs?raw';
 import proofSource from './architecture-overhead.js?raw';
 import appearanceProfiles from './fixtures/architecture/appearance-profiles.json';
@@ -194,7 +194,7 @@ export async function createArchitectureBenchmark() {
     };
     const inputHashes = async geometry => ({ opaque: await hash(geometry.instances), low: await hash(geometry.lowInstances) });
     return { metadata,
-      async configure({ scale = 1, cutaway = true, appearance = 'shipped-content' } = {}) {
+      async configure({ scale = 1, cutaway = true, appearance = 'shipped-content', component = 'all' } = {}) {
         ready(); assert([1, 1.75].includes(scale), 'Use scale 1 or 1.75 for the final stress lot'); busy = true;
         try {
           const data = makeLot(true, cutaway, appearance);
@@ -205,9 +205,9 @@ export async function createArchitectureBenchmark() {
           readback = gpu.device.createBuffer({ size: bytesPerRow * canvas.height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
           const ox = canvas.width / 2 + .37, oy = 120 * scale + .19;
           const old = historicalGeometry(data.lot, ox, oy, data.size, scale);
-          const previous = { instances: old.instances.slice(0, old.count * 16), count: old.count, lowInstances: old.lowInstances.slice() };
+          const previous = { instances: old.instances.slice(0, old.count * 16), count: old.count, floorCount: old.floorCount, lowInstances: old.lowInstances.slice() };
           const current = buildStaticInstances({ ...data.lot, architecture: data.architecture }, ox, oy, data.size, scale);
-          const next = { instances: current.instances.slice(0, current.count * 16), count: current.count, lowInstances: current.lowInstances.slice() };
+          const next = { instances: current.instances.slice(0, current.count * 16), count: current.count, floorCount: current.floorCount, lowInstances: current.lowInstances.slice() };
           let shiftedFloorRows = 0;
           for (let index = 0; index < current.floorCount; index++) {
             const offset = index * 16;
@@ -229,21 +229,29 @@ export async function createArchitectureBenchmark() {
             writeInstance(props, i, ox + ((x - y) * 32 + spriteDrawOffsetX(id)) * scale,
               oy + ((x + y) * 21 + spriteDrawOffsetY(id)) * scale, layeredDepth(x, y, data.size, LAYER_PROP), id);
           }
+          const rowCount = geometry => ({ static: geometry.count, floorPrefix: geometry.floorCount,
+            low: geometry.lowInstances.length / 16, dynamic: 12 });
+          const geometrySelection = { component,
+            rule: 'Use each producer floorCount prefix. Floors removes low walls; walls retains them. All arms retain the same twelve dynamic rows.',
+            originalCounts: { historical: rowCount(previous), authored: rowCount(next) },
+            originalHashes: { historical: await inputHashes(previous), authored: await inputHashes(next) } };
+          const selectedPrevious = selectGeometryComponent(previous, component), selectedNext = selectGeometryComponent(next, component);
           candidate.setArchitectureCamera(ox, oy);
-          arms.baselineHistorical = { renderer: baseline, resource: 'baseline', geometry: previous };
-          arms.candidateHistorical = { renderer: candidate, resource: 'candidate', geometry: previous };
-          arms.candidateFinal = { renderer: candidate, resource: 'candidate', geometry: next };
-          configured = { scene: 'final-stress-34x34', scale, cutaway, props, appearance: appearanceEvidence };
+          arms.baselineHistorical = { renderer: baseline, resource: 'baseline', geometry: selectedPrevious };
+          arms.candidateHistorical = { renderer: candidate, resource: 'candidate', geometry: selectedPrevious };
+          arms.candidateFinal = { renderer: candidate, resource: 'candidate', geometry: selectedNext };
+          configured = { scene: 'final-stress-34x34', scale, cutaway, props, appearance: appearanceEvidence, geometrySelection };
           const pixels = {}, inputs = {}, rowCounts = {};
           for (const name of benchmarkOrder(0)) {
             pixels[name] = await capture(name); inputs[name] = await inputHashes(arms[name].geometry);
-            rowCounts[name] = { static: arms[name].geometry.count, low: arms[name].geometry.lowInstances.length / 16, dynamic: 12 };
+            rowCounts[name] = rowCount(arms[name].geometry);
           }
           assert(pixels.baselineHistorical.sha256 === pixels.candidateHistorical.sha256, 'Identical historical input pixels differ');
           assert(inputs.baselineHistorical.opaque === inputs.candidateHistorical.opaque && inputs.baselineHistorical.low === inputs.candidateHistorical.low,
             'Historical arms must share identical geometry bytes');
+          geometrySelection.selectedCounts = rowCounts; geometrySelection.selectedHashes = inputs;
           configured.inputs = inputs; configured.propsHash = await hash(props);
-          return { scene: configured.scene, scale, cutaway, appearance: appearanceEvidence, canvas: { width: canvas.width, height: canvas.height },
+          return { scene: configured.scene, scale, cutaway, appearance: appearanceEvidence, geometrySelection, canvas: { width: canvas.width, height: canvas.height },
             depthAttachmentBytesLowerBound: canvas.width * canvas.height * 3, windows: data.architecture.windows.length,
             interiorFloorTiles: data.size * data.size, pixels, historicalPixelsEqual: true, inputHashes: inputs,
             dynamicSHA256: configured.propsHash, rowCounts };
@@ -253,7 +261,7 @@ export async function createArchitectureBenchmark() {
         ready(); assert(configured, 'Configure the final scene before measuring');
         assert(Number.isInteger(frames) && frames >= 30 && frames <= MAX_FRAMES
           && Number.isInteger(warmup) && warmup >= 1 && warmup <= MAX_FRAMES, 'Use 30-120 samples and 1-120 warmup frames');
-        const order = benchmarkOrder(round), result = { round, order, frames, warmup, appearance: configured.appearance, arms: {} }; busy = true;
+        const order = benchmarkOrder(round), result = { round, order, frames, warmup, appearance: configured.appearance, geometrySelection: configured.geometrySelection, arms: {} }; busy = true;
         try {
           for (const name of order) {
             const renderer = activate(name);

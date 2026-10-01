@@ -60,3 +60,9 @@ Focused non-browser checks:
 node --check web/proofs/architecture-overhead.js
 node --test web/proofs/architecture-benchmark-metrics.test.mjs
 ```
+
+## Component isolation
+
+`configure({scale: 1, appearance: 'shipped-content', component: 'floors'})` keeps each producer's `floorCount` opaque prefix and omits short walls. `component: 'walls'` removes that prefix and retains the remaining opaque rows plus short walls. The default `component: 'all'` preserves the complete workload.
+
+All three arms keep the same canvas, camera and twelve dynamic furniture/Sim rows in every component profile. The full authored-floor identity assertion runs before selection, including for the walls profile. Configuration and every round retain original and selected counts/hashes in `geometrySelection`. Historical-arm pixel equality and positive framebuffer controls still apply. These are controlled component workloads, not a changed game or a claim that component timings add linearly to the full scene.
