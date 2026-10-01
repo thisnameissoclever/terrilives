@@ -1,0 +1,282 @@
+{
+  "diagnosticOnly": true,
+  "startedAt": "2026-10-01T08:36:02.497Z",
+  "sourceSha256": "497381428b34077c00da9552a004e2140995452f1b7bcd57f944bccd0c53cde0",
+  "recordingSha256": "b0e3384721432cb34733619b6e415c1de78f06f4b5f11bb0486f863088d4fbb5",
+  "proofSha256": "1ca32d921f7715026418818fc7440f52d14d02a46c42c3688317e7997f8cfbea",
+  "loaded": [
+    {
+      "url": "http://127.0.0.1:5203/web/src/audio/recorded-toilet.ts",
+      "bytes": 9476,
+      "sha256": "f9f144a40231e539902a52de08db0b2d88be72d8905318f61b2543ca1492c831"
+    },
+    {
+      "url": "http://127.0.0.1:5203/audio/toilet/flush.wav",
+      "bytes": 791988,
+      "sha256": "b0e3384721432cb34733619b6e415c1de78f06f4b5f11bb0486f863088d4fbb5"
+    }
+  ],
+  "pageErrors": [],
+  "browserClosed": true,
+  "serverClosed": true,
+  "limitations": [
+    "Instrumented native disconnect methods delegate unchanged to their original implementations.",
+    "Test references retain source and gain nodes until assertions; this proves player ownership release, not garbage collection.",
+    "The destination gain is silent; the real AudioContext clock remains running.",
+    "No pause, stopAll, voice-count getter, or manual sweep occurs before inspection.",
+    "Four initial plays form one synchronous batch; no later play occurs while waiting or before inspection.",
+    "This does not clear retained-memory or refresh-rate acceptance gates."
+  ],
+  "browserVersion": "154.0.8037.58",
+  "initialButton": "Run natural cleanup diagnostic",
+  "result": {
+    "status": "passed",
+    "diagnosticOnly": true,
+    "partialCases": [
+      {
+        "sources": [
+          91
+        ],
+        "initial": [
+          {
+            "sourceId": 91,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 20.796708333333335
+          }
+        ],
+        "final": [
+          {
+            "sourceId": 91,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 20.8,
+            "onendedCleared": true,
+            "stillOwned": false
+          }
+        ],
+        "activeMapSize": 0,
+        "elapsedAudioSeconds": 4.128,
+        "passiveNaturalCleanup": true
+      },
+      {
+        "sources": [
+          101,
+          202,
+          303,
+          404
+        ],
+        "initial": [
+          {
+            "sourceId": 101,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          },
+          {
+            "sourceId": 202,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          },
+          {
+            "sourceId": 303,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          },
+          {
+            "sourceId": 404,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          }
+        ],
+        "final": [
+          {
+            "sourceId": 101,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          },
+          {
+            "sourceId": 202,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          },
+          {
+            "sourceId": 303,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          },
+          {
+            "sourceId": 404,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          }
+        ],
+        "activeMapSize": 0,
+        "elapsedAudioSeconds": 4.1306666666666665,
+        "passiveNaturalCleanup": true
+      }
+    ],
+    "testReferencesReleased": true,
+    "recording": {
+      "duration": 4.124708333333333,
+      "sampleRate": 48000,
+      "frames": 197986,
+      "channels": 2
+    },
+    "cases": [
+      {
+        "sources": [
+          91
+        ],
+        "initial": [
+          {
+            "sourceId": 91,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 20.796708333333335
+          }
+        ],
+        "final": [
+          {
+            "sourceId": 91,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 20.8,
+            "onendedCleared": true,
+            "stillOwned": false
+          }
+        ],
+        "activeMapSize": 0,
+        "elapsedAudioSeconds": 4.128,
+        "passiveNaturalCleanup": true
+      },
+      {
+        "sources": [
+          101,
+          202,
+          303,
+          404
+        ],
+        "initial": [
+          {
+            "sourceId": 101,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          },
+          {
+            "sourceId": 202,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          },
+          {
+            "sourceId": 303,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          },
+          {
+            "sourceId": 404,
+            "actualSource": true,
+            "actualGain": true,
+            "nativeBuffer": true,
+            "hasOnended": true,
+            "endsAt": 24.924708333333335
+          }
+        ],
+        "final": [
+          {
+            "sourceId": 101,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          },
+          {
+            "sourceId": 202,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          },
+          {
+            "sourceId": 303,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          },
+          {
+            "sourceId": 404,
+            "sourceDisconnects": 1,
+            "gainDisconnects": 1,
+            "endedEvents": 1,
+            "trustedEnded": true,
+            "endedAt": 24.930666666666667,
+            "onendedCleared": true,
+            "stillOwned": false
+          }
+        ],
+        "activeMapSize": 0,
+        "elapsedAudioSeconds": 4.1306666666666665,
+        "passiveNaturalCleanup": true
+      }
+    ]
+  },
+  "pass": true
+}

@@ -58,3 +58,4 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - Doors open silently and close with a softer thud.
 - Running sinks and cooking have their own recorded sounds.
 - Footsteps are quieter.
+- Toilets play a recorded flush after completed use. Cancelling use does not play it; pausing stops an active flush.

@@ -1,0 +1,2352 @@
+{
+  "generatedAt": "2026-10-01T20:45:38.011Z",
+  "diagnosticOnly": true,
+  "acceptanceVerdict": null,
+  "sourceHash": "de942a5286c2d3513a3f32dc144f4a1fe7cc4e1df91103fb97fb6eb2d0c753fc",
+  "instrumentedHash": "fac8779096bda3c63bcdc1dfd26f1ae8ad171907d65438a631fed2eebeda8ab0",
+  "scriptHash": "3b5279beb7e52e7ae6958282bbe10df0c8b1f70cb179d0886e7154c49061922d",
+  "protocol": "Four fixed conditions; alter only intermediate forced collection; retain all observations and endpoint collection.",
+  "limitations": [
+    "One observation per cell cannot establish causation or acceptance.",
+    "No changed runtime, allowance, compiler-category subtraction, or retry for a passing result."
+  ],
+  "runs": [
+    {
+      "omitIntermediateGc": false,
+      "audioEnabled": true,
+      "endpointSamples": 2,
+      "intermediateSamples": 8,
+      "sampleLog": [
+        {
+          "phase": "baseline",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-1",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-2",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-3",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-4",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-5",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-6",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-7",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-8",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        }
+      ],
+      "endpointGcDelegated": 4,
+      "intermediateGcDelegated": 16,
+      "intermediateGcOmitted": 0,
+      "result": {
+        "repetition": 0,
+        "audioEnabled": true,
+        "bundleEvidence": [
+          {
+            "url": "http://127.0.0.1:4195/assets/index-B0ws5oeU.js",
+            "sha256": "1ad7e5f1ebc50a2c5f0582ba438895a6534a2b008a480b7fab6f397c79bb0aa4"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/save-worker-Cb-g-Su5.js",
+            "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/terri_wasm_bg-CVnPYumy.wasm",
+            "sha256": "e3ae0459292028af080086124246e68a3b21bf1d45febf778d42afaddb854811"
+          }
+        ],
+        "fixtureSha256": "86512c7a3aaf619a1161faf5ad25b913edfbcc6f2b81127c15ac33fe36d2b36b",
+        "toiletWarmup": {
+          "first": {
+            "event": {
+              "tick": 44,
+              "source": 29,
+              "timeMs": 3131.205000013113
+            },
+            "voices": 1,
+            "flushes": 1
+          },
+          "second": {
+            "event": {
+              "tick": 174,
+              "source": 29,
+              "timeMs": 7465.069999992847
+            },
+            "voices": 1,
+            "flushes": 2
+          },
+          "drainedAfterPlayback": true,
+          "observedDrain": {
+            "elapsedMs": 4140.024999976158,
+            "voices": 0,
+            "events": 2
+          },
+          "pausedVoices": 0,
+          "playedFlushes": 2,
+          "target": 29
+        },
+        "diagnosticOnly": true,
+        "measurementBaseline": {
+          "tick": 62,
+          "worldHash": "18405848757842447177"
+        },
+        "measurementEndpoint": {
+          "tick": 602,
+          "worldHash": "2251520100923854919"
+        },
+        "samples": [
+          {
+            "tick": 62,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 3,
+            "doorTracks": 0,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7170676,
+            "jsEmbedderBytes": 1710640,
+            "backingStorageBytes": 3171345,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          },
+          {
+            "tick": 123,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 4,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7210636,
+            "jsEmbedderBytes": 1833648,
+            "backingStorageBytes": 3171345,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2098,
+            "eventListeners": 149
+          },
+          {
+            "tick": 183,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 1,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 1,
+            "retainedObjectLoopVoices": 1,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 4,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7531840,
+            "jsEmbedderBytes": 2404296,
+            "backingStorageBytes": 3171905,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2101,
+            "eventListeners": 150
+          },
+          {
+            "tick": 243,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 2,
+            "doorVoices": 2,
+            "toiletVoices": 0,
+            "toiletFlushes": 4,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7226200,
+            "jsEmbedderBytes": 1929512,
+            "backingStorageBytes": 3171376,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2099,
+            "eventListeners": 151
+          },
+          {
+            "tick": 304,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 3,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 3,
+            "retainedObjectLoopVoices": 3,
+            "doorVoices": 4,
+            "toiletVoices": 1,
+            "toiletFlushes": 5,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7552932,
+            "jsEmbedderBytes": 2244672,
+            "backingStorageBytes": 3171930,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2100,
+            "eventListeners": 154
+          },
+          {
+            "tick": 363,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 2,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 5,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7567460,
+            "jsEmbedderBytes": 2381192,
+            "backingStorageBytes": 3171960,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2111,
+            "eventListeners": 151
+          },
+          {
+            "tick": 422,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 3,
+            "doorVoices": 0,
+            "toiletVoices": 1,
+            "toiletFlushes": 6,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7375952,
+            "jsEmbedderBytes": 2162672,
+            "backingStorageBytes": 3171376,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2104,
+            "eventListeners": 150
+          },
+          {
+            "tick": 482,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 2,
+            "doorVoices": 1,
+            "toiletVoices": 1,
+            "toiletFlushes": 6,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7402392,
+            "jsEmbedderBytes": 2194744,
+            "backingStorageBytes": 3171383,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2104,
+            "eventListeners": 150
+          },
+          {
+            "tick": 545,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 3,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 3,
+            "retainedObjectLoopVoices": 3,
+            "doorVoices": 2,
+            "toiletVoices": 0,
+            "toiletFlushes": 6,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7421532,
+            "jsEmbedderBytes": 2206256,
+            "backingStorageBytes": 3171383,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2104,
+            "eventListeners": 151
+          },
+          {
+            "tick": 602,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 4849664,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 7,
+            "doorTracks": 0,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7337192,
+            "jsEmbedderBytes": 1731672,
+            "backingStorageBytes": 3171383,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          }
+        ],
+        "diagnosticSamples": []
+      },
+      "rawJsGrowthBytes": 166516
+    },
+    {
+      "omitIntermediateGc": true,
+      "audioEnabled": false,
+      "endpointSamples": 2,
+      "intermediateSamples": 8,
+      "sampleLog": [
+        {
+          "phase": "baseline",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-1",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-2",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-3",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-4",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-5",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-6",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-7",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-8",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        }
+      ],
+      "endpointGcDelegated": 4,
+      "intermediateGcDelegated": 0,
+      "intermediateGcOmitted": 16,
+      "result": {
+        "repetition": 0,
+        "audioEnabled": false,
+        "bundleEvidence": [
+          {
+            "url": "http://127.0.0.1:4195/assets/index-B0ws5oeU.js",
+            "sha256": "1ad7e5f1ebc50a2c5f0582ba438895a6534a2b008a480b7fab6f397c79bb0aa4"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/save-worker-Cb-g-Su5.js",
+            "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/terri_wasm_bg-CVnPYumy.wasm",
+            "sha256": "e3ae0459292028af080086124246e68a3b21bf1d45febf778d42afaddb854811"
+          }
+        ],
+        "fixtureSha256": "86512c7a3aaf619a1161faf5ad25b913edfbcc6f2b81127c15ac33fe36d2b36b",
+        "toiletWarmup": {
+          "first": {
+            "event": {
+              "tick": 44,
+              "source": 29,
+              "timeMs": 2952.3050000071526
+            },
+            "voices": 0,
+            "flushes": 0
+          },
+          "second": {
+            "event": {
+              "tick": 174,
+              "source": 29,
+              "timeMs": 7286.240000009537
+            },
+            "voices": 0,
+            "flushes": 0
+          },
+          "drainedAfterPlayback": true,
+          "observedDrain": {
+            "elapsedMs": 4102.944999992847,
+            "voices": 0,
+            "events": 2
+          },
+          "pausedVoices": 0,
+          "playedFlushes": 0,
+          "target": 29
+        },
+        "diagnosticOnly": true,
+        "measurementBaseline": {
+          "tick": 62,
+          "worldHash": "18405848757842447177"
+        },
+        "measurementEndpoint": {
+          "tick": 602,
+          "worldHash": "2251520100923854919"
+        },
+        "samples": [
+          {
+            "tick": 62,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7036872,
+            "jsEmbedderBytes": 2322144,
+            "backingStorageBytes": 3171280,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          },
+          {
+            "tick": 123,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7378008,
+            "jsEmbedderBytes": 4272600,
+            "backingStorageBytes": 3174228,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2123,
+            "eventListeners": 146
+          },
+          {
+            "tick": 182,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7603904,
+            "jsEmbedderBytes": 7057536,
+            "backingStorageBytes": 3176625,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2153,
+            "eventListeners": 146
+          },
+          {
+            "tick": 242,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7810668,
+            "jsEmbedderBytes": 9258240,
+            "backingStorageBytes": 3178551,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2177,
+            "eventListeners": 146
+          },
+          {
+            "tick": 304,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7389812,
+            "jsEmbedderBytes": 4140584,
+            "backingStorageBytes": 3173802,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2115,
+            "eventListeners": 146
+          },
+          {
+            "tick": 363,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7246152,
+            "jsEmbedderBytes": 6442624,
+            "backingStorageBytes": 3176235,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2148,
+            "eventListeners": 146
+          },
+          {
+            "tick": 423,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7442492,
+            "jsEmbedderBytes": 8761672,
+            "backingStorageBytes": 3178290,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2172,
+            "eventListeners": 146
+          },
+          {
+            "tick": 483,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7578468,
+            "jsEmbedderBytes": 3438488,
+            "backingStorageBytes": 3172976,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2120,
+            "eventListeners": 146
+          },
+          {
+            "tick": 544,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 8327428,
+            "jsEmbedderBytes": 5132712,
+            "backingStorageBytes": 3175109,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2141,
+            "eventListeners": 146
+          },
+          {
+            "tick": 602,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7146660,
+            "jsEmbedderBytes": 2325544,
+            "backingStorageBytes": 3171287,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          }
+        ],
+        "diagnosticSamples": []
+      },
+      "rawJsGrowthBytes": 109788
+    },
+    {
+      "omitIntermediateGc": false,
+      "audioEnabled": false,
+      "endpointSamples": 2,
+      "intermediateSamples": 8,
+      "sampleLog": [
+        {
+          "phase": "baseline",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-1",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-2",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-3",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-4",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-5",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-6",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-7",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-8",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        }
+      ],
+      "endpointGcDelegated": 4,
+      "intermediateGcDelegated": 16,
+      "intermediateGcOmitted": 0,
+      "result": {
+        "repetition": 0,
+        "audioEnabled": false,
+        "bundleEvidence": [
+          {
+            "url": "http://127.0.0.1:4195/assets/index-B0ws5oeU.js",
+            "sha256": "1ad7e5f1ebc50a2c5f0582ba438895a6534a2b008a480b7fab6f397c79bb0aa4"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/save-worker-Cb-g-Su5.js",
+            "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/terri_wasm_bg-CVnPYumy.wasm",
+            "sha256": "e3ae0459292028af080086124246e68a3b21bf1d45febf778d42afaddb854811"
+          }
+        ],
+        "fixtureSha256": "86512c7a3aaf619a1161faf5ad25b913edfbcc6f2b81127c15ac33fe36d2b36b",
+        "toiletWarmup": {
+          "first": {
+            "event": {
+              "tick": 44,
+              "source": 29,
+              "timeMs": 3060.514999985695
+            },
+            "voices": 0,
+            "flushes": 0
+          },
+          "second": {
+            "event": {
+              "tick": 174,
+              "source": 29,
+              "timeMs": 7394.344999998808
+            },
+            "voices": 0,
+            "flushes": 0
+          },
+          "drainedAfterPlayback": true,
+          "observedDrain": {
+            "elapsedMs": 4102.420000016689,
+            "voices": 0,
+            "events": 2
+          },
+          "pausedVoices": 0,
+          "playedFlushes": 0,
+          "target": 29
+        },
+        "diagnosticOnly": true,
+        "measurementBaseline": {
+          "tick": 62,
+          "worldHash": "18405848757842447177"
+        },
+        "measurementEndpoint": {
+          "tick": 602,
+          "worldHash": "2251520100923854919"
+        },
+        "samples": [
+          {
+            "tick": 62,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7251524,
+            "jsEmbedderBytes": 2315104,
+            "backingStorageBytes": 3171598,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          },
+          {
+            "tick": 124,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7272544,
+            "jsEmbedderBytes": 2547640,
+            "backingStorageBytes": 3171839,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2108,
+            "eventListeners": 146
+          },
+          {
+            "tick": 184,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7274196,
+            "jsEmbedderBytes": 2456744,
+            "backingStorageBytes": 3171840,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2101,
+            "eventListeners": 146
+          },
+          {
+            "tick": 243,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7058432,
+            "jsEmbedderBytes": 2434712,
+            "backingStorageBytes": 3171280,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2099,
+            "eventListeners": 146
+          },
+          {
+            "tick": 305,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 6971544,
+            "jsEmbedderBytes": 1892536,
+            "backingStorageBytes": 3171280,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2099,
+            "eventListeners": 146
+          },
+          {
+            "tick": 365,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7073628,
+            "jsEmbedderBytes": 2418368,
+            "backingStorageBytes": 3171280,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2109,
+            "eventListeners": 146
+          },
+          {
+            "tick": 423,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7098744,
+            "jsEmbedderBytes": 2245488,
+            "backingStorageBytes": 3171280,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2104,
+            "eventListeners": 146
+          },
+          {
+            "tick": 482,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7037204,
+            "jsEmbedderBytes": 1897696,
+            "backingStorageBytes": 3171287,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2104,
+            "eventListeners": 146
+          },
+          {
+            "tick": 542,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7037068,
+            "jsEmbedderBytes": 1898512,
+            "backingStorageBytes": 3171287,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2104,
+            "eventListeners": 146
+          },
+          {
+            "tick": 602,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 0,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 0,
+            "doorTracks": 0,
+            "doorCapacity": 0,
+            "jsUsedBytes": 7157216,
+            "jsEmbedderBytes": 2170224,
+            "backingStorageBytes": 3171287,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          }
+        ],
+        "diagnosticSamples": []
+      },
+      "rawJsGrowthBytes": -94308
+    },
+    {
+      "omitIntermediateGc": true,
+      "audioEnabled": true,
+      "endpointSamples": 2,
+      "intermediateSamples": 8,
+      "sampleLog": [
+        {
+          "phase": "baseline",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-1",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-2",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-3",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-4",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-5",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-6",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-7",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "intermediate-8",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": true
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "commands": [
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "HeapProfiler.collectGarbage",
+              "omitted": false
+            },
+            {
+              "method": "Runtime.getHeapUsage",
+              "omitted": false
+            },
+            {
+              "method": "Memory.getDOMCounters",
+              "omitted": false
+            }
+          ]
+        }
+      ],
+      "endpointGcDelegated": 4,
+      "intermediateGcDelegated": 0,
+      "intermediateGcOmitted": 16,
+      "result": {
+        "repetition": 0,
+        "audioEnabled": true,
+        "bundleEvidence": [
+          {
+            "url": "http://127.0.0.1:4195/assets/index-B0ws5oeU.js",
+            "sha256": "1ad7e5f1ebc50a2c5f0582ba438895a6534a2b008a480b7fab6f397c79bb0aa4"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/save-worker-Cb-g-Su5.js",
+            "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+          },
+          {
+            "url": "http://127.0.0.1:4195/assets/terri_wasm_bg-CVnPYumy.wasm",
+            "sha256": "e3ae0459292028af080086124246e68a3b21bf1d45febf778d42afaddb854811"
+          }
+        ],
+        "fixtureSha256": "86512c7a3aaf619a1161faf5ad25b913edfbcc6f2b81127c15ac33fe36d2b36b",
+        "toiletWarmup": {
+          "first": {
+            "event": {
+              "tick": 44,
+              "source": 29,
+              "timeMs": 3038.389999985695
+            },
+            "voices": 1,
+            "flushes": 1
+          },
+          "second": {
+            "event": {
+              "tick": 174,
+              "source": 29,
+              "timeMs": 7372.419999986887
+            },
+            "voices": 1,
+            "flushes": 2
+          },
+          "drainedAfterPlayback": true,
+          "observedDrain": {
+            "elapsedMs": 4134.944999992847,
+            "voices": 0,
+            "events": 2
+          },
+          "pausedVoices": 0,
+          "playedFlushes": 2,
+          "target": 29
+        },
+        "diagnosticOnly": true,
+        "measurementBaseline": {
+          "tick": 62,
+          "worldHash": "18405848757842447177"
+        },
+        "measurementEndpoint": {
+          "tick": 602,
+          "worldHash": "2251520100923854919"
+        },
+        "samples": [
+          {
+            "tick": 62,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 3,
+            "doorTracks": 0,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7144876,
+            "jsEmbedderBytes": 1729848,
+            "backingStorageBytes": 3171345,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          },
+          {
+            "tick": 123,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 4,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7873240,
+            "jsEmbedderBytes": 4585912,
+            "backingStorageBytes": 3174565,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2124,
+            "eventListeners": 159
+          },
+          {
+            "tick": 182,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 4,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 8012564,
+            "jsEmbedderBytes": 6871240,
+            "backingStorageBytes": 3176699,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2153,
+            "eventListeners": 174
+          },
+          {
+            "tick": 242,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 2,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 4,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 8043560,
+            "jsEmbedderBytes": 2424136,
+            "backingStorageBytes": 3171971,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2100,
+            "eventListeners": 153
+          },
+          {
+            "tick": 304,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 3,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 3,
+            "retainedObjectLoopVoices": 3,
+            "doorVoices": 4,
+            "toiletVoices": 1,
+            "toiletFlushes": 5,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 8869000,
+            "jsEmbedderBytes": 4930216,
+            "backingStorageBytes": 3174896,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2121,
+            "eventListeners": 165
+          },
+          {
+            "tick": 363,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 2,
+            "doorVoices": 2,
+            "toiletVoices": 1,
+            "toiletFlushes": 5,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7922560,
+            "jsEmbedderBytes": 7295344,
+            "backingStorageBytes": 3177151,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2154,
+            "eventListeners": 178
+          },
+          {
+            "tick": 422,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 3,
+            "doorVoices": 0,
+            "toiletVoices": 1,
+            "toiletFlushes": 6,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 8908564,
+            "jsEmbedderBytes": 9562584,
+            "backingStorageBytes": 3179060,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2178,
+            "eventListeners": 226
+          },
+          {
+            "tick": 485,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 2,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 2,
+            "retainedObjectLoopVoices": 2,
+            "doorVoices": 1,
+            "toiletVoices": 1,
+            "toiletFlushes": 6,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7801824,
+            "jsEmbedderBytes": 4152256,
+            "backingStorageBytes": 3174010,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2128,
+            "eventListeners": 176
+          },
+          {
+            "tick": 544,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 3,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 3,
+            "retainedObjectLoopVoices": 3,
+            "doorVoices": 2,
+            "toiletVoices": 0,
+            "toiletFlushes": 6,
+            "doorTracks": 6,
+            "doorCapacity": 6,
+            "jsUsedBytes": 8219976,
+            "jsEmbedderBytes": 6194224,
+            "backingStorageBytes": 3176224,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": false,
+            "domDocuments": 1,
+            "domNodes": 2150,
+            "eventListeners": 188
+          },
+          {
+            "tick": 602,
+            "portalCount": 6,
+            "entities": 1037,
+            "wasmMemoryBytes": 5177344,
+            "activeVoices": 0,
+            "footstepTracks": 3,
+            "footstepCapacity": 8,
+            "activityTracks": 0,
+            "activityCapacity": 8,
+            "objectSoundTracks": 0,
+            "objectSoundCapacity": 8,
+            "conversationVoices": 0,
+            "retainedConversationVoices": 0,
+            "objectLoopVoices": 0,
+            "retainedObjectLoopVoices": 0,
+            "doorVoices": 0,
+            "toiletVoices": 0,
+            "toiletFlushes": 7,
+            "doorTracks": 0,
+            "doorCapacity": 6,
+            "jsUsedBytes": 7325640,
+            "jsEmbedderBytes": 1766664,
+            "backingStorageBytes": 3171383,
+            "pageMemoryBytes": null,
+            "pageMemoryTimedOut": true,
+            "domDocuments": 1,
+            "domNodes": 2031,
+            "eventListeners": 146
+          }
+        ],
+        "diagnosticSamples": []
+      },
+      "rawJsGrowthBytes": 180764
+    }
+  ],
+  "browserClosed": true,
+  "serverClosed": true,
+  "browserVersion": "154.0.8037.58",
+  "worldsMatch": true,
+  "bundlesMatch": true,
+  "withIntermediateGcBytes": 260824,
+  "withoutIntermediateGcBytes": 70976,
+  "protocolDifferenceBytes": -189848,
+  "protocolAssertionsPass": true
+}

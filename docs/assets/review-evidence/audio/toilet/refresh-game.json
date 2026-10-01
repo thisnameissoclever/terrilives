@@ -1,0 +1,35 @@
+{
+  "lifecycle": {
+    "first": {
+      "event": {
+        "tick": 51,
+        "source": 29,
+        "timeMs": 2361.2750000059605
+      },
+      "voices": 1,
+      "flushes": 1
+    },
+    "second": {
+      "event": {
+        "tick": 238,
+        "source": 29,
+        "timeMs": 8594.300000011921
+      },
+      "voices": 1,
+      "flushes": 2
+    },
+    "naturallyDrained": true,
+    "naturalDrain": {
+      "elapsedMs": 4144.789999991655,
+      "voices": 0,
+      "events": 1
+    },
+    "pausedVoices": 0,
+    "playedFlushes": 2,
+    "target": 29
+  },
+  "bundles": [
+    "http://127.0.0.1:5221/assets/index-ROiUXfBB.js"
+  ],
+  "errors": []
+}

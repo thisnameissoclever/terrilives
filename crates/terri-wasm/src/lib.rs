@@ -1606,6 +1606,18 @@ impl SimHandle {
         self.sim.render_buffer().sound_actions.as_ptr()
     }
 
+    pub fn completion_sound_count(&self) -> u32 {
+        (self.sim.completion_sounds().len() / 2) as u32
+    }
+
+    pub fn completion_sounds_ptr(&self) -> *const u32 {
+        self.sim.completion_sounds().as_ptr()
+    }
+
+    pub fn clear_completion_sounds(&mut self) {
+        self.sim.clear_completion_sounds();
+    }
+
     /// Exact SmartObject entity index that sources each authored sound, or
     /// `u32::MAX` when the row has no active object sound. Re-read after every
     /// sync or memory growth.

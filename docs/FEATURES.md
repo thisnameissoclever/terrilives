@@ -1018,7 +1018,11 @@ also remains owner-listening evidence rather than accepted sound design.
 This is not the complete audio feature. Front and interior doors open silently
 and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
-`specs/2026-10-01-door-audio.md`. Routine controls
+`specs/2026-10-01-door-audio.md`. Toilet audio plays a
+recorded flush from a separate exact-target completion event rather than an
+action stopping. Cancellation and Load never fabricate a completion. The cue
+stops on pause and cannot replay after late decoding; technical and listening
+status are in `specs/2026-10-01-toilet-completion-audio.md`. Routine controls
 are silent by design rather than waiting for blanket click sounds. Footsteps use
 a quieter peak amplitude without changing pitch or cadence. Continuous indoor
 background noise is excluded from the sound design. Outdoor ambience, alarms,
@@ -1029,7 +1033,7 @@ Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water recordings and a filtered closing-door
+downloaded and inventoried; selected water and toilet recordings and a filtered closing-door
 thunk are now integrated. Door opening is silent; the original door recordings
 remain preserved but are not fetched by gameplay.
 The detailed contract is

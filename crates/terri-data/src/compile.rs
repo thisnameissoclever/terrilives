@@ -363,7 +363,19 @@ pub fn compile(
                     interaction: &act.id,
                 },
             )?;
+            let completion_sound = match act.completion_sound.as_deref() {
+                None => None,
+                Some("toilet_flush") => Some(crate::pack::CompiledCompletionSound::ToiletFlush),
+                Some(action) => {
+                    return Err(ContentError::UnknownCompletionSound {
+                        object: object.id.clone(),
+                        interaction: act.id.clone(),
+                        action: action.to_string(),
+                    })
+                }
+            };
             interactions.push(CompiledInteraction {
+                completion_sound,
                 id: act.id.clone(),
                 advertises,
                 duration_ticks: act.duration_ticks,
@@ -1461,7 +1473,7 @@ fn compile_social(
 
         let (tags, satisfaction, visual) =
             compile_activity_extras(act, "social.toml", InteractionVisualOwner::Social, &[])?;
-        if let Some(action) = &act.sound_action {
+        if let Some(action) = act.sound_action.as_ref().or(act.completion_sound.as_ref()) {
             return Err(ContentError::SocialSoundAction {
                 interaction: act.id.clone(),
                 action: action.clone(),
@@ -1472,6 +1484,7 @@ fn compile_social(
             format!("social.toml interaction '{}'", act.id),
         )?;
         compiled.push(CompiledInteraction {
+            completion_sound: None,
             id: act.id.clone(),
             advertises,
             duration_ticks: act.duration_ticks,
@@ -3853,14 +3866,16 @@ mod tests {
     /// `snack_advertising_three_needs` - so these bytes also pin that the
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
-    // Measured with relationship tuning, shared activities and bed-place metadata.
+    // Relationship tuning, shared activities and bed-place metadata remain intact.
+    // Completion presentation appends None after activity in the sole interaction.
+    // Save V1 bytes and the explicit compatibility fingerprint are unchanged.
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62, 205, 204, 204, 62, 0, 0, 0, 63,
         154, 153, 25, 63, 51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101, 6, 70, 114, 105,
         100, 103, 101, 2, 1, 10, 103, 114, 97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64, 15, 1, 15, 69, 97, 116, 32, 115,
         116, 97, 110, 100, 105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0,
-        0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 2,
         0, 0, 0, 0, 0, 5, 3, 0, 0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 128, 63, 0, 0, 0, 0, 0, 0, 128, 62, 0, 0, 0, 63, 0,
@@ -4246,6 +4261,7 @@ mod tests {
 
     fn snack() -> InteractionDef {
         InteractionDef {
+            completion_sound: None,
             tags: vec![],
             satisfaction: 0.0,
             visual: None,
@@ -4381,6 +4397,33 @@ mod tests {
         let legacy = compile_objects(full_needs(), one_object(snack())).unwrap();
         assert_eq!(legacy.objects[0].display_name(), "Fridge");
         assert!(legacy.objects[0].presentation.is_none());
+    }
+
+    #[test]
+    fn compiles_completion_sound_as_separate_closed_metadata() {
+        let mut interaction = snack();
+        interaction.completion_sound = Some("toilet_flush".to_string());
+        let pack = compile_objects(full_needs(), one_object(interaction)).unwrap();
+        assert_eq!(
+            pack.objects[0].interactions[0].completion_sound,
+            Some(crate::pack::CompiledCompletionSound::ToiletFlush)
+        );
+        assert_eq!(pack.objects[0].interactions[0].sound_action, None);
+        let mut unknown = snack();
+        unknown.completion_sound = Some("bathroom_noise".to_string());
+        let error = compile_objects(full_needs(), one_object(unknown)).unwrap_err();
+        assert_eq!(
+            error,
+            ContentError::UnknownCompletionSound {
+                object: "fridge".to_string(),
+                interaction: "grab_snack".to_string(),
+                action: "bathroom_noise".to_string(),
+            }
+        );
+        assert!(error
+            .to_string()
+            .contains("completion sound 'bathroom_noise'"));
+        assert!(error.to_string().contains("toilet_flush"));
     }
 
     #[test]
@@ -8155,6 +8198,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![InteractionDef {
+                completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: None,
@@ -9579,6 +9623,7 @@ mod tests {
     fn compiles_the_social_vocabulary_into_the_pack() {
         let pack = compile_bare_with_social(vec![
             InteractionDef {
+                completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: Some(VisualDef {
@@ -9599,6 +9644,7 @@ mod tests {
                 slots: 2,
             },
             InteractionDef {
+                completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: None,
@@ -9660,6 +9706,7 @@ mod tests {
             })
         };
         let chat = |visual| InteractionDef {
+            completion_sound: None,
             tags: vec![],
             satisfaction: 0.0,
             visual,
@@ -9976,6 +10023,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint { width: 3, depth: 3 },
             interaction: vec![InteractionDef {
+                completion_sound: None,
                 id: "settle_in".to_string(),
                 label: Some("Sit and read".to_string()),
                 advertises: [("fun".to_string(), 19.0)].into_iter().collect(),
@@ -10490,6 +10538,7 @@ mod tests {
     fn rejects_social_content_that_breaks_each_rule() {
         let chat = |mutate: fn(&mut InteractionDef)| {
             let mut act = InteractionDef {
+                completion_sound: None,
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: None,
@@ -10558,6 +10607,17 @@ mod tests {
             },
             "object-source sounds are not legal on partner interactions"
         );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| {
+                a.completion_sound = Some("toilet_flush".to_string());
+            })])
+            .unwrap_err(),
+            ContentError::SocialSoundAction {
+                interaction: "chat".to_string(),
+                action: "toilet_flush".to_string(),
+            },
+            "completion sounds require a physical object source"
+        );
     }
 
     /// The clipped-duration rule applies to a talk exactly as it applies
@@ -10567,6 +10627,7 @@ mod tests {
     #[test]
     fn rejects_a_social_interaction_the_duration_floor_would_clip() {
         let talk = |duration_ticks| InteractionDef {
+            completion_sound: None,
             tags: vec![],
             satisfaction: 0.0,
             visual: None,

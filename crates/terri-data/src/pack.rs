@@ -57,6 +57,12 @@ pub enum CompiledSoundAction {
     SinkWater,
 }
 
+/// One-shot presentation category emitted only by actual completion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledCompletionSound {
+    ToiletFlush,
+}
+
 /// Authored activity identity for a bubble and its text label. Presentation
 /// only: it neither changes gameplay tags nor selects body animation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -220,6 +226,9 @@ pub struct CompiledInteraction {
     /// Appended after sound to preserve the preceding interaction fields.
     /// The embedded pack has no cross-build decoding contract.
     pub activity: Option<CompiledActivity>,
+    /// One-shot presentation metadata, excluded from save compatibility.
+    /// Appended after activity to preserve preceding compiled fields.
+    pub completion_sound: Option<CompiledCompletionSound>,
 }
 
 #[cfg(test)]
@@ -1255,6 +1264,7 @@ mod tests {
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
+            completion_sound: None,
             id: id.to_string(),
             advertises: vec![(0, 35.0), (6, 5.0)],
             duration_ticks: 15,
@@ -1546,6 +1556,7 @@ mod tests {
             // interaction above, so the round trip can see the social
             // list written into the objects' slot or vice versa.
             social: vec![CompiledInteraction {
+                completion_sound: None,
                 id: "chat".to_string(),
                 advertises: vec![(4, 30.0), (5, 6.0)],
                 duration_ticks: 40,

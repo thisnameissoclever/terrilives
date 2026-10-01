@@ -1201,6 +1201,7 @@ mod tests {
         let mut longer = original.clone();
         let extra = longer.objects[0].interactions[0].clone();
         longer.objects[0].interactions.push(CompiledInteraction {
+            completion_sound: None,
             id: "an_extra_row".to_string(),
             ..extra
         });
@@ -1854,6 +1855,16 @@ mod tests {
     fn the_fingerprint_allows_object_and_chain_sound_presentation_changes() {
         let original = pack().clone();
         let base = content_fingerprint(&original);
+
+        let mut without_completion = original.clone();
+        let toilet = without_completion.find("toilet").unwrap();
+        assert!(
+            without_completion.objects[toilet.0 as usize].interactions[0]
+                .completion_sound
+                .is_some()
+        );
+        without_completion.objects[toilet.0 as usize].interactions[0].completion_sound = None;
+        assert_eq!(base, content_fingerprint(&without_completion));
 
         for (object_id, interaction_id) in [("sink", "wash_hands"), ("kitchen_sink", "wash_up")] {
             let mut changed = original.clone();

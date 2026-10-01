@@ -502,9 +502,14 @@ mix still need listening acceptance. Stove cooking now uses a provisional
 first-party synthetic texture with independent demand loading; its listening
 acceptance also remains open. Doors open silently and close with a filtered thunk
 tied to authoritative portal state. Footsteps use a quieter peak amplitude without
-changing pitch or cadence. Continuous indoor background noise is excluded from
-the sound design. Outdoor ambience, alarms, music, non-conversation voices and
-their controls remain unbuilt. The current contract and evidence are in
+changing pitch or cadence. Toilet audio plays a recorded
+flush after completed use; cancellation, loading and late decoding do not
+trigger one. The owner accepted the recording;
+in-game mixing and technical release evidence belong in
+`docs/specs/2026-10-01-toilet-completion-audio.md`.
+Continuous indoor background noise is excluded from the sound design. Outdoor
+ambience, alarms, music, non-conversation voices and their controls remain unbuilt.
+The current contract and evidence are in
 `docs/specs/2026-08-19-audio-foundation.md` and
 `docs/specs/2026-10-01-object-loop-playback.md`.
 

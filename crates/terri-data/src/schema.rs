@@ -501,6 +501,8 @@ pub struct InteractionDef {
     /// Unknown values are reported with the owning content row by the compiler.
     #[serde(default)]
     pub activity: Option<String>,
+    #[serde(default)]
+    pub completion_sound: Option<String>,
 }
 
 /// Authored action-presentation metadata before validation.

@@ -1,0 +1,388 @@
+{
+  "generatedAt": "2026-10-01T20:09:10.895Z",
+  "diagnosticOnly": true,
+  "limitations": [
+    "One observation per condition is not acceptance evidence.",
+    "No intermediate heap samples; no compiler-category subtraction."
+  ],
+  "runs": [
+    {
+      "revision": "main-with-quieter-footsteps",
+      "enabled": false,
+      "port": 4191,
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "completions": [
+          {
+            "tick": 116,
+            "flushes": null
+          },
+          {
+            "tick": 269,
+            "flushes": null
+          }
+        ]
+      },
+      "baseline": {
+        "tick": 69,
+        "worldHash": "7967312909697608544",
+        "wasmBytes": 5701632,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0
+        },
+        "heap": {
+          "usedSize": 7061808,
+          "totalSize": 8298496,
+          "embedderHeapUsedSize": 2224928,
+          "backingStorageSize": 3167678
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "final": {
+        "tick": 609,
+        "worldHash": "13913906238257853879",
+        "wasmBytes": 5701632,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0
+        },
+        "heap": {
+          "usedSize": 7134196,
+          "totalSize": 8298496,
+          "embedderHeapUsedSize": 2109688,
+          "backingStorageSize": 3167685
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "errors": [],
+      "fixtureSha256": "f716fc9ac33dc0ed5e4fa81f2349672de2b57fd91916f34add7a077a74e05771",
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:4191/assets/index-ZKWHbKxZ.js",
+          "sha256": "758bc348c35a69623f60366b6a016776907704d7ef60d106a094c161f10ab369"
+        },
+        {
+          "url": "http://127.0.0.1:4191/assets/terri_wasm_bg-BbfVQqLz.wasm",
+          "sha256": "98536aedf1c8ed7117536886b6353ff5366f8083df8683c55042b32008f821aa"
+        },
+        {
+          "url": "http://127.0.0.1:4191/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+        }
+      ],
+      "rawJsGrowthBytes": 72388,
+      "domEqual": true
+    },
+    {
+      "revision": "flush-with-quieter-footsteps",
+      "enabled": true,
+      "port": 4192,
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "completions": [
+          {
+            "tick": 116,
+            "flushes": 1
+          },
+          {
+            "tick": 269,
+            "flushes": 2
+          }
+        ]
+      },
+      "baseline": {
+        "tick": 69,
+        "worldHash": "7967312909697608544",
+        "wasmBytes": 5701632,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 101,
+          "sleep-breath": 9,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 51,
+          "toilet-flush": 2
+        },
+        "heap": {
+          "usedSize": 7472952,
+          "totalSize": 8298496,
+          "embedderHeapUsedSize": 2216112,
+          "backingStorageSize": 3171558
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "final": {
+        "tick": 609,
+        "worldHash": "13913906238257853879",
+        "wasmBytes": 5701632,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 148,
+          "sleep-breath": 19,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 143,
+          "toilet-flush": 6
+        },
+        "heap": {
+          "usedSize": 7390764,
+          "totalSize": 8298496,
+          "embedderHeapUsedSize": 2302072,
+          "backingStorageSize": 3171398
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "errors": [],
+      "fixtureSha256": "f716fc9ac33dc0ed5e4fa81f2349672de2b57fd91916f34add7a077a74e05771",
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:4192/assets/index-B0ws5oeU.js",
+          "sha256": "1ad7e5f1ebc50a2c5f0582ba438895a6534a2b008a480b7fab6f397c79bb0aa4"
+        },
+        {
+          "url": "http://127.0.0.1:4192/assets/terri_wasm_bg-CVnPYumy.wasm",
+          "sha256": "e3ae0459292028af080086124246e68a3b21bf1d45febf778d42afaddb854811"
+        },
+        {
+          "url": "http://127.0.0.1:4192/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+        }
+      ],
+      "rawJsGrowthBytes": -82188,
+      "domEqual": true
+    },
+    {
+      "revision": "main-with-quieter-footsteps",
+      "enabled": true,
+      "port": 4191,
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "completions": [
+          {
+            "tick": 116,
+            "flushes": null
+          },
+          {
+            "tick": 269,
+            "flushes": null
+          }
+        ]
+      },
+      "baseline": {
+        "tick": 69,
+        "worldHash": "7967312909697608544",
+        "wasmBytes": 5570560,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 96,
+          "sleep-breath": 9,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 53
+        },
+        "heap": {
+          "usedSize": 7240148,
+          "totalSize": 8298496,
+          "embedderHeapUsedSize": 2069232,
+          "backingStorageSize": 3167778
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "final": {
+        "tick": 609,
+        "worldHash": "13913906238257853879",
+        "wasmBytes": 5570560,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 143,
+          "sleep-breath": 19,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 145
+        },
+        "heap": {
+          "usedSize": 7351576,
+          "totalSize": 8298496,
+          "embedderHeapUsedSize": 2154864,
+          "backingStorageSize": 3167785
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "errors": [],
+      "fixtureSha256": "f716fc9ac33dc0ed5e4fa81f2349672de2b57fd91916f34add7a077a74e05771",
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:4191/assets/index-ZKWHbKxZ.js",
+          "sha256": "758bc348c35a69623f60366b6a016776907704d7ef60d106a094c161f10ab369"
+        },
+        {
+          "url": "http://127.0.0.1:4191/assets/terri_wasm_bg-BbfVQqLz.wasm",
+          "sha256": "98536aedf1c8ed7117536886b6353ff5366f8083df8683c55042b32008f821aa"
+        },
+        {
+          "url": "http://127.0.0.1:4191/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+        }
+      ],
+      "rawJsGrowthBytes": 111428,
+      "domEqual": true
+    },
+    {
+      "revision": "flush-with-quieter-footsteps",
+      "enabled": false,
+      "port": 4192,
+      "preparation": {
+        "actor": {
+          "agent": 34,
+          "target": 29,
+          "interaction": 0
+        },
+        "completions": [
+          {
+            "tick": 116,
+            "flushes": 0
+          },
+          {
+            "tick": 269,
+            "flushes": 0
+          }
+        ]
+      },
+      "baseline": {
+        "tick": 69,
+        "worldHash": "7967312909697608544",
+        "wasmBytes": 5570560,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0,
+          "toilet-flush": 0
+        },
+        "heap": {
+          "usedSize": 7252324,
+          "totalSize": 8036352,
+          "embedderHeapUsedSize": 2239880,
+          "backingStorageSize": 3171458
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "final": {
+        "tick": 609,
+        "worldHash": "13913906238257853879",
+        "wasmBytes": 5570560,
+        "cueCounts": {
+          "rejected": 0,
+          "footstep": 0,
+          "sleep-breath": 0,
+          "eating": 0,
+          "page-turn": 0,
+          "exercise": 0,
+          "door-opened": 0,
+          "door-closed": 0,
+          "toilet-flush": 0
+        },
+        "heap": {
+          "usedSize": 7120844,
+          "totalSize": 8036352,
+          "embedderHeapUsedSize": 2219616,
+          "backingStorageSize": 3171298
+        },
+        "dom": {
+          "documents": 1,
+          "nodes": 2031,
+          "jsEventListeners": 146
+        }
+      },
+      "errors": [],
+      "fixtureSha256": "f716fc9ac33dc0ed5e4fa81f2349672de2b57fd91916f34add7a077a74e05771",
+      "bundleEvidence": [
+        {
+          "url": "http://127.0.0.1:4192/assets/index-B0ws5oeU.js",
+          "sha256": "1ad7e5f1ebc50a2c5f0582ba438895a6534a2b008a480b7fab6f397c79bb0aa4"
+        },
+        {
+          "url": "http://127.0.0.1:4192/assets/terri_wasm_bg-CVnPYumy.wasm",
+          "sha256": "e3ae0459292028af080086124246e68a3b21bf1d45febf778d42afaddb854811"
+        },
+        {
+          "url": "http://127.0.0.1:4192/assets/save-worker-Cb-g-Su5.js",
+          "sha256": "a061085e8d90737072fa55fbf1ad4a3160484a51aa8807636b49505560a8ab0a"
+        }
+      ],
+      "rawJsGrowthBytes": -131480,
+      "domEqual": true
+    }
+  ],
+  "browserClosed": true,
+  "serversClosed": true,
+  "worldsMatch": true,
+  "baselineAudioSpecificBytes": 39040,
+  "flushAudioSpecificBytes": 49292,
+  "flushMinusBaselineBytes": 10252
+}
