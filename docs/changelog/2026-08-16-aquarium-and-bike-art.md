@@ -1,6 +1,6 @@
-# Aquarium and exercise-bike artwork
+# Clearer fish and cycling animations
 
-The aquarium and exercise bike receive revised artwork and animations.
+The aquarium and exercise bike have updated artwork.
 
-## Art & sound
-- **Fish and cycling are easier to read.** The revised aquarium and bike replace the first versions and retain supported reduced-motion behavior. [PR #55](https://github.com/thisnameissoclever/terrilives/pull/55)
+## Art
+- Fish and cycling movements are easier to see, with reduced-motion settings still respected.
