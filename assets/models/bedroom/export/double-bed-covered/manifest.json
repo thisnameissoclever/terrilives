@@ -1,0 +1,2424 @@
+{
+  "version": 1,
+  "pilot": false,
+  "static": true,
+  "pixel_density": 2,
+  "encoding": "scene-linear-premultiplied-visible-additive",
+  "source_receipt_sha256": "505304d477a5276d61b086ff59b72b6e5631c5327a9ebd039d04908666ecafac",
+  "export_signature": {
+    "export_double_bed_sleep.py": "e019cf592cdcc90c3f5c217ace0ed0a1a20bef992b109140d6215bc152ed8291",
+    "double_bed_linear.py": "4bf119ab8bbe1aaacbd29ea3ec444d4125e373cdfa9d1d2efa23fd90a04e1e1b",
+    "double_bed_layers.py": "b0e9ccd4aa28c97a84980cad0b5603b4b2e25cb99344702747719adc9cccc470"
+  },
+  "width": 116,
+  "height": 109,
+  "anchor": [
+    58.000009536743164,
+    93.00043869018555
+  ],
+  "crop": [
+    44,
+    102,
+    276,
+    320
+  ],
+  "picking": "visible-owner-fill-alpha",
+  "scenes": [
+    {
+      "occupancy": 0,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "fa36046be09357776bb9893eaa2bacdc17021099a0ed33ca27baa6f96455a609.png",
+        "sha256": "499cde498b20f576f2102d2b88bd890f4c4b8e1d21f6d6142d390031a5afb0f3",
+        "pixels_sha256": "fa36046be09357776bb9893eaa2bacdc17021099a0ed33ca27baa6f96455a609"
+      },
+      "outline": {
+        "path": "5396869f92849a472ab94d1af8ad93c9f13b51e1439ceded0d2114871f529ce7.png",
+        "sha256": "5d903898e139c29f6832180e32c327e505f9dc67c571fb5793cc132336372fb4",
+        "pixels_sha256": "5396869f92849a472ab94d1af8ad93c9f13b51e1439ceded0d2114871f529ce7"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 0,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "c09eec8a069197713fd6df88029437df350164fdd0a47b4fadc564cc7e0c2487.png",
+        "sha256": "ead34481c318437d62b2426c17c891c14f8aab6cb63c5589204a6e353905e1e4",
+        "pixels_sha256": "c09eec8a069197713fd6df88029437df350164fdd0a47b4fadc564cc7e0c2487"
+      },
+      "outline": {
+        "path": "9ea6675bacf093ccef9388f71e3f25cee9082c3175b686b38abda1d771d0ccc2.png",
+        "sha256": "2734ccea06c13bce28039bab5a18d29508e6d23677d039e471c10581320bcc15",
+        "pixels_sha256": "9ea6675bacf093ccef9388f71e3f25cee9082c3175b686b38abda1d771d0ccc2"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 0,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "5caf19d2e21d709b45364bcea8fc090be3f9574b8c0be37bb28995610a6c0e65.png",
+        "sha256": "3865a41713d73c179d3436e83e289a5e18349dfc394eb2508376e3315a020330",
+        "pixels_sha256": "5caf19d2e21d709b45364bcea8fc090be3f9574b8c0be37bb28995610a6c0e65"
+      },
+      "outline": {
+        "path": "48caaca96d336e48be54e374fab1dbe773692aaa7e0f6e667f1bb91e570489e5.png",
+        "sha256": "0eb0b0dff1d317542542a3798ae03d0486935625d13178c10fd68335c8042b28",
+        "pixels_sha256": "48caaca96d336e48be54e374fab1dbe773692aaa7e0f6e667f1bb91e570489e5"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 0,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "c2f55a1a37815e5649bd1b10b5612f3fe790e42b968e0af3a92b295967f799c2.png",
+        "sha256": "9ea2b795aa591e00411e0ee477ef6b4cd5da5f3d0dac28f4cd1355a0e6ca0f57",
+        "pixels_sha256": "c2f55a1a37815e5649bd1b10b5612f3fe790e42b968e0af3a92b295967f799c2"
+      },
+      "outline": {
+        "path": "bebd31cc8a59a6e357825b01abae0697114532d7358a9311dd1d31aef6177e99.png",
+        "sha256": "cce787f938320864829fb9ad2bbacf16a5252acc0674b810a38ef5e9c54a327d",
+        "pixels_sha256": "bebd31cc8a59a6e357825b01abae0697114532d7358a9311dd1d31aef6177e99"
+      },
+      "bodies": []
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "7f68f90a241a1f4ec5e2f15735f9fb6a66724a3125e5bdb754163a9acce30fe5.png",
+        "sha256": "4d1e4bb297612fa2264b82c9429d2c9a6a2afc6d532af44fe132f71d9eac2b5a",
+        "pixels_sha256": "7f68f90a241a1f4ec5e2f15735f9fb6a66724a3125e5bdb754163a9acce30fe5"
+      },
+      "outline": {
+        "path": "90ffa1a937336f7b741e12179110054431d91bc7e65f6cee6b506b727c42f416.png",
+        "sha256": "ebe250f31d65c1e507e45ecfaa56f2afe1b4337ae503eaf1882f7d4346716ee4",
+        "pixels_sha256": "90ffa1a937336f7b741e12179110054431d91bc7e65f6cee6b506b727c42f416"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "581f200f0d08a111d984fb6763cb2d76e837c7f80ac92eadbaf1748b5bea366b.png",
+          "sha256": "d12d9e00d9626cbb1ed9fdca8ab5fcf0fa81b16b098b4cde6bda5ca23c37c5a4",
+          "pixels_sha256": "581f200f0d08a111d984fb6763cb2d76e837c7f80ac92eadbaf1748b5bea366b",
+          "coverage": {
+            "path": "coverage/ed30c32ef9ae8cc85fbc9535a0e553eabbf1d84dd37b238787cfac5c68014fa3.png",
+            "sha256": "849adf2db31224f26e0bc2c2c6f31f23a65426d25809fa8a76664be45b9fc042",
+            "pixels_sha256": "ed30c32ef9ae8cc85fbc9535a0e553eabbf1d84dd37b238787cfac5c68014fa3"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "7f68f90a241a1f4ec5e2f15735f9fb6a66724a3125e5bdb754163a9acce30fe5.png",
+        "sha256": "4d1e4bb297612fa2264b82c9429d2c9a6a2afc6d532af44fe132f71d9eac2b5a",
+        "pixels_sha256": "7f68f90a241a1f4ec5e2f15735f9fb6a66724a3125e5bdb754163a9acce30fe5"
+      },
+      "outline": {
+        "path": "90ffa1a937336f7b741e12179110054431d91bc7e65f6cee6b506b727c42f416.png",
+        "sha256": "ebe250f31d65c1e507e45ecfaa56f2afe1b4337ae503eaf1882f7d4346716ee4",
+        "pixels_sha256": "90ffa1a937336f7b741e12179110054431d91bc7e65f6cee6b506b727c42f416"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "6b9ff7dd34105b8775d048c94f95eee09c34bef836566355003955cc4d62911e.png",
+          "sha256": "a42937c761417577d98ff9ecaac0b9768173b5d00dc79a3f275f9b597be2c5f9",
+          "pixels_sha256": "6b9ff7dd34105b8775d048c94f95eee09c34bef836566355003955cc4d62911e",
+          "coverage": {
+            "path": "coverage/ed30c32ef9ae8cc85fbc9535a0e553eabbf1d84dd37b238787cfac5c68014fa3.png",
+            "sha256": "849adf2db31224f26e0bc2c2c6f31f23a65426d25809fa8a76664be45b9fc042",
+            "pixels_sha256": "ed30c32ef9ae8cc85fbc9535a0e553eabbf1d84dd37b238787cfac5c68014fa3"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "7f68f90a241a1f4ec5e2f15735f9fb6a66724a3125e5bdb754163a9acce30fe5.png",
+        "sha256": "4d1e4bb297612fa2264b82c9429d2c9a6a2afc6d532af44fe132f71d9eac2b5a",
+        "pixels_sha256": "7f68f90a241a1f4ec5e2f15735f9fb6a66724a3125e5bdb754163a9acce30fe5"
+      },
+      "outline": {
+        "path": "90ffa1a937336f7b741e12179110054431d91bc7e65f6cee6b506b727c42f416.png",
+        "sha256": "ebe250f31d65c1e507e45ecfaa56f2afe1b4337ae503eaf1882f7d4346716ee4",
+        "pixels_sha256": "90ffa1a937336f7b741e12179110054431d91bc7e65f6cee6b506b727c42f416"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "8118e6f281b17dbdf8956fe97f90724beb530b806ec780581755a85636095e91.png",
+          "sha256": "bd376b4bcb301256771a213b03c15af9686fd5d825ce880d5a93d512a12a9282",
+          "pixels_sha256": "8118e6f281b17dbdf8956fe97f90724beb530b806ec780581755a85636095e91",
+          "coverage": {
+            "path": "coverage/ed30c32ef9ae8cc85fbc9535a0e553eabbf1d84dd37b238787cfac5c68014fa3.png",
+            "sha256": "849adf2db31224f26e0bc2c2c6f31f23a65426d25809fa8a76664be45b9fc042",
+            "pixels_sha256": "ed30c32ef9ae8cc85fbc9535a0e553eabbf1d84dd37b238787cfac5c68014fa3"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "cb4bbf2a92d3ac931bfc9eb81a356f02c12e67acdf1ec9e95a9d8e273907ad60.png",
+        "sha256": "b854e08b40ed19957be77ccdaeb6af3358de5d7e072da546daf613bd9e9fef5e",
+        "pixels_sha256": "cb4bbf2a92d3ac931bfc9eb81a356f02c12e67acdf1ec9e95a9d8e273907ad60"
+      },
+      "outline": {
+        "path": "293c720bf9c2297c4c4c81321a29309eefc93f016d5627c84c66ff51ead0fc96.png",
+        "sha256": "1297094e9f71ec141b41f979c38b349c3915c949be37896120489a406089a201",
+        "pixels_sha256": "293c720bf9c2297c4c4c81321a29309eefc93f016d5627c84c66ff51ead0fc96"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "cc7045aabc20243bb666db87c6c780e19212cc830776ca0889ee23da85f374bf.png",
+          "sha256": "be01dcb8df7fc630b508fcc08d53e3f250e86142c12dc87b19c69ec1f0d730db",
+          "pixels_sha256": "cc7045aabc20243bb666db87c6c780e19212cc830776ca0889ee23da85f374bf",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "cb4bbf2a92d3ac931bfc9eb81a356f02c12e67acdf1ec9e95a9d8e273907ad60.png",
+        "sha256": "b854e08b40ed19957be77ccdaeb6af3358de5d7e072da546daf613bd9e9fef5e",
+        "pixels_sha256": "cb4bbf2a92d3ac931bfc9eb81a356f02c12e67acdf1ec9e95a9d8e273907ad60"
+      },
+      "outline": {
+        "path": "293c720bf9c2297c4c4c81321a29309eefc93f016d5627c84c66ff51ead0fc96.png",
+        "sha256": "1297094e9f71ec141b41f979c38b349c3915c949be37896120489a406089a201",
+        "pixels_sha256": "293c720bf9c2297c4c4c81321a29309eefc93f016d5627c84c66ff51ead0fc96"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "84f9ebaefda879ba413b9d42f97b1c44e1f52b8df98afb8b543883ae1ab73b73.png",
+          "sha256": "5db58d736bc2ea4ddd8b3d82f16224fe196a46d60fa7426408d540a380a181ed",
+          "pixels_sha256": "84f9ebaefda879ba413b9d42f97b1c44e1f52b8df98afb8b543883ae1ab73b73",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "cb4bbf2a92d3ac931bfc9eb81a356f02c12e67acdf1ec9e95a9d8e273907ad60.png",
+        "sha256": "b854e08b40ed19957be77ccdaeb6af3358de5d7e072da546daf613bd9e9fef5e",
+        "pixels_sha256": "cb4bbf2a92d3ac931bfc9eb81a356f02c12e67acdf1ec9e95a9d8e273907ad60"
+      },
+      "outline": {
+        "path": "293c720bf9c2297c4c4c81321a29309eefc93f016d5627c84c66ff51ead0fc96.png",
+        "sha256": "1297094e9f71ec141b41f979c38b349c3915c949be37896120489a406089a201",
+        "pixels_sha256": "293c720bf9c2297c4c4c81321a29309eefc93f016d5627c84c66ff51ead0fc96"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "10d4dda919f158f464571438b1f2b62fcae57350c461ae231dffbc9a82817d41.png",
+          "sha256": "b204c24d207fed2e56c1c1bcabe7908c2b8ba2933190ea1f6bc239d8a7d50f7d",
+          "pixels_sha256": "10d4dda919f158f464571438b1f2b62fcae57350c461ae231dffbc9a82817d41",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "ff725484b0a146e02cbb29aefefedc645a5e84d5fce7ceef13864a29a11e87f4.png",
+        "sha256": "bc1d52cfc714bbcbef773fdc4eb42cc8b091b9c12f271123fb57d5898ff92589",
+        "pixels_sha256": "ff725484b0a146e02cbb29aefefedc645a5e84d5fce7ceef13864a29a11e87f4"
+      },
+      "outline": {
+        "path": "f7785c0971dfa815f9d00117ddedf85647f64e839de2843f29ab51784a941032.png",
+        "sha256": "844478f5b2afde7f6c14d642fe2cb077164f5bb0931d4833ca628a1772f08512",
+        "pixels_sha256": "f7785c0971dfa815f9d00117ddedf85647f64e839de2843f29ab51784a941032"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "6249437ee6af4a2a41f4fc3002e4cabf75ce1f7b5507dbd167ed896250f2ee10.png",
+          "sha256": "0c57a3e82110b4e0b6e9f60059ef229e585edfda4a31d2ec8ea324ee40f9614f",
+          "pixels_sha256": "6249437ee6af4a2a41f4fc3002e4cabf75ce1f7b5507dbd167ed896250f2ee10",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "ff725484b0a146e02cbb29aefefedc645a5e84d5fce7ceef13864a29a11e87f4.png",
+        "sha256": "bc1d52cfc714bbcbef773fdc4eb42cc8b091b9c12f271123fb57d5898ff92589",
+        "pixels_sha256": "ff725484b0a146e02cbb29aefefedc645a5e84d5fce7ceef13864a29a11e87f4"
+      },
+      "outline": {
+        "path": "f7785c0971dfa815f9d00117ddedf85647f64e839de2843f29ab51784a941032.png",
+        "sha256": "844478f5b2afde7f6c14d642fe2cb077164f5bb0931d4833ca628a1772f08512",
+        "pixels_sha256": "f7785c0971dfa815f9d00117ddedf85647f64e839de2843f29ab51784a941032"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "6249437ee6af4a2a41f4fc3002e4cabf75ce1f7b5507dbd167ed896250f2ee10.png",
+          "sha256": "0c57a3e82110b4e0b6e9f60059ef229e585edfda4a31d2ec8ea324ee40f9614f",
+          "pixels_sha256": "6249437ee6af4a2a41f4fc3002e4cabf75ce1f7b5507dbd167ed896250f2ee10",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "ff725484b0a146e02cbb29aefefedc645a5e84d5fce7ceef13864a29a11e87f4.png",
+        "sha256": "bc1d52cfc714bbcbef773fdc4eb42cc8b091b9c12f271123fb57d5898ff92589",
+        "pixels_sha256": "ff725484b0a146e02cbb29aefefedc645a5e84d5fce7ceef13864a29a11e87f4"
+      },
+      "outline": {
+        "path": "f7785c0971dfa815f9d00117ddedf85647f64e839de2843f29ab51784a941032.png",
+        "sha256": "844478f5b2afde7f6c14d642fe2cb077164f5bb0931d4833ca628a1772f08512",
+        "pixels_sha256": "f7785c0971dfa815f9d00117ddedf85647f64e839de2843f29ab51784a941032"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "6249437ee6af4a2a41f4fc3002e4cabf75ce1f7b5507dbd167ed896250f2ee10.png",
+          "sha256": "0c57a3e82110b4e0b6e9f60059ef229e585edfda4a31d2ec8ea324ee40f9614f",
+          "pixels_sha256": "6249437ee6af4a2a41f4fc3002e4cabf75ce1f7b5507dbd167ed896250f2ee10",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "72cfe18fc2a79243ded11a2a402e0ca897182d78bdc54eeaf2d8ae05f31192f1.png",
+        "sha256": "81cf3727fa158877181cfa311acc86fff6eb87862dd043a6d7cb343ffe11c3f4",
+        "pixels_sha256": "72cfe18fc2a79243ded11a2a402e0ca897182d78bdc54eeaf2d8ae05f31192f1"
+      },
+      "outline": {
+        "path": "4c696e7b785a1268421f94bd7a3d65d1630a55dd0243fbff16ead7a42086a345.png",
+        "sha256": "0ae1a86ecc7d44793af1878ae94fa0f1b45d995a458a0dc7a332d8bb45b81742",
+        "pixels_sha256": "4c696e7b785a1268421f94bd7a3d65d1630a55dd0243fbff16ead7a42086a345"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55.png",
+          "sha256": "6b5718353de5a0eac590ee7f673671140c0ca06bdfb15caff1b166c29543dee7",
+          "pixels_sha256": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "72cfe18fc2a79243ded11a2a402e0ca897182d78bdc54eeaf2d8ae05f31192f1.png",
+        "sha256": "81cf3727fa158877181cfa311acc86fff6eb87862dd043a6d7cb343ffe11c3f4",
+        "pixels_sha256": "72cfe18fc2a79243ded11a2a402e0ca897182d78bdc54eeaf2d8ae05f31192f1"
+      },
+      "outline": {
+        "path": "4c696e7b785a1268421f94bd7a3d65d1630a55dd0243fbff16ead7a42086a345.png",
+        "sha256": "0ae1a86ecc7d44793af1878ae94fa0f1b45d995a458a0dc7a332d8bb45b81742",
+        "pixels_sha256": "4c696e7b785a1268421f94bd7a3d65d1630a55dd0243fbff16ead7a42086a345"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c.png",
+          "sha256": "29002759d65ad7181a16e5e1d9d35a127b6685e5a0719f75d93256b88732d697",
+          "pixels_sha256": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "72cfe18fc2a79243ded11a2a402e0ca897182d78bdc54eeaf2d8ae05f31192f1.png",
+        "sha256": "81cf3727fa158877181cfa311acc86fff6eb87862dd043a6d7cb343ffe11c3f4",
+        "pixels_sha256": "72cfe18fc2a79243ded11a2a402e0ca897182d78bdc54eeaf2d8ae05f31192f1"
+      },
+      "outline": {
+        "path": "4c696e7b785a1268421f94bd7a3d65d1630a55dd0243fbff16ead7a42086a345.png",
+        "sha256": "0ae1a86ecc7d44793af1878ae94fa0f1b45d995a458a0dc7a332d8bb45b81742",
+        "pixels_sha256": "4c696e7b785a1268421f94bd7a3d65d1630a55dd0243fbff16ead7a42086a345"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766.png",
+          "sha256": "fa4874983964a900aab5449845db68f5905ecf99ced70c42d621af101e3f93b7",
+          "pixels_sha256": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1011c544bd7182744da02292313b71c771c1d198bb4bd83435ecc07b34560e1f.png",
+        "sha256": "a610356b6744eb813669badb81edf3c21eb898b5f18704adc14e5ef375a3a098",
+        "pixels_sha256": "1011c544bd7182744da02292313b71c771c1d198bb4bd83435ecc07b34560e1f"
+      },
+      "outline": {
+        "path": "52745b4d4f4a8ab39ea0f7865686214aac96874521c37ae314d7dbb3ed22d3ab.png",
+        "sha256": "7915a4e40d2ed6b3aeaab12ffe77404b09cc3a03649a3cec81798243fd9a6600",
+        "pixels_sha256": "52745b4d4f4a8ab39ea0f7865686214aac96874521c37ae314d7dbb3ed22d3ab"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "2bfa1e3f6e121f706a8c756f396b1199727811118d016af47a4a24418c6493a9.png",
+          "sha256": "67cf49d056a7be7f7b11f664ee326070e9864b2671f5d913fd25bec32f4e8d60",
+          "pixels_sha256": "2bfa1e3f6e121f706a8c756f396b1199727811118d016af47a4a24418c6493a9",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1011c544bd7182744da02292313b71c771c1d198bb4bd83435ecc07b34560e1f.png",
+        "sha256": "a610356b6744eb813669badb81edf3c21eb898b5f18704adc14e5ef375a3a098",
+        "pixels_sha256": "1011c544bd7182744da02292313b71c771c1d198bb4bd83435ecc07b34560e1f"
+      },
+      "outline": {
+        "path": "52745b4d4f4a8ab39ea0f7865686214aac96874521c37ae314d7dbb3ed22d3ab.png",
+        "sha256": "7915a4e40d2ed6b3aeaab12ffe77404b09cc3a03649a3cec81798243fd9a6600",
+        "pixels_sha256": "52745b4d4f4a8ab39ea0f7865686214aac96874521c37ae314d7dbb3ed22d3ab"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "1beba1e435f7ae41200c8d95421c6b0135e68c9c3726949f5e20b8c1a9242d8b.png",
+          "sha256": "93b815f3b83cad929f91297a0ba68f0fa7528f066297d3140fff0d50e10a1b1b",
+          "pixels_sha256": "1beba1e435f7ae41200c8d95421c6b0135e68c9c3726949f5e20b8c1a9242d8b",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1011c544bd7182744da02292313b71c771c1d198bb4bd83435ecc07b34560e1f.png",
+        "sha256": "a610356b6744eb813669badb81edf3c21eb898b5f18704adc14e5ef375a3a098",
+        "pixels_sha256": "1011c544bd7182744da02292313b71c771c1d198bb4bd83435ecc07b34560e1f"
+      },
+      "outline": {
+        "path": "52745b4d4f4a8ab39ea0f7865686214aac96874521c37ae314d7dbb3ed22d3ab.png",
+        "sha256": "7915a4e40d2ed6b3aeaab12ffe77404b09cc3a03649a3cec81798243fd9a6600",
+        "pixels_sha256": "52745b4d4f4a8ab39ea0f7865686214aac96874521c37ae314d7dbb3ed22d3ab"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "d36a5371ad0483ac4b2f1b0aca6ba27a21effd27dd17509254f6999abca8f878.png",
+          "sha256": "b88b7e2322a0d0474b4a896813e802e25e4a4428cc3564f76878b71cdc0711a9",
+          "pixels_sha256": "d36a5371ad0483ac4b2f1b0aca6ba27a21effd27dd17509254f6999abca8f878",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9dab8d1cac39ad460ab5cc3ff81977403eacdd92eae9e3f476fd38ae9f0cf6ff.png",
+        "sha256": "16020da8d1f9e28a23463ffc3bb7b6233591c0cb5051c1e813ec529f1e5bafaf",
+        "pixels_sha256": "9dab8d1cac39ad460ab5cc3ff81977403eacdd92eae9e3f476fd38ae9f0cf6ff"
+      },
+      "outline": {
+        "path": "61c1d9b024248dd50e2808761a8cddb054e332a79812b257762777f79c4d793f.png",
+        "sha256": "78d2aa0446d764943f9fa79d3be2c3109008725c5809d4fd361302a1e85f361d",
+        "pixels_sha256": "61c1d9b024248dd50e2808761a8cddb054e332a79812b257762777f79c4d793f"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "c0a2187e7264bf28aa186cdbcdba40cceac1bd73fa5e98c64abaf07040f565a0.png",
+          "sha256": "7b66bc1561a299f4335c975452202cfd929d7ac6f8c1cd898eb7274170b72eea",
+          "pixels_sha256": "c0a2187e7264bf28aa186cdbcdba40cceac1bd73fa5e98c64abaf07040f565a0",
+          "coverage": {
+            "path": "coverage/4760def6b0a2f80c77755b952af36c656a97acfbd60572a0af43354982023c84.png",
+            "sha256": "6458b813950ef5f7c44c10a16b309bca27222a8a9cf70dd976d1273429ef1732",
+            "pixels_sha256": "4760def6b0a2f80c77755b952af36c656a97acfbd60572a0af43354982023c84"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9dab8d1cac39ad460ab5cc3ff81977403eacdd92eae9e3f476fd38ae9f0cf6ff.png",
+        "sha256": "16020da8d1f9e28a23463ffc3bb7b6233591c0cb5051c1e813ec529f1e5bafaf",
+        "pixels_sha256": "9dab8d1cac39ad460ab5cc3ff81977403eacdd92eae9e3f476fd38ae9f0cf6ff"
+      },
+      "outline": {
+        "path": "61c1d9b024248dd50e2808761a8cddb054e332a79812b257762777f79c4d793f.png",
+        "sha256": "78d2aa0446d764943f9fa79d3be2c3109008725c5809d4fd361302a1e85f361d",
+        "pixels_sha256": "61c1d9b024248dd50e2808761a8cddb054e332a79812b257762777f79c4d793f"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "630997ce647c86ee626341df6ba73be087cdaba502fa98658828a6cb2b76e566.png",
+          "sha256": "1965074a358223f243b9eea22e1040f9357f0164aa5fb8bf68d2d6261aad83ac",
+          "pixels_sha256": "630997ce647c86ee626341df6ba73be087cdaba502fa98658828a6cb2b76e566",
+          "coverage": {
+            "path": "coverage/4760def6b0a2f80c77755b952af36c656a97acfbd60572a0af43354982023c84.png",
+            "sha256": "6458b813950ef5f7c44c10a16b309bca27222a8a9cf70dd976d1273429ef1732",
+            "pixels_sha256": "4760def6b0a2f80c77755b952af36c656a97acfbd60572a0af43354982023c84"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9dab8d1cac39ad460ab5cc3ff81977403eacdd92eae9e3f476fd38ae9f0cf6ff.png",
+        "sha256": "16020da8d1f9e28a23463ffc3bb7b6233591c0cb5051c1e813ec529f1e5bafaf",
+        "pixels_sha256": "9dab8d1cac39ad460ab5cc3ff81977403eacdd92eae9e3f476fd38ae9f0cf6ff"
+      },
+      "outline": {
+        "path": "61c1d9b024248dd50e2808761a8cddb054e332a79812b257762777f79c4d793f.png",
+        "sha256": "78d2aa0446d764943f9fa79d3be2c3109008725c5809d4fd361302a1e85f361d",
+        "pixels_sha256": "61c1d9b024248dd50e2808761a8cddb054e332a79812b257762777f79c4d793f"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "58d9c5c92b63d8744fd51d865695c5c092c128986887defad89bb96b50924dad.png",
+          "sha256": "ad21dbd1898a71853773ea50364c9a54edfaecbaad7600dbdedbc3c225ca809e",
+          "pixels_sha256": "58d9c5c92b63d8744fd51d865695c5c092c128986887defad89bb96b50924dad",
+          "coverage": {
+            "path": "coverage/4760def6b0a2f80c77755b952af36c656a97acfbd60572a0af43354982023c84.png",
+            "sha256": "6458b813950ef5f7c44c10a16b309bca27222a8a9cf70dd976d1273429ef1732",
+            "pixels_sha256": "4760def6b0a2f80c77755b952af36c656a97acfbd60572a0af43354982023c84"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "ca21508b98d185fc4353ac3bd26f823228b7c12df18a474f5a9af3ca293ecf0e.png",
+        "sha256": "a7dd6cfd0852819c74007b12c8f927168b05b386884aab0297e01f69ded15c79",
+        "pixels_sha256": "ca21508b98d185fc4353ac3bd26f823228b7c12df18a474f5a9af3ca293ecf0e"
+      },
+      "outline": {
+        "path": "68086ff1e0f5af47ef972d1e184249b0376f902158eda0773aecfe63a1f3db75.png",
+        "sha256": "87607a7b27c4d75f1dc115208273850d56c10512ff799ec74ff98a9a2d3bebdf",
+        "pixels_sha256": "68086ff1e0f5af47ef972d1e184249b0376f902158eda0773aecfe63a1f3db75"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "2a87b95d8af8b02e7209c5da2dafbb7b0184b730ef1c4718001b7235eb2c8af7.png",
+          "sha256": "3cfd635fba46c85d1d2edc8379ef47b78c4a86e89312e149a16d7e484a2b1d6f",
+          "pixels_sha256": "2a87b95d8af8b02e7209c5da2dafbb7b0184b730ef1c4718001b7235eb2c8af7",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "ca21508b98d185fc4353ac3bd26f823228b7c12df18a474f5a9af3ca293ecf0e.png",
+        "sha256": "a7dd6cfd0852819c74007b12c8f927168b05b386884aab0297e01f69ded15c79",
+        "pixels_sha256": "ca21508b98d185fc4353ac3bd26f823228b7c12df18a474f5a9af3ca293ecf0e"
+      },
+      "outline": {
+        "path": "68086ff1e0f5af47ef972d1e184249b0376f902158eda0773aecfe63a1f3db75.png",
+        "sha256": "87607a7b27c4d75f1dc115208273850d56c10512ff799ec74ff98a9a2d3bebdf",
+        "pixels_sha256": "68086ff1e0f5af47ef972d1e184249b0376f902158eda0773aecfe63a1f3db75"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "2a87b95d8af8b02e7209c5da2dafbb7b0184b730ef1c4718001b7235eb2c8af7.png",
+          "sha256": "3cfd635fba46c85d1d2edc8379ef47b78c4a86e89312e149a16d7e484a2b1d6f",
+          "pixels_sha256": "2a87b95d8af8b02e7209c5da2dafbb7b0184b730ef1c4718001b7235eb2c8af7",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "ca21508b98d185fc4353ac3bd26f823228b7c12df18a474f5a9af3ca293ecf0e.png",
+        "sha256": "a7dd6cfd0852819c74007b12c8f927168b05b386884aab0297e01f69ded15c79",
+        "pixels_sha256": "ca21508b98d185fc4353ac3bd26f823228b7c12df18a474f5a9af3ca293ecf0e"
+      },
+      "outline": {
+        "path": "68086ff1e0f5af47ef972d1e184249b0376f902158eda0773aecfe63a1f3db75.png",
+        "sha256": "87607a7b27c4d75f1dc115208273850d56c10512ff799ec74ff98a9a2d3bebdf",
+        "pixels_sha256": "68086ff1e0f5af47ef972d1e184249b0376f902158eda0773aecfe63a1f3db75"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "2a87b95d8af8b02e7209c5da2dafbb7b0184b730ef1c4718001b7235eb2c8af7.png",
+          "sha256": "3cfd635fba46c85d1d2edc8379ef47b78c4a86e89312e149a16d7e484a2b1d6f",
+          "pixels_sha256": "2a87b95d8af8b02e7209c5da2dafbb7b0184b730ef1c4718001b7235eb2c8af7",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "6ec0eccad0e2db79d1f6a04cc2637143d10fb97e5b92644ea9a0849ed8fa97c4.png",
+        "sha256": "afae7791aa9e5dab0ac5c21b1bc16422d2ea9a59dec8270b96382f2905a2c489",
+        "pixels_sha256": "6ec0eccad0e2db79d1f6a04cc2637143d10fb97e5b92644ea9a0849ed8fa97c4"
+      },
+      "outline": {
+        "path": "f01b5e3b2311e08d890d7ba37928a3de3231ef466e2827081fff5c0abe40bf38.png",
+        "sha256": "09195b121bf909ab1ca613fecc0b29f863219d6b44b2ba06b11cfd364ef65f6a",
+        "pixels_sha256": "f01b5e3b2311e08d890d7ba37928a3de3231ef466e2827081fff5c0abe40bf38"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "81bea16ee3a1a498f007ef97448a48360b53b7c54574c63034fd779e3aa7ed60.png",
+          "sha256": "0b91cb1d811287aa5b999575b34f1128f3aa0616f4851822cd8c721318a53fbf",
+          "pixels_sha256": "81bea16ee3a1a498f007ef97448a48360b53b7c54574c63034fd779e3aa7ed60",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "6ec0eccad0e2db79d1f6a04cc2637143d10fb97e5b92644ea9a0849ed8fa97c4.png",
+        "sha256": "afae7791aa9e5dab0ac5c21b1bc16422d2ea9a59dec8270b96382f2905a2c489",
+        "pixels_sha256": "6ec0eccad0e2db79d1f6a04cc2637143d10fb97e5b92644ea9a0849ed8fa97c4"
+      },
+      "outline": {
+        "path": "f01b5e3b2311e08d890d7ba37928a3de3231ef466e2827081fff5c0abe40bf38.png",
+        "sha256": "09195b121bf909ab1ca613fecc0b29f863219d6b44b2ba06b11cfd364ef65f6a",
+        "pixels_sha256": "f01b5e3b2311e08d890d7ba37928a3de3231ef466e2827081fff5c0abe40bf38"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "dea55409c22ee9afed58cfb03b14c84e35d0b68c87a32db604a1c4e62f7f8875.png",
+          "sha256": "27c263f5c2c044e856d22572107c424f0ad29b54244cb190f095f8ce923a2b5b",
+          "pixels_sha256": "dea55409c22ee9afed58cfb03b14c84e35d0b68c87a32db604a1c4e62f7f8875",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "6ec0eccad0e2db79d1f6a04cc2637143d10fb97e5b92644ea9a0849ed8fa97c4.png",
+        "sha256": "afae7791aa9e5dab0ac5c21b1bc16422d2ea9a59dec8270b96382f2905a2c489",
+        "pixels_sha256": "6ec0eccad0e2db79d1f6a04cc2637143d10fb97e5b92644ea9a0849ed8fa97c4"
+      },
+      "outline": {
+        "path": "f01b5e3b2311e08d890d7ba37928a3de3231ef466e2827081fff5c0abe40bf38.png",
+        "sha256": "09195b121bf909ab1ca613fecc0b29f863219d6b44b2ba06b11cfd364ef65f6a",
+        "pixels_sha256": "f01b5e3b2311e08d890d7ba37928a3de3231ef466e2827081fff5c0abe40bf38"
+      },
+      "bodies": [
+        {
+          "place": 1,
+          "path": "8a4c14174a72fc35329300cbdcb88ecaab2f67c391ba45031ad8207758e4dd4d.png",
+          "sha256": "7b72e2c423de11eb87ea325f69710c0583b98ade9d7e66fd2d118b64fd535839",
+          "pixels_sha256": "8a4c14174a72fc35329300cbdcb88ecaab2f67c391ba45031ad8207758e4dd4d",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "5473d206fc705fe176a9b3596f054b67176b0d98df15295f9d177b1fc2f77303.png",
+          "sha256": "53fc13a7365e655fe6ce4e049cc7244e04d9658c991d912394637732fe0b0209",
+          "pixels_sha256": "5473d206fc705fe176a9b3596f054b67176b0d98df15295f9d177b1fc2f77303",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "0a13d8f771415f8bfac0d11f54e2bb33b3bdfd3f42fd0d0ed8ff8fb2aaa39252.png",
+          "sha256": "6359c830fe6fa0b70dfd8f0eb9ec52fc8115918fb318f8b992f166c689835308",
+          "pixels_sha256": "0a13d8f771415f8bfac0d11f54e2bb33b3bdfd3f42fd0d0ed8ff8fb2aaa39252",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "5473d206fc705fe176a9b3596f054b67176b0d98df15295f9d177b1fc2f77303.png",
+          "sha256": "53fc13a7365e655fe6ce4e049cc7244e04d9658c991d912394637732fe0b0209",
+          "pixels_sha256": "5473d206fc705fe176a9b3596f054b67176b0d98df15295f9d177b1fc2f77303",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "989ee56b85891ed2bb752093b9238e914471d83c6937b5cb1cab002be35cbf1b.png",
+          "sha256": "b69ae9637787f65e1dbbfe1a4b35dede87283f05d5baa8f5b1098272d7203d72",
+          "pixels_sha256": "989ee56b85891ed2bb752093b9238e914471d83c6937b5cb1cab002be35cbf1b",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "5473d206fc705fe176a9b3596f054b67176b0d98df15295f9d177b1fc2f77303.png",
+          "sha256": "53fc13a7365e655fe6ce4e049cc7244e04d9658c991d912394637732fe0b0209",
+          "pixels_sha256": "5473d206fc705fe176a9b3596f054b67176b0d98df15295f9d177b1fc2f77303",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "f4fa3c5f00edf716719157373de36b4750e67966005da006885e3b73e5e5aa98.png",
+          "sha256": "28a2fdba184c055e14d27c505d1933d46186a84cedb0b193f08586a798422a82",
+          "pixels_sha256": "f4fa3c5f00edf716719157373de36b4750e67966005da006885e3b73e5e5aa98",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "255a597dfcc303bcc16a071efaa5e8b7266e6ffd4c7a7170439cbaed05ba4a06.png",
+          "sha256": "923d664fb79cb058f10e5251e618e341d8ad51d210c49d6f5b12c161168089b0",
+          "pixels_sha256": "255a597dfcc303bcc16a071efaa5e8b7266e6ffd4c7a7170439cbaed05ba4a06",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "0a13d8f771415f8bfac0d11f54e2bb33b3bdfd3f42fd0d0ed8ff8fb2aaa39252.png",
+          "sha256": "6359c830fe6fa0b70dfd8f0eb9ec52fc8115918fb318f8b992f166c689835308",
+          "pixels_sha256": "0a13d8f771415f8bfac0d11f54e2bb33b3bdfd3f42fd0d0ed8ff8fb2aaa39252",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "255a597dfcc303bcc16a071efaa5e8b7266e6ffd4c7a7170439cbaed05ba4a06.png",
+          "sha256": "923d664fb79cb058f10e5251e618e341d8ad51d210c49d6f5b12c161168089b0",
+          "pixels_sha256": "255a597dfcc303bcc16a071efaa5e8b7266e6ffd4c7a7170439cbaed05ba4a06",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "989ee56b85891ed2bb752093b9238e914471d83c6937b5cb1cab002be35cbf1b.png",
+          "sha256": "b69ae9637787f65e1dbbfe1a4b35dede87283f05d5baa8f5b1098272d7203d72",
+          "pixels_sha256": "989ee56b85891ed2bb752093b9238e914471d83c6937b5cb1cab002be35cbf1b",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "255a597dfcc303bcc16a071efaa5e8b7266e6ffd4c7a7170439cbaed05ba4a06.png",
+          "sha256": "923d664fb79cb058f10e5251e618e341d8ad51d210c49d6f5b12c161168089b0",
+          "pixels_sha256": "255a597dfcc303bcc16a071efaa5e8b7266e6ffd4c7a7170439cbaed05ba4a06",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "f4fa3c5f00edf716719157373de36b4750e67966005da006885e3b73e5e5aa98.png",
+          "sha256": "28a2fdba184c055e14d27c505d1933d46186a84cedb0b193f08586a798422a82",
+          "pixels_sha256": "f4fa3c5f00edf716719157373de36b4750e67966005da006885e3b73e5e5aa98",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "9f1da1a7c6c36efa39a601d45ef6036c127bb14c5a9230e96b6316ca56fc472e.png",
+          "sha256": "d665c310bf093cf529db4c17162e1512531ce3ed2a3ea84d2d173342a547d414",
+          "pixels_sha256": "9f1da1a7c6c36efa39a601d45ef6036c127bb14c5a9230e96b6316ca56fc472e",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "0a13d8f771415f8bfac0d11f54e2bb33b3bdfd3f42fd0d0ed8ff8fb2aaa39252.png",
+          "sha256": "6359c830fe6fa0b70dfd8f0eb9ec52fc8115918fb318f8b992f166c689835308",
+          "pixels_sha256": "0a13d8f771415f8bfac0d11f54e2bb33b3bdfd3f42fd0d0ed8ff8fb2aaa39252",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "9f1da1a7c6c36efa39a601d45ef6036c127bb14c5a9230e96b6316ca56fc472e.png",
+          "sha256": "d665c310bf093cf529db4c17162e1512531ce3ed2a3ea84d2d173342a547d414",
+          "pixels_sha256": "9f1da1a7c6c36efa39a601d45ef6036c127bb14c5a9230e96b6316ca56fc472e",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "989ee56b85891ed2bb752093b9238e914471d83c6937b5cb1cab002be35cbf1b.png",
+          "sha256": "b69ae9637787f65e1dbbfe1a4b35dede87283f05d5baa8f5b1098272d7203d72",
+          "pixels_sha256": "989ee56b85891ed2bb752093b9238e914471d83c6937b5cb1cab002be35cbf1b",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519.png",
+        "sha256": "c1908aff6ec7125e3f6ebb0706110646b31a2c8967174cd3c799d1597dc9347b",
+        "pixels_sha256": "e7ba65feaed5b44903fd970aa47be2d82a7f45d25a85d0007ca80704981e6519"
+      },
+      "outline": {
+        "path": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b.png",
+        "sha256": "6189379d3b43ace7aa07f5685e91241b25127a7a097693e82f667c0b2d746b8a",
+        "pixels_sha256": "56a61c3569321f9c30041086cadda5367ca54675c0c09c5af14b10238258158b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "9f1da1a7c6c36efa39a601d45ef6036c127bb14c5a9230e96b6316ca56fc472e.png",
+          "sha256": "d665c310bf093cf529db4c17162e1512531ce3ed2a3ea84d2d173342a547d414",
+          "pixels_sha256": "9f1da1a7c6c36efa39a601d45ef6036c127bb14c5a9230e96b6316ca56fc472e",
+          "coverage": {
+            "path": "coverage/048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54.png",
+            "sha256": "0059eac5d8a03e5434687d0e4d17f35bf797041c6339b37ba10759ea762347cf",
+            "pixels_sha256": "048dfc3b62d1b72d42a32554ef9a43628cedffd52137067b57b392995f878e54"
+          }
+        },
+        {
+          "place": 1,
+          "path": "f4fa3c5f00edf716719157373de36b4750e67966005da006885e3b73e5e5aa98.png",
+          "sha256": "28a2fdba184c055e14d27c505d1933d46186a84cedb0b193f08586a798422a82",
+          "pixels_sha256": "f4fa3c5f00edf716719157373de36b4750e67966005da006885e3b73e5e5aa98",
+          "coverage": {
+            "path": "coverage/458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca.png",
+            "sha256": "83be309b959ecb79bf40549b43a8528f29f2f8d6ba4d0aefc9e2d665dc50cd30",
+            "pixels_sha256": "458d12d60ae3eb3744d7ac116d20de04f79262c8f562eddd931e78b545c49fca"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "35f62e162a4888f390dbfb436b0c73db395a21bdd313c056c0503fb46abea508.png",
+          "sha256": "1f35844e6ea43ca5958a3aca0db40b2cd0d471f953dd97c3de3644a54d682ca2",
+          "pixels_sha256": "35f62e162a4888f390dbfb436b0c73db395a21bdd313c056c0503fb46abea508",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "26493b8e0e5bac6a3c8adf8b033654bf77c25290b59dba0917beb0b1b404f4a8.png",
+          "sha256": "192a9654885fd6c80b2bd188d51483dce98dec5413538f7b91ed34d7e42c9da1",
+          "pixels_sha256": "26493b8e0e5bac6a3c8adf8b033654bf77c25290b59dba0917beb0b1b404f4a8",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "35f62e162a4888f390dbfb436b0c73db395a21bdd313c056c0503fb46abea508.png",
+          "sha256": "1f35844e6ea43ca5958a3aca0db40b2cd0d471f953dd97c3de3644a54d682ca2",
+          "pixels_sha256": "35f62e162a4888f390dbfb436b0c73db395a21bdd313c056c0503fb46abea508",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "78546f6f3246c883ba0f57d0912c6d85c43d27de904f17217ceb6ebe6d2c46ea.png",
+          "sha256": "b285233512e80dca689988c9e981d23eb5d361f6ee36a5563de552f87854fa5c",
+          "pixels_sha256": "78546f6f3246c883ba0f57d0912c6d85c43d27de904f17217ceb6ebe6d2c46ea",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "35f62e162a4888f390dbfb436b0c73db395a21bdd313c056c0503fb46abea508.png",
+          "sha256": "1f35844e6ea43ca5958a3aca0db40b2cd0d471f953dd97c3de3644a54d682ca2",
+          "pixels_sha256": "35f62e162a4888f390dbfb436b0c73db395a21bdd313c056c0503fb46abea508",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "3a1598b16c759035a5e898e3ba9b9a0d7ab26e139dbbbaf586c860d1a6d51928.png",
+          "sha256": "403ea9c010b2cb8b497a8779a7e041db3164a4220dd6d283048111cabcbc1d1f",
+          "pixels_sha256": "3a1598b16c759035a5e898e3ba9b9a0d7ab26e139dbbbaf586c860d1a6d51928",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "d795aef742623aeabc2e329124963f2a3d290b60be279e5104f59b326a7ef239.png",
+          "sha256": "d7346eacaaf945dba706a1350995ab213bab1844f015ac09a19275440d11199e",
+          "pixels_sha256": "d795aef742623aeabc2e329124963f2a3d290b60be279e5104f59b326a7ef239",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "26493b8e0e5bac6a3c8adf8b033654bf77c25290b59dba0917beb0b1b404f4a8.png",
+          "sha256": "192a9654885fd6c80b2bd188d51483dce98dec5413538f7b91ed34d7e42c9da1",
+          "pixels_sha256": "26493b8e0e5bac6a3c8adf8b033654bf77c25290b59dba0917beb0b1b404f4a8",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "d795aef742623aeabc2e329124963f2a3d290b60be279e5104f59b326a7ef239.png",
+          "sha256": "d7346eacaaf945dba706a1350995ab213bab1844f015ac09a19275440d11199e",
+          "pixels_sha256": "d795aef742623aeabc2e329124963f2a3d290b60be279e5104f59b326a7ef239",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "78546f6f3246c883ba0f57d0912c6d85c43d27de904f17217ceb6ebe6d2c46ea.png",
+          "sha256": "b285233512e80dca689988c9e981d23eb5d361f6ee36a5563de552f87854fa5c",
+          "pixels_sha256": "78546f6f3246c883ba0f57d0912c6d85c43d27de904f17217ceb6ebe6d2c46ea",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "d795aef742623aeabc2e329124963f2a3d290b60be279e5104f59b326a7ef239.png",
+          "sha256": "d7346eacaaf945dba706a1350995ab213bab1844f015ac09a19275440d11199e",
+          "pixels_sha256": "d795aef742623aeabc2e329124963f2a3d290b60be279e5104f59b326a7ef239",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "3a1598b16c759035a5e898e3ba9b9a0d7ab26e139dbbbaf586c860d1a6d51928.png",
+          "sha256": "403ea9c010b2cb8b497a8779a7e041db3164a4220dd6d283048111cabcbc1d1f",
+          "pixels_sha256": "3a1598b16c759035a5e898e3ba9b9a0d7ab26e139dbbbaf586c860d1a6d51928",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "fdc9befda693e2ee35f11809fcb32ec6fa7456da8699fc6ff39713dd37425458.png",
+          "sha256": "689e2c207671b257a9ff8186e3b86b128523b586953920d912e811f1bdc50b58",
+          "pixels_sha256": "fdc9befda693e2ee35f11809fcb32ec6fa7456da8699fc6ff39713dd37425458",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "26493b8e0e5bac6a3c8adf8b033654bf77c25290b59dba0917beb0b1b404f4a8.png",
+          "sha256": "192a9654885fd6c80b2bd188d51483dce98dec5413538f7b91ed34d7e42c9da1",
+          "pixels_sha256": "26493b8e0e5bac6a3c8adf8b033654bf77c25290b59dba0917beb0b1b404f4a8",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "fdc9befda693e2ee35f11809fcb32ec6fa7456da8699fc6ff39713dd37425458.png",
+          "sha256": "689e2c207671b257a9ff8186e3b86b128523b586953920d912e811f1bdc50b58",
+          "pixels_sha256": "fdc9befda693e2ee35f11809fcb32ec6fa7456da8699fc6ff39713dd37425458",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "78546f6f3246c883ba0f57d0912c6d85c43d27de904f17217ceb6ebe6d2c46ea.png",
+          "sha256": "b285233512e80dca689988c9e981d23eb5d361f6ee36a5563de552f87854fa5c",
+          "pixels_sha256": "78546f6f3246c883ba0f57d0912c6d85c43d27de904f17217ceb6ebe6d2c46ea",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a.png",
+        "sha256": "2fbefb61144cb05dfccbee6ef083a56dca193cc9647a1928194c4964d84407d7",
+        "pixels_sha256": "9adbb9abd43353ef80bea4aa3cb0273c593ca9a47908210495e712c35016638a"
+      },
+      "outline": {
+        "path": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005.png",
+        "sha256": "e6da1207f26a9dc9804b2c171c95b4148df27c0607e2169d36a3aacfcdb7e2a9",
+        "pixels_sha256": "9a4fa58d857276dc9b2d5365b734a6fbbf6c5bd12088e7f2a9706ca15c77e005"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "fdc9befda693e2ee35f11809fcb32ec6fa7456da8699fc6ff39713dd37425458.png",
+          "sha256": "689e2c207671b257a9ff8186e3b86b128523b586953920d912e811f1bdc50b58",
+          "pixels_sha256": "fdc9befda693e2ee35f11809fcb32ec6fa7456da8699fc6ff39713dd37425458",
+          "coverage": {
+            "path": "coverage/0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822.png",
+            "sha256": "841c81ba390374e3b3a054b99069676732cd6bca7113cd99f0c9a60ef855fb0e",
+            "pixels_sha256": "0354e9e0fb6c4abae616565258e21e986d14b4fffaf34eaa69bac0fbdd316822"
+          }
+        },
+        {
+          "place": 1,
+          "path": "3a1598b16c759035a5e898e3ba9b9a0d7ab26e139dbbbaf586c860d1a6d51928.png",
+          "sha256": "403ea9c010b2cb8b497a8779a7e041db3164a4220dd6d283048111cabcbc1d1f",
+          "pixels_sha256": "3a1598b16c759035a5e898e3ba9b9a0d7ab26e139dbbbaf586c860d1a6d51928",
+          "coverage": {
+            "path": "coverage/558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020.png",
+            "sha256": "91a3e9edac0eead8025e3dbb55b5264bfa6e04f5b3241addd15cc5d0fc7e1f36",
+            "pixels_sha256": "558b37ac15a632df060021d698baec3057c49ea8448596f65e0bd34a4dfbf020"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235.png",
+        "sha256": "b3f94d12a4f85ec5e2d91bfbf7f3061863f9119478e08cf1cbfb2ef3e6be19d0",
+        "pixels_sha256": "1698a5db0628111eb9d7aae15ae2dd4f85c19535b02e64d1cfae721533d24235"
+      },
+      "outline": {
+        "path": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287.png",
+        "sha256": "1a5272ac6bab8dc35a5be10b928854f4e6354e8ed9ad1419a1f49b4fe47f1162",
+        "pixels_sha256": "ebd6897078f6ff06f0a426565d2c797ec6762c8cc0d6c5b3c07d7886f8323287"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c.png",
+          "sha256": "1df548c04ce8a36f870cd57a19b9f8c18f6df17499e912e17ccd1edda837d398",
+          "pixels_sha256": "45a2d40f15a87fad204f1486b2bb45dfb9a007757939260e9c60e3670b8afd2c",
+          "coverage": {
+            "path": "coverage/89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb.png",
+            "sha256": "1616aa690d960518c5f8a488213d8c5ce7aa03d22d23cfa43d53884ee4222a05",
+            "pixels_sha256": "89f054659a5cf3f394a862c3166a11207158001a08856885afc4da14bc076fbb"
+          }
+        },
+        {
+          "place": 1,
+          "path": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699.png",
+          "sha256": "93005aa79e181bcb1515a01f246544ed0e842e06212147cba35fc6652cb54bc2",
+          "pixels_sha256": "32df0bb8883b49566101696ec2e2cae4af29517f5fc6ef2647ead979611bc699",
+          "coverage": {
+            "path": "coverage/18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed.png",
+            "sha256": "47a0c62ee3e4ca2e2cfd3c6dae57f87317c2bf1a30340fffacdf9b81a249fd45",
+            "pixels_sha256": "18a397175afceba88b32eebff22aead3e8d6cc67ccefad23cd5f453b7ae821ed"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55.png",
+          "sha256": "6b5718353de5a0eac590ee7f673671140c0ca06bdfb15caff1b166c29543dee7",
+          "pixels_sha256": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "4405967889bf152d553183656d8758a90b3dfffac1633757fd2fb21ff4a5d644.png",
+          "sha256": "eef7438963de4773efe42e3887d1c43a232620394c4636c94d52e631e1a80519",
+          "pixels_sha256": "4405967889bf152d553183656d8758a90b3dfffac1633757fd2fb21ff4a5d644",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55.png",
+          "sha256": "6b5718353de5a0eac590ee7f673671140c0ca06bdfb15caff1b166c29543dee7",
+          "pixels_sha256": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "ddf9326ea86536b7c1fd710b89a25cbf6c0fc3667c8be6e9c5a2e144a6fe42d8.png",
+          "sha256": "ccdbc54621228324359bbe7a813854f88ecebcf5d7aa8183e0f453d821126c69",
+          "pixels_sha256": "ddf9326ea86536b7c1fd710b89a25cbf6c0fc3667c8be6e9c5a2e144a6fe42d8",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55.png",
+          "sha256": "6b5718353de5a0eac590ee7f673671140c0ca06bdfb15caff1b166c29543dee7",
+          "pixels_sha256": "56c7bc20a5348ffcdc2cf94e225e2726bb52d48ed40b72825e337f32cd60da55",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "1e84640aa1a31d90a031ed5c5217f48640b113dd1446ae2679b7b82003e04179.png",
+          "sha256": "a1ca63ade86008a82c7374f7ba8207fc4606701edc94f3e38b851a88afe2a4d0",
+          "pixels_sha256": "1e84640aa1a31d90a031ed5c5217f48640b113dd1446ae2679b7b82003e04179",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c.png",
+          "sha256": "29002759d65ad7181a16e5e1d9d35a127b6685e5a0719f75d93256b88732d697",
+          "pixels_sha256": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "4405967889bf152d553183656d8758a90b3dfffac1633757fd2fb21ff4a5d644.png",
+          "sha256": "eef7438963de4773efe42e3887d1c43a232620394c4636c94d52e631e1a80519",
+          "pixels_sha256": "4405967889bf152d553183656d8758a90b3dfffac1633757fd2fb21ff4a5d644",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c.png",
+          "sha256": "29002759d65ad7181a16e5e1d9d35a127b6685e5a0719f75d93256b88732d697",
+          "pixels_sha256": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "ddf9326ea86536b7c1fd710b89a25cbf6c0fc3667c8be6e9c5a2e144a6fe42d8.png",
+          "sha256": "ccdbc54621228324359bbe7a813854f88ecebcf5d7aa8183e0f453d821126c69",
+          "pixels_sha256": "ddf9326ea86536b7c1fd710b89a25cbf6c0fc3667c8be6e9c5a2e144a6fe42d8",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c.png",
+          "sha256": "29002759d65ad7181a16e5e1d9d35a127b6685e5a0719f75d93256b88732d697",
+          "pixels_sha256": "107650cc4068f214e34800dd18adb56ff656e9d97f0c373b47bb2e41e1cfa97c",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "1e84640aa1a31d90a031ed5c5217f48640b113dd1446ae2679b7b82003e04179.png",
+          "sha256": "a1ca63ade86008a82c7374f7ba8207fc4606701edc94f3e38b851a88afe2a4d0",
+          "pixels_sha256": "1e84640aa1a31d90a031ed5c5217f48640b113dd1446ae2679b7b82003e04179",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766.png",
+          "sha256": "fa4874983964a900aab5449845db68f5905ecf99ced70c42d621af101e3f93b7",
+          "pixels_sha256": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "4405967889bf152d553183656d8758a90b3dfffac1633757fd2fb21ff4a5d644.png",
+          "sha256": "eef7438963de4773efe42e3887d1c43a232620394c4636c94d52e631e1a80519",
+          "pixels_sha256": "4405967889bf152d553183656d8758a90b3dfffac1633757fd2fb21ff4a5d644",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766.png",
+          "sha256": "fa4874983964a900aab5449845db68f5905ecf99ced70c42d621af101e3f93b7",
+          "pixels_sha256": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "ddf9326ea86536b7c1fd710b89a25cbf6c0fc3667c8be6e9c5a2e144a6fe42d8.png",
+          "sha256": "ccdbc54621228324359bbe7a813854f88ecebcf5d7aa8183e0f453d821126c69",
+          "pixels_sha256": "ddf9326ea86536b7c1fd710b89a25cbf6c0fc3667c8be6e9c5a2e144a6fe42d8",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "furniture": {
+        "path": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c.png",
+        "sha256": "557be67d228d7c15ac62fd219ff5d42e3456f634bc13dec876ace0c4597d023f",
+        "pixels_sha256": "f16a628f01b1f8cc04ca9c5c246af2bdabdf68b5ed8deca9c6593fe800a1f11c"
+      },
+      "outline": {
+        "path": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b.png",
+        "sha256": "bccb538287e03cbc84c17f15e4f371c1e8d7f6601218b37204bbef1215173c78",
+        "pixels_sha256": "07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b"
+      },
+      "bodies": [
+        {
+          "place": 0,
+          "path": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766.png",
+          "sha256": "fa4874983964a900aab5449845db68f5905ecf99ced70c42d621af101e3f93b7",
+          "pixels_sha256": "c99681a42cf7f7a3d9b2339999fed87e948191bfc2247551f70d2a6f49061766",
+          "coverage": {
+            "path": "coverage/7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e.png",
+            "sha256": "8dc959f828c9699cf17d785c219dcfc121043db654f248b70e36781bfe5f43a2",
+            "pixels_sha256": "7612ff93f3f56aff53baf1d1e6c5738935728a9d00d0366b80d8ff021fd5d44e"
+          }
+        },
+        {
+          "place": 1,
+          "path": "1e84640aa1a31d90a031ed5c5217f48640b113dd1446ae2679b7b82003e04179.png",
+          "sha256": "a1ca63ade86008a82c7374f7ba8207fc4606701edc94f3e38b851a88afe2a4d0",
+          "pixels_sha256": "1e84640aa1a31d90a031ed5c5217f48640b113dd1446ae2679b7b82003e04179",
+          "coverage": {
+            "path": "coverage/9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e.png",
+            "sha256": "7cc19768962f0d65ff108bd4c5e58294c4325432c6d767a762738c4dba845d1b",
+            "pixels_sha256": "9e0e1300dfbe82b80e3c9005f73e61adcad05203e5e4ee1b75a8d81db3d8a72e"
+          }
+        }
+      ]
+    }
+  ]
+}

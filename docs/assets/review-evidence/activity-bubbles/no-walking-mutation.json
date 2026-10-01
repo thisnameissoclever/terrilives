@@ -1,0 +1,8 @@
+{
+  "mutation": "restore-walking-bubble",
+  "command": "npm --prefix web test -- --maxWorkers=1 tests/frame.test.ts",
+  "exit": 1,
+  "caught": true,
+  "failure": "Walking/idle/activity test: expected 5 to be 4",
+  "restoredSha256": "d17888c44750136485d1b5ed2692c582910701b05c2c6ece779004793a47f902"
+}

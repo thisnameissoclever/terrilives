@@ -146,8 +146,10 @@ scroll horizontally when they do not fit.
 | Traits and self-preservation | Sim details / Traits | Sim details / Traits |
 | New housemate, including with no selected Sim | Options | Options |
 
-One detail section appears at a time. The sheet scrolls within the available
-height; its navigation scrolls horizontally on narrow screens. Traits starts
+One detail section appears at a time. The desktop sheet starts at 360 pixels
+wide, expanding to 540 pixels while Overview's personality disclosure is
+open. Compact screens use the available width. The sheet scrolls within the
+available height; its navigation wraps to keep every tab reachable. Traits starts
 closed on every load and opens only when requested. Close and Escape return
 focus to a visible opener. Native dialogs and the object action menu take
 Escape before the Sim sheet. Sim details contains Overview, Queue, People and

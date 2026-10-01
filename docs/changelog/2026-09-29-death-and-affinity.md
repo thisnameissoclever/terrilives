@@ -1,7 +1,8 @@
-# Deprivation, grief and object preferences
+# Preferences, grief and survival
 
-Housemates can die from sustained deprivation, and the people who knew them can grieve. Objects can also affect mood through personal preferences.
+Housemates react to their surroundings and to losing people they care about.
 
-## Features & changes
-- **Death has household consequences.** Sustained deprivation can kill a person. Warnings identify danger, the household records deaths, and survivors receive grief based on their affinity. A Death setting controls the system. [PR #135](https://github.com/thisnameissoclever/terrilives/pull/135) and [PR #139](https://github.com/thisnameissoclever/terrilives/pull/139)
-- **Nearby objects can affect mood.** A person's affinity for an object type can make that object comforting or unpleasant. [PR #138](https://github.com/thisnameissoclever/terrilives/pull/138)
+## New
+- Prolonged hunger or exhaustion can be fatal. Warnings identify danger, and Death in Options lets you turn this off.
+- Surviving housemates grieve according to how close they were to the person who died.
+- Nearby objects can improve or worsen someone's mood, depending on their preferences.

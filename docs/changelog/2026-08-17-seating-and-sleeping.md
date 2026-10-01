@@ -1,7 +1,7 @@
 # Sitting and lower-bunk sleeping
 
-Armchair use and lower-bunk sleep have action-specific poses fitted to their furniture.
+Resting housemates fit their furniture more naturally.
 
-## Art & sound
-- **Armchair use shows a seated pose.** The person meets the chair's seat rather than standing in front of it. [PR #57](https://github.com/thisnameissoclever/terrilives/pull/57)
-- **Lower-bunk sleeping has its own pose.** The sleeper is positioned in the supported lower bunk. [PR #58](https://github.com/thisnameissoclever/terrilives/pull/58)
+## Art
+- People sit in the armchair instead of standing in front of it.
+- Sleeping has a pose fitted to the lower bunk. The upper bunk is still unavailable.

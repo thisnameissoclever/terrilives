@@ -1,0 +1,826 @@
+{
+  "deployedCommit": "250c73b3f86e38c709f30d5682fb65acbb949e4b",
+  "uiPullRequest": 189,
+  "mainCiRun": 36880551157,
+  "pagesRun": 36881825452,
+  "observedUtc": "2026-10-01T15:13:44Z",
+  "entry": "./assets/index-D3yc7B0O.js",
+  "layouts": [
+    {
+      "width": 1280,
+      "height": 800,
+      "dockHeight": 92.03125,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 109,
+          "y": 711.484375,
+          "width": 523.21875,
+          "height": 26,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 638.21875,
+          "y": 709.09375,
+          "width": 142,
+          "height": 30.78125,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 796.21875,
+          "y": 706.96875,
+          "width": 142,
+          "height": 35.03125,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 944.21875,
+          "y": 708.484375,
+          "width": 84.109375,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 1034.328125,
+          "y": 708.484375,
+          "width": 60.125,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 1100.453125,
+          "y": 708.484375,
+          "width": 70.546875,
+          "height": 32,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 1100,
+      "height": 800,
+      "dockHeight": 90.390625,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 19,
+          "y": 712.296875,
+          "width": 523.21875,
+          "height": 26,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 548.21875,
+          "y": 708.609375,
+          "width": 142,
+          "height": 33.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 706.21875,
+          "y": 714.109375,
+          "width": 142,
+          "height": 22.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 854.21875,
+          "y": 709.296875,
+          "width": 84.109375,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 944.328125,
+          "y": 709.296875,
+          "width": 60.125,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 1010.453125,
+          "y": 709.296875,
+          "width": 70.546875,
+          "height": 32,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 900,
+      "height": 700,
+      "dockHeight": 117.359375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 581.640625,
+          "width": 367.21875,
+          "height": 44.1875,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 390.21875,
+          "y": 587.03125,
+          "width": 122,
+          "height": 33.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 528.21875,
+          "y": 592.53125,
+          "width": 122,
+          "height": 22.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 656.21875,
+          "y": 587.734375,
+          "width": 84.109375,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 746.328125,
+          "y": 587.734375,
+          "width": 60.125,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 812.453125,
+          "y": 587.734375,
+          "width": 70.546875,
+          "height": 32,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 800,
+      "height": 700,
+      "dockHeight": 117.359375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 581.640625,
+          "width": 267.21875,
+          "height": 44.1875,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 290.21875,
+          "y": 587.03125,
+          "width": 122,
+          "height": 33.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 428.21875,
+          "y": 592.53125,
+          "width": 122,
+          "height": 22.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 556.21875,
+          "y": 587.734375,
+          "width": 84.109375,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 646.328125,
+          "y": 587.734375,
+          "width": 60.125,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 712.453125,
+          "y": 587.734375,
+          "width": 70.546875,
+          "height": 32,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 640,
+      "height": 700,
+      "dockHeight": 117.359375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 581.640625,
+          "width": 107.21875,
+          "height": 44.1875,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 130.21875,
+          "y": 587.03125,
+          "width": 122,
+          "height": 33.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 268.21875,
+          "y": 592.53125,
+          "width": 122,
+          "height": 22.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 396.21875,
+          "y": 587.734375,
+          "width": 84.109375,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 486.328125,
+          "y": 587.734375,
+          "width": 60.125,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 552.453125,
+          "y": 587.734375,
+          "width": 70.546875,
+          "height": 32,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 601,
+      "height": 700,
+      "dockHeight": 117.359375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 581.640625,
+          "width": 68.21875,
+          "height": 44.1875,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 91.21875,
+          "y": 587.03125,
+          "width": 122,
+          "height": 33.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 229.21875,
+          "y": 592.53125,
+          "width": 122,
+          "height": 22.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 357.21875,
+          "y": 587.734375,
+          "width": 84.109375,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 447.328125,
+          "y": 587.734375,
+          "width": 60.125,
+          "height": 32,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 513.453125,
+          "y": 587.734375,
+          "width": 70.546875,
+          "height": 32,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 600,
+      "height": 700,
+      "dockHeight": 136.59375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 15,
+          "y": 563.015625,
+          "width": 426.8125,
+          "height": 38.78125,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 15,
+          "y": 608.40625,
+          "width": 277,
+          "height": 28.59375,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 308,
+          "y": 612.90625,
+          "width": 277,
+          "height": 19.59375,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 445.8125,
+          "y": 560.40625,
+          "width": 78.109375,
+          "height": 44,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 527.921875,
+          "y": 560.40625,
+          "width": 57.078125,
+          "height": 44,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "dockHeight": 136.59375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 15,
+          "y": 707.015625,
+          "width": 216.8125,
+          "height": 38.78125,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 15,
+          "y": 752.40625,
+          "width": 172,
+          "height": 28.59375,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 203,
+          "y": 756.90625,
+          "width": 172,
+          "height": 19.59375,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 235.8125,
+          "y": 704.40625,
+          "width": 78.109375,
+          "height": 44,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 317.921875,
+          "y": 704.40625,
+          "width": 57.078125,
+          "height": 44,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "dockHeight": 136.59375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 15,
+          "y": 431.015625,
+          "width": 146.8125,
+          "height": 38.78125,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 15,
+          "y": 476.40625,
+          "width": 137,
+          "height": 28.59375,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 168,
+          "y": 480.90625,
+          "width": 137,
+          "height": 19.59375,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 165.8125,
+          "y": 428.40625,
+          "width": 78.109375,
+          "height": 44,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 247.921875,
+          "y": 428.40625,
+          "width": 57.078125,
+          "height": 44,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "dockHeight": 136.59375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 207,
+          "y": 253.015625,
+          "width": 478.8125,
+          "height": 38.78125,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 207,
+          "y": 298.40625,
+          "width": 303,
+          "height": 28.59375,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 526,
+          "y": 302.90625,
+          "width": 303,
+          "height": 19.59375,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 689.8125,
+          "y": 250.40625,
+          "width": 78.109375,
+          "height": 44,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 771.921875,
+          "y": 250.40625,
+          "width": 57.078125,
+          "height": 44,
+          "overflow": false
+        }
+      ]
+    }
+  ],
+  "tabs": [
+    "Overview",
+    "Queue",
+    "People",
+    "Traits"
+  ],
+  "selectedAndUnselectedHousemate": true,
+  "cancelFocus": "options-toggle",
+  "unchangedText": {
+    "refreshes": 20,
+    "mutations": 0,
+    "tick": 0
+  },
+  "enlarged": [
+    {
+      "width": 320,
+      "height": 568,
+      "dockHeight": 287.375,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 15,
+          "y": 277.625,
+          "width": 145.796875,
+          "height": 77.59375,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 15,
+          "y": 408.609375,
+          "width": 137,
+          "height": 86.984375,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 168,
+          "y": 407.21875,
+          "width": 137,
+          "height": 89.78125,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 164.796875,
+          "y": 294.421875,
+          "width": 140.203125,
+          "height": 44,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 15,
+          "y": 359.21875,
+          "width": 98.140625,
+          "height": 44,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 601,
+      "height": 800,
+      "dockHeight": 273.78125,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 550.71875,
+          "width": 148.796875,
+          "height": 88.390625,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 171.796875,
+          "y": 525.21875,
+          "width": 122,
+          "height": 139.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 309.796875,
+          "y": 547.21875,
+          "width": 122,
+          "height": 95.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 437.796875,
+          "y": 575.71875,
+          "width": 146.203125,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 17,
+          "y": 670.609375,
+          "width": 98.234375,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 121.234375,
+          "y": 670.609375,
+          "width": 119.078125,
+          "height": 38.390625,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 640,
+      "height": 800,
+      "dockHeight": 294.78125,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 529.71875,
+          "width": 83.5625,
+          "height": 88.390625,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 106.5625,
+          "y": 504.21875,
+          "width": 122,
+          "height": 139.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 244.5625,
+          "y": 526.21875,
+          "width": 122,
+          "height": 95.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 372.5625,
+          "y": 554.71875,
+          "width": 146.203125,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 524.765625,
+          "y": 554.71875,
+          "width": 98.234375,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 17,
+          "y": 649.609375,
+          "width": 119.078125,
+          "height": 38.390625,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 800,
+      "height": 800,
+      "dockHeight": 250.390625,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 17,
+          "y": 574.109375,
+          "width": 118.484375,
+          "height": 88.390625,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 141.484375,
+          "y": 548.609375,
+          "width": 122,
+          "height": 139.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 279.484375,
+          "y": 570.609375,
+          "width": 122,
+          "height": 95.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 407.484375,
+          "y": 599.109375,
+          "width": 146.203125,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 559.6875,
+          "y": 599.109375,
+          "width": 98.234375,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 663.921875,
+          "y": 599.109375,
+          "width": 119.078125,
+          "height": 38.390625,
+          "overflow": false
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "dockHeight": 218.390625,
+      "pageOverflow": false,
+      "bounds": [
+        {
+          "id": "sim-identity",
+          "x": 109,
+          "y": 624.296875,
+          "width": 374.484375,
+          "height": 52,
+          "overflow": false
+        },
+        {
+          "id": "mood-block",
+          "x": 489.484375,
+          "y": 580.609375,
+          "width": 142,
+          "height": 139.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-satisfaction",
+          "x": 647.484375,
+          "y": 602.609375,
+          "width": 142,
+          "height": 95.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-details",
+          "x": 795.484375,
+          "y": 631.109375,
+          "width": 146.203125,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "dock-queue",
+          "x": 947.6875,
+          "y": 631.109375,
+          "width": 98.234375,
+          "height": 38.390625,
+          "overflow": false
+        },
+        {
+          "id": "sim-dock-collapse",
+          "x": 1051.921875,
+          "y": 631.109375,
+          "width": 119.078125,
+          "height": 38.390625,
+          "overflow": false
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

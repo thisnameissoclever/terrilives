@@ -9,6 +9,10 @@ use std::fmt;
 /// confused half hour.
 #[derive(Debug, PartialEq)]
 pub enum ContentError {
+    InvalidSleepPlaces {
+        object: String,
+        reason: String,
+    },
     InvalidDomesticTuning,
     InvalidAutonomyTuning,
     EmptyObjectText {
@@ -1119,6 +1123,11 @@ pub enum ContentError {
     /// past the doorway.
     InvalidMortalityTuning,
     InvalidMoodTuning,
+    InvalidInterpersonalTuning,
+    InvalidSharedActivity {
+        owner: String,
+        interaction: String,
+    },
     DaylightReachOutOfRange {
         value: f32,
     },
@@ -1147,6 +1156,9 @@ pub enum ContentError {
 impl fmt::Display for ContentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ContentError::InvalidSleepPlaces { object, reason } => write!(
+                f, "object '{object}' has invalid sleep places: {reason}"
+            ),
             ContentError::InvalidDomesticTuning => write!(f, "domestic tuning has an invalid probability, need threshold or work rate"),
             ContentError::UnknownNeed {
                 object,
@@ -2225,6 +2237,8 @@ impl fmt::Display for ContentError {
             ),
             ContentError::InvalidAutonomyTuning => write!(f, "autonomy requires positive ordered temperatures and preservation anchors, exploration fractions in (0, 1), a smaller positive probability floor, and wander variance in [0, 1)"),
             ContentError::InvalidMoodTuning => write!(f, "mood tuning requires finite nonnegative values, ordered need and waiting bands, a positive radius, fractions at most one and a neutral band below 100"),
+            ContentError::InvalidInterpersonalTuning => write!(f, "interpersonal penalties must be finite, from zero to one, with the critical penalty at least the low penalty"),
+            ContentError::InvalidSharedActivity { owner, interaction } => write!(f, "shared activity on {owner}.{interaction} must name one of its activity tags and cannot describe a conversation or private use"),
             ContentError::InvalidMortalityTuning => write!(f, "death requires a positive duration and an earlier warning; grief requires positive ordered durations and finite ordered scores, with a hatred cutoff from -1 up to but excluding 0"),
             ContentError::DaylightReachOutOfRange { value } => write!(
                 f,

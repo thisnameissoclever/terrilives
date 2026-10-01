@@ -1,0 +1,3 @@
+    Checking terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Checking terri-wasm v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.82s

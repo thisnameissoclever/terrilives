@@ -1,0 +1,23 @@
+{
+  "main_sha": "41df46edca2fd61315fb999fb5e1409397d34bcc",
+  "baseline_records": 1700,
+  "baseline_dimensions": [
+    8192,
+    5658
+  ],
+  "added_records": 69,
+  "layer_dimensions": [
+    232,
+    218
+  ],
+  "final_dimensions": [
+    8192,
+    6096
+  ],
+  "final_texels": 49938432,
+  "limit": [
+    8192,
+    8192
+  ],
+  "scope": "Exact shelf dimensions only; not an atlas-pixel or runtime acceptance proof"
+}

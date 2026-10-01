@@ -7,10 +7,13 @@
 pub mod compile;
 pub mod error;
 pub mod pack;
+mod relationship_tuning;
+pub use relationship_tuning::RelationshipTuning;
 pub mod schema;
 
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
+pub use pack::SleepPlaceAccess;
 pub use pack::{
     CompiledActionSocket, CompiledActivity, CompiledCareer, CompiledChain, CompiledChainStep,
     CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
@@ -56,6 +59,8 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///   string, so object declaration order is free; interaction and flyout rows
 ///   are numeric, so their order is not. Station roles decide where a restored
 ///   running chain will continue.
+/// * Ordered physical sleeping-place IDs and their approach tile sets. Saved
+///   ordinals keep their meaning; new paths use the current authored access.
 /// * The social vocabulary's ids in order - `SavedSocialising` holds an
 ///   index into it.
 /// * The voice clip ids IN ORDER and their durations -
@@ -96,6 +101,31 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 /// only by persisting stable ids beside every numeric row; pretending one hash
 /// can infer which definitions a particular save used would be theatre.
 pub fn content_fingerprint(pack: &ContentPack) -> u64 {
+    let mut hasher = terri_core::FnvHasher::default();
+    hasher.write_bytes(b"terrilives-sleep-place-access-v1");
+    hasher.write_u64(pre_sleep_places_fingerprint(pack));
+    let mut objects: Vec<_> = pack.objects.iter().collect();
+    objects.sort_unstable_by(|a, b| a.id.cmp(&b.id));
+    hash_count(&mut hasher, objects.len());
+    for object in objects {
+        hash_text(&mut hasher, &object.id);
+        hash_count(&mut hasher, object.sleep_places.len());
+        for place in &object.sleep_places {
+            hash_text(&mut hasher, &place.id);
+            let mut approaches = place.approaches.clone();
+            approaches.sort_unstable();
+            hash_count(&mut hasher, approaches.len());
+            for (x, y) in approaches {
+                hasher.write_bytes(&x.to_le_bytes());
+                hasher.write_bytes(&y.to_le_bytes());
+            }
+        }
+    }
+    hasher.finish()
+}
+
+/// Frozen algorithm used before authored sleeping-place access.
+fn pre_sleep_places_fingerprint(pack: &ContentPack) -> u64 {
     let mut hasher = terri_core::FnvHasher::default();
     hasher.write_bytes(b"terrilives-object-facing-v1");
     hasher.write_u64(pre_facing_fingerprint(pack));
@@ -328,7 +358,8 @@ const PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
 /// the specifically reviewed target.
 pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
     let exact = content_fingerprint(pack);
-    let current = reviewed_pre_facing_target(exact);
+    let before_places = reviewed_pre_sleep_places_target(exact);
+    let current = reviewed_pre_facing_target(before_places);
     if saved == exact {
         return true;
     }
@@ -337,10 +368,11 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
             return true;
         }
     }
-    saved == current
+    saved == before_places
+        || saved == current
         || PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS
             .iter()
-            .any(|&(prior, target)| saved == prior && exact == target)
+            .any(|&(prior, target)| saved == prior && before_places == target)
         || LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
             .iter()
             .any(|&(legacy, target)| saved == legacy && current == target)
@@ -352,13 +384,21 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
             .any(|&(prior, target)| saved == prior && current == target)
 }
 
+/// Exact content shapes whose meal program counters already use the current recipe.
+/// Older accepted shapes still require meal migration and must not enter this route.
+pub fn content_fingerprint_has_current_recipe(pack: &ContentPack, saved: u64) -> bool {
+    let current = content_fingerprint(pack);
+    saved == current || (saved == 0x85a2_d140_0dff_9da1 && current == 0xcf78_7472_e9e8_38f5)
+}
+
 /// Exact reviewed source for the six-stage meal and appended domestic chains.
 /// A changed destination closes this bridge; an old program counter is mapped
 /// by terri-sim before its station reference is validated against new content.
 pub fn pre_meals_content(pack: &ContentPack) -> Option<ContentPack> {
-    if content_fingerprint(pack) != 0x85a2_d140_0dff_9da1 {
-        return None;
-    }
+    let source_digest = match content_fingerprint(pack) {
+        0xcf78_7472_e9e8_38f5 => 0xb38e_71a1_23bb_8273,
+        _ => return None,
+    };
     let mut source = pack.clone();
     source.chains.retain(|chain| chain.id == "cook_dinner");
     let meal = source
@@ -393,7 +433,7 @@ pub fn pre_meals_content(pack: &ContentPack) -> Option<ContentPack> {
             }
         }
     }
-    (content_fingerprint(&source) == 0xc2cf_2919_84ed_61f7).then_some(source)
+    (content_fingerprint(&source) == source_digest).then_some(source)
 }
 
 /// Whether `saved` is one of the retired whole-pack fingerprints accepted by
@@ -402,7 +442,8 @@ pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
     if let Some(source) = pre_meals_content(pack) {
         return content_fingerprint_is_legacy(&source, saved);
     }
-    let current = reviewed_pre_facing_target(content_fingerprint(pack));
+    let current =
+        reviewed_pre_facing_target(reviewed_pre_sleep_places_target(content_fingerprint(pack)));
     LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
         .iter()
         .any(|&(legacy, target)| saved == legacy && current == target)
@@ -419,7 +460,8 @@ pub fn content_fingerprint_is_prior_structural(pack: &ContentPack, saved: u64) -
     if let Some(source) = pre_meals_content(pack) {
         return content_fingerprint_is_prior_structural(&source, saved);
     }
-    let current = reviewed_pre_facing_target(content_fingerprint(pack));
+    let current =
+        reviewed_pre_facing_target(reviewed_pre_sleep_places_target(content_fingerprint(pack)));
     PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS
         .iter()
         .any(|&(prior, target)| saved == prior && current == target)
@@ -441,6 +483,15 @@ fn hash_count(hasher: &mut terri_core::FnvHasher, count: usize) {
 }
 
 // Only these exact new structural shapes inherit the reviewed public bridges.
+fn reviewed_pre_sleep_places_target(current: u64) -> u64 {
+    match current {
+        0xcf78_7472_e9e8_38f5 => 0x85a2_d140_0dff_9da1,
+        0xb38e_71a1_23bb_8273 => 0xc2cf_2919_84ed_61f7,
+        0x9ac7_e41e_24d4_c921 => 0xd396_b3f3_9e3c_6685,
+        other => other,
+    }
+}
+
 fn reviewed_pre_facing_target(current: u64) -> u64 {
     match current {
         // With the trait library ([TL-old-saves]): the shipped shape, and the
@@ -485,15 +536,124 @@ mod tests {
     use super::*;
 
     #[test]
+    fn integrated_meal_and_sleeping_digest_has_only_the_reviewed_current_recipe_bridge() {
+        assert_eq!(content_fingerprint(pack()), 0xcf78_7472_e9e8_38f5);
+        assert_eq!(pre_sleep_places_fingerprint(pack()), 0x85a2_d140_0dff_9da1);
+        assert!(content_fingerprint_has_current_recipe(
+            pack(),
+            0x85a2_d140_0dff_9da1
+        ));
+        assert!(!content_fingerprint_has_current_recipe(
+            pack(),
+            0xc2cf_2919_84ed_61f7
+        ));
+        assert!(!content_fingerprint_has_current_recipe(
+            pack(),
+            0xb38e_71a1_23bb_8273
+        ));
+        let mut changed = pack().clone();
+        let bed = changed.find("double_bed").unwrap();
+        changed.objects[bed.0 as usize].sleep_places[0].approaches[0].0 += 1;
+        assert!(!content_fingerprint_has_current_recipe(
+            &changed,
+            0x85a2_d140_0dff_9da1
+        ));
+    }
+
+    #[test]
+    fn sleeping_place_geometry_rotates_from_the_authored_base() {
+        let mut bed = pack().object(pack().find("double_bed").unwrap()).clone();
+        // A nonsquare footprint makes a swapped dimension observable.
+        bed.footprint = Footprint { width: 3, depth: 2 };
+        bed.sleep_places[0].approaches = vec![(0, -1), (2, -1)];
+        let expected = [
+            vec![(0, -1), (2, -1)],
+            vec![(2, 0), (2, 2)],
+            vec![(2, 2), (0, 2)],
+            vec![(-1, 2), (-1, 0)],
+        ];
+        for base in Facing::ALL {
+            bed.base_facing = base;
+            for (turn, expected) in expected.iter().enumerate() {
+                let facing = Facing::ALL[(base.code() as usize + turn) % 4];
+                assert_eq!(bed.sleep_approaches_at(0, facing).as_ref(), Some(expected));
+            }
+        }
+    }
+
+    #[test]
+    fn sleeping_access_bridges_are_exact_and_keep_migration_classification() {
+        let source = current_pre_rotation_pack();
+        for (destination, saved, legacy, prior) in [
+            (pack(), 0xc2cf_2919_84ed_61f7, false, false),
+            (&source, 0xd396_b3f3_9e3c_6685, false, false),
+            (&source, 0x9d22_8822_6933_d3c7, true, false),
+            (&source, 0x26d5_982c_9af8_3de8, false, true),
+        ] {
+            assert!(content_fingerprint_matches(destination, saved));
+            assert_eq!(content_fingerprint_is_legacy(destination, saved), legacy);
+            assert_eq!(
+                content_fingerprint_is_prior_structural(destination, saved),
+                prior
+            );
+            for change in 0..6 {
+                let mut changed = destination.clone();
+                let id = changed.find("double_bed").unwrap();
+                let places = &mut changed.objects[id.0 as usize].sleep_places;
+                match change {
+                    0 => places[0].id.push_str("_changed"),
+                    1 => places.swap(0, 1),
+                    2 => places[0].approaches[0].0 += 1,
+                    3 => places[0].approaches[0].1 -= 1,
+                    4 => {
+                        places[0].approaches.pop();
+                    }
+                    _ => {
+                        places.pop();
+                    }
+                }
+                assert!(
+                    !content_fingerprint_matches(&changed, saved),
+                    "mutation {change}"
+                );
+                assert!(!content_fingerprint_is_legacy(&changed, saved));
+                assert!(!content_fingerprint_is_prior_structural(&changed, saved));
+            }
+        }
+        for old_geometry in [
+            0xd396_b3f3_9e3c_6685,
+            0xa020_602a_6acd_3a90,
+            0x26d5_982c_9af8_3de8,
+        ] {
+            assert!(
+                !content_fingerprint_matches(pack(), old_geometry),
+                "rotation cannot be skipped"
+            );
+        }
+        let mut reordered = pack().clone();
+        let id = reordered.find("double_bed").unwrap();
+        reordered.objects[id.0 as usize].sleep_places[0]
+            .approaches
+            .reverse();
+        assert_eq!(
+            content_fingerprint(&reordered),
+            content_fingerprint(pack()),
+            "approach tie breaking uses coordinates, not declaration order"
+        );
+    }
+
+    #[test]
     fn facing_digest_targets_are_pinned() {
         assert_eq!(
-            content_fingerprint(&without_the_trait_library(pack().clone())),
+            pre_sleep_places_fingerprint(&without_the_trait_library(
+                pre_meals_content(pack()).unwrap()
+            )),
             0x4dab_6950_757c_1f15
         );
         let mut source = pre_rotation_pack();
         let tub = source.find("bathtub").unwrap();
         source.objects[tub.0 as usize].base_facing = Facing::SouthEast;
-        assert_eq!(content_fingerprint(&source), 0x93b0_a495_25ce_6e0c);
+        assert_eq!(pre_sleep_places_fingerprint(&source), 0x93b0_a495_25ce_6e0c);
     }
 
     /// [TL-library]: fifteen traits, the three old ones first and unmoved,
@@ -687,13 +847,22 @@ mod tests {
     /// pack. Both values were read from this assertion failing.
     #[test]
     fn the_trait_library_digest_is_pinned() {
+        assert_eq!(content_fingerprint(pack()), 0xcf787472e9e838f5);
         let mut rebuilt = pre_meals_content(pack()).expect("reviewed pre-meal shape");
-        assert_eq!(content_fingerprint(&rebuilt), 0xc2cf_2919_84ed_61f7);
+        assert_eq!(
+            pre_sleep_places_fingerprint(&rebuilt),
+            0xc2cf_2919_84ed_61f7
+        );
+        assert_eq!(content_fingerprint(&rebuilt), 0xb38e_71a1_23bb_8273);
         let tub = rebuilt.find("bathtub").unwrap();
         rebuilt.objects[tub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         rebuilt.objects[tub.0 as usize].base_facing = Facing::SouthEast;
         rebuilt.portals.clear();
-        assert_eq!(content_fingerprint(&rebuilt), 0xd396_b3f3_9e3c_6685);
+        assert_eq!(
+            pre_sleep_places_fingerprint(&rebuilt),
+            0xd396_b3f3_9e3c_6685
+        );
+        assert_eq!(content_fingerprint(&rebuilt), 0x9ac7_e41e_24d4_c921);
     }
 
     /// The source end of [TL-old-saves], per [L-migration-pins-both-endpoints]:
@@ -714,7 +883,7 @@ mod tests {
             ["television_devotee", "cannot_cook", "low_spirits"],
             "the three traits old saves can name stay first, in their old order"
         );
-        assert_eq!(content_fingerprint(&before), 0x4dab_6950_757c_1f15);
+        assert_eq!(pre_sleep_places_fingerprint(&before), 0x4dab_6950_757c_1f15);
         for (before_trait, now) in before.traits.iter().zip(&pack().traits) {
             assert_eq!(before_trait.id, now.id);
             assert_eq!(
@@ -732,7 +901,7 @@ mod tests {
             PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS,
             &[(
                 previous_public,
-                content_fingerprint(&pre_meals_content(pack()).unwrap())
+                pre_sleep_places_fingerprint(&pre_meals_content(pack()).unwrap())
             )],
             "the bridge names one source and one reviewed destination"
         );
@@ -1794,10 +1963,10 @@ mod tests {
 
     #[test]
     fn every_public_full_pack_fingerprint_migrates_only_to_the_reviewed_shape() {
-        let reviewed = pre_rotation_pack();
+        let reviewed = current_pre_rotation_pack();
         let pack = || &reviewed;
         assert_eq!(
-            pre_facing_fingerprint(pack()),
+            pre_facing_fingerprint(&without_the_trait_library(pack().clone())),
             0xa020_602a_6acd_3a90,
             "a structural content edit must review or retire each legacy bridge"
         );
@@ -1825,7 +1994,7 @@ mod tests {
 
     #[test]
     fn the_prior_structural_shape_migrates_without_becoming_a_legacy_name_save() {
-        let reviewed = pre_rotation_pack();
+        let reviewed = current_pre_rotation_pack();
         let pack = || &reviewed;
         let prior = 0x26d5_982c_9af8_3de8;
         assert_eq!(
@@ -1854,7 +2023,7 @@ mod tests {
     fn the_pre_portal_shape_migrates_only_to_the_reviewed_landing() {
         let prior_pack = pre_portal_pack();
         let prior = pre_facing_fingerprint(&prior_pack);
-        let current = content_fingerprint(pack());
+        let current = pre_sleep_places_fingerprint(pack());
         assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
         assert_eq!(current, 0x85a2_d140_0dff_9da1);
         assert_eq!(
@@ -1887,7 +2056,7 @@ mod tests {
 
     #[test]
     fn changing_either_new_interaction_closes_every_old_fingerprint_bridge() {
-        let current = pre_rotation_pack();
+        let current = current_pre_rotation_pack();
         for object in ["moving_box", "reference_shelf"] {
             let id = current.find(object).expect("shipped persistence key");
             for (mutation, changed) in [
@@ -1927,6 +2096,12 @@ mod tests {
         // Historical fixtures undo the domestic structural change first.
         source = pre_meals_content(&source).unwrap_or(source);
         source.traits.truncate(3);
+        source
+    }
+
+    fn current_pre_rotation_pack() -> ContentPack {
+        let mut source = pre_rotation_pack();
+        source.traits = pack().traits.clone();
         source
     }
 

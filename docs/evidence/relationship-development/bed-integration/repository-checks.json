@@ -1,0 +1,237 @@
+[
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/sprites/gen",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/sims/sim-01",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/furniture",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/kitchen",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bathroom",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bedroom",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/office",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "assets/sprites/gen/build.py",
+      "--check"
+    ],
+    "cwd": null,
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "test_changes",
+      "test_workflow_concurrency"
+    ],
+    "cwd": ".github/scripts",
+    "exit": 0
+  },
+  {
+    "command": [
+      "python",
+      "check-doc-ids.py"
+    ],
+    "cwd": null,
+    "exit": 0
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-core",
+      "--target",
+      "x86_64-pc-windows-msvc"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-data",
+      "--target",
+      "x86_64-pc-windows-msvc"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-sim",
+      "--target",
+      "x86_64-pc-windows-msvc"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-core",
+      "--target",
+      "x86_64-unknown-linux-gnu"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-data",
+      "--target",
+      "x86_64-unknown-linux-gnu"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-sim",
+      "--target",
+      "x86_64-unknown-linux-gnu"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-core",
+      "--target",
+      "wasm32-unknown-unknown"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-data",
+      "--target",
+      "wasm32-unknown-unknown"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  },
+  {
+    "command": [
+      "cargo",
+      "tree",
+      "-p",
+      "terri-sim",
+      "--target",
+      "wasm32-unknown-unknown"
+    ],
+    "exit": 0,
+    "web_dependency_found": false
+  }
+]

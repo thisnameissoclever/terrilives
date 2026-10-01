@@ -110,6 +110,12 @@ pub struct RenderBuffer {
     /// Exact target entity index for a winning socket interaction, or the
     /// absent-target sentinel. This is derived presentation state, not a save field.
     pub interaction_targets: Vec<u32>,
+    /// Exact bed entity for running sleep-tagged place ownership, or [`NO_SLEEPING_BED`].
+    /// Independent visual metadata still owns the body pose and activity label.
+    pub sleeping_beds: Vec<u32>,
+    /// Physical place within `sleeping_beds`, or [`NO_SLEEPING_PLACE`].
+    /// Walking leases and permanent assignments alone carry no sleeping pair.
+    pub sleeping_places: Vec<u32>,
     /// Lot-axis direction each projected body action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
     /// [`facing::NONE`].
@@ -169,6 +175,10 @@ pub const NOT_CARRYING: u32 = u32::MAX;
 pub const NO_FOREGROUND_SPRITE: u32 = u32::MAX;
 /// No active, validated socket interaction owns this presentation row.
 pub const NO_INTERACTION_TARGET: u32 = u32::MAX;
+/// No validated current sleeping ownership on this row.
+pub const NO_SLEEPING_BED: u32 = u32::MAX;
+/// No physical sleeping place on this row; zero is a real place.
+pub const NO_SLEEPING_PLACE: u32 = u32::MAX;
 /// The `sim_ids` column's absent authored-identity sentinel.
 pub const NO_SIM_ID: u32 = u32::MAX;
 /// The `sound_sources` column's absent-source sentinel.
@@ -1687,6 +1697,9 @@ mod tests {
         let bed_agent_position = Position { x: 23.0, y: 24.0 };
         let (sleeper, bed_target, _, _) =
             spawn_shipped_sleeper(&mut sim, bed_position, bed_agent_position);
+        sim.world_mut()
+            .entity_mut(sleeper)
+            .insert(terri_core::SleepPlace(0));
         let lower_bunk = sim
             .world()
             .get::<crate::ResolvedActionSockets>(bed_target)
@@ -2184,6 +2197,9 @@ mod tests {
             Position { x: 24.0, y: 12.0 },
         );
         for entity in [exerciser, watcher] {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(terri_core::SleepPlace(0));
             assert!(crate::systems::circadian::is_asleep(
                 sim.world().resource::<crate::Content>().0,
                 sim.world().get::<Eating>(entity),
@@ -2191,6 +2207,24 @@ mod tests {
         }
 
         sim.sync_render_buffer();
+
+        for entity in [exerciser, watcher] {
+            let row = sim
+                .render_buffer()
+                .ids
+                .iter()
+                .position(|id| *id == entity.index_u32())
+                .unwrap();
+            assert_eq!(sim.render_buffer().sleeping_places[row], 0);
+            assert_eq!(
+                sim.render_buffer().sleeping_beds[row],
+                sim.world()
+                    .get::<Target>(entity)
+                    .unwrap()
+                    .object
+                    .index_u32()
+            );
+        }
 
         assert_eq!(
             projection_of(sim.render_buffer(), exerciser),
@@ -3794,7 +3828,7 @@ mod tests {
                 "double_bed",
                 "sleep_properly",
                 activity::SLEEPING,
-                visual_action::NONE,
+                visual_action::SLEEP,
             ),
             (
                 "moving_box",
@@ -5105,6 +5139,8 @@ mod tests {
             assert_eq!(buf.activities.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);
             assert_eq!(buf.interaction_targets.len(), expected_count);
+            assert_eq!(buf.sleeping_beds.len(), expected_count);
+            assert_eq!(buf.sleeping_places.len(), expected_count);
             assert_eq!(buf.facings.len(), expected_count);
             assert_eq!(buf.carrying.len(), expected_count);
             assert_eq!(buf.carried_dishes.len(), expected_count);

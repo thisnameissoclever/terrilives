@@ -77,7 +77,9 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   position: absolute;
   bottom: calc(100% + 6px);
   right: 0;
-  width: min(540px, calc(100vw - 18px));
+  --sim-sheet-width: 360px;
+  width: min(var(--sim-sheet-width), calc(100vw - 18px));
+  box-sizing: border-box;
   max-height: min(420px, calc(100dvh - 100% - max(24px, env(safe-area-inset-top)) - env(safe-area-inset-bottom)));
   display: flex;
   flex-direction: column;
@@ -86,8 +88,9 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
   border-radius: 8px;
   box-shadow: 0 8px 24px #0006;
 }
-#sim-sheet-header { display: flex; gap: 8px; padding: 6px; border-bottom: 1px solid var(--hud-edge); }
-#sim-sheet-header nav { display: flex; flex: 1; gap: 4px; overflow-x: auto; padding: 2px; }
+#sim-sheet-header { display: flex; align-items: flex-start; gap: 8px; padding: 6px; border-bottom: 1px solid var(--hud-edge); }
+#sim-sheet:has(#sim-overview:not([hidden]) #personal-details[open]) { --sim-sheet-width: 540px; }
+#sim-sheet-header nav { display: flex; flex: 1; flex-wrap: wrap; gap: 4px; overflow-x: auto; padding: 2px; }
 #sim-sheet-header .hud-button { flex: none; padding-inline: 8px; min-height: 36px; }
 #sim-sheet-header [aria-expanded='true'] { background: #29313a; border-color: var(--need-fill); }
 #sim-sheet-content { overflow-y: auto; padding: 10px; min-height: 0; overscroll-behavior: contain; }
@@ -104,6 +107,15 @@ body[data-building='true'] #builder-controls { padding: 8px; background: var(--h
 #personal-details th:first-child { text-align: left; }
 #personal-details tbody th { font-weight: 400; }
 .personal-details-note { color: var(--hud-muted); font-size: 12px; }
+.bed-assignment { min-width: 0; margin: 12px 0 0; padding: 8px; border: 1px solid var(--hud-edge); }
+.bed-assignment fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+.bed-assignment:focus-visible { outline: 2px solid var(--need-fill); outline-offset: 2px; }
+.bed-assignment legend { font-size: 13px; font-weight: 700; }
+.bed-assignment p { margin: 4px 0 8px; overflow-wrap: anywhere; }
+.bed-assignment label { display: grid; gap: 4px; }
+.bed-assignment select { width: 100%; min-width: 0; min-height: 44px; }
+.bed-assignment-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.bed-assignment-actions button { min-height: 44px; }
 .personal-repetition { padding: 0; margin: 0; list-style: none; }
 .personal-repetition li { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 10px; padding-block: 6px; }
 .personal-repetition li strong, .personal-repetition li .personal-details-note { display: block; overflow-wrap: anywhere; }

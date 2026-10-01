@@ -1,0 +1,5782 @@
+{
+  "state": "complete",
+  "pid": 38792,
+  "pilot": false,
+  "signature": {
+    "scripts": {
+      "double_bed_sleep.py": "719d9d69dbdace0b3772dfd2f46f3c3ce5f2f701d62ebd1b7b94ef36ee759138",
+      "double-bed-sleep-pose.json": "53bd65cc4c42ee60a3e68e5710e8da827e160f19c026da64237d58720eb31058",
+      "render_double_bed_sleep.py": "165ae4c01b551572bbb8db21e63e9a6c39c2de5b1733d5de621d9abc6d408e6a",
+      "double_bed_receipt.py": "6698f880b13ec55524d4076c7e495a69f73c153cf0138269473dc1a4d6635fef",
+      "double_bed_batch.py": "fe4ecfccb991107a56252e1e802295188bc9038fbf007e5f638b838bdd0e2905",
+      "double_bed_witnesses.py": "38339f24de047763fe3bef083de3c70d235512ed9104e5f71d81caaf1c1e310d"
+    },
+    "source_sha256": "3ad570674e768e07bbd6e2d9cac6dfd58a9b59e3202f2be4d5d782dd7f973d9f",
+    "blender_version": "4.5.14 LTS",
+    "blender_build": "62c1db4208e8",
+    "physical_canvas": [
+      1280,
+      1408
+    ],
+    "logical_canvas": [
+      160,
+      176
+    ],
+    "pixel_density": 8,
+    "static": true
+  },
+  "renders": [
+    {
+      "occupancy": 0,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-0-SE-green-green-0-beauty.png",
+      "sha256": "78b42596a37e50cef979c2ab00d07274f6b7de8d283b6a417a6a06414ee4342c"
+    },
+    {
+      "occupancy": 0,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-0-SE-green-green-0-furniture.png",
+      "sha256": "59f25301859e5a8dff28303a570b02d40eda08d4079e299eedf3dff31c4bf338"
+    },
+    {
+      "occupancy": 0,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-0-SE-green-green-0-lines.png",
+      "sha256": "dee21098d7861436de7f1a6446677f9824255e7e839e683611b42cd8c9937eb8"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-SE-green-green-0-beauty.png",
+      "sha256": "e67b1ec5ec3998bf870b05758a0a31847eaf58dd02556e3d478d47692ca84585"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-SE-green-green-0-furniture.png",
+      "sha256": "2cce68437267c22fc3e4d1140a3bb3ad5dc2844bc95d303c9a470b97d463cd6d"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-SE-green-green-0-lines.png",
+      "sha256": "f898b30cfb60c61a429a2d04c685f52c99df02f8aa04972033527cd88b95d886"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-SE-green-green-0-sim0.png",
+      "sha256": "ee5e6d3a3ab8bb3b6495b2e6f835840d17d83f819f0424b9b92926dfb0dd1057"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-SE-blue-green-0-beauty.png",
+      "sha256": "237312bf11823833a8696422d11a1375b18ec6856073b57e21108a9289bb644d"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-SE-blue-green-0-furniture.png",
+      "sha256": "3498c43b29bd38d32ed872a48d5c8f9ce75731cb8c10bbe1b9ce99945f29f92b"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-SE-blue-green-0-lines.png",
+      "sha256": "60dffbf3647267290951346fd18670d8a9bd59d9479bacfedc2533b335d49425"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-SE-blue-green-0-sim0.png",
+      "sha256": "8920cefa08290fc356501ae045ef0d400fe6c95c1857036140d2df71cbff3426"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-SE-red-green-0-beauty.png",
+      "sha256": "cbda2d45547a9d73b4bef85e7575781b36dc7efa3448dacae2beb8e74cc1794a"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-SE-red-green-0-furniture.png",
+      "sha256": "c369d18feb56741b36343a4c45d3cce7c59af8b17bb78e593c924d065d64369c"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-SE-red-green-0-lines.png",
+      "sha256": "07af75995843eaca155a2fcd0676ee2d3cc92b907ae8a39adecc8cc65df1cb31"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-SE-red-green-0-sim0.png",
+      "sha256": "65936c4141fd44d9e353aeabf709d9b3561a265850599225ae9c217dfd7c6790"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-SE-green-green-0-beauty.png",
+      "sha256": "d4dab84aced998308b6f26731a512810081b55667fcd6da789bd1cac67eaed20"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-SE-green-green-0-furniture.png",
+      "sha256": "84295c036f61754ff5f35d00d6f396bfdb56553193548b2d387a331908a9c5e2"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-SE-green-green-0-lines.png",
+      "sha256": "637936625698a06f89b93587f5d7ce4ea301929a28b85f6843e7550261041581"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-SE-green-green-0-sim1.png",
+      "sha256": "df7a5fe2151a0d0997c0cb6240fb238c28215f87574423c03f3caba8a333fa61"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-SE-green-blue-0-beauty.png",
+      "sha256": "6e9efecda4d8f69afdd8021fb9ccd6d4e2ace664d59323779ba087bf1d4fc9b7"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-SE-green-blue-0-furniture.png",
+      "sha256": "b1323525164b3b2355c46d5fd32fbe0e37c5d18976a0a05b00692ecf12aaf819"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-SE-green-blue-0-lines.png",
+      "sha256": "582729f24ee1a86646051999f1de8d44d42e4ceb97a9dbd9281d865cb1403d92"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-SE-green-blue-0-sim1.png",
+      "sha256": "858f452a700418f36f780302f668ba90118ec7bb456c00a1c935c8f1bd4e4c64"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-SE-green-red-0-beauty.png",
+      "sha256": "9c7f17dbedbdc6514694e033b490f51c3322f41dced7c7f945db4b4ad47f5416"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-SE-green-red-0-furniture.png",
+      "sha256": "f65786f13c527f79c18ef5130a0842b297608b2bf0850acb23a0f3ca94c42d3c"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-SE-green-red-0-lines.png",
+      "sha256": "f8573f6f13c8cdbac3e4e074183adc21a4509af4672790dd7deae7df187aaff6"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-SE-green-red-0-sim1.png",
+      "sha256": "72963613ca2af759d55df0bc016f9fc23a0f261b949036496717ddca94def121"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-green-green-0-beauty.png",
+      "sha256": "46a49348aef457fe07ab38a813c47312927c053eaacf78eec173fedd48506ac1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-green-green-0-furniture.png",
+      "sha256": "63d9875b4d766259c6ddc68f39208380566ea48ad03d69232ab519f7e3338c82"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-green-green-0-lines.png",
+      "sha256": "b7031e9d59d54ae1e275ccbb91e62559144a74c426acaf655a856e7c0b9470b1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-green-green-0-sim0.png",
+      "sha256": "7f0824bf11342a173499b471ad60193be6971d08511e8ecf10b632b04441f914"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-green-green-0-sim1.png",
+      "sha256": "eb9df7d02d0e87f4ff408c8e4224e5def1fce5758fbc7fdb859ad5bd1fbdec9a"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-green-blue-0-beauty.png",
+      "sha256": "e374486dc3b2ce6322c9352f2333d04a211f520449ad024385935a0895d974b6"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-green-blue-0-furniture.png",
+      "sha256": "3dda25718f366b50def989496d19bf88b1056fb6ae15e35c21071e0dbbd5daa6"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-green-blue-0-lines.png",
+      "sha256": "d36f9bcd8747931a956577b11f057d2e576021046c82061208450da4cf005b4e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-green-blue-0-sim0.png",
+      "sha256": "2a4e31bda511ac6bb2ae0b3e5c5166789efa6984a14cfdb7744d0ecc6be42ffd"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-green-blue-0-sim1.png",
+      "sha256": "468e9d48f473ce74ca479d96db75d0dddf75e1a8b24810349da9c3976f698f41"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-green-red-0-beauty.png",
+      "sha256": "d90c1917ec957fc65df57446b3ea6c7ace0c8c25ee09035596e9312dc365e158"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-green-red-0-furniture.png",
+      "sha256": "c505e6939c85fd126b34da0c53b3f5448f2632979767254c9a0d075c4305d287"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-green-red-0-lines.png",
+      "sha256": "c2c8cf08b54eebd6283b33ab9247186d944771de720b840ab819d165944508b8"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-green-red-0-sim0.png",
+      "sha256": "c799c0d443d9771a53d3c0070adf94398bf2bb66f25ca8267d831c7f1d893172"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-green-red-0-sim1.png",
+      "sha256": "d309361e117b2d483366e321cf08e90b4819427979150ace3cf829144dd46da3"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-blue-green-0-beauty.png",
+      "sha256": "6e6026a4f9355c58cffe66e5592138e27462c22c66e67defd07e9bcd4e52e701"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-blue-green-0-furniture.png",
+      "sha256": "7c81a32543762f9a40049dc15bc696922cbc402a888c010133ec4c15f6563041"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-blue-green-0-lines.png",
+      "sha256": "2c1cec3d85cabb9c91e1af5548b7039ec8140a24fd7fc2cf64920ccad6cfaafc"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-blue-green-0-sim0.png",
+      "sha256": "79f6911a77a5c9f4a7f5b6ccb350885a6862322e984c3162d957eb1f9975b392"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-blue-green-0-sim1.png",
+      "sha256": "854ae1653508cdc570aac9778444a4a4e0d91a951eccb07cc37a4e6e4d72ad07"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-blue-blue-0-beauty.png",
+      "sha256": "0b74119998c7ba53317cfeaa598316c0a7696e7098b274de25af2972a66c6af1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-blue-blue-0-furniture.png",
+      "sha256": "b58ead7a56388d00b389d9acd8bc00a3a6eb63edebf9793f6647e7e6ab20a5f0"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-blue-blue-0-lines.png",
+      "sha256": "1d9b0dc71f6365a4ddc1490eeb7e10604064cf178604bd5c971139a8786e4d9b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-blue-blue-0-sim0.png",
+      "sha256": "0c7308cbda4bd24c568048405a01e5870a2aff97e62e95bb346c0b6f02078bcd"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-blue-blue-0-sim1.png",
+      "sha256": "d0435acec389217f13f46b73351ce18618a122107e12bf526c7ee1f1c5728846"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-blue-red-0-beauty.png",
+      "sha256": "b9f311a0a9d1cde45a38df6cd19c57d87ca4e694ce952f9dfb2619fb06cce2a8"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-blue-red-0-furniture.png",
+      "sha256": "c7b52a28d12f05300284aa9481cce8b565fa767e0ead8a5b9d8d189a6a684948"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-blue-red-0-lines.png",
+      "sha256": "e51d775f152d49adb3a2be5578ef7f2f77f14dc6d09f668b3eaeedc134134125"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-blue-red-0-sim0.png",
+      "sha256": "c06a160b77b2754328f77707053b92f543221c8fded1fae942a45d6ff89b7b4e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-blue-red-0-sim1.png",
+      "sha256": "87e8d98b437253d8e8af61f3dfcf8f718e7e45220a7357a48d1fb004c36e4d06"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-red-green-0-beauty.png",
+      "sha256": "31a0bde88fd123f3f6037e5e0c70e763d2fa1d473b39f9f72991bb787884e1ee"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-red-green-0-furniture.png",
+      "sha256": "999243b217ae47bb4e369a0a853eeca0208b58042cfdd9e3b22b41fd50479859"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-red-green-0-lines.png",
+      "sha256": "1619aad072f29418fab18d60905bbb368076eaf094816dadb21864912157be0c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-red-green-0-sim0.png",
+      "sha256": "85169daa19aace93db8de43ceb1788f5fe02999e40ad102826f788aaa8b5833e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-red-green-0-sim1.png",
+      "sha256": "ca4e50fecaf2fb854432f235c123283e35b89eb767415f42cfd3d94baf2e2876"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-red-blue-0-beauty.png",
+      "sha256": "a3374911589efe810d74a150bd8a3f9099c7eea7bcc3e0d60d8517f482fa1e65"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-red-blue-0-furniture.png",
+      "sha256": "db41270e9cbc07dbd85575f5a487789b624657c1e04e1cdd7db81f50f471167c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-red-blue-0-lines.png",
+      "sha256": "0e05480d9baeb6be0e29e5fffa127e60fed2add33268601f4506802aef203598"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-red-blue-0-sim0.png",
+      "sha256": "aa7a4e904551267332e4ff5c046788535e5873e39b2d6c4ad95386154ccc20b9"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-red-blue-0-sim1.png",
+      "sha256": "9c4cf1bab83b8fc63c24a44f8f4360aa9f7433672883bbad252a73cad462d777"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SE-red-red-0-beauty.png",
+      "sha256": "6ae922d8ea35f01db5626dc8bf0204b53d6ca8713718007e3cfaf7400011732f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SE-red-red-0-furniture.png",
+      "sha256": "f8cee49f8f163efe66ce517000fb62da5a5636d0b358e2b212c3cecc37484f6b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SE-red-red-0-lines.png",
+      "sha256": "b38def8edc0fdb866df16fe0d94b7c2a78f4e88e3a1af641c6408acfc8403fae"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SE-red-red-0-sim0.png",
+      "sha256": "d1fa31efa98de6e0c07f67fee00f74e5cf9646dc235a9b26b877cb4f5ecf4ba9"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SE-red-red-0-sim1.png",
+      "sha256": "ed0030983e935e89c1bba9fe59ceb4dfa14c5b53b5dbcb989bae9c5870ae4e28"
+    },
+    {
+      "occupancy": 0,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-0-NW-green-green-0-beauty.png",
+      "sha256": "f7bf477538b64e44100ee63769d617026785c8f511663bfefee9ccc9fc8feb9b"
+    },
+    {
+      "occupancy": 0,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-0-NW-green-green-0-furniture.png",
+      "sha256": "3858cdbadf9c515cfaeae20980419882713f35ea1b816f2b089b63fab028d3b6"
+    },
+    {
+      "occupancy": 0,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-0-NW-green-green-0-lines.png",
+      "sha256": "abc0c380faf19e2e64f7dd9dd20c3c42741ed342e186f74f0998619fa92bb3d0"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-NW-green-green-0-beauty.png",
+      "sha256": "7fd8ce9b74b9a22a26ad89fcaec71a28e203ce47675445e9822d85015f14e437"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-NW-green-green-0-furniture.png",
+      "sha256": "4d135d0690e2b6bb556a6cc33e2f50dfaa91115655f2966f2d99710917d41283"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-NW-green-green-0-lines.png",
+      "sha256": "0ba33ec961a3ef478022e009ff01db2eabc1bfd5cc69f6047432b4ab99c8a38e"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-NW-green-green-0-sim0.png",
+      "sha256": "e09fa96dd07c63175930f627700f101fb76d36eb03c2ac51595c33284d4021b9"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-NW-blue-green-0-beauty.png",
+      "sha256": "6b6ee8921a8616a9519e0bf7bd2017d152935308d3520565554897aa8ceb0d7f"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-NW-blue-green-0-furniture.png",
+      "sha256": "21cd8a4acf0b65447c2729780ee42e585c280664f2069c77ef89bd7bf50c358a"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-NW-blue-green-0-lines.png",
+      "sha256": "fca2d55980a3d61e85dce2fd60613093163c67bd67e39b23c876f66339794f5a"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-NW-blue-green-0-sim0.png",
+      "sha256": "4e58d396f19452522ddc41bf3b705a11f14df322b99997f7d8b0ff8ff449fd7b"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-NW-red-green-0-beauty.png",
+      "sha256": "6fb556c967119e24a1db0447789fbacc2c5ad92bf9b4b1b078f391df703e2fb3"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-NW-red-green-0-furniture.png",
+      "sha256": "da5c3e1cf6aadd29ff8254fcc87dbeb0fbc6bb20e9862b407e023d50eba9ac66"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-NW-red-green-0-lines.png",
+      "sha256": "84603ff8932f2106847eb69db112b62f39b95ef2c9cc18f5a398e95d1d1e2b5c"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-NW-red-green-0-sim0.png",
+      "sha256": "db51e04d877fb38b526c354d6784793575613116c8272a055d02f1d6a9d853c3"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-NW-green-green-0-beauty.png",
+      "sha256": "696f32b5d47ae3cc2cb3f89841be66eb21c4d6ececc7f45af44f9b5f1d23134f"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-NW-green-green-0-furniture.png",
+      "sha256": "5efb2101715ccd8a9390751dc5fb62f85932f060fb59a0a37a4533b707c28a34"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-NW-green-green-0-lines.png",
+      "sha256": "fd75a117d9211354b5db7fea5077ad15db4a7d87b19002c2f5c2c2034501f864"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-NW-green-green-0-sim1.png",
+      "sha256": "4c00702a344cbb67a3a8fbd0bb66317c400280b692f35f2acc7a7dd6ab31108a"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-NW-green-blue-0-beauty.png",
+      "sha256": "5f886fed633ce53b375ad23173915bbcbb7427b344c95b2c6f26579e2f17dcab"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-NW-green-blue-0-furniture.png",
+      "sha256": "47b26054ad9d7846a84229a2881edb1c1b0a4b95b7cd54902b65cc5d6aac6195"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-NW-green-blue-0-lines.png",
+      "sha256": "691e35ffa40be4dfbf692c6d245b112679c978adee3ae2b9c1236912604b1cf7"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-NW-green-blue-0-sim1.png",
+      "sha256": "1efe925f3be85747ac1b822c0c1bd289d1422b538ccdf00451bb512d67d84ba7"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-NW-green-red-0-beauty.png",
+      "sha256": "bed64bb1e7061c28b9f1dd7ab8847d63f82240ae2302f2841804e32eebc15105"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-NW-green-red-0-furniture.png",
+      "sha256": "0130cd0e93ec1ab35555219f4f7267690fcbf098e33af8b53981906ca6d13649"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-NW-green-red-0-lines.png",
+      "sha256": "2c1011d9655d7fefd74fd776663f1eb088962906e7ed29b3e92aac6fb0c8127f"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-NW-green-red-0-sim1.png",
+      "sha256": "548599db4001c4d6223a1bd6efff636eeb8a07ec1f72a350ae1b1f4c63e3389b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-green-green-0-beauty.png",
+      "sha256": "8e7b94006b23154e763f629adba20bd2f401dc31ed0b1b8c4f48e7f4a07fe79b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-green-green-0-furniture.png",
+      "sha256": "b613ab2229b5dc2a50afe4968e87684e0133a737da6b2dfb6e6aaa4c37eb835f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-green-green-0-lines.png",
+      "sha256": "d2e35347327191c6148702431d303375770ed339268a0e9497d73e2d4305e857"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-green-green-0-sim0.png",
+      "sha256": "0ad18630d07c8263d9def5e0e240305196f1baa768f267da0092b2c584bea7eb"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-green-green-0-sim1.png",
+      "sha256": "af53a3c455ede97eb90e1a47a44247cb79f785b130f40170d11f16b4dafb8db6"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-green-blue-0-beauty.png",
+      "sha256": "f99381b35f81dc7866bc983f371b1062ac70bc59e800f57c63a7c0775a502b97"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-green-blue-0-furniture.png",
+      "sha256": "2c582e5b719f7edd3cc60c3187d959478bf22aaf31dea0d0cfb08cd204ff19d1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-green-blue-0-lines.png",
+      "sha256": "e23ca36eb347813772ac34baee88d28bd385e99ebe8ef640ea08e54b10275f51"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-green-blue-0-sim0.png",
+      "sha256": "26d3743d1269dae92c70e493f188916f865b037b0d91550928d50ea429ba68d7"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-green-blue-0-sim1.png",
+      "sha256": "00afea1131baf01d25e91300521469f1bf2ce3a68bac7f7efe0f2bbf2a46409d"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-green-red-0-beauty.png",
+      "sha256": "37dee75735deceb7a5364a62a2da42354371935b5379ce5c3637a775a9bcea12"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-green-red-0-furniture.png",
+      "sha256": "183ccd844648425531e4e408ed6092f3b2740eed9fc546a85df2e281c3e72a4f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-green-red-0-lines.png",
+      "sha256": "6c5bd9f277c1c63c53bc3005efcd9b38f4551bcb877aaf0252446318ce0c2da0"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-green-red-0-sim0.png",
+      "sha256": "a3b9ce4cef1d015ce73a325e907b2211e5839ce3389a2c858ec9976420904a95"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-green-red-0-sim1.png",
+      "sha256": "2c89961fd693f660b536c442da24246b343a8a9fb10d18d9705cb73f52702cc0"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-blue-green-0-beauty.png",
+      "sha256": "d2f77e2f2958bdc1414d128fa83a7da068596a92266cebf475e435690997724c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-blue-green-0-furniture.png",
+      "sha256": "ea40b259ca09e165178d6682250a41725735796c5db0c3e40186c0d82065d546"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-blue-green-0-lines.png",
+      "sha256": "439d3aa1c34ba3e7f6638ea8099214bf45778e65b92017e3c52f40946618660f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-blue-green-0-sim0.png",
+      "sha256": "f939a3731deb6ece18abd392c940003b6a8f9264d7f46c0df271d141b04d07a2"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-blue-green-0-sim1.png",
+      "sha256": "b30145c58c3999d925997583b8c02bfd2504474cce70853ecf1d8d582d397b17"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-blue-blue-0-beauty.png",
+      "sha256": "15670cf85e0f476a411bd10059b4747481ce92c4f90a0705fdadfdb6061a6f72"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-blue-blue-0-furniture.png",
+      "sha256": "0a0eb5a3ddec3c8e76335ee7b2e78b61755f0739fe80637fb1ec08c1de39f85b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-blue-blue-0-lines.png",
+      "sha256": "ce50268e01b0d313495a1d64e3d4c35a2b9bb7634f1005c5a1b10c7e35b4f6e9"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-blue-blue-0-sim0.png",
+      "sha256": "59eae0032913691681139cc3f7283879cc6f2a2b27dfab2e82fe6545cccf41ec"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-blue-blue-0-sim1.png",
+      "sha256": "d12138b26d595cfe57ba3f8d101366910187d13e89527d25ba880dbf58f4b605"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-blue-red-0-beauty.png",
+      "sha256": "36cdbea1f3d241763a98c1aef75075a025edc914652d98f537b60e4b0d72bddb"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-blue-red-0-furniture.png",
+      "sha256": "0cba0227fc8d0f7f9b7a5963e004c28cd6176036e5944d655b91316bd4ba15a5"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-blue-red-0-lines.png",
+      "sha256": "61907ad6d9770c8bf2f90f220ad82721a59dcb2bae97db46bb07d9dc6dec8364"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-blue-red-0-sim0.png",
+      "sha256": "d06cd5d338a7d16eed3b71bc569d46cefabfcf93f3ba06a46d79a29a37db7868"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-blue-red-0-sim1.png",
+      "sha256": "2d698bc6cefdd8ab8c94bf7f857523bf7ecc34beb00908b376fbb1d103b5f6e0"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-red-green-0-beauty.png",
+      "sha256": "464e308a2c815ad7603e87a4fc742b68faa557c9830a342027ffb0e707686790"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-red-green-0-furniture.png",
+      "sha256": "e440a8a670d676b4eb4b623baf4e21a0028ec8b94829534e0ba64a8576b62e32"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-red-green-0-lines.png",
+      "sha256": "22bc88dd78a9aaf362536112cca613e023621c26c792edae184c21689aa1bde9"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-red-green-0-sim0.png",
+      "sha256": "2b01812bb4e5a714950278081b848478e2924e4bba4e719a919057e8e02ffa5c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-red-green-0-sim1.png",
+      "sha256": "8d116beb9c4ff2ac362ccfbfe112b3589b0b6f3cf8092859738a8052485fc18e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-red-blue-0-beauty.png",
+      "sha256": "92bfc807082cca59b6a849051d08e6650422a3d1bc9403cf37fb70a5f7e00a8f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-red-blue-0-furniture.png",
+      "sha256": "d06c507163d4d07b819106c9a44cec89913c7b4860f1b0494cd87d8c5a5646eb"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-red-blue-0-lines.png",
+      "sha256": "1ee15d10cca3354b632e8b0386d8286ffe1f14f6c7a9f27e1e0495633e95c8ac"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-red-blue-0-sim0.png",
+      "sha256": "cabe784da943f239943fe9164240d43662fd15325ea4814beeb207905227b025"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-red-blue-0-sim1.png",
+      "sha256": "56f9783ea100a8996eeb876b9bf39f3a8ebb31f17cfe887bdb2d399a401db778"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NW-red-red-0-beauty.png",
+      "sha256": "8ef1e266023b8299bbb3b906af8ade0bbfe083b9dfda6d9c52a04c04a2a3191d"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NW-red-red-0-furniture.png",
+      "sha256": "fd29cca0d4c0dbb9bceff2aea3c065ce63df07a29e7e9ebfc59bc768e7a77909"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NW-red-red-0-lines.png",
+      "sha256": "eff5c670361bb0bce0e25f6ccb4f599d126b2500ce12e420140abbc118f5aa7d"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NW-red-red-0-sim0.png",
+      "sha256": "ae8c36a58d270850cceceffbb2ee71d31abc11539d45e4e09f37a8dadacfe2c1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NW-red-red-0-sim1.png",
+      "sha256": "7545d05073fd65a00f263c208f909b48f727b12d777fc9d47e1161d9c324659b"
+    },
+    {
+      "occupancy": 0,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-0-SW-green-green-0-beauty.png",
+      "sha256": "605774989a4a43c665701e41eaafb2275eb0dd03d4b33591351408fc325060b0"
+    },
+    {
+      "occupancy": 0,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-0-SW-green-green-0-furniture.png",
+      "sha256": "358baccbfb6066033a05ec31b407da5f93a1747c36f930fb5c9212d43da2f2e5"
+    },
+    {
+      "occupancy": 0,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-0-SW-green-green-0-lines.png",
+      "sha256": "d1b5b44d2129e85a39309323fe32eb02a91d1ecfaa1f9fa2898050c62b52e7df"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-SW-green-green-0-beauty.png",
+      "sha256": "17cfeeb26e606d3775e7b3d1224bd0323e26923b68060539c88dd23db0314d83"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-SW-green-green-0-furniture.png",
+      "sha256": "a9b35e7f35d88d5c04ff4c658995a4e9df2d2f4155b2aa725155a469915a8192"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-SW-green-green-0-lines.png",
+      "sha256": "420a1057e0b5a57055b46c143960b7438aa92c349da8375f15da78a8984c70ac"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-SW-green-green-0-sim0.png",
+      "sha256": "d5ffe7505f6ca92ebd1a4c212c1279555288068ddbc30016e7fb7408df86ac61"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-SW-blue-green-0-beauty.png",
+      "sha256": "0f7d9ec354da3b36c8a0a4754ae31fbe946cc5cce26553af681014c7f768e678"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-SW-blue-green-0-furniture.png",
+      "sha256": "8b99e10a8ca7ad04c675aa93b43d25710019a2fe93d4bfff4ca432745cae0730"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-SW-blue-green-0-lines.png",
+      "sha256": "290d4f5784954a95867bf0ae35286c0357897e14bef46dcb0985d31dcad10b68"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-SW-blue-green-0-sim0.png",
+      "sha256": "91786ed0392bc29a5fcda07cc3808e2d40a070f5ad2257d3d4e23b95b89c29cf"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-SW-red-green-0-beauty.png",
+      "sha256": "4ce2fb1fb782f330cca3264bb7ab3fb6dd3278975c0d6aec35f9e7743a62384a"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-SW-red-green-0-furniture.png",
+      "sha256": "a0addb921439a3da1e65db8f13e4a2927193736b0f8866de534d026ab4e2ea7e"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-SW-red-green-0-lines.png",
+      "sha256": "459a7579d8421bf08123f6c79c731d98ce586b0cbcc97ac9e322b997f1ee4729"
+    },
+    {
+      "occupancy": 1,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-SW-red-green-0-sim0.png",
+      "sha256": "e39db8b5a6e3f6bf91aeb96cdec42a30c33d5b4d88af5653a54f7b186ea7bd8e"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-SW-green-green-0-beauty.png",
+      "sha256": "c24d4c77ec9a00c8ea6ea5b4ee2f0aa531b0bc46e9bee07f5d4ca16974e65026"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-SW-green-green-0-furniture.png",
+      "sha256": "212b29552d7bdb0a026f9351535980309efa5353b30d33db1671790477f97a8d"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-SW-green-green-0-lines.png",
+      "sha256": "0418a7e64400f6c96e1077398cd6ac977fe0cf95b4841100dbe92fc6661be52e"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-SW-green-green-0-sim1.png",
+      "sha256": "75f97724ec67d186498401002eebf3d18d598731a3d6c03aac4e091c896381af"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-SW-green-blue-0-beauty.png",
+      "sha256": "00d02c748a1380269a81fd539581ebca0080b207b6e6a387242b31b46732e852"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-SW-green-blue-0-furniture.png",
+      "sha256": "7b0181586a45240b29ff0ab5d6b8e9d660342f6c90c25e46f97ddbb84bfb3b68"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-SW-green-blue-0-lines.png",
+      "sha256": "62b48799da96795754ccb8da19fd1f944bdbab49b3809c1c4df5a0e95b27f53a"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-SW-green-blue-0-sim1.png",
+      "sha256": "9bd82564b35172177215ec79d275b684a6a39a2aa869d92192d5e9c872c642d3"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-SW-green-red-0-beauty.png",
+      "sha256": "82584ee7daec1ea624f83de763187cc9021d8dfd8f9734f6783274e8b9417d43"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-SW-green-red-0-furniture.png",
+      "sha256": "02c2f1cdb898886a24b73cc4a2bc020d58646cf7cafc3555a9a34cd37112c39e"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-SW-green-red-0-lines.png",
+      "sha256": "21bfe6c84b5ab3d2793817b87048baa69f0429d3850dd788ce3e0b681e699796"
+    },
+    {
+      "occupancy": 2,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-SW-green-red-0-sim1.png",
+      "sha256": "85d3d1325699ec81b0c4d0ca174cfaed130dee0aecc0dce2b099bb9e96e0fc93"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-green-green-0-beauty.png",
+      "sha256": "4c213a9c357c5a74c180572ff18a2f85ce458d52d34dabc24072bc5a359e8074"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-green-green-0-furniture.png",
+      "sha256": "90688b77cb0b67896b04ac2888559e83411be23c83dbca2be34e2ab468d966ac"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-green-green-0-lines.png",
+      "sha256": "f2d5fa3c9167e74a106f53380c5270f7b7515d9adca35e42d64991d5d80790e2"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-green-green-0-sim0.png",
+      "sha256": "aedf1e2b993f912d20a94ca6753afa57f20fbf64715562e090384b9c5d58054f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-green-green-0-sim1.png",
+      "sha256": "ee30b763628ab67977c8f0c67484dfbbe68193ac6de1954be9897fc38eaba86c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-green-blue-0-beauty.png",
+      "sha256": "59fbb347ecc972bc3ae124d423c02721b58d3c262b7d62c9055670405fe76719"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-green-blue-0-furniture.png",
+      "sha256": "ba9ee756e2971f5caddef06ac8875f7b8c5908caa686cd4351e012396a83e888"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-green-blue-0-lines.png",
+      "sha256": "71e212bb51da63cd53c376eb84434135f9f21cb7b88b14ff6c492e5386e520aa"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-green-blue-0-sim0.png",
+      "sha256": "5d49e1d100234a6f0a624599c6e63f3c81756addcb91d18dc7c77885fb09736c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-green-blue-0-sim1.png",
+      "sha256": "21e843a91c6b1186b8c6861b1ba344dd045df3f0e104f260f8b3e8ce7c97c327"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-green-red-0-beauty.png",
+      "sha256": "bab1a214999d0aedbbacb2f2469f52ee6c146ce0a78079ba5d9d4983fa143309"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-green-red-0-furniture.png",
+      "sha256": "8cd99c9914280dabb5b67a37ebc5d476f41ba81ba150bac0605935a237fe032f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-green-red-0-lines.png",
+      "sha256": "4f08cd30243930f69dde2ce283050bd20bb584f77c4394dd4ae2ca6d80a31ba1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-green-red-0-sim0.png",
+      "sha256": "aa2a6f7a07f3332b5b350baf4970dcfe905f7f5260c6e26e98ea6043d53966a4"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-green-red-0-sim1.png",
+      "sha256": "6a29e3e1eb45ddcc7618143870481c7e1d3f8d43e473b6e46e1711f3f02af753"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-blue-green-0-beauty.png",
+      "sha256": "a9c85bbbc2e7309cbe7788358c713b32b5108d1d9471b17ddc3b73e500ac665a"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-blue-green-0-furniture.png",
+      "sha256": "3786d92f9470440db7e9247361e0c52bd162652c501258a727132de3d0032d0b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-blue-green-0-lines.png",
+      "sha256": "9772b8ae61b598c18379485475e79db9419a54d50f12910efe45696ba58db143"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-blue-green-0-sim0.png",
+      "sha256": "4cb74b626f88b0ae680460afd1f5dd7214933e895b6522c3eb4e2a2f068902c2"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-blue-green-0-sim1.png",
+      "sha256": "1c9614cd5f1547450abb65fb59acfef27e9ba71f3099749072ec95771085bf53"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-blue-blue-0-beauty.png",
+      "sha256": "b5ba3fbcb53d79a167a473815b220f0896b9129b024d7b1a170be87a1a3853a6"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-blue-blue-0-furniture.png",
+      "sha256": "c053bd2a8a3bf538443d4d23eddd4bb4aecdc7a99cd5c4df5ee194f65010a133"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-blue-blue-0-lines.png",
+      "sha256": "57e2b292a1ea054a6611308b3c6f4cd8db4a449a41c0c70d954fe2fb88513b6b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-blue-blue-0-sim0.png",
+      "sha256": "1849f7afc62a3229865ac6cc33301f399085a1c9b710a49ed0448e55e446e7c1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-blue-blue-0-sim1.png",
+      "sha256": "76ffe5940646caa5ddaf615627df415a0defc58062fc8a732d2cb2810c1a8e12"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-blue-red-0-beauty.png",
+      "sha256": "8e6d01960c805187857666cbc63e26100002d298bc01581b6b9d89c6b50e4ec1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-blue-red-0-furniture.png",
+      "sha256": "f02a684c3f43b51d5f247d968dc360187e1cf187d7df0542a47717cd7c2d6879"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-blue-red-0-lines.png",
+      "sha256": "854f1d1bdc94706abb69b29bc40bf5f130dd092559757ec6feb8afc90cf09743"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-blue-red-0-sim0.png",
+      "sha256": "62171cc826f5143f1ad833dad62d362db3a32d30803e7fc84947418d04c6dfd0"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-blue-red-0-sim1.png",
+      "sha256": "4a30ea3ac063446e2e830b93484b4b29f18563d82291416d7814c5701994f355"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-red-green-0-beauty.png",
+      "sha256": "ab7f1a75a1492a99d24fb45d5753523b021f29039789070ddcb994e04845567b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-red-green-0-furniture.png",
+      "sha256": "75ededc478340be9d7bdc7eba1dd2db79a0906df2cee6d7d3c8be7b54a830e17"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-red-green-0-lines.png",
+      "sha256": "fc4913ae825de0f5c717e00decb007ba542ae6dd1f5ad53e6a41d726a4f01678"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-red-green-0-sim0.png",
+      "sha256": "cbeb390c933b471a90c5588a27de8600a309c272ce9b06d732ba841c0d20e1ff"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-red-green-0-sim1.png",
+      "sha256": "3e9e51ffcc4e699deea8b28f6287b409b34a127b77477051cab910f838dc1186"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-red-blue-0-beauty.png",
+      "sha256": "188dd0c68eb30efc8dbb0c6046d40e9086d2346787e3053cedc4e5352f5f0814"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-red-blue-0-furniture.png",
+      "sha256": "b2d54fd0e383751f94c9664432b99efca98beec478d8ec5c5d58ac832e8f29ff"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-red-blue-0-lines.png",
+      "sha256": "39c9cdc57ee6aa9558f09dd595a6c9653dde3d00a67437cde2e337a005274efd"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-red-blue-0-sim0.png",
+      "sha256": "3724d950e7f4655c23d3bb51109441dfae0188abeea74f7d995a26a7c17b6e51"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-red-blue-0-sim1.png",
+      "sha256": "536e3d3100104e82cea51d3057a7a739eeaf13e0198d89ecaff214f1bb50ddca"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-SW-red-red-0-beauty.png",
+      "sha256": "59d03de0d738e095df365a1434a4daf20bd5b683951c828bb31588e060d0a24c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-SW-red-red-0-furniture.png",
+      "sha256": "58168107e75f64f43bab04b057375287a7acc468aef5b704b1a97ee10ac4b464"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-SW-red-red-0-lines.png",
+      "sha256": "954aab50dbd319c7453d869f1c7db11c09f2e39e5de701991db59091a04eae7e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-SW-red-red-0-sim0.png",
+      "sha256": "b6d00b3d1a98d48754bf2f3eb45f15e327aa8910110b99f7c950fef49235307a"
+    },
+    {
+      "occupancy": 3,
+      "facing": "SW",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-SW-red-red-0-sim1.png",
+      "sha256": "0c0f0d44b4eb29f254bd445c80026d2e4d097677f15cf2e352d45854dc552d9d"
+    },
+    {
+      "occupancy": 0,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-0-NE-green-green-0-beauty.png",
+      "sha256": "c8e0965f7fc0b1d450ea8699a8ee7e9b2c513fc9e62445e83130d4c26dae2556"
+    },
+    {
+      "occupancy": 0,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-0-NE-green-green-0-furniture.png",
+      "sha256": "9d17cecbfc0fd6f5c6047c31ccc33dafb658ebfc1f4bb7d7a250a72f485a4a2f"
+    },
+    {
+      "occupancy": 0,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-0-NE-green-green-0-lines.png",
+      "sha256": "de1edaa200a1086a70a79d36caaded1ad396f86999535cdda090722b9f9afe46"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-NE-green-green-0-beauty.png",
+      "sha256": "fc028c983dd95fbf4545ea3f6a4b321841f2afc6861021797e3f86b55790cacd"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-NE-green-green-0-furniture.png",
+      "sha256": "0081bdd84c31c2ef941685a824b732cea22b7279e737e71ddba1e0cdc7fbe8c2"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-NE-green-green-0-lines.png",
+      "sha256": "705cba0510c3ebdea832969cf021c3a4c5b0e85e96ab80aa2c88e450892370b6"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-NE-green-green-0-sim0.png",
+      "sha256": "2db037d799ea751fe6e836a43c817382b070eab837a51bcb7daece6c6de03031"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-NE-blue-green-0-beauty.png",
+      "sha256": "fde628ce3790bd26dfeca88345b642c2c527537e005ccd27502672f459c861ad"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-NE-blue-green-0-furniture.png",
+      "sha256": "d01cf560639b0c806646a56b5eab470f23a1f851e42f224f5e995e233a184c07"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-NE-blue-green-0-lines.png",
+      "sha256": "d1acca7b112255e597d07e29027c4bf27f0ad7c2617df3160eed6a350aedb6f2"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-NE-blue-green-0-sim0.png",
+      "sha256": "677be1db52398f786a33f411c8e3b098219fa2ae00c827bdf21436f746442d2c"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-1-NE-red-green-0-beauty.png",
+      "sha256": "bf82de74025871b57c1ef280f22dc773be2a9843b28064301348ecac36352a00"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-1-NE-red-green-0-furniture.png",
+      "sha256": "3d48d61116e06de357f8308336695ede935ad4010411bbd971ab9679aea87710"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-1-NE-red-green-0-lines.png",
+      "sha256": "8577b338b75b3874e09224afc98e9e1fcbd165a8a664f9c67a6cac527c12df28"
+    },
+    {
+      "occupancy": 1,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-1-NE-red-green-0-sim0.png",
+      "sha256": "31a3da7b7af5af91d3223ad6466476c90c05909143f3ae15fa8e7cfeb796aab5"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-NE-green-green-0-beauty.png",
+      "sha256": "62d11f6b4e06ea8972011afd23a75781e1cea2633e5b404a40acd83431464a88"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-NE-green-green-0-furniture.png",
+      "sha256": "a95b498dc5abf3f9e88dca251f9b13dd4d32b7833dde3311b5c0859bca4146a0"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-NE-green-green-0-lines.png",
+      "sha256": "4b3b3f13c7a860e10ebec1d4eec6c130e1dc0628038801131bae0ea5544e4f25"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-NE-green-green-0-sim1.png",
+      "sha256": "4e249b26b38beb9a46428d2b2a2ae3b16de7a4ddb844ac079d27af30947f9928"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-NE-green-blue-0-beauty.png",
+      "sha256": "a9185220a3f51c258fbd620ee6265796749d4bd3ef1be3603b93122e3d5685f2"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-NE-green-blue-0-furniture.png",
+      "sha256": "bb729da7bc04ac945e06d476918e8bf75bedb409afbfd1bb786c5b5614e0c461"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-NE-green-blue-0-lines.png",
+      "sha256": "5898b83e9660e37fc03f5e2683ab228b192ae9dfefbd35dfeadc1c88703ad6c6"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-NE-green-blue-0-sim1.png",
+      "sha256": "6df5799f196066950c3983ccdca519d2450d579e3701e27d4e6f0d2334c1891e"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-2-NE-green-red-0-beauty.png",
+      "sha256": "1f5174a4a6089a636d319b4d00587515bd1c79ae9b4a86d37a8ab8be7e856494"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-2-NE-green-red-0-furniture.png",
+      "sha256": "1123ce6368722624ecf3e786afdac8599b7199ac254e3ddb91162e9a18810fc5"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-2-NE-green-red-0-lines.png",
+      "sha256": "2a7ef4679078e8c4dfcd45b927f533b5a82ea59e47788fa104e0cb0f686ef1ba"
+    },
+    {
+      "occupancy": 2,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-2-NE-green-red-0-sim1.png",
+      "sha256": "3480c1766e35580506925c2f9df1cfc33af4ccb5916a39cd8816c5c1a1ba62da"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-green-green-0-beauty.png",
+      "sha256": "1758da2e24ea3c803441954946f1e36d880cf0602e0c15a6bf3545ba7821f811"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-green-green-0-furniture.png",
+      "sha256": "7ae66d698b8f23726c18d8c0a9975b4f53454abf2a2ccf4a2557bf3bd0f1f7c2"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-green-green-0-lines.png",
+      "sha256": "5792b79085f1d67bda6b820d51a042b92b54667f53bcd6659a0061493bd9e20d"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-green-green-0-sim0.png",
+      "sha256": "e32b88ac57cd843e32bf3851e7ce830c7c421295540787bd2082759c408a8247"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-green-green-0-sim1.png",
+      "sha256": "e89c0142a0be87925f4029dd6444bd073b4041a66ae4cde7312762a5ac6d1d2f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-green-blue-0-beauty.png",
+      "sha256": "7aefd63c82b907b255fd854272c62fe1e015f0e75b5ed51766b1e7d864aef1aa"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-green-blue-0-furniture.png",
+      "sha256": "04d7282dd84496f98496f188e6112c780aba2901e9041ebedbc927be00a5a9b4"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-green-blue-0-lines.png",
+      "sha256": "1f97fcee439c23d5ddabc20b03a9fda51727ae34f5513dae9af6d3f3263172f8"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-green-blue-0-sim0.png",
+      "sha256": "0c97580c2bda09d0df936634732708132e45642f5d5d429ce31bdf8f80817376"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-green-blue-0-sim1.png",
+      "sha256": "41f286e8a560bc743f9ef4ff36a102c4e84a107007df6d45db92c81d143adc06"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-green-red-0-beauty.png",
+      "sha256": "affdfad812f192207bffafec7b10b71b0876148a0b5effd11f16d03dd9c3a173"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-green-red-0-furniture.png",
+      "sha256": "27477069538b219339b6a773dba695f13e704a69e1582009f0541577b26f53e0"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-green-red-0-lines.png",
+      "sha256": "40e864b9527e9047e389a3d8982eb1e0263c7b59457611eb6df7bacb60739143"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-green-red-0-sim0.png",
+      "sha256": "ab9747b290200ee147b375289b348df835c2a1064031bba77867206230668379"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "green",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-green-red-0-sim1.png",
+      "sha256": "2b59d53c924d6377e34fb23ba84c02da3581409005c3b3dd1fdfe5d87d81a56a"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-blue-green-0-beauty.png",
+      "sha256": "ae45208c5e15bf9eb0d5e47241fdd16d1b31bcf83a43f4440387dab525d600e6"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-blue-green-0-furniture.png",
+      "sha256": "430179e498a7d83bbc0645447cc50691c8792967411d2cf94578d5f6e3c551de"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-blue-green-0-lines.png",
+      "sha256": "27e94aa4b5eebf7d1514f59560ff29337da5b78c9743f4255ba0660aecdba960"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-blue-green-0-sim0.png",
+      "sha256": "bb13d261f9ad4f5c137479c7840568766a122011b00cbfda5a671a3c1d44a3e7"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-blue-green-0-sim1.png",
+      "sha256": "1d3b4243b3f6d1c22b8e2b3dbba1bd373b74918ffe7fb659642db9953a3d3aea"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-blue-blue-0-beauty.png",
+      "sha256": "95a33ccd90a5f8644a42f947b6da8424ce85dd9739bf2de39eb080d893f2df22"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-blue-blue-0-furniture.png",
+      "sha256": "2c91c369b7671b1bb9ea6301e74cc833ebfb62a71e9b07cae574d3c960134c8e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-blue-blue-0-lines.png",
+      "sha256": "be49851193fa92e02f4d044a8a1f12436589974037b90df43277c5bf304f644e"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-blue-blue-0-sim0.png",
+      "sha256": "f70083578848a7e044092d2c9a3511fd28635f3ba1128cfd22eef9d64a90148f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-blue-blue-0-sim1.png",
+      "sha256": "1da770fcfd3c7ed0c6dbfe32434461d6a1086a500db232ab8ccf444d3ef84727"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-blue-red-0-beauty.png",
+      "sha256": "c04bb9b179f990bc95f60954f54dd2a006063ce59140c86583ecc233dbb02d36"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-blue-red-0-furniture.png",
+      "sha256": "8e65f51ebe9576036b2d64ab177cb972829b9bcd72b913a214e15015fd1a3430"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-blue-red-0-lines.png",
+      "sha256": "43e47f0d8ed6f15f90ff715eb2c4da8d0f9dc2e6ca1b3b929d8ef96f8c771558"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-blue-red-0-sim0.png",
+      "sha256": "79bc3cc00ee297ef6750bb9feb9a88292133c3f98a61e9daf2a72fefd722e227"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "blue",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-blue-red-0-sim1.png",
+      "sha256": "c8ec7067b349707553b4c322c2d70deec278aafc600f3cbe130bc90cfd7c6584"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-red-green-0-beauty.png",
+      "sha256": "51bf21198951a249f0e2efb60acead427516d0bb42614842a02781a4d64c516b"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-red-green-0-furniture.png",
+      "sha256": "049e9233d087420f241b9061c0f168e5a0cdff176d229a16d79e1782ab4d84d1"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-red-green-0-lines.png",
+      "sha256": "f9eb8c8162febd1df86301f144d0fa37205fc9a448a319913e0a8dbacc08be08"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-red-green-0-sim0.png",
+      "sha256": "a70945277603555d71ff4011cddcf6c4b86a81753b4347d72cbf24eb0dacbcd4"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "green"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-red-green-0-sim1.png",
+      "sha256": "e83da2ce06d53170eee23acfc8e61f7769e276f247ceda793ccc5173f6c929a6"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-red-blue-0-beauty.png",
+      "sha256": "7b23a08ae978caf3dc35b00e062e66d65fa894f8e7c59e6b1a1dd21b1102d7c8"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-red-blue-0-furniture.png",
+      "sha256": "a5c428621188e9247631d468b70de988b5d8ea63e032057c008ab68da456072f"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-red-blue-0-lines.png",
+      "sha256": "652f4f38eb4a5c2be741bb7c3764036c0587535f63b2e1cf538d04bb0e6ce69c"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-red-blue-0-sim0.png",
+      "sha256": "844e041681e3d508d1ba3a7f92b3dc6dcd540a237099d99165762c01f7ae9852"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "blue"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-red-blue-0-sim1.png",
+      "sha256": "fa12f7f13f593527ae8cfede439d1270fdb105be62d23fb735bd77ed676cc878"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "beauty",
+      "path": "double-bed-3-NE-red-red-0-beauty.png",
+      "sha256": "23f0c6cfb2c52236412065e3973c3c6f96d96a0cd9fe96e374b599e4e847f73d"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "furniture",
+      "path": "double-bed-3-NE-red-red-0-furniture.png",
+      "sha256": "4cb3585fe1d4f97ed6fd9c596a3d6fe635716612b4b9a9e14d90f9bf52c0e588"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "lines",
+      "path": "double-bed-3-NE-red-red-0-lines.png",
+      "sha256": "87afc8bc4a65de3ef1975366fce5c8b103d10f167a8a7dedffd12aa22b3e9221"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim0",
+      "path": "double-bed-3-NE-red-red-0-sim0.png",
+      "sha256": "1b147249631f3eea02c0f85c54eab2155b533fafaa9a7f95ce007fb1b24a98e9"
+    },
+    {
+      "occupancy": 3,
+      "facing": "NE",
+      "palettes": [
+        "red",
+        "red"
+      ],
+      "sample": 0,
+      "owner": "sim1",
+      "path": "double-bed-3-NE-red-red-0-sim1.png",
+      "sha256": "c39cd569a858c3c6364e2c9e60d292bcf7b5b169ae2b44f2238d1e0217e3c413"
+    }
+  ],
+  "surface_witnesses": {
+    "0|SE": {
+      "furniture": [
+        {
+          "object": "Folded duvet edge",
+          "world": [
+            -0.41200000047683716,
+            -0.7369134426116943,
+            0.5676193833351135
+          ],
+          "pixel": [
+            345,
+            883
+          ]
+        },
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.9393911361694336,
+            -0.7910614013671875,
+            0.07733333110809326
+          ],
+          "pixel": [
+            677,
+            1253
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            -0.8206088542938232,
+            -0.7910615801811218,
+            0.07733333110809326
+          ],
+          "pixel": [
+            227,
+            957
+          ]
+        }
+      ]
+    },
+    "1|SE": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.9393911361694336,
+            -0.7910614013671875,
+            0.07733333110809326
+          ],
+          "pixel": [
+            677,
+            1253
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            -0.8206088542938232,
+            -0.7910615801811218,
+            0.07733333110809326
+          ],
+          "pixel": [
+            227,
+            957
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.939391016960144,
+            0.6889386177062988,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1056,
+            1004
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Sculpted head",
+          "world": [
+            -0.5475849509239197,
+            0.4927762746810913,
+            0.6477500200271606
+          ],
+          "pixel": [
+            625,
+            632
+          ]
+        }
+      ]
+    },
+    "2|SE": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.9393911361694336,
+            -0.7910614013671875,
+            0.07733333110809326
+          ],
+          "pixel": [
+            677,
+            1253
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            -0.8206088542938232,
+            -0.7910615801811218,
+            0.07733333110809326
+          ],
+          "pixel": [
+            227,
+            957
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.939391016960144,
+            0.6889386177062988,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1056,
+            1004
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            -0.5475850105285645,
+            -0.2572237253189087,
+            0.6477500200271606
+          ],
+          "pixel": [
+            433,
+            758
+          ]
+        }
+      ]
+    },
+    "3|SE": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.9393911361694336,
+            -0.7910614013671875,
+            0.07733333110809326
+          ],
+          "pixel": [
+            677,
+            1253
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            -0.8206088542938232,
+            -0.7910615801811218,
+            0.07733333110809326
+          ],
+          "pixel": [
+            227,
+            957
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.939391016960144,
+            0.6889386177062988,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1056,
+            1004
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Sculpted head",
+          "world": [
+            -0.5475849509239197,
+            0.4927762746810913,
+            0.6477500200271606
+          ],
+          "pixel": [
+            625,
+            632
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            -0.5475850105285645,
+            -0.2572237253189087,
+            0.6477500200271606
+          ],
+          "pixel": [
+            433,
+            758
+          ]
+        }
+      ]
+    },
+    "0|NW": {
+      "furniture": [
+        {
+          "object": "Folded duvet edge",
+          "world": [
+            0.38200002908706665,
+            0.7369134426116943,
+            0.5283806324005127
+          ],
+          "pixel": [
+            926,
+            780
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            0.7895307540893555,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            996
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            -0.8304693102836609,
+            -0.7996954917907715,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            957
+          ]
+        }
+      ]
+    },
+    "1|NW": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            0.7895307540893555,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            996
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            -0.8304693102836609,
+            -0.7996954917907715,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            957
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            -0.6904692649841309,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            684,
+            1245
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Overshirt body",
+          "world": [
+            0.15178798139095306,
+            -0.4290275275707245,
+            0.4912026524543762
+          ],
+          "pixel": [
+            569,
+            947
+          ]
+        },
+        {
+          "object": "Relaxed shirt sleeve.001",
+          "world": [
+            0.2650188207626343,
+            -0.5812216997146606,
+            0.6042262315750122
+          ],
+          "pixel": [
+            559,
+            961
+          ]
+        },
+        {
+          "object": "Sculpted head",
+          "world": [
+            0.3847554624080658,
+            -0.2572237551212311,
+            0.8454887866973877
+          ],
+          "pixel": [
+            672,
+            860
+          ]
+        }
+      ]
+    },
+    "2|NW": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            0.7895307540893555,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            996
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            -0.8304693102836609,
+            -0.7996954917907715,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            957
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            -0.6904692649841309,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            684,
+            1245
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Overshirt body",
+          "world": [
+            0.15178798139095306,
+            0.3209725022315979,
+            0.4912026822566986
+          ],
+          "pixel": [
+            761,
+            821
+          ]
+        },
+        {
+          "object": "Place 1 Relaxed shirt sleeve.001",
+          "world": [
+            0.2650187611579895,
+            0.16877838969230652,
+            0.6042262315750122
+          ],
+          "pixel": [
+            751,
+            835
+          ]
+        },
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            0.3847554326057434,
+            0.4927762448787689,
+            0.8454887866973877
+          ],
+          "pixel": [
+            864,
+            734
+          ]
+        }
+      ]
+    },
+    "3|NW": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            0.7895307540893555,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            996
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            -0.8304693102836609,
+            -0.7996954917907715,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            957
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            0.8640000224113464,
+            -0.6904692649841309,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            684,
+            1245
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Overshirt body",
+          "world": [
+            0.15178798139095306,
+            -0.4290275275707245,
+            0.4912026524543762
+          ],
+          "pixel": [
+            569,
+            947
+          ]
+        },
+        {
+          "object": "Relaxed shirt sleeve.001",
+          "world": [
+            0.2650188207626343,
+            -0.5812216997146606,
+            0.6042262315750122
+          ],
+          "pixel": [
+            559,
+            961
+          ]
+        },
+        {
+          "object": "Sculpted head",
+          "world": [
+            0.3847554624080658,
+            -0.2572237551212311,
+            0.8454887866973877
+          ],
+          "pixel": [
+            672,
+            860
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Overshirt body",
+          "world": [
+            0.15178798139095306,
+            0.3209725022315979,
+            0.4912026822566986
+          ],
+          "pixel": [
+            761,
+            821
+          ]
+        },
+        {
+          "object": "Place 1 Relaxed shirt sleeve.001",
+          "world": [
+            0.26406919956207275,
+            0.17865386605262756,
+            0.6269474625587463
+          ],
+          "pixel": [
+            753,
+            827
+          ]
+        },
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            0.3847554326057434,
+            0.4927762448787689,
+            0.8454887866973877
+          ],
+          "pixel": [
+            864,
+            734
+          ]
+        }
+      ]
+    },
+    "0|SW": {
+      "furniture": [
+        {
+          "object": "Folded duvet edge",
+          "world": [
+            -0.7369134426116943,
+            0.38200002908706665,
+            0.5283806324005127
+          ],
+          "pixel": [
+            549,
+            651
+          ]
+        },
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            -0.7895307540893555,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            208,
+            1001
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.6904692649841309,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            587,
+            1250
+          ]
+        }
+      ]
+    },
+    "1|SW": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            -0.7895307540893555,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            208,
+            1001
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.6904692649841309,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            587,
+            1250
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            0.7239999771118164,
+            0.9295307397842407,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            949
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Sculpted head",
+          "world": [
+            0.4515684247016907,
+            0.5252310037612915,
+            0.6095173358917236
+          ],
+          "pixel": [
+            890,
+            805
+          ]
+        }
+      ]
+    },
+    "2|SW": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            -0.7895307540893555,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            208,
+            1001
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.6904692649841309,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            587,
+            1250
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            0.7239999771118164,
+            0.9295307397842407,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            949
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            -0.2984316051006317,
+            0.5252310037612915,
+            0.6095173358917236
+          ],
+          "pixel": [
+            698,
+            679
+          ]
+        }
+      ]
+    },
+    "3|SW": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            -0.7895307540893555,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            208,
+            1001
+          ]
+        },
+        {
+          "object": "Foot 0.74 -0.88",
+          "world": [
+            0.6904692649841309,
+            -0.8960000276565552,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            587,
+            1250
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            0.7239999771118164,
+            0.9295307397842407,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            1063,
+            949
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Sculpted head",
+          "world": [
+            0.4515684247016907,
+            0.5252310037612915,
+            0.6095173358917236
+          ],
+          "pixel": [
+            890,
+            805
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            -0.2984316051006317,
+            0.5252310037612915,
+            0.6095173358917236
+          ],
+          "pixel": [
+            698,
+            679
+          ]
+        }
+      ]
+    },
+    "0|NE": {
+      "furniture": [
+        {
+          "object": "Folded duvet edge",
+          "world": [
+            0.7388269305229187,
+            -0.4119999408721924,
+            0.5287612080574036
+          ],
+          "pixel": [
+            723,
+            1032
+          ]
+        },
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.7910614013671875,
+            0.9393911361694336,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1082,
+            937
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.7895307540893555,
+            -0.8639999628067017,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            620,
+            1261
+          ]
+        }
+      ]
+    },
+    "1|NE": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.7910614013671875,
+            0.9393911361694336,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1082,
+            937
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.7895307540893555,
+            -0.8639999628067017,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            620,
+            1261
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            -0.6904692649841309,
+            -0.9396955966949463,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            1004
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Overshirt body",
+          "world": [
+            -0.469673216342926,
+            -0.028047140687704086,
+            0.509819746017456
+          ],
+          "pixel": [
+            512,
+            770
+          ]
+        },
+        {
+          "object": "Relaxed shirt sleeve",
+          "world": [
+            -0.17897938191890717,
+            -0.2660982012748718,
+            0.5847179293632507
+          ],
+          "pixel": [
+            526,
+            838
+          ]
+        },
+        {
+          "object": "Sculpted head",
+          "world": [
+            -0.2572239339351654,
+            -0.3847554624080658,
+            0.8454887866973877
+          ],
+          "pixel": [
+            475,
+            774
+          ]
+        }
+      ]
+    },
+    "2|NE": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.7910614013671875,
+            0.9393911361694336,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1082,
+            937
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.7895307540893555,
+            -0.8639999628067017,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            620,
+            1261
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            -0.6904692649841309,
+            -0.9396955966949463,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            1004
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Overshirt body",
+          "world": [
+            0.28032681345939636,
+            -0.02804720029234886,
+            0.509819746017456
+          ],
+          "pixel": [
+            704,
+            896
+          ]
+        },
+        {
+          "object": "Place 1 Relaxed shirt sleeve",
+          "world": [
+            0.5710206031799316,
+            -0.2660982608795166,
+            0.5847179293632507
+          ],
+          "pixel": [
+            718,
+            964
+          ]
+        },
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            0.492776095867157,
+            -0.38475555181503296,
+            0.8454887866973877
+          ],
+          "pixel": [
+            667,
+            900
+          ]
+        }
+      ]
+    },
+    "3|NE": {
+      "furniture": [
+        {
+          "object": "Foot -0.74 -0.88",
+          "world": [
+            0.7910614013671875,
+            0.9393911361694336,
+            0.07733333110809326
+          ],
+          "pixel": [
+            1082,
+            937
+          ]
+        },
+        {
+          "object": "Foot -0.74 0.88",
+          "world": [
+            0.7895307540893555,
+            -0.8639999628067017,
+            0.00030448040342889726
+          ],
+          "pixel": [
+            620,
+            1261
+          ]
+        },
+        {
+          "object": "Foot 0.74 0.88",
+          "world": [
+            -0.6904692649841309,
+            -0.9396955966949463,
+            0.07733333110809326
+          ],
+          "pixel": [
+            222,
+            1004
+          ]
+        }
+      ],
+      "sim0": [
+        {
+          "object": "Overshirt body",
+          "world": [
+            -0.469673216342926,
+            -0.028047140687704086,
+            0.509819746017456
+          ],
+          "pixel": [
+            512,
+            770
+          ]
+        },
+        {
+          "object": "Relaxed shirt sleeve",
+          "world": [
+            -0.17897938191890717,
+            -0.2660982012748718,
+            0.5847179293632507
+          ],
+          "pixel": [
+            526,
+            838
+          ]
+        },
+        {
+          "object": "Sculpted head",
+          "world": [
+            -0.2572239339351654,
+            -0.3847554624080658,
+            0.8454887866973877
+          ],
+          "pixel": [
+            475,
+            774
+          ]
+        }
+      ],
+      "sim1": [
+        {
+          "object": "Place 1 Overshirt body",
+          "world": [
+            0.28032681345939636,
+            -0.02804720029234886,
+            0.509819746017456
+          ],
+          "pixel": [
+            704,
+            896
+          ]
+        },
+        {
+          "object": "Place 1 Relaxed shirt sleeve",
+          "world": [
+            0.5710206031799316,
+            -0.2660982608795166,
+            0.5847179293632507
+          ],
+          "pixel": [
+            718,
+            964
+          ]
+        },
+        {
+          "object": "Place 1 Sculpted head",
+          "world": [
+            0.492776095867157,
+            -0.38475555181503296,
+            0.8454887866973877
+          ],
+          "pixel": [
+            667,
+            900
+          ]
+        }
+      ]
+    }
+  },
+  "color_management": {
+    "view": "Standard",
+    "look": "None",
+    "exposure": 0.0,
+    "gamma": 1.0,
+    "display": "sRGB"
+  },
+  "independent_materials": true,
+  "projected_origin": [
+    80.00000953674316,
+    123.00043869018555
+  ],
+  "anchor": [
+    80.00000953674316,
+    144.00043869018555
+  ],
+  "evidence_files": [
+    {
+      "file": "000001-start.json",
+      "sha256": "94baffa99acdebb40049ada455aa6f5caaad2d05851d7c571dcaee03d37613c6"
+    },
+    {
+      "file": "000002-owner-witnesses.json",
+      "sha256": "0f0750b95cf22ebd25bf00a785276687fd28da19b4a872dc49db4b0867042be4"
+    },
+    {
+      "file": "000003-image-result.json",
+      "sha256": "f9b185e6c1e1b32312ed4287ead86651caadd480b80efd6eda14450eb12f4404"
+    },
+    {
+      "file": "000004-image-result.json",
+      "sha256": "f02f0e72268a3b071c624c701c1f619f4122209752fcc5976db5a68c3ff7708c"
+    },
+    {
+      "file": "000005-image-result.json",
+      "sha256": "1917967e935aa1fdeeacbb0a8cb286b22845585a80296aa3089817d7b1a7f62d"
+    },
+    {
+      "file": "000006-owner-witnesses.json",
+      "sha256": "e2df928b25b9fbb68cbca50f3ad5635841f54df57356a4be39100a7bef03851d"
+    },
+    {
+      "file": "000007-image-result.json",
+      "sha256": "be2d7e35855408f205c1f3563e6066352793b63cc566f2f1d396f2e2695c7ab9"
+    },
+    {
+      "file": "000008-image-result.json",
+      "sha256": "ef8c78ee2e83f2ba35d88c65e8fbee780267aaf43dd6a4acf3770b83542526df"
+    },
+    {
+      "file": "000009-image-result.json",
+      "sha256": "bf1b0034b899088e7112ac17c36b17372953071c48512308707b63276b69cc8e"
+    },
+    {
+      "file": "000010-image-result.json",
+      "sha256": "a36bf8f532ad90f77342333ab6834826e4f9ba4250c2359d85320a1cb932170e"
+    },
+    {
+      "file": "000011-image-result.json",
+      "sha256": "b36889e52adbf923e95313be0184f6bb75bdce79a29b55d654819bb3fe968445"
+    },
+    {
+      "file": "000012-image-result.json",
+      "sha256": "c88577f812f5f6fc5ba424b4532901a6b1d90b9af3d29223eda5e93dc4e42f27"
+    },
+    {
+      "file": "000013-image-result.json",
+      "sha256": "1f60d644d5403a0c235c54251177762fd7d519b496b0fdd8c618ff75d5dee6d1"
+    },
+    {
+      "file": "000014-image-result.json",
+      "sha256": "c7e014f1907607dbf770bb418264b176d2d4047344da8a4edb64a6497474615a"
+    },
+    {
+      "file": "000015-image-result.json",
+      "sha256": "b298dab06ffbb7094994660d95446b1bbd21579e2c07e5cce22061d9e7465c20"
+    },
+    {
+      "file": "000016-image-result.json",
+      "sha256": "97dfebce5d69c3ee2f774b4e7115a8aa228eaa52edd5768f41cf806c77df387e"
+    },
+    {
+      "file": "000017-image-result.json",
+      "sha256": "799b43a62d86f83dbd023666b9c7b7effd025525f1502994f81f3a660de95621"
+    },
+    {
+      "file": "000018-image-result.json",
+      "sha256": "1f523e3ab56d767fcdc8d8095824646a26013f7bce8767c4245e4795c2e3886e"
+    },
+    {
+      "file": "000019-owner-witnesses.json",
+      "sha256": "3eddde9f6bfc9ae0d0189d455cefe21e07394a706c462e7c5704cb1c97cf8cbf"
+    },
+    {
+      "file": "000020-image-result.json",
+      "sha256": "8c8abadded247b3d470b495674ddb68d4d19967d5557e31f91c4decc8eca47cb"
+    },
+    {
+      "file": "000021-image-result.json",
+      "sha256": "794a93778d7d98a53ff946ff4caad66185fce1ba8d42dda3aca75871376dca18"
+    },
+    {
+      "file": "000022-image-result.json",
+      "sha256": "4a13e6bdc7c591052f5f1df02cf1e5670cb9e62df67079fa0a8909ee6d157973"
+    },
+    {
+      "file": "000023-image-result.json",
+      "sha256": "8aeb262dbe5bdbc2798262719ce798ad4075061491b1c1a49101e7ca0758dfa1"
+    },
+    {
+      "file": "000024-image-result.json",
+      "sha256": "ff706c4318c27be4241ac5ba1dffa95ac49db9c227d7fd380f3083a12923c6cf"
+    },
+    {
+      "file": "000025-image-result.json",
+      "sha256": "e0077de4e1093dd4eedc12d4d37377bb415743c53a1885f99c46fc1855db8f0e"
+    },
+    {
+      "file": "000026-image-result.json",
+      "sha256": "6b7d667b339089fe9f83dfaccc063c07a871dd6804efa64b8b474040eccfbf30"
+    },
+    {
+      "file": "000027-image-result.json",
+      "sha256": "3d19a52f1edcd638ba0e83412d2b3f4dba4d8b4d52ac6807d2282ebb0a02a79a"
+    },
+    {
+      "file": "000028-image-result.json",
+      "sha256": "95a1cbcff833e2a5b3667a778e1f33c7a21440e75ce7588f2564c6b2b2608165"
+    },
+    {
+      "file": "000029-image-result.json",
+      "sha256": "b70305aa3ca41c3de8c5cd689348b31fd2d084fe4f7b63e1cc9110ed3ee7b4aa"
+    },
+    {
+      "file": "000030-image-result.json",
+      "sha256": "b09be37bb2893d403dd95cfad56672522d771579d5d3e1781d2f67dbddd79359"
+    },
+    {
+      "file": "000031-image-result.json",
+      "sha256": "a1e92c6e45738227514b3dce34e1867d253241baa5481cea412abd14e75163a3"
+    },
+    {
+      "file": "000032-owner-witnesses.json",
+      "sha256": "024f00d0e1f0a886652515ddb38bfb8f19fb2133bda3b0c89cb9f2bd106b3bf8"
+    },
+    {
+      "file": "000033-image-result.json",
+      "sha256": "351c730ae7979321ebf05db9b9ceaced19d39923017933bd0c1833e988adf321"
+    },
+    {
+      "file": "000034-image-result.json",
+      "sha256": "31294f575e14beff9d717fc43a415fe6a48f4929ee6c26afe1bae631dcdc9668"
+    },
+    {
+      "file": "000035-image-result.json",
+      "sha256": "991b29224b5f02eaa75aa2ce425102a4ac76f4d520835c98f69a104605ba04d7"
+    },
+    {
+      "file": "000036-image-result.json",
+      "sha256": "aed3618a5e5900b59c689f82c276d1d01d166c9dc3964fa2417ea3f544b6c5b6"
+    },
+    {
+      "file": "000037-image-result.json",
+      "sha256": "b9980f191dac7d2ac536215c4640f91b7be3384ebd20260646c28f9f65961643"
+    },
+    {
+      "file": "000038-image-result.json",
+      "sha256": "f7903505ef33a3a97de5cbfd91313c4fbdc3237b78348c6b335c59009bbcaae6"
+    },
+    {
+      "file": "000039-image-result.json",
+      "sha256": "28e85f01773993aeff597a2ffdbf718bb5769d2dd30a31a09e73738c725d30c0"
+    },
+    {
+      "file": "000040-image-result.json",
+      "sha256": "6338d4f625538085495516cd116738d6b022f3e613f37985a8710bcbf87ee5e1"
+    },
+    {
+      "file": "000041-image-result.json",
+      "sha256": "9564c3214ef84325119c1af9a7cb3a0fe3a91d5cd76137cbae9c2935040d1ff6"
+    },
+    {
+      "file": "000042-image-result.json",
+      "sha256": "985a71ff8119e7c04ba25132998944510e362e00422ff841e188335c149854ac"
+    },
+    {
+      "file": "000043-image-result.json",
+      "sha256": "1c778074d1df2504c6cea954724fde6243caa85285d596e6a4753e220bd3b51d"
+    },
+    {
+      "file": "000044-image-result.json",
+      "sha256": "d30d958ae0a23b096707ebf6aaa8d98fb02e03ca10bb743b62bf9bf65fa05c76"
+    },
+    {
+      "file": "000045-image-result.json",
+      "sha256": "18e5f637687a92983714c83c5c61468858e581605c7442c669b30ed556f55e43"
+    },
+    {
+      "file": "000046-image-result.json",
+      "sha256": "11e48b8faf807a55ff8d94f58313a4d8776c98c48f8350b73c5ef908f26a3acb"
+    },
+    {
+      "file": "000047-image-result.json",
+      "sha256": "7d87c5e3192985d7182f4f73da0953adce09ce629720d886d5168813c98e1a56"
+    },
+    {
+      "file": "000048-image-result.json",
+      "sha256": "d430c370cb1757d347deb54e00b2d0af22f8c97a2bb79daec0f7b285b16585d2"
+    },
+    {
+      "file": "000049-image-result.json",
+      "sha256": "d871ece841380f19fb0ca1fec6a1e98a4dd24c5d6035ff63b59f07c63ca8d9c3"
+    },
+    {
+      "file": "000050-image-result.json",
+      "sha256": "01f2b9734b3ba9da1dea826423320c152cdefc0e28c957e0d28cbaef1808116e"
+    },
+    {
+      "file": "000051-image-result.json",
+      "sha256": "a0e3c7f5de62e144e3ac2f53fa7e4f50d5d4b7be39559a4b74c636e74f31656a"
+    },
+    {
+      "file": "000052-image-result.json",
+      "sha256": "08973ae566c71d607396bfc1b86774f245793ef06845f58a409d5e15be4b6fec"
+    },
+    {
+      "file": "000053-image-result.json",
+      "sha256": "b1471eb2c18a14ce9eac69580e38ea67fa42fe47b146c558316936e8b45e96d0"
+    },
+    {
+      "file": "000054-image-result.json",
+      "sha256": "c6e1c6525d243e4f9e18f142a3d2184a3c891b10a63f0e8f7534ac4d0ef033ca"
+    },
+    {
+      "file": "000055-image-result.json",
+      "sha256": "563f2ea3b5c5ca2be9fa01ba5bd514432225e90ce1fdbc8c0a268a50d233f6dc"
+    },
+    {
+      "file": "000056-image-result.json",
+      "sha256": "d0fe866847928b16c321e6333116b2b80a3ab3b4b79e4b7f28769de091ee74d1"
+    },
+    {
+      "file": "000057-image-result.json",
+      "sha256": "f97f1ce4c3e49bd1b6c674a71cd56c7a4f4a7617f15322d3287f8e5a6652b9a7"
+    },
+    {
+      "file": "000058-image-result.json",
+      "sha256": "4c78804811c05fe7ee8012f73ae6107ef62b0decf72356b3003e5235c9463b39"
+    },
+    {
+      "file": "000059-image-result.json",
+      "sha256": "5578d7f603f421db910871b384bdcb5af10ef8e8ed7770b0f4874912e6737018"
+    },
+    {
+      "file": "000060-image-result.json",
+      "sha256": "6d32492b563f041a8a6208100458dfbc1e5ed1cba1bcba4f845efd22b2ab6254"
+    },
+    {
+      "file": "000061-image-result.json",
+      "sha256": "d798677eb9bc898b1cabd79c5d06b8e37c3798c091ce752f51c27598b95e442a"
+    },
+    {
+      "file": "000062-image-result.json",
+      "sha256": "e6fed3dab3a18019800a88757b248a130f50126a932bbbb6690d247862be2d34"
+    },
+    {
+      "file": "000063-image-result.json",
+      "sha256": "92e5ba5cb3bbe82851651346e0208a8c9bbc1ef1175de9d7a1a1fdfb4beb864b"
+    },
+    {
+      "file": "000064-image-result.json",
+      "sha256": "57948e4e0547f448238fe47bd212d93c4a8e76d0ea6b19d3cf3ab30da2a1d7c0"
+    },
+    {
+      "file": "000065-image-result.json",
+      "sha256": "0e63c4d7e13428eae5da92f47c4c9a23fe45bbdc235dc1cee6cae817f1f6959f"
+    },
+    {
+      "file": "000066-image-result.json",
+      "sha256": "1e2fa723ecaa23b9d77371036ff03c9e868951df8a8ea592f079e2d0180d016d"
+    },
+    {
+      "file": "000067-image-result.json",
+      "sha256": "a6003c994f12bbe499c9a5d2fcc0b4277f8c11fbe962efed2ef580609c21662e"
+    },
+    {
+      "file": "000068-image-result.json",
+      "sha256": "34f20960d21f3f2fcaf21296372ed81a4433ce2727ed09ad44bf06ee5fce8f46"
+    },
+    {
+      "file": "000069-image-result.json",
+      "sha256": "9ff31e2055a7372563648551c2bebd91d6f4ab1cb247f18610b76809e057516a"
+    },
+    {
+      "file": "000070-image-result.json",
+      "sha256": "4838a3d6ea3552c2eecbfd52553ff4ae14c4150443e75dd27bac5ef833b4230a"
+    },
+    {
+      "file": "000071-image-result.json",
+      "sha256": "3ce8e170ac309d2a123409edaa6b9a652075293394c4bf74360758cafad9ca94"
+    },
+    {
+      "file": "000072-image-result.json",
+      "sha256": "51a320ad1155218029ad2580b81a98bb12fc34bfa87ecd310ff5604f6d02ad4a"
+    },
+    {
+      "file": "000073-image-result.json",
+      "sha256": "4b4255e9cf90831024b9e81f69d98676651f69b82dba8d4d51d7011a4a24b91c"
+    },
+    {
+      "file": "000074-image-result.json",
+      "sha256": "ed3a552702528aa03b34a6aa5a6a08f07443a9d9882841761b5c07f8eedf1c85"
+    },
+    {
+      "file": "000075-image-result.json",
+      "sha256": "2b0aa64caa610187be3a9f502c128c42bba735e08c1e3c7666e2d2c6782795c6"
+    },
+    {
+      "file": "000076-image-result.json",
+      "sha256": "5c8be25420d2950a2e4c81faebd06798711f45a4b1bccb5f012c29874e67c606"
+    },
+    {
+      "file": "000077-image-result.json",
+      "sha256": "ab24fd11a4efdc712791ed1105994b1fee5cfcfba3cf542e8ef9503ca54c0dec"
+    },
+    {
+      "file": "000078-owner-witnesses.json",
+      "sha256": "464169b4445973062384b23d70f0ca465ac5f5dd3d9c1fc82548c1a4b2433695"
+    },
+    {
+      "file": "000079-image-result.json",
+      "sha256": "e78e023fea4ca622468faa6d48239ba048b951bc0d5937096442f9cee4efd149"
+    },
+    {
+      "file": "000080-image-result.json",
+      "sha256": "26be373cd181390e8d7dd6322fe09dcada5ace4656db5d82d8f4bce2b484ffe8"
+    },
+    {
+      "file": "000081-image-result.json",
+      "sha256": "2d350b1380d38515c710fa3424f23d2bc5e9b976b4df22b524b0499ea97230f7"
+    },
+    {
+      "file": "000082-owner-witnesses.json",
+      "sha256": "a76ec615ca8451ca080c5e150e40a915449ca7494d80c33949ef5b060692e916"
+    },
+    {
+      "file": "000083-image-result.json",
+      "sha256": "c46f640937e67d08fb92ca38a4e84e891c42ef26eab63f1bda659b296692904d"
+    },
+    {
+      "file": "000084-image-result.json",
+      "sha256": "47897fa475c2b0402f8f88e2e8357577f93b14684259a55e4b1fb3e690532bf2"
+    },
+    {
+      "file": "000085-image-result.json",
+      "sha256": "de9bc9dde1f321757b001639a3b583409174d193844a537953bda290a2fa5f63"
+    },
+    {
+      "file": "000086-image-result.json",
+      "sha256": "702e9c4922edf1eabf820be5bf6a5b0cad46a2ad333edcb266fbc09d71ef6329"
+    },
+    {
+      "file": "000087-image-result.json",
+      "sha256": "08a438540fc85c2b1c9a8beface6ce7d88b3564e7e2d4559ea4ebd94d878caef"
+    },
+    {
+      "file": "000088-image-result.json",
+      "sha256": "0a5fbc0ee7260f41589c19be0c33f14824879999475359d0899af94b2b1cece4"
+    },
+    {
+      "file": "000089-image-result.json",
+      "sha256": "d090ab03b3c2312fde745aed01e7eccbf33629c3d63aa3043f0695db26f9c856"
+    },
+    {
+      "file": "000090-image-result.json",
+      "sha256": "859f278afde57527b034e822e2dad46b0ec2101251b609a5a157c94119fafbc1"
+    },
+    {
+      "file": "000091-image-result.json",
+      "sha256": "941143b1433375579f0fe00e3e2d860e171298a5678cb9476758dbaf069057e6"
+    },
+    {
+      "file": "000092-image-result.json",
+      "sha256": "4bf1f580ea8d027e7bf89be45f71a0262d31a635bc1e93af4598465bb75e9641"
+    },
+    {
+      "file": "000093-image-result.json",
+      "sha256": "28574267396d867f9bfb6128458ea66a7ed5e907b481c859a2176f7b36e2fb5d"
+    },
+    {
+      "file": "000094-image-result.json",
+      "sha256": "1786b6b4166112dbee5ef9d832e98f156c3b45cecb699139375b9077489729c9"
+    },
+    {
+      "file": "000095-owner-witnesses.json",
+      "sha256": "51e8ceb9b3e0b5d83b4fd29d873e0511d7d0c25c1be0be1dfb9f7b24d1845606"
+    },
+    {
+      "file": "000096-image-result.json",
+      "sha256": "22a62ada3205f39653fb36995caef00054696a6b6cd53cf7c80004f1c411ffc5"
+    },
+    {
+      "file": "000097-image-result.json",
+      "sha256": "667ce470b9078abb43c8a03cfa6b5103dd532e6f083224b0947d9d9056b6d453"
+    },
+    {
+      "file": "000098-image-result.json",
+      "sha256": "0c215116f77bd28890e96946eff4fa68dc8ed80c81fe43f9f9eed1e63caf0fa4"
+    },
+    {
+      "file": "000099-image-result.json",
+      "sha256": "0ceb780f340cbdb774e7cd6ff5b9b822fa73729ef746b9709a0e7d989dbe2d56"
+    },
+    {
+      "file": "000100-image-result.json",
+      "sha256": "5805076a55b6494d67a30bfaaa485f46c0fcf251823d01d9497894ea51270d0c"
+    },
+    {
+      "file": "000101-image-result.json",
+      "sha256": "8c45f6e1096e24aeb227d94eccee1dacb18aa2f1b40d008bb4b9e262641b5614"
+    },
+    {
+      "file": "000102-image-result.json",
+      "sha256": "fee2304fbc92c33546b9f7ac8428ffc539de3d4d72b88efdca93b032ab738d15"
+    },
+    {
+      "file": "000103-image-result.json",
+      "sha256": "9ac11847a749e9fdabb6d428eea106b0533daf42ef7d5b20c1e6078389a624ec"
+    },
+    {
+      "file": "000104-image-result.json",
+      "sha256": "12d916bb565b69af1ad5c4133749c5a0da31348f02357587297dbef6826f57cb"
+    },
+    {
+      "file": "000105-image-result.json",
+      "sha256": "2c0c5a179bbaada316d8481a976134dcc5779cc26394821749e7301292e313dc"
+    },
+    {
+      "file": "000106-image-result.json",
+      "sha256": "c93ca2855d23acbf4ad06266bfbf66b91ec75519b9284e4abf01d0a1d9f139f9"
+    },
+    {
+      "file": "000107-image-result.json",
+      "sha256": "b59d3a1f452f33c4018f41354a4fc23906487ace8d1ececc1db20d0747ff3ab8"
+    },
+    {
+      "file": "000108-owner-witnesses.json",
+      "sha256": "0f9a9917a9bf396754e5224de97094531508b8463883d462f7a515f2e524ce4f"
+    },
+    {
+      "file": "000109-image-result.json",
+      "sha256": "b47c0dd0a03cc85e099c4f1d8c58705b8537f0bb6e630c10ac3e504fb2e96cbe"
+    },
+    {
+      "file": "000110-image-result.json",
+      "sha256": "d7fe484f3c4d144a16ac717bbcc9c8043a56a1ec9c075fa55be9c38cd858901e"
+    },
+    {
+      "file": "000111-image-result.json",
+      "sha256": "9cf935dd99ed1bc0f2d4b30803ab6352733cef5ae9f80bcfa9b9a7100a689f65"
+    },
+    {
+      "file": "000112-image-result.json",
+      "sha256": "bf5063317a0d181accf58077c5a218282634b9d00240258e2399a7a9ead461f6"
+    },
+    {
+      "file": "000113-image-result.json",
+      "sha256": "96ef8dfd7712eb8d8d2568fb6474a016c4f4782ae9aa9f3e44a740fd5f4abb24"
+    },
+    {
+      "file": "000114-image-result.json",
+      "sha256": "b50fc3b60b6a67228b1dca5e2fae6d57846b094697897f88f8e99f8123eb36a9"
+    },
+    {
+      "file": "000115-image-result.json",
+      "sha256": "c3bcc8bf13f9380a332fd4e6661442a519d339bcf6111c20e25c60f720d71acc"
+    },
+    {
+      "file": "000116-image-result.json",
+      "sha256": "3274bb639c420c705b41f291f1b4b7b871837b544b93dbd59a11182f5ee456ed"
+    },
+    {
+      "file": "000117-image-result.json",
+      "sha256": "f428b864f4a1964f631da9f93fe47b317e192e2ea067e9308eda03893ff17278"
+    },
+    {
+      "file": "000118-image-result.json",
+      "sha256": "5778168af9c0b7d0f404dda0f7a63a2c968b8f363904ececa0229f41be2e06b9"
+    },
+    {
+      "file": "000119-image-result.json",
+      "sha256": "3ea54fd7545bdcc00db7bbce436afa22098e1972392e898a973dc055813ea2a5"
+    },
+    {
+      "file": "000120-image-result.json",
+      "sha256": "aed5451a6c45b16c455dba88b2c994e64c65a1b6f4d4d7c564485bbbf2af5fd5"
+    },
+    {
+      "file": "000121-image-result.json",
+      "sha256": "28265c8ac183957c6d6dd472cad384cea3ae81b64ac4e9e2e0fe42fdc7ff5c7d"
+    },
+    {
+      "file": "000122-image-result.json",
+      "sha256": "451a9e490e381518d1798284ea66f6b768a03bb351ec35b8e65615110676b9f6"
+    },
+    {
+      "file": "000123-image-result.json",
+      "sha256": "857fb09964263588774b6f50c81ad8a56eda3f853148504f10ed07044e8ebcc9"
+    },
+    {
+      "file": "000124-image-result.json",
+      "sha256": "9d4217760ebade03e4650488a57a0fd3548c99ded70186133f2d25098d15e9e1"
+    },
+    {
+      "file": "000125-image-result.json",
+      "sha256": "f074640c76d836ca16fa0a09ef42f94fa48e0dc11c1b22db5df3f8411f7d99ee"
+    },
+    {
+      "file": "000126-image-result.json",
+      "sha256": "fa9b91c6a8fe925d434a8cbef41bf187480af7b8a5e1f8c5e378ee429c09f8dc"
+    },
+    {
+      "file": "000127-image-result.json",
+      "sha256": "50a1222830119947c6dcdd39f1ae238eb8693108dd768f2830caabe4cd87ceda"
+    },
+    {
+      "file": "000128-image-result.json",
+      "sha256": "95b92426783e4f22e09fa439d6c7bf54ddf2afb3ee3a733cbb4908a691c59338"
+    },
+    {
+      "file": "000129-image-result.json",
+      "sha256": "abef150b4d89efe4e195929b0dda9d4887248dd553684103e1dd036f2093d3d2"
+    },
+    {
+      "file": "000130-image-result.json",
+      "sha256": "4fdc42f8303c08c5278f63a622bf3942effc6f6383cd6c3051a1ceafdf095839"
+    },
+    {
+      "file": "000131-image-result.json",
+      "sha256": "a0dda8dd5d74b8fae284114aeb08a552ad93d238c09d633271306cf266731ac6"
+    },
+    {
+      "file": "000132-image-result.json",
+      "sha256": "6fa1c04029e1fd12fa600ee599a043401ca62f6d9efb7abea98663e74ad57333"
+    },
+    {
+      "file": "000133-image-result.json",
+      "sha256": "64d921a163e65c43a4405a22cae0a9bf046d95ea7efef59e2e6b33c3632ae1da"
+    },
+    {
+      "file": "000134-image-result.json",
+      "sha256": "3d39f061e0ccfdf33dc576543a6d1b570a9fd070c043b1afe5a4f362318c65c7"
+    },
+    {
+      "file": "000135-image-result.json",
+      "sha256": "3aa6f205fad22f30b6e58b9c65ecb83c9c04593e043817ce0e2fe2620b79991f"
+    },
+    {
+      "file": "000136-image-result.json",
+      "sha256": "1d4f9cd09b28543d3b8547bfc3a80a510c99f10256f0fa39ac9b1c5a4a12f523"
+    },
+    {
+      "file": "000137-image-result.json",
+      "sha256": "580cb99c44980908a20a4b48354310c8f010a47f0378cdaaf8ccfe83153bd4cb"
+    },
+    {
+      "file": "000138-image-result.json",
+      "sha256": "cc66ca3610b08765091b9740af22772baad8db875ac8e51c7c0e4f3ef1dc8aa8"
+    },
+    {
+      "file": "000139-image-result.json",
+      "sha256": "c7ac51de11eb75b5a5482fb75e42c63852f74d8ead60ff5efd42b257c3134eb5"
+    },
+    {
+      "file": "000140-image-result.json",
+      "sha256": "6406f125aaa68882b3aff287af95b785c985d8f9c994c6fcc9b4597e185d605c"
+    },
+    {
+      "file": "000141-image-result.json",
+      "sha256": "414b0927d7964f27109f3c3578acae07f3de96c590ebd0e8a1c68a4aefb3695b"
+    },
+    {
+      "file": "000142-image-result.json",
+      "sha256": "395261cc2637292bae07521d2584b6e4564e8e43ac7ede323749cc95e5f1708c"
+    },
+    {
+      "file": "000143-image-result.json",
+      "sha256": "c1a48ec34004d5a956f028499e99465d756fe80ce6da270a69a4aad814d9a5ee"
+    },
+    {
+      "file": "000144-image-result.json",
+      "sha256": "2d63958f033db131828ca8d30cf1c79dcafbc98f393bd7705c1620fd62506862"
+    },
+    {
+      "file": "000145-image-result.json",
+      "sha256": "3c24639bf60e6af371a5db098a56741a7d981be834d9c8e53842b1db430bc2d7"
+    },
+    {
+      "file": "000146-image-result.json",
+      "sha256": "67824ccfd7734bfd58fc834f50f376fb09ae0a3c83ecf3dfbd9f1462b1fc78d8"
+    },
+    {
+      "file": "000147-image-result.json",
+      "sha256": "2e2eb9fc819bb1ecd18c21b2ca1a7ccac88722a4e70a460655c3fb36357200a9"
+    },
+    {
+      "file": "000148-image-result.json",
+      "sha256": "6f224128809227d24087b793c2ba4c8f09911ed1bb189a854e99e701e2b78e8d"
+    },
+    {
+      "file": "000149-image-result.json",
+      "sha256": "a836d3cf19dcbbcc165aad11e5ff8b90ba25681b2c9f12aee98c52e6201e2771"
+    },
+    {
+      "file": "000150-image-result.json",
+      "sha256": "ad7368a8f0a6ad1ca772a2c5b70401d8d29a819579c3350940924bdcfff71212"
+    },
+    {
+      "file": "000151-image-result.json",
+      "sha256": "1a7cb7ba36ed63c1f4a48ad57dbb333b18460d4d11d3e6df70e3e0b7fca14f23"
+    },
+    {
+      "file": "000152-image-result.json",
+      "sha256": "97c22d43ee9b175159395ebe97abffa5a128e4f82edfba1094a5c862f7fff69b"
+    },
+    {
+      "file": "000153-image-result.json",
+      "sha256": "efc8c66bbc81cf8d2be4b8c525ef877742c1ad6a7f9423900c968a58d334daaa"
+    },
+    {
+      "file": "000154-owner-witnesses.json",
+      "sha256": "dab7494a559446ce1fc8b8615bbf0d1c0a6d4e41356efb4eb8b2568307595ef4"
+    },
+    {
+      "file": "000155-image-result.json",
+      "sha256": "0da11233e5265a7fc3a45278c51d34439314c7f19263baed955ef74a5eb220bc"
+    },
+    {
+      "file": "000156-image-result.json",
+      "sha256": "4b8869dc14389ddddd78913afa4ee8406640e7ab0cabff5725f4ffc9054f9c84"
+    },
+    {
+      "file": "000157-image-result.json",
+      "sha256": "72101268dab6375d512a67854398d54da14787af364afbbfaae389737c2b5799"
+    },
+    {
+      "file": "000158-owner-witnesses.json",
+      "sha256": "9f414a77b6df1b424d879dd5f212b1ef569282c395ae620bd6083e78b71ebc9d"
+    },
+    {
+      "file": "000159-image-result.json",
+      "sha256": "e578a1e565a26a8309539b6037244f72b8ef1c2b18cb3d5c4c7290e2275d445e"
+    },
+    {
+      "file": "000160-image-result.json",
+      "sha256": "de7cfaace6b23a3291ebea5652c7ee339f8a139e92e7048f6c50d7c932218ecc"
+    },
+    {
+      "file": "000161-image-result.json",
+      "sha256": "fcbc4870e31037dc7a161f11d06a1f66a10396eea8520a47e8c8af6f3022ce91"
+    },
+    {
+      "file": "000162-image-result.json",
+      "sha256": "98e0f942f8b3b3190781974ee2af459bd412416a0b0405dde09b5d4df5b4fa12"
+    },
+    {
+      "file": "000163-image-result.json",
+      "sha256": "f607153648f6fe8369c3dfa4c046a33d3b0be22f6516512e0ccc1f187d599230"
+    },
+    {
+      "file": "000164-image-result.json",
+      "sha256": "1728fa9046264279e1e65b1500ca904e4ba1660d1a71ed94568107432c932c0c"
+    },
+    {
+      "file": "000165-image-result.json",
+      "sha256": "81beb19a24b9bd87920a24e9154eeaf48fd46f6b43c14ec50b5cd040f0b434d1"
+    },
+    {
+      "file": "000166-image-result.json",
+      "sha256": "3e5538d6d7bdad4a166c3ab590469fe0b8aa1d905dc5ff579d2adf2a7bc48d8b"
+    },
+    {
+      "file": "000167-image-result.json",
+      "sha256": "672b589eae8bfa253fda034e1013acebbc18ff92b52d38ad6abb70b1d36c4526"
+    },
+    {
+      "file": "000168-image-result.json",
+      "sha256": "e0da1c1a036bb3a6db1580318edac882e6c8b60a544efc66af14f2d494d6b963"
+    },
+    {
+      "file": "000169-image-result.json",
+      "sha256": "062ee573cb8aa9e5bddabf9e5172b47fa4dd74fcdcaaf37b3a5aefdc949fe4bf"
+    },
+    {
+      "file": "000170-image-result.json",
+      "sha256": "892e92152760f9c99cb08308d8b06b18c527a006890c98cb78f2a4d25f94fce2"
+    },
+    {
+      "file": "000171-owner-witnesses.json",
+      "sha256": "4fb353b7f05a200d9ad9166efece3314d7d0cc23f4825425f4aa44d2412cc3b2"
+    },
+    {
+      "file": "000172-image-result.json",
+      "sha256": "5cc91dffd3cd7589392b69e41d9d7f92b01d8eab73301a959c06d35163249ea6"
+    },
+    {
+      "file": "000173-image-result.json",
+      "sha256": "669001516eb0d9b9c0f7e7ee660281f753323a14997e0552894eca8884d4d806"
+    },
+    {
+      "file": "000174-image-result.json",
+      "sha256": "b7b726688d0d4e551463a4b6c936f14eaa6daa6c713c600733f4d9d76af6319e"
+    },
+    {
+      "file": "000175-image-result.json",
+      "sha256": "fe8814c8b599b0cc1078676cfc2bce8cb78327fc1bc40802456fa8c7b75e6887"
+    },
+    {
+      "file": "000176-image-result.json",
+      "sha256": "bfd6f0b194805fbf1418c931a94a4e58d287a4f4cf03add9a2be70eb92cdc2e5"
+    },
+    {
+      "file": "000177-image-result.json",
+      "sha256": "e6e9a91b7e0eee9113314a6d6578a662eabca274d9c83dd36b878c4e29f1a59d"
+    },
+    {
+      "file": "000178-image-result.json",
+      "sha256": "631463d3db8fd951999c8e1023ef5cea67bb0112eda32a5b067a87984cc641d1"
+    },
+    {
+      "file": "000179-image-result.json",
+      "sha256": "1e6fc56c31335b8fcf8ed6a82c1bc7a70f355ec053cc1be133bb5f9494325164"
+    },
+    {
+      "file": "000180-image-result.json",
+      "sha256": "a5a774cf1ea90dfd57921a4b48413b2e12051c2e4afca779ff62b4b66340879a"
+    },
+    {
+      "file": "000181-image-result.json",
+      "sha256": "73db9104899416305ee8886aef3816db1fb13f1f0ac972a0ef0c4f8dc9c5357d"
+    },
+    {
+      "file": "000182-image-result.json",
+      "sha256": "37f8869a70bd05961f60c0952c84859152d72cb3e8b5f61d9d362b9daaa643aa"
+    },
+    {
+      "file": "000183-image-result.json",
+      "sha256": "4a2292e350060814c1de812f0473cce473ca65d35579c345362a5765bb15b576"
+    },
+    {
+      "file": "000184-owner-witnesses.json",
+      "sha256": "e17a237e85218398bc9710182a354352d4f8b4e06a087bafe051d33cf454200f"
+    },
+    {
+      "file": "000185-image-result.json",
+      "sha256": "1e5a81ca14d28232bdfb157f50d1cf0b63d00a091fe8603ad22eb01ebc15ceb2"
+    },
+    {
+      "file": "000186-image-result.json",
+      "sha256": "61f37091a25feab85464187aa7b3555e85ab6131a2a52ec681c780cc40b8d84b"
+    },
+    {
+      "file": "000187-image-result.json",
+      "sha256": "1d1f69dd935ef94d8ca22f654dc0cdf8b2944751f6584eed0e791b7fffd78039"
+    },
+    {
+      "file": "000188-image-result.json",
+      "sha256": "df76d88794c383541f48d6cd5d220da7bbca454b95e7493a2595cc8d54c65ec1"
+    },
+    {
+      "file": "000189-image-result.json",
+      "sha256": "60a3f885f70a291a57f552316e6a8172e564ff9559766ff54ebde5bc56b530cc"
+    },
+    {
+      "file": "000190-image-result.json",
+      "sha256": "db8a508b214f21b2b03a22505870b89ba48d34f1944db0c9b901a78b941d6980"
+    },
+    {
+      "file": "000191-image-result.json",
+      "sha256": "ab62da444864806d4adfb4de378f5591022ec30685cbfca30c7c8acd064227ef"
+    },
+    {
+      "file": "000192-image-result.json",
+      "sha256": "52422fffc77d1c810ddd738a5aedf92893d338293bb4ae37210fcea6bd995ed2"
+    },
+    {
+      "file": "000193-image-result.json",
+      "sha256": "ef7a97d3d4bc056c53c36a245f1c477e985b74a35a3453f698918d61980f1aa0"
+    },
+    {
+      "file": "000194-image-result.json",
+      "sha256": "8ee97ed52bf6be1c6a83eb332f0fb7631c6100d9a7fcc6d2909d6b257a4395c1"
+    },
+    {
+      "file": "000195-image-result.json",
+      "sha256": "f290f98c118a04ec186d570fc8f1181b4e032b2d659e24b7a1172fc18c2fb3bb"
+    },
+    {
+      "file": "000196-image-result.json",
+      "sha256": "0e0fb5e8801dd42c0a2c22df71f8661e784e074b4ec834e088762d2d53e2b44d"
+    },
+    {
+      "file": "000197-image-result.json",
+      "sha256": "b7159089d1659b16824c7dd19db453872f5e0249e043d4e27d3771a78c38ff87"
+    },
+    {
+      "file": "000198-image-result.json",
+      "sha256": "8fe50807d45e9ad325abb385ae7048637895ac23172d8fe4edc210ecb19290fc"
+    },
+    {
+      "file": "000199-image-result.json",
+      "sha256": "505a97fa9504f179f628162038eff3839727b371e128b60407893be7e72a8548"
+    },
+    {
+      "file": "000200-image-result.json",
+      "sha256": "90ccecafe7bde8354af63f894f4bc32cf6dea72a0c1f6e9204c8a9a56b181937"
+    },
+    {
+      "file": "000201-image-result.json",
+      "sha256": "36995c6a81e2a800ba7b4ac66d6b21e5c5fe262eb9e0573ede06b36e949fe082"
+    },
+    {
+      "file": "000202-image-result.json",
+      "sha256": "3486b86b9e710c977dd0eb3fba2cd3925ca5e85b53df399ec0ac1e3a86c0747d"
+    },
+    {
+      "file": "000203-image-result.json",
+      "sha256": "0dfa1263d182b86c857eb5f231196e33abb92f2bf9464d963d4f7d1b862a75a0"
+    },
+    {
+      "file": "000204-image-result.json",
+      "sha256": "ceb61a14a2dc1064bee46732736d041ca3a8aded9b2163e180731252fc0a6aff"
+    },
+    {
+      "file": "000205-image-result.json",
+      "sha256": "089080683ea211e53a3fdea599774d72e2371fc991b02cb8c3cc7778d3e5b506"
+    },
+    {
+      "file": "000206-image-result.json",
+      "sha256": "57f70c685d753e88761c5bfdbac9f60e378ed5c625064b75bc636e31f0ee7fca"
+    },
+    {
+      "file": "000207-image-result.json",
+      "sha256": "f577a99210c20597bb2cc2fb16448edeaa9d7642d8dc8aa6dab5cd0255e93be7"
+    },
+    {
+      "file": "000208-image-result.json",
+      "sha256": "6694513213390d881f3c6af14ae1147fe442fe66b78e20075bd9771f5eb66062"
+    },
+    {
+      "file": "000209-image-result.json",
+      "sha256": "a637b00bc4126da283818450cbb1d855d42ffac7d8cbf244801aa48cd7dfba44"
+    },
+    {
+      "file": "000210-image-result.json",
+      "sha256": "40f89d7015d970fa334d42b83d4dbf31bdc6313c8532a00a12b1d4d7531034d6"
+    },
+    {
+      "file": "000211-image-result.json",
+      "sha256": "adfa5b0631a4223c1578b7143e7ae6c6136125b07e3310e074051888277ebf6b"
+    },
+    {
+      "file": "000212-image-result.json",
+      "sha256": "974425228bdb88ab826f0f3d739984795fb6d16f002813cab78e0a7513b33fe9"
+    },
+    {
+      "file": "000213-image-result.json",
+      "sha256": "138c7a9d2309a3fddd947f73c29cd29fe1a92350b88ce16522fcb09963b10de3"
+    },
+    {
+      "file": "000214-image-result.json",
+      "sha256": "226f2b9a37ad28aa10fdcd8df9a3e670460ce34f03d6f2fc95d1d70a2dc3e2fb"
+    },
+    {
+      "file": "000215-image-result.json",
+      "sha256": "d21488442704d5bf38383ca92e4c9e54105addcd8d44fbd64649f884abb200f1"
+    },
+    {
+      "file": "000216-image-result.json",
+      "sha256": "01753a7e714cd40c79b57ddae4ac28b5747b00565df76f3a6b593be8b775b55c"
+    },
+    {
+      "file": "000217-image-result.json",
+      "sha256": "92f5a904c78c08e3967d68344aefe0dae08cc2f8585cbaada17700bbac1b2cfe"
+    },
+    {
+      "file": "000218-image-result.json",
+      "sha256": "52f2751304d9c137168191d9aa4b0cf60154d4a290605c792758c2404cbad51f"
+    },
+    {
+      "file": "000219-image-result.json",
+      "sha256": "9882a026464576520a9050d897a0b08a7d35cf1b129a3a8c8157ec1ed1eb87bc"
+    },
+    {
+      "file": "000220-image-result.json",
+      "sha256": "bf7a3e123d263b2b53acbe8580eff206cfd542bd0b31f8e31f8f6ec74755a9d4"
+    },
+    {
+      "file": "000221-image-result.json",
+      "sha256": "d3ca770c51b6fd644a2eb778e6d9a142c71fa45a342d1c77274331c91f68a1dd"
+    },
+    {
+      "file": "000222-image-result.json",
+      "sha256": "89d836d59efdbeb7526405949a801f4feaa41f5dc825fe1cab197a88d25eb544"
+    },
+    {
+      "file": "000223-image-result.json",
+      "sha256": "b87463edad2a29af932a6ef19baa9d64495357b55d4b67af76f97f7676f60aa3"
+    },
+    {
+      "file": "000224-image-result.json",
+      "sha256": "57c4e67e858b211fa0c3cf0a5350b237788137dbe110646bdb9308e9b227ed8b"
+    },
+    {
+      "file": "000225-image-result.json",
+      "sha256": "61fb6a2084e0d44efd5c49abdde3a79b4d899513e912546224df7630b490a888"
+    },
+    {
+      "file": "000226-image-result.json",
+      "sha256": "2c4cf89cb9daada43539e2118cd4455e0ada9d79111bb031efc6fa7874ad12ae"
+    },
+    {
+      "file": "000227-image-result.json",
+      "sha256": "b5c779032cd8ec5113d01b6f4a875c55ca646b90d1001c667d13021a495dc1ab"
+    },
+    {
+      "file": "000228-image-result.json",
+      "sha256": "5956c9e88dc666047ad4108eb326ed50c530457bae4581c8fe988413429bd54d"
+    },
+    {
+      "file": "000229-image-result.json",
+      "sha256": "29fc2afee81d0f750af8b90e4453041bdaf246df44fe53a39c004b7c8536c5b9"
+    },
+    {
+      "file": "000230-owner-witnesses.json",
+      "sha256": "08a3be40f4716924130a0afc462b1671a20dce413bf6c1180b3246ecea5d38e3"
+    },
+    {
+      "file": "000231-image-result.json",
+      "sha256": "7e3773ba7e711b3711dcb4e3f5795e37cd508ee47c3a54fb747f2aa3e4183502"
+    },
+    {
+      "file": "000232-image-result.json",
+      "sha256": "39cbb3c156e8ec348d7f2b976958e52573b11e847eeab4e28e11b117957f00f6"
+    },
+    {
+      "file": "000233-image-result.json",
+      "sha256": "e05c42490b0304c403b8c3a9ff6b769eca8423d95176f196220aca260cdb7bc0"
+    },
+    {
+      "file": "000234-owner-witnesses.json",
+      "sha256": "105ac96eb1838ea4bb5104ce0c0c4b44f81f87e9ce386889b8bdf10b3cc6fbb4"
+    },
+    {
+      "file": "000235-image-result.json",
+      "sha256": "30175991f69d4189d71aaca0aaa022675118266c71e18adf5c73f6422ad640ff"
+    },
+    {
+      "file": "000236-image-result.json",
+      "sha256": "349116a6ee70a7e7fea61fadce2d13b8d70275e38247733bb637767273bf8c13"
+    },
+    {
+      "file": "000237-image-result.json",
+      "sha256": "6f2e8602b49ba0099d5a7d1a973a4da52ff0c07df2bc541d3ad0f6cbf00943fa"
+    },
+    {
+      "file": "000238-image-result.json",
+      "sha256": "8201aa674390ab0bd86597eccf684106f5542d7ed14dc6b3256c548825d6e691"
+    },
+    {
+      "file": "000239-image-result.json",
+      "sha256": "e435159473ce176cfb49b81b51d82b4a7c16620c1d4378bca58c75159b9e8b95"
+    },
+    {
+      "file": "000240-image-result.json",
+      "sha256": "d89ff040cd7cd2d543a58052aa12d41fb713cfb55549b1a8d060d3757d44d87e"
+    },
+    {
+      "file": "000241-image-result.json",
+      "sha256": "de4c6830797b4ded0a9c520002cedebbfadf7e762648f33ef42960a5c3d990f9"
+    },
+    {
+      "file": "000242-image-result.json",
+      "sha256": "bc3769b8631f59482f0ca2f57198246c0f2418baa97937342f21aed1bdd96441"
+    },
+    {
+      "file": "000243-image-result.json",
+      "sha256": "bff2c61b8a8539a069588fe41cd39e6ad046e4364d4860f5ae35db07108366e7"
+    },
+    {
+      "file": "000244-image-result.json",
+      "sha256": "084168b373400fe63f02ae6de4668cad46b17109a79833c1c7fda447456b6e46"
+    },
+    {
+      "file": "000245-image-result.json",
+      "sha256": "549c5fc7fc3730d45006cc8ed11326620886078860d66d5d02e6f4041bee11d6"
+    },
+    {
+      "file": "000246-image-result.json",
+      "sha256": "a79332ef371dc1da54d05fb9414cbfe3269fe35e62f613461b15290ef136362d"
+    },
+    {
+      "file": "000247-owner-witnesses.json",
+      "sha256": "c90245d68e1c8d1841fc53f716051a41d5457e32e6804d58b85cd55837ed64a9"
+    },
+    {
+      "file": "000248-image-result.json",
+      "sha256": "975053483fa91dc0524e6d5bd9fbd60a1d8dbb5b80ba438d2711792b09d81ffb"
+    },
+    {
+      "file": "000249-image-result.json",
+      "sha256": "bffd7c0f4075cc1984fbfb41a48a4a38c5f2f12d41abc8a0bbe08e01350a248c"
+    },
+    {
+      "file": "000250-image-result.json",
+      "sha256": "563c92867e90c738db5d3efedddbd5d3bff7f2952398e0b7412c4ae0bf2b05fe"
+    },
+    {
+      "file": "000251-image-result.json",
+      "sha256": "d0bc2ef144872f0276e30e025b5658e009b25dbde579bd32d487d391d3f5276e"
+    },
+    {
+      "file": "000252-image-result.json",
+      "sha256": "f45d115866710951031d41cf8862ac7df2421d585abe71cdbbccca8bfc1af51a"
+    },
+    {
+      "file": "000253-image-result.json",
+      "sha256": "86d2b6bce4f5ac43ecb8b1d31ef491b416a9280d9073ea7c6cfddcda57ca472d"
+    },
+    {
+      "file": "000254-image-result.json",
+      "sha256": "22d1e3a595c7740c55ef82571dda89097852d5cbb1d70f6c78af7b9c14973c9c"
+    },
+    {
+      "file": "000255-image-result.json",
+      "sha256": "e2225b72b71df59d70060cce2aef14a922ba1a20ed1e580a48c2470216a32dea"
+    },
+    {
+      "file": "000256-image-result.json",
+      "sha256": "c74b6984b22fb3e5d0f759f33177416322699153f17031abf608d6ba14d614d7"
+    },
+    {
+      "file": "000257-image-result.json",
+      "sha256": "e27b2bbf5b32d978588f16c763672bb87dc788c6ce6c3fe1c3b0bea9b7dd3a82"
+    },
+    {
+      "file": "000258-image-result.json",
+      "sha256": "fca0a387f0843860c8c604b4a91366fc2f89ccfaa964b7035a31375535bacf2e"
+    },
+    {
+      "file": "000259-image-result.json",
+      "sha256": "a9bc968b8286c80e0312c9445ca1fd95a69de84a477f1df4c4717b56ab6f19da"
+    },
+    {
+      "file": "000260-owner-witnesses.json",
+      "sha256": "4fe44f7bbc24f44e6b48d2d707bd5e97704799d3e453259bec69dd311b785cbf"
+    },
+    {
+      "file": "000261-image-result.json",
+      "sha256": "6f1d0d863578feaa4d55916beaee8343e2bd85719ea2a91579779efe9926ab0f"
+    },
+    {
+      "file": "000262-image-result.json",
+      "sha256": "103b724358bb00b8e4d2511d146bf73ef37d0355e8d38e8a7c733ec9dfe660bf"
+    },
+    {
+      "file": "000263-image-result.json",
+      "sha256": "1b64de1385b695f2221039aa9b20a12e1e46babb8ab7bad49e7268bd7dbbd723"
+    },
+    {
+      "file": "000264-image-result.json",
+      "sha256": "930066df3d310efaead85cac46fbbe92fa5df0bcbcabd0a087d703c4d0414073"
+    },
+    {
+      "file": "000265-image-result.json",
+      "sha256": "a9a7ad88d564b2071678514a3351a81665b19e796d62735bb0196518ae11f15b"
+    },
+    {
+      "file": "000266-image-result.json",
+      "sha256": "ea76fe9df8e78e062accbb0b565582c51af4f048bbcebf9f54e07ea0b50fa9fb"
+    },
+    {
+      "file": "000267-image-result.json",
+      "sha256": "7913b9918624f8ccc6c38cc40f75faaa762d09f439b2a732312efed02e31cbc2"
+    },
+    {
+      "file": "000268-image-result.json",
+      "sha256": "42ab6652c4b24c6d2b96668aa0c5a75b87449600e533ba32b1d0290e2c77ac6d"
+    },
+    {
+      "file": "000269-image-result.json",
+      "sha256": "26567cc3445fe7415ac8ae21225194e1c55ae465fc827bfb6a2130fdab40806b"
+    },
+    {
+      "file": "000270-image-result.json",
+      "sha256": "daa3dc99d60a3ef5015a2c699fe9b51e3f368c183143f91bd91ba0e9bb0195ef"
+    },
+    {
+      "file": "000271-image-result.json",
+      "sha256": "286ca75a25c66761aa20281575f96a080ff0640f01a641c24ed12545386b3742"
+    },
+    {
+      "file": "000272-image-result.json",
+      "sha256": "e5b54adb15298311e571eca9d034fc68226b488c951808d8556aec647820fa50"
+    },
+    {
+      "file": "000273-image-result.json",
+      "sha256": "4065740d36e03da984488f88ade8b24c0545f35a1cf0dd39bb1bda689357255c"
+    },
+    {
+      "file": "000274-image-result.json",
+      "sha256": "d282936cb42e484ccc34cd50d15088f8ad7cdfd672c1839101305610be02e6db"
+    },
+    {
+      "file": "000275-image-result.json",
+      "sha256": "742a73dc17713dc0bbffc65766b8da18406f31c177f1d51b39a29f27d0091c95"
+    },
+    {
+      "file": "000276-image-result.json",
+      "sha256": "66a941c23a50a6063c47e2cc528dc21305a29f8c3112e995661fc295e6b49993"
+    },
+    {
+      "file": "000277-image-result.json",
+      "sha256": "c644f4e098c398a76c5ed3ce03c0026b2f5718e74d963d59bd07985dfbc32126"
+    },
+    {
+      "file": "000278-image-result.json",
+      "sha256": "bb1360a764c4544f37f5caf7a2f567103d7556740bd8daf6c75f141d0b6bd0d2"
+    },
+    {
+      "file": "000279-image-result.json",
+      "sha256": "572b74771cc94554e246a0634fddd22c201121ebc331ac7f55bd3a5c4686eae2"
+    },
+    {
+      "file": "000280-image-result.json",
+      "sha256": "60ff1a5e3ab072e57a23c8b4f87592de155ee5cde95c18c5b6a433ca4eef82ee"
+    },
+    {
+      "file": "000281-image-result.json",
+      "sha256": "87620254a3fb574750352ace0c6910c3bff3e3787e3478733a17f209de094d61"
+    },
+    {
+      "file": "000282-image-result.json",
+      "sha256": "98a2eb1a58f0272de75b5fe0715502b78c871aa7de45353240c6beba82dee17e"
+    },
+    {
+      "file": "000283-image-result.json",
+      "sha256": "2b09e25d9433e71d03e9513ab9bf9d50a870b8c770ecc6b087ade7fade6073f9"
+    },
+    {
+      "file": "000284-image-result.json",
+      "sha256": "255a9a58a149b15e6bb6758d12661457ca6fbd174d6c526ae40acf677027830b"
+    },
+    {
+      "file": "000285-image-result.json",
+      "sha256": "5b9ed19a9c9be6d3f0528fa496f3e00b2272e146e52f7dcd9a75948a2a8d2cf7"
+    },
+    {
+      "file": "000286-image-result.json",
+      "sha256": "dd8ffce01caed11342b6e98b9d2c2d812056cc25ee588e33d7da9961dd731953"
+    },
+    {
+      "file": "000287-image-result.json",
+      "sha256": "5005a508206e6db3448860f985a5ade1861b16b4a152b63e998629fde8e3e41d"
+    },
+    {
+      "file": "000288-image-result.json",
+      "sha256": "7b8edcd04428e45031f76e06d3bacdb5a09e351fcb8f4642456bf8b0ebc04247"
+    },
+    {
+      "file": "000289-image-result.json",
+      "sha256": "8dec2e166d45352b9601b5b55c059f36c5d9e585709d6e1b5ee411623d49281c"
+    },
+    {
+      "file": "000290-image-result.json",
+      "sha256": "7c72e1d866501028efec69c37595e3e3e61390ad659383a0ebb6b96ba3ab09d6"
+    },
+    {
+      "file": "000291-image-result.json",
+      "sha256": "6892383a59cc4fbe74867dfac03332bc58e0c099c54bf51e67f5483057eec55c"
+    },
+    {
+      "file": "000292-image-result.json",
+      "sha256": "c9f5da742e966d020e3e396cdf5c8005fa57174e676356306228dc407ccd68ef"
+    },
+    {
+      "file": "000293-image-result.json",
+      "sha256": "31ae7fe164c50d0d02850429368fea92c6d5f444562921554d460a27a4be9e68"
+    },
+    {
+      "file": "000294-image-result.json",
+      "sha256": "245be7c5ef71280759ff2a583f89ca2ad91aa552bfa2ddf68652c7321c11ad85"
+    },
+    {
+      "file": "000295-image-result.json",
+      "sha256": "ca82125c5628cab12ba6242a3cd9937b1aafd7812787d65d4f7cb0e499bab045"
+    },
+    {
+      "file": "000296-image-result.json",
+      "sha256": "a2f147d39db7f76f075894bf0876ee3ce011933ef57721d20768c27d2d2cf2f8"
+    },
+    {
+      "file": "000297-image-result.json",
+      "sha256": "141290bbf8dc695d1f31b76e9af154e963244fcf75d5bfd4815313eb3d4ac5e8"
+    },
+    {
+      "file": "000298-image-result.json",
+      "sha256": "e7df74022f707207c0a63a6930373a0462bf5c377555b81f0e4665fe7c3aa3a6"
+    },
+    {
+      "file": "000299-image-result.json",
+      "sha256": "f6d0fda4ab67bff835b53b9b741c753ef67596dbe07217ba483ea84c14914284"
+    },
+    {
+      "file": "000300-image-result.json",
+      "sha256": "4837d4d863b68b78a7f1c8306dadd903e3159d3e8502d076d4842e15ea940f91"
+    },
+    {
+      "file": "000301-image-result.json",
+      "sha256": "c9819b13f76ccad135c3d5b39e5e3093c885681441628fc2a3f593370976e4d9"
+    },
+    {
+      "file": "000302-image-result.json",
+      "sha256": "1556172c232fef80f7de02211d0758bb543e578d2a7ee1159f08d59e1a486969"
+    },
+    {
+      "file": "000303-image-result.json",
+      "sha256": "9f78b90ee235abf0341eb4e3e6d54a499ad94fe6711deb688bc6591afa1a0f68"
+    },
+    {
+      "file": "000304-image-result.json",
+      "sha256": "78a3f797845451f0b04ed3a9daebf3f920f8c118bebb6fadd1b776d14e27be22"
+    },
+    {
+      "file": "000305-image-result.json",
+      "sha256": "272cfc5973d9bceb09a818f949c82cd659d34718cdd3d4d2f58bcf426ea3444e"
+    }
+  ]
+}

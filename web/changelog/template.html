@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Significant changes to Natural Causes, the browser life sim. Read the latest features, fixes, art and sound updates.">
-    <meta name="theme-color" content="#0d0d10">
+    <meta name="theme-color" content="#11161d">
     <title>Changelog | Natural Causes</title>
     <style>{{STYLE}}</style>
   </head>
@@ -14,19 +14,19 @@
       <nav aria-label="Main navigation">
         <a class="brand" href="../">Natural Causes</a>
         <div class="nav-actions">
+          <button id="theme-toggle" type="button" aria-label="Use light theme" aria-pressed="false" hidden><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg><span class="theme-track" aria-hidden="true"><span></span></span><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14a8 8 0 0 1-10-10 8 8 0 1 0 10 10Z"/></svg></button>
           <a class="play-link" href="../">Play the game</a>
-          <button id="theme-toggle" type="button" aria-label="Use light theme" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button>
         </div>
       </nav>
     </header>
     <main id="main">
       <div class="page-heading">
         <h1>Changelog</h1>
-        <p>Significant changes to Natural Causes, newest first. {{COUNT}} updates so far.</p>
+        <p>New features, improvements and fixes.</p>
       </div>
-      <div class="view-controls" hidden><button id="expand-all" type="button">Expand all</button><button id="collapse-all" type="button">Collapse all</button></div>
+      <div class="view-controls" hidden><button id="expand-all" type="button">Expand all</button><button id="collapse-all" type="button" hidden>Collapse all</button></div>
       <section class="entries" aria-label="Game updates">{{ENTRIES}}</section>
-      <footer><p>Natural Causes is a work in progress. These notes cover features and fixes added to the game.</p><a href="../">Play Natural Causes</a></footer>
+      <footer><span>Natural Causes</span><a href="../">Back to the game</a></footer>
     </main>
     <script>{{SCRIPT}}</script>
   </body>

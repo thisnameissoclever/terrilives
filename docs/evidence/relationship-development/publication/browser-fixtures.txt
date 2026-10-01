@@ -1,0 +1,9 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+   Compiling terri-wasm v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 14.14s
+     Running `target\debug\examples\relationship_qa.exe .superpowers/sdd/2026-10-01-publication/browser-fixtures`
+wait: A=0 B=1
+ordered: A=0 B=1
+proximity: A=0 B=1
+reading: A=0 B=1
+friction: A=0 B=1

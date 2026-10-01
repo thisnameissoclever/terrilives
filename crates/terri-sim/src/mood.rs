@@ -253,13 +253,7 @@ fn has_bed_shortage(world: &World) -> bool {
                 pack.objects
                     .get(object.0 .0 as usize)
                     .map_or(0, |definition| {
-                        definition
-                            .interactions
-                            .iter()
-                            .filter(|i| i.tags.contains(&pack.sleep_tag))
-                            .map(|i| usize::from(i.slots))
-                            .max()
-                            .unwrap_or(0)
+                        usize::from(crate::beds::capacity(pack, definition))
                     })
             })
             .sum()

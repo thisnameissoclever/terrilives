@@ -13,6 +13,27 @@ export interface SimDetails {
   }[];
 }
 
+export interface BedPlace { readonly bed: number; readonly ordinal: number; }
+export interface BedPlaceStatus extends BedPlace {
+  readonly label: string;
+  readonly assignee: number | null;
+  readonly occupant: number | null;
+  readonly assigneeName: string | null;
+  readonly occupantName: string | null;
+}
+export interface BedAssignmentResult {
+  readonly sequence: bigint;
+  readonly agent: number;
+  readonly place: BedPlace | null;
+  readonly reason: string | null;
+}
+const BED_ASSIGNMENT_REASONS: Readonly<Record<number, string>> = {
+  1: 'That Sim is no longer here.',
+  2: 'That bed is no longer here.',
+  3: 'That sleeping place is not available.',
+  4: 'That place is assigned to another Sim.',
+};
+
 /**
  * `SimCommand`'s variant indices, which are **wire format** rather than
  * an internal detail. They are the numbers postcard writes for the enum
@@ -679,6 +700,16 @@ export class SimBridge {
     );
   }
 
+  /** Exact bed IDs for running sleep-tagged place ownership, or 0xffffffff. */
+  sleepingBeds(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.sleeping_beds_ptr(), this.count);
+  }
+
+  /** Places within sleepingBeds; 0xffffffff means absent. Refresh after sync or memory growth. */
+  sleepingPlaces(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.sleeping_places_ptr(), this.count);
+  }
+
   /**
    * Authored object-sound action per row: 0 none, 1 shower water,
    * 2 stove cooking, 3 sink water. These codes describe current semantic state, not a cue
@@ -1311,6 +1342,45 @@ export class SimBridge {
     return { sleepOffsetTicks, drain: factors.slice(0, 7), refill: factors.slice(7), repeated };
   }
 
+  bedPlacesOf(entityIndex: number): readonly BedPlaceStatus[] | null {
+    if (!isU32(entityIndex)) return null;
+    const values = this.handle.bed_places_of(entityIndex);
+    if (values[0] !== 1 || (values.length - 1) % 6 !== 0) return null;
+    const places: BedPlaceStatus[] = [];
+    const assignees = new Set<number>();
+    const occupants = new Set<number>();
+    for (let offset = 1; offset < values.length; offset += 6) {
+      const [bed, ordinal, x, y, assignee, occupant] = values.slice(offset, offset + 6);
+      if (!isU32(bed) || !isU32(ordinal) || ordinal > 255 || !Number.isFinite(x) || !Number.isFinite(y)
+        || (assignee !== -1 && !isU32(assignee)) || (occupant !== -1 && !isU32(occupant))) return null;
+      const previous = places.at(-1);
+      if (previous && (bed < previous.bed || (bed === previous.bed && ordinal <= previous.ordinal))) return null;
+      if ((assignee !== -1 && assignees.has(assignee)) || (occupant !== -1 && occupants.has(occupant))) return null;
+      if (assignee !== -1) assignees.add(assignee);
+      if (occupant !== -1) occupants.add(occupant);
+      places.push({ bed, ordinal, label: `Bed at (${x}, ${y}), place ${ordinal + 1}: ${this.objectName(bed)}`,
+        assignee: assignee === -1 ? null : assignee, occupant: occupant === -1 ? null : occupant,
+        assigneeName: assignee === -1 ? null : this.simName(assignee),
+        occupantName: occupant === -1 ? null : this.simName(occupant) });
+    }
+    return places;
+  }
+
+  setBedAssignment(agent: number, place: BedPlace | null): boolean {
+    if (!isU32(agent) || (place !== null && (!isU32(place.bed) || !isU32(place.ordinal) || place.ordinal > 255))) return false;
+    return this.handle.set_bed_assignment(agent, place?.bed, place?.ordinal ?? 0);
+  }
+
+  lastBedAssignmentResult(): BedAssignmentResult | null {
+    const sequence = this.handle.bed_assignment_sequence();
+    const values = this.handle.last_bed_assignment_result();
+    if (typeof sequence !== 'bigint' || sequence <= 0n || values.length !== 5 || Array.from(values).some(value => !isU32(value))) return null;
+    const [agent, hasPlace, bed, ordinal, refusal] = values;
+    if ((hasPlace !== 0 && hasPlace !== 1) || ordinal > 255 || (hasPlace === 0 && (bed !== 0 || ordinal !== 0))
+      || (refusal !== 0 && !Object.hasOwn(BED_ASSIGNMENT_REASONS, refusal))) return null;
+    return { sequence, agent, place: hasPlace ? { bed, ordinal } : null, reason: refusal === 0 ? null : BED_ASSIGNMENT_REASONS[refusal] };
+  }
+
   /**
    * Interleaved [simId, feeling, ...] pairs in key order, or empty.
    * Same copy-and-cadence contract as `personalityOf`.
@@ -1318,6 +1388,12 @@ export class SimBridge {
   relationshipsOf(entityIndex: number): Float32Array {
     if (!isU32(entityIndex)) return new Float32Array(0);
     return this.handle.relationships_of(entityIndex);
+  }
+
+  shynessOf(entityIndex: number): number | null {
+    if (!isU32(entityIndex)) return null;
+    const value = this.handle.shyness_of(entityIndex);
+    return value === 0 ? null : value;
   }
 
   /**

@@ -88,6 +88,7 @@ pub fn wander(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    interpersonal: Option<Res<super::interpersonal::InterpersonalPhase>>,
     mut rng: ResMut<SimRng>,
     agents: Query<
         (Entity, &Position, Option<&Wander>),
@@ -140,11 +141,25 @@ pub fn wander(
         let from = (pos.x.round() as i32, pos.y.round() as i32);
         // No reachable destination this tick. Stand still and try again
         // on the next one, rather than looping until one turns up.
-        let Some(steps) = roll_wander_path(&grid, from, radius, attempts, &mut rng)
+        let Some(mut steps) = roll_wander_path(&grid, from, radius, attempts, &mut rng)
             .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
         else {
             continue;
         };
+
+        if let Some(phase) = &interpersonal {
+            if content.0.tuning.relationships.privacy_respect_chance == 0.0
+                && phase.path_intrudes(agent, &steps)
+                && rng.next_f32() < phase.reconsider_chance(agent)
+            {
+                if let Some(alternative) = roll_wander_path(&grid, from, radius, attempts, &mut rng)
+                    .and_then(|path| grid.anchor_path((pos.x, pos.y), path))
+                    .filter(|path| !phase.path_intrudes(agent, path))
+                {
+                    steps = alternative;
+                }
+            }
+        }
 
         let variance = content.0.tuning.wander_pause_variance;
         let low = (pause_ticks as f32 * (1.0 - variance)).round() as u32;

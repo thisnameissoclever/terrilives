@@ -8,8 +8,9 @@ exact formulas and verification evidence.
 ## Directional affinity
 
 Each Sim has a separate affinity toward another Sim, from -1 to 1. One Sim
-liking another does not guarantee the feeling is mutual. Completed chats add
-affinity; time gradually moves living relationships toward neutral. Affinity
+liking another does not guarantee the feeling is mutual. Completed chats, pleasant
+nearby time and recognized shared activities add affinity. Opposing authored
+preferences create friction; time gradually moves living relationships toward neutral. Affinity
 toward dead Sims remains available for grief. Family ties are a separate
 relationship classification and do not replace affinity.
 
@@ -19,6 +20,8 @@ relationship classification and do not replace affinity.
 | --- | --- | --- |
 | Need drain and refill multipliers | Change how often a Sim wants furniture or company, creating different opportunities for contact and waiting | Implemented |
 | Action preferences and trait dispositions | Change which activities a Sim chooses; the resulting reservations can inconvenience somebody else | Implemented |
+| Shyness (1 to 100) | Higher values increase respect for private bathroom use and annoyance when boundaries are violated; shyness does not determine compatibility | Implemented |
+| Authored interests | Shared interests help; opposing interests cause directional friction; unrelated interests and shared dislikes remain neutral | Implemented |
 | Social need | Makes an available person more attractive as a conversation partner; busy partners remain unavailable | Implemented |
 | Positive and negative affinity | Nearby liked Sims comfort the subject; disliked Sims contribute unease | Implemented |
 | Grief | Loss of a liked Sim creates a stronger, longer mood effect than loss of a weak acquaintance | Implemented |
@@ -61,20 +64,59 @@ Taking another activity puts the dishes back and restores the nuisance until
 cleanup resumes. The claim remains exclusive while interrupted, so two Sims
 cannot claim the same cleanup. Cancellation releases that claim.
 
+## Privacy and relationship development
+
+A conversation started while the recipient has an unhelped low or critical need
+reduces the recipient's opinion of its initiator. Starting private use beside
+an existing occupant annoys that occupant; entering after private use begins
+annoys the user. These are separate incident directions. The room containing
+the shower, bath or toilet defines the boundary, including open-plan placement.
+Base penalties remain 0.11 for low needs, 0.20 for critical needs and 0.25 for
+privacy, with shyness scaling the reaction.
+
+Autonomous Sims prefer alternatives, detours or waiting. Respect decisions last
+30 simulated minutes, reducing repeated random attempts. Relevant critical needs
+can override after ten minutes without an alternative; levels at or below five
+can override immediately. Player orders bypass avoidance, exits are permitted,
+and necessary commute routes remain usable. Consequences still apply.
+Domestic station claims and distinct dining seats also constrain privacy detours.
+
+Awake housemates in the same room within four tiles can develop relationships.
+Positive contact requires acceptable hygiene in the other Sim and no critical
+need in the subject left unhelped by the current activity. Existing dislike or
+relationship mood cannot prevent recovery. Simultaneous reading, exercise and
+aquarium watching on separate objects earn ten times passive contact when both
+participants enjoy the activity. Shared activities replace passive rewards and
+suspend incompatibility friction. Conversations receive one completion reward.
+Shared meals and TV currently do not earn this recognition bonus.
+
+Compatibility uses personality interaction preferences, disposition traits and
+hobbies, with each activity tag counted once. Scores are directional. Capability,
+conditions, skill deficiencies and shyness do not create incompatibility. Strongly
+opposing preferences below -0.2 produce friction. Positive rewards scale with
+compatibility. No timer automatically forgives an incident; ordinary interaction
+and existing decay provide recovery. Affinity influences mood and sustained
+satisfaction through their existing paths, without a second satisfaction charge.
+
+The [relationship development spec](specs/2026-09-30-relationship-development.md)
+records tuning and acceptance evidence. Historical measurements predate the
+integrated meals runtime and are labeled accordingly. Significant privacy
+consequences remain fixed; avoidance and contact rates are the balance controls.
+
 ## Owner direction awaiting implementation
 
 | Interaction | Intended cause and consequence | Existing design |
 | --- | --- | --- |
 | Waiting for another Sim | A small directional affinity penalty toward the person occupying needed furniture, bounded per episode | Household relationships [H12] |
-| Sharing a room | Slow positive or negative drift based on compatible or incompatible personalities | Household relationships [H13] |
 | Spontaneous social contact | Needs-ready Sims initiate friendly conversation with strongly liked people, or conflict with strongly disliked people | Household relationships [H14] |
 | Extroversion | Changes the thresholds for initiating friendly and hostile contact independently | Household relationships [H15] |
-| Unmet needs during social contact and bathroom privacy | Additional owner-requested interactions are being handled in the separate needs/bathroom workstream | Separate implementation workstream; not integrated in this checkout |
+| Hostility expression | Visible one-sided and mutual hostility, accessible reactions and possible animations, with mild directional activity avoidance that yields to urgent needs and player orders | [B-hostility-expression](FEATURES.md#b-hostility-expression-make-interpersonal-hostility-visible) |
 
 General waiting mood is already implemented. Attributing that annoyance to
 the occupying Sim requires holder identity and a separate bounded affinity
-effect. Ordinary proximity mood is already implemented; personality-based
-affinity drift through shared-room time is still planned.
+effect. Ordinary proximity mood and personality-based affinity drift are implemented.
+Visible hostility and activity avoidance remain planned; that later avoidance
+needs another pacing check because it will reduce contact.
 
 ## Rules for every new interpersonal effect
 

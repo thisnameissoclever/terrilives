@@ -45,6 +45,8 @@ use terri_core::{
     Wander, NEED_COUNT,
 };
 use terri_sim::Sim;
+#[path = "trace/relationships.rs"]
+mod relationships;
 
 struct Interaction {
     /// Index into the `sims` vec, so per-sim and aggregate views come off
@@ -124,6 +126,7 @@ fn main() {
         }
     }
     println!("seed {seed}, instinct override {override_instinct:?}");
+    let mut relationship_summary = relationships::Summary::default();
 
     // The household, in SimId order - which is declaration order in
     // content/household.toml, so this trace's "sim 0" is the page's Tim.
@@ -192,6 +195,7 @@ fn main() {
 
     for _ in 0..ticks {
         sim.tick();
+        relationship_summary.observe(&sim);
 
         let world = sim.world();
         if let Some(telemetry) =
@@ -1087,4 +1091,5 @@ fn main() {
     println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());
+    relationship_summary.print(&sim);
 }

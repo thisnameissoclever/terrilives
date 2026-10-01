@@ -1,0 +1,6 @@
+PASS terri-core x86_64-pc-windows-msvc
+PASS terri-data x86_64-pc-windows-msvc
+PASS terri-sim x86_64-pc-windows-msvc
+PASS terri-core wasm32-unknown-unknown
+PASS terri-data wasm32-unknown-unknown
+PASS terri-sim wasm32-unknown-unknown
