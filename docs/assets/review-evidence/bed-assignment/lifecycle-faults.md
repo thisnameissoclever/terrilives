@@ -54,3 +54,44 @@ test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 747 filtered out
 
 `git status --short` was empty after the restored run, before writing this
 evidence. Local runner and full logs are under `.tmp/bed-assignment/`.
+
+## Review follow-up
+
+Independent review found that assignment counts did not preserve their exact
+owners and places, surviving-component presence did not preserve the partner's
+action, and vanished-target cleanup lacked admission preconditions. The tests
+now compare the complete assignment map, exact partner target/place/action with
+the expected duration decrement, and both original travelling leases before
+removing the bed definition. The worker test compares the whole partner action.
+
+Three additional faults ran the same targeted test command, each exiting 101
+with the named test failed:
+
+| Fault | Detecting test |
+| --- | --- |
+| In `release_now`, clear and reinsert assignments with each ordinal toggled, preserving their count | `staggered_and_simultaneous_completions_release_only_active_use` |
+| In `release_now`, replace the surviving partner's place with ordinal zero | `staggered_and_simultaneous_completions_release_only_active_use` |
+| Replace `Admission::apply`'s sleep-place insertion with removal | `vanished_bed_cleanup_releases_every_travelling_place` |
+
+Actual assertion output, in table order:
+
+```text
+assertion `left == right` failed
+  left: BedAssignments({SimId(0): BedPlace { bed: 0v0, ordinal: 1 }, SimId(1): BedPlace { bed: 0v0, ordinal: 0 }})
+ right: BedAssignments({SimId(0): BedPlace { bed: 0v0, ordinal: 0 }, SimId(1): BedPlace { bed: 0v0, ordinal: 1 }})
+
+assertion `left == right` failed
+  left: Some(SleepPlace(0))
+ right: Some(SleepPlace(1))
+
+assertion `left == right` failed
+  left: None
+ right: Some(SleepPlace(0))
+```
+
+Each source was restored in `finally`; SHA-256 matched the `reservations.rs`
+and `beds.rs` hashes above. All four lifecycle tests passed again after
+restoration, and `cargo clippy -p terri-sim --all-targets -- -D warnings` passed;
+both exited 0. Only tests and documentation changed permanently. These fixtures
+exercise system boundaries, not full path traversal, schedule ordering or
+occupied rendering.

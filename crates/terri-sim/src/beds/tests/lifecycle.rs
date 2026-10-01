@@ -46,21 +46,36 @@ fn staggered_and_simultaneous_completions_release_only_active_use() {
                 Some((bed.index_u32(), ordinal)),
             );
         }
+        let assignments = sim.world().resource::<BedAssignments>().clone();
+        assert_eq!(assignments.iter().count(), 2);
+        let partner_target = *sim.world().get::<Target>(second).unwrap();
+        let partner_action = *sim.world().get::<Eating>(second).unwrap();
         for elapsed in 1..=second_duration {
             sim.world_mut()
                 .run_system_once(crate::systems::interact::tick_interactions)
                 .unwrap();
             assert!(sim.world().get::<Target>(first).is_none());
             assert!(sim.world().get::<SleepPlace>(first).is_none());
+            assert!(sim.world().get::<Eating>(first).is_none());
             let second_active = elapsed < second_duration;
             assert_eq!(sim.world().get::<Reserved>(bed).is_some(), second_active);
             assert_eq!(
-                sim.world().get::<SleepPlace>(second).is_some(),
-                second_active
+                sim.world().get::<SleepPlace>(second),
+                second_active.then_some(&SleepPlace(1))
             );
-            assert_eq!(sim.world().get::<Target>(second).is_some(), second_active);
-            assert_eq!(sim.world().get::<Eating>(second).is_some(), second_active);
-            assert_eq!(sim.world().resource::<BedAssignments>().iter().count(), 2);
+            assert_eq!(
+                sim.world().get::<Target>(second),
+                second_active.then_some(&partner_target)
+            );
+            let expected_action = Eating {
+                remaining_ticks: second_duration - elapsed,
+                ..partner_action
+            };
+            assert_eq!(
+                sim.world().get::<Eating>(second),
+                second_active.then_some(&expected_action)
+            );
+            assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
         }
         let status = sim.bed_places_of(first.index_u32()).unwrap();
         assert!(status
@@ -92,6 +107,8 @@ fn a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments(
             Some((bed.index_u32(), ordinal)),
         );
     }
+    let assignments = sim.world().resource::<BedAssignments>().clone();
+    assert_eq!(assignments.iter().count(), 2);
     sim.world_mut()
         .run_system_once(crate::systems::career::start_shift)
         .unwrap();
@@ -101,12 +118,10 @@ fn a_worker_leaving_a_shared_bed_preserves_the_other_sleep_and_both_assignments(
     assert!(sim.world().get::<Eating>(worker).is_none());
     assert!(sim.world().get::<SleepPlace>(worker).is_none());
     assert_eq!(sim.world().get::<Target>(partner), Some(&partner_target));
-    let remaining = sim.world().get::<Eating>(partner).unwrap();
-    assert_eq!(remaining.remaining_ticks, partner_action.remaining_ticks);
-    assert_eq!(remaining.interaction, partner_action.interaction);
+    assert_eq!(sim.world().get::<Eating>(partner), Some(&partner_action));
     assert_eq!(sim.world().get::<SleepPlace>(partner), Some(&SleepPlace(1)));
     assert!(sim.world().get::<Reserved>(bed).is_some());
-    assert_eq!(sim.world().resource::<BedAssignments>().iter().count(), 2);
+    assert_eq!(sim.world().resource::<BedAssignments>(), &assignments);
     // An outstanding bed order cannot reclaim the worker during the commute.
     sim.world_mut()
         .run_system_once(crate::systems::action::serve_intents)
@@ -123,6 +138,21 @@ fn vanished_bed_cleanup_releases_every_travelling_place() {
     sim.world_mut()
         .run_system_once(crate::systems::action::serve_intents)
         .unwrap();
+    assert!(sim.world().get::<Reserved>(bed).is_some());
+    for (ordinal, person) in people[..2].iter().enumerate() {
+        assert_eq!(
+            sim.world().get::<Target>(*person),
+            Some(&Target {
+                object: bed,
+                interaction: 0,
+            })
+        );
+        assert_eq!(
+            sim.world().get::<SleepPlace>(*person),
+            Some(&SleepPlace(ordinal as u8))
+        );
+        assert!(sim.world().get::<Path>(*person).is_some());
+    }
     // Simulate loss of the target definition at arrival; it is no longer furniture.
     sim.world_mut().entity_mut(bed).remove::<SmartObject>();
     for person in &people[..2] {

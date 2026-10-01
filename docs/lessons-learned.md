@@ -8278,3 +8278,22 @@ rather than continuing one assertion at a time.
 expectation. Pin both current and reconstructed migration endpoints, prove the
 unmodified historical source loads, and require unrelated metadata changes to
 close the bridge without replacing the live world.
+
+## [L-bed-lifecycle-exact-state] Ownership preservation needs identity, not counts
+
+**What happened.** Shared-bed lifecycle tests caught missing release calls but
+could still accept swapped permanent assignments or a changed partner place.
+The vanished-target cleanup test also failed to prove leases existed before
+testing their removal. Independent review caught these assertion gaps.
+
+**Root cause.** Counts and component presence were used to claim preservation
+of specific owners and state. Cleanup assertions did not establish the state
+they intended to clear.
+
+**Prevention.** Compare the complete assignment map and exact surviving target,
+place and action. Account explicitly for the expected duration decrement.
+Before cleanup, assert the specific claims, paths and shared marker exist.
+
+**Verify.** Swap assignment ordinals while retaining their count, corrupt the
+surviving partner's place, and omit admission's place insertion. Each fault must
+fail its named lifecycle assertion. Restore source bytes and rerun the suite.

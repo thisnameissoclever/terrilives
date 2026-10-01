@@ -136,6 +136,13 @@ Five targeted lifecycle faults then failed their named assertions, and all four
 tests passed after byte-for-byte restoration. See [lifecycle-faults.md](lifecycle-faults.md)
 for the deleted mechanisms, actual failure output and restored source hashes.
 
+Upstream automatic audio recovery, main `b7c57d7f`, was then merged locally as
+`fb3cef9c`. It changes web audio and documentation, with no Rust or bed-content
+changes. `npm test` passed all 1,620 tests; `npm run typecheck` and `npm run build`
+also passed, each with exit 0. The built WASM remains `terri_wasm_bg-DbLSdXLq.wasm`;
+the resulting JavaScript is `index-DkaRgyf3.js`. This is local integration
+evidence, not a deployment claim.
+
 ## Review
 
 Two read-only adversarial reviews found no production routing or fingerprint
@@ -146,6 +153,11 @@ suites verified that the two remaining whole-world differences were only their
 expected digest. It found no production migration defect or further stale
 expected-current digest. Reviewers did not claim the unimplemented occupied
 visuals were ready.
+
+The lifecycle follow-up received a separate read-only review. It identified
+three assertion gaps, then confirmed their repair and the three additional
+fault failures recorded in `lifecycle-faults.md`. No further findings remained
+in that focused review; its scope excludes occupied visuals.
 
 Before release, integrate and verify the occupied body fit, composite layers,
 picking and indicators. Rebuild after those changes and review the complete
