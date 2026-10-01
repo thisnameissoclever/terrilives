@@ -8365,6 +8365,30 @@ page and is not a claim about browser or operating-system text scaling.
 
 The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
 
+## [L-activity-identity-needs-complete-presentation] Every active interaction needs a visible identity
+
+**What happened.** Shower, toilet, bath, TV, radio and several seated uses had
+no head bubble. Dinner preparation and cooking also appeared inactive. The old
+aquarium glyph was visibly off center.
+
+**Root cause.** Activity presentation depended on the small set of authored
+body animations. Generic object use and sitting intentionally had no bubble;
+non-eating chain work had no activity identity. Existing glyphs lacked a
+complete small-size visual inventory and a centered fish geometry check.
+
+**Prevention.** Author presentation-only activity metadata on every executable
+interaction and chain work step. Validate the exact runtime target and chain
+role, retain body-action precedence, and give generic uses a visible fallback.
+Keep new artwork appended after the historical atlas records. Review each
+activity/icon pair in the release renderer as well as in the art sheet.
+
+**Verify.** Count and test every shipped interaction and dinner step, remove
+ordinary and chain identity checks, reverse body precedence, and remove a
+renderer mapping; each must fail. Check all glyphs at game size in different
+lighting and zoom levels. Push the fish into its rim and require the geometry
+test to fail. Confirm save bytes, structural fingerprints and historical
+atlas pixels stay unchanged. Evidence:
+`docs/assets/review-evidence/activity-bubbles/README.md`.
 ## [L-markup-tests-own-boundaries] Bound markup assertions by the element they test
 
 **What happened.** Removing Household from Sim details broke a Traits assertion even though Traits was unchanged. A second assertion silently included the rest of the page.

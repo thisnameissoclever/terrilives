@@ -69,6 +69,18 @@ const ACTIVITY_NAMES = [
   'exercising',
   'watching fish',
   'sitting',
+  'showering',
+  'using the toilet',
+  'watching TV',
+  'lying down',
+  'washing hands',
+  'washing dishes',
+  'listening to the radio',
+  'handling correspondence',
+  'bathing',
+  'getting ingredients',
+  'preparing food',
+  'cooking',
 ] as const;
 
 /** How a trait's mutable state is worded, by kind. A disposition's 0 is

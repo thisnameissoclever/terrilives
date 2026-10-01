@@ -1431,7 +1431,7 @@ describe('buildInstances', () => {
       ),
     );
     expect(built[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      spriteIndex('indicatorReading'),
+      spriteIndex('activityReading'),
     );
   });
 
@@ -1499,7 +1499,7 @@ describe('buildInstances', () => {
     expect(built[indicator + OFFSET_SCREEN_X]).toBe(projectedX);
     expect(built[indicator + OFFSET_SCREEN_Y]).toBe(indicatorY(socketX, socketY, built[body + OFFSET_SPRITE], ORIGIN_Y, scale));
     expect(built[indicator + OFFSET_SPRITE]).toBe(
-      spriteIndex('indicatorReading'),
+      spriteIndex('activityReading'),
     );
 
     expect(built[badge + OFFSET_SCREEN_X]).toBe(projectedX + 14 * scale);
@@ -1961,18 +1961,18 @@ describe('buildInstances', () => {
 
 describe('activity indicator bubbles', () => {
   // The owner's requirement, as quads: a sim that is doing something
-  // shows it. Codes 0 and 1 draw nothing on purpose - motion is its own
-  // indicator - and every drawing code floats a bubble one lift above
+  // shows it. Only idle and off-lot work draw nothing; each active code
+  // floats a bubble one lift above
   // the sim, nudged nearer so the pair cannot tie on depth ([V12]).
   const src = new FakeEntities();
 
-  it('floats one bubble over each sim whose activity draws, and none over walkers or idlers', () => {
+  it('floats bubbles over active Sims including walkers, and none over idlers', () => {
     src.set([
       [1, 1, 1, 1, KIND_AGENT, 3, 4], // talking
-      [2, 2, 2, 2, KIND_AGENT, 3, 1], // walking - no bubble
+      [2, 2, 2, 2, KIND_AGENT, 3, 1], // walking
       [3, 3, 3, 3, KIND_AGENT, 3, 0], // idle - no bubble
     ]);
-    expect(instanceCount(src, null)).toBe(4);
+    expect(instanceCount(src, null)).toBe(5);
 
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const bubbleBase = 3 * FLOATS_PER_INSTANCE;
@@ -2001,16 +2001,42 @@ describe('activity indicator bubbles', () => {
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const bubbleBase = FLOATS_PER_INSTANCE;
     expect(built[bubbleBase + OFFSET_SPRITE]).toBe(
-      spriteIndex('indicatorEat'),
+      spriteIndex('activityEat'),
     );
   });
 
-  it('maps activity code 7 to no generic bubble', () => {
+  it('maps unauthored generic object use to a neutral gear bubble', () => {
     src.set([[1, 1, 1, 1, KIND_AGENT, 3, 7]]);
+    expect(instanceCount(src, null)).toBe(2);
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(built[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex('activityUse'));
+  });
+
+  it.each([
+    [1, 'Walking'], [2, 'Wait'], [3, 'Eat'], [4, 'Talk'], [5, 'Sleep'],
+    [7, 'Use'], [8, 'Reading'], [9, 'Exercise'], [10, 'WatchFish'],
+    [11, 'Sitting'], [12, 'Shower'], [13, 'Toilet'], [14, 'TV'],
+    [15, 'LyingDown'], [16, 'WashHands'], [17, 'WashDishes'], [18, 'Radio'],
+    [19, 'Correspondence'], [20, 'Bath'], [21, 'Ingredients'],
+    [22, 'PrepareFood'], [23, 'Cooking'],
+  ])('draws the correct bubble for activity %i (%s) at every camera scale', (code, suffix) => {
+    src.set([[1, 1, 1, 1, KIND_AGENT, 3, code]]);
+    for (const scale of [.6, 1, 2]) {
+      const built = buildInstances(src, .5, ORIGIN_X, ORIGIN_Y, GRID, null, scale);
+      expect(instanceCount(src, null)).toBe(2);
+      expect(built.length).toBeGreaterThanOrEqual(2 * FLOATS_PER_INSTANCE);
+      expect(built[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex(`activity${suffix}`));
+      expect(built[FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).toBe(screenX(1, 1, ORIGIN_X, scale));
+      expect(built[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(
+        indicatorY(1, 1, built[OFFSET_SPRITE], ORIGIN_Y, scale));
+    }
+  });
+
+  it('never adds a bubble to an object even if an activity code is present', () => {
+    src.set([[1, 1, 1, 1, 1, 3, 12]]);
     expect(instanceCount(src, null)).toBe(1);
-    expect(
-      snapshot(buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID), 1),
-    ).toHaveLength(FLOATS_PER_INSTANCE);
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(built[OFFSET_SPRITE]).toBe(3);
   });
 
   it('maps activity code 8 to the authored reading book', () => {
@@ -2020,7 +2046,7 @@ describe('activity indicator bubbles', () => {
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const bubbleBase = FLOATS_PER_INSTANCE;
     expect(built[bubbleBase + OFFSET_SPRITE]).toBe(
-      spriteIndex('indicatorReading'),
+      spriteIndex('activityReading'),
     );
   });
 
@@ -2033,10 +2059,10 @@ describe('activity indicator bubbles', () => {
 
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     expect(built[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      spriteIndex('indicatorExercise'),
+      spriteIndex('activityExercise'),
     );
     expect(built[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      spriteIndex('indicatorWatchFish'),
+      spriteIndex('activityWatchFish'),
     );
   });
 
@@ -2095,8 +2121,8 @@ describe('the carried badge', () => {
     ]]);
     const built = buildInstances(src, 0.25, 0, 0, GRID, 100);
     const body = 0;
-    const badge = 1 * FLOATS_PER_INSTANCE;
-    const ring = 2 * FLOATS_PER_INSTANCE;
+    const badge = 2 * FLOATS_PER_INSTANCE;
+    const ring = 3 * FLOATS_PER_INSTANCE;
     const groundY = screenY(0.25, 0, 0);
 
     expect(built[body + OFFSET_SCREEN_Y]).toBe(drawnPosition(0.25, 0, built[body + OFFSET_SPRITE], 0, 0)[1]);
@@ -2240,7 +2266,7 @@ describe('the carried badge', () => {
       buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID),
       instanceCount(src, null),
     );
-    const badge = FLOATS_PER_INSTANCE;
+    const badge = 2 * FLOATS_PER_INSTANCE;
     expect(carried[badge + OFFSET_SPRITE]).toBe(spriteIndex('carried_dinner'));
     expect(carried[badge + OFFSET_SCREEN_X]).toBe(screenX(1, 1, ORIGIN_X) + 14);
     expect(carried[badge + OFFSET_SCREEN_Y]).toBe(screenY(1, 1, ORIGIN_Y) - 24);
@@ -2503,7 +2529,7 @@ describe('the selection ring', () => {
     ]]);
     // Half way between the two ticks.
     const instances = buildInstances(source, 0.5, ORIGIN_X, ORIGIN_Y, GRID, 100);
-    const ring = slot(instances, 1);
+    const ring = slot(instances, 2);
     const sim = slot(instances, 0);
     expect([sim.x, sim.y]).toEqual(drawnPosition(5, 4, sim.sprite));
     expect(ring.y).toBe(screenY(5, 4, ORIGIN_Y));

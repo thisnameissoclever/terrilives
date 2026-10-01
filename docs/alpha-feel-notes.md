@@ -3899,3 +3899,19 @@ browser viewport pass, not physical-phone or spoken screen-reader acceptance.
 It did not watch a complete conversation. Task-owned game pages and the
 preview server were closed. Details, test counts and retained evidence paths
 are in `docs/specs/2026-09-30-sim-details.md`.
+
+## [A-complete-activity-bubbles] Visible activity identity, 2026-10-01
+
+The displayed release game now shows a bubble for every active on-lot activity.
+The shower was started through its ordinary menu; production canvas captures
+exercise all 19 ordinary interactions, four dinner phases, walking, waiting
+and conversation. All 22 glyphs received an independent visual and meaning
+review, including the centered fish and revised bicycle. Night, neutral light,
+normal camera size, maximum zoom and minimum zoom were inspected.
+
+No blocking visual finding remains in the pairing review. Idle Sims have no
+active task and no bubble; off-lot workers remain hidden. This pass verifies
+activity presentation, not a full need cycle or public deployment. The review
+receipts, limitations and local checks are in
+`docs/assets/review-evidence/activity-bubbles/README.md`. Task-owned game pages
+were closed, temporary lighting restored, and preview servers stopped.

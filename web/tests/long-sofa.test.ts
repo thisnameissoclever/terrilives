@@ -56,7 +56,7 @@ it('preserves sofa identity, placement, price and interaction metadata', () => {
   }
 });
 
-it('keeps Lie down as the existing standing generic-use action', () => {
+it('identifies Lie down without claiming a new body animation', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
@@ -64,7 +64,7 @@ it('keeps Lie down as the existing standing generic-use action', () => {
     let observed = false;
     for (let tick = 0; tick < 1200 && !observed; tick++) {
       sim.tick();
-      if (sim.activityOf(34) !== 7) continue;
+      if (sim.activityOf(34) !== 15) continue;
       const row = Array.from(sim.ids()).indexOf(34);
       expect(sim.actionQueueOf(34).join(' ')).toContain('Lie down');
       expect(sim.visualActions()[row]).toBe(0);
