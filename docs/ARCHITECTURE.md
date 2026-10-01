@@ -579,6 +579,16 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
+`buildInstanceBatch` packs dynamic instances once and publishes the actual written
+row count, including floor-tool highlights. Main draws `batch.instances` with
+`batch.count`; it does not repeat interaction selection or traverse entities to
+reconstruct that count. The batch object and its high-water-mark array are borrowed,
+module-owned storage, valid only until the next call through `buildInstanceBatch`
+or the legacy `buildInstances` wrapper. Only the first `count` rows are live;
+unused capacity is neither cleared nor inspected. `instanceCount` remains a legacy
+verification helper, outside the production frame loop. The 16-float row layout
+and renderer draw interface are unchanged.
+
 Short walls form a second atlas draw after opaque geometry, in the same render
 pass and submission. This small batch is sorted at geometry rebuild, tests the
 opaque depth buffer without writing it, and updates only its local fade opacity
