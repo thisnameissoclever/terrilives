@@ -8409,6 +8409,16 @@ value 100 retained a 102px by 44px slider and accepted keyboard input. The
 fixture changes only the fieldset font size; it is separate from the shipped
 page and is not a claim about browser or operating-system text scaling.
 
+## [L-native-link-proof-needs-activation] Tab inventory alone cannot verify a new-window link
+
+**What happened.** Three clicks on a native Changelog link produced no new tab in the in-app browser's inventory. The link had focus, no overlay and no cancellation handler. Treating the inventory alone as the result left product activation unresolved.
+
+**Root cause.** The verification conflated the renderer's new-window request with the host exposing its resulting tab. The host's disposition was not observed.
+
+**Prevention.** Register the browser's new-window event before activation, then record the resolved URL, requested window name and trusted user gesture. Verify the destination separately when the host does not expose the popup. Do not change ordinary link behavior to accommodate missing host evidence, or claim visible navigation from an activation event alone.
+
+**Verify.** The unchanged anchor emits `Page.windowOpen` with the expected project changelog URL, `_blank` and `userGesture=true`. The requested destination renders 25 entries. Evidence: `docs/assets/review-evidence/changelog/link-activation.json` and the verification README. Visible popup creation in the in-app host remains unobserved.
+
 ## [L-standalone-ecs-removal-history] Standalone ECS needs an update boundary
 
 **What happened.** A matched 1,037-entity workload grew WebAssembly capacity from 5,308,416 bytes at tick 60 to 118,095,872 at tick 1,680 without a browser or audio. A native allocation counter found 71,003,186 live requested bytes and 2,482,699 retained component-removal messages at the final checkpoint.
