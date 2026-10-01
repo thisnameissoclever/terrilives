@@ -8364,158 +8364,6 @@ page and is not a claim about browser or operating-system text scaling.
 **Verify.** Exercise the real public methods, switching selection repeatedly. Require the last boundary's removal to survive, older records to expire, and the current buffer to be empty after rotation. Paused calls must preserve the clock, needs and random generator. Delete maintenance, rotate twice, and move rotation before the schedule; each must fail. Compare matched release-WASM hashes and saved bytes. Report WASM capacity, native live requested allocation, and browser/audio memory separately. Evidence: `docs/assets/review-evidence/ecs-lifecycle/README.md`.
 
 The first batch-equivalence fixture started and ended on the same person. Review caught that reversed command order would leave its assertions green. Give ordering fixtures different first and last outcomes, assert the intended final result, and reverse the actual command iteration to prove the test detects it.
-## [L-seat-contact-and-garment-occupancy] A plausible seated render can conceal bad contact
-
-**What happened.** The shared sitting clip hovered above the ottoman and
-intersected its front. A separate fitted pose cleared the furniture but still
-put both palms into the trousers. A nearest-face-normal containment test also
-reported a shirt point inside a forearm whose entire bounds lay below it.
-
-**Root cause.** Furniture clearance does not test body/body contact. A shoe's
-lowest point does not establish a supported sole. One nearest triangle normal
-does not establish containment at edges or vertices. The approved shirt also
-has an intentional open neckline, so it cannot be treated as a closed solid.
-
-**Prevention.** Author a target-specific action without altering approved source
-geometry or shared clips. Test finite hip and floor-support patches and the
-relevant nonadjacent body pairs. Keep original-triangle crossings, closed-volume
-crossings and component containment separate. For this shirt only, validate
-the exact inherited neck loop and use a temporary cap to define torso occupancy.
-Do not save or render that cap, seal arbitrary holes, or exempt actual collisions.
-
-**Verify.** Retain the bad pose and false-containment witness. Reject palm/thigh
-crossings, enclosed solids, extra or warped garment openings, and an arm entering
-through the neck cap without crossing cloth. Disjoint concave solids must pass.
-Delete containment and cap-crossing guards separately and observe their fixtures
-fail. Bind rejected fixture models as well as scripts to before/after hashes.
-Source-contact proof still does not establish full-clip or played acceptance.
-
-## [L-preview-cadence-must-come-from-action] Review the authored timing, not a convenient delay
-
-**What happened.** The ottoman review animation used 300 ms per sample while
-the saved action specified two samples per second. The reviewer saw the right
-poses at the wrong speed.
-
-**Root cause.** The preview exporter hard-coded a display delay instead of
-reading the action's timing metadata.
-
-**Prevention.** Read the sample count and rate from the saved action. Keep
-source-frame acceptance separate from playback timing and runtime acceptance.
-Retain superseded evidence with a clear explanation rather than silently
-replacing the basis of an earlier review.
-
-**Verify.** Decode the corrected animation and check every sample's duration
-and pixels. Here all four frames remain byte-identical after decoding, each
-lasts 500 ms, and hashes bind the saved model, cadence receipt and preview.
-
-## [L-mutation-restore-must-fail-closed] Stop mutation checks when restoration differs
-
-**What happened.** A temporary mutation deleted an exact-target guard. Its inverse
-patch had no location context and inserted the guard at the top of the Rust file.
-The runner reported a hash mismatch but continued. Five later checks failed to
-compile, so none established that their named tests detected the mutations.
-
-**Root cause.** Restoration was treated as diagnostic output instead of a required
-transaction boundary. The runner also treated any nonzero test exit as a killed
-mutation, including compilation errors.
-
-**Prevention.** Give every forward and inverse patch nonempty, unique surrounding
-context. After each mutation, restore and require the original file hashes before
-doing anything else. Stop on a restoration mismatch, compilation error, missing
-test execution or unexpected assertion. Preserve invalid attempts as invalid;
-never count them as successful test evidence.
-
-**Verify.** Check that the intended named test actually ran and failed its expected
-assertion. Confirm byte-identical restoration, then run the unmodified focused
-tests successfully. Here the original file hash was restored and all four ottoman
-tests passed; the five compilation failures remain excluded from the proof.
-
-## [L-render-journal-versus-replay-dependencies] Hash journals do not prove import completeness
-
-**What happened.** The ottoman's accepted render journal bound 25 files, but a
-replay audit found two more import-time requirements: `armchair_layout.py` and
-`render_provenance.py`. Neither contributes called functions on this path, yet
-Python must still import them. Running from the original worktree hid that gap.
-
-**Prevention.** Inspect transitive imports before promoting a temporary recipe.
-Retain the original journal unchanged and record newly measured dependencies
-separately. Resolve historical paths through an explicit, hash-checked mapping;
-never fall back to the local temporary directory. Copy each replay stage into a
-fresh root and exclude that stage's output journals from its seeded inputs.
-
-**Verify.** Run archived pure tests from copied inputs without the original
-`PYTHONPATH`. Check missing and changed sources, path aliases, symlink escapes
-and byte-identical copies. The ottoman source-test replay passes 19 tests; this
-does not establish Blender replay or audit embedded model resource paths.
-
-## [L-receipt-binding-must-pin-inputs] Require hashes and pin the starting receipt
-
-**What happened.** Independent review found that a JSON null dependency hash
-could reach a resolver whose optional hash parameter disabled verification.
-A separate final validation could also accept a different, internally valid
-receipt substituted while an original-image verification was running.
-
-**Root cause.** The caller did not enforce its stronger requirement before using
-a general-purpose resolver. Final validity was mistaken for proof that the
-verification had used the same inputs throughout.
-
-**Prevention.** Require every receipt dependency hash to be a lowercase 64-digit
-hexadecimal string. Pin the catalog and bundle hashes before reading inputs,
-require the same hashes at successful completion, and record them in the result.
-Revalidate mapped file bytes without accepting a replacement catalog.
-
-**Verify.** Re-sign negative fixtures so that digest validation does not hide the
-semantic defect under test. Test null hashes in every dependency map and replace
-the starting receipt with another valid, re-signed receipt during verification.
-Both must fail for their intended reason. The ottoman proof detects the deleted
-guards, restores unchanged sources and passes the complete focused suite.
-
-## [L-mutation-proof-needs-specific-failure] Match the assertion and record runtime errors
-
-**What happened.** The first ottoman renderer proof classified any assertion in
-the selected test as a detected defect. Independent review demonstrated that an
-unrelated setup failure, or an intended assertion accompanied by a runtime
-error, could satisfy that rule.
-
-**Root cause.** A failed test name did not identify the failing mechanism. The
-installed Vitest JSON reporter also omitted unhandled errors, so checking an
-invented report field could not establish their absence.
-
-**Prevention.** Give each load-bearing expectation a specific failure marker.
-Require that marker and an assertion failure, reject failed suite setup, and
-capture the runner's explicit unhandled-error report through its reporter hook.
-Keep those fields with the proof rather than inferring them from exit code 1.
-
-**Verify.** Feed the classifier unrelated assertions, missing error reports and
-an intended assertion plus a runtime error. All must fail. Delete the marker
-and runtime-error guards independently, then require those regression tests to
-fail before restoring and passing the focused suite.
-
-## [L-detached-replay-needs-pinned-inventory] Bind completion to the complete source job
-
-**What happened.** The ottoman replay interface assumed a synchronous executable,
-but this machine's approved Store launcher detaches. A separate receipt-based
-collector initially accepted a self-consistent request that omitted a source
-model, or seven copies of one passing occupancy case. Independent review
-reproduced both false-success paths without modifying the real evidence.
-
-**Root cause.** Launcher exit was the wrong execution boundary. The initial
-collector also used the request itself as the authority for required inputs and
-used a count instead of regression-case identity.
-
-**Prevention.** Use a fresh job identity, an exclusive start marker and an atomic
-script result. Pin the engine and background mode. Derive exact input paths and
-hashes from the accepted bundle, not the request being checked. Require full
-expected outputs and regression cases, unchanged source bytes and the accepted
-contact measurements. A missing result is unobserved completion; verify the
-actual process before waiting, declaring failure or considering another launch.
-
-**Verify.** Remove inputs and re-sign the request; duplicate one case seven times;
-alter a measurement and re-sign its output. Each must fail its intended assertion.
-Here 14 completion-guard removals fail, all three restored tests pass, and the
-real copied-source job reproduces four contact samples plus seven cases. Source
-replay remains separate from render and played-game acceptance.
-
 ## [L-pose-pole-is-not-elbow-position] Measure solved joints and complete garments
 
 **What happened.** Two proposed narrower double-bed poses retained essentially
@@ -8691,3 +8539,66 @@ floating body concealed underneath.
 flat duvet objects are absent from occupied rendering, the mattress remains,
 feet are covered, and the new support and blanket-clearance measurements are
 explicitly distinguished from full physical acceptance.
+
+## [L-sleep-contributions-linear-filtering] Compose visible contributions before display transfer
+
+**What happened.** A three-owner bed draft added separately display-transformed
+RGB layers and then applied the outline. It looked close but differed by up to
+32 channel levels at source resolution. A plausible beauty-colored partition
+also failed an explicit fractional-filtering counterexample.
+
+**Root cause.** The Standard sRGB display transfer is nonlinear. Applying it
+to each contribution before addition changes mixed edges. Applying an ink-over
+product after filtering also does not commute with filtering the original
+joint scene. Matching texel centers is not sufficient.
+
+**Prevention.** Convert genuine owner RGB to scene-linear space, premultiply by
+measured coverage, and bake shared ink attenuation into fills before filtering.
+The outline remains a separate visible additive contribution. Sum contributions,
+unpremultiply once and apply display transfer once. Keep independent furniture
+recoloring in its existing display-color semantics, without coloring Sims or
+ink. Preserve true pre-ink fill coverage separately for picking.
+
+**Verify.** Repeat a complete scene to measure noise, compare no-ink and ink
+controls in both color spaces, and sample fractional coordinates. The bounded
+test reduced the source discrepancy to under two levels; 8-bit game-size
+encoding had maximum display-premultiplied error four and p95 one. Seventy-two
+fractional cases had maximum 3.021 and p95 below 0.645. These are pilot results,
+not a certificate for unrendered facings or the runtime shader. Retain negative
+tests for missing ink, swapped owners and the old filtering formula.
+
+## [L-render-witness-pixel-footprint] A visible triangle point is not an interior pixel
+
+**What happened.** A body triangle centroid passed a camera ray test but landed
+on a duvet boundary in the raster image. The raw owner-coverage check correctly
+rejected it rather than accepting an ambiguous label.
+
+**Root cause.** World-point visibility does not establish that the whole pixel
+footprint belongs to the same surface. Antialiasing included the neighboring
+duvet even though the centroid's ray hit the shirt.
+
+**Prevention.** Trace the actual pixel center and surrounding footprint through
+the registered orthographic camera. Select interior surface witnesses; do not
+relax an ownership threshold to accommodate a bad probe.
+
+**Verify.** Require the unchanged raw coverage validator to pass the stronger
+geometry probes, and independently swap owner image labels to demonstrate
+rejection. A commutative RGB sum cannot detect an owner-label swap itself.
+
+## [L-render-entrypoint-collision] Check tracked names before adding an exporter
+
+**What happened.** An occupied-bed exporter initially reused the tracked
+empty-bed renderer's filename. The collision was found before commit and the
+original entrypoint was restored byte-for-byte.
+
+**Root cause.** A plausible new filename was treated as unused without checking
+tracked files and documentation references first.
+
+**Prevention.** Check the repository inventory before creating a source file.
+Keep static empty-bed and occupied-bed entrypoints distinct. Preserve the safe
+terminal-publication protocol when promoting an experimental helper; copying
+its purpose without its synchronization and rename steps is not equivalent.
+
+**Verify.** The empty-bed renderer has no diff against its original. The new
+publisher's forced fsync failure leaves no terminal receipt, and a second
+writer cannot replace an existing terminal result.
