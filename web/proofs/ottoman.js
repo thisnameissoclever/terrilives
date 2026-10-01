@@ -1,10 +1,10 @@
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.ts';
-import { buildInstances, instanceCount } from '../src/frame.ts';
+import { buildInstances, instanceCount, simShirtVariant } from '../src/frame.ts';
 import { initDevice } from '../src/render/device.ts';
 import { SpriteRenderer } from '../src/render/sprites.ts';
 import { FLOATS_PER_INSTANCE, writeInstance } from '../src/render/instances.ts';
-import { spriteIndex, ATLAS_FILE_NAME } from '../src/render/atlas.ts';
+import { spriteIndex, ATLAS_FILE_NAME, INTERACTION_SPRITES } from '../src/render/atlas.ts';
 import { buildLightField, sampleLight, emissiveForSprite } from '../src/render/lighting.ts';
 import { ambientFor, AMBIENT_NEUTRAL } from '../src/render/daylight.ts';
 
@@ -17,6 +17,7 @@ export async function ottomanProof() {
   canvas.width = 400; canvas.height = 340;
   const gpu = await initDevice(canvas);
   const errors = [], records = [];
+  const baseline = sim.saveBytes();
   gpu.device.addEventListener('uncapturederror', event => errors.push(event.error.message));
   gpu.device.pushErrorScope('validation');
   try {
@@ -31,11 +32,12 @@ export async function ottomanProof() {
       writeInstance(floors, count++, ox+(fx-fy)*32*scale, oy+(fx+fy)*21*scale, .95, spriteIndex('floor'));
     }
     renderer.setStaticGeometry(floors, count);
-    const capture = async (label, night = false, preview = null) => {
+    const capture = async (label, night = false, preview = null, seated = null) => {
       const row = Array.from(sim.ids()).indexOf(18);
       const light = buildLightField(sim, 16, 12, sim.wallTiles(), true, sim.wallEdges());
       const selected = preview ? 18 : null;
-      const instances = buildInstances(sim, 1, ox, oy, 16, selected, scale, false, 0,
+      const instances = buildInstances(sim, 1, ox, oy, 16, selected, scale,
+        seated?.reducedMotion ?? false, seated?.tick ?? 0,
         light, undefined, preview, null, sim.objectColourway(18));
       renderer.draw(instances, instanceCount(sim, selected, undefined, preview), scale,
         night ? ambientFor(0, 1340) : AMBIENT_NEUTRAL);
@@ -45,13 +47,21 @@ export async function ottomanProof() {
       const section = document.createElement('section'), title = document.createElement('div');
       title.textContent = label; section.style.width = '400px'; copy.style.display = 'block';
       section.append(title, copy); board.append(section);
-      const body = preview ? instanceCount(sim, selected, undefined, preview) - 1 : row;
+      const actorRow = seated ? Array.from(sim.ids()).indexOf(seated.agent) : -1;
+      if (seated && (actorRow < 0 || sim.visualActions()[actorRow] !== 8 ||
+          sim.interactionTargets()[actorRow] !== 18)) throw new Error('Wrong active sitting target');
+      const body = seated ? actorRow : preview ? instanceCount(sim, selected, undefined, preview) - 1 : row;
       if (preview && (instances[row*FLOATS_PER_INSTANCE] !== -1e6 ||
           instances[row*FLOATS_PER_INSTANCE+1] !== -1e6)) throw new Error('Old ottoman preview row still visible');
-      if (instances[body*FLOATS_PER_INSTANCE+3] !== sim.sprites()[row]) throw new Error('Wrong ottoman body');
+      const variant = seated ? simShirtVariant(sim.simIds()[actorRow]) : null;
+      const expectedBody = seated ? INTERACTION_SPRITES[sim.sprites()[row]].frames[variant][seated.sample]
+        : sim.sprites()[row];
+      if (instances[body*FLOATS_PER_INSTANCE+3] !== expectedBody) throw new Error('Wrong ottoman body');
+      if (seated && instances[row*FLOATS_PER_INSTANCE] !== -1e6) throw new Error('Empty ottoman remains visible while occupied');
       const record = { label, facing: sim.objectFacing(18), sprite: sim.sprites()[row],
         colourway: sim.objectColourway(18), entity: 18, sourceEmissive: emissiveForSprite(sim.sprites()[row]),
-        renderedLight: instances[body*FLOATS_PER_INSTANCE+7], tileLight: sampleLight(light, x, y) };
+        renderedLight: instances[body*FLOATS_PER_INSTANCE+7], tileLight: sampleLight(light, x, y),
+        occupied: seated ? { ...seated, variant, body: expectedBody, target: 18, action: 8 } : null };
       const expectedShift = sim.colourwayShifts().slice(record.colourway*3, record.colourway*3+3);
       expectedShift[1] -= 1;
       const actualShift = instances.slice(body*FLOATS_PER_INSTANCE+12, body*FLOATS_PER_INSTANCE+15);
@@ -76,22 +86,49 @@ export async function ottomanProof() {
     }
     sim.setColourway(18, 0); sim.flushCommands();
     await capture('Build preview', false, sim.placementPreview(18, x, y, 0));
-    sim.useObjectFirst(34, 18, 0);
-    let use = null;
-    for (let tick = 0; tick < 1200 && !use; tick++) {
-      sim.tick();
-      if (sim.activityOf(34) === 7 && sim.actionQueueOf(34)[0] === 'Sit down: Chesterfield Regret') {
-        const row = Array.from(sim.ids()).indexOf(34);
-        use = { tick: sim.clockTick(), entity: 34, activity: sim.activityOf(34),
-          visualAction: sim.visualActions()[row], target: sim.interactionTargets()[row],
-          queue: sim.actionQueueOf(34), position: [...sim.positions().slice(row*2, row*2+2)] };
+    for (const agent of [34, 35, 36]) {
+      for (const [facing, name] of ['SE', 'SW', 'NW', 'NE'].entries()) {
+        if (!sim.loadBytes(baseline)) throw new Error('Fixture reset failed');
+        if (!sim.placeObject(18, x, y, facing)) throw new Error('Occupied placement rejected');
+        sim.flushCommands();
+        if (sim.lastPlacementResult()?.reason) throw new Error('Occupied rotation rejected');
+        if (!sim.useObjectFirst(agent, 18, 0)) throw new Error('Sitting request rejected');
+        const actorRow = Array.from(sim.ids()).indexOf(agent);
+        for (let tick = 0; tick < 1200; tick++) {
+          if (sim.visualActions()[actorRow] === 8 && sim.interactionTargets()[actorRow] === 18) break;
+          sim.tick();
+        }
+        if (sim.visualActions()[actorRow] !== 8 || sim.interactionTargets()[actorRow] !== 18 ||
+            sim.activityOf(agent) !== 11) throw new Error('Target-bound Sit did not start');
+        const variant = simShirtVariant(sim.simIds()[actorRow]);
+        const saved = sim.saveBytes();
+        if (!sim.loadBytes(saved)) throw new Error('Occupied save round trip failed');
+        // Explicit draw ticks inspect the complete clip without extending the action.
+        for (let sample = 0; sample < 4; sample++) {
+          await capture(`${name} ${variant}: sample ${sample}`, false, null,
+            { agent, sample, tick: 20 + 5 * sample - agent % 10 });
+        }
+        await capture(`${name} ${variant}: reduced motion`, false, null,
+          { agent, sample: 0, tick: 999, reducedMotion: true });
+        if (facing === 0 && agent === 34) {
+          for (const [colourway, colourName] of sim.colourwayNames().entries()) {
+            sim.setColourway(18, colourway); sim.flushCommands();
+            if (!sim.loadBytes(sim.saveBytes())) throw new Error('Occupied colour save failed');
+            await capture(`Seated blue shirt: ${colourName}`, false, null,
+              { agent, sample: 0, tick: 20 - agent % 10 });
+          }
+          sim.setColourway(18, 0); sim.flushCommands();
+          await capture('Seated blue shirt: midnight', true, null,
+            { agent, sample: 0, tick: 20 - agent % 10 });
+        }
+        if (!sim.cancelIntents(agent)) throw new Error('Sitting cancellation rejected');
+        sim.tick();
+        await capture(`${name} ${variant}: cancelled`);
       }
     }
-    if (!use || use.visualAction !== 0 || use.target !== 0xffffffff) throw new Error('Existing generic-use contract changed');
-    await capture('Existing generic use (standing)');
     document.body.replaceChildren(board); document.body.style.margin = '0';
     const validation = await gpu.device.popErrorScope();
     return { pass: !validation && !errors.length, validation: validation?.message ?? null,
-      errors, atlas: ATLAS_FILE_NAME, records, use };
+      errors, atlas: ATLAS_FILE_NAME, records };
   } finally { handle.free(); gpu.device.destroy(); }
 }

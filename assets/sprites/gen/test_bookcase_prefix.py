@@ -33,6 +33,9 @@ class BookcasePrefixTests(unittest.TestCase):
         for name, (count, digest) in expected.items():
             with self.subTest(table=name):
                 value = preserved_table(source, name, 1366)
+                if name == 'INTERACTION_SPRITES':
+                    # The later sitting batch adds only these four formerly static targets.
+                    value = {key: item for key, item in value.items() if key not in {'1358', '1359', '1360', '1361'}}
                 self.assertEqual(len(value), count)
                 self.assertEqual(canonical_digest(value), digest)
 

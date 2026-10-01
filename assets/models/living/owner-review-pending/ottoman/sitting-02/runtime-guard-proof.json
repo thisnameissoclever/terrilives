@@ -1,0 +1,346 @@
+{
+  "state": "complete",
+  "sourceUnchanged": true,
+  "sourceHashes": {
+    "src/render/interaction-sprites.ts": "7bdb6d2eedb1030ca15010e420e9169ab39034a1a55721b0925d4326b2f917fb",
+    "src/render/atlas.ts": "06506e87d8774c41803f7537e55978c4b246f42014e744618c09a888637c28d3",
+    "src/bridge.ts": "77d4a5a2349ce0747ed55a38e0d676e4516f2bb9eae628983e962221bdb20ba4",
+    "src/wasm/terri_wasm_bg.wasm": "313a551faa17381f493b8dfed5e03b8d5af9655212fc5d230627c13764f2e59f",
+    "tests/ottoman.test.ts": "edf0f0421ad29715fd8cfd84f9684f0e7c65b7bf282162ba4dc7fe30d2bebb7d",
+    "tests/interaction-production.test.ts": "5071afd29aa752fd3c28e00032571fc4a6311986943ae2c42b91e9d034af1893",
+    "tests/ottoman-mutation-result.test.js": "2ebca9f08f0444138965e1895282ceb8c2564a83a2230503f3f8ad939db47aa1",
+    "proofs/prove-ottoman-runtime.mjs": "702e653bf9c1945dfd18bbf12f78fc151e0df614199db3769e14a04542b4dbd0",
+    "proofs/ottoman-mutation.config.ts": "52c25edd3e1c1b056f1ffacee209bcbef18fc004957b367e07c776b9a7abb29f",
+    "proofs/ottoman-mutation-result.mjs": "9b53cec703fef4638b6a932a64e425704f0e5a47aaa16589202f50b27457964a",
+    "proofs/ottoman-error-reporter.mjs": "8206d468331e67d5bc609777ebca8ebfb5e2697e6487fa8a39cf528d4c91f2e1"
+  },
+  "cases": [
+    {
+      "name": "baseline",
+      "exit": 0,
+      "total": 28,
+      "passed": 28,
+      "failed": 0,
+      "runtime": {
+        "reason": "passed",
+        "unhandledErrors": []
+      },
+      "failures": []
+    },
+    {
+      "name": "acceptUnrelatedFailure",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 1,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "reject-unrelated-assertion",
+      "failures": [
+        {
+          "name": "rejects an unrelated fixture assertion in the correct named test",
+          "messages": [
+            "AssertionError: reject-unrelated-assertion: expected [Function] to throw an error\n    at Proxy.<anonymous> (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/expect/dist/index.js:1552:16)\n    at Proxy.<anonymous> (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/chai/index.js:1700:25)\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/ottoman-mutation-result.test.js:15:97\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "acceptRuntimeError",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 1,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "reject-unhandled-error",
+      "failures": [
+        {
+          "name": "rejects an intended assertion accompanied by an unhandled error",
+          "messages": [
+            "AssertionError: reject-unhandled-error: expected [Function] to throw an error\n    at Proxy.<anonymous> (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/expect/dist/index.js:1552:16)\n    at Proxy.<anonymous> (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/chai/index.js:1700:25)\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/ottoman-mutation-result.test.js:19:105\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cancelBoth",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 2,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "other-sitter-keeps-target",
+      "failures": [
+        {
+          "name": "two simultaneous Sit actions stay independent when cancelling armchair",
+          "messages": [
+            "AssertionError: other-sitter-keeps-target: expected 4294967295 to be 1 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:150:88\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "two simultaneous Sit actions stay independent when cancelling ottoman",
+          "messages": [
+            "AssertionError: other-sitter-keeps-target: expected 4294967295 to be +0 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:150:88\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrongTarget",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 2,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "ottoman-exact-target-body",
+      "failures": [
+        {
+          "name": "two simultaneous Sit actions stay independent when cancelling armchair",
+          "messages": [
+            "AssertionError: ottoman-exact-target-body: expected 492 to be 1378 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:132:78\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "two simultaneous Sit actions stay independent when cancelling ottoman",
+          "messages": [
+            "AssertionError: ottoman-exact-target-body: expected 492 to be 1378 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:132:78\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrongCadence",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 4,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "ottoman-facing-shirt-timed-sample",
+      "failures": [
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing ",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1389 to be 1388 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing SW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1425 to be 1424 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1407 to be 1406 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NE",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1443 to be 1442 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "frozenSample",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 4,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "ottoman-facing-shirt-timed-sample",
+      "failures": [
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing ",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1388 to be 1389 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing SW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1424 to be 1425 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1406 to be 1407 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NE",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1442 to be 1443 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrongShirt",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 4,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "ottoman-facing-shirt-timed-sample",
+      "failures": [
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing ",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1388 to be 1378 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing SW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1424 to be 1414 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1406 to be 1396 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NE",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1442 to be 1432 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrongFacing",
+      "exit": 1,
+      "total": 28,
+      "passed": 1,
+      "failed": 3,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "ottoman-facing-shirt-timed-sample",
+      "failures": [
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing SW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1388 to be 1424 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NW",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1388 to be 1406 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NE",
+          "messages": [
+            "AssertionError: ottoman-facing-shirt-timed-sample: expected 1388 to be 1442 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:191:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ignoredReducedMotion",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 4,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "ottoman-reduced-motion-sample-zero",
+      "failures": [
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing ",
+          "messages": [
+            "AssertionError: ottoman-reduced-motion-sample-zero: expected 1393 to be 1392 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:196:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing SW",
+          "messages": [
+            "AssertionError: ottoman-reduced-motion-sample-zero: expected 1429 to be 1428 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:196:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NW",
+          "messages": [
+            "AssertionError: ottoman-reduced-motion-sample-zero: expected 1411 to be 1410 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:196:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "uses every ottoman sample and shirt at authored cadence in facing NE",
+          "messages": [
+            "AssertionError: ottoman-reduced-motion-sample-zero: expected 1447 to be 1446 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:196:92\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "visibleEmpty",
+      "exit": 1,
+      "total": 28,
+      "passed": 0,
+      "failed": 2,
+      "runtime": {
+        "reason": "failed",
+        "unhandledErrors": []
+      },
+      "marker": "occupied-empty-hidden",
+      "failures": [
+        {
+          "name": "two simultaneous Sit actions stay independent when cancelling armchair",
+          "messages": [
+            "AssertionError: occupied-empty-hidden: expected -0.000011444091796875 to be -1000000 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:134:87\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "two simultaneous Sit actions stay independent when cancelling ottoman",
+          "messages": [
+            "AssertionError: occupied-empty-hidden: expected -0.000011444091796875 to be -1000000 // Object.is equality\n    at D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/tests/interaction-production.test.ts:134:87\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///D:/VIBES/.worktrees/terrilives/bike-chair-four-facings/web/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "baseline",
+      "exit": 0,
+      "total": 28,
+      "passed": 28,
+      "failed": 0,
+      "runtime": {
+        "reason": "passed",
+        "unhandledErrors": []
+      },
+      "failures": []
+    }
+  ],
+  "failure": null
+}

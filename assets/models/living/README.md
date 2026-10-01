@@ -244,6 +244,15 @@ The persistence ID remains `sofa`, distinct from `long_sofa`.
 Candidate 01's source and runtime evidence is recorded in
 `../../../docs/assets/review-evidence/living/ottoman.md`.
 
+The separate seated-animation work is documented in
+[`sitting-02/README.md`](owner-review-pending/ottoman/sitting-02/README.md).
+Its source package preserves the accepted offline model and exports, with an
+explicit path map and isolated replay commands. It has not yet replaced the
+published interaction or passed GPU and played-action acceptance. Local atlas
+integration adds 72 occupied records and four target-specific profiles without
+changing the existing empty sprites. The reviewed importer checks retained
+evidence; a separate explicit-originals command verifies all 196 original PNGs.
+
 ## Wall bookcase
 
 `bookcase_layout.py` defines a shallow cabinet with four rows of six books.

@@ -1,0 +1,613 @@
+{
+  "version": 1,
+  "asset": "ottoman_sit",
+  "scope": "Immutable offline evidence; not runtime or played acceptance",
+  "blender_version": "4.5.14 LTS",
+  "blender_build_hash": "62c1db4208e8",
+  "supplemental_replay_dependencies": [
+    "assets/models/living/armchair_layout.py",
+    "assets/models/furniture/render_provenance.py"
+  ],
+  "originals": {
+    "count": 196,
+    "retained_locally": true,
+    "included": false
+  },
+  "files": [
+    {
+      "historical": "assets/models/bathroom/check_toilet_scene.py",
+      "path": "assets/models/bathroom/check_toilet_scene.py",
+      "sha256": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4"
+    },
+    {
+      "historical": "assets/models/bedroom/bunk_contact.py",
+      "path": "assets/models/bedroom/bunk_contact.py",
+      "sha256": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a"
+    },
+    {
+      "historical": "assets/models/furniture/animation_export.py",
+      "path": "assets/models/furniture/animation_export.py",
+      "sha256": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30"
+    },
+    {
+      "historical": "assets/models/furniture/build_parts.py",
+      "path": "assets/models/furniture/build_parts.py",
+      "sha256": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28"
+    },
+    {
+      "historical": "assets/models/furniture/export_contributions.py",
+      "path": "assets/models/furniture/export_contributions.py",
+      "sha256": "f84c108e5d2c14999a73456f6c300845b7209e3648f398169ff4a1e8db93f01c"
+    },
+    {
+      "historical": "assets/models/furniture/geometry.py",
+      "path": "assets/models/furniture/geometry.py",
+      "sha256": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7"
+    },
+    {
+      "historical": "assets/models/furniture/layer_partition.py",
+      "path": "assets/models/furniture/layer_partition.py",
+      "sha256": "0bf4f0308d39a3c7f65548673335c8568089022bfa278bb6ca26937119d4fd19"
+    },
+    {
+      "historical": "assets/models/furniture/preview.py",
+      "path": "assets/models/furniture/preview.py",
+      "sha256": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c"
+    },
+    {
+      "historical": "assets/models/furniture/render_provenance.py",
+      "path": "assets/models/furniture/render_provenance.py",
+      "sha256": "1df5acd96fc59d04dd76a32e8cf89d85ec4b20a7c3dacba9b6f765c7072372ab"
+    },
+    {
+      "historical": "assets/models/kitchen/check_stove_scene.py",
+      "path": "assets/models/kitchen/check_stove_scene.py",
+      "sha256": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485"
+    },
+    {
+      "historical": "assets/models/kitchen/render_static.py",
+      "path": "assets/models/kitchen/render_static.py",
+      "sha256": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21"
+    },
+    {
+      "historical": "assets/models/living/armchair_contact.py",
+      "path": "assets/models/living/armchair_contact.py",
+      "sha256": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab"
+    },
+    {
+      "historical": "assets/models/living/armchair_layout.py",
+      "path": "assets/models/living/armchair_layout.py",
+      "sha256": "c5cd8cc02aba1779a1e8676cb1a6a5b808005a455b6b58cb96bd113acb1fb8c8"
+    },
+    {
+      "historical": "assets/models/living/armchair_support.py",
+      "path": "assets/models/living/armchair_support.py",
+      "sha256": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40"
+    },
+    {
+      "historical": "assets/models/living/owner-review-pending/ottoman/candidate-01/ottoman-authoring.blend",
+      "path": "assets/models/living/owner-review-pending/ottoman/candidate-01/ottoman-authoring.blend",
+      "sha256": "85d3155043bd11bb713fef3b8bfa516686c48448050a48eceb37057080a6f65b"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/build_rig.py",
+      "path": "assets/models/sims/sim-01/build_rig.py",
+      "sha256": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/food_depth.py",
+      "path": "assets/models/sims/sim-01/food_depth.py",
+      "sha256": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/registered-canvas-proof.json",
+      "path": "assets/models/sims/sim-01/registered-canvas-proof.json",
+      "sha256": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/render_job.py",
+      "path": "assets/models/sims/sim-01/render_job.py",
+      "sha256": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/render_shirt_variants.py",
+      "path": "assets/models/sims/sim-01/render_shirt_variants.py",
+      "sha256": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/rig_math.py",
+      "path": "assets/models/sims/sim-01/rig_math.py",
+      "sha256": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/shirt_colors.py",
+      "path": "assets/models/sims/sim-01/shirt_colors.py",
+      "sha256": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0"
+    },
+    {
+      "historical": "assets/models/sims/sim-01/sim-01-rigged.blend",
+      "path": "assets/models/sims/sim-01/sim-01-rigged.blend",
+      "sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+    },
+    {
+      "historical": "output/build-ottoman-sit-refined.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/build-ottoman-sit-refined.py",
+      "sha256": "a79af9456f436096bc87f7e770eb07471bcec28fa0bf6912c3d55df7b5d99a09"
+    },
+    {
+      "historical": "output/check-ottoman-sit-candidate-02.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/check-ottoman-sit-candidate-02.py",
+      "sha256": "50d27e17a351994226d42fb25bc7554010d6dcc3aedad7992c692c623878fb7b"
+    },
+    {
+      "historical": "output/export-ottoman-sit-review.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/export-ottoman-sit-review.py",
+      "sha256": "cfe4bba0ad3b1cba032b1371d9eecd6e99986484153692230a4bbc7c21f8458d"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-01/ottoman-sit-authoring.blend",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-01/ottoman-sit-authoring.blend",
+      "sha256": "94133712898a8a544b1965f1af882d97ab746f233ba720be6c33e0370466ffe3"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/action-cadence.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/action-cadence.json",
+      "sha256": "a8d8a248300d47ab5889bf80052e02c68ca93b9847fdf51d3c6867f27adbc5bd"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/additional-contact-study.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/additional-contact-study.json",
+      "sha256": "2f32b21c6501e34009dcc6b9ae2ef9540655a86633275c85424f2c4ec9fa79ba"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/contributions/raw-proof.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/contributions/raw-proof.json",
+      "sha256": "b48ae0be401cb6a982eea578e19e3656ebb06c2bbe6b09582b4e0b17d9a5d3c6"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/occupancy-regression-proof.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/occupancy-regression-proof.json",
+      "sha256": "7b0210174e093e2a0cbd30f9fa3faf35cafc8393e7eaf986777eb782e36d663b"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/cadence-proof.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/cadence-proof.json",
+      "sha256": "4853076e4b53bf9a6510df18b78d0b1ef586b3a840aebca3d47b8c686dd9e580"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/empty/0f5ec20b021ed840f9ff8551ec75ae7c004264b8e6f696d4763d55c166029a3c.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/empty/0f5ec20b021ed840f9ff8551ec75ae7c004264b8e6f696d4763d55c166029a3c.png",
+      "sha256": "861c653e1862dfc98b4865582cdf669589b6afaad3defb1d4dbaf840ab04d575"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/empty/8c826ad492323b6da7180f395cb1cf3870345ae379e56e52de6d86be06ad55f7.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/empty/8c826ad492323b6da7180f395cb1cf3870345ae379e56e52de6d86be06ad55f7.png",
+      "sha256": "6e7f65078e095b85d363be36b9a73b51fad7e11c997f05728413186735f537a5"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/empty/e85417d19ad02247e0c16ab8c1e540307ac86c2577532dd301a273ba328047cd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/empty/e85417d19ad02247e0c16ab8c1e540307ac86c2577532dd301a273ba328047cd.png",
+      "sha256": "220703300f9235877c888496f014d6976982c7eb3189459cb9ea7471cc9029f8"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/export-proof.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/export-proof.json",
+      "sha256": "8043e7a9d05b5b44f13e6acf96204024e18055ac68651e348b44b26a4349ca99"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/full-clip-authored-cadence.webp",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/full-clip-authored-cadence.webp",
+      "sha256": "e010f7abdc783619c725c9936deeb742356ab12ebad33e2e6691872cb5821a39"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/full-clip-blue.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/full-clip-blue.png",
+      "sha256": "0b9f851d4b30efe5351d76002e5304ef038f8458345c007e63db1b53618d798b"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/full-clip-green.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/full-clip-green.png",
+      "sha256": "b11263e66188faa297fa63b0826f183a7f4260004f90632ebb69f1cd56c6af48"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/full-clip-red.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/full-clip-red.png",
+      "sha256": "e955f718af311a2a98bea4b91a6be96c77ab253e19bc83ba43ec9ac498c561cb"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/full-clip.webp",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/full-clip.webp",
+      "sha256": "ede65267c61a104ec115a6a803372ee4c439e142833cc960f0344c8dc9aaa87a"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/guard-deletion-proof.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/guard-deletion-proof.json",
+      "sha256": "012b9588aa7f9787b6d1d65eef597a2716497dad6a77e67e7193a87cb066de80"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/030fbc6d08e87b1686fdcd86328de539e0027ce9bafeafd2678f822f6c5261f8.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/030fbc6d08e87b1686fdcd86328de539e0027ce9bafeafd2678f822f6c5261f8.png",
+      "sha256": "9e1865eda1ff9bed09d903d4c8c655a6a05fe89626684e454eb3abb30b72d94e"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/04ed53c9fd524fe389d66a868dd79ce78329c065dbd92141e9c113e039ed2b34.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/04ed53c9fd524fe389d66a868dd79ce78329c065dbd92141e9c113e039ed2b34.png",
+      "sha256": "a63d1facae2e57ccc2cbcbfe7511184eb3154d6c31594ec6b55daed47e7dabb7"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/0ba15a480614c7b004280fadb95f172d3cc7b5caa06d2c328aa40c30b3904bc0.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/0ba15a480614c7b004280fadb95f172d3cc7b5caa06d2c328aa40c30b3904bc0.png",
+      "sha256": "5a740a1324f7d8275642188ce3aebabd582e1b80818ece22bdaf04049a880652"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/122a7852b8078567ae7a5a0244ce3ef3e87340fcf79ea878877179098f039ea6.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/122a7852b8078567ae7a5a0244ce3ef3e87340fcf79ea878877179098f039ea6.png",
+      "sha256": "a44c4267f5628a56e2146a49f486013d72d7111d998d52a495fe5bfa52a83fa6"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/17a6de88ea8b82c70253c293743a51fe6ab46ec4ee6f26aa94685ed4386f9bce.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/17a6de88ea8b82c70253c293743a51fe6ab46ec4ee6f26aa94685ed4386f9bce.png",
+      "sha256": "e4ba2a0065b22aeb2e4bd89e895742638e931fe161706456c0feb72093c15ba5"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/1934d6ce56e78513870e50efc053d341ff356c6cb5f0053e1f7bb0f039828f00.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/1934d6ce56e78513870e50efc053d341ff356c6cb5f0053e1f7bb0f039828f00.png",
+      "sha256": "9df7aa332204c7c99e57f96bc3e618018cd51de8e1c1bcdb3856b61f625b848c"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/1999c3ccfc368cd127af22e35463649446ffec1081eeaa5a263c0ca9482e1afd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/1999c3ccfc368cd127af22e35463649446ffec1081eeaa5a263c0ca9482e1afd.png",
+      "sha256": "1273bb5584141f3b1fb57008818732817f2f01bd8172b2eafd72ee30deaf96fc"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/19eccb2648a2acb48ae6b40d2ce25c97d705bf46e100a54a6a48df1c89b541c4.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/19eccb2648a2acb48ae6b40d2ce25c97d705bf46e100a54a6a48df1c89b541c4.png",
+      "sha256": "062705f3d1b5b29bf484205ccd3b910c9f1c71da5e10906d6723d9f030b7756b"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/1bdcf971fedb2079617fd2baca09f6799981ddb070865b5d8898ea83dcfc87e7.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/1bdcf971fedb2079617fd2baca09f6799981ddb070865b5d8898ea83dcfc87e7.png",
+      "sha256": "f5a4e0e475339d138f5d8b53d19afddcee056ccf50d22c3c8181bfb7efff2d65"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/1c24adbad1ee8edad8edc697b71070ae204b6a2f48938c42d1796fda9c24447f.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/1c24adbad1ee8edad8edc697b71070ae204b6a2f48938c42d1796fda9c24447f.png",
+      "sha256": "099599eebd094f0808ffe477118399a49630436db8c428acf358bd50a2352990"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/1c90e25c2e8c586b2f9c2a06590b4bfdc6e828a09e20d372f9ad11de1c373dcd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/1c90e25c2e8c586b2f9c2a06590b4bfdc6e828a09e20d372f9ad11de1c373dcd.png",
+      "sha256": "8e63387a55a1343d3d4b716b979d9670b43ca307bd599a8f7235b965efcd9c9b"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/22414b20408981087b53c4dcc4c028e784707db512b89c341e41a0e45801fb76.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/22414b20408981087b53c4dcc4c028e784707db512b89c341e41a0e45801fb76.png",
+      "sha256": "cc6d7ea8d906f190b80f331f04cc54e15f70c2d6a889ad70286ee96290614c8f"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/2d045bb1a344eccb576d439b09f899c90817f86217c52737e55790cdf2801e24.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/2d045bb1a344eccb576d439b09f899c90817f86217c52737e55790cdf2801e24.png",
+      "sha256": "bf619a3f537a698c30f16d197b53dbae9881cc1b2a751f1d28534b2bd7044a3c"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/448e9bc347ff3bb55c5bba0f9c2d214555951f84864e5c17d34b9533dddbc0e0.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/448e9bc347ff3bb55c5bba0f9c2d214555951f84864e5c17d34b9533dddbc0e0.png",
+      "sha256": "811b13393e6ccfe06451af5a8ef3e221e08799d5c2646313bef4181a3ce83c12"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/449e2f7d7a4739e874ec2cf4bc7cf146e19821c5e442c88f7b458d1df78130fc.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/449e2f7d7a4739e874ec2cf4bc7cf146e19821c5e442c88f7b458d1df78130fc.png",
+      "sha256": "83249ef5024479cddf501d5704f7c65a5206269b4dddd12b88bfbd0f744d1370"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/4b90668940bfb60f80ffe35cd48a18e65091a108feed07e3929cca172f916076.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/4b90668940bfb60f80ffe35cd48a18e65091a108feed07e3929cca172f916076.png",
+      "sha256": "9c427130b95d7610a5eb7d63ac988d486d128790c4acc68653ac41a442ed3a98"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/54a64816fc415a51ad67e269c2a4efc734c3e41dd3874a187f1bf0171e6f287f.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/54a64816fc415a51ad67e269c2a4efc734c3e41dd3874a187f1bf0171e6f287f.png",
+      "sha256": "f9a7d06feb23a81e3424f0addbd486103aa7e689fe6899f47154b8372f22e0df"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/5ace005f012094094e743746efa350cdd29f58a757e820796dca4d5e23a120ed.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/5ace005f012094094e743746efa350cdd29f58a757e820796dca4d5e23a120ed.png",
+      "sha256": "c8738d21145d466900bf4ed42a921f4f09522caf83dc9f77ff54acf54cf34bfe"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/5b23bca1840d3d37d97d3694ac9996ed54da90a2e4f2b0f5896153692fcdff2a.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/5b23bca1840d3d37d97d3694ac9996ed54da90a2e4f2b0f5896153692fcdff2a.png",
+      "sha256": "dd8a5c257af6c6235e3fb562c073e9b90285f3fe43cfa69801cb84a968bcba3c"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/5cc2e1dcf9b1e43fc889568ae10447852e7a1ffc8808f6d827dde02981140ef8.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/5cc2e1dcf9b1e43fc889568ae10447852e7a1ffc8808f6d827dde02981140ef8.png",
+      "sha256": "bf1a3b0213942668aac50a54792d6c7bec091d1a28b5fc533e505962f90bcafe"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/5e634090a77cce02e967f4bf470d3052d010cd2dae954b8c1230a270145de85a.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/5e634090a77cce02e967f4bf470d3052d010cd2dae954b8c1230a270145de85a.png",
+      "sha256": "bfbd27f28a89cba6b6b9831ddf932c05c73b51618935d1defe53cb2a10472425"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/5f62ab705f59dd94f3bec4a652b5820e36dab5ec504a1abe7fdc3a4d8b826f93.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/5f62ab705f59dd94f3bec4a652b5820e36dab5ec504a1abe7fdc3a4d8b826f93.png",
+      "sha256": "f66cbd7a8370ddce62cfcb5a4f4a858b7b2e61a4df1763021113f9afd07da3f6"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/622092111d584958a76cf8e1e4c9a35df7db4c5462a5abafaaab1b3e82658d9c.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/622092111d584958a76cf8e1e4c9a35df7db4c5462a5abafaaab1b3e82658d9c.png",
+      "sha256": "377a0eec3eba248d240c03fb393c47306436ebd67b049021fbbdc631be7821bf"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/64ec32d358a3cc7daa9ae6686a702cc802d7f69e4ff7b7ebc245a6130599aac5.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/64ec32d358a3cc7daa9ae6686a702cc802d7f69e4ff7b7ebc245a6130599aac5.png",
+      "sha256": "b3a3dd4e1481d178ffa12768179ae997de913f27888962ed11d9b728aa8eac77"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/666558cb489814d55ae00cee303443eb742e484615ae25cea6b2456dea643113.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/666558cb489814d55ae00cee303443eb742e484615ae25cea6b2456dea643113.png",
+      "sha256": "65dc24d7c2bf955e1bcb9b656795ef9d45efef655eed194147327b1cd66e993c"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/6a11ba2cd746f4ea4a2efae3f861b67c2527ec13989b78a5b875a4ea321d0121.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/6a11ba2cd746f4ea4a2efae3f861b67c2527ec13989b78a5b875a4ea321d0121.png",
+      "sha256": "da5d9cd1f10eab24dbfd2b2ebc53328c038a2da185c734dbf669f17e0410b0b6"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/76dc57d6ec483a33462fd625f649a1749d4ee35d67cd598eeebb6a0310e7f962.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/76dc57d6ec483a33462fd625f649a1749d4ee35d67cd598eeebb6a0310e7f962.png",
+      "sha256": "a7d33945019f2dc1d1b621e1821c7bbd4f0a09c8447494411af2b5c75eb15273"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/782f860544caf693b911fc41a30a0fcf34f87ec132dc3904edc58fe169dc39f9.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/782f860544caf693b911fc41a30a0fcf34f87ec132dc3904edc58fe169dc39f9.png",
+      "sha256": "7f8133d9e62de551bf1f4420497a8eebdef676c644be311f47f1cf27178f316a"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/786c5e35613f0b145cd9df69c6746f8e970e86751639b16c674ce2202d797c3e.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/786c5e35613f0b145cd9df69c6746f8e970e86751639b16c674ce2202d797c3e.png",
+      "sha256": "9c87507c4f4202bfdddfff734ab6e7d60b74943bf7ba1c62b4df396fb01f20e8"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/78ed73684dcb70514d2703562a197902cc414bb3b1c5de43a575fddb88f4a58e.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/78ed73684dcb70514d2703562a197902cc414bb3b1c5de43a575fddb88f4a58e.png",
+      "sha256": "300225dc32b677559c4baf4713da24cda802a360e6bfdf57bf11355eb01c6373"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/7a976d65538516b5a6d70cf94a324e9385e38f79a3d3434ef53262895504c1da.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/7a976d65538516b5a6d70cf94a324e9385e38f79a3d3434ef53262895504c1da.png",
+      "sha256": "4ec173a3949100e8041d801325aca4ab4274fae55a634c45c2da6e19eb02d645"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/8e6ee5daea5e9f9d84119bc05afa14757742da06a613d366e733ba78c56cc106.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/8e6ee5daea5e9f9d84119bc05afa14757742da06a613d366e733ba78c56cc106.png",
+      "sha256": "eccdb079a3cefc74e7abf4d51cfe9b64bd9e26cba456a001c9e84887431c1ed5"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/912dc4150e23883a804edde0bb0a23671ffe4414ce4521a7e1debf1e8a12b4f5.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/912dc4150e23883a804edde0bb0a23671ffe4414ce4521a7e1debf1e8a12b4f5.png",
+      "sha256": "0536124d6c19b7bc70030605689cd3df0768e75af2ba6569163be46a4ef595e2"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/94e29dcf4563f3b5a233cd9f7369f69824fb23d9dc98000cad12db9e2c754112.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/94e29dcf4563f3b5a233cd9f7369f69824fb23d9dc98000cad12db9e2c754112.png",
+      "sha256": "8ca0af7a025887e2320687c10d2586e92afc5311c6262cc4ad5fe924cba36740"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/9a3fb3c960b0cc4a404ec3a532a4737c041b83f7ccae7f6680dbc996e20ea2a3.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/9a3fb3c960b0cc4a404ec3a532a4737c041b83f7ccae7f6680dbc996e20ea2a3.png",
+      "sha256": "f7309ee149b44c833667257ae9d1a7e7d8297c41bf22ac2aadc252845c0932b1"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/9acf0dd859c458db2d92f45e48507cdf38642aebf766771916208f83a2b21f02.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/9acf0dd859c458db2d92f45e48507cdf38642aebf766771916208f83a2b21f02.png",
+      "sha256": "cb0cf8d4f2e78744b81bdc42316e3bce0af117156b79a47e7160842b5a9ca99a"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/a422db4f74498d436c160a777db3becf4740403a53b444068cfee11b271b3794.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/a422db4f74498d436c160a777db3becf4740403a53b444068cfee11b271b3794.png",
+      "sha256": "d1bf7e5c8b7957c699bbb0b92455fa350124c407860a2aa2c9186a13974cd3aa"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/a51a52fd927c44e68c058e6a1c7def87cee6d291a0c7a17b3e42893165e39743.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/a51a52fd927c44e68c058e6a1c7def87cee6d291a0c7a17b3e42893165e39743.png",
+      "sha256": "e6e14c67b5132641dc541332a75cb53d29369d07e21f115645dbe4ad2082c2f5"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/b3e03065a7641c7378aa3fd1a1975bff20250a1aef9db10b2e6e4b81b8b069a9.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/b3e03065a7641c7378aa3fd1a1975bff20250a1aef9db10b2e6e4b81b8b069a9.png",
+      "sha256": "1844f5389ace8e51754d623d293da70d8a53132d6e3ae291ce3d4c5f0750624e"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/b6918b7b97733d9edd8cdddeae5e83d491d5545339725789838d75af1e0be809.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/b6918b7b97733d9edd8cdddeae5e83d491d5545339725789838d75af1e0be809.png",
+      "sha256": "dc3d97f90f33ec4d902198bbd283794ea0d8a396bb7c3a8a608c24484791267d"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/ba9113c884bfc4385905c3889bddd0fe30048c61af25f6e034cef5201a9c9cbd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/ba9113c884bfc4385905c3889bddd0fe30048c61af25f6e034cef5201a9c9cbd.png",
+      "sha256": "9382922ef4529ce4edcb9599327c8f2c90fac5d1659e208220c1dcfd8d136811"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/be49a02643bde16f0444facaeff639cde0370aba586dda29d8f3c7c01deb3cfd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/be49a02643bde16f0444facaeff639cde0370aba586dda29d8f3c7c01deb3cfd.png",
+      "sha256": "bf46c515b7b276dee4bc7d75693b7d9df0b6d6cc8adb3797c03e4676d9b06f9f"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/c04bf2c9a9735aca9c1320a40abb999417952863b94fb00a86a9d36ddd9aeb58.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/c04bf2c9a9735aca9c1320a40abb999417952863b94fb00a86a9d36ddd9aeb58.png",
+      "sha256": "7b297532610e8c782f74a64c13f7a65320da433f0ac5a6c28c5dee4ac6af27ba"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/c767c1b652f133ffeecc573283a15ee6f24c26348ec8cfc6099c12da15e4387f.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/c767c1b652f133ffeecc573283a15ee6f24c26348ec8cfc6099c12da15e4387f.png",
+      "sha256": "6aa9f57c2e884fe5ab3c3974fc2edb52e8c29ce0510e8569c84b2ba9d202c739"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/c85e3c3af1e17c4e38db8c5028a30e5150e1d67b1e4e30bcf5171b1e4135f535.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/c85e3c3af1e17c4e38db8c5028a30e5150e1d67b1e4e30bcf5171b1e4135f535.png",
+      "sha256": "3f68a586cd1ae091ffe349b83f3391ee800ec57c316a9b7234cb94803c048308"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/c8c995e927218212ddadaabaf27fe7716f9bc29990787e7d38bd4d7afefc9c25.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/c8c995e927218212ddadaabaf27fe7716f9bc29990787e7d38bd4d7afefc9c25.png",
+      "sha256": "695f9ec87093b0b890eb1dce044cec4322a10ff6cf8b52fc00aec256012a9b13"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/cc49cf0265dbc66aad7905d566788d712901eee8955e3552eb45e9e72440f0ca.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/cc49cf0265dbc66aad7905d566788d712901eee8955e3552eb45e9e72440f0ca.png",
+      "sha256": "e82ac995fb35354e8ba61c2dba936575d513f5e14689382b17c2212e64bb7ef1"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/d15dbd1df27a08de746d27893a976b83b8e6ecb75f28e4acfa558ed54e6b9bcb.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/d15dbd1df27a08de746d27893a976b83b8e6ecb75f28e4acfa558ed54e6b9bcb.png",
+      "sha256": "1fec8451ce15a8e64f48b15de1c45e6beddeea7a57a013e0075fc967a7051817"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/d30ca9ed4433269d06a5594bc2add5dc94dfbddf58990e1e4829c9b595951431.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/d30ca9ed4433269d06a5594bc2add5dc94dfbddf58990e1e4829c9b595951431.png",
+      "sha256": "b3ee4d43411e084767c3ad0578ead709813a7b622be501776968e12aac497a0d"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/da6afcbe3b862a2f307533258913bfbe28cb9feb69b5aa007a5351ea4d572a2f.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/da6afcbe3b862a2f307533258913bfbe28cb9feb69b5aa007a5351ea4d572a2f.png",
+      "sha256": "606cdd04cddd9289e10c8dacf8dea9da45ce177aa663a95eb1b8fea33c4f1c49"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/dee032a8aa2a65dfbe8fdca99027b824290d8b92ef405483b19b749ac27f1c57.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/dee032a8aa2a65dfbe8fdca99027b824290d8b92ef405483b19b749ac27f1c57.png",
+      "sha256": "1556e495043219643f78577cba78d84af3578dfbf8b7b25ce76d8ef4a9ee094b"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/e0d6a521cfd00fa68c895c7e758d95d36dfa19d6756fea17161b61221c42778a.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/e0d6a521cfd00fa68c895c7e758d95d36dfa19d6756fea17161b61221c42778a.png",
+      "sha256": "9810fdb3916f754f99a877c2b18c9e97d2c94e95857d0cc2ed8a9b749f196ef2"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/e81fcd4b0916e53332e5d7190e1daf5af3dd15c8d028d2fea6e047272958c83f.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/e81fcd4b0916e53332e5d7190e1daf5af3dd15c8d028d2fea6e047272958c83f.png",
+      "sha256": "3a90b5ba9d9d975c3ca49b7418d935a9885c54c8d866fce15309f6fc7dc93ba0"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/e89c74b329ceeeb0e9cca63d5ef4dd99978af3d60240ed88606e15b45c3276dd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/e89c74b329ceeeb0e9cca63d5ef4dd99978af3d60240ed88606e15b45c3276dd.png",
+      "sha256": "ad6b20a01bd5dd266eb03d9a86b27df58c3433ae071e74b0177ea99fc2ac5a4d"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/e8de5fc9f8080e334dec300b03db8c344a555b7208a4b38e0cde2212e0b2b06d.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/e8de5fc9f8080e334dec300b03db8c344a555b7208a4b38e0cde2212e0b2b06d.png",
+      "sha256": "87bc573016dcf0fcebcc51e7eaeb8ad9b456f579d3a340c0a6169d9ae34c8c7d"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/f333adb80d7a2085383fe1ffa1a918e34c26c8b4ab72f9667a2bef7150e3095c.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/f333adb80d7a2085383fe1ffa1a918e34c26c8b4ab72f9667a2bef7150e3095c.png",
+      "sha256": "459a56ff0bb256220c8e067936bd619767ea6f8ff3be540d10b295711afdc2e9"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/f47d9f96202404268cf41ea685b2d0ef9b8d18a7898ad37317a210aa2306a48f.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/f47d9f96202404268cf41ea685b2d0ef9b8d18a7898ad37317a210aa2306a48f.png",
+      "sha256": "06a2bd21be26666b9d06b89c104b3f5fbf95c013f1b93f128d53ccb16f55c3ae"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/f65e647b4cb063243a965240bc20c0541faa85976dfc19151dc43b67fd7a3a96.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/f65e647b4cb063243a965240bc20c0541faa85976dfc19151dc43b67fd7a3a96.png",
+      "sha256": "ccd8ee6c6684fd59b69d638a42352a0f9f82b7a2daa9386a5154302bf822b9f8"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/f88f582dc45d1d29c950b2da30933cffd69f81eb7f84e0c00e3a326bbd7a33fd.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/f88f582dc45d1d29c950b2da30933cffd69f81eb7f84e0c00e3a326bbd7a33fd.png",
+      "sha256": "17ed89c2c12b4af07d7906570764849989fc595f84ee95c8b0ddb37cc5e312c2"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/layers/fd4441fe032ec13483e5f6891a9d7174398a67e5277b9e0329aeca6d5d7f57f8.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/layers/fd4441fe032ec13483e5f6891a9d7174398a67e5277b9e0329aeca6d5d7f57f8.png",
+      "sha256": "fa215db3cc97858a5e6b2b6a4d0be540ff82448f16a9acaa77362b88b579fc77"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/offline-export/manifest.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/offline-export/manifest.json",
+      "sha256": "e117e8f6324b482243fe0fac957c5317717ca7592afb6bc3df03a1292be57bb8"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/ottoman-sit-NE.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/ottoman-sit-NE.png",
+      "sha256": "d6c820410eb57f7eac94526004e659e5c3488d4323d95c04d5c35a551b02f708"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/ottoman-sit-NW.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/ottoman-sit-NW.png",
+      "sha256": "0854c6ec00628f1f42b61db995e98f8151dc47a7cf000ff558c6fdb8e6f481fb"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/ottoman-sit-SE.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/ottoman-sit-SE.png",
+      "sha256": "f48ef83f8135d8894f67169046f11002bbcba035fb7b62d678d8cb38c92a5b66"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/ottoman-sit-SW.png",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/ottoman-sit-SW.png",
+      "sha256": "cf535c304f0fe97d0160cde62c739924edd484501405f477c4207153e4dc70c2"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/ottoman-sit-authoring.blend",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/ottoman-sit-authoring.blend",
+      "sha256": "bc5144165be665cfdc62dae1ce2eb96e7d3b978040aabf2f542785313e55371f"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/source-volume-inventory.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/source-volume-inventory.json",
+      "sha256": "2f622dbcbc0751a4398b4f0251fda77a3fd9090a7005eb0ee390d0374180492a"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/status.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/status.json",
+      "sha256": "ac46f61c053becc59cdb1ae95d677ec3b90393d57c2f4d610d2ffc9e3ce51ad9"
+    },
+    {
+      "historical": "output/ottoman-sit-candidate-02/strict-contact-proof-02.json",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/ottoman-sit-candidate-02/strict-contact-proof-02.json",
+      "sha256": "1368194dd083af1699321eca330ba301cd8120adde4734c83630936e1914732a"
+    },
+    {
+      "historical": "output/prove-ottoman-export-guards.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/prove-ottoman-export-guards.py",
+      "sha256": "cb838265c6602396a8f446c1a80c6c82a764f8e392e5d8c57c713c21e56c92bf"
+    },
+    {
+      "historical": "output/prove-ottoman-occupancy.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/prove-ottoman-occupancy.py",
+      "sha256": "64d7ac9a5b577a3899fc803a52ea63a833993f5f976fa11777a68ff2cd744299"
+    },
+    {
+      "historical": "output/read-ottoman-cadence.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/read-ottoman-cadence.py",
+      "sha256": "5b014427f83763219d6df22ce7bfacb0001c205ca21a0bbdcdf122b60da3a640"
+    },
+    {
+      "historical": "output/render-ottoman-sit-contributions.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/render-ottoman-sit-contributions.py",
+      "sha256": "b36e737b9dd113aaea7c32f9f2a33322b0266336c1b4da529678ef9ffe20c0ff"
+    },
+    {
+      "historical": "output/review-ottoman-cadence.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/review-ottoman-cadence.py",
+      "sha256": "bc67ce7662ad8126c327b853513d4c319f4d6b35fe872d8a0ee6600fc389b2f9"
+    },
+    {
+      "historical": "output/surface_volume.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/surface_volume.py",
+      "sha256": "6822e2307d85cd2d4f5545f5d9bcb76cc1f38a5a443cb878a666bc3cda2a54e9"
+    },
+    {
+      "historical": "output/test_ottoman_export_review.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/test_ottoman_export_review.py",
+      "sha256": "7ac6e4c3cfa635ae558a61a374a59f638f6653b689311742fd3b06346a2dbe05"
+    },
+    {
+      "historical": "output/test_surface_volume.py",
+      "path": "assets/models/living/owner-review-pending/ottoman/sitting-02/archive/output/test_surface_volume.py",
+      "sha256": "9f6207cb865427af15722bce203c7ad7b17567107b7015f18a3f1029a53a957a"
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "state": "complete",
+  "pid": 33580,
+  "background": true,
+  "blender_version": "4.5.14 LTS",
+  "source_hashes": {
+    "assets\\models\\living\\owner-review-pending\\ottoman\\candidate-01\\ottoman-authoring.blend": "85d3155043bd11bb713fef3b8bfa516686c48448050a48eceb37057080a6f65b",
+    "assets\\models\\sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "output\\build-ottoman-sit-refined.py": "a79af9456f436096bc87f7e770eb07471bcec28fa0bf6912c3d55df7b5d99a09",
+    "assets\\models\\living\\armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+    "assets\\models\\living\\armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+    "assets\\models\\sims\\sim-01\\build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "assets\\models\\sims\\sim-01\\rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "assets\\models\\sims\\sim-01\\render_shirt_variants.py": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b"
+  },
+  "scope": "Offline additive sitting candidate; no runtime acceptance",
+  "renders": [
+    {
+      "path": "ottoman-sit-SE.png",
+      "facing": "SE",
+      "sha256": "f48ef83f8135d8894f67169046f11002bbcba035fb7b62d678d8cb38c92a5b66"
+    },
+    {
+      "path": "ottoman-sit-NW.png",
+      "facing": "NW",
+      "sha256": "0854c6ec00628f1f42b61db995e98f8151dc47a7cf000ff558c6fdb8e6f481fb"
+    },
+    {
+      "path": "ottoman-sit-SW.png",
+      "facing": "SW",
+      "sha256": "cf535c304f0fe97d0160cde62c739924edd484501405f477c4207153e4dc70c2"
+    },
+    {
+      "path": "ottoman-sit-NE.png",
+      "facing": "NE",
+      "sha256": "d6c820410eb57f7eac94526004e659e5c3488d4323d95c04d5c35a551b02f708"
+    }
+  ],
+  "preserved_scene_fingerprint": "34ed46973fe5b6d09469fb2a26a49eb72d1a77b15abb023000a43cc38f07e181",
+  "candidate_sha256": "bc5144165be665cfdc62dae1ce2eb96e7d3b978040aabf2f542785313e55371f",
+  "samples": [
+    {
+      "frame": 1,
+      "collisions": [],
+      "hip_support": {
+        "passed": true,
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "sole_min_z": {
+        "Fitted rounded shoe sole": 0.00014812372683081776,
+        "Fitted rounded shoe sole.001": 0.00014811631990596652
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "passed": true
+    },
+    {
+      "frame": 2,
+      "collisions": [],
+      "hip_support": {
+        "passed": true,
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "sole_min_z": {
+        "Fitted rounded shoe sole": 0.00014812372683081776,
+        "Fitted rounded shoe sole.001": 0.00014811631990596652
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "passed": true
+    },
+    {
+      "frame": 3,
+      "collisions": [],
+      "hip_support": {
+        "passed": true,
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "sole_min_z": {
+        "Fitted rounded shoe sole": 0.00014812372683081776,
+        "Fitted rounded shoe sole.001": 0.00014811631990596652
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "passed": true
+    },
+    {
+      "frame": 4,
+      "collisions": [],
+      "hip_support": {
+        "passed": true,
+        "min_gap": 0.0007991194725036621,
+        "ray_hits": 1346,
+        "contact_count": 49,
+        "near_gap_limit": 0.01,
+        "contact_bounds": [
+          [
+            -0.2036190778017044,
+            -0.09995635598897934,
+            0.3857991695404053
+          ],
+          [
+            -0.08856227248907089,
+            0.09995636343955994,
+            0.3930725157260895
+          ]
+        ],
+        "xy_hull_area": 0.017859541034633306
+      },
+      "sole_min_z": {
+        "Fitted rounded shoe sole": 0.00014812372683081776,
+        "Fitted rounded shoe sole.001": 0.00014811631990596652
+      },
+      "maximum_bone_length_error": 2.086162567138672e-07,
+      "passed": true
+    }
+  ],
+  "fit_passed": true,
+  "source_bytes_unchanged": true
+}

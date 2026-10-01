@@ -1,0 +1,25 @@
+{
+  "stage": "source-tests",
+  "state": "complete",
+  "bundle_sha256": "6124f9c2be19d241ce3f48a19b2a0c018fa3131ef94b68cb3ade81dbba5fdeb2",
+  "commands": [
+    {
+      "argv": [
+        "C:\\Users\\myema\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+        "-I",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "output",
+        "-p",
+        "test_*.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_colour_contact_drift (test_ottoman_export_review.RenderCoverageTests.test_colour_contact_drift) ... ok\ntest_duplicate_sample (test_ottoman_export_review.RenderCoverageTests.test_duplicate_sample) ... ok\ntest_incomplete_state (test_ottoman_export_review.RenderCoverageTests.test_incomplete_state) ... ok\ntest_missing_frame (test_ottoman_export_review.RenderCoverageTests.test_missing_frame) ... ok\ntest_path_escape (test_ottoman_export_review.RenderCoverageTests.test_path_escape) ... ok\ntest_real_complete_batch (test_ottoman_export_review.RenderCoverageTests.test_real_complete_batch) ... ok\ntest_registration_drift (test_ottoman_export_review.RenderCoverageTests.test_registration_drift) ... ok\ntest_wrong_named_sample (test_ottoman_export_review.RenderCoverageTests.test_wrong_named_sample) ... ok\ntest_boundary_points_are_not_silently_inside_or_outside (test_surface_volume.SurfaceVolumeTests.test_boundary_points_are_not_silently_inside_or_outside) ... ok\ntest_concave_surface_excludes_notch_inside_its_bounding_box (test_surface_volume.SurfaceVolumeTests.test_concave_surface_excludes_notch_inside_its_bounding_box) ... ok\ntest_coplanar_overlap_beyond_a_shared_vertex_is_not_adjacency (test_surface_volume.SurfaceVolumeTests.test_coplanar_overlap_beyond_a_shared_vertex_is_not_adjacency) ... ok\ntest_every_disconnected_component_is_checked_for_containment (test_surface_volume.SurfaceVolumeTests.test_every_disconnected_component_is_checked_for_containment) ... ok\ntest_globally_reversing_winding_preserves_volume_occupancy (test_surface_volume.SurfaceVolumeTests.test_globally_reversing_winding_preserves_volume_occupancy) ... ok\ntest_only_the_named_original_neck_loop_can_be_capped_for_analysis (test_surface_volume.SurfaceVolumeTests.test_only_the_named_original_neck_loop_can_be_capped_for_analysis) ... ok\ntest_open_and_inconsistently_oriented_meshes_are_not_volumes (test_surface_volume.SurfaceVolumeTests.test_open_and_inconsistently_oriented_meshes_are_not_volumes) ... ok\ntest_self_intersecting_components_are_rejected (test_surface_volume.SurfaceVolumeTests.test_self_intersecting_components_are_rejected) ... ok\ntest_shared_edge_is_allowed_but_an_actual_crossing_is_not (test_surface_volume.SurfaceVolumeTests.test_shared_edge_is_allowed_but_an_actual_crossing_is_not) ... ok\ntest_thin_crossing_triangles_need_not_have_an_enclosed_vertex (test_surface_volume.SurfaceVolumeTests.test_thin_crossing_triangles_need_not_have_an_enclosed_vertex) ... ok\ntest_warped_or_crossed_neck_loop_is_not_auto_closed (test_surface_volume.SurfaceVolumeTests.test_warped_or_crossed_neck_loop_is_not_auto_closed) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.012s\n\nOK\n"
+    }
+  ],
+  "archive_bytes_unchanged": true
+}

@@ -1,5 +1,9 @@
 # Ottoman visual acceptance
 
+This receipt records the static-art release. The later target-specific sitting
+animation has a separate [acceptance record](ottoman-sitting.md); it does not
+retroactively change the generic-use behaviour observed below.
+
 Replace the small procedural ottoman with four views of one editable model.
 Preserve persistence ID `sofa`, entity 18 at (12, 3), its one-tile footprint,
 price 200, two interaction slots and existing fun/comfort effects. Do not

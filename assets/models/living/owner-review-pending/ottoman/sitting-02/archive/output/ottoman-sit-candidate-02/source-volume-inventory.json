@@ -1,0 +1,248 @@
+{
+  "candidate": [
+    {
+      "name": "Relaxed palm",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 610,
+      "faces": 640
+    },
+    {
+      "name": "Relaxed palm.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 610,
+      "faces": 640
+    },
+    {
+      "name": "Resting thumb",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 458,
+      "faces": 480
+    },
+    {
+      "name": "Resting thumb.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 458,
+      "faces": 480
+    },
+    {
+      "name": "Tailored trouser leg",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 2498,
+      "faces": 2496
+    },
+    {
+      "name": "Tailored trouser leg.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 2498,
+      "faces": 2496
+    },
+    {
+      "name": "Forearm with elbow and wrist sections",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Forearm with elbow and wrist sections.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Overshirt body",
+      "boundary_edges": 96,
+      "nonmanifold_edges": 96,
+      "boundary_loops": [
+        {
+          "vertices": 96,
+          "bounds": [
+            [
+              -0.23093631863594055,
+              -0.08706475049257278,
+              1.0549355745315552
+            ],
+            [
+              -0.07709372043609619,
+              0.08706476539373398,
+              1.0549356937408447
+            ]
+          ],
+          "branching": false
+        }
+      ],
+      "vertices": 3217,
+      "faces": 3168
+    },
+    {
+      "name": "Shaped shoe",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Shaped shoe.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Fitted rounded shoe sole",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1346,
+      "faces": 1344
+    },
+    {
+      "name": "Fitted rounded shoe sole.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1346,
+      "faces": 1344
+    }
+  ],
+  "approved_original": [
+    {
+      "name": "Relaxed palm",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 610,
+      "faces": 640
+    },
+    {
+      "name": "Relaxed palm.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 610,
+      "faces": 640
+    },
+    {
+      "name": "Resting thumb",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 458,
+      "faces": 480
+    },
+    {
+      "name": "Resting thumb.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 458,
+      "faces": 480
+    },
+    {
+      "name": "Tailored trouser leg",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 2498,
+      "faces": 2496
+    },
+    {
+      "name": "Tailored trouser leg.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 2498,
+      "faces": 2496
+    },
+    {
+      "name": "Forearm with elbow and wrist sections",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Forearm with elbow and wrist sections.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Overshirt body",
+      "boundary_edges": 96,
+      "nonmanifold_edges": 96,
+      "boundary_loops": [
+        {
+          "vertices": 96,
+          "bounds": [
+            [
+              -0.08706475794315338,
+              -0.07093629240989685,
+              1.4034357070922852
+            ],
+            [
+              0.08706475794315338,
+              0.08290629833936691,
+              1.4034357070922852
+            ]
+          ],
+          "branching": false
+        }
+      ],
+      "vertices": 3217,
+      "faces": 3168
+    },
+    {
+      "name": "Shaped shoe",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Shaped shoe.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1730,
+      "faces": 1728
+    },
+    {
+      "name": "Fitted rounded shoe sole",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1346,
+      "faces": 1344
+    },
+    {
+      "name": "Fitted rounded shoe sole.001",
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_loops": [],
+      "vertices": 1346,
+      "faces": 1344
+    }
+  ]
+}

@@ -1958,6 +1958,54 @@ mod tests {
     }
 
     #[test]
+    fn the_shipped_ottoman_adds_a_seat_without_changing_gameplay() {
+        let p = pack();
+        let ottoman = p.find("sofa").expect("shipped ottoman persistence ID");
+        let object = p.object(ottoman);
+        assert_eq!(object.price, Some(200));
+        assert_eq!(object.footprint, Footprint { width: 1, depth: 1 });
+        let action = object
+            .interactions
+            .iter()
+            .find(|interaction| interaction.id == "lounge")
+            .expect("shipped ottoman interaction");
+        assert_eq!(action.label, "Sit down");
+        assert_eq!((action.duration_ticks, action.slots), (50, 2));
+        assert_eq!(action.advertises, vec![(5, 18.0), (6, 34.0)]);
+        assert_eq!(action.tags, vec!["lounging"]);
+        assert_eq!(action.satisfaction, 0.0);
+        assert_eq!(content_fingerprint(p), 0xc2cf_2919_84ed_61f7);
+        assert_eq!(
+            action.visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Sit,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(0),
+            })
+        );
+        assert_eq!(object.action_sockets.len(), 1);
+        let socket = &object.action_sockets[0];
+        assert_eq!(socket.id, "seat");
+        assert_eq!(
+            (socket.x, socket.y, socket.facing),
+            (0.0, 0.0, CompiledSocketFacing::PositiveY)
+        );
+        let placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|row| row.object == ottoman)
+            .unwrap();
+        assert_eq!(placement.action_sockets.len(), 1);
+        let placed = &placement.action_sockets[0];
+        assert_eq!(
+            (placed.x, placed.y, placed.facing),
+            (12.0, 3.0, CompiledSocketFacing::PositiveY)
+        );
+    }
+
+    #[test]
     fn the_shipped_bunk_carries_the_exact_lower_bunk_sleep_contract() {
         let p = pack();
         let bed = p.find("bed").expect("shipped bunk bed");

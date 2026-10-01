@@ -1,0 +1,49 @@
+{
+  "state": "complete",
+  "inputs": {
+    "export-ottoman-sit-review.py": "cfe4bba0ad3b1cba032b1371d9eecd6e99986484153692230a4bbc7c21f8458d",
+    "test_ottoman_export_review.py": "7ac6e4c3cfa635ae558a61a374a59f638f6653b689311742fd3b06346a2dbe05",
+    "prove-ottoman-export-guards.py": "cb838265c6602396a8f446c1a80c6c82a764f8e392e5d8c57c713c21e56c92bf"
+  },
+  "mutations": [
+    {
+      "guard": "complete_state",
+      "test": "test_incomplete_state",
+      "killed": true,
+      "output": "F\n======================================================================\nFAIL: test_incomplete_state (coverage_tests.RenderCoverageTests.test_incomplete_state)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 40, in test_incomplete_state\n    self.rejected(lambda proof: proof.update(state='running'))\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 24, in rejected\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.002s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "sample_coverage",
+      "test": "test_missing_frame",
+      "killed": true,
+      "output": "F\n======================================================================\nFAIL: test_missing_frame (coverage_tests.RenderCoverageTests.test_missing_frame)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 28, in test_missing_frame\n    self.rejected(lambda proof: proof['renders'].pop())\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 24, in rejected\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "duplicate_identity",
+      "test": "test_duplicate_sample",
+      "killed": true,
+      "output": "F\n======================================================================\nFAIL: test_duplicate_sample (coverage_tests.RenderCoverageTests.test_duplicate_sample)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 31, in test_duplicate_sample\n    self.rejected(lambda proof: proof['renders'].append(proof['renders'][0]))\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 24, in rejected\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "sample_path",
+      "test": "test_path_escape",
+      "killed": true,
+      "output": "F\n======================================================================\nFAIL: test_path_escape (coverage_tests.RenderCoverageTests.test_path_escape)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 37, in test_path_escape\n    self.rejected(lambda proof: proof['renders'][0].update(path='../elsewhere.png'))\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 24, in rejected\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "registration",
+      "test": "test_registration_drift",
+      "killed": true,
+      "output": "F\n======================================================================\nFAIL: test_registration_drift (coverage_tests.RenderCoverageTests.test_registration_drift)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 43, in test_registration_drift\n    self.rejected(lambda proof: proof.update(anchor=[48, 115]))\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 24, in rejected\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "guard": "palette_contact",
+      "test": "test_colour_contact_drift",
+      "killed": true,
+      "output": "F\n======================================================================\nFAIL: test_colour_contact_drift (coverage_tests.RenderCoverageTests.test_colour_contact_drift)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 46, in test_colour_contact_drift\n    self.rejected(lambda proof: proof['contact_samples']['red'].pop())\n    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\output\\test_ottoman_export_review.py\", line 24, in rejected\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n"
+    }
+  ],
+  "restored_output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.007s\n\nOK\n",
+  "source_bytes_unchanged": true,
+  "earlier_survivor": "Removing only duplicate-key rejection left the test passing because duplicate-path rejection still caught it. The duplicate-identity probe removes both checks together."
+}

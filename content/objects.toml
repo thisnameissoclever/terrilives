@@ -273,6 +273,12 @@ name = "Chesterfield Regret"
 price = 200
 sprite = "offlineOttoman"
 
+  [[object.action_socket]]
+  id = "seat"
+  x = 0.0
+  y = 0.0
+  facing = "SW"
+
   # Two advertised needs, deliberately. [D6]'s scoring SUMS across
   # advertised deltas, and this is the first object in shipped content
   # where that is observable in the running game rather than only in a
@@ -289,6 +295,7 @@ sprite = "offlineOttoman"
   advertises = { fun = 18.0, comfort = 34.0 }
   duration_ticks = 50
   slots = 2
+  visual = { action = "sit", anchor = "object_socket", facing = "socket", socket = "seat" }
 
 [[object]]
 id = "sink"

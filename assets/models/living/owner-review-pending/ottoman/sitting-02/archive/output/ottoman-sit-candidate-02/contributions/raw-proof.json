@@ -1,0 +1,2518 @@
+{
+  "state": "complete",
+  "pid": 77904,
+  "background": true,
+  "blender_version": "4.5.14 LTS",
+  "blender_build_hash": "62c1db4208e8",
+  "signature": {
+    "assets\\models\\living\\armchair_contact.py": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab",
+    "assets\\models\\living\\armchair_support.py": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40",
+    "assets\\models\\bedroom\\bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+    "assets\\models\\bathroom\\check_toilet_scene.py": "8981965d4650e8fc3b59e7b7e2e7407187792f2b76aa929713543a988c8d2cf4",
+    "assets\\models\\kitchen\\check_stove_scene.py": "fee0e2bea64b8843ebb753e8defb5880ec381b55a1537ee9a07bbf83664d0485",
+    "assets\\models\\kitchen\\render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "assets\\models\\furniture\\animation_export.py": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30",
+    "assets\\models\\furniture\\build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "assets\\models\\furniture\\geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "assets\\models\\furniture\\preview.py": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c",
+    "assets\\models\\sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "assets\\models\\sims\\sim-01\\registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+    "assets\\models\\sims\\sim-01\\render_shirt_variants.py": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b",
+    "assets\\models\\sims\\sim-01\\shirt_colors.py": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0",
+    "assets\\models\\sims\\sim-01\\render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+    "assets\\models\\sims\\sim-01\\build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "assets\\models\\sims\\sim-01\\rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "assets\\models\\sims\\sim-01\\food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+    "output\\ottoman-sit-candidate-02\\ottoman-sit-authoring.blend": "bc5144165be665cfdc62dae1ce2eb96e7d3b978040aabf2f542785313e55371f",
+    "output\\ottoman-sit-candidate-02\\status.json": "ac46f61c053becc59cdb1ae95d677ec3b90393d57c2f4d610d2ffc9e3ce51ad9",
+    "output\\ottoman-sit-candidate-02\\strict-contact-proof-02.json": "1368194dd083af1699321eca330ba301cd8120adde4734c83630936e1914732a",
+    "output\\check-ottoman-sit-candidate-02.py": "50d27e17a351994226d42fb25bc7554010d6dcc3aedad7992c692c623878fb7b",
+    "output\\render-ottoman-sit-contributions.py": "b36e737b9dd113aaea7c32f9f2a33322b0266336c1b4da529678ef9ffe20c0ff",
+    "output\\build-ottoman-sit-refined.py": "a79af9456f436096bc87f7e770eb07471bcec28fa0bf6912c3d55df7b5d99a09",
+    "output\\surface_volume.py": "6822e2307d85cd2d4f5545f5d9bcb76cc1f38a5a443cb878a666bc3cda2a54e9"
+  },
+  "scope": "Offline renders awaiting full-clip/compositing review",
+  "renders": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "path": "ottoman-sit-green-SE-0-empty.png",
+      "sha256": "a1501f85b802cd94bfaa0da0b334b25a9bf52b020f2b8d07f8dab45a6a927e10"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SE-0-beauty.png",
+      "sha256": "7d05dfa07c8a1d648be2f51646ba3bdbff5c18c9a91712e7afea6ebdd523c945"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SE-0-sim.png",
+      "sha256": "5cbc80b00cb69816b2c0a51201cb7c919d4a7dd179288a6e5982c7b8fc5b7215"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SE-0-furniture.png",
+      "sha256": "38a163c99b88eea4e68c8272bbd0cbe86b9f438bea20d7d034da9881c11c11b4"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SE-0-lines.png",
+      "sha256": "6343e7f514e56c39113e198372ef47a020347df41e4c687ecba2e0ff0913168d"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SE-1-beauty.png",
+      "sha256": "64e1f539c2f6848c8a64a430b96b7e9968db7f00ce0872e551b0020a70dd3d99"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SE-1-sim.png",
+      "sha256": "f601cf1a52c608ff49fa9fe7138c5a5066ca86b8bbbaad883db0618bdd2a45cd"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SE-1-furniture.png",
+      "sha256": "6a3d0a416e73fe3a80f51f0b1574638d71361e23f0c89a0697b0795274932139"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SE-1-lines.png",
+      "sha256": "582dd72ae877bfedb6b74d521431bb58cbf6f6db7008ac713d6dfaacaa0d83fe"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SE-2-beauty.png",
+      "sha256": "4baf2b8f98efc5ad4462fe6e8c61c58b14a68243ec7ab01e2690763276f67db5"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SE-2-sim.png",
+      "sha256": "d86dfaf529d7eaac31fef9cc20e86bdf102291204115fb1da4fbea48d58c84fb"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SE-2-furniture.png",
+      "sha256": "c5b68d3991bfd31a9b8b0435850620cfcf505e2cf8a7ed58bc206e1137b25d53"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SE-2-lines.png",
+      "sha256": "d8e1a24d66bff05fed3cdf1d9d677ac6f221ba6151f0e8d8458158c13b31ef46"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SE-3-beauty.png",
+      "sha256": "6e3ad6032b7d57b4fc25f1d189160b941295c62ffb2bd4337b5e3d37974550be"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SE-3-sim.png",
+      "sha256": "3715f7abd99c3490d007237b078772a780b9ab4cb7149c5e1d075f9c09be083b"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SE-3-furniture.png",
+      "sha256": "2bdbc5b31c556c46ec3124b3e81abae515c409d2f7384524d9110b6ba31f2644"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SE-3-lines.png",
+      "sha256": "255266583f8f64e186a9551127667b497b95366eff0992d5309baa08b47006b0"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "path": "ottoman-sit-green-NW-0-empty.png",
+      "sha256": "1f499b79a18dd7b066db8f61f82f5fe147ceb8ddfed214fd33598038e86d1a1c"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NW-0-beauty.png",
+      "sha256": "f512797c50b9162b887403c0bc47fa82b82d8325ee5f317c398e366cb766f136"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NW-0-sim.png",
+      "sha256": "f744b4c438ff9125f9b8dc77512e4361e4573a14359157bb378a6016e54d3b0d"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NW-0-furniture.png",
+      "sha256": "6014ac9996bf8834b576d89c215ec91daa6935b1517189c97cfc277bd706c74f"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NW-0-lines.png",
+      "sha256": "3fdf8dbdc8f33a87f46c83554d8e838df071865e3dd48c9bb37c54de42a8120f"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NW-1-beauty.png",
+      "sha256": "841e7c38352d0ebcca0761d8321d02eb7a6527b6c3e630fd4c178e8587e47127"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NW-1-sim.png",
+      "sha256": "8e3256e330093f99d3a6dc0f6a40411c7d03d31066dd08849f67814be4ffdf3d"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NW-1-furniture.png",
+      "sha256": "626346a7687c49e98e3cfe155b955e6da5382c92d75441465c6e7ba9ed9d495c"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NW-1-lines.png",
+      "sha256": "f982fdc5115d2fa742cc31628bdacfaf1a412bf609227a169d9633b1d499256e"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NW-2-beauty.png",
+      "sha256": "61eec94dbbe3b98d302626b6314d679ed6b7d4050b86ad4cd776d6f2d29b9ee9"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NW-2-sim.png",
+      "sha256": "80ccb5cf0576d5b15de572cb7e37250e8355a87175c3103c6dfbff7b3a0343a8"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NW-2-furniture.png",
+      "sha256": "4b9595c6872ff07fd84a660dffe2928360866436577a89040d3d42e8f5f32a35"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NW-2-lines.png",
+      "sha256": "05b71a354801f3eef230b9e9559410bb6f69eb6c6154c8147a40ce43adc0ad83"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NW-3-beauty.png",
+      "sha256": "58bdca2a84d59569fc8df353acfa8c5cd3fd71a415bf6f39b506c911c0d45828"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NW-3-sim.png",
+      "sha256": "ca5d1519e41a205cfec8a3719129b984c4e8d180f6df46cc0d79192f86cdf408"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NW-3-furniture.png",
+      "sha256": "89e729263e0cb917095c408ee44c75f04985162d0ab82b364f9cb7faab978bad"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NW-3-lines.png",
+      "sha256": "2a26a7c58788eab1c4a5c7d5b6d17b4ec72c90bbf3b2096f99083222aaf1a979"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "path": "ottoman-sit-green-SW-0-empty.png",
+      "sha256": "4396627a59bb3d4544c7f3fac197c01064f39fea4e03e52f9550a18eb4edcb09"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SW-0-beauty.png",
+      "sha256": "ec4f542d1e426fb05e4fd195d26d50803702388b7f2278f349272d1182081a60"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SW-0-sim.png",
+      "sha256": "ee244d77cacaf4b3bb283ba9375d4a24863422819e0c07202ed69c7137ba61fd"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SW-0-furniture.png",
+      "sha256": "73a058fcc5032dc7e5d745ab9822171b87129ebba8354e4ed2d2f076f8e48bf0"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SW-0-lines.png",
+      "sha256": "1240f6d5561120513d44ad9ce9f1820f51a5995f6f05bb918a86fc133cdf4afd"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SW-1-beauty.png",
+      "sha256": "b66c7cdb22cd0f0a2442c9b64d6e5b4dbcc2988789daaab31a6d99e76891251b"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SW-1-sim.png",
+      "sha256": "342ab27fa0734dd16fc87564f7a79a50e0b6cd09fdef1615155ac0d72eedaf30"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SW-1-furniture.png",
+      "sha256": "b25128bd35e5b35e43ab78ecdd87ffcd2b6f25c9ead11651bddfe4252a36108a"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SW-1-lines.png",
+      "sha256": "b6fe9143670bf8b41be2bd37335e69203fefc6e4c15fcb1e2be05e077cce2ea2"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SW-2-beauty.png",
+      "sha256": "47ea0292badf6949dabb75a950d3345c36c384c3ca3324620168e57f06ba2883"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SW-2-sim.png",
+      "sha256": "bbe9c7838fc04eb23189d0321e6e14dba6dc979a3674f1be095e490e4ba2e614"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SW-2-furniture.png",
+      "sha256": "0d9847fb7ef9b2eee09896cdad6ec918081bedb97900302c38856e64e82782e5"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SW-2-lines.png",
+      "sha256": "5865b0fc377318f4be0cdba6a03ffb0c29610fad5b8781b020631ccfbff13f31"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-SW-3-beauty.png",
+      "sha256": "f7c789dbf70107d54a2cc98f9f99c36244c3cecb426658c73cf63add45fe41d9"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-SW-3-sim.png",
+      "sha256": "b7985d289d413e0118e8cf2d5d504d687c572a1a77108f93882db4df0d849bf9"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-SW-3-furniture.png",
+      "sha256": "83df1886fa7f5b349461cb9f21f48f3ce4e5020c7a3c8ae15ea3fb886212fc99"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-SW-3-lines.png",
+      "sha256": "d60b75f81eee4de02f109dae0189e296ce139e6470ff04d5058ce1fc39d684ca"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "path": "ottoman-sit-green-NE-0-empty.png",
+      "sha256": "0768b4baa7e2a67d7d23f34eeb0588fcf9432e62bd8de1324349bd74a2fe3e8c"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NE-0-beauty.png",
+      "sha256": "02c5a521f159fefde0d69fbc3713b298c03f3e970c92b2ae8299878f5460b021"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NE-0-sim.png",
+      "sha256": "9226c3aecffb97edde4d703b85b641aa14cd493276ce483d005af73685474b53"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NE-0-furniture.png",
+      "sha256": "a59bfe8a6db7d7514b18b2b878cc25c148e601201833770b9e76846d55b7c84c"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NE-0-lines.png",
+      "sha256": "06b5a03ae45ec22fd335eeab2c8deb3870a5abe1f90702b13580f02ec834fe82"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NE-1-beauty.png",
+      "sha256": "31526459edc598592c963f30bc0188d7f807e8692a576c76bf74967a7204f2e9"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NE-1-sim.png",
+      "sha256": "eadb0eb7743a10d4a21065cb7f733e7c01f12ec19471250e753d9ff5fcc97950"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NE-1-furniture.png",
+      "sha256": "472f7ba3f49fbecf0d88ba78b8c87a98a423d6609bb783921907c51f6dc4126f"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NE-1-lines.png",
+      "sha256": "d5c3b4790f06113c01490754726ea85b4d669fc19db9fd068b93060839bb5b63"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NE-2-beauty.png",
+      "sha256": "736f31175e1574b014b3e310ecc099960a489c719667b0e389fb84879c2642d3"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NE-2-sim.png",
+      "sha256": "06ce082998754d884c21304d1d3eac0a478025b73fec35a82faf8bd48b91ac8d"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NE-2-furniture.png",
+      "sha256": "026339d712661ac84544906dd077d5491e8e163d313a412c13f229399b568635"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NE-2-lines.png",
+      "sha256": "8d77a10916f67ad0921f8f259362e012a5212948979862b36e64fad32d2351aa"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "path": "ottoman-sit-green-NE-3-beauty.png",
+      "sha256": "785eec2606651f7ee4a2ed7dcc8d74fd874b8acf9dda15cb863768e6513f3d6f"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "path": "ottoman-sit-green-NE-3-sim.png",
+      "sha256": "f198262544b234ebf0078048655a2c685ed938069b42c2eee9a73afba39b58e0"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "path": "ottoman-sit-green-NE-3-furniture.png",
+      "sha256": "10d4690ffe500d5d1479dd3e586734a154dc6b40f608ed721d77332dd45afa4b"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "path": "ottoman-sit-green-NE-3-lines.png",
+      "sha256": "ad6a066a67b6d8d1bd03d7b7b3405cc4b8c64bae13dee400bcf6ee2b122527cf"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SE-0-beauty.png",
+      "sha256": "8e2586abac355a9955856e7a8a329cfb2c36c38fd811de3eeefdc3d4e775b2a5"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SE-0-sim.png",
+      "sha256": "b339868eb06e8605d7386a8b457e45438ef0e31bd66a1e2861ed287767ca42a8"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SE-0-furniture.png",
+      "sha256": "7bdee2b3c4f43d0059ba324260aa569c45ab0879d56c346e846d3b3cfed99ee1"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SE-0-lines.png",
+      "sha256": "3e405735509c08927ba46ae1f256970aec207b50bfcc062b50044076c1bd7805"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SE-1-beauty.png",
+      "sha256": "6d68594ec103b3a9fd794eb57fe09464dcdf0e6834ae98a71dec2cb4d530874b"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SE-1-sim.png",
+      "sha256": "07f2a6c20a2cae35b46a185f461f240c9d8cf69488b361cbcdd684fb95347aa2"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SE-1-furniture.png",
+      "sha256": "8e1bf5f6bc3fec50667029c3ed3dbc2dcfc1a96889abf2543205474c8f4f5dcd"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SE-1-lines.png",
+      "sha256": "f13c5eae1a352697bb10185d3f5053772d43da141b5b7a945bd2c476e69ba2e2"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SE-2-beauty.png",
+      "sha256": "06034f31965e986dbc656920121481d91a414d9dacd40b109c8eae519cde6daf"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SE-2-sim.png",
+      "sha256": "a6e2496f40323fb89de6b7aba95e75ed97bd311dff8085782e02801fb3bd943d"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SE-2-furniture.png",
+      "sha256": "9895684caf1e4f9f88f6ba004be6c1be8264ada543e2222b9a15a42a168a055d"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SE-2-lines.png",
+      "sha256": "41b440a5fa8d08e0ed7302c3694aecfc663bbf8c14c81f1b571fd2f9ea43a6e5"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SE-3-beauty.png",
+      "sha256": "92511e34dd525da343e9114bc3dae91a96a2abf4f8e05c298f9b9a9a28e15a89"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SE-3-sim.png",
+      "sha256": "7ba39bcc8ee62473a46f5886cfbfe0431df99280bbf37db8b057325cbc9afc55"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SE-3-furniture.png",
+      "sha256": "0c4558edb545f0d2dd9afe721b9300be1265dfb6c77b1285dd8d51938ee8c2ee"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SE-3-lines.png",
+      "sha256": "ca7ec877bb24d05f2196e77029320cd98c6faa78e6a9696917d3deae6cc76403"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NW-0-beauty.png",
+      "sha256": "0f7b0baaa8bbae1c362a194de0f985601058d0148f399fc6f6ddcb51e05faf98"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NW-0-sim.png",
+      "sha256": "9ad689a756127f8862cb084c4935cf1113117f79371d53dce6b24e79c387b0cd"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NW-0-furniture.png",
+      "sha256": "871f4becb3172a9b4295b1fe76514d6a4b25be8319eae134b5c3ff53c15dbcc0"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NW-0-lines.png",
+      "sha256": "0ebece41a0a626a1958e5eb2aa95118c4b39e7e63056bc25a3c1a639c05d034f"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NW-1-beauty.png",
+      "sha256": "0e89d019fb8fd471e6923a68f8e0bc37f6e87313ee6c1fe6aae3f050ba98f99a"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NW-1-sim.png",
+      "sha256": "051d166fb5c6cdf1015fbb77edcb0c6c1d6231dc57f31aa7258c701e85a228b0"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NW-1-furniture.png",
+      "sha256": "88e5e6fcc3a44682cf684e1ea221dca2ac85b01814f22307a463bca8700097fe"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NW-1-lines.png",
+      "sha256": "2aae7de9a3ff3a0ec1b97cbf9378320b6d926b5370c7d2d468a86bace30e86ae"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NW-2-beauty.png",
+      "sha256": "b97e04c486c6a9f1a5e45b1d2d6a58f5fb9de96addea0bde2da129577051ea25"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NW-2-sim.png",
+      "sha256": "66a9292a16e966b30983b797064cb7b790f6de1583a3b939743dfb78cac50efc"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NW-2-furniture.png",
+      "sha256": "8784b615597e0b2388a7221a12d1a44060a8ae98e44e82068511b7150d52ac52"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NW-2-lines.png",
+      "sha256": "f0833ccec068469e71006cc7cadf9a979e669250f5a5da5870e5d554800c17bf"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NW-3-beauty.png",
+      "sha256": "be2d27e755d0cfcc15eb47c50138c0e2771ed015d7950b16dd806c8b56d8f2b2"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NW-3-sim.png",
+      "sha256": "38ea4e0ef5ccbf2e6e891e216f0acbc7f3a9880cafdb4852d29b0f7da0dafaf5"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NW-3-furniture.png",
+      "sha256": "76b3140227418169d8e7e21a1b7e304f9f88e1cd819c8b72395c119cfd8336d6"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NW-3-lines.png",
+      "sha256": "3982d58dd3dd4eed560caab3ee391ea5e7fd68c6deda66c6077086c4814c7b59"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SW-0-beauty.png",
+      "sha256": "c757954f6f3892f30258fde83d67d52101698609542e9a2a43eadc2ea8c26aac"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SW-0-sim.png",
+      "sha256": "c112dc97e29bbd35fe8d3c65a5bd2c673cf566037180af32f6082b51efe1844c"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SW-0-furniture.png",
+      "sha256": "935abf324ba812a23e0bba369e00af3325fc98bf23b4e0d9d460d76084d5a162"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SW-0-lines.png",
+      "sha256": "91112dfbfd24697831a92e94a75eecb1f14c1dddcf689cab022a6758bdf4263d"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SW-1-beauty.png",
+      "sha256": "cd79375694604bd54f4d22feba2cc753251bc6c0cfd3f1d08c9ac67873ff4d61"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SW-1-sim.png",
+      "sha256": "d660406628147b8e9d238cbb4a2100eae301cf2c42727d1a5db08570b2521b6b"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SW-1-furniture.png",
+      "sha256": "dd8092ca17e70247245db25d3c4829bd6ae05e4821b79cef10e58fc4f2d08870"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SW-1-lines.png",
+      "sha256": "53126a296fcea1500fda98112747b46a06ebc2a3557c65f122590917b7f93e97"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SW-2-beauty.png",
+      "sha256": "8e4890c8f0ad4ebd271751521da908b99d6313d49c401834775913261147072c"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SW-2-sim.png",
+      "sha256": "e1890a0a90adb7057385fc8099fd22a4eebd6735c5ce3dc29147ec8c15b9b6bc"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SW-2-furniture.png",
+      "sha256": "ba7a16ab8546e10ae191a0714cef1c3717ed65241d81b13d53cc81136491511e"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SW-2-lines.png",
+      "sha256": "0dc5cac52ed2acae44d07280c9e5e84f5d8ad458c88cf132e6605dac3a7e7ad0"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-SW-3-beauty.png",
+      "sha256": "f1a0b79940a0f3aae608f30232ce61a44ed31e7e9627e55a66207ee2e894326e"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-SW-3-sim.png",
+      "sha256": "4cde339cd5129c6c52b1d6c02915bf539ae194d1a49eaebb7943d2e1b9a45613"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-SW-3-furniture.png",
+      "sha256": "c020442306c2f8d4ed0ca8e8353d9670d37990764527486d7ac3c0b8f979287e"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-SW-3-lines.png",
+      "sha256": "2e5b181be7f80dc75bb54619d22c6632ab32fc45e7129ee81a11a0e11d61b094"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NE-0-beauty.png",
+      "sha256": "dc3d87ea469d73671325d2cf31ef259388cb7f6443af81839ab3f1b749eb2df1"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NE-0-sim.png",
+      "sha256": "8063ef2a762f9bad094dd28d12e8e62385f3d0f8dcfb1f43d3b729d2f118346f"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NE-0-furniture.png",
+      "sha256": "72a2730442b13c2ba8d3fa0d150422da5285203c03f338623dc25c25447dcfea"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NE-0-lines.png",
+      "sha256": "bb11d1ebac14296efd828e98a6d8697092e7512631925ddf49d539ad16484c2d"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NE-1-beauty.png",
+      "sha256": "9934e22609b87828603d0bd08fccb5df0d6f4efed5b42bba3e4723a0adc6c983"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NE-1-sim.png",
+      "sha256": "06e0dde85efaba2d9af49ea85d20f6cc61358051362f7b2ca9b5f9e5c7c3e348"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NE-1-furniture.png",
+      "sha256": "a406a52f208a605b9dfcfb3a32001f6ffd5c04779a4e2d3643bd392f8d09a3f8"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NE-1-lines.png",
+      "sha256": "cf18832352d79f659f63f77944735ca5f750e1814ac836a2b6a7b700f9b2bea3"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NE-2-beauty.png",
+      "sha256": "b0ffb44d13d8447aee8932bc049216916888c1876106f1ccc028e364f193850e"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NE-2-sim.png",
+      "sha256": "9ce8011324e427b111200bbbeba0cfa4b9714751c2b1f887814030abb53c9076"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NE-2-furniture.png",
+      "sha256": "4898cc9a787c18bf8e138fd8d96b825b935ae984711fdc4384bb135bdeacd389"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NE-2-lines.png",
+      "sha256": "3a52bd32f6decd6a610218e2b6da1229f3e1649e2484c08314c59c50676fb975"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "path": "ottoman-sit-blue-NE-3-beauty.png",
+      "sha256": "26162be77c5c395590493dc6586cc310ea350bd027cb520eebfa95ede5eaa20c"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "path": "ottoman-sit-blue-NE-3-sim.png",
+      "sha256": "c1c396b48855efc9dd39be38946969853c785381a1880ea6c8672e496cdcbfc0"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "path": "ottoman-sit-blue-NE-3-furniture.png",
+      "sha256": "8995686728d72d5151bb700bdfb54edf7554f8d01728ad14dc10bfbe88f40f15"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "path": "ottoman-sit-blue-NE-3-lines.png",
+      "sha256": "a09234b33211f802cab4adf0f4cb5f023b160301881fd067d72edeabb69c6204"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SE-0-beauty.png",
+      "sha256": "4f5353d8366820dd628b723b5e1f3648c3edceb85828584fcdfd100adcf73bdd"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SE-0-sim.png",
+      "sha256": "8bcd4a754daf4e710ad669be8196498beffcb0dc39fa421398c8115f1d81e9c7"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SE-0-furniture.png",
+      "sha256": "8bde9962b663050c62dc2959699d8b7e1556202b0ca2792c798b90a8e4044267"
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SE-0-lines.png",
+      "sha256": "3ad79bb9f2634ad3d11f13da3b9bb87e58dc8c5ab444c9a76c8a79617885f423"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SE-1-beauty.png",
+      "sha256": "dcc0ec827cc1b402cea30be2bac2b3fc7ce1ecada168372f2d7e3ffe118d33b8"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SE-1-sim.png",
+      "sha256": "f2c2b7f7fad8eaf8b569f59276ec3affafaa3f0b396ec3d4bf3a6aea4c2f5a19"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SE-1-furniture.png",
+      "sha256": "d72a8822b40e35cd37bf1855630753f8a907991a3a375deb537609f559dcc9ed"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SE-1-lines.png",
+      "sha256": "d4dade02ddbee41ab28e98341bec9867b284c3d63763ee12cd7a0c85149419c9"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SE-2-beauty.png",
+      "sha256": "2ae219f09bd01ef8a80bfea73174a0b42c6f0fb6cf82d5442009b92b500ec4ec"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SE-2-sim.png",
+      "sha256": "58bd1537519bd33ba683429e04d8d60834e4145f118fbef3ebcc57b6b898f45d"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SE-2-furniture.png",
+      "sha256": "aeabd253f3a3e25ddd4770536468d7ff3f895db59ea4c68f1b9694d9e58e6e72"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SE-2-lines.png",
+      "sha256": "8e6ac9dd8d00f8ec18fa56686d318c96abbd8af7854e863ab7b61002dcdb6398"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SE-3-beauty.png",
+      "sha256": "660c0cef45c08eea54b1bb771641d2099d548a85e781ee390984a892b1aac1d3"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SE-3-sim.png",
+      "sha256": "9eff7c7b286b3a3a883028a1ffc254cf5049548c50cba34993dea309497bae1b"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SE-3-furniture.png",
+      "sha256": "ce8cabcc5fecaf4ce5a77894295153e3a9d31590658a60da3bc1de6df97b5157"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SE-3-lines.png",
+      "sha256": "16cec720ab98541bf818e311d63fb0b938bf909dfbaa9558fb422d9bc7d97b72"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NW-0-beauty.png",
+      "sha256": "3952e59b717c27de870185a7851f1eb30735a85bc0b184f6326853c6ebcaa1fa"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NW-0-sim.png",
+      "sha256": "562e70a5a4141898e552207d2da4afbbf07e5fde062a8c0bfb0c382dde53d0bc"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NW-0-furniture.png",
+      "sha256": "cc277218cab0883b415f23994b183004af89fc0b18f3ebea8c0925e78e15f106"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NW-0-lines.png",
+      "sha256": "6fdba5181cae98ffe840de181bbf1cf3d939cd2a1177685bd76fa4101b063868"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NW-1-beauty.png",
+      "sha256": "902ccd75892f67e170a51716fa863fc3e8c0271e14d16a42f785aa5199ca0919"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NW-1-sim.png",
+      "sha256": "4d23f3b81576172720d9e74043f2afccbf2edceacd8f0b0b9938932c77cebfca"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NW-1-furniture.png",
+      "sha256": "a26c2e95e815664fdd743c57addeddd322914bc6b41d36fb004698544132f67c"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NW-1-lines.png",
+      "sha256": "01bfddc8b7e0450040cef9bf2c4e2d820a26623eeab125b45d21fd97ed1b4d60"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NW-2-beauty.png",
+      "sha256": "356caebb4a0bd2ce4a33b94eb45017b113117efa84d85e5eaa53919dbc6cb538"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NW-2-sim.png",
+      "sha256": "69bde604b0754674fa5016f9f47d27516b8643ebae96fc546996b8724f2c4726"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NW-2-furniture.png",
+      "sha256": "ce2ecd1136a0a49b5cf677316c2861faef813216c1c8df1410649b2361bf142b"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NW-2-lines.png",
+      "sha256": "b292f5a5dd76287ebba6388cebba30afbb3c74b5fcda17cca3702ff84e0f0d0b"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NW-3-beauty.png",
+      "sha256": "f5f78d627e86640dd907b6ce21bfcb891c21970c3c90be9a44afd8a3112c0b6d"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NW-3-sim.png",
+      "sha256": "d6a3ddbe92e87ac80fdbc4d043877452b96a1bf6d5d806212243fcedabda4f69"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NW-3-furniture.png",
+      "sha256": "9bbd55dc68da255d098e487d57b248617ae08748ed123696638a473d786848b4"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NW-3-lines.png",
+      "sha256": "dc0b3a3180a055f4eec470ae2d4f937dcbf22013e8b91c455920fd07a2a3852f"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SW-0-beauty.png",
+      "sha256": "a29931aee23ae140f8c59761a3e919e682b6aa56e929ad0f07522ee5c135d6a1"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SW-0-sim.png",
+      "sha256": "fe2173bbfe62f28b1192ce5d603b4f729cbe337ec6c169f29851fbebff413ec9"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SW-0-furniture.png",
+      "sha256": "d184d95a6815f31647dfbd2a0a1267142a5f7e12ad5696773153ff20831e2cec"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SW-0-lines.png",
+      "sha256": "63577f8e309f4d401af836ddef78918d7e5f221e30d694e5d6612d62ad36016d"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SW-1-beauty.png",
+      "sha256": "7d98f5e5227182f5a6ec837e6a6395ce30487306201cd00cfc3597ed476d1f29"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SW-1-sim.png",
+      "sha256": "091b716198d50aab725fddc233dbb8e30d1f80c0f444d5ce272b3a4b7fb8c677"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SW-1-furniture.png",
+      "sha256": "4ce13398872b946a2597a81e2e81d8994bf310368aea639c1c017f01ddc3bdab"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SW-1-lines.png",
+      "sha256": "a47dc44ea33dcfddbaab02463044fd2c085cdabe9f85020ac20a4bb32899e687"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SW-2-beauty.png",
+      "sha256": "05543d2e86cde13875ba918fb69b71424f0dfaaa301ac3c6760728e4abe15610"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SW-2-sim.png",
+      "sha256": "71297742638e261b3f660cc1c1386926ec2bc3ed89ee3b093cb619bc2a937ed6"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SW-2-furniture.png",
+      "sha256": "65fdb72ea1d494f17cac09a33870d72d1528b7adb1f456eea75d2a9eba9e2d88"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SW-2-lines.png",
+      "sha256": "59a5f221b99f62ac53adc190b03a2fae048f07427e6ee9d4a54a7d73bcf5c7c6"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-SW-3-beauty.png",
+      "sha256": "8354f0985ea0f00442480ca5c2acf60f8d96a91717cabcdb0a5b955937cfdc99"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-SW-3-sim.png",
+      "sha256": "72d11e3b93fb0ba70b177ef4e350d820c39c0d0ad4383cb499daeef9d45e2d2c"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-SW-3-furniture.png",
+      "sha256": "e1fbb961a6396233310feaea499eddbe4f294f3c9d21c939ae208dddd958db0e"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-SW-3-lines.png",
+      "sha256": "b0970910fe37c732e2995acb4fb3b8a22d15014e0e0d16b7817f114904e5fb4f"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NE-0-beauty.png",
+      "sha256": "5c5872fb3d1f8d29bf6c3188d41378fc60e9e1f6e8453e2d814b83973bb521e7"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NE-0-sim.png",
+      "sha256": "bdee0bcd9ffa14f040dd0a69ed9bb0f41b668bc10a2226693e1a9b4c57c871c0"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NE-0-furniture.png",
+      "sha256": "cd236b615a34856881a15007c58cf5f5a72731bf5b86696e38f0abeec0257dd6"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NE-0-lines.png",
+      "sha256": "6293c705faf6171db2291844d04ca61e4e7d9a5cc83e91371c3d6a3feb5400b2"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NE-1-beauty.png",
+      "sha256": "6fb4352843107e9e1c2430b4ec764c684371607ef72b6bb0f685f8cac5ec3059"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NE-1-sim.png",
+      "sha256": "ba5770bf9b92b9cfeea4dc5aaffd5b8d652aeda1eafc85bd8a25e531444ef4ac"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NE-1-furniture.png",
+      "sha256": "46c6a553a03b226d9035f7ba2b6ba6e7fbd1687f6220f74998d7e293a10938bc"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NE-1-lines.png",
+      "sha256": "eadb7f7a3cec36ed4b84c241ca08ec507d74dd5e8e62cb17a767e2449802eac4"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NE-2-beauty.png",
+      "sha256": "cb5890e50db2b18f3f42b124497a9e51592c87a39103c47b4e25f46a217987b2"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NE-2-sim.png",
+      "sha256": "2bf1dd31358a613072cd9649576b6b81e1d0f5b5b88ae7f948074d8ea80edf81"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NE-2-furniture.png",
+      "sha256": "09104c2215a584019fe8a7b02611ac6118bd868decfb1bac719dcdf5a3742a15"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NE-2-lines.png",
+      "sha256": "b65c8518551719097bd0f72130d19cbacca07a00f4222b59c1fde53a874a3239"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "path": "ottoman-sit-red-NE-3-beauty.png",
+      "sha256": "f18a6658651bbf875288f2782954eb258f7de265056443d502b0bd52c55d6a84"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "path": "ottoman-sit-red-NE-3-sim.png",
+      "sha256": "538849435e697f15bc5c46f7d0b56d924ba43b455782c1a60fcab5b6ee20effe"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "path": "ottoman-sit-red-NE-3-furniture.png",
+      "sha256": "0705a586e928e5fde0feab62a69abd9608df8ba120e84e960fa2914341055412"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "path": "ottoman-sit-red-NE-3-lines.png",
+      "sha256": "049d12c859a63a82b0e69d5de7e03dd156a4e6d8e26043c03405f7b20d7f1d27"
+    }
+  ],
+  "anchor": [
+    48.0000114440918,
+    116.0004369020462
+  ],
+  "contact_samples": {
+    "green": [
+      {
+        "frame": 1,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 2,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 3,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 4,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      }
+    ],
+    "blue": [
+      {
+        "frame": 1,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 2,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 3,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 4,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      }
+    ],
+    "red": [
+      {
+        "frame": 1,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 2,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 3,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      },
+      {
+        "frame": 4,
+        "hip_support": {
+          "min_gap": 0.0007991194725036621,
+          "ray_hits": 1346,
+          "contact_count": 49,
+          "near_gap_limit": 0.01,
+          "contact_bounds": [
+            [
+              -0.2036190778017044,
+              -0.09995635598897934,
+              0.3857991695404053
+            ],
+            [
+              -0.08856227248907089,
+              0.09995636343955994,
+              0.3930725157260895
+            ]
+          ],
+          "xy_hull_area": 0.017859541034633306
+        },
+        "maximum_bone_length_error": 2.086162567138672e-07,
+        "body_pairs_checked": 12,
+        "body_furniture_intersections": [],
+        "body_self_intersections": [],
+        "floor_support": {
+          "Fitted rounded shoe sole": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                0.04624057933688164,
+                0.00014812372683081776
+              ],
+              [
+                -0.4943927526473999,
+                0.20170949399471283,
+                0.0017884263070300221
+              ]
+            ],
+            "xy_hull_area": 0.028307898214811278
+          },
+          "Fitted rounded shoe sole.001": {
+            "point_count": 241,
+            "gap_limit": 0.003,
+            "contact_bounds": [
+              [
+                -0.728894829750061,
+                -0.20170941948890686,
+                0.00014811631990596652
+              ],
+              [
+                -0.4943927526473999,
+                -0.04624052718281746,
+                0.0017884185072034597
+              ]
+            ],
+            "xy_hull_area": 0.028307897699380802
+          }
+        },
+        "validated_volumes": [
+          "Cushion",
+          "Cushion welt",
+          "Forearm with elbow and wrist sections",
+          "Forearm with elbow and wrist sections.001",
+          "Overshirt body",
+          "Tailored trouser leg",
+          "Tailored trouser leg.001",
+          "Upholstered frame"
+        ],
+        "analysis_only_caps": {
+          "Overshirt body": 96
+        }
+      }
+    ]
+  },
+  "source_bytes_unchanged": true
+}

@@ -8129,3 +8129,130 @@ embedded pre-render checks run before final canvas registration. Their clear
 lid sightlines remain valid because the view direction is unchanged, but
 their pixel bounds cannot define runtime motion masks. Reopen the saved,
 registered scene and require the masks to match those final projections.
+
+## [L-seat-contact-and-garment-occupancy] A plausible seated render can conceal bad contact
+
+**What happened.** The shared sitting clip hovered above the ottoman and
+intersected its front. A separate fitted pose cleared the furniture but still
+put both palms into the trousers. A nearest-face-normal containment test also
+reported a shirt point inside a forearm whose entire bounds lay below it.
+
+**Root cause.** Furniture clearance does not test body/body contact. A shoe's
+lowest point does not establish a supported sole. One nearest triangle normal
+does not establish containment at edges or vertices. The approved shirt also
+has an intentional open neckline, so it cannot be treated as a closed solid.
+
+**Prevention.** Author a target-specific action without altering approved source
+geometry or shared clips. Test finite hip and floor-support patches and the
+relevant nonadjacent body pairs. Keep original-triangle crossings, closed-volume
+crossings and component containment separate. For this shirt only, validate
+the exact inherited neck loop and use a temporary cap to define torso occupancy.
+Do not save or render that cap, seal arbitrary holes, or exempt actual collisions.
+
+**Verify.** Retain the bad pose and false-containment witness. Reject palm/thigh
+crossings, enclosed solids, extra or warped garment openings, and an arm entering
+through the neck cap without crossing cloth. Disjoint concave solids must pass.
+Delete containment and cap-crossing guards separately and observe their fixtures
+fail. Bind rejected fixture models as well as scripts to before/after hashes.
+Source-contact proof still does not establish full-clip or played acceptance.
+
+## [L-preview-cadence-must-come-from-action] Review the authored timing, not a convenient delay
+
+**What happened.** The ottoman review animation used 300 ms per sample while
+the saved action specified two samples per second. The reviewer saw the right
+poses at the wrong speed.
+
+**Root cause.** The preview exporter hard-coded a display delay instead of
+reading the action's timing metadata.
+
+**Prevention.** Read the sample count and rate from the saved action. Keep
+source-frame acceptance separate from playback timing and runtime acceptance.
+Retain superseded evidence with a clear explanation rather than silently
+replacing the basis of an earlier review.
+
+**Verify.** Decode the corrected animation and check every sample's duration
+and pixels. Here all four frames remain byte-identical after decoding, each
+lasts 500 ms, and hashes bind the saved model, cadence receipt and preview.
+
+## [L-mutation-restore-must-fail-closed] Stop mutation checks when restoration differs
+
+**What happened.** A temporary mutation deleted an exact-target guard. Its inverse
+patch had no location context and inserted the guard at the top of the Rust file.
+The runner reported a hash mismatch but continued. Five later checks failed to
+compile, so none established that their named tests detected the mutations.
+
+**Root cause.** Restoration was treated as diagnostic output instead of a required
+transaction boundary. The runner also treated any nonzero test exit as a killed
+mutation, including compilation errors.
+
+**Prevention.** Give every forward and inverse patch nonempty, unique surrounding
+context. After each mutation, restore and require the original file hashes before
+doing anything else. Stop on a restoration mismatch, compilation error, missing
+test execution or unexpected assertion. Preserve invalid attempts as invalid;
+never count them as successful test evidence.
+
+**Verify.** Check that the intended named test actually ran and failed its expected
+assertion. Confirm byte-identical restoration, then run the unmodified focused
+tests successfully. Here the original file hash was restored and all four ottoman
+tests passed; the five compilation failures remain excluded from the proof.
+
+## [L-render-journal-versus-replay-dependencies] Hash journals do not prove import completeness
+
+**What happened.** The ottoman's accepted render journal bound 25 files, but a
+replay audit found two more import-time requirements: `armchair_layout.py` and
+`render_provenance.py`. Neither contributes called functions on this path, yet
+Python must still import them. Running from the original worktree hid that gap.
+
+**Prevention.** Inspect transitive imports before promoting a temporary recipe.
+Retain the original journal unchanged and record newly measured dependencies
+separately. Resolve historical paths through an explicit, hash-checked mapping;
+never fall back to the local temporary directory. Copy each replay stage into a
+fresh root and exclude that stage's output journals from its seeded inputs.
+
+**Verify.** Run archived pure tests from copied inputs without the original
+`PYTHONPATH`. Check missing and changed sources, path aliases, symlink escapes
+and byte-identical copies. The ottoman source-test replay passes 19 tests; this
+does not establish Blender replay or audit embedded model resource paths.
+
+## [L-receipt-binding-must-pin-inputs] Require hashes and pin the starting receipt
+
+**What happened.** Independent review found that a JSON null dependency hash
+could reach a resolver whose optional hash parameter disabled verification.
+A separate final validation could also accept a different, internally valid
+receipt substituted while an original-image verification was running.
+
+**Root cause.** The caller did not enforce its stronger requirement before using
+a general-purpose resolver. Final validity was mistaken for proof that the
+verification had used the same inputs throughout.
+
+**Prevention.** Require every receipt dependency hash to be a lowercase 64-digit
+hexadecimal string. Pin the catalog and bundle hashes before reading inputs,
+require the same hashes at successful completion, and record them in the result.
+Revalidate mapped file bytes without accepting a replacement catalog.
+
+**Verify.** Re-sign negative fixtures so that digest validation does not hide the
+semantic defect under test. Test null hashes in every dependency map and replace
+the starting receipt with another valid, re-signed receipt during verification.
+Both must fail for their intended reason. The ottoman proof detects the deleted
+guards, restores unchanged sources and passes the complete focused suite.
+
+## [L-mutation-proof-needs-specific-failure] Match the assertion and record runtime errors
+
+**What happened.** The first ottoman renderer proof classified any assertion in
+the selected test as a detected defect. Independent review demonstrated that an
+unrelated setup failure, or an intended assertion accompanied by a runtime
+error, could satisfy that rule.
+
+**Root cause.** A failed test name did not identify the failing mechanism. The
+installed Vitest JSON reporter also omitted unhandled errors, so checking an
+invented report field could not establish their absence.
+
+**Prevention.** Give each load-bearing expectation a specific failure marker.
+Require that marker and an assertion failure, reject failed suite setup, and
+capture the runner's explicit unhandled-error report through its reporter hook.
+Keep those fields with the proof rather than inferring them from exit code 1.
+
+**Verify.** Feed the classifier unrelated assertions, missing error reports and
+an intended assertion plus a runtime error. All must fail. Delete the marker
+and runtime-error guards independently, then require those regression tests to
+fail before restoring and passing the focused suite.

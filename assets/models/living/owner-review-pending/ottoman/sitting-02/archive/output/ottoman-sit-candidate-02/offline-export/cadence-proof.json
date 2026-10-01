@@ -1,0 +1,18 @@
+{
+  "state": "complete",
+  "scope": "offline preview cadence only",
+  "source_animation_sha256": "ede65267c61a104ec115a6a803372ee4c439e142833cc960f0344c8dc9aaa87a",
+  "export_proof_sha256": "8043e7a9d05b5b44f13e6acf96204024e18055ac68651e348b44b26a4349ca99",
+  "action_cadence_sha256": "a8d8a248300d47ab5889bf80052e02c68ca93b9847fdf51d3c6867f27adbc5bd",
+  "model_sha256": "bc5144165be665cfdc62dae1ce2eb96e7d3b978040aabf2f542785313e55371f",
+  "script_sha256": "bc67ce7662ad8126c327b853513d4c319f4d6b35fe872d8a0ee6600fc389b2f9",
+  "preview_sha256": "e010f7abdc783619c725c9936deeb742356ab12ebad33e2e6691872cb5821a39",
+  "sample_fps": 2,
+  "frame_durations_ms": [
+    500,
+    500,
+    500,
+    500
+  ],
+  "decoded_frames_unchanged": true
+}

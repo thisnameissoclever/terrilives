@@ -1,0 +1,43 @@
+{
+  "state": "complete",
+  "source_bytes_unchanged": true,
+  "inputs": {
+    "web/public/atlas.png": "4c92f7cbd5916537011a0d4100f34991beecc585937f8ed097a596ad6aaa88c5",
+    "assets/sprites/atlas.toml": "4c8c1ee44ebae12ed9774ee159722baf2682a5fa2b9f5731131076bcaeebd577",
+    "web/src/render/atlas.ts": "06506e87d8774c41803f7537e55978c4b246f42014e744618c09a888637c28d3",
+    "assets/sprites/gen/test_ottoman_sitting_prefix.py": "ca476cb2634fa6003ab47ed97e2edc271876790a74223741dc47e06e32212b7f",
+    "assets/sprites/gen/test_lamp_prefix.py": "e3450879e151384465c88a93b4e8e9b8d683903f5f633b0cadf3cf27f9e0cfcf"
+  },
+  "cases": [
+    {
+      "case": "baseline",
+      "test": null,
+      "output": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.337s\n\nOK\n"
+    },
+    {
+      "case": "old_pixel",
+      "test": "test_preserves_1378_existing_records_and_decoded_pixels",
+      "output": "F\n======================================================================\nFAIL: test_preserves_1378_existing_records_and_decoded_pixels (test_ottoman_sitting_prefix.OttomanSittingPrefixTests.test_preserves_1378_existing_records_and_decoded_pixels)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\sprites\\gen\\test_ottoman_sitting_prefix.py\", line 24, in test_preserves_1378_existing_records_and_decoded_pixels\n    self.assertEqual(digest.hexdigest(), '057f7dc57ab4ea7a6848440c335d8aa817355da339320cafac0ef04b16a51b55')\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: '6d9524d0d876c0fb38e0b5ac335198b77e57928808b26e75330f17bb5ba2afa7' != '057f7dc57ab4ea7a6848440c335d8aa817355da339320cafac0ef04b16a51b55'\n- 6d9524d0d876c0fb38e0b5ac335198b77e57928808b26e75330f17bb5ba2afa7\n+ 057f7dc57ab4ea7a6848440c335d8aa817355da339320cafac0ef04b16a51b55\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.294s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "case": "cadence",
+      "test": "test_only_the_four_existing_ottoman_records_gain_profiles",
+      "output": "F\n======================================================================\nFAIL: test_only_the_four_existing_ottoman_records_gain_profiles (test_ottoman_sitting_prefix.OttomanSittingPrefixTests.test_only_the_four_existing_ottoman_records_gain_profiles)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\sprites\\gen\\test_ottoman_sitting_prefix.py\", line 35, in test_only_the_four_existing_ottoman_records_gain_profiles\n    self.assertEqual((profile['action'], profile['halfCycleTicks']), (8, 10))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Tuples differ: (8, 24) != (8, 10)\n\nFirst differing element 1:\n24\n10\n\n- (8, 24)\n+ (8, 10)\n\n----------------------------------------------------------------------\nRan 1 test in 0.025s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "case": "facing",
+      "test": "test_only_the_four_existing_ottoman_records_gain_profiles",
+      "output": "F\n======================================================================\nFAIL: test_only_the_four_existing_ottoman_records_gain_profiles (test_ottoman_sitting_prefix.OttomanSittingPrefixTests.test_only_the_four_existing_ottoman_records_gain_profiles)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\sprites\\gen\\test_ottoman_sitting_prefix.py\", line 40, in test_only_the_four_existing_ottoman_records_gain_profiles\n    self.assertEqual([rows[frame]['name'] for frame in frames],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [f'offlineOttoman{facing}{variant.title()}{i}' for i in range(4)])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['offlineOttomanNWGreen0', 'offlineOttomanNWGreen1', 'off[42 chars]en3'] != ['offlineOttomanSEGreen0', 'offlineOttomanSEGreen1', 'off[42 chars]en3']\n\nFirst differing element 0:\n'offlineOttomanNWGreen0'\n'offlineOttomanSEGreen0'\n\n- ['offlineOttomanNWGreen0',\n?                 ^^\n\n+ ['offlineOttomanSEGreen0',\n?                 ^^\n\n-  'offlineOttomanNWGreen1',\n?                 ^^\n\n+  'offlineOttomanSEGreen1',\n?                 ^^\n\n-  'offlineOttomanNWGreen2',\n?                 ^^\n\n+  'offlineOttomanSEGreen2',\n?                 ^^\n\n-  'offlineOttomanNWGreen3']\n?                 ^^\n\n+  'offlineOttomanSEGreen3']\n?                 ^^\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.025s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "case": "old_anchor",
+      "test": "test_existing_registration_and_other_interactions_are_unchanged",
+      "output": "F\n======================================================================\nFAIL: test_existing_registration_and_other_interactions_are_unchanged (test_ottoman_sitting_prefix.OttomanSittingPrefixTests.test_existing_registration_and_other_interactions_are_unchanged) (table='SPRITE_ANCHORS')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\sprites\\gen\\test_ottoman_sitting_prefix.py\", line 55, in test_existing_registration_and_other_interactions_are_unchanged\n    self.assertEqual((len(value), canonical_digest(value)), pair)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Tuples differ: (968, 'cae3ce65d38953b194216afb109881a633c47827ba47f1c9684d05e35db42536') != (968, '79fa3a5f8f136d7e74796b8b6a435106e577709adf92e9e613a134c1f739d4e6')\n\nFirst differing element 1:\n'cae3ce65d38953b194216afb109881a633c47827ba47f1c9684d05e35db42536'\n'79fa3a5f8f136d7e74796b8b6a435106e577709adf92e9e613a134c1f739d4e6'\n\n- (968, 'cae3ce65d38953b194216afb109881a633c47827ba47f1c9684d05e35db42536')\n+ (968, '79fa3a5f8f136d7e74796b8b6a435106e577709adf92e9e613a134c1f739d4e6')\n\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nFAILED (failures=1)\n"
+    },
+    {
+      "case": "restored",
+      "test": null,
+      "output": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.326s\n\nOK\n"
+    }
+  ]
+}

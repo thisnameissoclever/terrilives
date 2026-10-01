@@ -38,6 +38,7 @@ from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
 from aquarium_motion import validate_aquarium_motion            # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
+from offline_ottoman import load_reviewed_ottoman               # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -1191,6 +1192,21 @@ def main():
         densities[index] = prop_density[sprite[0]]
         bounds[index] = prop_bounds[sprite[0]]
     validate_aquarium_motion(sprites)
+    # Reuse the published empty ottoman records; append only occupied layers.
+    ottoman = load_reviewed_ottoman(
+        os.path.join(ROOT, 'assets', 'models', 'living', 'ottoman-reviewed.json'),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    sprites.extend(ottoman.sprites)
+    more_anchors, more_tops, more_bounds, more_density, more_pairs, more_profiles = furniture_tables(ottoman, sprites)
+    if interactions.keys() & more_profiles.keys():
+        raise ValueError('Ottoman profiles would overwrite an existing interaction')
+    anchors.update(more_anchors)
+    tops.update(more_tops)
+    bounds.update(more_bounds)
+    densities.update(more_density)
+    pairs.update(more_pairs)
+    interactions.update(more_profiles)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

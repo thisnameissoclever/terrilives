@@ -8,6 +8,8 @@ pub mod family;
 pub mod household;
 mod mood;
 pub mod mortality;
+#[cfg(test)]
+mod ottoman_sitting_tests;
 pub mod placement;
 pub mod portals;
 pub mod render_buffer;

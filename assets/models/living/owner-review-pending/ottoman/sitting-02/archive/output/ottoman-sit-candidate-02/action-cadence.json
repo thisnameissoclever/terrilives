@@ -1,0 +1,10 @@
+{
+  "state": "complete",
+  "pid": 73156,
+  "action": "ottoman_sit",
+  "loop_samples": 4,
+  "sample_fps": 2,
+  "model_sha256": "bc5144165be665cfdc62dae1ce2eb96e7d3b978040aabf2f542785313e55371f",
+  "reader_sha256": "5b014427f83763219d6df22ce7bfacb0001c205ca21a0bbdcdf122b60da3a640",
+  "source_unchanged": true
+}

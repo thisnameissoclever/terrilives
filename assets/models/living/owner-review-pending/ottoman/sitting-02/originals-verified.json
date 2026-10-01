@@ -1,0 +1,9 @@
+{
+  "state": "complete",
+  "originals": 196,
+  "occupied_comparisons": 48,
+  "encoded_pixels_unchanged": true,
+  "scope": "Original-to-export verification; not gameplay acceptance",
+  "catalog_sha256": "d5b452a54d71d225eac8f943676ef8a320207d155a573d35693a7a3367d91cc4",
+  "bundle_sha256": "6124f9c2be19d241ce3f48a19b2a0c018fa3131ef94b68cb3ade81dbba5fdeb2"
+}

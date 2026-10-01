@@ -13,6 +13,10 @@ assets/models/bedroom/owner-review-pending/bunk/**/*.json -text whitespace=blank
 assets/models/living/armchair-export/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 assets/models/living/owner-review-pending/armchair/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
+# Ottoman historical recipes and receipts keep their accepted byte hashes.
+assets/models/living/owner-review-pending/ottoman/sitting-02/archive/**/*.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/living/owner-review-pending/ottoman/sitting-02/archive/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
 # **Append-only prose, merged by keeping BOTH sides.**
 #
 # These two files accrete one entry at the end per branch, so two

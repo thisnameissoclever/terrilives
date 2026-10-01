@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "review_status": "accepted-offline-independent-review",
+  "scope": "Source and complete offline clip accepted; runtime and played review remain open",
+  "bundle": {
+    "path": "owner-review-pending/ottoman/sitting-02/bundle.json",
+    "sha256": "6124f9c2be19d241ce3f48a19b2a0c018fa3131ef94b68cb3ade81dbba5fdeb2"
+  }
+}

@@ -14,7 +14,7 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
-it.each(['', 'NW', 'SW', 'NE'])('registers ottoman facing %s without extra layers', suffix => {
+it.each(['', 'NW', 'SW', 'NE'])('retains empty ottoman facing %s and registers its occupied profile', suffix => {
   const index = atlas.spriteIndex(`offlineOttoman${suffix}`);
   expect(index).toBe(1358 + ['', 'NW', 'SW', 'NE'].indexOf(suffix));
   expect([...packSpriteTable().slice(index * 8 + 4, index * 8 + 6)]).toEqual([96, 120]);
@@ -30,7 +30,7 @@ it.each(['', 'NW', 'SW', 'NE'])('registers ottoman facing %s without extra layer
   expect(pickSprite(source, 0, -105, 0, 0)).toBeNull();
   expect(pickSprite(source, 47, -15, 0, 0)).toBeNull();
   expect(atlas.SPRITE_PAIRS[index]).toBeUndefined();
-  expect(atlas.INTERACTION_SPRITES[index]).toBeUndefined();
+  expect(atlas.INTERACTION_SPRITES[index]).toMatchObject({ action: 8, halfCycleTicks: 10 });
   expect(emissiveForSprite(index)).toBe(0);
 });
 
@@ -95,7 +95,7 @@ it('restores rendered colours immediately without draining a saved edit', () => 
   } finally { handle.free(); }
 });
 
-it('preserves target-bound generic use without claiming a seated pose', () => {
+it('uses the exact ottoman seat and restores it immediately from a save', () => {
   const handle = SimHandle.from_lot();
   try {
     const sim = new SimBridge(handle, memory);
@@ -104,10 +104,20 @@ it('preserves target-bound generic use without claiming a seated pose', () => {
     for (let tick = 0; tick < 1200; tick++) {
       sim.tick();
       const first = sim.actionQueueOf(34)[0];
-      if (sim.activityOf(34) === 7 && first === 'Sit down: Chesterfield Regret') {
+      if (sim.activityOf(34) === 11 && first === 'Sit down: Chesterfield Regret') {
         const row = Array.from(sim.ids()).indexOf(34);
-        expect(sim.visualActions()[row]).toBe(0);
-        expect(sim.interactionTargets()[row]).toBe(0xffffffff);
+        expect(sim.visualActions()[row]).toBe(8);
+        expect(sim.interactionTargets()[row]).toBe(18);
+        expect([...sim.positions().slice(row * 2, row * 2 + 2)]).toEqual([12, 3]);
+        const save = sim.saveBytes(), hash = sim.worldHash(), clock = sim.clockTick();
+        expect(sim.loadBytes(save)).toBe(true);
+        const restored = Array.from(sim.ids()).indexOf(34);
+        expect(sim.visualActions()[restored]).toBe(8);
+        expect(sim.interactionTargets()[restored]).toBe(18);
+        expect([...sim.prevPositions().slice(restored * 2, restored * 2 + 2)]).toEqual([12, 3]);
+        expect(sim.saveBytes()).toEqual(save);
+        expect(sim.worldHash()).toBe(hash);
+        expect(sim.clockTick()).toBe(clock);
         found = true;
         break;
       }

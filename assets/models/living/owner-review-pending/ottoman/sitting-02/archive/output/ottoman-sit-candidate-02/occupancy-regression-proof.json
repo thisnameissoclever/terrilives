@@ -1,0 +1,52 @@
+{
+  "state": "complete",
+  "pid": 80444,
+  "inputs": {
+    "output\\check-ottoman-sit-candidate-02.py": "50d27e17a351994226d42fb25bc7554010d6dcc3aedad7992c692c623878fb7b",
+    "output\\surface_volume.py": "6822e2307d85cd2d4f5545f5d9bcb76cc1f38a5a443cb878a666bc3cda2a54e9",
+    "output\\test_surface_volume.py": "9f6207cb865427af15722bce203c7ad7b17567107b7015f18a3f1029a53a957a",
+    "output\\prove-ottoman-occupancy.py": "64d7ac9a5b577a3899fc803a52ea63a833993f5f976fa11777a68ff2cd744299",
+    "output\\ottoman-sit-candidate-01\\ottoman-sit-authoring.blend": "94133712898a8a544b1965f1af882d97ab746f233ba720be6c33e0370466ffe3"
+  },
+  "cases": [
+    {
+      "name": "recorded_false_forearm_containment",
+      "passed": true,
+      "old_normal_dot": -0.009783578105270863,
+      "actual_contains": false
+    },
+    {
+      "name": "candidate01_palm_thigh_crossing_still_rejected",
+      "passed": true,
+      "result": {
+        "kind": "surface",
+        "triangle_pairs": 92
+      }
+    },
+    {
+      "name": "fully_enclosed_solid_rejected_in_both_orders",
+      "passed": true
+    },
+    {
+      "name": "deleted_containment_guard_makes_enclosed_solid_pass",
+      "passed": true
+    },
+    {
+      "name": "disjoint_concave_surfaces_with_overlapping_boxes_pass",
+      "passed": true
+    },
+    {
+      "name": "neck_entry_without_cloth_crossing_is_rejected",
+      "passed": true,
+      "result": {
+        "kind": "analysis_envelope_intrusion",
+        "triangle_pairs": 10
+      }
+    },
+    {
+      "name": "deleted_cap_crossing_guard_makes_partial_intrusion_pass",
+      "passed": true
+    }
+  ],
+  "source_bytes_unchanged": true
+}
