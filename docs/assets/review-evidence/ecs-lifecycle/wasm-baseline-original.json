@@ -1,0 +1,54 @@
+{
+  "diagnosticOnly": true,
+  "scope": "Simulation ticks and render-buffer sync only; no browser, audio or native live-allocation instrumentation",
+  "wasmSha256": "e4f9add0f7746018373b835849d8071b732df59fc00ed803cdbc929246155c11",
+  "spawnSourceSha256": "332a0e29f10230fb197e1d22582e2f42cd4bf98e6a039610513f5cd3b17d45ea",
+  "seed": {
+    "low": 104729,
+    "high": 130363
+  },
+  "samples": [
+    {
+      "tick": 60,
+      "entities": 1037,
+      "beforeObservationBytes": 5308416,
+      "afterHashBytes": 5308416,
+      "afterSaveBytes": 5308416,
+      "saveLength": 77770,
+      "worldHash": "1689968484302009063",
+      "browserHashMatch": true
+    },
+    {
+      "tick": 600,
+      "entities": 1037,
+      "beforeObservationBytes": 17104896,
+      "afterHashBytes": 17104896,
+      "afterSaveBytes": 17104896,
+      "saveLength": 79226,
+      "worldHash": "6672627640496136405",
+      "browserHashMatch": true
+    },
+    {
+      "tick": 1140,
+      "entities": 1037,
+      "beforeObservationBytes": 50855936,
+      "afterHashBytes": 50855936,
+      "afterSaveBytes": 50855936,
+      "saveLength": 79747,
+      "worldHash": "10010906560745498215",
+      "browserHashMatch": true
+    },
+    {
+      "tick": 1680,
+      "entities": 1037,
+      "beforeObservationBytes": 118095872,
+      "afterHashBytes": 118095872,
+      "afterSaveBytes": 118095872,
+      "saveLength": 80182,
+      "worldHash": "17615774119548958193",
+      "browserHashMatch": true
+    }
+  ],
+  "afterSpawnBytes": 2031616,
+  "afterFreeCapacityBytes": 118095872
+}
