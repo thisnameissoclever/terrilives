@@ -117,6 +117,8 @@ impl Placement {
             | SimCommand::TalkTo { .. }
             | SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
+            | SimCommand::FitWindow { .. }
+            | SimCommand::RemoveWindow { .. }
             | SimCommand::BuyObject { .. }
             | SimCommand::BuildRoom { .. }
             | SimCommand::SellObject { .. }
@@ -352,6 +354,8 @@ pub(crate) fn drain_ordinary_commands(
         match command {
             SimCommand::PlaceObject { .. }
             | SimCommand::SetWallEdge { .. }
+            | SimCommand::FitWindow { .. }
+            | SimCommand::RemoveWindow { .. }
             | SimCommand::BuyObject { .. }
             | SimCommand::BuildRoom { .. }
             | SimCommand::SellObject { .. }

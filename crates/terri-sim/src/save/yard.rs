@@ -39,7 +39,7 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
             grown.set_blocked(x, y, !grid.is_walkable(x as i32, y as i32));
         }
     }
-    let windows = layout.windows().to_vec();
+    let windows = layout.window_placements();
     let edges: Vec<WallEdge> = layout
         .edges()
         .iter()
@@ -55,7 +55,10 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
         grown.set_edge_blocked(from, to, !edge.doorway);
     }
     // [WN-rules]: a grown house keeps its windows, and each still blocks.
-    for window in &windows {
+    for window in windows.iter().flat_map(|w| w.lines()) {
+        if crate::placement::windows::is_rear(window) {
+            continue;
+        }
         let [from, to] = WallEdge {
             axis: window.axis,
             x: window.x,
@@ -65,9 +68,9 @@ pub(crate) fn grow(sim: &mut Sim, content: &ContentPack) {
         .cells();
         grown.set_edge_blocked(from, to, true);
     }
+    let layout = crate::placement::windows::with_architecture(layout, edges, windows);
     sim.world.insert_resource(grown);
-    sim.world
-        .insert_resource(SavedLayout::from_parts(edges, windows));
+    sim.world.insert_resource(layout);
 }
 
 #[cfg(test)]

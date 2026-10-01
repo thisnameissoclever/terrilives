@@ -2933,6 +2933,21 @@ impl Sim {
             // any ([WN-state]), so an unglazed house digests exactly as it
             // did before windows existed. Two houses that differ in where
             // their windows sit are different houses.
+            if let terri_core::layout::SavedLayout::EdgeWallsV3 { windows, .. } = layout {
+                let mut descriptors: Vec<_> = windows
+                    .iter()
+                    .map(|w| (w.line.axis.code(), w.line.x, w.line.y, w.model.id()))
+                    .collect();
+                descriptors.sort_unstable();
+                hasher.write_bytes(b"windows-v3");
+                hasher.write_u64(descriptors.len() as u64);
+                for (axis, x, y, model) in descriptors {
+                    hasher.write_bytes(&[axis]);
+                    hasher.write_u64(x as u64);
+                    hasher.write_u64(y as u64);
+                    hasher.write_bytes(&[model]);
+                }
+            }
             let mut glazed: Vec<(u8, u32, u32)> = layout
                 .windows()
                 .iter()
@@ -3036,6 +3051,16 @@ impl Sim {
                         *y as u64,
                         facing.code() as u64,
                     ],
+                    FitWindow { axis, x, y, model } => vec![
+                        19,
+                        axis.code() as u64,
+                        *x as u64,
+                        *y as u64,
+                        model.id() as u64,
+                    ],
+                    RemoveWindow { axis, x, y } => {
+                        vec![20, axis.code() as u64, *x as u64, *y as u64]
+                    }
                     SetWallEdge { axis, x, y, state } => vec![
                         8,
                         axis.code() as u64,

@@ -102,7 +102,8 @@ fn legacy_wall_cells_must_be_unique_blocked_and_inside_each_grid_axis() {
             &mut grid,
             &SavedLayout::LegacyCells {
                 walls: vec![(2, 1)]
-            }
+            },
+            (4, 3)
         ),
         Ok(())
     );
@@ -117,7 +118,8 @@ fn legacy_wall_cells_must_be_unique_blocked_and_inside_each_grid_axis() {
                 &mut grid,
                 &SavedLayout::LegacyCells {
                     walls: walls.clone()
-                }
+                },
+                (4, 3)
             ),
             Err(SaveError::InvalidGrid),
             "walls {walls:?}"

@@ -36,8 +36,7 @@ pub struct RoomEditResult {
 #[derive(Debug)]
 pub struct RoomPlan {
     pub changed: bool,
-    edges: Vec<WallEdge>,
-    windows: Vec<terri_core::layout::WallLine>,
+    layout: SavedLayout,
     grid: TileGrid,
 }
 
@@ -99,7 +98,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     let edges = layout.edges().to_vec();
     // A window is already a barrier, so a room's outline leaves one alone;
     // only the doorway the room is built with replaces it ([WN-rules]).
-    let mut windows = layout.windows().to_vec();
+    let mut windows = layout.window_placements();
     let CurrentLayout { rectangles, .. } = current_layout(world)?;
     let live = world.resource::<TileGrid>();
     let (width, height) = (live.width() as u32, live.height() as u32);
@@ -114,6 +113,14 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     );
     if edit.doorway.is_some_and(|door| !lines.contains(&door)) {
         return Err(InvalidInput);
+    }
+
+    for window in &windows {
+        let owned = window.checked_lines().ok_or(OutOfBounds)?;
+        let covered = owned.iter().filter(|line| lines.contains(line)).count();
+        if covered > 0 && covered < owned.len() {
+            return Err(PartialWindow);
+        }
     }
 
     // A line already a doorway stays one, a line already a wall stays one
@@ -133,9 +140,15 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
         if !doorway && line.axis == EdgeAxis::Vertical && front.contains(&(line.x, line.y)) {
             return Err(BlockedDoor);
         }
-        if windows.contains(&line) {
+        if let Some(owner) = windows.iter().copied().find(|w| w.lines().contains(&line)) {
             if doorway {
-                windows.retain(|held| *held != line);
+                windows.retain(|held| *held != owner);
+                let remaining: Vec<_> = owner
+                    .lines()
+                    .into_iter()
+                    .filter(|held| *held != line)
+                    .collect();
+                super::windows::restore_solid(&mut next, &remaining);
                 next.push(record(line, true));
                 grid.set_edge_blocked(a, b, false);
                 changed = true;
@@ -173,11 +186,17 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     if !changed {
         return Ok(RoomPlan {
             changed: false,
-            edges,
-            windows,
+            layout: layout.clone(),
             grid: live.clone(),
         });
     }
+    let candidate = super::windows::with_architecture(layout, next, windows);
+    super::windows::validate_window_layout(
+        &candidate,
+        width,
+        height,
+        world.resource::<crate::Content>().0.lot.house,
+    )?;
     // Only new walls can cut anything off; a doorway made from a wall only
     // removes a barrier, as for a single line.
     if !walls.is_empty() {
@@ -185,8 +204,7 @@ pub fn validate_room(world: &World, edit: RoomEdit) -> Result<RoomPlan, Placemen
     }
     Ok(RoomPlan {
         changed: true,
-        edges: next,
-        windows,
+        layout: candidate,
         grid,
     })
 }
@@ -198,7 +216,7 @@ pub(crate) fn commit(world: &mut World, edit: RoomEdit) {
     if let Ok(plan) = result {
         if plan.changed {
             world.insert_resource(plan.grid);
-            world.insert_resource(SavedLayout::from_parts(plan.edges, plan.windows));
+            world.insert_resource(plan.layout);
             let mut state = world.resource_mut::<LotEditState>();
             state.revision = state.revision.saturating_add(1);
         }
