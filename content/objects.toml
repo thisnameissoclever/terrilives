@@ -554,7 +554,7 @@ sprite = "offlineDiningChair"
 id = "trashcan"
 name = "Receptacle for Later"
 price = 20
-sprite = "trashcan"
+sprite = "offlineTrashcan"
 
   # No interactions. Scenery, and a promise.
 

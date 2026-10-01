@@ -1,7 +1,7 @@
 # Kitchen asset review
 
 Continue the accepted offline Blender-to-sprite workflow, kitchen first. The
-current objects are the existing refrigerator, stove, counter and kitchen sink,
+current objects are the existing refrigerator, stove, counter, kitchen sink and trash can,
 not new gameplay objects.
 Their sprite mappings and the refrigerator's room-facing placement change;
 footprints, interactions, save format and accepted Sims remain unchanged.
@@ -57,7 +57,8 @@ to avoid breaking source paths and review links; it is not a blocking gate.
 batches. `../static-props.json` is the frozen first static batch, followed by
 the bunk export, then `../static-props-02.json`. That second catalog is now frozen
 because bookcase and cutaway-wall records follow it. `../static-props-03.json`
-is loaded at the end of the atlas builder, after those wall records. Append only
+also precedes published records and is frozen. `../static-props-04.json` is the
+current tail catalog, including living-room props and the kitchen trash can. Append only
 after every published record, including procedural sprites, not merely after
 the last animated batch. Start a new tail catalog when necessary.
 Never regroup entries by room or insert into a frozen batch: adding a
@@ -84,6 +85,25 @@ The runtime anchor is source world-origin pixels divided by eight, plus the
 21-pixel tile south-corner offset on Y. It is not the bare source origin. The
 frame offset and shader projection cancel that offset to keep the object on
 its tile. Preserve this measurement when exporting more kitchen models.
+
+## Trash can
+
+`render_trashcan.py` uses the same hidden-background launcher and new-directory
+rules. Candidate 01 is accepted after primary and independent review. Its closed
+grey body is 0.42 wide and the fitted lid reaches 0.64 high, below the 0.86 counter.
+The pedal faces negative model Y; the hinge stays on the opposite side.
+
+Run `check_trashcan_scene.py` in background Blender with absolute saved-model and
+new result paths. It checks five closed connected solids, ground contact and five
+surface attachments. Eight damaged copies and three removed guards test rejection.
+The exterior model does not claim a hollow bin or working lid mechanism.
+
+Runtime sprites append to `../static-props-04.json` after the ottoman. The existing
+`trashcan` persistence ID, one-tile footprint, price, saved placement and lack of
+interactions stay unchanged. Its imported-art click bounds include the visible
+bin and exclude the empty floor strip previously included by the procedural
+canvas. See `../../../docs/assets/review-evidence/kitchen/trashcan.md` for checks
+and production-control evidence.
 
 ## Stove
 

@@ -1,0 +1,96 @@
+{
+  "pass": true,
+  "before": {
+    "tick": 0,
+    "facing": 0,
+    "position": [
+      6,
+      0
+    ],
+    "sprite": 1362,
+    "colourway": 0,
+    "labels": [],
+    "worldHash": "7060072437166737253",
+    "saveSHA256": "3a7ea02e5c2146e57cffb5b79ed72f517ad264e906ef6a0bccc6681375b8cf69"
+  },
+  "rotations": [
+    {
+      "tick": 0,
+      "facing": 1,
+      "position": [
+        6,
+        0
+      ],
+      "sprite": 1364,
+      "colourway": 0,
+      "labels": [],
+      "worldHash": "14665657669894880391",
+      "saveSHA256": "415a1d111360f2bb0c3dece2a1ba8beda5eeb46a5d1191580c3e44573054c7ec"
+    },
+    {
+      "tick": 0,
+      "facing": 2,
+      "position": [
+        6,
+        0
+      ],
+      "sprite": 1363,
+      "colourway": 0,
+      "labels": [],
+      "worldHash": "3820093683797797640",
+      "saveSHA256": "277f4f16e31e104f93a62e4583e26f23c9df66e696ac621179e43bd77c2d33e4"
+    },
+    {
+      "tick": 0,
+      "facing": 3,
+      "position": [
+        6,
+        0
+      ],
+      "sprite": 1365,
+      "colourway": 0,
+      "labels": [],
+      "worldHash": "7007303824455166001",
+      "saveSHA256": "edfb35816404ba4119c90e5c12882343309e92f183457d3918194a6cf11a3e5a"
+    },
+    {
+      "tick": 0,
+      "facing": 0,
+      "position": [
+        6,
+        0
+      ],
+      "sprite": 1362,
+      "colourway": 0,
+      "labels": [],
+      "worldHash": "7060072437166737253",
+      "saveSHA256": "3a7ea02e5c2146e57cffb5b79ed72f517ad264e906ef6a0bccc6681375b8cf69"
+    }
+  ],
+  "after": {
+    "tick": 0,
+    "facing": 0,
+    "position": [
+      6,
+      0
+    ],
+    "sprite": 1362,
+    "colourway": 0,
+    "labels": [],
+    "worldHash": "7060072437166737253",
+    "saveSHA256": "3a7ea02e5c2146e57cffb5b79ed72f517ad264e906ef6a0bccc6681375b8cf69"
+  },
+  "menu": {
+    "title": "Receptacle for Later",
+    "entries": [
+      "Nothing"
+    ]
+  },
+  "errors": [],
+  "resources": [
+    "http://127.0.0.1:4183/assets/index-yydzyapi.js",
+    "http://127.0.0.1:4183/assets/index-CHOU2kqH.css",
+    "http://127.0.0.1:4183/assets/terri_wasm_bg-ZFDW7cBr.wasm",
+    "http://127.0.0.1:4183/atlas-92e78dcf52e54b897cae02bcae7fd60d2aee3c87f428fe1bc7f486ef9ef05eba.png"
+  ]
+}

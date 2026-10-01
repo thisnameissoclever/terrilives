@@ -24,6 +24,12 @@
       "directory": "living/owner-review-pending/ottoman/candidate-01",
       "proof_sha256": "af10c666ee106d2265e7b27bd19f26e5cef10a0def5fb5bb8bd77aae9d62e61e",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineTrashcan",
+      "directory": "kitchen/owner-review-pending/trashcan/candidate-01",
+      "proof_sha256": "aa16ddca687c5429b804febfa973b774acc79f9a0350b5bcbde1d009e4b74030",
+      "review_status": "accepted-independent-review"
     }
   ]
 }
