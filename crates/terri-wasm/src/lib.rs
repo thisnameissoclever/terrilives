@@ -17,6 +17,8 @@ mod save_before_voice_tests;
 #[cfg(test)]
 mod save_v3_tests;
 #[cfg(test)]
+mod sim_details_tests;
+#[cfg(test)]
 mod spawn_boundary_tests;
 #[cfg(test)]
 mod unlimited_queue_tests;
@@ -2002,6 +2004,42 @@ impl SimHandle {
         self.sim
             .personality_of(entity_index)
             .map(|values| values.to_vec())
+            .unwrap_or_default()
+    }
+
+    /// Signed sleep offset, seven drain factors, seven refill factors, then
+    /// [object definition, activity row, repetition] triples. f64 preserves IDs
+    /// and signed tick offsets exactly. Missing people have an empty projection.
+    pub fn sim_details_of(&self, entity_index: f64) -> Vec<f64> {
+        let Some(details) =
+            placement_u32(entity_index).and_then(|index| self.sim.details_of(index))
+        else {
+            return Vec::new();
+        };
+        std::iter::once(f64::from(details.sleep_offset_ticks))
+            .chain(details.drain.into_iter().map(f64::from))
+            .chain(details.refill.into_iter().map(f64::from))
+            .chain(details.repeated.into_iter().flat_map(|row| {
+                [
+                    f64::from(row.object),
+                    f64::from(row.interaction),
+                    f64::from(row.repetition),
+                ]
+            }))
+            .collect()
+    }
+
+    /// Object type and activity label pairs aligned with sim_details_of's rows.
+    pub fn sim_details_labels_of(&self, entity_index: f64) -> Vec<String> {
+        placement_u32(entity_index)
+            .and_then(|index| self.sim.details_of(index))
+            .map(|details| {
+                details
+                    .repeated
+                    .into_iter()
+                    .flat_map(|row| [row.object_label.to_owned(), row.activity_label.to_owned()])
+                    .collect()
+            })
             .unwrap_or_default()
     }
 
