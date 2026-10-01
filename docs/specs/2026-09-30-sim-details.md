@@ -34,9 +34,11 @@ Visible refreshes preserve unchanged text children. Changed values, including
 text changed outside the panel, are corrected on the next refresh. Evidence:
 `docs/assets/review-evidence/personal-details-text/README.md`.
 
-This does not add controls, personality identity, saved state, commands or
-new simulation behavior. Future sensitivities, skills and editing remain
-their own roadmap work. Traits and People retain their existing panels.
+The original read-only slice adds no controls, personality identity, saved
+state, commands or simulation behavior. The held bed-assignment extension
+adds the controls described in its own spec. Future sensitivities, skills and
+editing remain their own roadmap work. Traits and People retain their
+existing panels.
 
 ## Data contract
 
