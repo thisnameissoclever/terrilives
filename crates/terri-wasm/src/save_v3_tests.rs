@@ -1283,3 +1283,46 @@ fn optional_group_multibyte_cuts_and_frozen_bed_none_fail_closed() {
         }
     }
 }
+
+#[test]
+fn released_domestic_v5_retains_every_field_without_mapping_meals_twice() {
+    let bytes = include_bytes!("../../../web/review/domestic.save");
+    assert_eq!(
+        &bytes[..SAVE_HEADER_BYTES],
+        &SimHandle::from_lot().save_bytes()[..SAVE_HEADER_BYTES]
+    );
+    let mut expected = decode_v5(&bytes[SAVE_HEADER_BYTES..]).expect("released domestic payload");
+    assert_eq!(expected.world.content_fingerprint, 0x85a2_d140_0dff_9da1);
+    assert!(expected.sleeping_places.is_none());
+    let domestic = expected
+        .domestic
+        .as_ref()
+        .expect("fixture must carry domestic state");
+    assert!(
+        !domestic.cleanliness.is_empty()
+            || !domestic.dishes.is_empty()
+            || !domestic.meals.is_empty()
+    );
+    let domestic_len = postcard::to_allocvec(&expected.domestic).unwrap().len();
+    let start = bytes.len() - domestic_len;
+    for cut in start + 1..bytes.len() {
+        assert!(
+            decode_v5(&bytes[SAVE_HEADER_BYTES..cut]).is_none(),
+            "accepted incomplete domestic record at {}",
+            cut - start
+        );
+    }
+    let mut loaded = SimHandle::from_lot();
+    assert!(loaded.load_bytes(bytes));
+    expected.world.content_fingerprint = loaded.sim.save_snapshot_v5().world.content_fingerprint;
+    expected.sleeping_places = Some(terri_core::save::SavedSleepingPlaces::default());
+    assert_eq!(loaded.sim.save_snapshot_v5(), expected);
+    assert_current_resave_is_stable(&loaded);
+    let mut resumed = SimHandle::from_lot();
+    assert!(resumed.load_bytes(&loaded.save_bytes()));
+    for _ in 0..160 {
+        loaded.tick();
+        resumed.tick();
+        assert_eq!(loaded.world_hash(), resumed.world_hash());
+    }
+}

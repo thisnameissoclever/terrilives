@@ -508,7 +508,14 @@ fn load_rebuilds_every_new_ordinary_activity_before_the_next_tick() {
             .resolve_from_index(person.index());
         assert_eq!(
             projection(&restored, person),
-            (expected, visual_action::NONE),
+            (
+                expected,
+                if object == "double_bed" {
+                    visual_action::SLEEP
+                } else {
+                    visual_action::NONE
+                },
+            ),
             "{object} activity must rebuild on Load"
         );
     }

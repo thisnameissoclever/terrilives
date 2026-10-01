@@ -1,4 +1,5 @@
 import type { BedAssignmentResult, BedPlace, BedPlaceStatus } from '../bridge.js';
+import { setTextIfChanged } from './set-text-if-changed.js';
 
 export interface BedAssignmentSource {
   selectedIndex(): number | null;
@@ -176,10 +177,10 @@ export function createBedAssignmentSurface(doc: Document, parent: HTMLElement,
     const rows = state.places ?? [];
     const currentPlace = rows.find(row => row.assignee === state.agent);
     const chosen = rows.find(row => samePlace(row, state.choice));
-    current.textContent = state.agent === null ? 'Select a Sim to assign a place.'
+    setTextIfChanged(current, state.agent === null ? 'Select a Sim to assign a place.'
       : state.places === null ? 'Sleeping places unavailable.'
       : currentPlace ? `Assigned: ${currentPlace.label}`
-      : rows.length === 0 ? 'No beds on this lot.' : 'No assigned sleeping place.';
+      : rows.length === 0 ? 'No beds on this lot.' : 'No assigned sleeping place.');
     const keys = new Set(rows.map(row => `${row.bed}:${row.ordinal}`));
     for (const [key, entry] of options) {
       if (!keys.has(key)) { entry.option.remove(); options.delete(key); }
@@ -193,7 +194,7 @@ export function createBedAssignmentSurface(doc: Document, parent: HTMLElement,
         entry = { option, place: { bed: row.bed, ordinal: row.ordinal } };
         options.set(key, entry);
       }
-      entry.option.textContent = `${row.label} (${row.assigneeName ?? 'unassigned'})`;
+      setTextIfChanged(entry.option, `${row.label} (${row.assigneeName ?? 'unassigned'})`);
       entry.option.disabled = row.assignee !== null && row.assignee !== state.agent;
       const at = select.children.item(index + 1);
       if (at !== entry.option) select.insertBefore(entry.option, at);
@@ -208,9 +209,9 @@ export function createBedAssignmentSurface(doc: Document, parent: HTMLElement,
       || (chosen.assignee !== null && chosen.assignee !== state.agent);
     clear.disabled = !currentPlace;
     const shown = chosen ?? currentPlace;
-    occupancy.textContent = shown ? (shown.occupantName ? `In use or reserved by ${shown.occupantName}.` : 'Not currently in use.') : '';
+    setTextIfChanged(occupancy, shown ? (shown.occupantName ? `In use or reserved by ${shown.occupantName}.` : 'Not currently in use.') : '');
     occupancy.hidden = !shown;
-    status.textContent = state.status;
+    setTextIfChanged(status, state.status);
     status.hidden = state.status === '';
     if (wasPending && !state.pending && doc.activeElement === root && !disabled && rows.length > 0) select.focus();
     wasPending = state.pending;

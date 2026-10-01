@@ -1,0 +1,12 @@
+{
+  "occupancy": 3,
+  "facing": "NE",
+  "palettes": [
+    "green",
+    "blue"
+  ],
+  "sample": 0,
+  "owner": "lines",
+  "path": "double-bed-3-NE-green-blue-0-lines.png",
+  "sha256": "1f97fcee439c23d5ddabc20b03a9fda51727ae34f5513dae9af6d3f3263172f8"
+}

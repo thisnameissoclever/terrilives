@@ -123,3 +123,18 @@ Before publication: complete the occupied double-bed body fit and composite proo
 picking and indicators only after that contract is established. Repeat affected
 release checks and final adversarial review after those changes, then merge
 and verify the actual deployment under the existing authorization.
+
+## Open-disclosure text refresh follow-up
+
+The bed-assignment and personal-details surfaces now use the existing
+`setTextIfChanged` helper. Repeated visible refreshes previously assigned the
+same text to every dynamic leaf, replacing native text nodes unnecessarily.
+The two new surface controls failed before the fix with 20 writes per unchanged
+leaf over 20 refreshes. They pass after the fix and require changed assignments,
+occupancy, status, factors, sleep timing and repetition to update immediately.
+
+Validation on this follow-up: `npm test -- --maxWorkers=1` passed with 1,725
+tests in 118 files; `npm run typecheck`, `npm run build`,
+`python check-doc-ids.py` and `git diff --check` passed, all exit 0.
+Independent review found no consequential issues in the patch. These controls
+prove text-write behavior, not whole-game memory acceptance or occupied artwork.

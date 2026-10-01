@@ -1,0 +1,40 @@
+{
+  "display-no-ink": {
+    "max": 28.23137254901962,
+    "p95": 0.0,
+    "above_8": 420,
+    "active": 384111
+  },
+  "display-beauty": {
+    "max": 32.29803921568628,
+    "p95": 0.8509803921568487,
+    "above_8": 8804,
+    "active": 389665
+  },
+  "linear-no-ink": {
+    "max": 2.9999999999999893,
+    "p95": 2.8310687127941492e-14,
+    "above_8": 0,
+    "active": 384111
+  },
+  "linear-beauty": {
+    "max": 1.573860919056485,
+    "p95": 0.2959527084758406,
+    "above_8": 0,
+    "active": 389665
+  },
+  "ink_above_beauty": {
+    "pixels": 0,
+    "max_difference": 0.0
+  },
+  "owner_alpha_above_one": {
+    "pixels": 575,
+    "max_excess": 2.9999999999999893
+  },
+  "coverage_difference": {
+    "max": 0.2352941176470813,
+    "p95": 0.0,
+    "above_8": 0,
+    "active": 389665
+  }
+}

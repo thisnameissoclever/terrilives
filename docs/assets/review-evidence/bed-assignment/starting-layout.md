@@ -114,3 +114,31 @@ Production output contains `terri_wasm_bg-bid0wJUR.wasm` (2,273.96 kB),
 `index-C7TqlCL6.css` and `index-B6hVMdnt.js`. The test-only fixture repairs
 after that WASM build do not alter production code. Logs are under
 `.tmp/bed-assignment/shipped-layout-*.log`. No merge or deployment is claimed.
+
+## Audio and HUD integration
+
+Merged audio PR 183, main `6df7c045145d59073bfd2fcafd946978b7126a64`,
+was integrated locally as `a610fb77`. It adds cooking audio and avoids replacing
+unchanged text nodes in six existing panels. The merge was conflict-free and
+changed no Rust or content files relative to the bed branch.
+
+`npm test -- --maxWorkers=1` passed all 1,722 tests in 117 files, exit 0.
+`npm run typecheck` and `npm run build` passed, exit 0. The combined build's
+JavaScript is `index-CMhz7xph.js` (405.85 kB); CSS and WASM filenames are unchanged.
+The release-WASM SHA-256 still matches the layout verification above, so the
+unchanged native suites were not repeated for this shell-only integration.
+Documentation IDs and `git diff --check` also passed. Logs are
+`.tmp/bed-assignment/audio-183-{web,typecheck,build}.log`.
+
+GitHub confirmed PR 183 merged on 2026-10-01 at 10:39:20 UTC. At the integration
+check, CI run `36850487052` was still running and the latest completed Pages
+deployment was `2705d8bf`, from PR 182. This records that observation, not a
+production claim for PR 183 or the unpublished bed feature. Occupied-bed
+visual acceptance still governs publication of this branch.
+
+The subsequent production check confirmed CI `36850487052` and Pages
+`36851010577` completed successfully for main `6df7c045`. The live page returned
+HTTP 200 and referenced `assets/index-DaUoiP-c.js`, which also returned 200 and
+contained the cooking WAV reference. `audio/objects/stove-cooking.wav` returned
+200, `audio/wav`, and 384,044 bytes. This verifies PR 183's deployed artifacts;
+listening acceptance and publication of the bed branch remain separate.

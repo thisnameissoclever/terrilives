@@ -188,6 +188,38 @@ pub fn capacity(pack: &ContentPack, object: &CompiledObject) -> u8 {
     object.sleep_capacity(&pack.sleep_tag)
 }
 
+/// Current sleeping ownership, independent of whether the bed has body art.
+/// The caller excludes objects, work and both sides of an active conversation.
+pub(crate) fn sleeping_place(world: &World, agent: Entity) -> Option<BedPlace> {
+    let eating = world.get::<terri_core::Eating>(agent)?;
+    if world.get::<terri_core::StepWork>(agent).is_some()
+        || world.get::<terri_core::Path>(agent).is_some()
+        || world.get::<terri_core::Commuting>(agent).is_some()
+    {
+        return None;
+    }
+    let target = world.get::<Target>(agent)?;
+    let place = world.get::<SleepPlace>(agent)?;
+    let object = world.get::<SmartObject>(target.object)?;
+    world.get::<terri_core::Position>(target.object)?;
+    if target.interaction != eating.interaction || object.0 != eating.object {
+        return None;
+    }
+    let pack = world.resource::<crate::Content>().0;
+    let definition = pack.objects.get(object.0 .0 as usize)?;
+    let interaction = definition.interactions.get(target.interaction as usize)?;
+    if pack.sleep_tag.is_empty()
+        || !interaction.tags.contains(&pack.sleep_tag)
+        || place.0 >= capacity(pack, definition)
+    {
+        return None;
+    }
+    Some(BedPlace {
+        bed: target.object,
+        ordinal: place.0,
+    })
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum Preference {
     Assigned,

@@ -148,6 +148,8 @@ struct RenderRow {
     activity: u32,
     visual_action: u32,
     interaction_target: u32,
+    sleeping_bed: u32,
+    sleeping_place: u32,
     facing: u32,
     sound_action: u32,
     sound_source: u32,
@@ -318,6 +320,12 @@ fn authored_object_facing_codes(
             terri_data::CompiledVisualFacing::TowardAnchor,
             None,
         ) => Some((visual_action::WATCH, activity::WATCHING_FISH)),
+        (
+            terri_data::CompiledVisualAction::Sleep,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+            None,
+        ) => Some((visual_action::SLEEP, activity::SLEEPING)),
         _ => None,
     }
 }
@@ -1625,6 +1633,8 @@ impl Sim {
         self.render.activities.clear();
         self.render.visual_actions.clear();
         self.render.interaction_targets.clear();
+        self.render.sleeping_beds.clear();
+        self.render.sleeping_places.clear();
         self.render.facings.clear();
         self.render.sound_actions.clear();
         self.render.sound_sources.clear();
@@ -2001,6 +2011,9 @@ impl Sim {
                 render_buffer::NO_SOUND_SOURCE,
             ));
             let crossing = portals::crossing_position(&self.world, entity, Position { x, y });
+            let sleeping = (is_agent && !socially_active && !at_work)
+                .then(|| beds::sleeping_place(&self.world, entity))
+                .flatten();
             rows.push(RenderRow {
                 entity,
                 index: entity.index_u32(),
@@ -2024,6 +2037,12 @@ impl Sim {
                     .map_or(render_buffer::NO_INTERACTION_TARGET, |projection| {
                         projection.target_entity
                     }),
+                sleeping_bed: sleeping.map_or(render_buffer::NO_SLEEPING_BED, |place| {
+                    place.bed.index_u32()
+                }),
+                sleeping_place: sleeping.map_or(render_buffer::NO_SLEEPING_PLACE, |place| {
+                    u32::from(place.ordinal)
+                }),
                 facing,
                 sound_action,
                 sound_source,
@@ -2079,6 +2098,8 @@ impl Sim {
             self.render.activities.push(row.activity);
             self.render.visual_actions.push(row.visual_action);
             self.render.interaction_targets.push(row.interaction_target);
+            self.render.sleeping_beds.push(row.sleeping_bed);
+            self.render.sleeping_places.push(row.sleeping_place);
             self.render.facings.push(row.facing);
             self.render.sound_actions.push(row.sound_action);
             self.render.sound_sources.push(row.sound_source);

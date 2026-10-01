@@ -1,6 +1,7 @@
 use super::*;
 mod lifecycle;
 mod navigation;
+mod projection;
 mod shipped;
 use crate::{test_content, Sim};
 use terri_core::{

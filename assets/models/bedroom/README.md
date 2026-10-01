@@ -54,7 +54,8 @@ Headboard is at local +Y, foot at -Y. Two separate linen pillows and a sage
 duvet preserve the existing colors while correcting the old single-width art.
 The duvet top is 0.55, its folded edge 0.568, and pillows 0.59. These are
 different surfaces, not one maximum-height value. The runtime centers the
-unchanged 2x2 placement at (0.5,6.5); do not add another model offset.
+unchanged 2x2 footprint half a tile from its placed origin on each world axis;
+do not add another model offset.
 
 The existing double-bed action has two slots but no sleeping pose or foreground.
 This artwork does not fix that animation gap. A future two-sleeper implementation
@@ -64,12 +65,83 @@ or the current single-owner composite path would overlap both occupants.
 `probe_sim_height.py MODEL NEW_RESULT_JSON` measures the immutable idle Sim
 without saving it. `sim-height-reference.json` records a 2.07411 sole-to-hair
 height. The mattress is 10.3% shorter; this is not full-extension adult fit.
-Do not shrink the Sim or extend the frame into unreserved walking tiles.
-A folded sleep pose may fit, but that requires separate evidence. Evaluate
-every visible body part, sample, facing and assigned slot. A starting envelope
+That earlier fit investigation prohibited shrinking the Sim. The owner has
+since approved a uniform 0.88 scale for the sleeping presentation only,
+with relaxed legs and one occupied duvet. Standing art and the saved Sim
+source remain unchanged. Do not extend the frame into unreserved walking tiles.
+Evaluate every visible body part, sample, facing and assigned slot. A starting envelope
 reserves 0.03 at each end and side: 1.80 long by 0.69 wide per sleeper lane.
+Disjoint lanes are a conservative construction rule. If a proposed arrangement
+crosses their X intervals, it needs direct full-surface interbody separation
+and jointly derived visible ownership; do not infer near-body order from a lane.
 Require supported head/torso, no frame penetration or sleeper intersection,
-unchanged rig scale and actual GPU occlusion review before calling sleep done.
+the approved sleeping-only scale and actual GPU occlusion review before
+calling sleep done. The historical contact certificates do not certify the
+new sleeping pose or shaped duvet.
+
+### Approved covered sleeping export
+
+`double_bed_sleep.py` replays the approved static pose from
+`double-bed-sleep-pose.json` using candidate 02's immutable authoring model.
+The compact replay reproduced all 46 visible body surfaces with zero vertex
+displacement from the approved candidate. It creates two independent owners,
+keeps their clothing material changes object-local, and replaces the flat
+duvet and folded edge with one continuous occupied duvet. It does not modify
+the source rig, implement breathing, or change the 2x2 gameplay footprint.
+
+Use `render_double_bed_sleep.py`, not the existing empty-bed exporter
+`render_double_bed.py`. The occupied renderer requires the pinned background
+Blender 4.5.14 LTS build `62c1db4208e8`, two render threads and a new absolute
+output directory. Pass `--pilot` for the bounded controls; omit it for all 64
+static scenes and 288 raw passes. Scenes include all four facings, all four
+occupancy masks and the active owners' green, blue and red shirt combinations.
+Keep the batch inputs frozen until the actual worker process exits.
+
+1. Run the renderer through background Blender with arguments after `--`:
+   `--output ABSOLUTE_NEW_DIRECTORY [--pilot]`.
+2. Observe the actual Blender worker exit. The launcher exiting is not proof.
+   Read its immutable terminal receipt only after that observation.
+3. Run `python assets/models/bedroom/export_double_bed_sleep.py RAW_DIRECTORY
+   NEW_EXPORT_DIRECTORY --writer-exited`. The flag records the observation;
+   it is not a substitute for checking the process.
+4. Require complete unique keys and raw paths, unchanged source and script
+   hashes, fully decoded RGBA 1280x1408 originals, matching immutable journal
+   rows, camera registration, and ray-traced visible-owner witnesses.
+5. Inspect original beauty renders and reconstructed game-size images in all
+   facings, with primary and independent review. Keep candidate and publication
+   acceptance separate.
+
+The exported encoding is
+`scene-linear-premultiplied-visible-additive`. Decode source sRGB before
+premultiplication, attenuate each fill contribution by the shared ink at
+source resolution, then downsample. The outline is its own final visible
+contribution. Sum all active layers, unpremultiply once, and apply the sRGB
+transfer once. Do not apply another ink-over multiplication. That would
+restore the fractional-filtering defect this encoding removes.
+
+Only furniture takes the object's colorway. Its straight linear RGB must go
+through the existing sRGB recolor semantics and back to linear before it
+joins the sum. Clothing, skin and ink do not take furniture colors. Retain
+joint-scene RGB and deduplicate only identical decoded pixels; material
+isolation alone does not establish reusable rendered color.
+
+CPU picking uses separate original visible body-fill alpha images, not the
+ink-attenuated reconstruction weights or rectangular sleeper lanes. Coverage
+and RGB share the crop and anchor. Shared outline alone does not select an
+arbitrary Sim; bed and blanket-only pixels remain furniture-owned.
+
+Coverage PNGs use grayscale mode `L`: each gray value stores the original
+visible body-fill alpha. Read that value, or the red channel after RGBA decoding,
+not the decoded PNG alpha channel. A grayscale-zero background decodes to
+opaque RGBA alpha and must still have zero picking coverage. Keep a background
+or blanket-only negative picking case to catch an accidentally opaque mask.
+
+The projected full-canvas origin is approximately `(80,123.00044)`. Runtime
+registration adds the existing 21-pixel tile offset once, giving
+`(80,144.00044)`, then subtracts half the physical crop origin at density 2.
+The bounded pilot's crop is not a production constant. Full enumeration must
+establish its own common crop, atlas budget, finite coverage and palette
+invariance before runtime integration and played release verification.
 
 ## Bunk
 

@@ -43,7 +43,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | Existing trait kinds and personality multipliers |
 | [S-sim-details] | An expandable details panel for each Sim | Partial | Collapsed personality factors, sleep rhythm and activity repetition in Overview; existing Traits and People panels |
 | [S-advanced-controls] | An advanced controls toggle | Not started | None |
-| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves and controls; place access and occupied visuals remain |
+| [S-bed-assignment] | Assigning a Sim to a bed | In progress | Local runtime, saves, controls and place-specific routing; occupied visuals remain |
 
 The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
@@ -336,7 +336,7 @@ Traits named so far by the owner's direction: novelty-seeking, which a poor mood
 
 ### [S-sim-details] An expandable details panel for each Sim
 
-**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing; occupied-bed visual acceptance remains open. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
+**Status: Partial.** Overview contains a collapsed Personality, habits and bed section. It shows shyness, the seven personal need-drain and positive-refill factors, signed sleep rhythm in game minutes, and recent activity repetition with named meters and text percentages. Repetition follows the activity type across identical objects, including chains; it changes appeal, not the need refill. Bed assignment adds Assign and Clear controls with place-specific routing and a covered double-bed display. The flyout starts compact and expands when these details need more space. Needs, mood and moodlets, relationships, satisfaction, job, activity and Traits retain their existing panels. The broader make-up view and editing remain future work. See [the first slice](specs/2026-09-30-sim-details.md) and [bed assignment](specs/2026-10-01-bed-assignment.md).
 
 **Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
 
@@ -358,11 +358,13 @@ With [S-advanced-controls] on, the same panel is where the player edits a value.
 
 ### [S-bed-assignment] Assigning a Sim to a bed
 
-**Status: Partial.** Owner-aware reservation release, assignment, simultaneous
-double-bed admission, save migration, assignment controls and per-place approach
-paths are implemented. The occupied double-bed display still requires separate
-visual acceptance. The starting house has a bunk and a double bed. See
-`docs/specs/2026-10-01-bed-assignment.md`.
+**Status: Implemented.** Owner-aware reservation release, assignment, simultaneous
+double-bed admission, save migration, assignment controls and place-specific
+approach paths are implemented. The covered double-bed display supports either
+sleeper or both in all four facings; the sleeping poses are static. The starting
+house has a bunk and a double bed.
+See `docs/specs/2026-10-01-bed-assignment.md` and the routing/lifecycle evidence in
+`docs/assets/review-evidence/bed-assignment/navigation.md`.
 
 A separate shipped household capacity rule gives
 every living member a -20 Not enough beds moodlet when sleep places are fewer
@@ -392,14 +394,12 @@ assigning ownership or adding a separate drain.
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial.** Each person holds a separate feeling toward every other person. Talking, pleasant company and recognized shared activities can raise it; incompatible preferences create friction, and time slowly fades it toward neutral for living people. Affinity toward a dead person remains preserved for grief. The local unmet-needs/privacy slice adds directional losses for inconvenient conversations, walking in during private bathroom use, and starting private use beside existing occupants. It follows the furniture's actual room, including an open-plan living room. Each Sim also has shyness from 1 to 100: higher values amplify their annoyance and strengthen deliberate privacy avoidance. Cached choices, safe alternatives, urgent-need overrides and player orders preserve access. [The behavior spec](specs/2026-09-30-need-social-privacy.md) records the incident rules, and [relationship development](specs/2026-09-30-relationship-development.md) records the contact rules and measured balance. One social action exists, a two-person chat, with recorded voice clips that set its length. The shared-time, activity and compatibility portion of `[H13]` is implemented locally. Items `[H12]`, `[H14]` and `[H15]` remain planned. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
+**Status: Partial.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades feelings toward living people. Affinity toward a dead person is preserved for grief. The shipped waiting moodlet does not implement the relationship penalty in [H12]. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
-- `[H13]` Very small gains from pleasant shared time without smell or personality incompatibility, substantially larger gains from doing an activity together, and negative drift from incompatible personalities. The owner's privacy balance target is roughly one violation per normal Sim per simulated week, with about two days of ordinary cohabitation and interaction to recover for average-compatibility Sims; the [implementation specification](specs/2026-09-30-relationship-development.md) records the mechanics and measurement contract.
+- `[H13]` Slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
 - `[H14]` Autonomous friendly conversations above a positive threshold, and fights below a negative one.
 - `[H15]` Extroversion changing how readily a person starts either.
-
-Visible directional hostility, reactions and mild room-based avoidance are planned in [B-hostility-expression](FEATURES.md#b-hostility-expression-make-interpersonal-hostility-visible).
 
 Also missing: more social actions than chat, group conversations (the content already declares a slot count that nothing reads), and a romance axis.
 

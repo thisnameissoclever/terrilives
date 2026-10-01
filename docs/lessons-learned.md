@@ -1026,6 +1026,14 @@ in the actual room. Before adding sleep, evaluate all visible body parts over
 all samples and slots for support, lane clearance, frame collisions and body
 intersections, then inspect their GPU composites.
 
+The 2026-10-01 relaxed-leg diagnostic confirmed the consequence: a more natural
+2.03865-long pose exceeds the unchanged 1.86 mattress by 0.17865. Arm clearance
+had distracted both visual reviewers from an excessively folded whole-body
+pose; their earlier visual pass was withdrawn. Review the entire silhouette
+before certifying individual contacts. Bed length and reserved floor space
+need an owner decision rather than further tightening the pose. Evidence:
+`assets/review-evidence/bed-assignment/visual-contract.md`.
+
 ## [L-storage-attachment-gaps] Check contact before and after beveling
 
 **What happened.** The first nightstand render had tiny gaps behind its drawer
@@ -2399,6 +2407,13 @@ patterns owned by `rg`, or enumerate already discovered filenames. Verify with
 builder release checks. Fresh review confirmed the existing rule, not a new
 repository problem. Use directory-scoped discovery before content lookup;
 never turn a no-match result into guesses at adjacent module filenames.
+
+**2026-10-01 recurrence.** Guessed roadmap, package and checker paths failed
+during bed integration review. The README already linked `docs/FEATURES.md`
+and `docs/specs/`; file discovery found root `check-doc-ids.py` and
+`web/package.json`. Fresh review confirmed that filename assumptions caused
+the failures. Start with the README index and a directory-scoped file list,
+then verify each selected path exists before reading it.
 
 **What happened:** a commit was made from the Bash tool with
 `git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
@@ -8407,10 +8422,14 @@ one-node difference using only the `needs-caption` writer.
 **Prevention.** Compare the actual DOM text before assigning. Do not add a second
 cached UI state, change the memory allowance, or accept a failed equality check
 because its count declined. Text refreshes must still repair changed DOM values.
-Include open disclosures in the writer inventory. Personal details retained
-redundant writes after the always-visible HUD was fixed: 20 unchanged public
-refreshes replaced 23 text children and emitted 460 native text mutations.
-The shared text guard reduced both to zero while still repairing changed text.
+Include open disclosures in the writer inventory: personal details and bed
+assignment retained the same redundant writes after the always-visible HUD
+was fixed. Both now use the shared text guard, with repeated-refresh controls
+that also require changed values to appear immediately.
+The native personal-details browser control replaced 23 text children and
+emitted 460 text mutations over 20 unchanged public refreshes. The shared text
+guard reduced both to zero while still repairing changed text; see
+`assets/review-evidence/personal-details-text/README.md`.
 
 **Verify.** Check text-child identity across repeated unchanged public updates,
 then change the source value and verify the text updates. The causal diagnostic
@@ -8558,6 +8577,8 @@ they intended to clear.
 **Prevention.** Compare the complete assignment map and exact surviving target,
 place and action. Account explicitly for the expected duration decrement.
 Before cleanup, assert the specific claims, paths and shared marker exist.
+For a multi-tick handoff, check the surviving action on every tick. Two replay
+copies can agree while both freeze or restart the same countdown.
 
 **Verify.** Swap assignment ordinals while retaining their count, corrupt the
 surviving partner's place, and omit admission's place insertion. Each fault must
@@ -8669,6 +8690,7 @@ The balance harness initially inferred completion from any final-step disappeara
 **Prevention:** inspect control type and scope before writing a locator. Use the actual speed label, verify its radio is checked, and scope tab selectors to their container. Keep browser rendering active while the simulation driver is paused. Set action timeouts shorter than the enclosing tool timeout and close owned contexts in finally.
 
 **Verification:** normal clicks dismiss Help, select Pause and open the intended tab. Five controlled browser cases keep the simulation at tick one during observation and reproduce 40-tick saved replays. Captures show the current person and action; no owned game page or listening preview server remains.
+Freezing only the partner's timer must also fail the full-tick handoff test.
 
 ## [L-bed-access-needs-the-shipped-house] Check place access in the actual starting lot
 
@@ -8718,6 +8740,73 @@ or clearing selection cannot retain another person's value. The desktop sheet
 measures 360 pixels by default and 540 while personality is expanded. Other
 tabs and collapsing restore 360. Compact viewports have no horizontal overflow
 and retain 44-pixel controls.
+For autonomous runs, require actual shared-sleep observations across the seed
+set and count sleep exits without calling them completed actions. A place map
+can hide duplicate claimants; require every sleeping Sim to appear exactly once
+in its occupancy projection. Reload a deliberately advanced twin to prove that
+loading restores state, rather than merely accepting an identical snapshot.
+
+## [L-bed-projection-is-semantic] Keep sleep ownership independent of body art
+
+**What happened.** Review of the planned sleep-place column found that reusing
+the socket projection would omit the double bed, which has no occupied-art
+contract yet. Requiring activity 5 or a positive countdown would also narrow
+existing valid state.
+
+**Root cause.** Semantic sleep tags, authored visuals and pending action
+completion are separate contracts. Numeric entity indices also omit generations.
+
+**Prevention.** Derive a separate exact bed/place pair from validated running
+ownership. Preserve independent visuals, shared capacity across alternate sleep
+actions, zero-tick actions awaiting completion and full target entity identity.
+
+**Verify.** Cover alternate nap slots, independent visual metadata, immediate
+Load and memory growth. Replace a despawned bed at the same raw index; its old
+target must remain invalid. A deliberate raw-index lookup must fail that test.
+
+## [L-bed-colour-is-not-coverage] Verify colour reuse before budgeting joint sprites
+
+**What happened.** Independent review of the proposed double-bed export found
+that accepted bunk furniture samples already differ in RGB inside common opaque
+regions. Reusable RGB multiplied by genuine visibility cannot exactly reproduce
+those images. The proposal remained unimplemented.
+
+**Root cause.** A proposed image-count reduction separated colour from visibility
+without first measuring colour stability in the established shaded export.
+An emission output can still receive colour derived from lighting or occlusion.
+
+**Prevention.** Preserve per-scene RGB for the pilot. Compare reused-colour and
+per-scene-colour reconstructions against the same beauty render, with an
+identical-state noise control. Keep shading residuals separate from coverage.
+Prove independent occupant palettes before counting colour reuse.
+
+**Verify.** Compare fully opaque interiors separately from partial edges after
+actual resampling. Keep input hashes and per-region errors. The accepted bunk
+comparison disproves exact equality only; it does not prove a second-body shadow
+failure or settle the double bed's visual tolerance or atlas budget.
+
+## [L-bed-lanes-are-a-construction] Keep pose convenience separate from physical fit
+
+**What happened.** A double-bed pose passed its lane and crossing screens but
+looked tense. Review found that the elbow solver was limited by lane edges,
+while fixed abdomen hand transforms and an upper-only elbow arc further
+restricted the available pose. Earlier wording had promoted a starting
+envelope into a mandatory whole-body shape.
+
+**Root cause.** A sufficient construction for separation and simple picking
+became an implicit physical requirement. Contact certificates then encouraged
+preserving hand transforms that had never passed whole-pose visual review.
+
+**Prevention.** Preserve actual body, bed, support, collision and walking-space
+invariants. Treat contact frames and search domains as authoring choices, and
+lane ordering as conditional on proved containment. Inspect a credible early
+silhouette before extensive certification. Any route without containment needs
+direct interbody separation and jointly derived visible-owner picking.
+
+**Verify.** Inspect active constraint residuals, actual rendered posture and
+complete evaluated meshes. Test independent samples, owner-map swaps, row
+reordering and one occupant leaving. A relaxed search limit is not acceptance;
+neither is a kinematic angle bound or a phase-zero lane pass.
 ## [L-native-link-proof-needs-activation] Tab inventory alone cannot verify a new-window link
 
 **What happened.** Three clicks on a native Changelog link produced no new tab in the in-app browser's inventory. The link had focus, no overlay and no cancellation handler. Treating the inventory alone as the result left product activation unresolved.
@@ -8785,6 +8874,26 @@ atlas pixels stay unchanged. Evidence:
 **Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
 
 **Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+
+## [L-synthetic-actions-need-state-ownership] Keep synthetic action fixtures valid after ownership changes
+
+**What happened.** Integrating shipped activity projection into the held sleeping-place branch made one Load test reject its synthetic double-bed save. The fixture supplied Eating and Target but omitted SleepPlace. An attempted global text replacement matched two Load sequences and was rejected; the shell still launched an unchanged suite.
+
+**Root cause.** Modern sleeping-place saves record exact active ownership. A directly constructed action does not pass through admission, which normally supplies that ownership. The failed patch and verification commands were also combined without an error boundary.
+
+**Prevention.** Complete synthetic sleep actions with a valid place marker; never weaken modern missing-row validation to accept malformed fixtures. Anchor repairs inside the named test. Apply and verify in separate tool steps so a failed edit cannot launch an unchanged run.
+
+**Verify.** The immediate ordinary-activity Load test passes with SleepPlace(0) only on sleep-tagged interactions. The existing shared-sleep test still rejects missing and conflicting rows transactionally. Full integration verification passes 109 core, 272 data, one data integration, 768 simulation and 153 WASM tests. The merged web suite passes 1,777 tests in 121 files after rebuilding its generated WASM. These checks remain separate from the already deployed UI acceptance.
+
+## [L-integration-tests-need-matching-wasm] Regenerate WASM before testing changed Rust projections
+
+**What happened.** After activity-bubble main was integrated into the held sleeping-place branch, the Rust suite passed but five web tests expected new literal activities and observed older generic activity codes.
+
+**Root cause.** The web tests execute generated release WASM. The ignored package was the known older held-branch artifact, not the newly merged Rust/content source. A native Rust build does not refresh that package.
+
+**Prevention.** When Rust or embedded content changes, build the WASM package in the owning worktree before running dependent web tests. Do not copy a main-only artifact into a branch with additional ABI fields or use an unverified sibling binary.
+
+**Verify.** Rebuild with `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`, record its hash, and run the actual release-WASM bridge/activity tests. Keep source, generated artifact and deployed acceptance provenance separate.
 ## [L-domestic-integrated-actions-need-terminal-scoring] Score the food that actually arrives
 
 **What happened.** Main integration exposed an instant-fridge survival score
@@ -8851,6 +8960,292 @@ coefficients rather than weakening an unrelated fixed penalty. Preserve noticing
 mood and cleanup rules; verify the full seed cohorts after composition.
 When a penalty shrinks, move a clamping fixture close enough to the bound that
 the requested change still crosses it. Keep separate requested/actual assertions.
+## [L-published-save-tail-wins] Integrate unpublished tails after released fields
+
+**What happened.** Held sleeping-place state and released domestic state both appended a V5 field after chronotypes. A mechanical union would place one record where released saves encode the other. The sleeping-access fingerprint also made released meal saves look like old recipes to the staged-meal migration.
+
+**Root cause.** Positional serialization and exact content migration each have publication order. Two independent additions cannot share a tail position or treat every accepted digest as the same recipe.
+
+**Prevention.** Preserve released domestic before unpublished sleeping state. Extend padding boundaries for both records, keeping actual absence distinct from explicit modern None. Use an exact same-recipe route for the released domestic digest; earlier recipes still require their program-counter mapping.
+
+**Verify.** Load the checked-in released domestic save and compare every retained field immediately, changing only the destination digest and added empty sleeping record. Require stable resave and replay. Keep authentic pre-meal fixtures, every interior sleeping cut and explicit-None rejection. Delete the presence guard and current-recipe route separately; the named tests must fail.
+
+## [L-fixture-events-before-clock-bounds] Wait for the event a fixture requires
+
+**What happened.** After integrating sleeping-place admission, a domestic test sampled two guests at a fixed 180 ticks and saw one collected portion. The diagnostic showed both claims intact; the second guest was at the counter with seven collection ticks left.
+
+**Root cause.** The shared fixture let guests run ordinary autonomy before injecting their completion actions. The starting route and random choices were not fixed, so the old tick count did not define completed collection.
+
+**Prevention.** In the retention test, wait within a bound for both collections and keep the table locked throughout. Then hold the completed state for an additional interval to prove retention. Keep exact ownership, carrying, step, Load and eventual delivery assertions. Complete synthetic sleep actions with their ownership marker and require completion to remove it.
+
+**Verify.** Both collections must complete within the route/work bound, the table remains unclaimed, and both portions remain uneaten during the subsequent 180 ticks. The original fixed-bound checkpoint remains in the diagnostic log; increasing a timeout alone does not establish retention.
+## [L-pose-pole-is-not-elbow-position] Measure solved joints and complete garments
+
+**What happened.** Two proposed narrower double-bed poses retained essentially
+the original body width. A third narrowed the body but still missed its lane
+margin and failed the bone-scale assertion at the next breathing sample.
+
+**Root cause.** A two-link limb solver projects its bend pole around the
+shoulder-to-wrist axis. Reducing pole X does not necessarily reduce elbow X.
+The second failure came from hand scale channels exceeding the existing
+tolerance, not a comparable measured change in bone length. An unchanged-pose
+trace subsequently located a small distortion in the saved rest matrices;
+absolute-matrix assignment redistributed it through parent-relative scale
+channels. A new rotation-only adapter preserves the saved rig and passes the
+control without loosening the scale limit.
+
+**Prevention.** Solve and inspect the joint geometry before interpreting a pole
+coordinate as a body bound. Measure every visible cuff and sleeve at every
+sample. Keep length, scale-channel and evaluated-surface checks separate; do
+not relax a failed limit or omit a garment to make a candidate pass. Preserve
+rejected studies and obtain a fresh architectural review after three failures.
+Save the measurements before asserting the acceptance bound. Otherwise a
+rejected pose records only a failure and requires an avoidable diagnostic replay
+to identify which part exceeded the limit. A successful width screen also says
+nothing about whether the posture looks relaxed or the hands actually rest on
+the body.
+
+When solving contact, include raised details in the actual support surface.
+The double-bed trial brought a palm onto the shirt body but through its breast
+pocket. Symmetric wrist targets cannot be presumed valid for asymmetric
+clothing. Keep contact-only records separate from collision-cleared survivors,
+and verify the final root residual: a changing ray-hit set can create a sign
+bracket without a converged contact solution.
+
+Contact-frame axes have an order of authority. A hand support frame can make
+the surface normal primary, but a bone frame must preserve the exact joint
+direction and project its roll reference around that direction. Reusing the
+surface-first frame for a forearm moved both wrists away from otherwise valid
+inverse-kinematics targets. Test oblique direction/normal inputs, assert the
+authored joint positions before surface checks, and keep rejected receipts
+immutable. Width and bone-length checks alone did not detect this error.
+
+A candidate selector must include every coupled screening constraint that
+determines its parameter. The first evaluated elbow-height diagnostic selected
+lower endpoints because the forearms cleared the garments, even though cuffs
+or full-arm lane bounds still failed. The root algorithm was functioning; its
+objective was incomplete. Use named residuals for shaft clearance, cuff
+clearance and complete arm bounds, retain the limiting residual, and leave
+continuous-surface collision and visual review as separate acceptance gates.
+Do not require sleeves to clear their own designed shoulder attachment, or
+use that attachment to excuse new pocket, collar or opposite-arm collisions.
+Evaluate the actual modifier stack, including blended elbow and wrist ends;
+skinning an averaged smooth surface is not equivalent to smoothing after skinning.
+
+**Verify.** The preserved double-bed studies and bone diagnostic in
+`docs/plans/2026-10-01-double-bed-pilot.md` identify the rejected configurations,
+exact failed channels and unchanged sources. No pose or joint compositing
+acceptance follows from these screening results.
+
+## [L-trial-evidence-before-evaluation] Retain failed measurements before validating them
+
+**What happened.** A bedside-arm probe rejected a hand outside the bedding
+projection but lost the offending raw samples. An earlier runner had the same
+problem with a missing-hit assertion. Later, the corrected evidence runner
+stopped on a Windows denial while replacing its status file; that failure
+retained its numbered raw trials and final failure record.
+
+**Root cause.** The first probes kept samples in local variables and attached
+them to the report only after the calculation returned successfully. An outer
+exception handler could not save data it never received. The later file-access
+denial has no confirmed cause; concurrent reading is a possible sharing conflict,
+not proof of a permission configuration defect or geometry failure.
+
+**Prevention.** Attach a trial and all named point coordinates before evaluation.
+Retain hit, miss and unfinished states, explicit null gaps on misses, counts,
+parameters and tracebacks. Persist raw evidence before classifying the result,
+and rethrow failures. Keep numbered raw files and hashes instead of repeatedly
+rewriting every large array. Persistence itself can fail; do not convert such
+failures into a rejected geometric family, accepted result or silent retry.
+
+**Verify.** Inject two hits and one miss, a callback exception midway through
+sampling, and an assertion after measured bounds. Each must retain the completed
+and pending evidence and still fail. A supported control must complete. The
+four controls in `output/test_bed_trial_evidence.py` pass and received independent
+review. They do not prove filesystem durability after process termination.
+
+When progress evidence has readers, give every persistence revision its own
+exclusively created path and write the terminal receipt once. Wait for the
+actual writer process to exit before reading its terminal manifest and hashes.
+An open reader cannot block replacement of an older revision if no replacement
+is attempted. This is an ownership protocol, not a retry or permission change;
+creation failures must still propagate. Partial or missing terminal evidence
+must remain incomplete. Keep sample-before-classification and terminal-failure
+revisions separately, and test publication failures as well as in-memory
+callbacks. Apply the same record-before-evaluate boundary inside side-ray and
+per-object surface helpers, not only in their caller.
+
+## [L-deformed-mesh-internal-contacts] Check within each changed mesh as well as between parts
+
+**What happened.** A static two-person bed pose passed an early source-image
+review and complete interbody separation. Its full audit then reported hundreds
+of internal sleeve contacts, while both forearms had none. A follow-up source
+comparison stopped because the retained rest and posed triangle lists differed.
+The cause and acceptable attachment classification remain unresolved.
+
+**Root cause.** Tests between named objects do not inspect a mesh folding through
+itself. A visually plausible garment and unchanged weights do not prove that its
+deformed surface is valid. Triangle numbering also cannot be assumed stable
+between evaluated poses without checking the actual topology and tessellation.
+
+**Prevention.** Inspect internal contacts in each changed blended mesh before
+accepting a pose. Keep normal shared-edge contacts distinct from unexpected
+crossings. Establish source polygon and vertex correspondence before comparing
+contacts across poses; stop on mismatched topology rather than borrowing indices.
+Use a shared invertible-transform replay to classify eligible rigid inherited
+joins, not a blanket exception for connected parts. Keep early visual acceptance
+separate from full contact acceptance.
+
+**Verify.** The static pilot retains all four internal sleeve/forearm checks,
+39 complete rigid-part replays and the failed source comparison in the output
+directories listed in `docs/plans/2026-10-01-double-bed-pilot.md`. Resolve the
+reported sleeve contacts against a verified source before proceeding to accepted
+animation or compositing work.
+
+The independent replay subsequently traced these folds to the orientation
+convention: the upper arm's prescribed world roll was nearly 180 degrees from
+the torso-inherited rest orientation. The small apparent change in joint
+direction hid a large axial twist inside the blended sleeve. Construct a limb's
+orientation relative to its parent's deformed rest frame, not an unrelated world
+normal. Carry the roll convention through the chain; fixing only the shoulder
+can transfer the twist to the elbow. Re-solve surface contact after changing roll,
+because identical joint positions do not imply identical palm or cuff surfaces.
+
+## [L-sleep-silhouette-before-certification] Review the whole sleeping posture first
+
+**What happened.** Detailed arm/contact work continued on a double-bed pose whose
+knees were drawn up conspicuously. The owner rejected the cramped posture after
+earlier independent reviews had accepted its early visual appearance.
+
+**Root cause.** Review concentrated on the recently changed arms and numerical
+fit. The inherited folded legs escaped a whole-body naturalness check. Passing
+separation and mattress bounds does not establish a plausible sleeping posture.
+
+**Prevention.** Before extensive contact certification, render the whole body
+from at least two useful facings and assess head, torso, hips, knees and feet
+together. For a relaxed back-sleeping baseline, start with mostly extended legs
+and a slight bend. Measure the complete body against the mattress. Do not force
+an implausible curl to conceal a proportion mismatch or silently resize approved
+art. Preserve rejected poses and distinguish visual rejection from physical fit.
+
+**Verify.** Retain the straight-leg and slight-bend bounds, corresponding source
+images and independent whole-body review under the double-bed pilot. Neither an
+arm-only pass nor an old interbody certificate transfers to a changed full pose.
+
+## [L-occupied-bedding-replaces-flat-duvet] Lift the existing blanket over the sleeper
+
+**What happened.** An occupied-bed draft added a shaped blanket over the Sim but
+left the existing flat green duvet underneath. Its first foot edge also left
+the shoes exposed. The owner correctly identified two blankets where one was
+intended.
+
+**Root cause.** The static bedding was treated as an immutable support layer
+rather than the unoccupied form of the duvet. The first occupied surface only
+covered the body from above and did not continue down around the foot end.
+
+**Prevention.** Establish which visible bed parts are mattress, pillow, sheet
+and duvet before authoring occupancy. Replace the flat duvet and its folded
+edge with one occupied form. Fit the body to the remaining mattress and pillows;
+hiding a supporting layer invalidates its previous contact evidence. Continue
+the cloth over the feet and sides. Do not solve the appearance by leaving a
+floating body concealed underneath.
+
+**Verify.** Retain uncovered and covered views of the same pose. Check that the
+flat duvet objects are absent from occupied rendering, the mattress remains,
+feet are covered, and the new support and blanket-clearance measurements are
+explicitly distinguished from full physical acceptance.
+
+## [L-sleep-contributions-linear-filtering] Compose visible contributions before display transfer
+
+**What happened.** A three-owner bed draft added separately display-transformed
+RGB layers and then applied the outline. It looked close but differed by up to
+32 channel levels at source resolution. A plausible beauty-colored partition
+also failed an explicit fractional-filtering counterexample.
+
+**Root cause.** The Standard sRGB display transfer is nonlinear. Applying it
+to each contribution before addition changes mixed edges. Applying an ink-over
+product after filtering also does not commute with filtering the original
+joint scene. Matching texel centers is not sufficient.
+
+**Prevention.** Convert genuine owner RGB to scene-linear space, premultiply by
+measured coverage, and bake shared ink attenuation into fills before filtering.
+The outline remains a separate visible additive contribution. Sum contributions,
+unpremultiply once and apply display transfer once. Keep independent furniture
+recoloring in its existing display-color semantics, without coloring Sims or
+ink. Preserve true pre-ink fill coverage separately for picking.
+
+**Verify.** Repeat a complete scene to measure noise, compare no-ink and ink
+controls in both color spaces, and sample fractional coordinates. The bounded
+test reduced the source discrepancy to under two levels; 8-bit game-size
+encoding had maximum display-premultiplied error four and p95 one. Seventy-two
+fractional cases had maximum 3.021 and p95 below 0.645. These are pilot results,
+not a certificate for unrendered facings or the runtime shader. Retain negative
+tests for missing ink, swapped owners and the old filtering formula.
+
+## [L-render-witness-pixel-footprint] A visible triangle point is not an interior pixel
+
+**What happened.** A body triangle centroid passed a camera ray test but landed
+on a duvet boundary in the raster image. The raw owner-coverage check correctly
+rejected it rather than accepting an ambiguous label.
+
+**Root cause.** World-point visibility does not establish that the whole pixel
+footprint belongs to the same surface. Antialiasing included the neighboring
+duvet even though the centroid's ray hit the shirt.
+
+**Prevention.** Trace the actual pixel center and surrounding footprint through
+the registered orthographic camera. Select interior surface witnesses; do not
+relax an ownership threshold to accommodate a bad probe.
+
+**Verify.** Require the unchanged raw coverage validator to pass the stronger
+geometry probes, and independently swap owner image labels to demonstrate
+rejection. A commutative RGB sum cannot detect an owner-label swap itself.
+
+## [L-render-entrypoint-collision] Check tracked names before adding an exporter
+
+**What happened.** An occupied-bed exporter initially reused the tracked
+empty-bed renderer's filename. The collision was found before commit and the
+original entrypoint was restored byte-for-byte.
+
+**Root cause.** A plausible new filename was treated as unused without checking
+tracked files and documentation references first.
+
+**Prevention.** Check the repository inventory before creating a source file.
+Keep static empty-bed and occupied-bed entrypoints distinct. Preserve the safe
+terminal-publication protocol when promoting an experimental helper; copying
+its purpose without its synchronization and rename steps is not equivalent.
+
+**Verify.** The empty-bed renderer has no diff against its original. The new
+publisher's forced fsync failure leaves no terminal receipt, and a second
+writer cannot replace an existing terminal result.
+## [L-sleep-projection-must-reach-render-buffer] Test authored visual opt-ins through the native bridge
+
+**What happened.** The compiler accepted an explicit sleeping visual, but the native projection still emitted the ordinary body code. Synthetic renderer rows could exercise the art without revealing that the played game never selected it.
+
+**Root cause.** Compiler acceptance and native visual projection used separate action mappings.
+
+**Prevention.** Trace a new authored visual through compilation, native projection and a freshly built WebAssembly bridge. Keep semantic sleeping identity independent of visual identity.
+
+**Verify.** The shipped-interaction assertion requires sleep activity 5 and visual 9 for the explicitly authored bed. Removing its projection arm fails that assertion; restoration passes. See the covered-bed runtime evidence.
+
+## [L-additive-alpha-filter-before-clamp] Preserve additive alpha through CPU filtering
+
+**What happened.** An eight-bit CPU sum clamped bed alpha before bilinear filtering, while the shader filtered each contribution before summing. Picking could disagree with the visible discard boundary.
+
+**Root cause.** Clamping and filtering do not commute. Additive reconstruction weights can sum above one even when final output alpha is bounded.
+
+**Prevention.** Retain unclamped summed alpha in a wider representation. Filter before clamping. Divide reconstructed RGB by actual summed alpha and clamp only output alpha. Keep grayscale owner masks separate from reconstruction alpha.
+
+**Verify.** The boundary test fails when CPU alpha is clamped. A controlled texture through the production shader fails when the denominator is clamped. Real-art image comparisons alone did not detect the denominator fault; retain the numeric control.
+
+## [L-shared-scene-picking-uses-draw-row] Pick against the entity row that draws a shared scene
+
+**What happened.** Shared bed owners retained separate logical rows, but only one row drew the scene. Picking used the selected logical row's layer and order, producing a different tie with nearby entities than the renderer.
+
+**Root cause.** Logical ownership was mistaken for physical draw order after multiple entities became one scene.
+
+**Prevention.** Retain each owner's semantic identity and raw coverage. Also retain the actual shared draw row and use its layer and order when comparing unrelated entities.
+
+**Verify.** The overlapping-entity test fails when it uses logical row depth instead of actual draw row depth. Restoring the mechanism passes. Check both visible owners and a remaining sleeper after the other leaves.
 ## [L-public-changelog-is-for-players] Release history must explain the player experience
 
 **What happened.** The first public changelog included PR references, development details and a visual layout the owner rejected. The owner requested mockups before further design work and approved the compact accordion with dark and light themes, dark by default.
@@ -8860,3 +9255,22 @@ the requested change still crosses it. Keep separate requested/actual assertions
 **Prevention.** Describe what a player can do or notice, preserve feature restrictions, and keep implementation and review evidence in internal documentation. Consolidate same-day changes. The generator rejects common development references and duplicate dates. These checks supplement editorial review; they cannot decide whether a sentence matters to a player. Respect an explicit mockup approval boundary before implementing a new design.
 
 **Verify.** Build the real history with no PR or commit references. Deliberately remove the copy and date guards and confirm their tests fail. Inspect the approved accordion on desktop and phone in both themes, confirm dark is the fresh default and light persists, and open both current and historical links.
+## [L-composite-atlas-bounds] Complete atlas metadata after appending physical layers
+
+**What happened.** The full atlas suite rejected covered-bed layers without padding bounds and scene bounds measured against furniture-only alias texels.
+
+**Root cause.** New physical images were appended after the existing bounds pass. A composite alias reuses one layer's texture rectangle while rendering several layers, so the historical single-image assertion no longer measured its actual silhouette.
+
+**Prevention.** Finish physical-layer metadata before packing. Retain the shared scene's combined bounds, and independently measure its support from all visible layer images. Preserve old records and Sim whole-canvas exclusions.
+
+**Verify.** The original full-suite failures name the missing physical records and mismatched scene aliases. The corrected atlas passes all 130 generator tests, including the independently pinned original sprite prefix.
+
+## [L-calibration-load-and-rate-composition] Verify timed checks without unrelated simulation load
+
+**What happened.** An atlas source-hash test exceeded its existing timeout while eleven native calibration processes ran. The unchanged test passed after those processes ended, followed by the complete web suite. Recovery calibration also reached conflicting cohort bounds when only the contact rate changed.
+
+**Root cause.** Host contention was mistaken for a potential test defect, and existing neutral drift imposed a different recovery rate at neutral and positive starting affinity.
+
+**Prevention.** Separate heavy simulations from timed browser and asset checks. Measure the complete relationship contribution before changing a timeout or choosing a coefficient. Preserve symmetric, strictly positive neutral drift and disclose changes to unattended friendship and grudge lifetimes.
+
+**Verify.** Retain the loaded failure and unloaded passing logs. Compare all predeclared cohorts after a joint coefficient change, including subsequent incidents, incomplete recoveries and layout-specific results.

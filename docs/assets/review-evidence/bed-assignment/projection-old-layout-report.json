@@ -1,0 +1,40 @@
+{
+  "scenario": "counterfactual-old-layout",
+  "wasmSha256": "f32278a031e4b91d063856d6a9b6124c0f902e1c83a3fade460ba254631a9708",
+  "days": 4,
+  "seeds": [
+    {
+      "seed": 2301,
+      "ticks": 5760,
+      "overlappingSleepTicks": 0,
+      "firstOverlap": null,
+      "sleepTicks": [
+        598,
+        660,
+        753
+      ],
+      "assignedSleepTicks": [
+        0,
+        419,
+        753
+      ],
+      "sleepBouts": [
+        5,
+        5,
+        5
+      ],
+      "exitedSleepBouts": [
+        5,
+        5,
+        4
+      ],
+      "reloadTicks": [
+        0,
+        1440,
+        2880,
+        4320,
+        5760
+      ]
+    }
+  ]
+}

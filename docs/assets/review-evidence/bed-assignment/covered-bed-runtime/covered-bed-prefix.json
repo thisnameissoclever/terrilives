@@ -1,0 +1,43 @@
+{
+  "baseline": "fd75b9c2a9a43e5b49ac6467041cc49324339da3",
+  "records": 1700,
+  "pixelsAndDimensionsSha256": "a96852795c4f5f02f483fab6f58f854a492a81491286a7fa23759c84a693f22c",
+  "metadata": {
+    "SPRITE_ANCHORS": [
+      1268,
+      "a407877ace0fd24c323c6878d88d66868690bbad20c8e8e4568d39230125a989"
+    ],
+    "SPRITE_CONTENT_TOPS": [
+      1004,
+      "639b051e34d0c69f4a855e7815af6cbd5bb6b140996292f05e802e62d9e970ff"
+    ],
+    "SPRITE_CONTENT_BOUNDS": [
+      543,
+      "4df4ebf931d3d7e0bd20ce090fcda9e865e6fee8cc28bed6472048b4c8004f02"
+    ],
+    "SPRITE_PAIRS": [
+      240,
+      "bae5d03b7e2fb459fbe6dc9f962da206799cccbf886220bd4d0dab75acce6cfc"
+    ],
+    "INTERACTION_SPRITES": [
+      16,
+      "cdb23229084fe45e97a3fe3a79285a607a4266cc033c9b4005de389258dd49cf"
+    ],
+    "SPRITE_HAND_ANCHORS": [
+      48,
+      "44a758ed55f551cfe734ec20cf03608f951a4666873d266ed6d24bc45fc85e76"
+    ],
+    "SPRITE_HAND_FOREGROUND": [
+      48,
+      "92e3ec14b47074f23dc72bc43083966b57e768915425e2c160187e38ec5b0d50"
+    ],
+    "RIGGED_SIM_CLIPS": [
+      15,
+      "7ff02faa4edb562b43981ed20a3b32ea453d9420d53cfd41e18e6c729be3e0fc"
+    ],
+    "RIGGED_SIM_VARIANTS": [
+      3,
+      "294ccca9695c1ec4b3a49095cf6de0120b3fe33b06487f7579e3e03fa731e64a"
+    ]
+  }
+}

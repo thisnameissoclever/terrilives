@@ -485,12 +485,12 @@ relationship_gain_per_talk = 0.17
 
 # How much every relationship drifts toward zero each tick - toward
 # zero, not downward: a grudge fades on the same clock a friendship
-# does. 0.00001 costs a full friendship about a third of its warmth
+# does. 0.000005 costs a full friendship about 0.18 of its warmth
 # over 36 000 unattended ticks (one long measured session), so
 # maintenance matters at the pace sessions are actually played. Must be
 # strictly positive, or a relationship is a one-way ratchet - the same
 # rule habituation_decay_per_tick carries.
-relationship_decay_per_tick = 0.00001
+relationship_decay_per_tick = 0.000005
 
 # How strongly the initiator's relationship toward the target scales a
 # social advert's BENEFIT: the multiplier is 1 + relationship * scale.
@@ -848,7 +848,7 @@ exhaustion_bonus = 2.5
 
 # Ordinary relationship development and privacy decisions.
 [relationships]
-proximity_per_hour = 0.075
+proximity_per_hour = 0.062
 shared_activity_multiplier = 10.0
 friction_per_hour = 0.0075
 incompatible_below = -0.2

@@ -755,6 +755,7 @@ footprint = { width = 2, depth = 2 }
   [[object.interaction]]
   id = "sleep_properly"
   activity = "sleeping"
+  visual = { action = "sleep", anchor = "object", facing = "toward_anchor" }
   label = "Go to bed"
   advertises = { energy = 108.0, comfort = 10.0 }
   duration_ticks = 210

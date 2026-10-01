@@ -18,6 +18,7 @@ struct Overrides {
     proximity: Option<f32>,
     friction: Option<f32>,
     mess_scale: Option<f32>,
+    decay: Option<f32>,
     television: bool,
 }
 
@@ -244,6 +245,10 @@ fn run(seed: u64, scenario: &str, without_avoidance: bool, tuning: Overrides) {
             domestic.affinity_penalty_min *= value;
             domestic.affinity_penalty_bonus *= value;
         }
+        if let Some(value) = tuning.decay {
+            assert!(value > 0.0, "relationship decay must stay positive");
+            pack.tuning.relationship_decay_per_tick = value;
+        }
         if without_avoidance {
             pack.tuning.relationships.privacy_respect_chance = 0.0;
             pack.tuning.social_boundary_avoidance_cost = 0.0;
@@ -282,11 +287,12 @@ fn run(seed: u64, scenario: &str, without_avoidance: bool, tuning: Overrides) {
     }
     let effective = sim.world().resource::<Content>().0.tuning;
     let domestic = effective.domestic.expect("domestic tuning");
-    println!("SETTINGS,{scenario},{seed},respect={},proximity={},friction={},talk={},privacy_penalty={},television={},mess_min={},mess_bonus={}",
+    println!("SETTINGS,{scenario},{seed},respect={},proximity={},friction={},talk={},privacy_penalty={},television={},mess_min={},mess_bonus={},decay={}",
         effective.relationships.privacy_respect_chance, effective.relationships.proximity_per_hour,
         effective.relationships.friction_per_hour, effective.relationship_gain_per_talk,
         effective.bathroom_privacy_penalty, scenario == "shipped" || tuning.television,
-        domestic.affinity_penalty_min, domestic.affinity_penalty_bonus);
+        domestic.affinity_penalty_min, domestic.affinity_penalty_bonus,
+        effective.relationship_decay_per_tick);
     let settle = 7 * 1440;
     for _ in 0..settle {
         sim.tick();
@@ -598,6 +604,7 @@ fn main() {
         proximity: value("--proximity="),
         friction: value("--friction="),
         mess_scale: value("--mess-scale="),
+        decay: value("--decay="),
         television: !args.iter().any(|s| s == "--social-stress"),
     };
     println!("CONFIG,{tuning:?}");

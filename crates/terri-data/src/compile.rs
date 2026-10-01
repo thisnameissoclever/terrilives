@@ -1846,7 +1846,7 @@ fn compile_visual(
             None
         ) | (
             VisualOwner::Object { .. },
-            CompiledVisualAction::Read,
+            CompiledVisualAction::Read | CompiledVisualAction::Sleep,
             CompiledVisualAnchor::Object,
             CompiledVisualFacing::TowardAnchor,
             None
@@ -9664,7 +9664,8 @@ mod tests {
                     let legal = match owner {
                         VisualOwner::Social { .. } => action == "talk" && anchor == "partner",
                         VisualOwner::Object { .. } => {
-                            matches!(action, "eat" | "read" | "watch") && anchor == "object"
+                            matches!(action, "eat" | "read" | "watch" | "sleep")
+                                && anchor == "object"
                         }
                         VisualOwner::ChainStep { .. } => action == "eat" && anchor == "station",
                     };
@@ -9824,7 +9825,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "eat" | "read" | "watch",
+                                    "eat" | "read" | "watch" | "sleep",
                                     "object",
                                     "toward_anchor",
                                     None

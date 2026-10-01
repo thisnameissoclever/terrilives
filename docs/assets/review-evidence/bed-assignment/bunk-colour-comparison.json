@@ -1,0 +1,220 @@
+{
+  "scope": "Green lower-bunk furniture samples 0 and 3; no double-bed acceptance",
+  "channel_units": "8-bit PNG values, not linear-light error",
+  "identical_state_noise_control": "not available in this receipt",
+  "receipt_sha256": "11529d40ff9a773abeaa1e1437c8218f55408e67f9b036fd8c4749b1d76ab45b",
+  "raw_proof": {
+    "path": "owner-review-pending/bunk/candidate-03/contributions-01/raw-proof.json",
+    "sha256": "9b8c3c63a91631a342f170c560389425d7542ae7b8cc361281c678246ae7461c"
+  },
+  "manifest": {
+    "path": "export/bunk-near-ladder/manifest.json",
+    "sha256": "6d8fa54cbc648d9f8d026b80eef33fcafcc916b3c6ff4e58789834e4b598f6e1"
+  },
+  "comparisons": [
+    {
+      "facing": "SE",
+      "raw": {
+        "inputs": [
+          {
+            "path": "bunk-green-SE-0-furniture.png",
+            "facing": "SE",
+            "frame": 0,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "6548558d84737c2afb2c77e6bf11a29e1432980efc3a1a82533810713124e168"
+          },
+          {
+            "path": "bunk-green-SE-3-furniture.png",
+            "facing": "SE",
+            "frame": 3,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "5c17dab7478352db89af11906d2365aef64a213d7ed1d96072a037384a90e47f"
+          }
+        ],
+        "size": [
+          1280,
+          1408
+        ],
+        "opaque_neighborhood_radius": 4,
+        "common_opaque_interior_pixels": 354671,
+        "different_rgb_pixels": 755,
+        "maximum_channel_difference": 5
+      },
+      "exported": {
+        "inputs": [
+          {
+            "path": "layers/64af91a079963e1b7b0cb83c69d98bb85574ac25a30ef63367c9d29ffc491491.png",
+            "sha256": "62e8fd88803b6ce818712bae3f0e41e13153f144c206551dd3cbb0e140f3aaf3"
+          },
+          {
+            "path": "layers/77b3e207353d4f9b42d95f200322795baa766200e0ca5a9d203f63863009cb11.png",
+            "sha256": "1dcd1dd78d283441b27622451f160235d2c40f6bde6d3aba56a0f6b876a2c26a"
+          }
+        ],
+        "size": [
+          200,
+          272
+        ],
+        "opaque_neighborhood_radius": 1,
+        "common_opaque_interior_pixels": 21344,
+        "different_rgb_pixels": 52,
+        "maximum_channel_difference": 2
+      }
+    },
+    {
+      "facing": "NW",
+      "raw": {
+        "inputs": [
+          {
+            "path": "bunk-green-NW-0-furniture.png",
+            "facing": "NW",
+            "frame": 0,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "ae8c7c893d15d665ce78ef66cd5c435423dc642f3eff52252259a7948b7c6db0"
+          },
+          {
+            "path": "bunk-green-NW-3-furniture.png",
+            "facing": "NW",
+            "frame": 3,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "e1ed974a0a681798c8be75d17600944fbb4079ea790ed93a8d59f822bed76cfa"
+          }
+        ],
+        "size": [
+          1280,
+          1408
+        ],
+        "opaque_neighborhood_radius": 4,
+        "common_opaque_interior_pixels": 348932,
+        "different_rgb_pixels": 574,
+        "maximum_channel_difference": 5
+      },
+      "exported": {
+        "inputs": [
+          {
+            "path": "layers/590ee3c0d751a179129b58c0122f44826ebacd47cf7953fa19edcaaf1ed8f63a.png",
+            "sha256": "00228dbee3d4f9607676b1d4343e3ea789d5095322e36ed6900136a7b24afc16"
+          },
+          {
+            "path": "layers/11d94e6bde40e330ef7a08eb1b83ea9f0c2dbd7516f19528fde5a11c7ca40da6.png",
+            "sha256": "f708f9b39ccce399c77403f1315dfb335a5828068afbf9b58b9d01d99c7cbf06"
+          }
+        ],
+        "size": [
+          200,
+          272
+        ],
+        "opaque_neighborhood_radius": 1,
+        "common_opaque_interior_pixels": 21105,
+        "different_rgb_pixels": 37,
+        "maximum_channel_difference": 2
+      }
+    },
+    {
+      "facing": "SW",
+      "raw": {
+        "inputs": [
+          {
+            "path": "bunk-green-SW-0-furniture.png",
+            "facing": "SW",
+            "frame": 0,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "e87033841a807467023f295557ef97fcd12fccb9aa2eb44ed79ed885f94d7e79"
+          },
+          {
+            "path": "bunk-green-SW-3-furniture.png",
+            "facing": "SW",
+            "frame": 3,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "69fe070640dc02c4563514b371404f69977b999b24885270aadc20ec70763f57"
+          }
+        ],
+        "size": [
+          1280,
+          1408
+        ],
+        "opaque_neighborhood_radius": 4,
+        "common_opaque_interior_pixels": 350496,
+        "different_rgb_pixels": 528,
+        "maximum_channel_difference": 2
+      },
+      "exported": {
+        "inputs": [
+          {
+            "path": "layers/7b2ca28453ad3839780253c0d121e0bdccf46cc21f347ed8893934aa2e782584.png",
+            "sha256": "f9911648ded8f0b78bf73039123f6a2792371ec63c954a37fe153b7b30855d26"
+          },
+          {
+            "path": "layers/ec42448cc6bdc4f953e11bf848c993d392f5473586feb47d3c6f77a06be6f952.png",
+            "sha256": "383d30e71d27a10c6b4675bd9c06bd1dda3763880cf957f26a0b351345f31a24"
+          }
+        ],
+        "size": [
+          200,
+          272
+        ],
+        "opaque_neighborhood_radius": 1,
+        "common_opaque_interior_pixels": 21114,
+        "different_rgb_pixels": 35,
+        "maximum_channel_difference": 1
+      }
+    },
+    {
+      "facing": "NE",
+      "raw": {
+        "inputs": [
+          {
+            "path": "bunk-green-NE-0-furniture.png",
+            "facing": "NE",
+            "frame": 0,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "5cfd053cb5692893058574852b5f94b4d9098a3866c6d3a30313f7cf891eecf5"
+          },
+          {
+            "path": "bunk-green-NE-3-furniture.png",
+            "facing": "NE",
+            "frame": 3,
+            "variant": "green",
+            "owner": "furniture",
+            "sha256": "bd36d9c34c9c89a04912f82eb9ce4767b0de7fb3d8a5d61556244975860222ba"
+          }
+        ],
+        "size": [
+          1280,
+          1408
+        ],
+        "opaque_neighborhood_radius": 4,
+        "common_opaque_interior_pixels": 355137,
+        "different_rgb_pixels": 103,
+        "maximum_channel_difference": 1
+      },
+      "exported": {
+        "inputs": [
+          {
+            "path": "layers/b47976d372d4585de7730a531a9ecca641da95cc3afbab1f2596530410e03242.png",
+            "sha256": "3d1c59bc6f53b01efedb20b4fbbcedb217a4c240b01b7c5f5936dfc3d597b19d"
+          },
+          {
+            "path": "layers/92d2c90e4bf982415956821eb2a0b75ef106e85b1f75eefabd577d23022cb85e.png",
+            "sha256": "c11e2b952163b5cab6971978969be068227f2cdd541672270f1f04f965edfd5b"
+          }
+        ],
+        "size": [
+          200,
+          272
+        ],
+        "opaque_neighborhood_radius": 1,
+        "common_opaque_interior_pixels": 21359,
+        "different_rgb_pixels": 4,
+        "maximum_channel_difference": 1
+      }
+    }
+  ]
+}

@@ -384,13 +384,21 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
             .any(|&(prior, target)| saved == prior && current == target)
 }
 
+/// Exact content shapes whose meal program counters already use the current recipe.
+/// Older accepted shapes still require meal migration and must not enter this route.
+pub fn content_fingerprint_has_current_recipe(pack: &ContentPack, saved: u64) -> bool {
+    let current = content_fingerprint(pack);
+    saved == current || (saved == 0x85a2_d140_0dff_9da1 && current == 0xcf78_7472_e9e8_38f5)
+}
+
 /// Exact reviewed source for the six-stage meal and appended domestic chains.
 /// A changed destination closes this bridge; an old program counter is mapped
 /// by terri-sim before its station reference is validated against new content.
 pub fn pre_meals_content(pack: &ContentPack) -> Option<ContentPack> {
-    if pre_sleep_places_fingerprint(pack) != 0x85a2_d140_0dff_9da1 {
-        return None;
-    }
+    let source_digest = match content_fingerprint(pack) {
+        0xcf78_7472_e9e8_38f5 => 0xb38e_71a1_23bb_8273,
+        _ => return None,
+    };
     let mut source = pack.clone();
     source.chains.retain(|chain| chain.id == "cook_dinner");
     let meal = source
@@ -425,9 +433,7 @@ pub fn pre_meals_content(pack: &ContentPack) -> Option<ContentPack> {
             }
         }
     }
-    (pre_sleep_places_fingerprint(&source) == 0xc2cf_2919_84ed_61f7
-        && content_fingerprint(&source) == 0xb38e_71a1_23bb_8273)
-        .then_some(source)
+    (content_fingerprint(&source) == source_digest).then_some(source)
 }
 
 /// Whether `saved` is one of the retired whole-pack fingerprints accepted by
@@ -479,7 +485,7 @@ fn hash_count(hasher: &mut terri_core::FnvHasher, count: usize) {
 // Only these exact new structural shapes inherit the reviewed public bridges.
 fn reviewed_pre_sleep_places_target(current: u64) -> u64 {
     match current {
-        0xcf787472e9e838f5 => 0x85a2_d140_0dff_9da1,
+        0xcf78_7472_e9e8_38f5 => 0x85a2_d140_0dff_9da1,
         0xb38e_71a1_23bb_8273 => 0xc2cf_2919_84ed_61f7,
         0x9ac7_e41e_24d4_c921 => 0xd396_b3f3_9e3c_6685,
         other => other,
@@ -528,6 +534,31 @@ pub fn pack() -> &'static ContentPack {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn integrated_meal_and_sleeping_digest_has_only_the_reviewed_current_recipe_bridge() {
+        assert_eq!(content_fingerprint(pack()), 0xcf78_7472_e9e8_38f5);
+        assert_eq!(pre_sleep_places_fingerprint(pack()), 0x85a2_d140_0dff_9da1);
+        assert!(content_fingerprint_has_current_recipe(
+            pack(),
+            0x85a2_d140_0dff_9da1
+        ));
+        assert!(!content_fingerprint_has_current_recipe(
+            pack(),
+            0xc2cf_2919_84ed_61f7
+        ));
+        assert!(!content_fingerprint_has_current_recipe(
+            pack(),
+            0xb38e_71a1_23bb_8273
+        ));
+        let mut changed = pack().clone();
+        let bed = changed.find("double_bed").unwrap();
+        changed.objects[bed.0 as usize].sleep_places[0].approaches[0].0 += 1;
+        assert!(!content_fingerprint_has_current_recipe(
+            &changed,
+            0x85a2_d140_0dff_9da1
+        ));
+    }
 
     #[test]
     fn sleeping_place_geometry_rotates_from_the_authored_base() {
@@ -614,7 +645,9 @@ mod tests {
     #[test]
     fn facing_digest_targets_are_pinned() {
         assert_eq!(
-            pre_sleep_places_fingerprint(&without_the_trait_library(pack().clone())),
+            pre_sleep_places_fingerprint(&without_the_trait_library(
+                pre_meals_content(pack()).unwrap()
+            )),
             0x4dab_6950_757c_1f15
         );
         let mut source = pre_rotation_pack();

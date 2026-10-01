@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createBedAssignmentSurface, type BedAssignmentState } from '../src/ui/bed-assignment.js';
+import { textWriteProbe } from './helpers/text-write-probe.js';
 
 /** Small DOM model for event wiring, keyed option retention and focus ownership. */
 class Element {
@@ -50,6 +51,29 @@ function fixture() {
 }
 
 describe('bed assignment DOM surface', () => {
+  it('preserves unchanged text and updates assignment, occupancy and status together', () => {
+    const { render, parent, select } = fixture();
+    const chosen = { ...initial, choice: { bed: 10, ordinal: 0 } };
+    render(chosen);
+    const leaves = [...parent.all('p'), ...select.all('option')];
+    const probes = leaves.map(textWriteProbe);
+    for (let refresh = 0; refresh < 20; refresh++) render(chosen);
+    expect(probes.map(probe => probe.writes)).toEqual(leaves.map(() => 0));
+
+    const applied = { ...chosen, status: 'Sleeping place assigned.',
+      places: initial.places!.map(row => row.ordinal === 0
+        ? { ...row, assignee: 7, assigneeName: 'Tim', occupant: null, occupantName: null } : row) };
+    render(applied);
+    expect(parent.all('p').map(node => node.textContent)).toEqual([
+      'Assigned: Bed at (4, 6), place 1', 'Not currently in use.', 'Sleeping place assigned.',
+    ]);
+    expect(select.all('option')[1].textContent).toBe('Bed at (4, 6), place 1 (Tim)');
+    const writes = probes.map(probe => probe.writes);
+    expect(writes.reduce((sum, count) => sum + count, 0)).toBe(4);
+    render(applied);
+    expect(probes.map(probe => probe.writes)).toEqual(writes);
+  });
+
   it('wires exact place identities and explicit Assign/Clear controls', () => {
     const { select, assign, clear, calls } = fixture();
     select.value = '10:0'; select.dispatch('change');

@@ -34,9 +34,11 @@ Visible refreshes preserve unchanged text children. Changed values, including
 text changed outside the panel, are corrected on the next refresh. Evidence:
 `docs/assets/review-evidence/personal-details-text/README.md`.
 
-This does not add controls, personality identity, saved state, commands or
-new simulation behavior. Future sensitivities, skills and editing remain
-their own roadmap work. Traits and People retain their existing panels.
+The original read-only slice adds no controls, personality identity, saved
+state, commands or simulation behavior. The held bed-assignment extension
+adds the controls described in its own spec. Future sensitivities, skills and
+editing remain their own roadmap work. Traits and People retain their
+existing panels.
 
 Shyness appears inside the personality disclosure, alongside the need factors
 and sleep rhythm. It uses the existing 1-100 value. Periodic refresh runs only
@@ -73,6 +75,11 @@ offset, finite nonnegative factors and repetition within 0..1. It uses stable
 numeric factors.
 
 ## Verification
+
+Personal details and the bed-assignment controls retain unchanged text nodes
+across visible refreshes. Changed factors, sleep timing, repetition, assignment,
+occupancy and status still update in the same refresh. Surface regression tests
+cover both behaviors; these controls alone are not a whole-game memory result.
 
 Local evidence is retained in `.tmp/sim-details/` for this worktree.
 
