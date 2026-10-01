@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { runInNewContext } from 'node:vm';
+import { describe, expect, it, vi } from 'vitest';
 import { OptionsMenu, attachOptionsMenu } from '../src/ui/options-menu.js';
+import { restorePersistenceFocus } from '../src/ui/persistence-controller.js';
 
 const INDEX_HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const MAIN_TS = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
@@ -241,9 +243,68 @@ describe('the Options flyout wired into main.ts', () => {
   });
 
   it('returns focus to the gear, which leads the fallbacks, after Load, New game and Help', () => {
-    expect(MAIN_TS.split(/restorePersistenceFocus\(\s*document,\s*\w+,\s*optionsToggle,/)).toHaveLength(3);
+    for (const opening of [
+      "confirmLoadGame.addEventListener('click', (event) => {",
+      "confirmNewGame.addEventListener('click', (event) => {",
+    ]) {
+      expect(handler(opening)).toMatch(/restorePersistenceFocus\(\s*document,\s*\w+,\s*optionsToggle,/);
+    }
     expect(MAIN_TS).toMatch(/const persistenceFocusFallbacks = \[\s*optionsToggle,/);
     expect(handler("helpButton.addEventListener('click', () => {")).toContain('helpReturnTarget = optionsToggle;');
+  });
+
+  describe.each([
+    ['loadGameDialog', 'loadingGame', 'load-game'],
+    ['newGameDialog', 'clearingForNewGame', 'new-game'],
+  ])('%s cancellation', (dialogName, busyName, owner) => {
+    function close(busy = false, deliberateFocus = false) {
+      const body = {};
+      const elsewhere = {};
+      const source = { body, activeElement: deliberateFocus ? elsewhere : body };
+      const toggle = { disabled: false, focus: vi.fn() };
+      const resume = vi.fn();
+      let listener: (() => void) | undefined;
+      const dialog = {
+        open: false,
+        contains: () => false,
+        addEventListener: (type: string, callback: () => void) => {
+          expect(type).toBe('close');
+          listener = callback;
+        },
+      };
+      // Execute the real bootstrap listener, including its busy-operation guard.
+      // Native Escape and method=dialog cancellation both dispatch this close.
+      runInNewContext(`${handler(`${dialogName}.addEventListener('close', () => {`)}\n  });`, {
+        [dialogName]: dialog,
+        [busyName]: busy,
+        document: source,
+        optionsToggle: toggle,
+        persistenceFocusFallbacks: [],
+        restorePersistenceFocus,
+        overlayPause: { resume },
+      });
+      expect(listener).toBeTypeOf('function');
+      listener!();
+      return { toggle, resume };
+    }
+
+    it('returns stranded focus to visible Options and releases its pause', () => {
+      const { toggle, resume } = close();
+      expect(toggle.focus).toHaveBeenCalledTimes(1);
+      expect(resume).toHaveBeenCalledExactlyOnceWith(owner);
+    });
+
+    it('leaves a confirmed operation in charge of focus and its pause', () => {
+      const { toggle, resume } = close(true);
+      expect(toggle.focus).not.toHaveBeenCalled();
+      expect(resume).not.toHaveBeenCalled();
+    });
+
+    it('preserves deliberate focus elsewhere after cancellation', () => {
+      const { toggle, resume } = close(false, true);
+      expect(toggle.focus).not.toHaveBeenCalled();
+      expect(resume).toHaveBeenCalledExactlyOnceWith(owner);
+    });
   });
 
   it('wires the shared compact HUD with a queue capacity refresh', () => {

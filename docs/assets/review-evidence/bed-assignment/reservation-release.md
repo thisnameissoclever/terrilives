@@ -166,3 +166,18 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 | eager-career-release | `9e179b97f808f7f49f8bb84e071435b6b231fb54d3b195d2659c5ceb098d19fd` |
 | eager-chain-completion-release | `eb008676e02ae27b0ddbc5b26c19263eeb3c5ebb2bad716c55ec51ce2bfc2a1b` |
 | eager-death-release, eager-invalid-owner-release | `f5199c75c7689ca64be21106f64c14fa11314dbb0135d8814d9e6e4f7eb1eb22` |
+## Public delivery
+
+PR #172 merged as `1d97455d03a4f68c6b7e135c3197631113481406`.
+Main CI run `36827137307` passed. Pages run `36827826225` published that
+tested revision: the actual `actions/deploy-pages@v4` step succeeded and the
+deployment log names the same SHA. The preceding door-only Pages run skipped
+publication because this game revision had superseded it.
+
+The canonical public HTML, JavaScript (`index-dnCzJQ4S.js`), CSS
+(`index-BWCAliOW.css`) and WASM (`terri_wasm_bg-C4NJvQyV.wasm`) matched
+official Pages artifact `11145698720` byte-for-byte. Both door WAVs also
+matched the artifact and approved hashes. In a displayed public browser, the
+existing saved household loaded and the clock advanced. No browser warnings
+or errors were reported. The task-owned page was closed in a `finally` block.
+This verifies publication and boot; it makes no new audio-listening claim.

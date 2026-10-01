@@ -8060,3 +8060,25 @@ parent ownership. Replacing ordered insertion with append-only-when-unparented
 fails the named row-reuse and ordering assertion. Production bytes were
 restored exactly, then the full web suite passed. Browser scrolling and Sim
 switching provide separate evidence for the actual DOM.
+
+## [L-dialog-focus-visible-return] A hidden opener cannot receive modal focus
+
+**What happened.** Escape or Keep playing in Load and New game closed the
+dialog but left keyboard focus on the document body. Returning to Traits
+after selecting the maximum traits could likewise target a disabled checkbox.
+
+**Root cause.** Options hid the original modal openers. Only confirmed storage
+operations had an explicit visible focus return; cancellation relied on the
+browser. The Traits page assumed its first checkbox remained enabled.
+
+**Prevention.** Test cancellation separately from confirmation and choose a
+visible, enabled return target after a disclosure or page change. A confirmed
+operation retains its pause and focus ownership until it settles. Preserve
+focus that the player deliberately moves elsewhere.
+
+**Verify.** Execute the actual Load and New game close listeners, checking
+cancelled and pending operations independently. Fill Traits without selecting
+its first row, go Back, then Next. Removing either focus return or either
+operation guard, and restoring unconditional first-row focus, each caused a
+named assertion failure. All five faults were restored byte-for-byte before
+the full web suite passed.

@@ -445,7 +445,9 @@ export class HousemateFormView {
     // A page change moves focus onto the new page, so a keyboard player is
     // never left on a control that has just been hidden.
     if (this.shownPage !== null && this.shownPage !== form.page) {
-      (onTraits ? this.traitBoxes[0] ?? this.confirm : this.nameInput).focus();
+      const traitTarget = this.traitBoxes.find((box) => !box.disabled)
+        ?? (this.confirm.disabled ? this.backButton : this.confirm);
+      (onTraits ? traitTarget : this.nameInput).focus();
     } else if (this.wasPending && !form.pending && onTraits) {
       // Move in had focus and went off while it waited; a refusal leaves the
       // player on the page with focus back where they pressed, or on Back
