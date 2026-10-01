@@ -1,0 +1,163 @@
+{
+  "pass": true,
+  "validation": null,
+  "errors": [],
+  "atlas": "atlas-92e78dcf52e54b897cae02bcae7fd60d2aee3c87f428fe1bc7f486ef9ef05eba.png",
+  "records": [
+    {
+      "label": "SE: isolated",
+      "isolated": true,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "SE: midnight room",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "SW: isolated",
+      "isolated": true,
+      "facing": 1,
+      "sprite": 1364,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "SW: midnight room",
+      "isolated": false,
+      "facing": 1,
+      "sprite": 1364,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "NW: isolated",
+      "isolated": true,
+      "facing": 2,
+      "sprite": 1363,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "NW: midnight room",
+      "isolated": false,
+      "facing": 2,
+      "sprite": 1363,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "NE: isolated",
+      "isolated": true,
+      "facing": 3,
+      "sprite": 1365,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "NE: midnight room",
+      "isolated": false,
+      "facing": 3,
+      "sprite": 1365,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "As drawn",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "Colour 2",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 1,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "Colour 3",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 2,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "Muted",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 3,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "Rich",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 4,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    },
+    {
+      "label": "Build preview",
+      "isolated": false,
+      "facing": 0,
+      "sprite": 1362,
+      "colourway": 0,
+      "entity": 6,
+      "sourceEmissive": 0,
+      "renderedLight": 0,
+      "tileLight": 0
+    }
+  ],
+  "interactionLabels": []
+}

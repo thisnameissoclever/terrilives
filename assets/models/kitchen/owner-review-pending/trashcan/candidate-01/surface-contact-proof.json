@@ -1,0 +1,80 @@
+{
+  "state": "passed",
+  "closed_connected_parts": 5,
+  "grounded": [
+    "Base"
+  ],
+  "contacts": {
+    "Body / Base": {
+      "crossing_faces": 64,
+      "contained_point": null
+    },
+    "Lid / Body": {
+      "crossing_faces": 64,
+      "contained_point": null
+    },
+    "Rear hinge / Body": {
+      "crossing_faces": 35,
+      "contained_point": null
+    },
+    "Rear hinge / Lid": {
+      "crossing_faces": 39,
+      "contained_point": null
+    },
+    "Pedal / Base": {
+      "crossing_faces": 40,
+      "contained_point": null
+    }
+  },
+  "maximum_height": 0.64,
+  "proof_boundary": "Closed exterior only; no opening or internal mechanism is claimed.",
+  "caught_mutations": [
+    {
+      "mutation": "missing pedal",
+      "rejection": "Part inventory changed"
+    },
+    {
+      "mutation": "floating base",
+      "rejection": "Base lost ground contact"
+    },
+    {
+      "mutation": "floating body",
+      "rejection": "Body detached from Base"
+    },
+    {
+      "mutation": "floating lid",
+      "rejection": "Lid detached from Body"
+    },
+    {
+      "mutation": "detached hinge",
+      "rejection": "Rear hinge detached from Body"
+    },
+    {
+      "mutation": "detached pedal",
+      "rejection": "Pedal detached from Base"
+    },
+    {
+      "mutation": "oversized body",
+      "rejection": "Body dimensions changed"
+    },
+    {
+      "mutation": "shifted root",
+      "rejection": "Root moved"
+    }
+  ],
+  "caught_guard_deletions": [
+    {
+      "deleted_guard": "Base lost ground contact",
+      "rejection": "floating base failed for wrong reason: Base dimensions changed"
+    },
+    {
+      "deleted_guard": "first} detached from",
+      "rejection": "floating body failed for wrong reason: Body dimensions changed"
+    },
+    {
+      "deleted_guard": "Root moved",
+      "rejection": "shifted root failed for wrong reason: Base dimensions changed"
+    }
+  ],
+  "model_sha256": "8bf0a7b7722947acd90ae84472214b9a6b65e449833af3b9b270337af6ef8150"
+}
