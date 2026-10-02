@@ -227,25 +227,45 @@ mod tests {
         use terri_core::windows::{WindowModel, WindowPlacement};
         for axis in [EdgeAxis::Vertical, EdgeAxis::Horizontal] {
             let mut sim = Sim::new_with_lot(6, 6);
-            let line = |at| WallLine { axis, x: if axis == EdgeAxis::Vertical { 3 } else { at },
-                y: if axis == EdgeAxis::Horizontal { 3 } else { at } };
-            let edges = (0..6).filter(|at| !(1..4).contains(at)).map(|at| {
-                let line = line(at); WallEdge { axis, x: line.x, y: line.y, doorway: false }
-            }).collect();
-            let layout = SavedLayout::EdgeWallsV3 { edges,
-                windows: vec![WindowPlacement { line: line(1), model: WindowModel::Picture }] };
+            let line = |at| WallLine {
+                axis,
+                x: if axis == EdgeAxis::Vertical { 3 } else { at },
+                y: if axis == EdgeAxis::Horizontal { 3 } else { at },
+            };
+            let edges = (0..6)
+                .filter(|at| !(1..4).contains(at))
+                .map(|at| {
+                    let line = line(at);
+                    WallEdge {
+                        axis,
+                        x: line.x,
+                        y: line.y,
+                        doorway: false,
+                    }
+                })
+                .collect();
+            let layout = SavedLayout::EdgeWallsV3 {
+                edges,
+                windows: vec![WindowPlacement {
+                    line: line(1),
+                    model: WindowModel::Picture,
+                }],
+            };
             sim.world_mut().insert_resource(layout.clone());
             let rooms = RoomRegions::from_world(sim.world());
             for at in 1..4 {
-                let (before, after) = if axis == EdgeAxis::Vertical { ((2, at), (3, at)) }
-                    else { ((at, 2), (at, 3)) };
+                let (before, after) = if axis == EdgeAxis::Vertical {
+                    ((2, at), (3, at))
+                } else {
+                    ((at, 2), (at, 3))
+                };
                 assert_ne!(rooms.at(before), rooms.at(after));
             }
             assert_eq!(sim.world().resource::<SavedLayout>(), &layout);
-            sim.world_mut().insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
+            sim.world_mut()
+                .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });
             let open = RoomRegions::from_world(sim.world());
             assert_eq!(open.at((2, 2)), open.at((3, 3)));
         }
     }
-
 }

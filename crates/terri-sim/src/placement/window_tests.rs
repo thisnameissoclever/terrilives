@@ -633,13 +633,28 @@ fn window_unrelated_floor_and_room_edits_keep_legacy_and_typed_storage() {
 #[test]
 fn released_bed_assignment_and_window_queues_have_distinct_hashes() {
     let mut sim = house();
-    sim.world_mut().resource_mut::<CommandQueue>().push(SimCommand::SetBedAssignment {
-        agent: 1, place: Some((5, 1)),
-    });
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::SetBedAssignment {
+            agent: 1,
+            place: Some((5, 1)),
+        });
     let bed = sim.world_hash();
-    sim.world_mut().resource_mut::<CommandQueue>().drain().for_each(drop);
-    sim.world_mut().resource_mut::<CommandQueue>().push(SimCommand::FitWindow {
-        axis: EdgeAxis::Horizontal, x: 1, y: 5, model: WindowModel::Sash,
-    });
-    assert_ne!(bed, sim.world_hash(), "released bed and appended window tags must not collide");
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .drain()
+        .for_each(drop);
+    sim.world_mut()
+        .resource_mut::<CommandQueue>()
+        .push(SimCommand::FitWindow {
+            axis: EdgeAxis::Horizontal,
+            x: 1,
+            y: 5,
+            model: WindowModel::Sash,
+        });
+    assert_ne!(
+        bed,
+        sim.world_hash(),
+        "released bed and appended window tags must not collide"
+    );
 }

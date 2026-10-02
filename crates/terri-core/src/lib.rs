@@ -46,5 +46,5 @@ pub use save::{
 };
 
 pub use save_before_voice::SaveSnapshotV1BeforeVoice;
-pub use windows::{WindowModel, WindowPlacement};
 pub use shyness::Shyness;
+pub use windows::{WindowModel, WindowPlacement};
