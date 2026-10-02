@@ -9970,3 +9970,13 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Published tags take precedence; append held tags afterward in serialization and hashing. Reserve distinct CPU/GPU drawing modes and bindings. Scan every legacy window reader after integrating main, expand canonical owners at every physical-boundary consumer, and preserve axis-specific ownership. Notify cached context controls from every active controller.
 
 **Verify.** Assert released bed bytes and appended window bytes, distinguish adversarially matching queued hash fields, partition wide windows on both axes, suppress only the matching hinged frame, and refresh contextual fit/remove capabilities through real command drains. Regenerate logical architecture IDs after the complete incoming atlas while checking the frozen original pixel digest.
+
+## [L-shared-shader-interstage-locations] Check varying locations after renderer integration, 2026-10-02
+
+**What happened.** Actual GPU pipeline creation rejected the combined shader because architecture registration and ground origin reused covered-bed and dining output locations 8 and 9. Local TypeScript, unit, native and asset checks had passed; no GPU case had run successfully.
+
+**Root cause.** Both renderer branches extended the shared vertex/fragment output struct independently. Resolving instance modes and resource bindings did not resolve the separate interstage location namespace.
+
+**Prevention.** Preserve published bed/dining locations 8 through 10 and place architecture registration/ground origin at 11 and 12. Check every output field for uniqueness and portable location/component budgets after combining renderer branches. Actual pipeline compilation remains necessary.
+
+**Verify.** The shared-output regression checks all thirteen fields, verifies unique locations and budgets, and rejects both original duplicate-location faults. Run the actual combined GPU pipeline before accepting any rendering case; a compilation failure means zero accepted GPU cases.

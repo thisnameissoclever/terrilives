@@ -154,8 +154,8 @@ struct VertexOut {
   @location(5) localPixel: vec2<f32>,
   @location(6) @interpolate(flat) wall: vec4<f32>,
   @location(7) @interpolate(flat) colourway: vec4<f32>,
-  @location(8) @interpolate(flat) registration: vec4f,
-  @location(9) @interpolate(flat) groundOrigin: vec2f,
+  @location(11) @interpolate(flat) registration: vec4f,
+  @location(12) @interpolate(flat) groundOrigin: vec2f,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The

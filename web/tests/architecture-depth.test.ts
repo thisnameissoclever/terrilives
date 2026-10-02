@@ -71,3 +71,35 @@ describe('opt-in architecture depth',()=>{
       expect(witness.sum).toBeCloseTo(witness.game_point[0]+witness.game_point[1],5);
   });
 });
+
+
+describe('combined shader interstage contract', () => {
+  const shader = readFileSync(new URL('../src/render/sprites.wgsl', import.meta.url), 'utf8');
+  function fields(source: string): { name: string; location: number; components: number }[] {
+    const body = source.match(/struct VertexOut\s*\{([\s\S]*?)\};/)?.[1];
+    if (!body) throw new Error('Missing shared vertex/fragment output');
+    return [...body.matchAll(/@location\((\d+)\)(?:\s+@interpolate\([^)]*\))?\s+(\w+):\s+(vec([234])(?:<[\w]+>|[fiu])|u32|f32)/g)]
+      .map(match => ({ location: Number(match[1]), name: match[2], components: Number(match[4] ?? 1) }));
+  }
+  function check(source: string): void {
+    const output = fields(source);
+    expect(output).toHaveLength(13);
+    expect(new Set(output.map(field => field.location)).size).toBe(output.length);
+    // The portable pipeline has sixteen interstage locations and sixty scalar components.
+    expect(output.every(field => field.location >= 0 && field.location < 16)).toBe(true);
+    expect(output.reduce((sum, field) => sum + field.components, 0)).toBeLessThanOrEqual(60);
+  }
+  it('assigns distinct locations to architecture, covered beds and dining support', () => {
+    check(shader);
+    const byName = Object.fromEntries(fields(shader).map(field => [field.name, field.location]));
+    expect([byName.bed, byName.supportUv, byName.supportMask, byName.registration, byName.groundOrigin])
+      .toEqual([8, 9, 10, 11, 12]);
+    expect(shader).toMatch(/fn vs\([\s\S]*?\) -> VertexOut/);
+    expect(shader).toContain('fn fs(in: VertexOut)');
+  });
+  it.each([['registration', 8], ['groundOrigin', 9]] as const)('rejects duplicated location for %s', (name, location) => {
+    const collision = shader.replace(new RegExp(`@location\\(\\d+\\)(?= @interpolate\\(flat\\) ${name}:)`), `@location(${location})`);
+    expect(collision).not.toBe(shader);
+    expect(() => check(collision)).toThrow();
+  });
+});
