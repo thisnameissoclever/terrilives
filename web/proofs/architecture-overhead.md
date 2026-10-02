@@ -66,3 +66,22 @@ node --test web/proofs/architecture-benchmark-metrics.test.mjs
 `configure({scale: 1, appearance: 'shipped-content', component: 'floors'})` keeps each producer's `floorCount` opaque prefix and omits short walls. `component: 'walls'` removes that prefix and retains the remaining opaque rows plus short walls. The default `component: 'all'` preserves the complete workload.
 
 All three arms keep the same canvas, camera and twelve dynamic furniture/Sim rows in every component profile. The full authored-floor identity assertion runs before selection, including for the walls profile. Configuration and every round retain original and selected counts/hashes in `geometrySelection`. Historical-arm pixel equality and positive framebuffer controls still apply. These are controlled component workloads, not a changed game or a claim that component timings add linearly to the full scene.
+
+## Opaque batching intervention
+
+For the complete scene, `configure({scale: 1, appearance: 'shipped-content', component: 'all', batching: 'split-floors'})` replaces only `candidateFinal`'s first opaque draw with two adjacent ranges at the geometry producer's floor prefix. The default `batching: 'combined'` keeps the original single opaque draw. The twelve dynamic rows stay after the static rows in the second range. Pipeline, bindings, pass, submission and short-wall draw remain unchanged. Both historical arms retain their original draws.
+
+Every complete-scene configuration captures both modes and requires identical framebuffer hashes, unchanged input hashes, and exactly two combined versus three split draw calls. Its `batching` evidence is repeated in each round. Each measured block also checks draw count and one submission per frame. The draw plan is prepared during configuration; the measured hook does not rebuild it.
+
+Use the same benchmark instance for six alternating blocks, persisting each configuration and round separately:
+
+| Block | `batching` | `runRound` round |
+| --- | --- | --- |
+| 0 | `combined` | 0 |
+| 1 | `split-floors` | 0 |
+| 2 | `combined` | 1 |
+| 3 | `split-floors` | 1 |
+| 4 | `combined` | 2 |
+| 5 | `split-floors` | 2 |
+
+Call `configure` with the indicated batching mode before each block, then `runRound({round, warmup: 60, frames: 120})`. Repeating each arm-order index gives both batching modes all three arm positions. The modes alternate, although combined precedes split within each pair; retain block order when assessing drift. This intervention tests a draw boundary without changing content. It does not establish a particular shader or driver mechanism.

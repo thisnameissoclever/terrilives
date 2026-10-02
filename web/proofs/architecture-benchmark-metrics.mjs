@@ -61,3 +61,12 @@ export function timestampDurations(timestamps) {
     observedDurationDivisorNs: quantum ? quantum.toString() : null,
     resolutionNote: 'Durations are timestamp differences in nanoseconds, converted to milliseconds. The observed common divisor is descriptive, not proof of timer precision. Zero durations are retained; an all-zero block cannot establish cost.' };
 }
+
+/** Split one opaque range into adjacent draws without changing instance order. */
+export function opaqueBatchPlan(total, floorCount) {
+  if (!Number.isInteger(total) || !Number.isInteger(floorCount) || floorCount <= 0 || floorCount >= total) {
+    throw new Error('Opaque split requires a nonempty floor prefix and remaining rows');
+  }
+  return [{ instanceCount: floorCount, firstInstance: 0 },
+    { instanceCount: total - floorCount, firstInstance: floorCount }];
+}

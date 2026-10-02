@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { benchmarkOrder, distribution, timestampDurations, selectGeometryComponent } from './architecture-benchmark-metrics.mjs';
+import { benchmarkOrder, distribution, timestampDurations, selectGeometryComponent, opaqueBatchPlan } from './architecture-benchmark-metrics.mjs';
 
 test('six rounds balance arm positions and ordered adjacency', () => {
   const positions = new Map(), adjacency = new Map();
@@ -59,4 +59,14 @@ test('component selection rejects an unknown mode or invalid floor prefix', () =
   assert.throws(() => selectGeometryComponent(source, 'objects'));
   assert.throws(() => selectGeometryComponent({ ...source, floorCount: 3 }, 'floors'));
   assert.throws(() => selectGeometryComponent({ ...source, instances: new Float32Array(16) }, 'all'));
+});
+
+test('opaque split covers each original instance exactly once in its original order', () => {
+  const plan = opaqueBatchPlan(1268, 1156);
+  assert.deepEqual(plan, [{ instanceCount: 1156, firstInstance: 0 }, { instanceCount: 112, firstInstance: 1156 }]);
+  const instances = plan.flatMap(batch => Array.from({ length: batch.instanceCount }, (_, i) => batch.firstInstance + i));
+  assert.deepEqual(instances, Array.from({ length: 1268 }, (_, i) => i));
+  for (const [total, prefix] of [[0, 0], [12, 0], [12, 12], [12, 13], [12, 1.5]]) {
+    assert.throws(() => opaqueBatchPlan(total, prefix));
+  }
 });

@@ -11,7 +11,7 @@ import { ARCHITECTURE } from '../src/render/architecture-data.ts';
 import { writeInstance } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/instances.ts';
 import { layeredDepth, LAYER_PROP } from './.architecture-baseline/22ffd8b6e5f9d03191f521f908a20e1bfc02c70a/iso.ts';
 import { acquireWithTimeout } from './owned-timeout.ts';
-import { benchmarkOrder, distribution, timestampDurations, selectGeometryComponent } from './architecture-benchmark-metrics.mjs';
+import { benchmarkOrder, distribution, timestampDurations, selectGeometryComponent, opaqueBatchPlan } from './architecture-benchmark-metrics.mjs';
 import metricsSource from './architecture-benchmark-metrics.mjs?raw';
 import proofSource from './architecture-overhead.js?raw';
 import appearanceProfiles from './fixtures/architecture/appearance-profiles.json';
@@ -74,7 +74,7 @@ export async function createArchitectureBenchmark() {
   canvas.width = 1280; canvas.height = 900; document.body.append(canvas);
   let gpu, atlas, baseline, candidate, readback, querySet, queryResolve, queryReadback;
   let active = null, configured, busy = false, disposed = false, finished = false;
-  let timingIndex = -1, timestampPasses = 0;
+  let timingIndex = -1, timestampPasses = 0, activeArm = null, passDrawIndex = 0;
   const restore = [], errors = [], resources = { baseline: [], candidate: [] };
   const counts = () => ({ drawCalls: 0, submits: 0, bufferUploads: 0, bufferUploadBytes: 0,
     textureUploads: 0, gpuBufferAllocations: 0, gpuTextureAllocations: 0 });
@@ -116,7 +116,20 @@ export async function createArchitectureBenchmark() {
       hook(gpu.device.queue, name, original => function(...args) { observed.textureUploads++; return original.apply(this, args); });
     }
     hook(gpu.device.queue, 'submit', original => function(...args) { observed.submits++; return original.apply(this, args); });
-    hook(GPURenderPassEncoder.prototype, 'draw', original => function(...args) { observed.drawCalls++; return original.apply(this, args); });
+    hook(GPURenderPassEncoder.prototype, 'draw', original => function(vertices, instances, firstVertex = 0, firstInstance = 0) {
+      const opaque = passDrawIndex++ === 0;
+      if (activeArm === 'candidateFinal' && opaque && configured?.batching === 'split-floors') {
+        const plan = configured.opaqueBatches;
+        assert(vertices === 6 && instances === configured.opaqueTotal && firstVertex === 0 && firstInstance === 0,
+          'Split intervention must replace only the complete original opaque draw');
+        for (const batch of plan) {
+          observed.drawCalls++;
+          original.call(this, vertices, batch.instanceCount, firstVertex, batch.firstInstance);
+        }
+        return;
+      }
+      observed.drawCalls++; return original.call(this, vertices, instances, firstVertex, firstInstance);
+    });
 
     querySet = gpu.device.createQuerySet({ type: 'timestamp', count: MAX_FRAMES * 2 });
     const queryBytes = MAX_FRAMES * 2 * 8;
@@ -125,6 +138,7 @@ export async function createArchitectureBenchmark() {
     const timestampWrites = Array.from({ length: MAX_FRAMES }, (_, index) => ({ querySet,
       beginningOfPassWriteIndex: index * 2, endOfPassWriteIndex: index * 2 + 1 }));
     hook(GPUCommandEncoder.prototype, 'beginRenderPass', original => function(descriptor) {
+      passDrawIndex = 0;
       if (timingIndex >= 0) {
         assert(timestampPasses === 0, 'Expected one render pass per measured draw');
         assert(descriptor.timestampWrites === undefined, 'Renderer already owns timestamp writes');
@@ -169,7 +183,7 @@ export async function createArchitectureBenchmark() {
       schedule: Array.from({ length: 6 }, (_, round) => benchmarkOrder(round)) };
     const arms = {};
     const activate = name => {
-      const arm = arms[name]; active = arm.resource;
+      const arm = arms[name]; active = arm.resource; activeArm = name;
       arm.renderer.setStaticGeometry(arm.geometry.instances, arm.geometry.count, arm.geometry.lowInstances);
       return arm.renderer;
     };
@@ -194,8 +208,10 @@ export async function createArchitectureBenchmark() {
     };
     const inputHashes = async geometry => ({ opaque: await hash(geometry.instances), low: await hash(geometry.lowInstances) });
     return { metadata,
-      async configure({ scale = 1, cutaway = true, appearance = 'shipped-content', component = 'all' } = {}) {
-        ready(); assert([1, 1.75].includes(scale), 'Use scale 1 or 1.75 for the final stress lot'); busy = true;
+      async configure({ scale = 1, cutaway = true, appearance = 'shipped-content', component = 'all', batching = 'combined' } = {}) {
+        ready(); assert(['combined', 'split-floors'].includes(batching), 'Unknown opaque batching mode');
+        assert(batching !== 'split-floors' || component === 'all', 'Split-floor intervention requires the complete scene');
+        assert([1, 1.75].includes(scale), 'Use scale 1 or 1.75 for the final stress lot'); busy = true;
         try {
           const data = makeLot(true, cutaway, appearance);
           canvas.width = Math.ceil((data.size * 64 + 160) * scale); canvas.height = Math.ceil((data.size * 42 + 220) * scale);
@@ -240,7 +256,9 @@ export async function createArchitectureBenchmark() {
           arms.baselineHistorical = { renderer: baseline, resource: 'baseline', geometry: selectedPrevious };
           arms.candidateHistorical = { renderer: candidate, resource: 'candidate', geometry: selectedPrevious };
           arms.candidateFinal = { renderer: candidate, resource: 'candidate', geometry: selectedNext };
-          configured = { scene: 'final-stress-34x34', scale, cutaway, props, appearance: appearanceEvidence, geometrySelection };
+          configured = { scene: 'final-stress-34x34', scale, cutaway, props, appearance: appearanceEvidence, geometrySelection,
+            batching, opaqueTotal: selectedNext.count + 12,
+            opaqueBatches: component === 'all' ? opaqueBatchPlan(selectedNext.count + 12, selectedNext.floorCount) : null };
           const pixels = {}, inputs = {}, rowCounts = {};
           for (const name of benchmarkOrder(0)) {
             pixels[name] = await capture(name); inputs[name] = await inputHashes(arms[name].geometry);
@@ -249,9 +267,31 @@ export async function createArchitectureBenchmark() {
           assert(pixels.baselineHistorical.sha256 === pixels.candidateHistorical.sha256, 'Identical historical input pixels differ');
           assert(inputs.baselineHistorical.opaque === inputs.candidateHistorical.opaque && inputs.baselineHistorical.low === inputs.candidateHistorical.low,
             'Historical arms must share identical geometry bytes');
+          let batchingEvidence = { mode: batching, interventionArm: 'candidateFinal', pixelEqualityChecked: false };
+          if (component === 'all') {
+            const modePixels = {}, modeDrawCalls = {};
+            for (const mode of ['combined', 'split-floors']) {
+              configured.batching = mode; observed = counts();
+              modePixels[mode] = await capture('candidateFinal'); modeDrawCalls[mode] = observed.drawCalls;
+            }
+            configured.batching = batching;
+            const after = await inputHashes(selectedNext);
+            assert(after.opaque === inputs.candidateFinal.opaque && after.low === inputs.candidateFinal.low,
+              'Batch intervention changed authored geometry bytes');
+            assert(modePixels.combined.sha256 === modePixels['split-floors'].sha256,
+              'Combined and split-floor batching must have exactly identical framebuffer pixels');
+            assert(modeDrawCalls.combined === 2 && modeDrawCalls['split-floors'] === 3,
+              'Complete-scene batching control requires exactly two combined or three split draw calls');
+            batchingEvidence = { ...batchingEvidence, pixelEqualityChecked: true, pixels: modePixels,
+              drawCalls: modeDrawCalls, unchangedInputs: true, inputHashes: after,
+              opaqueTotal: configured.opaqueTotal, floorPrefix: selectedNext.floorCount,
+              splitOpaqueDraws: configured.opaqueBatches,
+              unchanged: 'Pipeline, bindings, render pass, submission, row bytes and order, low-wall draw, and both historical arms.' };
+          }
+          configured.batchingEvidence = batchingEvidence;
           geometrySelection.selectedCounts = rowCounts; geometrySelection.selectedHashes = inputs;
           configured.inputs = inputs; configured.propsHash = await hash(props);
-          return { scene: configured.scene, scale, cutaway, appearance: appearanceEvidence, geometrySelection, canvas: { width: canvas.width, height: canvas.height },
+          return { scene: configured.scene, scale, cutaway, appearance: appearanceEvidence, geometrySelection, batching: batchingEvidence, canvas: { width: canvas.width, height: canvas.height },
             depthAttachmentBytesLowerBound: canvas.width * canvas.height * 3, windows: data.architecture.windows.length,
             interiorFloorTiles: data.size * data.size, pixels, historicalPixelsEqual: true, inputHashes: inputs,
             dynamicSHA256: configured.propsHash, rowCounts };
@@ -261,7 +301,7 @@ export async function createArchitectureBenchmark() {
         ready(); assert(configured, 'Configure the final scene before measuring');
         assert(Number.isInteger(frames) && frames >= 30 && frames <= MAX_FRAMES
           && Number.isInteger(warmup) && warmup >= 1 && warmup <= MAX_FRAMES, 'Use 30-120 samples and 1-120 warmup frames');
-        const order = benchmarkOrder(round), result = { round, order, frames, warmup, appearance: configured.appearance, geometrySelection: configured.geometrySelection, arms: {} }; busy = true;
+        const order = benchmarkOrder(round), result = { round, order, frames, warmup, appearance: configured.appearance, geometrySelection: configured.geometrySelection, batching: configured.batchingEvidence, arms: {} }; busy = true;
         try {
           for (const name of order) {
             const renderer = activate(name);
@@ -281,6 +321,10 @@ export async function createArchitectureBenchmark() {
               timingIndex = -1; previousRaf = raf;
             }
             const frameCounters = { ...observed };
+            const expectedDraws = 1 + (arms[name].geometry.lowInstances.length ? 1 : 0)
+              + (name === 'candidateFinal' && configured.batching === 'split-floors' ? 1 : 0);
+            assert(frameCounters.drawCalls === expectedDraws * frames && frameCounters.submits === frames,
+              'Measured batching must preserve one submission and the expected draw count per frame');
             const encoder = gpu.device.createCommandEncoder(), usedBytes = frames * 2 * 8;
             encoder.resolveQuerySet(querySet, 0, frames * 2, queryResolve, 0);
             encoder.copyBufferToBuffer(queryResolve, 0, queryReadback, 0, usedBytes);
