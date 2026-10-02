@@ -432,10 +432,13 @@ describe('the Room tool in the page', () => {
 
   // [A-room-tool] originally exposed clipped tabs. The enlarged-text review
   // requires wrapping at the actual label width instead of fixed columns.
-  it('lets build tool buttons wrap without forcing the panel wider', () => {
+  it('keeps content-width Build tabs scrollable within the compact panel', () => {
     expect(INDEX_HTML).toContain('<div id="build-tools" role="group" aria-label="Build tool">');
-    expect(INDEX_HTML).toContain('#build-tools { display: flex; flex-wrap: wrap; gap: 8px; }');
-    expect(INDEX_HTML).toContain('#build-tools > * { flex: 1 1 auto; min-width: 0; }');
+    const css = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
+    expect(css).toContain('#builder-dock #build-tools { display: flex; flex-wrap: nowrap;');
+    expect(css).toContain('overflow-x: auto');
+    expect(css).toContain('#builder-dock #build-tools button { flex: 1 0 max-content;');
+    expect(css).toContain('min-width: 0');
   });
 
   it('is wired into the frame, the click, Load and leaving Build', () => {

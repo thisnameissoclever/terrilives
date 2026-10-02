@@ -4,7 +4,7 @@ import { activeFloorFinishKeys, floorMaterial, floorSpriteName, relativeFloorLoo
 import { buildStaticInstances } from '../src/render/tiles.js';
 import { prepareArchitectureFinishes } from '../src/render/architecture-finishes.js';
 import { FLOOR_DEPTH } from '../src/render/iso.js';
-import { FLOATS_PER_INSTANCE, OFFSET_WALL_MASK, OFFSET_COLOURWAY_HUE } from '../src/render/instances.js';
+import { architectureMode, FLOATS_PER_INSTANCE, OFFSET_WALL_MASK, OFFSET_COLOURWAY_HUE } from '../src/render/instances.js';
 
 const looks = Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18]);
 const lot = { width: 3, height: 2, walls: new Uint32Array(), edges: new Uint32Array(),
@@ -52,8 +52,8 @@ describe('floor materials', () => {
       maxTextureDimension2D: 8192, maxTextureArrayLayers: 256, maxStorageBufferBindingSize: 1e8 }, catalogue);
     const built = buildStaticInstances({ ...lot, coveringLooks: Float32Array.from([...looks, 0, 1, 0]),
       floors: new Uint32Array([0, 0, 4, 1, 0, 1]), architecture: { ...lot.architecture, floorCatalogue: catalogue, finishes } }, 200.25, 100.5, 4, .73);
-    expect(built.instances[OFFSET_WALL_MASK]).toBe(-7);
-    expect(built.instances[FLOATS_PER_INSTANCE + OFFSET_WALL_MASK]).toBe(-3);
+    expect(built.instances[OFFSET_WALL_MASK]).toBe(architectureMode(true, 1));
+    expect(built.instances[FLOATS_PER_INSTANCE + OFFSET_WALL_MASK]).toBe(architectureMode(true));
     expect(built.instances[3]).toBe(floorMaterial(4, 'house', 0, 0, catalogue).sprite.id);
     expect(Array.from(finishes.table.slice(2, 7))).toEqual([8, 2, Math.fround(.3), Math.fround(.6), 1]);
     expect(() => buildStaticInstances({ ...lot, coveringLooks: Float32Array.from([...looks, 0, 1, 0]),
@@ -65,7 +65,7 @@ describe('floor materials', () => {
     for (let row = 0; row < result.floorCount; row++) {
       const base = row * FLOATS_PER_INSTANCE;
       expect(result.instances[base + 2]).toBe(FLOOR_DEPTH);
-      expect(result.instances[base + OFFSET_WALL_MASK]).toBe(-3);
+      expect(result.instances[base + OFFSET_WALL_MASK]).toBe(architectureMode(true));
       expect(Array.from(result.instances.slice(base + OFFSET_COLOURWAY_HUE, base + OFFSET_COLOURWAY_HUE + 3))).toEqual([0, 0, 0]);
     }
   });

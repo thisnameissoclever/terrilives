@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { ARCHITECTURE } from '../src/render/architecture-data.js';
+import { architectureMode } from '../src/render/instances.js';
 import { BAKED_FLOORS } from '../src/render/architecture-baked-floors.js';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -46,7 +47,7 @@ it.each(['palette', 'pattern'])('routes a default production catalogue %s additi
   const rows = buildStaticInstances({ width: 1, height: 1, walls: new Uint32Array(), edges: new Uint32Array(),
     architecture: { windows: [], catalogue: [], finishes }, floors: new Uint32Array([0, 0, 4]),
     coveringLooks: Float32Array.from([18, 1.15, -.12, -25, .55, .1, -20, 1.6, -.18, 0, 1, 0]) }, 0, 0, 2);
-  expect(rows.instances[8]).toBe(-7);
+  expect(rows.instances[8]).toBe(architectureMode(true, 1));
   expect(Array.from(finishes.table.slice(4, 7))).toEqual([Math.fround(.2), .5, 1]);
 });
 

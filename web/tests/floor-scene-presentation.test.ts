@@ -8,7 +8,7 @@ import { ARCHITECTURE } from '../src/render/architecture-data.js';
 import { activeFloorFinishKeys } from '../src/render/floor-materials.js';
 import { prepareArchitectureFinishes } from '../src/render/architecture-finishes.js';
 
-const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 function section(start: string, end: string): string {
   const first = main.indexOf(start), last = main.indexOf(end, first);
   if (first < 0 || last < 0) throw new Error('Missing main integration boundary');

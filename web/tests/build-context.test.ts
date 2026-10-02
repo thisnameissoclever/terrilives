@@ -250,14 +250,25 @@ it('typed window changes refresh cached contextual fit and removal capabilities'
   const f = fixture();
   try {
     let actions: BuildContextActions | undefined;
+    const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+    const start = main.indexOf('const windowTool = new WindowTool');
+    const first = main.indexOf('changed: () => {', start) + 'changed: () => {'.length;
+    const last = main.indexOf('    },', first);
+    if (start < 0 || last < first) throw new Error('Missing production window change hook');
+    const changed = new Function('ctx', `with(ctx) { ${main.slice(first, last)} }`);
+    const ctx = { placementActions: undefined as BuildContextActions | undefined,
+      windowTool: undefined as WindowTool | undefined, lot: { windowPreview: null as ReturnType<WindowTool['preview']> },
+      cameraDirty: false, windowControls: undefined, wallControls: undefined };
     const windows = new WindowTool(f.source, f.handle.lot_width(), f.handle.lot_height(), {
-      changed() { actions?.invalidate(); },
+      changed() { changed(ctx); },
     });
+    ctx.windowTool = windows;
     const walls = new WallTool(f.source, f.handle.lot_width(), f.handle.lot_height(), {
       changed() { actions?.invalidate(); },
     }, windows);
     const surface = { render: vi.fn<(model: ReturnType<typeof contextModel>) => void>(), place: vi.fn() };
     actions = new BuildContextActions({ ...f.tools, walls }, surface, () => ({ height: 40, offsetX: 0 }));
+    ctx.placementActions = actions;
     const camera = { scale: 1, originX: 400, originY: 60 };
     f.source.fitWindow(1, 10, 0, 7); f.source.flushCommands();
     walls.enter(); walls.choose({ axis: 1, x: 12, y: 0 }); windows.chooseModel(7);
@@ -275,8 +286,7 @@ it('typed window changes refresh cached contextual fit and removal capabilities'
     f.source.flushCommands(); windows.afterCommands(); actions.frame(camera, 800, 600);
     expect(f.source.windowPlacements()).toHaveLength(0);
     expect(surface.render.mock.lastCall![0]!.actions.some(a => a.id === 'remove-window')).toBe(false);
-    const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
-    const hook = main.slice(main.indexOf('const windowTool = new WindowTool'), main.indexOf('const wallTool = new WallTool'));
-    expect(hook).toContain('placementActions?.invalidate()');
+    expect(ctx.cameraDirty).toBe(true);
+    expect(ctx.lot.windowPreview).toEqual(windows.preview());
   } finally { f.handle.free(); }
 });
