@@ -1,5 +1,21 @@
 # Lessons Learned
 
+## [L-benchmark-appearance-identity] Derive benchmark appearance from shipped content
+
+**What happened.** A rendering stress fixture supplied zero-filled floor colour
+settings. The fixture exercised desaturation while its results were initially
+discussed as the cost of the shipped artwork.
+
+**Root cause.** Zero was assumed to mean an unchanged appearance. Colour strength
+uses one as its identity, and authored materials compare settings with their
+baked content baseline.
+
+**Prevention.** Derive the default workload from checked-in content. Give altered
+appearance workloads explicit names and retain their input values and hashes.
+
+**Verify.** Assert that default authored floor instances encode zero relative
+colour adjustment. Report default and altered appearance measurements separately.
+
 ## [L-proof-freeze-includes-metadata] Keep browser proof sources frozen until extraction
 
 **What happened.** A benchmark helper changed after its freeze was announced.

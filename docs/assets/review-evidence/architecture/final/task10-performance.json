@@ -3897,7 +3897,7 @@
   ],
   "notes": [
     "Phase2 reloaded current helper and captures actual depth allocations.",
-    "Completion timing includes queue fence/IPC latency. Round variance requires investigation; these are raw results, not an unconditional performance pass.",
+    "Completion timing combines draw execution, queue completion and JavaScript promise resumption. IPC attribution is unproved. Round variance requires investigation; these are raw results, not an unconditional performance pass.",
     "Owned benchmark contexts closed after extraction."
   ]
 }

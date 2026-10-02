@@ -81,11 +81,11 @@ yard = { hue = 65.0, strength = 2.0, lightness = -0.22 }
 street = { hue = 0.0, strength = 0.15, lightness = -0.22 }
 
 # What the player may lay on a floor tile, in the Floors tool's order
-# ([FL-content] in docs/specs/2026-09-22-floors.md). There is one floor
-# sprite, so each of these is that art under a colour shift, as the yard and
-# the street are; real floor art is [T-floor-art]. A covering's id is its
-# place in this list counted from 1, and 0 is the tile drawn by where it is,
-# so the list grows by appending and never by reordering.
+# ([FL-content] in docs/specs/2026-09-22-floors.md). Architecture materials
+# map each covering to its artwork and apply colour settings relative to the
+# authored appearance. Historical layouts retain the original recoloured sprite.
+# A covering's id is its place in this list counted from 1; 0 uses the tile's
+# location. Append new coverings without reordering existing entries.
 covering = [
   # Warmer and darker than the house's own floor: boards.
   { name = "Boards", hue = 18.0, strength = 1.15, lightness = -0.12 },
