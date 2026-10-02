@@ -835,7 +835,7 @@ from outside and outdoor objects remain.
 
 **Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Build > Floors offers Boards, Tiles and Carpet. Choose a covering and click a tile, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. Explicit-edge interiors now use distinct authored boards, tile and carpet; yard, street and frozen legacy layouts retain their original art. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+Build > Floors offers Boards, Tiles and Carpet. Choose a covering and click a tile, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. All loaded layouts use distinct authored boards, tile and carpet. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
 Room-wide painting and floor-dependent gameplay remain future work. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for current local evidence and acceptance limits.
 
@@ -843,7 +843,7 @@ Room-wide painting and floor-dependent gameplay remain future work. See `docs/sp
 
 **Status: Placement, collision, daylight and nine-model art implemented; looking-out interactions remain.**
 
-Open Build > Walls > Windows, or press N from any Build tool. Choose Sash, Cottage or Arched for one wall unit; Sliding, Steel-grid or Twin casement for two; Picture, Craftsman or Clerestory for three. Both wall axes are supported. Select a straight wall span and use Fit window. Selecting any part of an existing window targets its whole span for Replace window or Remove window. The selected model is retained when returning to the chooser.
+Open Build > Walls > Windows, or press N from any Build tool. Choose Sash, Cottage or Arched for one wall unit; Sliding, Steel-grid or Twin casement for two; Picture, Craftsman or Clerestory for three. Both wall axes are supported. Select a straight wall span and use Fit window. Selecting any part of an existing window targets its whole span for Replace window or Remove window. The selected model is retained when returning to the chooser. Back returns to Wall, Doorway and Remove wall with the clicked line selected; W and D also work from the window chooser. Remove wall opens the whole window span where permitted, while Doorway uses the clicked line and restores the rest to wall. Remove window and its Backspace/Delete shortcuts restore solid wall.
 
 Windows block people and lamp light while admitting outdoor daylight. Their daylight contribution is exactly zero at night; Flat lighting remains neutral. Whole-window validation prevents partial overlaps and fragments caused by another build tool or Room edit. Historical window saves load as one-unit Sash placements. Walls now have matching thickness, joins, caps, reveals and baseboards; cutaway windows follow their owning wall height.
 

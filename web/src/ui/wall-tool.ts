@@ -183,7 +183,14 @@ export class WallTool {
   handleKey(key: string): boolean {
     if (!this.active) return false;
     if (this.windows && (key === 'n' || key === 'N')) { this.selectWindows(); return true; }
-    if (this.windows?.active) return this.windows.handleKey(key);
+    if (this.windows?.active) {
+      if (key === 'w' || key === 'W' || key === 'd' || key === 'D') {
+        this.selectWalls();
+        this.apply(key.toLowerCase() === 'w' ? WALL : DOORWAY);
+        return true;
+      }
+      return this.windows.handleKey(key);
+    }
     if (key === 'Escape') {
       if (this.line === null) return false;
       // An edit on its way is applied whatever happens here; clearing now
@@ -260,9 +267,13 @@ export class WallTool {
   }
 
   selectWalls(): void {
-    if (this.windows?.pending != null) return;
-    this.windows?.exit();
-    this.clear();
+    if (!this.windows?.active || this.windows.pending !== null || this.pending !== null) return;
+    this.line = this.windows.selectedLine;
+    this.windows.exit();
+    if (this.line === null) { this.clear(); return; }
+    this.refresh();
+    this.status = this.describe();
+    this.hooks.changed();
   }
 
   private clear(): void {

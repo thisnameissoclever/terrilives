@@ -58,7 +58,7 @@ Focused non-browser checks:
 
 ```powershell
 node --check web/proofs/architecture-overhead.js
-node --test web/proofs/architecture-benchmark-metrics.test.mjs
+node --test web/proofs/architecture-benchmark-metrics.node-test.mjs
 ```
 
 ## Component isolation

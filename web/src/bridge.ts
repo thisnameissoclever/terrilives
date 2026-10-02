@@ -218,10 +218,11 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
   11: 'The room would leave furniture out of reach.',
   12: 'The room would cut off the front door.',
   13: 'The room would cut off the front-door landing.',
+  20: 'Remove the window before changing this room.',
 };
 
 export function roomReason(code: number): string | null {
-  if (code >= 18 && code <= 20) return wallReason(code);
+  if (code >= 18 && code < 20) return wallReason(code);
   return code === 0 ? null : ROOM_REASONS[code] ?? 'That room is not possible.';
 }
 

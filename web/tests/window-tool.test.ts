@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, wallReason, windowReason, roomReason } from '../src/bridge.js';
 import { WindowTool } from '../src/ui/window-tool.js';
-import { WallTool } from '../src/ui/wall-tool.js';
+import { DOORWAY, OPEN, WALL, WallTool, stateOf } from '../src/ui/wall-tool.js';
 import { coveredWindowLines, decodeWindowPlacements } from '../src/architecture/windows.js';
 import { windowOwnerKey, windowPreviewLayout } from '../src/render/placement-preview.js';
 import { buildArchitectureWallGeometry } from '../src/render/architecture-geometry.js';
@@ -14,11 +14,90 @@ let memory: WebAssembly.Memory;
 beforeAll(async () => { ({ memory } = await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })); });
 function fixture() {
   const handle = SimHandle.from_lot(), bridge = new SimBridge(handle, memory);
-  const tool = new WindowTool(bridge, 16, 16, { changed() {} });
-  const walls = new WallTool(bridge, 16, 16, { changed() {} }, tool);
+  const tool = new WindowTool(bridge, handle.lot_width(), handle.lot_height(), { changed() {} });
+  const walls = new WallTool(bridge, handle.lot_width(), handle.lot_height(), { changed() {} }, tool);
   return { handle, bridge, tool, walls };
 }
 describe('whole-window controller', () => {
+  it.each([0, 1] as const)('reaches ordinary wall edits from every selected window unit on axis %s', axis => {
+    for (const model of [1, 4, 7] as const) for (const action of ['W', 'd', 'Back/Wall', 'Back/Doorway', 'Back/Remove'] as const) {
+      const width = model === 1 ? 1 : model === 4 ? 2 : 3;
+      for (let selected = 0; selected < width; selected++) {
+        const { handle, bridge, tool, walls } = fixture();
+        try {
+          const start = { axis, x: axis === 0 ? 18 : 3, y: axis === 0 ? 4 : 14 };
+          const lines = coveredWindowLines({ ...start, model }, tool.catalogue);
+          for (const line of lines) {
+            expect(bridge.wallEditPreview(axis, line.x, line.y, WALL).valid).toBe(true);
+            bridge.setWallEdge(axis, line.x, line.y, WALL); bridge.flushCommands();
+          }
+          expect(bridge.windowEditPreview(axis, start.x, start.y, model).valid).toBe(true);
+          bridge.fitWindow(axis, start.x, start.y, model); bridge.flushCommands();
+          walls.enter(); walls.choose(lines[selected]);
+          tool.chooseModel(9);
+          const before = bridge.saveBytes(), revision = bridge.lotRevision();
+          const target = action.endsWith('Remove') ? OPEN : action === 'd' || action.endsWith('Doorway') ? DOORWAY : WALL;
+          if (action.startsWith('Back/')) {
+            walls.selectWalls();
+            expect(tool.active).toBe(false); expect(walls.line).toEqual(lines[selected]);
+            expect(bridge.saveBytes()).toEqual(before);
+            expect(walls.canApply(target)).toBe(true); walls.apply(target);
+          } else expect(walls.handleKey(action)).toBe(true);
+          expect(tool.active).toBe(false); expect(walls.pending).toBe(target);
+          expect(tool.chosen).toBe(9); expect(bridge.saveBytes()).not.toEqual(before);
+          expect(bridge.windowPlacements()).toHaveLength(4);
+          walls.handleKey('N'); walls.selectWalls(); walls.handleKey('Backspace');
+          walls.choose({ axis, x: 7, y: 7 });
+          expect(walls.pending).toBe(target); expect(walls.line).toEqual(lines[selected]);
+          bridge.flushCommands(); tool.afterCommands(); walls.afterCommands();
+          expect(walls.pending).toBeNull(); expect(bridge.lotRevision()).toBe(revision + 1);
+          expect(bridge.windowPlacements()).toHaveLength(0);
+          expect(lines.map(line => stateOf(bridge.wallEdges()!, line))).toEqual(
+            lines.map((_, index) => target === DOORWAY && index !== selected ? WALL : target));
+        } finally { handle.free(); }
+      }
+    }
+  });
+
+  it('keeps Remove window distinct, preserves pending selection, and reports rear-shell wall refusals', () => {
+    const { handle, bridge, tool, walls } = fixture();
+    try {
+      bridge.fitWindow(1, 10, 0, 7); bridge.flushCommands();
+      walls.enter(); walls.choose({ axis: 1, x: 12, y: 0 });
+      const before = bridge.saveBytes();
+      walls.handleKey('D');
+      expect(tool.active).toBe(false); expect(walls.line).toEqual({ axis: 1, x: 12, y: 0 });
+      expect(walls.pending).toBeNull(); expect(walls.canApply(DOORWAY)).toBe(false);
+      expect(walls.canApply(OPEN)).toBe(false);
+      expect(bridge.saveBytes()).toEqual(before);
+      walls.selectWindows(); walls.handleKey('Backspace');
+      expect(tool.pending).toBe('remove'); expect(walls.pending).toBeNull();
+      walls.handleKey('W'); walls.handleKey('D'); walls.selectWalls(); walls.handleKey('Delete');
+      expect(tool.active).toBe(true); expect(tool.pending).toBe('remove');
+      expect(tool.line).toEqual({ axis: 1, x: 10, y: 0 });
+      bridge.flushCommands(); tool.afterCommands(); walls.afterCommands();
+      expect(tool.status).toBe('Window removed.'); expect(bridge.windowPlacements()).toHaveLength(0);
+      expect(bridge.windowEditPreview(1, 10, 0, 7).valid).toBe(true);
+      walls.handleKey('Escape'); walls.handleKey('W');
+      expect(walls.line).toBeNull(); expect(walls.pending).toBeNull();
+    } finally { handle.free(); }
+  });
+
+  it('returns the navigated unit and reconciles a selected tail after replacing with a shorter window', () => {
+    const { handle, bridge, tool, walls } = fixture();
+    try {
+      bridge.fitWindow(1, 10, 0, 7); bridge.flushCommands();
+      walls.enter(); walls.choose({ axis: 1, x: 12, y: 0 });
+      walls.handleKey('ArrowRight'); walls.selectWalls();
+      expect(walls.line).toEqual({ axis: 1, x: 13, y: 0 });
+      walls.choose({ axis: 1, x: 12, y: 0 }); tool.chooseModel(1); tool.apply();
+      bridge.flushCommands(); tool.afterCommands(); walls.afterCommands();
+      walls.selectWalls();
+      expect(walls.line).toEqual({ axis: 1, x: 10, y: 0 });
+      expect(walls.current).toBe(3); expect(tool.chosen).toBe(1);
+    } finally { handle.free(); }
+  });
+
   it('previews, fits, selects from middle/end, replaces and removes all nine models on both axes', () => {
     for (const axis of [0, 1] as const) for (let model = 1; model <= 9; model++) {
       const { handle, bridge, tool, walls } = fixture();
@@ -117,7 +196,7 @@ describe('whole-window controller', () => {
       [19, 'A window cannot cross a wall junction.'], [20, 'Select the whole window to change it.']] as const) {
       expect(windowReason(code)).toBe(reason); expect(wallReason(code)).toBe(reason);
     }
-    expect(roomReason(20)).toBe(windowReason(20));
+    expect(roomReason(20)).toBe('Remove the window before changing this room.');
   });
 });
 

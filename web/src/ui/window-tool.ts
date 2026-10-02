@@ -13,6 +13,8 @@ export class WindowTool {
   active = false;
   blocked = false;
   line: WallLine | null = null;
+  /** The clicked or navigated unit, retained for ordinary wall/doorway edits. */
+  selectedLine: WallLine | null = null;
   owner: WindowPlacement | null = null;
   chosen: WindowModelId;
   pending: 'fit' | 'remove' | null = null;
@@ -46,6 +48,7 @@ export class WindowTool {
   }
   choose(line: WallLine): void {
     if (!this.active || this.pending !== null || this.blocked) return;
+    this.selectedLine = line;
     this.owner = this.ownerAt(line);
     this.line = this.owner ? { axis: this.owner.axis, x: this.owner.x, y: this.owner.y } : line;
     this.refresh();
@@ -126,12 +129,16 @@ export class WindowTool {
   }
   highlight(): TileHighlight | null { return this.active ? this.shownHighlight : null; }
   private clear(): void {
-    this.line = null; this.owner = null; this.pending = null; this.candidate = null;
+    this.line = null; this.selectedLine = null; this.owner = null; this.pending = null; this.candidate = null;
     this.removal = null; this.shownHighlight = null; this.status = CHOOSE; this.hooks.changed();
   }
   private refresh(): void {
     if (!this.line) return;
     this.owner = this.ownerAt(this.line);
+    if (this.owner && !coveredWindowLines(this.owner, this.catalogue).some(line =>
+      line.axis === this.selectedLine?.axis && line.x === this.selectedLine.x && line.y === this.selectedLine.y)) {
+      this.selectedLine = this.line;
+    }
     const { axis, x, y } = this.line;
     this.candidate = this.source.windowEditPreview(axis, x, y, this.chosen);
     this.removal = this.owner ? this.source.windowRemovalPreview(axis, x, y) : null;

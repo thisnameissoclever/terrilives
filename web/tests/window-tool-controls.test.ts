@@ -3,7 +3,8 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { WindowTool } from '../src/ui/window-tool.js';
-import { WallTool } from '../src/ui/wall-tool.js';
+import { DOORWAY, OPEN, WALL, WallTool, stateOf } from '../src/ui/wall-tool.js';
+import { coveredWindowLines } from '../src/architecture/windows.js';
 import { WallToolControls } from '../src/ui/wall-tool-controls.js';
 import { WindowToolControls, drawWindowThumbnails } from '../src/ui/window-tool-controls.js';
 import { BuildToolSwitch } from '../src/ui/build-tools.js';
@@ -31,13 +32,39 @@ function fixture() {
     return elements.get(selector)!;
   };
   const document = { querySelector: element, createElement: (tag: string) => new Element(tag) } as unknown as Document;
-  const tool = new WindowTool(bridge, 16, 16, { changed() {} });
-  const walls = new WallTool(bridge, 16, 16, { changed() {} }, tool);
+  const tool = new WindowTool(bridge, handle.lot_width(), handle.lot_height(), { changed() {} });
+  const walls = new WallTool(bridge, handle.lot_width(), handle.lot_height(), { changed() {} }, tool);
   const thumbnails = vi.fn(async (_samples: Parameters<typeof drawWindowThumbnails>[0]) => {});
   const controls = new WindowToolControls(document, tool, walls, thumbnails);
   return { handle, bridge, document, element, tool, walls, controls, thumbnails };
 }
 describe('window chooser', () => {
+  it('Back exposes enabled wall actions for the selected window unit without editing it', () => {
+    for (const axis of [0, 1] as const) for (const model of [1, 4, 7] as const) {
+      for (const [button, target] of [['#wall-build', WALL], ['#wall-doorway', DOORWAY], ['#wall-remove', OPEN]] as const) {
+        const f = fixture();
+        try {
+          const start = { axis, x: axis === 0 ? 18 : 3, y: axis === 0 ? 4 : 14 };
+          const lines = coveredWindowLines({ ...start, model }, f.tool.catalogue);
+          for (const line of lines) { f.bridge.setWallEdge(axis, line.x, line.y, WALL); f.bridge.flushCommands(); }
+          f.bridge.fitWindow(axis, start.x, start.y, model); f.bridge.flushCommands();
+          const wallControls = new WallToolControls(f.document, f.walls);
+          f.walls.enter(); f.walls.choose(lines.at(-1)!); f.controls.render(); wallControls.render();
+          expect(f.element('#wall-actions').hidden).toBe(true);
+          const before = f.bridge.saveBytes();
+          f.element('#window-back').click(); f.controls.render(); wallControls.render();
+          expect(f.bridge.saveBytes()).toEqual(before); expect(f.walls.line).toEqual(lines.at(-1));
+          expect(f.element('#window-choices').hidden).toBe(true); expect(f.element('#wall-actions').hidden).toBe(false);
+          expect(f.element(button).disabled).toBe(false); f.element(button).click();
+          expect(f.walls.pending).toBe(target);
+          f.bridge.flushCommands(); f.walls.afterCommands(); f.tool.afterCommands();
+          expect(f.bridge.windowPlacements()).toHaveLength(0);
+          expect(lines.map(line => stateOf(f.bridge.wallEdges()!, line))).toEqual(
+            lines.map((_, i) => target === DOORWAY && i !== lines.length - 1 ? WALL : target));
+        } finally { f.handle.free(); }
+      }
+    }
+  });
   it('groups the Rust catalogue by width with actual model samples and literal labels', () => {
     const f = fixture();
     try {

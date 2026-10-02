@@ -95,6 +95,60 @@ JavaScript heap allocation and graphics-driver padding are unmeasured. Source re
 
 Proof-only follow-ups passed `node --check web/proofs/architecture-overhead.js`, `node --test web/proofs/architecture-benchmark-metrics.test.mjs` (7 tests), `python -B -m unittest discover -s web/proofs -p 'test_architecture_profiles.py'` (2 tests), and `python -B web/proofs/prepare-architecture-baseline.py --check-profile`, all exit 0. Vite SSR import smoke also passed and its temporary server closed. These cover timing arithmetic, balanced arm order, component selection, opaque range coverage and content-derived profile identity. No passing production suite was repeated for the proof-only changes. Final helper SHA-256 is `3b2a29d5fe1dcefdf3b089ec9b3ef25d0af5da50c5178bb1f9faf9455ae06d4f`; it remains frozen.
 
+## Final review corrections
+
+Back now returns from Windows to the ordinary wall controls with the exact
+clicked or navigated line selected. W and D use the same transition. A doorway
+occupies that selected unit and restores the rest of its window to wall; Remove
+wall opens the whole span where permitted. Remove window and its Backspace/Delete
+shortcuts retain their solid-wall result. Pending commands retain selection and
+result ownership. A shorter replacement reconciles a selected, now-uncovered tail
+to the remaining window's first line. Room refusal code 20 now asks the player
+to remove the window before changing the room.
+
+The composed controller and button tests use real WASM for all three widths on
+both axes, including selection from every covered unit, exact doorway position,
+ordinary removal, rear-shell refusals, queued-command guards, navigation and
+shorter replacements. The checks below do not replace final browser review.
+
+| Command | Result | Relevant output | Exit |
+| --- | --- | --- | --- |
+| `npm --prefix web test -- --maxWorkers=1 tests/window-tool.test.ts` | RED | 4 failures / 5 passes before implementation: nested W/D, retained selection and Room-specific reason | 1 |
+| Same focused command after the initial fix | FAIL | 3 failures / 6 passes: the new tests prematurely read a wall result before drain and expected a Doorway-specific refusal in the shared wall status | 1 |
+| `npm --prefix web test -- --maxWorkers=1 tests/window-tool.test.ts tests/window-tool-controls.test.ts tests/wall-tool.test.ts tests/room-tool.test.ts` | PASS | 4 files / 98 tests, 2.18s; result checks now follow the documented drain contract and refusal checks use previews and unchanged saves | 0 |
+| `npm --prefix web test -- --maxWorkers=1` | FAIL, FAIL, then PASS | First two runs (31.70s and 27.38s): 1854 tests passed but Vitest also discovered a Node test file and rejected its empty Vitest suite. Final run: 131 files / 1854 tests passed, 26.97s | 1, 1, then 0 |
+| `node --test web/proofs/architecture-benchmark-metrics.node-test.mjs` | FAIL, then PASS | Premature first call could not find the renamed file. After rename completion: 7 tests, 0 failures/skips, 63.78ms | 1, then 0 |
+| `python check-doc-ids.py` | PASS | Documentation ids are unique and allocation-free | 0 |
+| `node --test scripts/build-changelog.test.mjs` | PASS | 7 tests, 0 failures/skips | 0 |
+| `node scripts/build-changelog.mjs` | PASS | Built `web/dist/changelog/index.html` | 0 |
+| `python -B web/proofs/prepare-architecture-baseline.py` | PASS | Pinned renderer sources unchanged; current appearance profile regenerated | 0 |
+| `python -B web/proofs/prepare-architecture-baseline.py --check-profile` | PASS | Profile matches checked-in content | 0 |
+| `git diff --check` | PASS | No whitespace errors | 0 |
+
+The Node proof tests retain their byte-identical implementation and direct Node
+runner. Their filename is now `architecture-benchmark-metrics.node-test.mjs` so
+Vitest does not collect them. The second failed full run began before the
+search-and-rename command returned; it had already discovered the old filename.
+That was a command-sequencing mistake. The final Node and web runs started only
+after the preceding process had returned an actual exit code. Earlier recorded
+commands retain their original filenames as historical evidence. Typecheck and
+production build for this final batch remain pending with the coordinating agent.
+
+Current documentation now distinguishes preserved historical sprite data from
+the game's active floor routing: all loaded layouts use authored floor materials,
+with grass for unpainted yard and asphalt for street. `content/lot.toml` changed
+only in comments. A Python `tomllib` comparison against `git show HEAD:content/lot.toml`
+confirmed identical parsed values. A JSON comparison of the appearance fixture
+against HEAD, removing only `source.sha256` from both objects, also passed; both
+assertion checks exited 0. Its source hash changed from
+`24dd17ab87a3dc08b29be17ed512af34889b3adca3677b1cf16b59dd2bd759b4` to
+`d74c671ed346f398f036a569ca50b591ebaf342d3fd59174576d4cbc02f05840`.
+Profile values, rendering inputs and the dated timing receipts are unchanged.
+No GPU benchmark, Rust check or asset-generation test was repeated for these
+controller, documentation and test-discovery corrections. The approximately
+3 ms authored GPU-pass result above remains unexplained; this batch makes no
+performance improvement claim.
+
 ## Review and delivery boundaries
 
 Independent final code/screenshot review and owner review remain pending. Desktop browser evidence does not establish physical phone or other GPU/browser coverage. A local production build does not establish deployment. The final build retains Vite's 500 kB chunk-size advisory (701.84 kB main JS, 128.75 kB gzip). WASM packaging recommends optional Cargo `description`, `repository` and `license` fields. Neither is a runtime failure; neither was suppressed or used to justify an unrequested dependency/build-system change. Cold-start download/parse cost remains separate from warmed frame timing.

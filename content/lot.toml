@@ -71,19 +71,19 @@ width = 20
 height = 16
 house = { width = 16, height = 12 }
 
-# How a yard tile is drawn until there is grass art: the floor's art turned
-# from beige to a muted green, as a colourway turns furniture ([OS-yard]).
+# Yard grass colour settings, applied relative to its authored appearance
+# ([OS-yard]). The historical sprite path uses the same values as absolute shifts.
 yard = { hue = 65.0, strength = 2.0, lightness = -0.22 }
 
-# How the street is drawn until there is street art: the floor's art nearly
-# grey and darker. The street is the lot's last column across the yard from
-# the front door, where commutes end ([OS-street]).
+# Street asphalt colour settings, applied relative to its authored appearance.
+# The street is the lot's last column across the yard from the front door,
+# where commutes end ([OS-street]).
 street = { hue = 0.0, strength = 0.15, lightness = -0.22 }
 
 # What the player may lay on a floor tile, in the Floors tool's order
 # ([FL-content] in docs/specs/2026-09-22-floors.md). Architecture materials
 # map each covering to its artwork and apply colour settings relative to the
-# authored appearance. Historical layouts retain the original recoloured sprite.
+# authored appearance in all loaded layouts, including historical saves.
 # A covering's id is its place in this list counted from 1; 0 uses the tile's
 # location. Append new coverings without reordering existing entries.
 covering = [
