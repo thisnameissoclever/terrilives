@@ -1,6 +1,33 @@
 use super::*;
 use terri_core::layout::{EdgeAxis, WallState};
 
+#[test]
+fn window_yard_growth_preserves_model_and_rear_shell() {
+    let mut sim = Sim::new_from_pre_yard_lot();
+    let placed = terri_core::windows::WindowPlacement {
+        line: terri_core::layout::WallLine {
+            axis: EdgeAxis::Horizontal,
+            x: 8,
+            y: 0,
+        },
+        model: terri_core::windows::WindowModel::Craftsman,
+    };
+    let before = edges(&sim);
+    sim.world_mut()
+        .insert_resource(SavedLayout::from_window_placements(
+            before.clone(),
+            vec![placed],
+        ));
+    grow(&mut sim, terri_data::pack());
+    assert_eq!(size(&sim), (20, 16));
+    assert_eq!(
+        sim.world().resource::<SavedLayout>().window_placements(),
+        [placed]
+    );
+    assert_eq!(&edges(&sim)[..before.len()], before);
+    assert!(!sim.world().resource::<TileGrid>().can_step((8, 0), (8, -1)));
+}
+
 fn edges(sim: &Sim) -> Vec<WallEdge> {
     let layout = sim.world().resource::<SavedLayout>();
     assert!(layout.has_edges(), "not an edge-wall house: {layout:?}");

@@ -50,7 +50,7 @@ export class BuildToolSwitch {
 
   /** `tools` are the tools beside Furniture, in the order their buttons show. */
   constructor(document: Document, private readonly tools: readonly SwitchedTool[],
-    hooks: BuildToolHooks) {
+    private readonly hooks: BuildToolHooks) {
     const required = <T extends HTMLElement>(id: string): T => {
       const element = document.querySelector<T>(`#${id}`);
       if (!element) throw new Error(`Missing build tool switch: ${id}`);
@@ -64,13 +64,20 @@ export class BuildToolSwitch {
     });
     tools.forEach((entry, index) => {
       this.buttons[index + 1].addEventListener('click', () => {
-        if (!hooks.leaveFurniture()) return;
-        for (const other of tools) if (other !== entry) other.tool.exit();
-        entry.tool.enter();
-        hooks.focusView();
+        this.select(entry.button);
       });
     });
     this.render();
+  }
+
+  /** Keyboard shortcuts use the same cancellation and focus rules as a click. */
+  select(button: string): boolean {
+    const entry = this.tools.find(candidate => candidate.button === button);
+    if (!entry || !this.hooks.leaveFurniture()) return false;
+    for (const other of this.tools) if (other !== entry) other.tool.exit();
+    entry.tool.enter();
+    this.hooks.focusView();
+    return true;
   }
 
   render(): void {

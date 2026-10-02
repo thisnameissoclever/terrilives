@@ -16,6 +16,8 @@ import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
 import { WallTool } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
+import { WindowTool } from './ui/window-tool.js';
+import { WindowToolControls } from './ui/window-tool-controls.js';
 import { RoomTool } from './ui/room-tool.js';
 import { FloorTool } from './ui/floor-tool.js';
 import { FloorToolControls } from './ui/floor-tool-controls.js';
@@ -27,6 +29,14 @@ import { AMBIENT_NEUTRAL, ambientFor, sunStrength } from './render/daylight.js';
 import { buildSkyExposure, type SkyExposure } from './render/sky.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
+import { loadArchitectureAtlas, closeArchitectureAtlas } from './render/architecture-atlas.js';
+import { activeFloorFinishKeys } from './render/floor-materials.js';
+import { FloorFinishResources } from './render/floor-finish-resources.js';
+import { FloorScenePresentation } from './render/floor-scene-presentation.js';
+import { createFloorSceneStatus } from './ui/floor-scene-status.js';
+import type { ActiveFinishes } from './render/architecture-finishes.js';
+import { drawFloorSwatch } from './ui/floor-swatches.js';
+import { decodeWindowPlacements } from './architecture/windows.js';
 import {
   FixedStepDriver,
   advanceSimulationFrame,
@@ -286,7 +296,10 @@ async function main(): Promise<void> {
   // it synchronously and uploading later would let the first frames
   // sample an empty texture, which is a black room that fixes itself -
   // the hardest kind of glitch to reproduce.
-  const renderer = await SpriteRenderer.create(gpu);
+  const architectureAtlas = await loadArchitectureAtlas(gpu.device.limits);
+  let renderer: SpriteRenderer;
+  try { renderer = await SpriteRenderer.create(gpu, architectureAtlas); }
+  finally { closeArchitectureAtlas(architectureAtlas); }
 
   // The lot, its walls and all eight authored objects come out of
   // content/lot.toml through the compiled pack. Nothing here names a
@@ -659,6 +672,7 @@ async function main(): Promise<void> {
   compactBuildQuery.addEventListener('change', (event) => {
     builderControls.setCompact(event.matches);
     wallControls?.setCompact(event.matches);
+    windowControls?.setCompact(event.matches);
     buyControls?.setCompact(event.matches);
     roomControls?.setCompact(event.matches);
     floorControls?.setCompact(event.matches);
@@ -904,6 +918,7 @@ async function main(): Promise<void> {
           lot.walls = sim.wallTiles();
           lot.edges = sim.wallEdges();
           lot.windows = sim.windowLines();
+          lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
           // [FL-draw]: the loaded house's own painted tiles. Without this the
           // previous game's floors stayed on screen, and on a lot of another
           // height they landed on unrelated tiles, because the renderer keys
@@ -925,6 +940,7 @@ async function main(): Promise<void> {
           bedAssignmentPanel.resetAfterLoad();
           syncNewHousemateButton();
           wallTool.resetAfterLoad(lotWidth, lotHeight);
+          windowTool.resetAfterLoad(lotWidth, lotHeight);
           buyTool.resetAfterLoad(lotWidth, lotHeight);
           roomTool.resetAfterLoad(lotWidth, lotHeight);
           floorTool.resetAfterLoad(lotWidth, lotHeight);
@@ -1105,6 +1121,10 @@ async function main(): Promise<void> {
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges(),
     windows: sim.windowLines(),
+    windowPreview: null as import('./architecture/windows.js').WindowEditPreview | null,
+    architecture: { windows: decodeWindowPlacements(sim.windowPlacements()), catalogue: sim.windowCatalogue(),
+      finishes: architectureAtlas.finishes },
+    floorPreview: null as readonly [number, number, number] | null,
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
@@ -1119,7 +1139,7 @@ async function main(): Promise<void> {
   // field whenever the lot's walls change.
   const [interiorDaylightShade, daylightReachPerTile] = sim.daylightTuning();
   const buildSky = (): SkyExposure =>
-    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile);
+    buildSkyExposure(lot.width, lot.height, lot.edges ?? null, lot.house ?? null, daylightReachPerTile, lot.windows);
   let sky = buildSky();
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
@@ -1219,6 +1239,7 @@ async function main(): Promise<void> {
       sky,
     );
     wallFade.configure(staticGeometry.lowInstances, staticGeometry.lowPanels, lot.width, lot.height);
+    renderer.setArchitectureCamera(camera.originX, camera.originY);
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count, staticGeometry.lowInstances);
     cameraDirty = false;
   }
@@ -1269,13 +1290,24 @@ async function main(): Promise<void> {
   // [BM-shell]. The third tool, beside Furniture and Walls.
   let buyControls: BuyToolControls | undefined;
   let toolSwitch: BuildToolSwitch | undefined;
+  let windowControls: WindowToolControls | undefined;
+  const windowTool = new WindowTool(sim, lotWidth, lotHeight, {
+    changed: () => {
+      placementActions?.invalidate();
+      lot.windowPreview = windowTool.preview();
+      cameraDirty = true;
+      windowControls?.render();
+      wallControls?.render();
+    },
+  });
   const wallTool = new WallTool(sim, lotWidth, lotHeight, {
     changed: () => {
       wallControls?.render();
+      windowControls?.render();
       toolSwitch?.render();
       placementActions?.invalidate();
     },
-  });
+  }, windowTool);
   const buyTool = new BuyTool(sim, lotWidth, lotHeight, {
     changed: () => {
       buyControls?.render();
@@ -1295,13 +1327,59 @@ async function main(): Promise<void> {
   // [FL-tool]. A covering laid on one tile, beside the tools that move
   // walls and furniture.
   let floorControls: FloorToolControls | undefined;
+  let floorResourceError: string | null = null;
+  let syncFloorResources = (): void => {};
   const floorTool = new FloorTool(sim, lotWidth, lotHeight, {
     changed: () => {
+      syncFloorResources();
+      lot.floorPreview = floorTool.preview();
+      cameraDirty = true;
       floorControls?.render();
       toolSwitch?.render();
       placementActions?.invalidate();
     },
   });
+  const presentFloorSceneStatus = createFloorSceneStatus(document, stage, () => floorResources.retry());
+  const floorScene = new FloorScenePresentation({
+    suspend: () => overlayPause.suspend('floor-materials'),
+    resume: () => overlayPause.resume('floor-materials'),
+    status: presentFloorSceneStatus,
+  });
+  const syncFloorScene = () => floorScene.update(activeFloorFinishKeys(sim.floorTiles(), null),
+    lot.architecture.finishes?.keys ?? [], floorResourceError);
+  const floorResources = new FloorFinishResources<{ renderer: SpriteRenderer; finishes: ActiveFinishes | undefined }>({
+    prepare: async finishKeys => {
+      const atlas = await loadArchitectureAtlas(gpu.device.limits, { finishKeys });
+      try { return { renderer: await SpriteRenderer.create(gpu, atlas), finishes: atlas.finishes }; }
+      finally { closeArchitectureAtlas(atlas); }
+    },
+    publish: next => {
+      const previous = renderer, previousFinishes = lot.architecture.finishes;
+      renderer = next.renderer;
+      lot.architecture.finishes = next.finishes;
+      lot.floors = sim.floorTiles();
+      try { applyCamera(); }
+      catch (error) {
+        renderer = previous;
+        lot.architecture.finishes = previousFinishes;
+        throw error;
+      }
+      previous.destroy();
+    },
+    dispose: next => next.renderer.destroy(),
+    state: (ready, error) => {
+      floorResourceError = error;
+      if (error) console.warn('Floor material resource failed', error);
+      floorTool.setResourceStatus(ready ? null : error ? 'Floor materials could not load. Try again.' : 'Loading floor materials.', error !== null);
+      syncFloorScene();
+      cameraDirty = true;
+    },
+  });
+  syncFloorResources = () => {
+    floorResources.request(activeFloorFinishKeys(sim.floorTiles(), floorTool.active ? floorTool.chosen : null));
+    syncFloorScene();
+  };
+  syncFloorResources();
   const buildTools = [wallTool, roomTool, buyTool, floorTool] as const;
   // [PA-show]: Context actions surround the active selection. They sit
   // above the phone's Build dock when it is showing, else anywhere in the
@@ -1397,11 +1475,14 @@ async function main(): Promise<void> {
   builderControls.setCompact(compactBuildQuery.matches);
   wallControls = new WallToolControls(document, wallTool);
   wallControls.setCompact(compactBuildQuery.matches);
+  windowControls = new WindowToolControls(document, windowTool, wallTool);
+  windowControls.setCompact(compactBuildQuery.matches);
   buyControls = new BuyToolControls(document, buyTool, sim.needNames());
   buyControls.setCompact(compactBuildQuery.matches);
   roomControls = new RoomToolControls(document, roomTool);
   roomControls.setCompact(compactBuildQuery.matches);
-  floorControls = new FloorToolControls(document, floorTool);
+  floorControls = new FloorToolControls(document, floorTool, (canvas, covering) =>
+    drawFloorSwatch(canvas, covering, lot.coveringLooks.subarray((covering - 1) * 3, covering * 3)), () => floorResources.retry());
   floorControls.setCompact(compactBuildQuery.matches);
   document.querySelector<HTMLButtonElement>('#builder-exit')?.addEventListener('click', () => builder.exit());
   const zoomView = (direction: -1 | 1): void => {
@@ -1434,6 +1515,12 @@ async function main(): Promise<void> {
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
+        && event.key.toLowerCase() === 'n') {
+        if (toolSwitch?.select('build-tool-walls')) wallTool.selectWindows();
+        event.preventDefault();
+        return;
+      }
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
         && routeBuildKey(event.key, buildTools, builder)) {
         event.preventDefault();
@@ -1622,6 +1709,7 @@ async function main(): Promise<void> {
     roomTool.setBlocked(overlayPause.suspendedExcept('builder'));
     floorTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
+    windowTool.afterCommands();
     roomTool.afterCommands();
     floorTool.afterCommands();
     buyTool.afterCommands();
@@ -1631,7 +1719,9 @@ async function main(): Promise<void> {
       lot.walls = sim.wallTiles();
       lot.edges = sim.wallEdges();
       lot.windows = sim.windowLines();
+      lot.architecture.windows = decodeWindowPlacements(sim.windowPlacements());
       lot.floors = sim.floorTiles();
+      syncFloorResources();
       lot.doors = sim.interiorDoorLines();
       lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lightingDirty = true;
@@ -1644,46 +1734,48 @@ async function main(): Promise<void> {
     if (setCutAwayWalls(lot, wallTool.active || roomTool.active)) cameraDirty = true;
     // Placement can change collision and lighting while paused. Rebuild the
     // camera-derived statics after that drain, before any instances are drawn.
-    if (cameraDirty) applyCamera();
-    // [PA-place]: after the camera settles, so the buttons follow this
-    // frame's pan and zoom.
-    placementButtons.frame(camera, stage.width, stage.height);
-    // Editing marks the original furniture; play mode marks the selected Sim.
-    const selected = builder.active ? builder.selected : sim.selectedIndex();
-    const batch = buildInstanceBatch(
-      sim,
-      alpha,
-      camera.originX,
-      camera.originY,
-      depthScale,
-      selected,
-      camera.scale,
-      reducedMotion.matches,
-      sim.clockTick(),
-      lightingMode.isFlat() ? null : lighting,
-      undefined,
-      buyTool.ghost() ?? builder.preview,
-      wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
-      // A purchase in the Buy tool's colourway; a moved object in its own.
-      buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
-      sky,
-    );
-    // The day/night cycle. `LightingMode` combines the player's saved flat
-    // choice with reduced motion's temporary constraint, so one effective
-    // state governs ambient light, pools, and the button without rewriting
-    // the player's preference.
-    const ambient = lightingMode.isFlat()
-      ? AMBIENT_NEUTRAL
-      : ambientFor(sim.clockTick(), sim.dayTicks());
-    wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
-    renderer.draw(
-      batch.instances,
-      batch.count,
-      camera.scale,
-      ambient,
-      // [OS-daylight]: the sky shades the house by day; flat light is even.
-      lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
-    );
+    if (floorScene.visible) {
+      if (cameraDirty) applyCamera();
+      // [PA-place]: after the camera settles, so the buttons follow this
+      // frame's pan and zoom.
+      placementButtons.frame(camera, stage.width, stage.height);
+      // Editing marks the original furniture; play mode marks the selected Sim.
+      const selected = builder.active ? builder.selected : sim.selectedIndex();
+      const batch = buildInstanceBatch(
+        sim,
+        alpha,
+        camera.originX,
+        camera.originY,
+        depthScale,
+        selected,
+        camera.scale,
+        reducedMotion.matches,
+        sim.clockTick(),
+        lightingMode.isFlat() ? null : lighting,
+        undefined,
+        buyTool.ghost() ?? builder.preview,
+        wallTool.highlight() ?? roomTool.highlight() ?? floorTool.highlight(),
+        // A purchase in the Buy tool's colourway; a moved object in its own.
+        buyTool.ghost() ? buyTool.ghostColourway() : builder.colourway ?? 0,
+        sky,
+      );
+      // The day/night cycle. `LightingMode` combines the player's saved flat
+      // choice with reduced motion's temporary constraint, so one effective
+      // state governs ambient light, pools, and the button without rewriting
+      // the player's preference.
+      const ambient = lightingMode.isFlat()
+        ? AMBIENT_NEUTRAL
+        : ambientFor(sim.clockTick(), sim.dayTicks());
+      wallFade.update(sim, alpha, deltaMs, reducedMotion.matches);
+      renderer.draw(
+        batch.instances,
+        batch.count,
+        camera.scale,
+        ambient,
+        // [OS-daylight]: the sky shades the house by day; flat light is even.
+        lightingMode.isFlat() ? 0 : interiorDaylightShade * sunStrength(ambient),
+      );
+    }
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside

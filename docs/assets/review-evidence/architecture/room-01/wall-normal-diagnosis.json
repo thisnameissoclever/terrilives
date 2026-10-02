@@ -1,0 +1,339 @@
+{
+  "finding": "Weighted Normal blended segment end normals into a planar cap. Removing it preserves geometric cap normals and removes the repeated band.",
+  "old_evaluated_top_face": {
+    "normal": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "verts": [
+      [
+        -0.05299999937415123,
+        0.5,
+        2.2256879806518555
+      ],
+      [
+        -0.05299999937415123,
+        -0.5,
+        2.2256879806518555
+      ],
+      [
+        0.05299999937415123,
+        -0.5,
+        2.2256879806518555
+      ],
+      [
+        0.05299999937415123,
+        0.5,
+        2.2256879806518555
+      ]
+    ],
+    "smooth": false,
+    "corner_normals": [
+      [
+        -0.007127354387193918,
+        0.9234248995780945,
+        0.38371285796165466
+      ],
+      [
+        -0.007127255201339722,
+        -0.9234248995780945,
+        0.38371285796165466
+      ],
+      [
+        0.007127354387193918,
+        -0.9234248995780945,
+        0.38371285796165466
+      ],
+      [
+        0.007127255201339722,
+        0.9234248995780945,
+        0.38371285796165466
+      ]
+    ]
+  },
+  "samples": [
+    {
+      "axis": "x",
+      "distanceAlongWall": -0.45,
+      "sourcePixel": [
+        99,
+        85
+      ],
+      "rgba": {
+        "candidate-04": [
+          223,
+          213,
+          193,
+          255
+        ],
+        "candidate-light-comparison": [
+          220,
+          210,
+          190,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          193,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "x",
+      "distanceAlongWall": -0.3,
+      "sourcePixel": [
+        108,
+        91
+      ],
+      "rgba": {
+        "candidate-04": [
+          223,
+          213,
+          194,
+          255
+        ],
+        "candidate-light-comparison": [
+          218,
+          208,
+          189,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          194,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "x",
+      "distanceAlongWall": 0,
+      "sourcePixel": [
+        128,
+        104
+      ],
+      "rgba": {
+        "candidate-04": [
+          223,
+          213,
+          193,
+          255
+        ],
+        "candidate-light-comparison": [
+          218,
+          208,
+          189,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          193,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "x",
+      "distanceAlongWall": 0.3,
+      "sourcePixel": [
+        147,
+        116
+      ],
+      "rgba": {
+        "candidate-04": [
+          220,
+          210,
+          191,
+          255
+        ],
+        "candidate-light-comparison": [
+          212,
+          202,
+          183,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          193,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "x",
+      "distanceAlongWall": 0.45,
+      "sourcePixel": [
+        156,
+        122
+      ],
+      "rgba": {
+        "candidate-04": [
+          218,
+          208,
+          189,
+          255
+        ],
+        "candidate-light-comparison": [
+          205,
+          195,
+          177,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          193,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "y",
+      "distanceAlongWall": -0.45,
+      "sourcePixel": [
+        156,
+        85
+      ],
+      "rgba": {
+        "candidate-04": [
+          176,
+          167,
+          152,
+          255
+        ],
+        "candidate-light-comparison": [
+          177,
+          168,
+          153,
+          255
+        ],
+        "candidate-08": [
+          224,
+          213,
+          194,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "y",
+      "distanceAlongWall": -0.3,
+      "sourcePixel": [
+        147,
+        91
+      ],
+      "rgba": {
+        "candidate-04": [
+          185,
+          176,
+          160,
+          255
+        ],
+        "candidate-light-comparison": [
+          188,
+          179,
+          162,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          194,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "y",
+      "distanceAlongWall": 0,
+      "sourcePixel": [
+        128,
+        104
+      ],
+      "rgba": {
+        "candidate-04": [
+          223,
+          213,
+          194,
+          255
+        ],
+        "candidate-light-comparison": [
+          219,
+          208,
+          189,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          194,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "y",
+      "distanceAlongWall": 0.3,
+      "sourcePixel": [
+        108,
+        116
+      ],
+      "rgba": {
+        "candidate-04": [
+          223,
+          213,
+          193,
+          255
+        ],
+        "candidate-light-comparison": [
+          220,
+          210,
+          190,
+          255
+        ],
+        "candidate-08": [
+          223,
+          213,
+          193,
+          255
+        ]
+      }
+    },
+    {
+      "axis": "y",
+      "distanceAlongWall": 0.45,
+      "sourcePixel": [
+        99,
+        122
+      ],
+      "rgba": {
+        "candidate-04": [
+          222,
+          212,
+          193,
+          255
+        ],
+        "candidate-light-comparison": [
+          217,
+          207,
+          188,
+          255
+        ],
+        "candidate-08": [
+          222,
+          212,
+          193,
+          255
+        ]
+      }
+    }
+  ],
+  "new_planar_corner_normal_checks": 11820,
+  "new_contract": "For each evaluated axis-aligned planar face, every corner normal dot face normal must exceed .9999. Bevel slivers are outside this planar-face assertion."
+}

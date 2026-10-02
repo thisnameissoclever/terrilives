@@ -9,7 +9,7 @@ export function shortcutGroups(tool: ShortcutTool, coverings: readonly string[])
   if (tool === 'walls') return [
     { label: 'Select an edge', rows: [MOVE, { label: 'Vertical edge', keys: ['V'] }, { label: 'Horizontal edge', keys: ['H'] }] },
     { label: 'Edit the edge', rows: [{ label: 'Wall', keys: ['W'] }, { label: 'Doorway', keys: ['D'] },
-      { label: 'Window', keys: ['N'] }, { label: 'Remove', keys: ['Backspace', 'Delete'], alternatives: true }, CANCEL] },
+      { label: 'Windows', keys: ['N'] }, { label: 'Remove', keys: ['Backspace', 'Delete'], alternatives: true }, CANCEL] },
   ];
   if (tool === 'room') return [{ label: 'Outline', rows: [{ label: 'Move corner', keys: MOVE.keys, alternatives: true },
     { label: 'Set first corner', keys: ['Enter'] },

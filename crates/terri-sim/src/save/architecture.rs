@@ -251,7 +251,7 @@ fn finish_restore(
     content: &ContentPack,
 ) -> Result<Sim, SaveError> {
     let grid = candidate.world.resource_mut::<TileGrid>();
-    apply_layout(grid.into_inner(), &layout)?;
+    apply_layout(grid.into_inner(), &layout, content.lot.house)?;
     super::validate_portal_returns(
         &candidate.save_snapshot(),
         candidate.world.resource::<TileGrid>(),
@@ -265,7 +265,12 @@ fn finish_restore(
             &candidate.world,
         )?;
     }
+    let typed = matches!(layout, SavedLayout::EdgeWallsV3 { .. });
     candidate.world.insert_resource(layout);
+    if typed {
+        crate::placement::windows::validate_restored_windows(&candidate.world)
+            .map_err(|_| SaveError::InvalidGrid)?;
+    }
     Ok(candidate)
 }
 
@@ -417,7 +422,11 @@ fn valid_contact(
     grid.can_interact_with_rect(from, (x as i32, y as i32), footprint)
 }
 
-fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveError> {
+fn apply_layout(
+    grid: &mut TileGrid,
+    layout: &SavedLayout,
+    house: (u32, u32),
+) -> Result<(), SaveError> {
     match layout {
         SavedLayout::LegacyAuthoredV1 => {}
         SavedLayout::LegacyCells { walls } => {
@@ -432,7 +441,16 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
                 }
             }
         }
-        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. }
+        | SavedLayout::EdgeWallsV2 { .. }
+        | SavedLayout::EdgeWallsV3 { .. }) => {
+            crate::placement::windows::validate_window_layout(
+                layout,
+                grid.width() as u32,
+                grid.height() as u32,
+                house,
+            )
+            .map_err(|_| SaveError::InvalidGrid)?;
             let mut seen = BTreeSet::new();
             for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
@@ -447,7 +465,10 @@ fn apply_layout(grid: &mut TileGrid, layout: &SavedLayout) -> Result<(), SaveErr
             }
             // [WN-rules]: a saved window blocks movement like a wall, and a
             // line that is already spoken for is a corrupt save.
-            for &window in layout.windows() {
+            for window in layout.window_lines() {
+                if crate::placement::windows::is_rear(window) {
+                    continue;
+                }
                 let edge = terri_core::layout::WallEdge {
                     axis: window.axis,
                     x: window.x,

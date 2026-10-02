@@ -1,0 +1,10 @@
+{
+  "assets/models/sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "web/src/render/atlas.ts": "0effc1bbfa9a0ae5d3b010a23a1fdec22ddcf8a03d3a05ef88302faef5f9355d",
+  "web/src/render/sprites.ts": "5c9290fcc0f066e47c4dbb8b7b4fa7fe8419cba1b6f81d4828b70c6a5021b594",
+  "web/src/render/sprites.wgsl": "7c66640284d31ed20f7078ce57a5e37dc6d133004fc7fb7a24b4e32d40537930",
+  "web/src/render/instances.ts": "e81f4be0ce12f809afabd8991c2262f4ab2bb654d118f2194a85266fb31d00c8",
+  "web/src/wasm/terri_wasm_bg.wasm": "e1e0d021d55795cae0f58f3c090914bbf3e58f52391d08d82bf1e5cc744298e9",
+  "web/public/atlas-5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4.png": "5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4",
+  "web/public/atlas.png": "5099e359aca16902592e20e3f1532619d666bb53b95a36d63d7a2ca1d04622c4"
+}

@@ -35,6 +35,9 @@ pub enum PlacementRefusal {
     /// The content pack has no colourway with that index - [RC-command] in
     /// `docs/specs/2026-09-22-colourways.md`.
     UnknownColourway = 17,
+    WindowRequiresWall = 18,
+    WindowJunction = 19,
+    PartialWindow = 20,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -51,6 +54,8 @@ pub struct LotEditState {
     /// The most recent wall edit the drain committed or refused, so the shell
     /// can report a refusal only the commit could see - [WT-boundary].
     pub last_wall_result: Option<walls::WallEditResult>,
+    /// Last applied or refused whole-window command; overwritten by the next.
+    pub last_window_result: Option<windows::WindowEditResult>,
     /// The most recent purchase the drain committed or refused - [BM-buy].
     pub last_purchase_result: Option<purchase::PurchaseResult>,
     /// The most recent room the drain built or refused - [RT-boundary].
@@ -196,7 +201,16 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
                 grid.set_blocked(x as usize, y as usize, true);
             }
         }
-        layout @ (SavedLayout::EdgeWallsV1 { .. } | SavedLayout::EdgeWallsV2 { .. }) => {
+        layout @ (SavedLayout::EdgeWallsV1 { .. }
+        | SavedLayout::EdgeWallsV2 { .. }
+        | SavedLayout::EdgeWallsV3 { .. }) => {
+            windows::validate_window_layout(
+                layout,
+                grid.width() as u32,
+                grid.height() as u32,
+                world.resource::<Content>().0.lot.house,
+            )
+            .map_err(|_| UnsupportedLayout)?;
             let mut seen = std::collections::BTreeSet::new();
             for &edge in layout.edges() {
                 if !edge.in_bounds(grid.width() as u32, grid.height() as u32)
@@ -210,7 +224,10 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
             // [WN-rules]: a window stops a person exactly as a wall does. A
             // line that is somehow both keeps the wall's barrier, which the
             // repeated insert refuses anyway.
-            for &window in layout.windows() {
+            for window in layout.window_lines() {
+                if windows::is_rear(window) {
+                    continue;
+                }
                 let edge = terri_core::layout::WallEdge {
                     axis: window.axis,
                     x: window.x,
@@ -537,6 +554,7 @@ pub mod purchase;
 pub mod rooms;
 pub mod sale;
 pub mod walls;
+pub mod windows;
 
 #[cfg(test)]
 mod tests;

@@ -5,6 +5,7 @@ import { SimBridge } from '../src/bridge.js';
 import { FurnitureBuilder } from '../src/ui/builder.js';
 import { BuyTool } from '../src/ui/buy-tool.js';
 import { FloorTool } from '../src/ui/floor-tool.js';
+import { WindowTool } from '../src/ui/window-tool.js';
 import { RoomTool } from '../src/ui/room-tool.js';
 import { WallTool, WALL, DOORWAY, WINDOW, OPEN } from '../src/ui/wall-tool.js';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
@@ -243,4 +244,49 @@ it('reports intrinsic row height when the available space cannot fit the control
     keepOut: { left: 0, gearLeft: 0, gearRight: 320, gearBottom: 70 } }, 180, 80);
   expect(at.compact).toBe(true);
   expect(at.height).toBe(266);
+});
+
+it('typed window changes refresh cached contextual fit and removal capabilities', () => {
+  const f = fixture();
+  try {
+    let actions: BuildContextActions | undefined;
+    const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+    const start = main.indexOf('const windowTool = new WindowTool');
+    const first = main.indexOf('changed: () => {', start) + 'changed: () => {'.length;
+    const last = main.indexOf('    },', first);
+    if (start < 0 || last < first) throw new Error('Missing production window change hook');
+    const changed = new Function('ctx', `with(ctx) { ${main.slice(first, last)} }`);
+    const ctx = { placementActions: undefined as BuildContextActions | undefined,
+      windowTool: undefined as WindowTool | undefined, lot: { windowPreview: null as ReturnType<WindowTool['preview']> },
+      cameraDirty: false, windowControls: undefined, wallControls: undefined };
+    const windows = new WindowTool(f.source, f.handle.lot_width(), f.handle.lot_height(), {
+      changed() { changed(ctx); },
+    });
+    ctx.windowTool = windows;
+    const walls = new WallTool(f.source, f.handle.lot_width(), f.handle.lot_height(), {
+      changed() { actions?.invalidate(); },
+    }, windows);
+    const surface = { render: vi.fn<(model: ReturnType<typeof contextModel>) => void>(), place: vi.fn() };
+    actions = new BuildContextActions({ ...f.tools, walls }, surface, () => ({ height: 40, offsetX: 0 }));
+    ctx.placementActions = actions;
+    const camera = { scale: 1, originX: 400, originY: 60 };
+    f.source.fitWindow(1, 10, 0, 7); f.source.flushCommands();
+    walls.enter(); walls.choose({ axis: 1, x: 12, y: 0 }); windows.chooseModel(7);
+    actions.frame(camera, 800, 600);
+    let model = surface.render.mock.lastCall![0]!;
+    expect(model.actions.find(a => a.id === 'fit-window')!.enabled).toBe(false);
+    expect(model.actions.find(a => a.id === 'remove-window')!.enabled).toBe(true);
+    windows.chooseModel(4); actions.frame(camera, 800, 600);
+    model = surface.render.mock.lastCall![0]!;
+    expect(model.actions.find(a => a.id === 'fit-window')!.enabled).toBe(true);
+    model.actions.find(a => a.id === 'fit-window')!.invoke(); actions.frame(camera, 800, 600);
+    expect(surface.render.mock.lastCall![0]!.actions.every(a => !a.enabled)).toBe(true);
+    f.source.flushCommands(); windows.afterCommands(); walls.afterCommands(); actions.frame(camera, 800, 600);
+    surface.render.mock.lastCall![0]!.actions.find(a => a.id === 'remove-window')!.invoke();
+    f.source.flushCommands(); windows.afterCommands(); actions.frame(camera, 800, 600);
+    expect(f.source.windowPlacements()).toHaveLength(0);
+    expect(surface.render.mock.lastCall![0]!.actions.some(a => a.id === 'remove-window')).toBe(false);
+    expect(ctx.cameraDirty).toBe(true);
+    expect(ctx.lot.windowPreview).toEqual(windows.preview());
+  } finally { f.handle.free(); }
 });

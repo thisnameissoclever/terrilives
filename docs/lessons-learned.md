@@ -1,5 +1,402 @@
 # Lessons Learned
 
+## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
+
+**What happened.** A proof helper's Node test passed when run directly, but its
+`.test.mjs` filename also matched the web suite's Vitest discovery. Vitest ran
+the file and then failed because it contained no Vitest suite.
+
+**Root cause.** Proof-only changes were assumed to be isolated from production
+checks without inspecting the existing test runner's file discovery.
+
+**Prevention.** Give standalone tests a name outside other runners' discovery
+patterns and document their explicit command. Treat new test files as relevant
+to any suite that might discover them.
+
+**Verify.** Run the standalone command and the affected suite after adding or
+renaming a test file. Record runner failures even when individual tests pass.
+
+## [L-nested-build-actions] Test action reachability across nested build controls
+
+**What happened.** Selecting a window opened its nested chooser, hid ordinary
+wall actions and diverted their shortcuts. Returning to wall controls cleared
+the selection, so supported whole-window conversions could not be invoked.
+
+**Root cause.** Controller tests covered each tool's actions independently but
+did not follow selection, nested entry, return and the next ordinary edit.
+
+**Prevention.** Preserve the selected boundary separately from a multi-unit
+object's canonical anchor. Test the complete transition between related tools,
+including pending commands and selection changes after replacement.
+
+**Verify.** Select middle and end segments on both axes. Return to wall controls
+and convert or remove the whole window, placing a doorway on the chosen segment.
+Confirm pending commands and refused rear-shell edits cannot change ownership.
+
+## [L-preserved-art-routing] Verify active rendering before describing compatibility
+
+**What happened.** Documentation claimed old floor artwork remained active for
+yard, street and historical layouts, although the game selected authored floor
+materials in those locations. The historical sprite data was preserved.
+
+**Root cause.** Asset preservation and renderer tests with architecture disabled
+were mistaken for the routing used by the running game after Load.
+
+**Prevention.** Distinguish preserved asset data from active appearance. Trace
+the game setup and Load paths through material selection before documenting
+which art a saved layout displays.
+
+**Verify.** Check both the caller's architecture options and each zone's material
+mapping. Compare the resulting behavior with the approved visual requirements.
+
+## [L-benchmark-appearance-identity] Derive benchmark appearance from shipped content
+
+**What happened.** A rendering stress fixture supplied zero-filled floor colour
+settings. The fixture exercised desaturation while its results were initially
+discussed as the cost of the shipped artwork.
+
+**Root cause.** Zero was assumed to mean an unchanged appearance. Colour strength
+uses one as its identity, and authored materials compare settings with their
+baked content baseline.
+
+**Prevention.** Derive the default workload from checked-in content. Give altered
+appearance workloads explicit names and retain their input values and hashes.
+
+**Verify.** Assert that default authored floor instances encode zero relative
+colour adjustment. Report default and altered appearance measurements separately.
+
+## [L-proof-freeze-includes-metadata] Keep browser proof sources frozen until extraction
+
+**What happened.** A benchmark helper changed after its freeze was announced.
+The change only labeled resource measurements, but the development server
+reloaded the proof page and discarded its in-memory sample arrays.
+
+**Root cause.** The worker treated measurement metadata as independent from an
+active proof. The controller initially stored a tool response without checking
+that it contained results rather than an execution error.
+
+**Prevention.** Freeze the entire imported proof, including measurement metadata,
+until results have been extracted and the controller confirms page cleanup.
+Check every tool response before claiming that evidence was saved.
+
+**Verify.** Record the loaded proof revision with each case. Validate result shape
+before writing the receipt. If a reload destroys samples, identify the lost data
+and keep surviving summaries distinct from complete raw measurements.
+
+## [L-render-benchmark-pins-geometry] Freeze every input producer in a baseline
+
+**What happened.** A historical renderer benchmark imported the current geometry
+builder. Later architecture changes could therefore alter its supposedly fixed
+historical scene and send new sprite identifiers to the old renderer.
+
+**Root cause.** Only renderer sources were pinned. The benchmark treated its
+geometry builder as neutral infrastructure even though that builder defined the
+work being measured.
+
+**Prevention.** Pin the geometry producer and its imports with the renderer.
+Record source and input hashes. Distinguish identical-input renderer overhead
+from a comparison of old and new artwork for the same logical scene.
+
+**Verify.** Historical input bytes remain identical between renderer variants.
+Read pixels before yielding the presentation texture, require distinct foreground
+and clear pixels, and compare warmed samples in alternating order.
+
+## [L-enlarged-text-needs-measured-fonts] Verify the controls actually grew
+
+**What happened.** Increasing the root font size left fixed-pixel window labels
+unchanged. Doubling their computed sizes then exposed a clipped Build tab.
+
+**Root cause.** The test assumed root-relative sizing, while some controls used
+fixed font sizes and fixed column counts.
+
+**Prevention.** Measure representative computed font sizes before accepting an
+enlarged-text check. Let control rows wrap according to their labels and available
+width. Inspect both the scrollable choices and the actions needed to use them.
+
+**Verify.** Double the original computed font sizes, including fixed-size labels.
+At narrow and desktop widths, reach every choice and action, read complete labels,
+and confirm that keyboard focus remains usable after an action hides its control.
+
+## [L-resource-readiness-needs-coherent-frames] Keep static and moving objects in the same view
+
+**What happened.** Delaying a material load stopped static camera updates while
+moving objects continued using the new camera. Loading another world could also
+leave its Sims drawn over the previous room.
+
+**Root cause.** One resource-ready flag gated only part of a frame and treated
+preview resources as prerequisites for an otherwise renderable scene.
+
+**Prevention.** Separate preview readiness from placed-scene readiness. Keep the
+current complete scene responsive while a preview loads. If a loaded scene lacks
+required resources, suspend its simulation and complete presentation together,
+show an actionable loading/error state, and restore the current camera before
+revealing it. Release only the pause reason owned by that operation.
+
+**Verify.** Delay and reject a material request. Check camera movement, resize,
+Load, Retry and a second Load before the first request completes. Assert that
+static and moving objects share the same transform, obsolete resources are
+discarded, and unrelated pauses remain active.
+
+## [L-baked-art-needs-independent-identity] Compare finishes with the artwork they represent
+
+**What happened.** An injected catalogue fixture selected alternate materials,
+but additions to the default production catalogue were classified as baked art.
+
+**Root cause.** The implementation compared the editable catalogue with itself.
+The fixture used a separate object and therefore missed the production path.
+
+**Prevention.** Preserve baked-art identity independently from editable finish
+definitions. Exercise catalogue additions through the default production lookup,
+including a new palette for an existing pattern and a new pattern.
+
+**Verify.** Both additions must request alternate resources and use shared carrier
+geometry. Original descriptors must retain the accepted pixels. Reinstating the
+self-comparison must fail those assertions.
+
+## [L-test-session-exit-before-build] Wait for the active check to finish
+
+**What happened.** A production build started while the full web test session
+was still running, despite the requirement to run heavy checks serially. A later
+test-file rename also remained pending when dependent tests started, producing
+file-not-found and obsolete-file discovery failures.
+
+**Root cause.** A yielded command was treated as ready for the next check before
+its session returned an exit code. An existing atlas test also timed out earlier
+in that run; its timing does not establish that the later overlap caused it.
+
+**Prevention rule.** Keep the current heavy command's session ID until it returns
+an exit code. Apply the same rule to mutations that subsequent checks depend on.
+Use one command per execution call and one validation owner after edits freeze.
+Start the next command only after the current session's completion is observed.
+
+**How to verify.** Record the full run's actual failed result and the unchanged
+isolated test's result separately. Confirm that the final serial suite passes;
+an isolated pass is not a passing full-suite run.
+
+## [L-window-height-follows-owning-wall] Match aperture art to its wall
+
+**What happened.** Cutaway mode shortened rear windows while their surrounding
+walls stayed full height, leaving large notches in the room silhouette.
+
+**Root cause.** Window selection used the global cutaway setting, while rear
+shell segments deliberately remained full height. Individual source-raster
+comparisons verified both forms but could not detect the wrong combination.
+
+**Prevention rule.** Derive an opening's height from its owning wall. Test rear
+and interior openings together under the same scene settings.
+
+**How to verify.** In cutaway mode, require rear windows on both axes to remain
+full height and interior windows to use their low forms. Inspect the assembled
+room in full and cutaway views, including the joins beside each opening.
+
+## [L-framebuffer-proofs-need-positive-controls] Prove what a pixel sample contains
+
+**What happened.** Architecture depth and opening checks appeared to pass while
+sampling transparent or background pixels. A blending check returned the same
+color for its background, opaque and faded cases. The replacement capture then
+failed because an empty renderer draw did not clear the target. A later source
+comparison reported two incorrect edge pixels because its reference image had
+lost color precision during a browser canvas conversion.
+
+**Root cause.** The proof copied a presentation canvas after yielding and reused
+a two-dimensional canvas without clearing its previous image. It also assumed
+that drawing no instances would issue a clear pass, although the renderer returns
+early in that case. Comparing two samples did not establish what either showed.
+The reference canvas also multiplied translucent colors by alpha and divided
+them back, losing integer precision before comparison with the original texture.
+
+**Prevention rule.** Copy the graphics texture before yielding to presentation.
+Read independent byte snapshots with explicit row alignment and channel order.
+Create the proof's empty background explicitly. Require an opaque background, a
+distinct marker and a sample matching the expected source surface before using
+their differences as evidence. Decode source references losslessly and verify
+their hashes; do not relax tolerances to accommodate a lossy reference path.
+Count samples excluded at exact raster boundaries. An aligned camera can put
+every pixel on a source-texel boundary, leaving no stable color witnesses.
+Report color comparison as unobserved in those explicit cases, retain physical
+coverage and order checks, and require color witnesses at offset camera origins.
+
+**How to verify.** Draw a known marker in front of and behind an authored surface.
+Require the surface sample to match its source texel. Check a clear-only frame
+after a populated frame, and require faded-panel samples to differ from both.
+Deliberately reverse depth and enable faded-wall depth writes; each must fail
+its intended pixel assertion after the capture controls pass.
+
+## [L-queued-commands-must-survive-save] Check stored command bounds before queueing
+
+**What happened.** A new window command could enter the queue with a span that
+overflowed its coordinate type, although the save loader rejected that span.
+A save captured before command processing could therefore contain a command
+that the same game could not reload.
+
+**Root cause.** Queue admission checked individual fields but left their
+combined representational bound to later placement validation.
+
+**Prevention rule.** Validate stored command invariants at every public queue
+entry point. Keep those checks separate from ordinary placement refusals, which
+depend on the world when the command is applied. Clear an earlier edit result
+only after accepting the new command.
+
+**How to verify.** Submit an overflowing span through both typed and raw command
+entry points. Require rejection, an unchanged queue and the previous result.
+Save and reload accepted pending commands before processing them; compare their
+fields and resulting world with uninterrupted execution.
+
+## [L-guard-mutations-need-isolation] A failing test must reach the intended mutation
+
+**What happened.** A split-ownership guard mutation was reported as detected, but
+its test failed on clean input before reaching the overlapping-piece case. A
+separate material test asserted values that it had constructed itself.
+A room-edit mutation later failed on a front-door landing conflict before it
+could test preservation of a window model.
+
+**Root cause.** Deleting the assertion also removed initialization from the same
+line. The mutation runner accepted the test name in failure output without proving
+which case failed. The material test bypassed production classification entirely.
+The room fixture combined the intended wall-junction conflict with an unrelated
+landing conflict, so a changed refusal did not prove model preservation.
+
+**Prevention rule.** Separate state initialization from assertions. Require clean
+input to remain valid under a guard deletion, then require the named bad-input
+case to expose the missing guard. Test material ownership through production
+classification and exported carrier data.
+For transaction tests, establish that the candidate is valid except for the
+specific condition under test. Test metadata preservation through an otherwise
+valid edit, separately from refusal behavior.
+
+**How to verify.** Delete only the overlap check and observe the overlap assertion
+fail after clean validation passes. Misclassify glazing as a paintable surface or
+neutralize an excluded material and require the ownership test to fail. Restore
+exact source bytes and rerun the clean tests.
+Removing a junction check must permit the otherwise-valid crossing edit.
+Dropping descriptors during an unrelated room edit must fail the model-identity
+assertion. Neither test may rely on a different refusal occurring first.
+
+## [L-mixed-height-wall-mesh] Partition joined solids at shared height boundaries
+
+**What happened.** A mixed-height wall junction failed the exporter’s planar-normal
+check even though the individual wall arms were valid.
+
+**Root cause.** Adjacent cells used different vertical subdivisions. Their internal
+faces did not cancel when joined, so bevel evaluation produced an invalid surface.
+
+**Prevention rule.** Partition every adjoining cell at the same cut-height plane
+before removing shared faces. Preserve the evaluated-normal assertion.
+
+**How to verify.** Export all absent, short and full arm combinations. Check the
+mixed-height junction’s shared face ownership and planar normals, then inspect its
+source image and joined in-game appearance.
+
+## [L-approved-concept-features] Check defining geometry against the approved image
+
+**What happened.** The first complete twin-casement export had the approved paired
+leaves and handles but omitted the horizontal bars visible in the approved image.
+
+**Root cause.** The constructor followed the short model description without checking
+every defining feature in the visual reference.
+
+**Prevention rule.** Compare each model with its approved image before accepting the
+batch. Record structural features in the source tests as well as the review sheet.
+
+**How to verify.** Require the leaf bars in the geometry test. Inspect every authored
+orientation at source resolution and native game scale after export.
+
+## [L-repeated-wall-shading] Inspect evaluated normals on reusable wall pieces
+
+**What happened.** Full-height wall segments formed a flat top geometrically,
+but their repeated dark bands looked like notches when joined in the browser.
+A distant-light comparison did not remove the bands.
+
+**Root cause.** An architecture Weighted Normal modifier bent evaluated corner
+normals toward the closed segment ends even though the top polygon was flat.
+The lighting ramp exaggerated the resulting variation on each repeated piece.
+
+**Prevention rule.** Inspect evaluated corner normals as well as polygon normals.
+Preserve authored bevel faces and consistent planar shading on reusable pieces.
+Do not change the lighting or hide joins with larger sprites before establishing
+whether the surface, normals or texture ownership caused the discontinuity.
+
+**How to verify.** Assert planar corner normals agree with their face normals
+during export. Inspect joined full-height walls on both axes in the actual
+renderer, including caps and exposed ends, at native and enlarged scale.
+
+## [L-floor-coverage-needs-shared-edges] Tile coverage must survive pan and zoom
+
+**What happened.** Floor sprites showed dark joins. Exported alpha ownership
+removed most gaps, and a fractional-origin browser test passed, but the actual
+room still had holes. Per-tile fragment clipping then failed two fractional-zoom
+cases after appearing correct at native scale.
+
+**Root cause.** Export texel coverage does not establish framebuffer coverage.
+Neighboring fragments also calculated their local boundaries independently from
+rounded screen centers, so complementary inequalities could both reject a pixel.
+The first coverage test omitted the camera positions that exposed the defect.
+
+**Prevention rule.** Give adjacent floor sprites identical shared vertices from
+canonical world corners and one camera transform. Let rasterization own the shared
+edge. Do not expand tiles, bias the camera, or loosen coverage assertions to hide
+holes. After three failed approaches, obtain a fresh architectural review.
+
+**How to verify.** Retain the failing fractional origins alongside native and
+fractional pan/zoom cases. Check reversed draw order, contrasting materials,
+missing tiles and the immediate exterior boundary. Inspect an actual furnished
+room as well as isolated coverage tests.
+
+## [L-preview-fixture-identity] Give each reviewed export its own resource paths
+
+**What happened.** A browser proof loaded a previous candidate's cached JSON
+manifest with the next candidate's color and depth textures. The renderer rejected
+their disagreeing dimensions.
+
+**Root cause.** Replacing a fixture directory did not invalidate Vite's transformed
+JSON module. The resource paths stayed the same while their contents changed.
+
+**Prevention rule.** Publish each review candidate under a distinct immutable
+directory and reference that candidate's manifest and textures together. Keep
+dimension and byte-length validation at the renderer boundary.
+
+**How to verify.** Compare the served manifest dimensions with the decoded image
+and depth byte count. Run the isolated browser proof after switching candidate
+paths, and retain the candidate identity and hashes with its result.
+
+## [L-architecture-export-isolation] Validate the whole source render before packing
+
+**What happened.** The first architecture trial retained fragments of the reference
+Sim's eyes. A second trial clipped wide panels and floor patches at the source
+canvas edge. Both candidates were rejected before owner review.
+
+**Root cause.** Visibility drivers overrode individual objects' `hide_render`
+settings. Source framing also accounted for wall height without enough room for
+the projected ground extent of wider pieces.
+
+**Prevention rule.** Isolate preserved reference meshes and curves in a
+render-hidden collection, following the existing static-export pipeline. Validate
+the complete alpha bounds before cropping or packing each color/depth pair.
+
+**How to verify.** Require every source image's alpha bounds to sit strictly
+inside the canvas. Inspect both wall axes and all width classes, retain rejected
+candidate evidence, and compare the reference rig hash before and after export.
+
+## [L-concept-context-is-art-direction] Surroundings in a concept sheet affect approval
+
+**What happened.** A window-selection sheet showed the proposed windows inside
+substantial beveled plaster walls. The owner approved all nine windows but pointed
+out that the surrounding walls looked better than the actual game, then requested
+matching wall and floor work.
+
+**Root cause.** The sheet was labeled concept art, but its surrounding architecture
+still implied an in-game appearance the current renderer did not provide. A label
+alone did not establish the difference between a proposed object and its context.
+
+**Prevention rule.** Identify proposed changes to surrounding art when presenting
+asset concepts. Before producing a full coordinated asset set, show a small room
+through the actual renderer with existing furniture and a Sim for scale. Preserve
+approved object choices separately from approval of new surrounding materials.
+
+**How to verify.** The windows/walls/floors spec records all nine window approvals
+and identifies floor finishes as proposals. Its implementation plan requires a
+rendered room checkpoint before the full architecture batch. Compare that room
+with the approved board at native game scale, including joins, depth and lighting.
 ## [L-audio-observer-can-clean-up] A cleanup counter is not a passive observer
 
 **What happened.** Memory-proof wording treated a zero voice count after playback
@@ -1188,6 +1585,9 @@ to LF, breaking the manifest, journal and comparison-report acceptance chain.
 
 **Root cause.** The review binds exact file bytes, while the repository applies
 LF conversion by default. A working-tree check alone cannot exercise that boundary.
+Architecture generation exposed a second path: an unconditional Windows text
+write changed an unchanged historical manifest from LF to CRLF. Git's normalized
+diff did not show the byte change.
 
 **Prevention rule.** Mark byte-signed manifests and journals as `-text` before
 staging. Preserve the signed originals rather than rewriting their evidence or
@@ -1195,11 +1595,16 @@ weakening hash validation. Finish staging before exporting the index for review.
 If those files were already staged under text conversion, explicitly re-stage
 them with `git add --renormalize` after changing attributes; ordinary `git add`
 may retain the cached normalized blob when the working file has not changed.
+Generators must preserve an existing text file when its generated content is
+unchanged. Pin the encoding and newline convention when a write is necessary.
 
 **How to verify.** Export the completed index to a new isolated directory and
 run the atlas freshness check there. Confirm it reports the new sprite count,
 not the previous index's count. Missing raw render intermediates must not prevent
 accepted-export import, but must still fail full generation verification.
+For byte-preserved historical files, compare raw hashes before and after a normal
+generation run as well as a check-only run. Do not use a clean Git diff as the
+only evidence of byte identity.
 
 ## [L-room-relative-asset-review] Review the room, not only isolated facings
 
@@ -9555,3 +9960,33 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Validate current action identity and active work separately from suspended commitments. Keep active `StepWork` and chain-step targets ineligible. Do not reject a saved recipe counter merely because it is present.
 
 **Verify.** Interrupt cooking and dish cleanup with a toilet order. Save and load during that toilet use. Require one completion event, matching continuation hashes, and resumed work that finishes. Restore the old blanket guard temporarily and require the interruption regression to fail.
+
+## [L-architecture-main-composition] Integrate every architecture reader and drawing mode, 2026-10-02
+
+**What happened.** The held architecture branch collided with released bed command tags and door/dining drawing modes. Incoming room-region code still read the old window-only variant; horizontal hinged doors also lost frame ownership when the authored geometry path was selected. Cached contextual controls missed window change notifications.
+
+**Root cause.** Both branches appended contracts independently, and newer readers assumed the published layout version remained the newest version.
+
+**Prevention.** Published tags take precedence; append held tags afterward in serialization and hashing. Reserve distinct CPU/GPU drawing modes and bindings. Scan every legacy window reader after integrating main, expand canonical owners at every physical-boundary consumer, and preserve axis-specific ownership. Notify cached context controls from every active controller.
+
+**Verify.** Assert released bed bytes and appended window bytes, distinguish adversarially matching queued hash fields, partition wide windows on both axes, suppress only the matching hinged frame, and refresh contextual fit/remove capabilities through real command drains. Regenerate logical architecture IDs after the complete incoming atlas while checking the frozen original pixel digest.
+
+## [L-shared-shader-interstage-locations] Check varying locations after renderer integration, 2026-10-02
+
+**What happened.** Actual GPU pipeline creation rejected the combined shader because architecture registration and ground origin reused covered-bed and dining output locations 8 and 9. Local TypeScript, unit, native and asset checks had passed; no GPU case had run successfully.
+
+**Root cause.** Both renderer branches extended the shared vertex/fragment output struct independently. Resolving instance modes and resource bindings did not resolve the separate interstage location namespace.
+
+**Prevention.** Preserve published bed/dining locations 8 through 10 and place architecture registration/ground origin at 11 and 12. Check every output field for uniqueness and portable location/component budgets after combining renderer branches. Actual pipeline compilation remains necessary.
+
+**Verify.** The shared-output regression checks all thirteen fields, verifies unique locations and budgets, and rejects both original duplicate-location faults. Run the actual combined GPU pipeline before accepting any rendering case; a compilation failure means zero accepted GPU cases.
+
+### [L-ui-proof-transitions-and-capture] Verify each UI state and inspect the requested artifact
+
+**What happened.** A release walkthrough waited for the wrong Save text, then tried to close Options after Load had already closed it. A visual fixture also treated a serialized speed command and a transient canvas copy as screenshot readiness.
+
+**Root cause.** The harness inferred UI transitions and browser scheduling from simulation commands. Independent operation, rendering and screenshot claims were tied to one long sequence, so a later harness error obscured earlier passing assertions.
+
+**Prevention.** Read the current transition handlers before automating them. Use the actual Pause control for browser time. Split operation and presentation acceptance into independent cases. Check every fixture command's queue acceptance. Preserve partial assertions and overall failures accurately. Treat a canvas copy as diagnostic when the requested screenshot has its own capture path.
+
+**Verify.** Record current state, clock and resource readiness before and after capture. Inspect the saved screenshot and its nonbackground pixels outside controls. Each deliberate mechanism mutation must fail its intended assertion, restore exact source bytes and pass the restored control. See the October 2 architecture publication evidence.

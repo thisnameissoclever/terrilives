@@ -1,0 +1,16 @@
+[
+  {
+    "name": "wallOcclusionProof",
+    "pass": true,
+    "error": null,
+    "count": 171,
+    "failures": []
+  },
+  {
+    "name": "cutawayWallProof",
+    "pass": true,
+    "error": null,
+    "count": 127,
+    "failures": []
+  }
+]

@@ -1,0 +1,273 @@
+{
+  "models": [
+    {
+      "axis": 0,
+      "id": 1,
+      "before": [],
+      "after": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 2,
+      "before": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        2
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 3,
+      "before": [
+        0,
+        0,
+        1,
+        2
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        3
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 4,
+      "before": [
+        0,
+        0,
+        1,
+        3
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        4
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 5,
+      "before": [
+        0,
+        0,
+        1,
+        4
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        5
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 6,
+      "before": [
+        0,
+        0,
+        1,
+        5
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        6
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 7,
+      "before": [
+        0,
+        0,
+        1,
+        6
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        7
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 8,
+      "before": [
+        0,
+        0,
+        1,
+        7
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        8
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 0,
+      "id": 9,
+      "before": [
+        0,
+        0,
+        1,
+        8
+      ],
+      "after": [
+        0,
+        0,
+        1,
+        9
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 1,
+      "after": [
+        1,
+        10,
+        0,
+        1
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 2,
+      "after": [
+        1,
+        10,
+        0,
+        2
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 3,
+      "after": [
+        1,
+        10,
+        0,
+        3
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 4,
+      "after": [
+        1,
+        10,
+        0,
+        4
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 5,
+      "after": [
+        1,
+        10,
+        0,
+        5
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 6,
+      "after": [
+        1,
+        10,
+        0,
+        6
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 7,
+      "after": [
+        1,
+        10,
+        0,
+        7
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 8,
+      "after": [
+        1,
+        10,
+        0,
+        8
+      ],
+      "status": "Window fitted."
+    },
+    {
+      "axis": 1,
+      "id": 9,
+      "after": [
+        1,
+        10,
+        0,
+        9
+      ],
+      "status": "Window fitted."
+    }
+  ],
+  "narrowPreviewSavedDescriptor": [
+    0,
+    0,
+    1,
+    9
+  ],
+  "narrowPreview": "Sash ghost and opaque restored tail visually inspected before commit; simulation retained Clerestory.",
+  "middleAndEndSelection": "Both resolve Clerestory owner; middle removal removes entire three-unit span.",
+  "invalidThirdLine": {
+    "status": "Keep the entire window on an editable wall.",
+    "fitDisabled": true,
+    "windowsUnchanged": true
+  },
+  "nFromFloors": {
+    "selectedModelRetained": 9,
+    "chooserOpened": true
+  },
+  "pageErrors": [],
+  "visualFinding": "Desktop3columns cramp thumbnails and break words. Adaptivecard fix pending.",
+  "pointerSetup": "An exact half-pixel boundary click rounded outside lot. Interior point690,286 verified correct rearline0,0,1; no pointer defect.",
+  "revision": "9a5b014d08ce499d893d38a81cbc22285c7189e4 plus frozen Task8 candidate01; production index-BaCBtgbv.js",
+  "cleanup": "Owned isolated page/context closed and preview server14860 stopped after command identity verification."
+}

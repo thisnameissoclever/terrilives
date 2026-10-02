@@ -1,0 +1,57 @@
+{
+  "name": "queued-hash",
+  "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+  "source": "crates/terri-sim/src/lib.rs",
+  "sourceSha256": "bee6da6f72c1d0d55487b4b298601a78b01eb8feba22b07f2431a7d90a0030e1",
+  "command": [
+    "cargo",
+    "test",
+    "-j",
+    "1",
+    "-p",
+    "terri-sim",
+    "released_bed_assignment_and_window_queues_have_distinct_hashes",
+    "--",
+    "--test-threads=1"
+  ],
+  "removed": "FitWindow { axis, x, y, model } => vec![\r\n                        20,",
+  "replacement": "FitWindow { axis, x, y, model } => vec![\r\n                        19,",
+  "tests": {
+    "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+    "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+  },
+  "control": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:03.320676+00:00",
+    "finishedAt": "2026-10-02T18:14:09.998776+00:00",
+    "rawLogSha256": "464ad0bdbab64d099fda415eeb2bedbd4c12a339b45ce82e99aba1be23a83fc4",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/queued-hash-control.log",
+    "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+  },
+  "mutatedSha256": "9342f83391ab6b3d33769400a5fd648417002f933470f89edba91c3c7beb081e",
+  "mutated": {
+    "exitCode": 101,
+    "startedAt": "2026-10-02T18:14:09.999166+00:00",
+    "finishedAt": "2026-10-02T18:14:13.403106+00:00",
+    "rawLogSha256": "a2a8a1f982916c2222b6fecd8ba5eb755381ba805a166e76cd048775a76f31f7",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/queued-hash-mutated.log",
+    "failureOutput": "---- placement::windows::tests::released_bed_assignment_and_window_queues_have_distinct_hashes stdout ----\n\nthread 'placement::windows::tests::released_bed_assignment_and_window_queues_have_distinct_hashes' (57036) panicked at crates\\terri-sim\\src\\placement\\window_tests.rs:655:5:\nassertion `left != right` failed: released bed and appended window tags must not collide\n  left: 16659486303596193009\n right: 16659486303596193009\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    placement::windows::tests::released_bed_assignment_and_window_queues_have_distinct_hashes\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`",
+    "resultOutput": "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+  },
+  "restoredSha256": "bee6da6f72c1d0d55487b4b298601a78b01eb8feba22b07f2431a7d90a0030e1",
+  "exactByteRestoration": true,
+  "restored": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:13.403722+00:00",
+    "finishedAt": "2026-10-02T18:14:16.432696+00:00",
+    "rawLogSha256": "b31e8447876f6bd75efffd319af31abead7d887213e640db7dbf430edcdb838e",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/queued-hash-restored.log",
+    "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+  },
+  "verdict": "PASS",
+  "sourceGitBlobSha256": "5d007d3dbd7f8d6ab96fc2c2bc25e134dad8593d8a606efd15cdd1178e2f6fd3",
+  "testWitness": {
+    "path": "crates/terri-sim/src/placement/window_tests.rs",
+    "sha256": "e379efa423524fd175e1b7728cfa517c1be887fd670cc4ab1b7739e057b80370"
+  }
+}

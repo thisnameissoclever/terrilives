@@ -109,6 +109,19 @@ describe('explicit edge lighting', () => {
     }
   });
 
+  it('blocks every covered line of a three-unit window in both orientations', () => {
+    for (const axis of [0, 1]) {
+      const windows = Uint32Array.from([0, 1, 2].flatMap(offset => axis === 0 ? [0, 1, offset] : [1, offset, 1]));
+      for (let offset = 0; offset < 3; offset++) {
+        const from = axis === 0 ? [0, offset] : [offset, 0];
+        const to = axis === 0 ? [1, offset] : [offset, 1];
+        const source = rows([[from[0], from[1], 1, LAMP]]);
+        expect(sampleLight(buildLightField(source, 3, 3, NO_WALLS, true, NO_WALLS), to[0], to[1])).toBeGreaterThan(0);
+        expect(sampleLight(buildLightField(source, 3, 3, NO_WALLS, true, NO_WALLS, windows), to[0], to[1])).toBe(0);
+      }
+    }
+  });
+
   it('uses an explicit empty edge layout instead of stale legacy wall tiles', () => {
     const source = rows([[1, 0, 1, LAMP]]);
     const walls = Uint32Array.from([0, 0]);

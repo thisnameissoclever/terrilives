@@ -1,0 +1,534 @@
+{
+  "cases": [
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        230,
+        112
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 12096,
+      "outside": 787904,
+      "missingPixels": 0,
+      "referencePixels": 0,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "unobserved",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 12096
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.37,
+        240.37
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 12096,
+      "outside": 787904,
+      "missingPixels": 0,
+      "referencePixels": 12096,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 12090,
+      "outside": 787802,
+      "missingPixels": 0,
+      "referencePixels": 0,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "unobserved",
+      "excludedCoverageEdges": 108,
+      "excludedMaterialEdges": 12,
+      "excludedTexelBoundaries": 12078
+    },
+    {
+      "pass": true,
+      "scale": 1.75,
+      "origin": [
+        402.5,
+        196
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 37031,
+      "outside": 762864,
+      "missingPixels": 0,
+      "referencePixels": 27208,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 105,
+      "excludedMaterialEdges": 18,
+      "excludedTexelBoundaries": 9805
+    },
+    {
+      "pass": true,
+      "scale": 1.75,
+      "origin": [
+        320.37,
+        240.37
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 37044,
+      "outside": 762956,
+      "missingPixels": 0,
+      "referencePixels": 37044,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 1.75,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 37034,
+      "outside": 762858,
+      "missingPixels": 0,
+      "referencePixels": 27218,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 108,
+      "excludedMaterialEdges": 19,
+      "excludedTexelBoundaries": 9797
+    },
+    {
+      "pass": true,
+      "scale": 3,
+      "origin": [
+        690,
+        336
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 108864,
+      "outside": 691136,
+      "missingPixels": 0,
+      "referencePixels": 48384,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 60480
+    },
+    {
+      "pass": true,
+      "scale": 3,
+      "origin": [
+        320.37,
+        240.37
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 108864,
+      "outside": 691136,
+      "missingPixels": 0,
+      "referencePixels": 108864,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 3,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 108846,
+      "outside": 691054,
+      "missingPixels": 0,
+      "referencePixels": 72540,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 100,
+      "excludedMaterialEdges": 36,
+      "excludedTexelBoundaries": 36270
+    },
+    {
+      "pass": true,
+      "scale": 0.75,
+      "origin": [
+        320.125,
+        240.375
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 6804,
+      "outside": 793196,
+      "missingPixels": 0,
+      "referencePixels": 3023,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 3781
+    },
+    {
+      "pass": true,
+      "scale": 0.75,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 6800,
+      "outside": 793092,
+      "missingPixels": 0,
+      "referencePixels": 3022,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 108,
+      "excludedMaterialEdges": 7,
+      "excludedTexelBoundaries": 3771
+    },
+    {
+      "pass": true,
+      "scale": 1.25,
+      "origin": [
+        320.125,
+        240.375
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 18900,
+      "outside": 781100,
+      "missingPixels": 0,
+      "referencePixels": 12094,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 6806
+    },
+    {
+      "pass": true,
+      "scale": 1.25,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 18893,
+      "outside": 780998,
+      "missingPixels": 0,
+      "referencePixels": 12078,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 109,
+      "excludedMaterialEdges": 13,
+      "excludedTexelBoundaries": 6802
+    },
+    {
+      "pass": true,
+      "scale": 2.25,
+      "origin": [
+        320.125,
+        240.375
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 61236,
+      "outside": 738764,
+      "missingPixels": 0,
+      "referencePixels": 48385,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 12851
+    },
+    {
+      "pass": true,
+      "scale": 2.25,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 61223,
+      "outside": 738671,
+      "missingPixels": 0,
+      "referencePixels": 48360,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 106,
+      "excludedMaterialEdges": 25,
+      "excludedTexelBoundaries": 12838
+    },
+    {
+      "pass": true,
+      "scale": 2.7,
+      "origin": [
+        320.125,
+        240.375
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 88181,
+      "outside": 711819,
+      "missingPixels": 0,
+      "referencePixels": 88181,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 2.7,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": false,
+      "covering": 3,
+      "covered": 88172,
+      "outside": 711774,
+      "missingPixels": 0,
+      "referencePixels": 81760,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 54,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 6412
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": true,
+      "covering": 3,
+      "covered": 10736,
+      "outside": 789048,
+      "missingPixels": 1342,
+      "referencePixels": 0,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "unobserved",
+      "excludedCoverageEdges": 216,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 10736
+    },
+    {
+      "pass": true,
+      "scale": 1.75,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": true,
+      "covering": 3,
+      "covered": 32902,
+      "outside": 766880,
+      "missingPixels": 4113,
+      "referencePixels": 24192,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 218,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 8710
+    },
+    {
+      "pass": true,
+      "scale": 3,
+      "origin": [
+        320.5,
+        240.25
+      ],
+      "mixed": true,
+      "missing": true,
+      "covering": 3,
+      "covered": 96720,
+      "outside": 703067,
+      "missingPixels": 12090,
+      "referencePixels": 64480,
+      "failures": 0,
+      "requireSourceReference": false,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 213,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 32240
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.37,
+        240.19
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 0,
+      "covered": 12096,
+      "outside": 787904,
+      "missingPixels": 0,
+      "referencePixels": 12096,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.37,
+        240.19
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 1,
+      "covered": 12096,
+      "outside": 787904,
+      "missingPixels": 0,
+      "referencePixels": 12096,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.37,
+        240.19
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 2,
+      "covered": 12096,
+      "outside": 787904,
+      "missingPixels": 0,
+      "referencePixels": 12096,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    },
+    {
+      "pass": true,
+      "scale": 1,
+      "origin": [
+        320.37,
+        240.19
+      ],
+      "mixed": false,
+      "missing": false,
+      "covering": 3,
+      "covered": 12096,
+      "outside": 787904,
+      "missingPixels": 0,
+      "referencePixels": 12096,
+      "failures": 0,
+      "requireSourceReference": true,
+      "sourceComparison": "passed",
+      "excludedCoverageEdges": 0,
+      "excludedMaterialEdges": 0,
+      "excludedTexelBoundaries": 0
+    }
+  ],
+  "catalogue": {
+    "pass": true,
+    "finishKeys": [
+      "cool",
+      "warm"
+    ],
+    "resources": [
+      "fixture-checks"
+    ],
+    "samples": [
+      [
+        104,
+        131,
+        159,
+        255
+      ],
+      [
+        159,
+        121,
+        75,
+        255
+      ]
+    ],
+    "previewCommitCases": 6
+  },
+  "revision": "22a0435caf52571d5cc9581b399f89885c608c19"
+}

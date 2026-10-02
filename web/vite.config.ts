@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import { changelogPlugin } from './changelog/plugin.js';
 
 /**
@@ -43,6 +43,10 @@ export default defineConfig(({ mode }) => ({
   base: './',
   plugins: [changelogPlugin()],
   server: {
+    // The isolated GPU proof reads only this candidate evidence directory.
+    // Trial textures do not enter public/ or the production atlas.
+    fs: { allow: [searchForWorkspaceRoot(__dirname),
+      path.resolve(__dirname, '../docs/assets/review-evidence/architecture/room-01/trial')] },
     // Bind every interface, not only localhost, so the dev build is
     // reachable from other machines and phones on the same network at
     // port 5174. Windows will ask once to

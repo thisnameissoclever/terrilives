@@ -1,0 +1,184 @@
+{
+  "revision": "b7d2848f90bc8d226e48e6c9692e0fcf0dae5e4c",
+  "touch": {
+    "fit": [
+      0,
+      0,
+      1,
+      9
+    ],
+    "remove": [],
+    "text200": {
+      "rows": [
+        {
+          "id": "1",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 563.765625,
+            "width": 327,
+            "height": 162.78125,
+            "top": 563.765625,
+            "right": 351,
+            "bottom": 726.546875,
+            "left": 24
+          }
+        },
+        {
+          "id": "2",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 563.546875,
+            "width": 327,
+            "height": 162.78125,
+            "top": 563.546875,
+            "right": 351,
+            "bottom": 726.328125,
+            "left": 24
+          }
+        },
+        {
+          "id": "3",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 564.328125,
+            "width": 327,
+            "height": 162.78125,
+            "top": 564.328125,
+            "right": 351,
+            "bottom": 727.109375,
+            "left": 24
+          }
+        },
+        {
+          "id": "4",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 564.296875,
+            "width": 327,
+            "height": 162.78125,
+            "top": 564.296875,
+            "right": 351,
+            "bottom": 727.078125,
+            "left": 24
+          }
+        },
+        {
+          "id": "5",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 564.078125,
+            "width": 327,
+            "height": 162.78125,
+            "top": 564.078125,
+            "right": 351,
+            "bottom": 726.859375,
+            "left": 24
+          }
+        },
+        {
+          "id": "6",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 563.859375,
+            "width": 327,
+            "height": 162.78125,
+            "top": 563.859375,
+            "right": 351,
+            "bottom": 726.640625,
+            "left": 24
+          }
+        },
+        {
+          "id": "7",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 563.828125,
+            "width": 327,
+            "height": 162.78125,
+            "top": 563.828125,
+            "right": 351,
+            "bottom": 726.609375,
+            "left": 24
+          }
+        },
+        {
+          "id": "8",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 563.609375,
+            "width": 327,
+            "height": 162.78125,
+            "top": 563.609375,
+            "right": 351,
+            "bottom": 726.390625,
+            "left": 24
+          }
+        },
+        {
+          "id": "9",
+          "width": 325,
+          "scroll": 325,
+          "font": "28px",
+          "rect": {
+            "x": 24,
+            "y": 564.390625,
+            "width": 327,
+            "height": 162.78125,
+            "top": 564.390625,
+            "right": 351,
+            "bottom": 727.171875,
+            "left": 24
+          }
+        }
+      ],
+      "footer": {
+        "width": 352,
+        "scroll": 352,
+        "rect": {
+          "x": 19,
+          "y": 727.609375,
+          "width": 352,
+          "height": 97.390625,
+          "top": 727.609375,
+          "right": 371,
+          "bottom": 825,
+          "left": 19
+        }
+      }
+    }
+  },
+  "pageErrors": [],
+  "desktop": {
+    "allNineCardsReachableAtDoubleText": true,
+    "computedCardFont": "28px",
+    "keyboardRemovalFocus": "window-fit",
+    "placementsAfterRemoval": []
+  },
+  "notes": [
+    "Window cards and footer fit at doubled text. Existing Furniture tab clips at doubled text; follow-up required."
+  ]
+}

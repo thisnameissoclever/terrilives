@@ -1,0 +1,57 @@
+{
+  "name": "room-regions",
+  "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+  "source": "crates/terri-sim/src/room_regions.rs",
+  "sourceSha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df",
+  "command": [
+    "cargo",
+    "test",
+    "-j",
+    "1",
+    "-p",
+    "terri-sim",
+    "typed_wide_windows_keep_rooms_separate_on_both_axes",
+    "--",
+    "--test-threads=1"
+  ],
+  "removed": "for window in layout.window_lines()",
+  "replacement": "for window in layout.windows()",
+  "tests": {
+    "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+    "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+  },
+  "control": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:16.465155+00:00",
+    "finishedAt": "2026-10-02T18:14:16.607195+00:00",
+    "rawLogSha256": "483dcea9b5133d2bd97f033cde3c2d7ae5fb15319ff6e5a826b4c5ba4dd90539",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/room-regions-control.log",
+    "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+  },
+  "mutatedSha256": "66092eb00a90c6ba5fb01d78bb2262ce20accf17b51892d1d6d98dd1c98150f2",
+  "mutated": {
+    "exitCode": 101,
+    "startedAt": "2026-10-02T18:14:16.607370+00:00",
+    "finishedAt": "2026-10-02T18:14:20.336708+00:00",
+    "rawLogSha256": "1437eb72ea1d6f028fdc6860f77da304e3dd6f045cc5b7d58186d40b674646a9",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/room-regions-mutated.log",
+    "failureOutput": "---- room_regions::tests::typed_wide_windows_keep_rooms_separate_on_both_axes stdout ----\n\nthread 'room_regions::tests::typed_wide_windows_keep_rooms_separate_on_both_axes' (51852) panicked at crates\\terri-sim\\src\\room_regions.rs:262:17:\nassertion `left != right` failed\n  left: Some(0)\n right: Some(0)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    room_regions::tests::typed_wide_windows_keep_rooms_separate_on_both_axes\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`",
+    "resultOutput": "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+  },
+  "restoredSha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df",
+  "exactByteRestoration": true,
+  "restored": {
+    "exitCode": 0,
+    "startedAt": "2026-10-02T18:14:20.337127+00:00",
+    "finishedAt": "2026-10-02T18:14:23.881403+00:00",
+    "rawLogSha256": "f1a30185cbe6a5a126e03c8dee714badcbc0faadde8735d7f11b0bb442a24869",
+    "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/room-regions-restored.log",
+    "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+  },
+  "verdict": "PASS",
+  "sourceGitBlobSha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df",
+  "testWitness": {
+    "path": "crates/terri-sim/src/room_regions.rs",
+    "sha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df"
+  }
+}

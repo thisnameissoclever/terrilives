@@ -21,6 +21,29 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::commit(world, object, (x, y), facing);
             }
+            SimCommand::FitWindow { axis, x, y, model } => {
+                flush_ordinary(world);
+                crate::placement::windows::apply_window_edit(
+                    world,
+                    crate::placement::windows::WindowEdit::Fit(
+                        terri_core::windows::WindowPlacement {
+                            line: terri_core::layout::WallLine { axis, x, y },
+                            model,
+                        },
+                    ),
+                );
+            }
+            SimCommand::RemoveWindow { axis, x, y } => {
+                flush_ordinary(world);
+                crate::placement::windows::apply_window_edit(
+                    world,
+                    crate::placement::windows::WindowEdit::Remove(terri_core::layout::WallLine {
+                        axis,
+                        x,
+                        y,
+                    }),
+                );
+            }
             SimCommand::SetWallEdge { axis, x, y, state } => {
                 flush_ordinary(world);
                 crate::placement::walls::commit(

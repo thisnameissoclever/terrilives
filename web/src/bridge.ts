@@ -1,4 +1,6 @@
 import type { SimHandle } from './wasm/terri_wasm.js';
+import { decodeWindowCatalogue, decodeWindowPreview, type WindowDefinition,
+  type WindowEditPreview } from './architecture/windows.js';
 
 /** Personal factors and recent repetition, read together without advancing time. */
 export interface SimDetails {
@@ -174,10 +176,19 @@ const WALL_REASONS: Readonly<Record<number, string>> = {
   11: 'A wall there would leave furniture out of reach.',
   12: 'A wall there would cut off the front door.',
   13: 'A wall there would cut off the front-door landing.',
+  18: 'Fit the entire window into a solid wall.',
+  19: 'A window cannot cross a wall junction.',
+  20: 'Select the whole window to change it.',
 };
 
 export function wallReason(code: number): string | null {
   return code === 0 ? null : WALL_REASONS[code] ?? 'That change is not possible.';
+}
+
+/** Window edits share stable wall refusal codes and literal explanations. */
+export function windowReason(code: number): string | null {
+  if (code === 5) return 'Keep the entire window on an editable wall.';
+  return wallReason(code);
 }
 
 /**
@@ -228,9 +239,11 @@ const ROOM_REASONS: Readonly<Record<number, string>> = {
   11: 'The room would leave furniture out of reach.',
   12: 'The room would cut off the front door.',
   13: 'The room would cut off the front-door landing.',
+  20: 'Remove the window before changing this room.',
 };
 
 export function roomReason(code: number): string | null {
+  if (code >= 18 && code < 20) return wallReason(code);
   return code === 0 ? null : ROOM_REASONS[code] ?? 'That room is not possible.';
 }
 
@@ -963,6 +976,38 @@ export class SimBridge {
    */
   windowLines(): Uint32Array {
     return this.handle.window_lines();
+  }
+
+  /** Canonical window descriptors: axis, x, y, public model ID. */
+  windowPlacements(): Uint32Array {
+    return this.handle.window_placements();
+  }
+
+  windowCatalogue(): readonly WindowDefinition[] {
+    return decodeWindowCatalogue(this.handle.window_catalogue(), this.handle.window_catalogue_names());
+  }
+
+  windowEditPreview(axis: number, x: number, y: number, model: number): WindowEditPreview {
+    return decodeWindowPreview(this.handle.window_edit_preview(axis, x, y, model));
+  }
+
+  windowRemovalPreview(axis: number, x: number, y: number): WindowEditPreview {
+    return decodeWindowPreview(this.handle.window_removal_preview(axis, x, y));
+  }
+
+  /** Queue acceptance only; null result means pending until tick or flushCommands. */
+  fitWindow(axis: number, x: number, y: number, model: number): boolean {
+    return this.handle.fit_window(axis, x, y, model);
+  }
+
+  removeWindow(axis: number, x: number, y: number): boolean {
+    return this.handle.remove_window(axis, x, y);
+  }
+
+  /** Read-only. A newly accepted window command clears the previous result. */
+  lastWindowEditResult(): { reason: number } | null {
+    const values = this.handle.last_window_edit_result();
+    return values.length === 0 ? null : { reason: values[0] };
   }
 
   /**

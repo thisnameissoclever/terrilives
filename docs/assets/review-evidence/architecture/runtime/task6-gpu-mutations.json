@@ -1,0 +1,110 @@
+[
+  {
+    "mutation": "depth-sign",
+    "detected": true,
+    "error": "Error: Authored depth bracket: {\"axis\":1,\"side\":\"front\",\"scale\":1,\"point\":{\"px\":455,\"py\":244,\"tx\":10,\"ty\":6,\"sum\":-0.46435546875,\"expected\":[223,212,193,255]},\"front\":[223,212,193,255],\"behind\":[223,212,193,255],\"background\":[183,0,148,255]}",
+    "restored": {
+      "pass": true,
+      "axis": 1,
+      "side": "front",
+      "scale": 1,
+      "point": {
+        "px": 455,
+        "py": 244,
+        "tx": 10,
+        "ty": 6,
+        "sum": -0.46435546875,
+        "expected": [
+          223,
+          212,
+          193,
+          255
+        ]
+      },
+      "front": [
+        183,
+        0,
+        148,
+        255
+      ],
+      "behind": [
+        223,
+        212,
+        193,
+        255
+      ]
+    }
+  },
+  {
+    "mutation": "aperture-suppression",
+    "detected": true,
+    "error": "Error: Rear aperture suppresses solid shell: {\"axis\":0,\"model\":7,\"scale\":1,\"point\":{\"px\":431,\"py\":271,\"tx\":56,\"ty\":39,\"sum\":-1.271484375,\"expected\":[140,169,183,255]},\"actual\":[209,199,181,255],\"reference\":[140,169,183,255]}",
+    "restored": {
+      "pass": true,
+      "axis": 0,
+      "model": 7,
+      "scale": 1,
+      "actual": [
+        140,
+        169,
+        183,
+        255
+      ],
+      "origin": [
+        -0.5,
+        2
+      ]
+    }
+  },
+  {
+    "mutation": "low-wall-depth-write",
+    "detected": true,
+    "error": "Error: Short walls blend43.75percent without depth writes: {\"scale\":1,\"base\":[23,23,28,255],\"full\":[224,213,194,255],\"single\":[73,71,70,255],\"pair\":[73,71,70,255]}",
+    "restored": {
+      "pass": true,
+      "scale": 1,
+      "base": [
+        23,
+        23,
+        28,
+        255
+      ],
+      "full": [
+        224,
+        213,
+        194,
+        255
+      ],
+      "single": [
+        73,
+        71,
+        70,
+        255
+      ],
+      "pair": [
+        111,
+        107,
+        101,
+        255
+      ]
+    }
+  },
+  {
+    "mutation": "registration-shift",
+    "detected": true,
+    "error": "Error: Split ownership reconstructs common source raster: {\"key\":\"junction.2222\",\"scale\":1,\"covered\":3327,\"checked\":30720,\"transparent\":27393,\"excludedBoundaries\":0,\"bad\":1110,\"failures\":[{\"px\":454,\"py\":243,\"x\":128,\"y\":82,\"expected\":[23,23,28],\"found\":[148,141,131,255]},{\"px\":455,\"py\":243,\"x\":130,\"y\":82,\"expected\":[212.80392156862746,203.31372549019608,185.53725490196078],\"found\":[224,213,194,255]},{\"px\":456,\"py\":243,\"x\":132,\"y\":82,\"expected\":[222,212,193],\"found\":[206,196,179,255]},{\"px\":483,\"py\":243,\"x\":186,\"y\":82,\"expected\":[200.2549019607843,191.3921568627451,174.23529411764704],\"found\":[222,212,193,255]}]}",
+    "restored": {
+      "pass": true,
+      "key": "junction.2222",
+      "scale": 1,
+      "pieces": 4,
+      "covered": 3327,
+      "checked": 30720,
+      "bad": 0,
+      "transparent": 27393,
+      "excludedBoundaries": 0,
+      "sourceHash": "c5b3b6900d7176d884e924dff123c1cf0a4c7f350cb65d83dfdea8d612e28ee5",
+      "milliseconds": 22.604999989271164
+    }
+  }
+]

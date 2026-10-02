@@ -278,6 +278,152 @@ pub struct SaveSnapshotV3 {
 mod wire_tests {
     use super::*;
 
+    #[test]
+    fn every_historical_saved_command_keeps_its_golden_vector() {
+        use crate::{
+            layout::{EdgeAxis, Relation, WallState},
+            Facing,
+        };
+        let cases: Vec<(SavedCommand, Vec<u8>)> = vec![
+            (SavedCommand::Select(Some(7)), vec![0, 1, 7]),
+            (
+                SavedCommand::UseObject {
+                    agent: 1,
+                    object: 2,
+                    interaction: 3,
+                },
+                vec![1, 1, 2, 3],
+            ),
+            (SavedCommand::CancelIntents { agent: 4 }, vec![2, 4]),
+            (SavedCommand::SetSpeed(200), vec![3, 200]),
+            (
+                SavedCommand::TalkTo {
+                    agent: 1,
+                    target: 2,
+                    interaction: 3,
+                },
+                vec![4, 1, 2, 3],
+            ),
+            (
+                SavedCommand::UseObjectFirst {
+                    agent: 1,
+                    object: 2,
+                    interaction: 3,
+                },
+                vec![5, 1, 2, 3],
+            ),
+            (
+                SavedCommand::TalkToFirst {
+                    agent: 1,
+                    target: 2,
+                    interaction: 3,
+                },
+                vec![6, 1, 2, 3],
+            ),
+            (
+                SavedCommand::PlaceObject {
+                    object: 1,
+                    x: 2,
+                    y: 3,
+                    facing: Facing::NorthWest,
+                },
+                vec![7, 1, 2, 3, 2],
+            ),
+            (
+                SavedCommand::SetWallEdge {
+                    axis: EdgeAxis::Horizontal,
+                    x: 2,
+                    y: 3,
+                    state: WallState::Window,
+                },
+                vec![8, 1, 2, 3, 3],
+            ),
+            (
+                SavedCommand::BuyObject {
+                    definition: Some("a".into()),
+                    x: 2,
+                    y: 3,
+                    facing: Facing::NorthWest,
+                },
+                vec![9, 1, 1, b'a', 2, 3, 2],
+            ),
+            (
+                SavedCommand::BuildRoom {
+                    x0: 1,
+                    y0: 2,
+                    x1: 3,
+                    y1: 4,
+                    doorway: None,
+                },
+                vec![10, 1, 2, 3, 4, 0],
+            ),
+            (SavedCommand::SellObject { object: 7 }, vec![11, 7]),
+            (
+                SavedCommand::SetColourway {
+                    object: 7,
+                    colourway: Some("b".into()),
+                },
+                vec![12, 7, 1, 1, b'b'],
+            ),
+            (
+                SavedCommand::BuyObjectInColourway {
+                    definition: Some("a".into()),
+                    x: 2,
+                    y: 3,
+                    facing: Facing::NorthWest,
+                    colourway: Some("b".into()),
+                },
+                vec![13, 1, 1, b'a', 2, 3, 2, 1, 1, b'b'],
+            ),
+            (
+                SavedCommand::AddHousemate {
+                    name: "a".into(),
+                    personality: Some("b".into()),
+                    traits: vec![Some("c".into())],
+                },
+                vec![14, 1, b'a', 1, 1, b'b', 1, 1, 1, b'c'],
+            ),
+            (
+                SavedCommand::SetFloor {
+                    x: 2,
+                    y: 3,
+                    covering: 200,
+                },
+                vec![15, 2, 3, 200],
+            ),
+            (
+                SavedCommand::SetFamilyTie {
+                    who: 2,
+                    to: 3,
+                    relation: Some(Relation::Parent),
+                },
+                vec![16, 2, 3, 1, 1],
+            ),
+            (SavedCommand::SetDeathEnabled(true), vec![17, 1]),
+            (
+                SavedCommand::AddHousemateWithInstinct {
+                    name: "a".into(),
+                    personality: Some("b".into()),
+                    traits: vec![Some("c".into())],
+                    instinct: 100,
+                },
+                vec![18, 1, b'a', 1, 1, b'b', 1, 1, 1, b'c', 100],
+            ),
+        ];
+        assert_eq!(cases.len(), 19);
+        for (command, bytes) in cases {
+            assert_eq!(
+                postcard::to_allocvec(&command).unwrap(),
+                bytes,
+                "{command:?}"
+            );
+            assert_eq!(
+                postcard::from_bytes::<SavedCommand>(&bytes).unwrap(),
+                command
+            );
+        }
+    }
+
     fn wire(hex: &str) -> Vec<u8> {
         let hex: String = hex.split_whitespace().collect();
         hex.as_bytes()
@@ -588,6 +734,19 @@ pub enum SavedCommand {
     SetBedAssignment {
         agent: u32,
         place: Option<(u32, u8)>,
+    },
+    /// One complete typed window edit staged before a save.
+    FitWindow {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+        model: crate::windows::WindowModel,
+    },
+    /// Restore the solid wall under the window owning this segment.
+    RemoveWindow {
+        axis: crate::layout::EdgeAxis,
+        x: u32,
+        y: u32,
     },
 }
 

@@ -12,6 +12,7 @@ pub mod needs;
 pub mod rng;
 pub mod save;
 mod save_before_voice;
+pub mod windows;
 
 /// Re-exported because it appears in this crate's own public API -
 /// `Target::object`, `Intent::object` - so a consumer that names those
@@ -46,3 +47,4 @@ pub use save::{
 
 pub use save_before_voice::SaveSnapshotV1BeforeVoice;
 pub use shyness::Shyness;
+pub use windows::{WindowModel, WindowPlacement};

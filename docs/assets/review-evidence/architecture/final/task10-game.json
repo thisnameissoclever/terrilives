@@ -1,0 +1,330 @@
+{
+  "revision": "9f70b5236bbea569d7c7a08c28ee85461cadeb1f",
+  "game": {
+    "revision": "9f70b5236bbea569d7c7a08c28ee85461cadeb1f",
+    "runtime": {
+      "models": [
+        0,
+        0,
+        1,
+        9,
+        0,
+        0,
+        6,
+        8,
+        0,
+        0,
+        9,
+        7,
+        0,
+        0,
+        4,
+        6,
+        0,
+        8,
+        0,
+        5,
+        0,
+        8,
+        3,
+        4,
+        0,
+        8,
+        5,
+        3,
+        0,
+        6,
+        6,
+        2,
+        0,
+        6,
+        7,
+        1,
+        1,
+        1,
+        0,
+        9,
+        1,
+        4,
+        0,
+        8,
+        1,
+        8,
+        0,
+        7,
+        1,
+        11,
+        0,
+        6,
+        1,
+        13,
+        0,
+        5,
+        1,
+        0,
+        6,
+        4,
+        1,
+        7,
+        0,
+        3,
+        1,
+        15,
+        0,
+        2,
+        1,
+        2,
+        6,
+        1
+      ],
+      "floors": 192,
+      "tick": 2880
+    },
+    "saveLoad": {
+      "savedHash": "6703224994745180037",
+      "restoredHash": "6703224994745180037",
+      "before": {
+        "windows": 18,
+        "floors": 192
+      },
+      "changed": {
+        "windows": 17,
+        "floors": 191
+      },
+      "restored": {
+        "windows": 18,
+        "floors": 192
+      },
+      "method": "Actual Save and confirmed Load controls"
+    },
+    "pause": {
+      "method": "Visible Pause radio label",
+      "ticks": [
+        2161,
+        2161
+      ],
+      "intervalMs": 600
+    },
+    "screens": [
+      "room-noon-full.png",
+      "room-noon-play.png",
+      "room-fractional.png",
+      "room-enlarged.png",
+      "room-dusk.png",
+      "room-midnight.png",
+      "room-flat.png",
+      "room-window-replacement-preview.png"
+    ],
+    "errors": []
+  },
+  "historical": [
+    {
+      "fixture": "pre-front-door-schema2.hex",
+      "bytes": 2679,
+      "initialStatus": "Saved game loaded",
+      "edits": [
+        {
+          "fit": [
+            0,
+            0,
+            1,
+            9
+          ],
+          "result": {
+            "reason": 0
+          },
+          "placements": [
+            0,
+            0,
+            1,
+            9
+          ]
+        },
+        {
+          "fit": [
+            0,
+            0,
+            2,
+            1
+          ],
+          "result": {
+            "reason": 0
+          },
+          "placements": [
+            0,
+            0,
+            1,
+            1
+          ]
+        },
+        {
+          "removed": []
+        },
+        {
+          "fit": [
+            0,
+            0,
+            1,
+            7
+          ],
+          "result": {
+            "reason": 0
+          },
+          "placements": [
+            0,
+            0,
+            1,
+            7
+          ]
+        },
+        {
+          "floor": {
+            "x": 1,
+            "y": 1,
+            "covering": 1,
+            "reason": 0
+          }
+        },
+        {
+          "floor": {
+            "x": 2,
+            "y": 1,
+            "covering": 2,
+            "reason": 0
+          }
+        },
+        {
+          "floor": {
+            "x": 3,
+            "y": 1,
+            "covering": 3,
+            "reason": 0
+          }
+        }
+      ],
+      "room": {
+        "corners": [
+          17,
+          1,
+          18,
+          3
+        ],
+        "preview": {
+          "valid": true,
+          "reason": null,
+          "code": 0,
+          "changes": true
+        },
+        "result": {
+          "corners": [
+            17,
+            1,
+            18,
+            3
+          ],
+          "reason": null,
+          "code": 0,
+          "doorway": null
+        }
+      },
+      "savedHash": "10881304337073309849",
+      "refusal": {
+        "preview": {
+          "valid": false,
+          "reason": 5,
+          "placement": null,
+          "affectedLines": []
+        },
+        "result": {
+          "reason": 5
+        },
+        "before": "10881304337073309849",
+        "after": "10881304337073309849"
+      },
+      "restoredHash": "10881304337073309849",
+      "restoredWindows": [
+        0,
+        0,
+        1,
+        7
+      ],
+      "restoredFloors": [
+        1,
+        1,
+        1,
+        2,
+        1,
+        2,
+        3,
+        1,
+        3
+      ]
+    },
+    {
+      "fixture": "pre-yard-600.hex",
+      "bytes": 2944,
+      "initialTick": 600,
+      "initialStatus": "Saved game loaded",
+      "edits": [
+        {
+          "model": 1,
+          "result": {
+            "reason": 0
+          },
+          "placements": [
+            1,
+            10,
+            0,
+            1
+          ]
+        },
+        {
+          "model": 9,
+          "result": {
+            "reason": 0
+          },
+          "placements": [
+            1,
+            10,
+            0,
+            9
+          ]
+        },
+        {
+          "removed": []
+        }
+      ],
+      "room": {
+        "corners": [
+          17,
+          5,
+          18,
+          7
+        ],
+        "reason": null,
+        "code": 0,
+        "doorway": null
+      },
+      "hash": "10628574750815284266",
+      "windows": [
+        1,
+        10,
+        0,
+        9
+      ],
+      "floors": [
+        2,
+        2,
+        1
+      ],
+      "restoredHash": "10628574750815284266"
+    }
+  ],
+  "limits": [
+    "Fixture setup and edit commands use the real public simulation bridge; Save and confirmed Load use actual UI controls. Task8 separately verifies chooser gestures for all nine models and both axes.",
+    "Full walls use Build > Walls. Play uses cutaway walls. Native noon full capture is tick2160; play is tick2161 after leaving Build.",
+    "Wheel inputs -120, -240 and +360 demonstrate fractional/enlarged/restored camera views; scale values are not exposed by stress bridge.",
+    "Browser coverage is Windows Chromium154, desktop1600x1100. Task8 covers390x844 touch and doubledtext. Physical phones and other GPUs remain unobserved.",
+    "Task-owned contexts closed; preview PID83400 stopped after command identity check."
+  ]
+}

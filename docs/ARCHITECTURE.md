@@ -619,7 +619,8 @@ not a reconstruction of each sprite's 3D surfaces or overhangs. See
 `docs/assets/review-evidence/wall-clipping.md` for pixel and mutation checks.
 
 The shipped art direction is **Muted Line**. Its isometric atlas combines
-procedural architecture and props with reviewed offline Blender renders.
+historical procedural sprites with reviewed offline Blender renders. Current
+explicit-edge architecture uses its own paired colour/depth resources.
 The approved rig supplies character animation frames in three shirt colours;
 furniture exports supply consistent facings and, where implemented, matched
 occupied layers. Those models are authoring sources, not live 3D objects.
@@ -638,24 +639,11 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-A floor covering is what the player has laid on a tile ([FL-save] in
-`docs/specs/2026-09-22-floors.md`): a sparse, sorted list of painted tiles,
-appended last to the save envelope, so a house nobody has painted costs one
-byte and a save written before floors existed loads through the same one-byte
-pad the sleep-pressure list uses. It is drawing only, in the sense that nobody walks differently on carpet, but it is in the world hash like every other saved lot edit, so a save and load round trip cannot drop a painted tile unnoticed. Each covering's colour
-shift is appended to the shift table the yard and the street already write, so
-a painted tile writes one more row of it: no new instance, no new draw, and
-nothing reaches the simulation but the refusals that keep a covering on the
-lot and in the content.
+Floor coverings retain stable IDs and sparse saved tile records ([FL-save]). All loaded layouts use authored boards, tiles and carpet; shared world diamond vertices own coverage, and pattern phase is anchored to world coordinates. Existing content colour values apply relative to the baked art baseline. The finish catalogue separates geometry, pattern and palette; active patterns alone consume resident texture slots. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Historical sprite data and the architecture-disabled renderer path remain compatible, but the game enables authored floors after Load.
 
-A window is the third thing a wall line can be ([WN-state] in
-`docs/specs/2026-09-22-windows.md`). It keeps no wall record: the saved
-layout holds the window lines in their own list, in an appended enum variant
-that appears only once a house has a window, so a house without one saves
-exactly as it did before and its world hash does not move. Movement and the
-lamp field treat a window as a wall, the sky flood passes it because it is
-not a wall record, and it draws as a full panel at its own line, in wall art
-with a pale tint until there is window art.
+Whole windows store a model and canonical start in appended layout variants. The nine models span one, two or three lines on either axis. Historical window lines decode as Sash placements. Shared validation handles fit, replacement, removal, Room edits and load; it rejects partial spans, junctions, overlap and coordinate overflow before committing layout/grid changes. Historical command and layout encodings remain unchanged. The bridge exposes whole-window preview/result APIs while preserving the old expanded-line getter.
+
+The architecture renderer uses accepted colour and paired R16Float local depth. Finish alternatives add carrier/role data and bounded pattern textures; unchanged surfaces retain accepted pixels. Wall pieces share physical depth across splits, and floor tiles share canonical vertices. Geometry rebuilds on layout, camera and lighting changes; local cutaway fading updates retained rows without rebuilding architecture. See the [source guide](../assets/models/architecture/README.md) and [verification record](assets/review-evidence/architecture/verification.md) for resources, proof boundaries and current acceptance status.
 
 Daylight indoors works the same way ([OS-daylight] in
 `docs/specs/2026-09-22-the-outside.md`). `render/sky.ts` floods sky exposure

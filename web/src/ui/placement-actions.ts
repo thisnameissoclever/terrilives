@@ -103,13 +103,21 @@ export function contextModel(tools: ContextTools): ContextModel | null {
   const action = (id: string, label: string, slot: ContextSlot, enabled: boolean,
     invoke: () => void, icon?: ContextIcon): ContextAction => ({ id, label, slot, enabled, invoke, icon });
   if (walls.active) {
-    const line = walls.line;
+    const windows = walls.windows;
+    const line = windows?.active ? windows.line : walls.line;
     if (!line || walls.blocked) return null;
-    const ready = walls.pending === null;
+    const ready = walls.pending === null && windows?.pending == null;
+    if (windows?.active) return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
+      action('fit-window', windows.owner ? 'Replace window' : 'Fit window', 'top', windows.canApply(), () => windows.apply(), 'window'),
+      ...(windows.owner ? [action('remove-window', 'Remove window', 'top', windows.canRemove(), () => windows.remove(), 'remove')] : []),
+      action('wall-controls', 'Wall controls', 'bottom', ready, () => walls.selectWalls(), 'wall'),
+      action('clear', 'Clear', 'bottom', ready, () => windows.handleKey('Escape'), 'clear'),
+    ] };
     return { tool: 'walls', x: line.x - (line.axis === 0 ? 0.5 : 0), y: line.y - (line.axis === 1 ? 0.5 : 0), actions: [
       action('wall', 'Wall', 'top', walls.canApply(WALL), () => walls.apply(WALL), 'wall'),
       action('doorway', 'Doorway', 'top', walls.canApply(DOORWAY), () => walls.apply(DOORWAY), 'doorway'),
-      action('window', 'Window', 'top', walls.canApply(WINDOW), () => walls.apply(WINDOW), 'window'),
+      action('window', windows ? 'Windows' : 'Window', 'top', windows ? ready : walls.canApply(WINDOW),
+        () => windows ? walls.selectWindows() : walls.apply(WINDOW), 'window'),
       action('left', 'Rotate counterclockwise', 'left', ready, () => walls.rotate(), 'left'),
       action('right', 'Rotate clockwise', 'right', ready, () => walls.rotate(), 'right'),
       action('remove', 'Remove', 'bottom', walls.canApply(OPEN), () => walls.apply(OPEN), 'remove'),

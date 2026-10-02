@@ -671,11 +671,22 @@
         border: 1px solid var(--hud-edge); border-radius: 4px;
         font: inherit; font-size: 14px;
       }
-      .builder-row { display: flex; align-items: center; gap: 8px; }
+      .builder-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
       /* [B-phone-build-dock]: each tool holds its choices, then a footer of
          its status and buttons. On a desktop the choices join the tool's
          own grid and the help lines follow the footer, as they always did. */
       .builder-choices { display: contents; }
+      #window-choices[hidden], #window-actions[hidden], #wall-actions[hidden] { display: none; }
+      #window-models fieldset { min-width: 0; margin: 8px 0; padding: 4px; border: 1px solid var(--hud-edge); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.625rem), 1fr)); gap: 4px; }
+      #window-models legend { font-size: 0.875rem; }
+      .window-model { display: flex; flex-direction: column; align-items: center; padding: 4px; overflow-wrap: normal; }
+      .window-model canvas { width: 100%; height: 80px; object-fit: contain; image-rendering: pixelated; }
+      .window-width { font-size: 0.75rem; color: var(--hud-muted); }
+      #wall-tool.window-editing #wall-keyboard-help, #wall-tool.window-editing #wall-touch-help { display: none; }
+      #window-choices > .builder-row { flex-wrap: wrap; }
+      #window-actions .builder-row { flex-wrap: wrap; }
+      #window-actions button { flex-basis: 7rem; }
+
       .builder-help { order: 1; }
       .builder-actions { display: grid; gap: 8px; }
       /* Tool navigation uses equal columns in the side panel. */
@@ -1142,10 +1153,22 @@
           <div class="builder-choices">
             <details id="wall-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="wall-shortcut-content"></div></details>
             <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it.</p>
+            <div id="window-choices" hidden>
+              <div class="builder-row"><strong>Windows</strong><button id="window-back" class="hud-button" type="button">Wall controls</button></div>
+              <div id="window-models"></div>
+              <p id="window-keyboard-help" class="builder-note">Choose a model and a wall line. With the game view focused: arrows move; V and H turn; Enter fits; W builds a wall; D makes a doorway; Delete removes the selected window; Escape cancels.</p>
+              <p id="window-touch-help" class="builder-note" hidden>Choose a model, then tap a wall line. Tap a window to replace or remove its whole span. Drag to pan; pinch to zoom.</p>
+            </div>
           </div>
-          <div class="builder-actions">
+          <div id="wall-actions" class="builder-actions">
             <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
-
+          </div>
+          <div id="window-actions" class="builder-actions" hidden>
+            <p id="window-status" role="status" aria-live="polite">Choose a wall line for the window.</p>
+            <div class="builder-row">
+              <button id="window-fit" class="hud-button" type="button" disabled>Fit window</button>
+              <button id="window-remove" class="hud-button" type="button" hidden>Remove window</button>
+            </div>
           </div>
         </div>
         <!-- The Floors tool - [FL-tool] in docs/specs/2026-09-22-floors.md.
@@ -1154,6 +1177,8 @@
         <div id="floor-tool" class="builder-tool" hidden>
           <div class="builder-choices">
             <details id="floor-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="floor-shortcut-content"></div></details>
+            <div id="floor-material-samples" aria-label="Floor materials"></div>
+            <button id="floor-material-retry" class="hud-button" type="button" hidden>Retry</button>
             <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, then choose its floor covering from the nearby buttons.</p>
 
           </div>

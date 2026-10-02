@@ -1,0 +1,234 @@
+[
+  {
+    "name": "queued-hash",
+    "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+    "source": "crates/terri-sim/src/lib.rs",
+    "sourceSha256": "bee6da6f72c1d0d55487b4b298601a78b01eb8feba22b07f2431a7d90a0030e1",
+    "command": [
+      "cargo",
+      "test",
+      "-j",
+      "1",
+      "-p",
+      "terri-sim",
+      "released_bed_assignment_and_window_queues_have_distinct_hashes",
+      "--",
+      "--test-threads=1"
+    ],
+    "removed": "FitWindow { axis, x, y, model } => vec![\r\n                        20,",
+    "replacement": "FitWindow { axis, x, y, model } => vec![\r\n                        19,",
+    "tests": {
+      "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+      "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+    },
+    "control": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:03.320676+00:00",
+      "finishedAt": "2026-10-02T18:14:09.998776+00:00",
+      "rawLogSha256": "464ad0bdbab64d099fda415eeb2bedbd4c12a339b45ce82e99aba1be23a83fc4",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/queued-hash-control.log",
+      "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+    },
+    "mutatedSha256": "9342f83391ab6b3d33769400a5fd648417002f933470f89edba91c3c7beb081e",
+    "mutated": {
+      "exitCode": 101,
+      "startedAt": "2026-10-02T18:14:09.999166+00:00",
+      "finishedAt": "2026-10-02T18:14:13.403106+00:00",
+      "rawLogSha256": "a2a8a1f982916c2222b6fecd8ba5eb755381ba805a166e76cd048775a76f31f7",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/queued-hash-mutated.log",
+      "failureOutput": "---- placement::windows::tests::released_bed_assignment_and_window_queues_have_distinct_hashes stdout ----\n\nthread 'placement::windows::tests::released_bed_assignment_and_window_queues_have_distinct_hashes' (57036) panicked at crates\\terri-sim\\src\\placement\\window_tests.rs:655:5:\nassertion `left != right` failed: released bed and appended window tags must not collide\n  left: 16659486303596193009\n right: 16659486303596193009\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    placement::windows::tests::released_bed_assignment_and_window_queues_have_distinct_hashes\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`",
+      "resultOutput": "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+    },
+    "restoredSha256": "bee6da6f72c1d0d55487b4b298601a78b01eb8feba22b07f2431a7d90a0030e1",
+    "exactByteRestoration": true,
+    "restored": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:13.403722+00:00",
+      "finishedAt": "2026-10-02T18:14:16.432696+00:00",
+      "rawLogSha256": "b31e8447876f6bd75efffd319af31abead7d887213e640db7dbf430edcdb838e",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/queued-hash-restored.log",
+      "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+    },
+    "verdict": "PASS",
+    "sourceGitBlobSha256": "5d007d3dbd7f8d6ab96fc2c2bc25e134dad8593d8a606efd15cdd1178e2f6fd3",
+    "testWitness": {
+      "path": "crates/terri-sim/src/placement/window_tests.rs",
+      "sha256": "e379efa423524fd175e1b7728cfa517c1be887fd670cc4ab1b7739e057b80370"
+    }
+  },
+  {
+    "name": "room-regions",
+    "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+    "source": "crates/terri-sim/src/room_regions.rs",
+    "sourceSha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df",
+    "command": [
+      "cargo",
+      "test",
+      "-j",
+      "1",
+      "-p",
+      "terri-sim",
+      "typed_wide_windows_keep_rooms_separate_on_both_axes",
+      "--",
+      "--test-threads=1"
+    ],
+    "removed": "for window in layout.window_lines()",
+    "replacement": "for window in layout.windows()",
+    "tests": {
+      "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+      "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+    },
+    "control": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:16.465155+00:00",
+      "finishedAt": "2026-10-02T18:14:16.607195+00:00",
+      "rawLogSha256": "483dcea9b5133d2bd97f033cde3c2d7ae5fb15319ff6e5a826b4c5ba4dd90539",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/room-regions-control.log",
+      "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+    },
+    "mutatedSha256": "66092eb00a90c6ba5fb01d78bb2262ce20accf17b51892d1d6d98dd1c98150f2",
+    "mutated": {
+      "exitCode": 101,
+      "startedAt": "2026-10-02T18:14:16.607370+00:00",
+      "finishedAt": "2026-10-02T18:14:20.336708+00:00",
+      "rawLogSha256": "1437eb72ea1d6f028fdc6860f77da304e3dd6f045cc5b7d58186d40b674646a9",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/room-regions-mutated.log",
+      "failureOutput": "---- room_regions::tests::typed_wide_windows_keep_rooms_separate_on_both_axes stdout ----\n\nthread 'room_regions::tests::typed_wide_windows_keep_rooms_separate_on_both_axes' (51852) panicked at crates\\terri-sim\\src\\room_regions.rs:262:17:\nassertion `left != right` failed\n  left: Some(0)\n right: Some(0)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    room_regions::tests::typed_wide_windows_keep_rooms_separate_on_both_axes\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `-p terri-sim --lib`",
+      "resultOutput": "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+    },
+    "restoredSha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df",
+    "exactByteRestoration": true,
+    "restored": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:20.337127+00:00",
+      "finishedAt": "2026-10-02T18:14:23.881403+00:00",
+      "rawLogSha256": "f1a30185cbe6a5a126e03c8dee714badcbc0faadde8735d7f11b0bb442a24869",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/room-regions-restored.log",
+      "resultOutput": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 906 filtered out; finished in 0.00s"
+    },
+    "verdict": "PASS",
+    "sourceGitBlobSha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df",
+    "testWitness": {
+      "path": "crates/terri-sim/src/room_regions.rs",
+      "sha256": "0cd4208cf15f55a7217b6cf8539e6c2f97a642e7d82f40d376bf8637409d04df"
+    }
+  },
+  {
+    "name": "horizontal-door",
+    "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+    "source": "web/src/render/architecture-geometry.ts",
+    "sourceSha256": "dfc6eacb7f40df69870e1864c4a53a093ffe6aa04e62dd3f4d17da24e571cd48",
+    "command": [
+      "cmd",
+      "/c",
+      "npm",
+      "test",
+      "--prefix",
+      "web",
+      "--",
+      "--maxWorkers=1",
+      "tests/architecture.test.ts",
+      "-t",
+      "hinged frames own both doorway orientations"
+    ],
+    "removed": "  for (let i = 0; i + 1 < (lot.horizontalHinged?.length ?? 0); i += 2) {\r\n    hinged.add(lineKey(1, lot.horizontalHinged![i], lot.horizontalHinged![i + 1]));\r\n  }\r\n",
+    "replacement": "",
+    "tests": {
+      "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+      "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+    },
+    "control": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:23.912789+00:00",
+      "finishedAt": "2026-10-02T18:14:25.115497+00:00",
+      "rawLogSha256": "f640823fb2084e9451d497fe99b46db5d958be78c5573a68c134f63b294f5f13",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/horizontal-door-control.log",
+      "resultOutput": " Test Files  1 passed (1)\n      Tests  2 passed | 13 skipped (15)"
+    },
+    "mutatedSha256": "2dd492655becc6e90d194083046b0d70e7750d0e25857cf92ab5f2ab23a8a064",
+    "mutated": {
+      "exitCode": 1,
+      "startedAt": "2026-10-02T18:14:25.115673+00:00",
+      "finishedAt": "2026-10-02T18:14:26.303577+00:00",
+      "rawLogSha256": "b6507d71fe2f96e1f0131cc86756d88f44b86cea7e91f68604791335cff6cd1e",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/horizontal-door-mutated.log",
+      "failureOutput": " FAIL  tests/architecture.test.ts > hinged frames own both doorway orientations with cutaway false\n FAIL  tests/architecture.test.ts > hinged frames own both doorway orientations with cutaway true\nAssertionError: expected true to be false // Object.is equality\n\n- Expected\n+ Received\n\n- false\n+ true\n\n \u276f tests/architecture.test.ts:233:72\n    231|     const panels = buildArchitectureWallGeometry({ ...base, edges, cut\u2026\n    232|       hinged: axis === 0 ? [3, 3] : [], horizontalHinged: axis === 1 ?\u2026\n    233|     expect(panels.some(panel => panel.fadeKey === `door/${axis}/3/3`))\u2026\n       |                                                                        ^\n    234|     expect(panels.some(panel => panel.fadeKey === `door/${1 - axis}/3/\u2026\n    235|   }",
+      "resultOutput": " Test Files  1 failed (1)\n      Tests  2 failed | 13 skipped (15)"
+    },
+    "restoredSha256": "dfc6eacb7f40df69870e1864c4a53a093ffe6aa04e62dd3f4d17da24e571cd48",
+    "exactByteRestoration": true,
+    "restored": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:26.303928+00:00",
+      "finishedAt": "2026-10-02T18:14:27.562308+00:00",
+      "rawLogSha256": "49e5bdeadf9f66ed3a40a2e2c88d3d8def6fec3e4533b35a181b581a43c60c11",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/horizontal-door-restored.log",
+      "resultOutput": " Test Files  1 passed (1)\n      Tests  2 passed | 13 skipped (15)"
+    },
+    "verdict": "PASS",
+    "sourceGitBlobSha256": "1ccf8e3e59b9bf6929de54c705f08360476214cc1443326d6bc69279df9658ea",
+    "testWitness": {
+      "path": "web/tests/architecture.test.ts",
+      "sha256": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc"
+    }
+  },
+  {
+    "name": "window-context",
+    "baseRevision": "4550ba2d2587f7aa7ef740fc27996530f824914a",
+    "source": "web/src/main.ts",
+    "sourceSha256": "55a400bf91a7b3e7efb9c3ab4b6d06ae8193d2fe7d3dd19b6c120f724b5e6e15",
+    "command": [
+      "cmd",
+      "/c",
+      "npm",
+      "test",
+      "--prefix",
+      "web",
+      "--",
+      "--maxWorkers=1",
+      "tests/build-context.test.ts",
+      "-t",
+      "typed window changes refresh cached contextual fit and removal capabilities"
+    ],
+    "removed": "    changed: () => {\r\n      placementActions?.invalidate();\r\n      lot.windowPreview = windowTool.preview();",
+    "replacement": "    changed: () => {\r\n      lot.windowPreview = windowTool.preview();",
+    "tests": {
+      "web\\tests\\architecture.test.ts": "13d88ba01f2b9a7bd90d3838d07b1ec3222085199e8d36ca4a1b0b54b8c206cc",
+      "web\\tests\\build-context.test.ts": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+    },
+    "control": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:27.594576+00:00",
+      "finishedAt": "2026-10-02T18:14:28.802475+00:00",
+      "rawLogSha256": "3d78859618aec429d9c9b68c5bf6369f7b1529fc3b3f5d58680c46a476f035fd",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/window-context-control.log",
+      "resultOutput": " Test Files  1 passed (1)\n      Tests  1 passed | 16 skipped (17)"
+    },
+    "mutatedSha256": "d68d745c1c961ee6e65792301ac0158e105ceefd0154e9cac7a255544dfbfb78",
+    "mutated": {
+      "exitCode": 1,
+      "startedAt": "2026-10-02T18:14:28.802750+00:00",
+      "finishedAt": "2026-10-02T18:14:30.013201+00:00",
+      "rawLogSha256": "67b451b6ed56b386bc372c36c70fc952c7a0925a8378edfa468f7c721b0b4978",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/window-context-mutated.log",
+      "failureOutput": "\n FAIL  tests/build-context.test.ts > typed window changes refresh cached contextual fit and removal capabilities\nAssertionError: expected false to be true // Object.is equality\n\n- Expected\n+ Received\n\n- true\n+ false\n\n \u276f tests/build-context.test.ts:281:69\n    279|     windows.chooseModel(4); actions.frame(camera, 800, 600);\n    280|     model = surface.render.mock.lastCall![0]!;\n    281|     expect(model.actions.find(a => a.id === 'fit-window')!.enabled).to\u2026\n       |                                                                     ^\n    282|     model.actions.find(a => a.id === 'fit-window')!.invoke(); actions.\u2026\n    283|     expect(surface.render.mock.lastCall![0]!.actions.every(a => !a.ena\u2026",
+      "resultOutput": " Test Files  1 failed (1)\n      Tests  1 failed | 16 skipped (17)"
+    },
+    "restoredSha256": "55a400bf91a7b3e7efb9c3ab4b6d06ae8193d2fe7d3dd19b6c120f724b5e6e15",
+    "exactByteRestoration": true,
+    "restored": {
+      "exitCode": 0,
+      "startedAt": "2026-10-02T18:14:30.013605+00:00",
+      "finishedAt": "2026-10-02T18:14:31.222958+00:00",
+      "rawLogSha256": "7de6ef6651e61f66f021b5a449c5b865ebc98d477187ee7adb9bfe0229182645",
+      "rawLogLocalPath": ".superpowers/architecture-integration-mutations-4550ba2/window-context-restored.log",
+      "resultOutput": " Test Files  1 passed (1)\n      Tests  1 passed | 16 skipped (17)"
+    },
+    "verdict": "PASS",
+    "sourceGitBlobSha256": "26c95981a85d2337a9f46a192e535af7c27bd7444e72588fef34d7430e7b9331",
+    "testWitness": {
+      "path": "web/tests/build-context.test.ts",
+      "sha256": "4ce0065edb6c94c559e1812714a8c6f871842734aaa70fdd1ea39046dbabc6af"
+    }
+  }
+]

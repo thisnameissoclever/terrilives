@@ -1,0 +1,203 @@
+{
+  "revision": "0dbd65c30a4d413dfae821ac1a956a0352a03da9",
+  "setup": [
+    [
+      0,
+      18,
+      4,
+      7
+    ],
+    [
+      1,
+      3,
+      14,
+      7
+    ]
+  ],
+  "checks": [
+    {
+      "case": "vertical-middle Back then Doorway",
+      "before": {
+        "actions": true,
+        "doorEnabled": true,
+        "focus": "wall-window"
+      },
+      "windows": [
+        1,
+        3,
+        14,
+        7
+      ],
+      "edges": [
+        [
+          0,
+          18,
+          4,
+          0
+        ],
+        [
+          0,
+          18,
+          6,
+          0
+        ],
+        [
+          0,
+          18,
+          5,
+          1
+        ]
+      ],
+      "result": {
+        "axis": 0,
+        "x": 18,
+        "y": 5,
+        "state": 2,
+        "reason": null
+      },
+      "status": "Doorway made."
+    },
+    {
+      "case": "horizontal-end D shortcut",
+      "windows": [],
+      "edges": [
+        [
+          1,
+          3,
+          14,
+          0
+        ],
+        [
+          1,
+          4,
+          14,
+          0
+        ],
+        [
+          1,
+          5,
+          14,
+          1
+        ]
+      ],
+      "result": {
+        "axis": 1,
+        "x": 5,
+        "y": 14,
+        "state": 2,
+        "reason": null
+      },
+      "status": "Doorway made."
+    },
+    {
+      "case": "vertical-end Back then Remove wall",
+      "remainingSpanEdges": [],
+      "windows": [
+        1,
+        3,
+        14,
+        4
+      ],
+      "result": {
+        "axis": 0,
+        "x": 18,
+        "y": 6,
+        "state": 0,
+        "reason": null
+      }
+    },
+    {
+      "case": "two-unit horizontal-end W shortcut",
+      "windows": [],
+      "edges": [
+        [
+          1,
+          3,
+          14,
+          0
+        ],
+        [
+          1,
+          4,
+          14,
+          0
+        ]
+      ],
+      "result": {
+        "axis": 1,
+        "x": 4,
+        "y": 14,
+        "state": 1,
+        "reason": null
+      }
+    },
+    {
+      "case": "rear-window D refusal",
+      "hashUnchanged": true,
+      "doorDisabled": true,
+      "removeDisabled": true,
+      "wallEnabled": true,
+      "windows": [
+        0,
+        0,
+        1,
+        7
+      ]
+    },
+    {
+      "case": "narrow replacement reconciles prior end selection to current owner",
+      "result": {
+        "axis": 0,
+        "x": 0,
+        "y": 1,
+        "state": 1,
+        "reason": null
+      },
+      "windows": []
+    },
+    {
+      "case": "partial-window Room recovery instruction",
+      "preview": {
+        "valid": false,
+        "reason": "Remove the window before changing this room.",
+        "code": 20,
+        "changes": false
+      },
+      "status": "Remove the window before changing this room.",
+      "buildDisabled": true
+    },
+    {
+      "case": "narrow Room refusal copy",
+      "viewport": 390,
+      "documentWidth": 390,
+      "status": "Remove the window before changing this room.",
+      "bounds": {
+        "left": 19,
+        "right": 371
+      }
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+  "productionScripts": [
+    "http://127.0.0.1:5187/assets/index-D--ZEW6k.js"
+  ],
+  "errors": [],
+  "viewport": {
+    "width": 1600,
+    "height": 1100
+  },
+  "screenshots": [
+    "final-fix-rear-controls.png",
+    "final-fix-room-refusal.png",
+    "final-fix-room-narrow.png",
+    "final-fix-window-help.png"
+  ],
+  "notes": [
+    "Fixtures were created through public simulation commands; edits under verification used real controls and keyboard.",
+    "Initial fresh-context attempt met first-run help; closed context and restarted through the visible Got it control.",
+    "One rear-boundary pointer rounded outside the lot. Corrected to an interior point; no production pointer change.",
+    "Initial Room candidate corners produced junction refusal19; source outline inspection identified partial-outline coordinates16,5,17,8 and actual UI then returned20.",
+    "Pending command transitions were verified by composed real-WASM controller tests, not timed browser input.",
+    "Owned isolated browser context closed in finally; no owner saves accessed."
+  ]
+}

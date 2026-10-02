@@ -330,6 +330,17 @@ fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
             y: *y,
             facing: *facing,
         },
+        SimCommand::FitWindow { axis, x, y, model } => SavedCommand::FitWindow {
+            axis: *axis,
+            x: *x,
+            y: *y,
+            model: *model,
+        },
+        SimCommand::RemoveWindow { axis, x, y } => SavedCommand::RemoveWindow {
+            axis: *axis,
+            x: *x,
+            y: *y,
+        },
         SimCommand::SetWallEdge { axis, x, y, state } => SavedCommand::SetWallEdge {
             axis: *axis,
             x: *x,
@@ -862,6 +873,10 @@ fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
             y,
             facing,
         },
+        SavedCommand::FitWindow { axis, x, y, model } => {
+            SimCommand::FitWindow { axis, x, y, model }
+        }
+        SavedCommand::RemoveWindow { axis, x, y } => SimCommand::RemoveWindow { axis, x, y },
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
@@ -1170,10 +1185,22 @@ fn validate_command(
 ) -> Result<(), SaveError> {
     match command {
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        SavedCommand::FitWindow { axis, x, y, model } => terri_core::windows::WindowPlacement {
+            line: terri_core::layout::WallLine {
+                axis: *axis,
+                x: *x,
+                y: *y,
+            },
+            model: *model,
+        }
+        .checked_lines()
+        .ok_or(SaveError::InvalidValue)
+        .map(|_| ()),
         // Placement is revalidated when its position in the stream drains.
         // Impossible or stale edits must replay as refusals, not prevent Load.
         SavedCommand::PlaceObject { .. }
         | SavedCommand::SetWallEdge { .. }
+        | SavedCommand::RemoveWindow { .. }
         | SavedCommand::BuyObject { .. }
         | SavedCommand::BuildRoom { .. }
         | SavedCommand::SellObject { .. }

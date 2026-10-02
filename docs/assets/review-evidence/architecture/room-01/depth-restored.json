@@ -1,0 +1,16 @@
+{
+  "pass": true,
+  "error": null,
+  "count": 32,
+  "failures": [],
+  "measurements": {
+    "uploadMilliseconds": 267.6650000214577,
+    "renderMilliseconds": 0.22833333412806192,
+    "historicalRenderMilliseconds": 0.40216666758060454,
+    "timingScope": "30 CPU submissions plus GPU completion; historical art uses the candidate renderer; not GPU timestamp timing",
+    "colorTextureBytes": 5128192,
+    "depthTextureBytes": 2564096,
+    "historicalSpriteCount": 1700,
+    "trialSpriteCount": 29
+  }
+}
