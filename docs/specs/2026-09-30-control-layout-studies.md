@@ -117,11 +117,9 @@ selected or the roster is collapsed. Critical needs replace the activity summary
 with an explicit warning in every layout, including a collapsed dock. Sim
 names are 20px on desktop and 18px on compact screens; roster names are bold.
 Mood has a bold value and meter in the main header, beside life satisfaction.
-The dock measures about 90px high at 1280 by 800 with ordinary names and 117px
-at 800 by 700. Compact screens use a separate two-column wellbeing row; the
-dock measures about 137px at 390 by 844. Content and warnings can increase
-these heights. The original implementation measured 89px and 104px before
-these values moved into the dock.
+The mood value uses 12px bold text beside its 11px label; the desktop wellbeing
+group reserves more width for the mood meter.
+Life satisfaction uses a centered 0-100 meter with a status label. Hover or focus reveals the exact score; screen readers receive both. [Life satisfaction](2026-10-01-life-satisfaction.md) defines its thresholds and pacing. Compact screens use a separate two-column wellbeing row. Content and warnings can increase dock height; dated measurements live in the [review evidence](../assets/review-evidence/dock-controls/README.md).
 
 Collapse folds the roster and need meters; mood and life satisfaction remain
 visible. Sim details
@@ -146,16 +144,23 @@ scroll horizontally when they do not fit.
 | Traits and self-preservation | Sim details / Traits | Sim details / Traits |
 | New housemate, including with no selected Sim | Options | Options |
 
-One detail section appears at a time. The desktop sheet starts at 360 pixels
-wide, expanding to 540 pixels while Overview's personality disclosure is
-open. Compact screens use the available width. The sheet scrolls within the
-available height; its navigation wraps to keep every tab reachable. Traits starts
+One detail section appears at a time. Clicking the same dock opener again
+closes its section and returns focus to that button. Sim details stays
+highlighted while the sheet is open and closes it from any section. Queue
+stays highlighted while its section is open. Navigation tabs select sections without toggling
+them closed. The desktop sheet starts at 360 pixels wide, expanding to
+540 pixels while Overview's personality disclosure is open. Compact screens
+use the available width. The sheet scrolls within the available height;
+its navigation wraps to keep every tab reachable. Traits starts
 closed on every load and opens only when requested. Close and Escape return
 focus to a visible opener. Native dialogs and the object action menu take
 Escape before the Sim sheet. Sim details contains Overview, Queue, People and
 Traits; household creation belongs to Options, not the selected person.
 
 Queue remains a bounded upcoming-action preview, not a full queue editor.
+Its Queue mode button starts enabled on each page load and stays enabled
+until the player turns it off. Enabled mode appends new orders; disabled mode
+puts the new order first while preserving existing waiting orders.
 Its note explains that orders beyond the visible prefix remain queued.
 Opening Queue invalidates its capacity measurement so it immediately fills
 the newly visible area. Existing simulation commands and panel controllers

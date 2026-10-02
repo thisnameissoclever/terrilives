@@ -1,0 +1,49 @@
+{
+  "panelToggles": true,
+  "defaultQueueMode": true,
+  "persistentHighlights": true,
+  "closeRoutes": [
+    "toggle",
+    "Escape",
+    "Close",
+    "Options"
+  ],
+  "activeBorder": "rgb(111, 178, 210)",
+  "closedBorder": "rgb(44, 44, 54)",
+  "geometry": {
+    "moodFont": "12px",
+    "moodWeight": "700",
+    "trackWidth": 181.90625,
+    "satisfactionAlignment": "center"
+  },
+  "satisfaction": {
+    "bands": [
+      {
+        "value": 0,
+        "label": "Very dissatisfied"
+      },
+      {
+        "value": 20,
+        "label": "Dissatisfied"
+      },
+      {
+        "value": 40,
+        "label": "Content"
+      },
+      {
+        "value": 60,
+        "label": "Satisfied"
+      },
+      {
+        "value": 80,
+        "label": "Fulfilled"
+      },
+      {
+        "value": 100,
+        "label": "Fulfilled"
+      }
+    ],
+    "hoverAndFocus": true,
+    "accessible": "Life satisfaction: Content, 46.0 out of 100"
+  }
+}

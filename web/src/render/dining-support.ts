@@ -1,8 +1,8 @@
 import { sampleBedCoverage, type EncodedCoverage } from './bed-sprites.js';
 
 /** Complementary fragments preserve complete colour while using two depths. */
-export const DINING_BACKGROUND = -2;
-export const DINING_FOREGROUND = -3;
+export const DINING_BACKGROUND = -3;
+export const DINING_FOREGROUND = -4;
 
 export interface DiningSupport {
   readonly sprite: number;

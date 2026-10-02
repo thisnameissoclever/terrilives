@@ -1125,11 +1125,15 @@ describe('pickSprite', () => {
         activities: () => Uint32Array.from([action === 5 ? 1 : 0]),
       };
       const sprite = simBodySprite(7, action, 1, 0, false, ...tile, undefined, 0, true);
+      const ordinary = simBodySprite(7, action, 1, 0, false, ...tile, undefined, 0, false);
       const box = drawnBox(tile, SPRITES[sprite].name);
-      const x = box.right - 0.1;
+      const x = box.centreX;
       const y = (box.top + box.bottom) / 2;
       expect(pickSprite(rows, x, y, 0, 0)?.entity).toBe(7);
-      expect(pickSprite({ ...rows, carrying: undefined }, x, y, 0, 0)).toBeNull();
+      // Isolate frame selection even when both animation envelopes overlap.
+      const bounds = { [ordinary]: [0, 0, 0, 0] as const };
+      expect(pickSprite(rows, x, y, 0, 0, 1, false, undefined, bounds)?.entity).toBe(7);
+      expect(pickSprite({ ...rows, carrying: undefined }, x, y, 0, 0, 1, false, undefined, bounds)).toBeNull();
     }
   });
 

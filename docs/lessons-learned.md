@@ -3880,7 +3880,7 @@ would have meant the entire TypeScript side of the change was untested, and the
 honest response would have been to write five more tests.
 
 All five were in fact caught. The script scraped vitest's output for lines
-beginning with `Ã—`, which the reporter in use does not emit; the failure lines
+beginning with `Ãƒâ€”`, which the reporter in use does not emit; the failure lines
 are `FAIL  tests/<file> > <suite> > <name>`. Applying one mutation by hand and
 reading the raw output took under a minute and showed the named test failing with
 the expected diff.
@@ -6279,6 +6279,12 @@ keep native filesystem paths out of portable manifests.
 
 **How to verify.** Test both Windows and POSIX path serialization, reject
 backslashes in committed artifact references, and verify every referenced hash.
+
+The door exporter repeated this defect because its input hashes used native
+path strings and the Windows asset checks only tested local resolution. Door
+manifest tests now interpret references as POSIX paths even on Windows and
+reject backslashes, absolute paths and parent traversal. Keep this check at
+the serialized boundary rather than normalizing invalid references in consumers.
 
 ## [L-independent-render-validation] A correct composite can hide incorrect ownership
 
@@ -8884,6 +8890,40 @@ atlas pixels stay unchanged. Evidence:
 **Prevention.** Allow the header to wrap, reserve identity width, and let wellbeing labels wrap. Measure each visible header child's bounds, not only page scroll width. Include narrow desktop as well as phones in enlarged-text fixtures.
 
 **Verify.** The extended native proof rejects the original clipped Collapse bounds and checks all header controls and wellbeing fields at 320, 601, 640, 800 and 1280px with doubled text. All fit after the fix, while ordinary dock heights stay unchanged.
+## [L-door-surface-and-floor-depth] Door geometry needs surface depth, 2026-10-01
+
+The first door correction put the whole frame on a vertical depth plane. The
+floor threshold then cut through the leaf, casing and a walking Sim's feet.
+The original GPU samples tested the panel plane, so their passing result did
+not establish correct floor or casing behavior. A replacement model also
+inherited the character scene's 4-pixel ink at a smaller canvas scale, making
+the door look much heavier than the furniture. Its threshold projected past
+the casing and left visible tabs at the floor joins.
+
+Use the evaluated model's surface depth for upright geometry, and tag flush
+floor surfaces separately. Fit the threshold inside the casing faces and
+aperture. Match contour width at runtime pixel density, rather than copying
+the source scene's physical pixel setting. Inspect the model inside the room,
+including the bottom corners, both crossing directions and edge-on poses.
+
+Verification must bracket leaf faces, edge-on slab ends, casing posts and the
+header in both draw orders. Threshold checks need both an actor in front and
+a floor sample behind; otherwise deleting the threshold can falsely pass.
+See `web/proofs/door-depth.js`, `test_door_assets.py` and the solid-door
+verification record. Owner visual approval remains separate from these checks.
+
+For GPU mutations, own the browser and server lifecycle. Mutating source while
+a game or proof page remains connected to hot reload can navigate the page
+during evaluation. A stalled run is an error, not a killed mutation. Use an
+isolated server with watching and hot reload disabled, write progress and
+results, close the owned browser/server, and restore source bytes in `finally`.
+
+During release integration, generator checks were started before atlas conflict
+regeneration finished and rejected conflict markers. The rebuilt atlas also
+exposed a bed test that fixed the total sprite count despite checking a preserved
+prefix. Complete generated files before testing consumers. Keep the prefix's
+pixel and metadata checks exact while allowing later records to append. The
+combined generator suite verifies both the released bed art and new door art.
 
 ## [L-synthetic-actions-need-state-ownership] Keep synthetic action fixtures valid after ownership changes
 
@@ -8989,6 +9029,15 @@ baking sprites. Keep the accepted character mesh unchanged when adjusting poses.
 **Verification.** Inspect every phase in every direction. Measure grip and bowl
 contact, test evaluated meshes for furniture collisions, and inspect the final
 browser rendering after rebuilding both the sprite atlas and simulation.
+## [L-long-term-score-needs-exact-restoration] Defaults and restoration use different constructors
+
+**What happened.** Introducing a neutral starting score exposed fixtures that assumed an empty ledger or no upper bound. A tuning comment also expressed a per-tick rate in real-time hours while the simulation clock uses game minutes.
+
+**Root cause.** Creation, save restoration and test setup shared a default constructor with different intended meanings. Small per-tick values also approach the precision limit of a single-precision floating-point score near its ceiling.
+
+**Prevention.** Apply neutral values and trait offsets only when creating a Sim. Restore saved scores directly, validate them before changing the live world, and define saturation explicitly. Give test fixtures an explicit score. State rates in game ticks and game days; check that small losses still change a score at its maximum.
+
+**Verify.** Restore zero, an in-range score and an old total above the ceiling twice. Exercise trait offsets through the public move-in command. Run the actual neglect system at 100 with the shipped small rate. Measure month-scale extreme mood and year-scale ordinary mood. Deliberately replace exact restoration with additive restoration and omit creation offsets; the causal assertions must fail. See [dated evidence](assets/review-evidence/dock-controls/README.md).
 ### [L-privacy-domestic-composition] Merge station ownership and save contracts together
 
 Privacy and domestic work developed independently. A role-only privacy detour could
@@ -9313,6 +9362,16 @@ writer cannot replace an existing terminal result.
 
 **Verify.** The original full-suite failures name the missing physical records and mismatched scene aliases. The corrected atlas passes all 130 generator tests, including the independently pinned original sprite prefix.
 
+## [L-audio-policy-documentation] Check documented sound transitions against playback code
+
+**What happened.** The task list still described door-opening recordings after the sound design changed to silent opening and a closing thunk.
+
+**Root cause.** Updating the sound contract did not update every maintained description of the same behavior.
+
+**Prevention.** Search maintained documentation when changing sound timing, source or gain. Check each claim against the actual playback transition. Keep proposed sound content distinct from released behavior.
+
+**Verify.** Search for the old behavior and inspect each remaining reference. Historical evidence may retain its original claim; maintained task and feature descriptions must match current playback.
+
 ## [L-calibration-load-and-rate-composition] Verify timed checks without unrelated simulation load
 
 **What happened.** An atlas source-hash test exceeded its existing timeout while eleven native calibration processes ran. The unchanged test passed after those processes ended, followed by the complete web suite. Recovery calibration also reached conflicting cohort bounds when only the contact rate changed.
@@ -9353,3 +9412,17 @@ The supporting table must also appear in the rendered test scene. A chair-only c
 **Prevention.** Measure evaluated geometry across every reference state before choosing a canvas. Preserve the camera pose and assert the projected world-unit basis on both axes after resizing. Leave margin for strokes and filtering. Check rendered alpha borders before marking the producer receipt complete.
 
 **Verify.** Project the same world origin and unit vectors through the original and expanded cameras. Require matching pixel scale and complete raw and encoded alpha borders. A completed file count does not replace those checks.
+
+## [L-causal-evidence-must-survive-capture] Record each invariant independently
+
+A review found that a combined bound mutation stopped at its first assertion, leaving the second bound without observed failure evidence. Some dock failures lacked committed excerpts, and one browser result capture wrote `undefined` instead of the returned measurements. The checks had run, but the records overstated what they retained. Mutate independent guards separately, preserve failure output with source restoration digests, and parse generated evidence before claiming its contents. Verify each claimed invariant has an observed failure and every result file contains the expected non-empty structure.
+
+## [L-combined-render-modes-and-atlas-capacity] Verify combined graphics contracts before merging
+
+**What happened.** Independently valid door and dining changes reused one drawing mode and exceeded the combined texture capacity.
+
+**Root cause.** Renderer mode values had no shared collision check. Separate branches checked their own artwork budgets; fixed animation envelopes and shelf gaps consumed enough space to prevent the combined build.
+
+**Prevention.** Name renderer modes and check their distinct values against shader declarations. Preserve published sprite identities and decoded pixels during integration. Share exact duplicate texture rectangles, trim new animation envelopes with matching registration, and use a rectangle packer that can reclaim vertical gaps. Measure capacity before producing the atlas. Do not raise the portable texture limit or discard accepted artwork to make a merge pass.
+
+**Verify.** Reconstruct trimmed frames in their original canvases byte-for-byte. Check padded rectangles for overlap. Compare published sprite pixels and registration with the remote base. Execute door and dining graphics proofs against the same combined shader. Deliberately collide the modes and remove carried-food selection to verify that the regression tests reject both defects.

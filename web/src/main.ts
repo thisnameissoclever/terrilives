@@ -76,6 +76,7 @@ import {
   restorePersistenceFocus,
 } from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
+import { createSatisfactionSurface } from './ui/satisfaction-meter.js';
 import { LightingMode } from './ui/lighting-mode.js';
 import {
   advanceFrameWithCommandFeedback,
@@ -560,6 +561,9 @@ async function main(): Promise<void> {
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
+  const satisfactionSummary = document.querySelector<HTMLElement>('#satisfaction-summary');
+  const satisfactionLabel = document.querySelector<HTMLElement>('#satisfaction-label');
+  const satisfactionMeter = document.querySelector<HTMLMeterElement>('#satisfaction-meter');
   const careerRow = document.querySelector<HTMLElement>('#career-row');
   const careerValue = document.querySelector<HTMLElement>('#career-value');
   const activityValue = document.querySelector<HTMLElement>('#activity-value');
@@ -574,6 +578,9 @@ async function main(): Promise<void> {
     !clockValue ||
     !fundsValue ||
     !satisfactionValue ||
+    !satisfactionSummary ||
+    !satisfactionLabel ||
+    !satisfactionMeter ||
     !careerRow ||
     !careerValue ||
     !activityValue ||
@@ -594,16 +601,19 @@ async function main(): Promise<void> {
   const dockTraitsEmpty = document.getElementById('dock-traits-empty');
   const queueEmpty = document.getElementById('queue-empty');
   const dockAlert = document.getElementById('dock-alert');
-  if (!dockActivity || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
+  const dockCritical = document.getElementById('dock-critical');
+  if (!dockActivity || !dockCritical || !dockTraitsEmpty || !queueEmpty || !dockAlert) throw new Error('missing compact Sim summary');
   const needMeters = Array.from(needsContent.querySelectorAll<HTMLElement>('[role="meter"]'));
   const syncDockSummary = () => {
     const critical = needsContent.hidden ? [] : needMeters
       .filter(meter => meter.getAttribute('aria-valuetext')?.endsWith(', critical'))
       .map(meter => meter.getAttribute('aria-label'));
-    const activity = critical.length ? `Critical: ${critical.join(', ')}`
-      : activityValue.textContent ?? '';
+    // The current activity always shows; critical needs get their own line.
+    const activity = activityValue.textContent ?? '';
+    const urgent = critical.length ? `Critical: ${critical.join(', ')}` : '';
     dockActivity.dataset.urgent = String(critical.length > 0);
     if (dockActivity.textContent !== activity) dockActivity.textContent = activity;
+    if (dockCritical.textContent !== urgent) dockCritical.textContent = urgent;
     dockTraitsEmpty.hidden = !traitsBlock.hidden;
     queueEmpty.hidden = !actionQueueRoot.hidden;
     const warning = householdWarningText(householdRosterRoot.querySelectorAll<HTMLElement>('.household-member'));
@@ -662,6 +672,7 @@ async function main(): Promise<void> {
       orders: ordersValue,
     },
     sim.needBarRefreshMs(),
+    createSatisfactionSurface(satisfactionSummary, satisfactionLabel, satisfactionMeter),
   );
   const householdRoster = new HouseholdRoster(
     sim,
@@ -893,6 +904,7 @@ async function main(): Promise<void> {
           // the list by height.
           lot.floors = sim.floorTiles();
           lot.doors = sim.interiorDoorLines();
+          lot.horizontalDoors = sim.interiorHorizontalDoorLines();
           lot.frontDoors = sim.frontDoorLines();
           // A world saved before the yard that never grew has no street.
           lot.street = sim.streetColumn();
@@ -1090,7 +1102,7 @@ async function main(): Promise<void> {
     // [FL-draw]: what the player has laid, and each covering's shift.
     floors: sim.floorTiles(),
     coveringLooks: sim.coveringLooks(),
-    doors: sim.interiorDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
+    doors: sim.interiorDoorLines(), horizontalDoors: sim.interiorHorizontalDoorLines(), house: sim.houseSize(), yardLook: sim.yardLook(),
     street: sim.streetColumn(), streetLook: sim.streetLook(), showCutAwayWalls: false,
     frontDoors: sim.frontDoorLines() };
   const camera = { scale: 1, originX: 0, originY: 0 };
@@ -1615,6 +1627,7 @@ async function main(): Promise<void> {
       lot.windows = sim.windowLines();
       lot.floors = sim.floorTiles();
       lot.doors = sim.interiorDoorLines();
+      lot.horizontalDoors = sim.interiorHorizontalDoorLines();
       lightingDirty = true;
       cameraDirty = true;
       keyboardTargets.clear();

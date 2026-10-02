@@ -5,12 +5,23 @@ import { packDiningSupport, sampleDiningSupport, DINING_BACKGROUND, DINING_FOREG
 import { InteractionSelection } from '../src/render/interaction-sprites.js';
 import { INTERACTION_SPRITES, SPRITE_DINING_SUPPORT, SPRITE_PAIR_MASKS, spriteIndex } from '../src/render/atlas.js';
 import { FLOATS_PER_INSTANCE } from '../src/render/instances.js';
+import { SURFACE_DEPTH_PROJECTION } from '../src/render/instances.js';
+import shader from '../src/render/sprites.wgsl?raw';
 import { layeredDepth, LAYER_FOREGROUND } from '../src/render/iso.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.js';
 import { sampleBedCoverage } from '../src/render/bed-sprites.js';
 import { SPRITE_PAIR_COVERAGE } from '../src/render/atlas.js';
 
 const none = 0xffffffff;
+
+it('keeps dining masks distinct from modelled door depth in both renderer protocols', () => {
+  const modes = { SURFACE_DEPTH_PROJECTION, DINING_BACKGROUND, DINING_FOREGROUND };
+  expect(new Set(Object.values(modes)).size).toBe(3);
+  for (const [name, value] of Object.entries(modes)) {
+    const declaration = shader.match(new RegExp(`const ${name}: f32 = (-?[\\d.]+);`));
+    expect(Number(declaration?.[1])).toBe(value);
+  }
+});
 const cases = [
   ['SE', 'SW', 0, 1.5, 1, 2], ['SW', 'NW', -1.5, 0, 2, 1],
   ['NW', 'NE', 0, -1.5, 1, 2], ['NE', 'SE', 1.5, 0, 2, 1],

@@ -1029,10 +1029,7 @@ fn interpersonal_affinity_flows_through_mood_to_satisfaction_only_once() {
     for need in [NeedId::Hunger, NeedId::Energy, NeedId::Fun] {
         sim.world_mut().get_mut::<Needs>(a).unwrap().set(need, 30.0);
     }
-    sim.world_mut()
-        .get_mut::<Satisfaction>(a)
-        .unwrap()
-        .add(10.0);
+    *sim.world_mut().get_mut::<Satisfaction>(a).unwrap() = Satisfaction::from_value(10.0);
     let before = sim.mood_of(a.index_u32()).unwrap().overall_score;
     start(&mut sim, b, toilet);
     movement(&mut sim);

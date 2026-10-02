@@ -37,6 +37,10 @@ The controls live in Options on desktop and mobile. Both ranges are at least
 44 CSS pixels tall. The help dialog names the controls. Browser storage denial
 leaves the current session settings usable.
 
+Footsteps have a peak amplitude of 0.0225 before Effects and master gain. Their
+40-millisecond duration and 175-to-130 Hz pitch sweep remain unchanged. Continuous
+indoor background noise is excluded from the sound design.
+
 The versioned preference key remains `terrilives.audio-preferences.v1`.
 Malformed original fields or an unknown version discard the record. Existing
 valid records without `voicesLevel` keep their mute and Effects settings and
@@ -747,7 +751,7 @@ Restored SHA-256 values were:
 ## Open work
 
 1. Complete subjective listening review for provisional shower and door recordings.
-2. Select and accept recordings for the object-loop player. Add ambience,
+2. Select and accept recordings for the object-loop player. Add outdoor ambience,
    alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.
    Voices now has its own multiplier without changing the Effects meaning.

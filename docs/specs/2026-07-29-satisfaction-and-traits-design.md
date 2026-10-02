@@ -28,13 +28,15 @@ Everything below follows from taking that seriously.
 
 ## [S1] Two axes, not one
 
+[Life satisfaction](2026-10-01-life-satisfaction.md) defines the current bounded score, starting values and long-term pacing.
+
 The single most important consequence is that **satisfaction is a second axis
 and not a summary of the first**.
 
 | | Needs | Satisfaction |
 | --- | --- | --- |
 | horizon | minutes | a lifetime |
-| behaviour | drain continuously, must be topped up | accumulates |
+| behaviour | drain continuously, must be topped up | changes slowly within 0-100 |
 | failing it | a crisis | a life quietly not worth living |
 | who cares | the sim | the **player** |
 | source | objects that advertise | hobbies, career, relationships |

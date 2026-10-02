@@ -163,3 +163,7 @@ detail.
 * Create-a-sim, where a player chooses traits. That is its own M1 bullet.
 * Rolled traits for spawned sims. That arrives with M3.
 * Granting new traits to households in older saves. See [TL-old-saves].
+
+## [TL-starting-satisfaction] Small creation-only offsets
+
+Traits may author an optional `starting_satisfaction_offset`, defaulting to zero. Each offset and their combined contribution stay within nine points of the neutral starting score of 50. Shipped descriptions state nonzero offsets within the existing one-sentence, 80-character limit. Loading preserves the saved assessment and does not reapply offsets. The [life satisfaction specification](2026-10-01-life-satisfaction.md) owns the values, pacing and meter. Trait IDs, kinds and compatibility fingerprints retain their existing meanings.

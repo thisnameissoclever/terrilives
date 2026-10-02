@@ -1525,6 +1525,14 @@ impl SimHandle {
             .collect()
     }
 
+    /// Horizontal hinged doorway lines as sorted `[x, y]` pairs.
+    pub fn interior_horizontal_door_lines(&self) -> Vec<u32> {
+        terri_sim::portals::interior_horizontal_door_lines(self.sim.world())
+            .into_iter()
+            .flat_map(|(x, y)| [x, y])
+            .collect()
+    }
+
     /// The front door's line, as an `[x, y]` pair, or empty on a lot with no
     /// front door - [WB-draw] in `docs/specs/2026-09-22-walls-in-build.md`.
     /// The door draws its own frame there, so when the Walls tool shows the
@@ -1555,6 +1563,14 @@ impl SimHandle {
 
     pub fn portal_leaves_ptr(&self) -> *const u32 {
         self.sim.portal_buffer().leaves.as_ptr()
+    }
+
+    pub fn portal_openness_ptr(&self) -> *const f32 {
+        self.sim.portal_buffer().openness.as_ptr()
+    }
+
+    pub fn portal_previous_openness_ptr(&self) -> *const f32 {
+        self.sim.portal_buffer().previous_openness.as_ptr()
     }
 
     pub fn portal_reduced_leaves_ptr(&self) -> *const u32 {
@@ -3178,7 +3194,7 @@ mod boundary_tests {
         assert_eq!(labels[14], "Cooped up");
         assert_eq!(
             descriptions[14],
-            "Gets less out of everything; exercise eases it."
+            "Less activity satisfaction; exercise helps; starts 3 points lower."
         );
 
         let worn: Vec<usize> = handle
@@ -3219,9 +3235,9 @@ mod boundary_tests {
         // The front door, then a door in each of the three vertical
         // doorways ([DR-derived]).
         let mut migrated = SimHandle::from_lot();
-        assert_eq!(migrated.portal_count(), 4);
+        assert_eq!(migrated.portal_count(), 6);
         assert!(migrated.load_bytes(&bytes));
-        assert_eq!(migrated.portal_count(), 4);
+        assert_eq!(migrated.portal_count(), 6);
 
         // The saved walls are kept as saved; growing into the yard only adds
         // the house's outside walls after them ([OS-migrate]).
@@ -3241,7 +3257,7 @@ mod boundary_tests {
         let resaved = migrated.save_bytes();
         let mut resumed = SimHandle::from_lot();
         assert!(resumed.load_bytes(&resaved));
-        assert_eq!(resumed.portal_count(), 4);
+        assert_eq!(resumed.portal_count(), 6);
         assert_eq!(resumed.sim.save_snapshot_v2(), current);
     }
 
@@ -3829,7 +3845,7 @@ mod boundary_tests {
         // The front door is row 0; a door in each of the three vertical
         // doorways follows it ([DR-derived]). The pointer reads below address
         // row 0 only.
-        assert_eq!(handle.portal_count(), 4);
+        assert_eq!(handle.portal_count(), 6);
         assert_eq!(handle.interior_door_lines(), [6, 9, 8, 2, 12, 8]);
         // Outside the front door, then the tile right of each door's line.
         assert_eq!(
@@ -3884,7 +3900,7 @@ mod boundary_tests {
             .id();
         handle.sim.sync_render_buffer();
 
-        assert_eq!(handle.portal_count(), 4);
+        assert_eq!(handle.portal_count(), 6);
         assert_eq!(
             addressed(handle.portal_leaves_ptr(), 1, "portal_leaves_ptr"),
             vec![ajar],
@@ -7315,7 +7331,7 @@ mod boundary_tests {
         let mut feelings = Relationships::default();
         feelings.bump(SimId(9), 0.5);
         feelings.bump(SimId(2), -0.25);
-        let mut ledger = terri_core::Satisfaction::default();
+        let mut ledger = terri_core::Satisfaction::from_value(0.0);
         ledger.add(6.5);
         let agent = handle
             .sim

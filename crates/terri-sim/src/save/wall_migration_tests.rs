@@ -88,8 +88,8 @@ fn a_migrated_v1_house_shows_its_doors_before_the_first_tick() {
     ));
     assert_eq!(
         loaded.portal_buffer().states.len(),
-        4,
-        "the front door and a door in each of the three vertical doorways"
+        6,
+        "the front door, three vertical doors and two horizontal doors"
     );
 }
 

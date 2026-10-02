@@ -1008,7 +1008,8 @@ export function handleRightClick(
  * sim may have gone away. Reading now means the row acts on whoever the
  * simulation currently says is selected, or on nobody.
  *
- * A row goes to the FRONT of the queue by default, like a plain left click.
+ * This helper defaults to the FRONT when no placement is supplied.
+ * The player control starts in Queue mode, so normal UI orders append.
  * `main.ts` passes `'back'` when the visible Queue mode is on OR when Ctrl
  * or Cmd was held on the row itself (the surface reports that with the
  * pick), so touch, keyboard and desktop players all have the same append

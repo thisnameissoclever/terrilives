@@ -498,9 +498,9 @@ mod tests {
 
         shipped.load_snapshot_v2(saved.clone()).unwrap();
         assert!(shipped.world().contains_resource::<ActivePortals>());
-        // The front door, then a door in each of the three vertical
+        // The front door, then a door in each of the three vertical and two horizontal
         // doorways ([DR-derived]).
-        assert_eq!(shipped.portal_buffer().states.len(), 4);
+        assert_eq!(shipped.portal_buffer().states.len(), 6);
 
         let mut blank = Sim::new();
         blank.load_snapshot_v2(saved).unwrap();

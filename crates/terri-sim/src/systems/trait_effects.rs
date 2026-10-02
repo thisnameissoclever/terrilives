@@ -134,6 +134,7 @@ mod tests {
 
     fn disposition(tag: &str, multiplier: f32) -> CompiledTrait {
         CompiledTrait {
+            starting_satisfaction_offset: 0.0,
             id: format!("d_{tag}"),
             label: format!("About {tag}"),
             tag: tag.to_string(),
@@ -146,6 +147,7 @@ mod tests {
 
     fn condition(tag: &str, accrual_scale: f32, manage: f32) -> CompiledTrait {
         CompiledTrait {
+            starting_satisfaction_offset: 0.0,
             id: format!("c_{tag}"),
             label: format!("Heavy about {tag}"),
             tag: tag.to_string(),
@@ -160,6 +162,7 @@ mod tests {
 
     fn capability(tag: &str, fail_scale: f32, learn: f32) -> CompiledTrait {
         CompiledTrait {
+            starting_satisfaction_offset: 0.0,
             id: format!("k_{tag}"),
             label: format!("Skill at {tag}"),
             tag: tag.to_string(),
@@ -282,6 +285,7 @@ mod tests {
         );
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             traits: vec![CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "cannot_cook".to_string(),
                 label: "Can't cook".to_string(),
                 tag: "cooking".to_string(),
@@ -308,7 +312,7 @@ mod tests {
                 terri_core::Agent,
                 terri_core::Position { x: 2.0, y: 1.0 },
                 needs,
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
                 Traits::from_entries(vec![(0, 0.0)]),
             ))
             .id();
@@ -366,6 +370,7 @@ mod tests {
         );
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             traits: vec![CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "fears_the_sofa".to_string(),
                 label: "Fears the sofa".to_string(),
                 tag: "lounging".to_string(),
@@ -442,6 +447,7 @@ mod tests {
         );
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             traits: vec![CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "heavy".to_string(),
                 label: "Heavy".to_string(),
                 tag: "whittling".to_string(),
@@ -468,7 +474,7 @@ mod tests {
                 terri_core::Agent,
                 terri_core::Position { x: 2.0, y: 1.0 },
                 needs,
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
                 terri_core::Hobbies(vec!["whittling".to_string()]),
                 Traits::from_entries(vec![(0, 1.0)]),
             ))
@@ -484,7 +490,8 @@ mod tests {
                 .value();
             if paid > 0.0 {
                 assert_eq!(
-                    paid, 3.0,
+                    paid,
+                    3.0 * terri_core::Satisfaction::REWARD_SCALE,
                     "loved 6, scaled by the full-severity 0.5 - a divide pays 12 here"
                 );
                 assert_eq!(
@@ -517,6 +524,7 @@ mod tests {
         );
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             traits: vec![CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "weary".to_string(),
                 label: "Weary".to_string(),
                 tag: "socialising".to_string(),
@@ -537,7 +545,7 @@ mod tests {
                 terri_core::SimId(0),
                 terri_core::Position { x: 1.0, y: 1.0 },
                 terri_core::Needs::with(terri_core::NeedId::Social, 20.0),
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
                 terri_core::Hobbies(vec!["socialising".to_string()]),
                 Traits::from_entries(vec![(0, 1.0)]),
             ))
@@ -549,7 +557,7 @@ mod tests {
                 terri_core::SimId(1),
                 terri_core::Position { x: 4.0, y: 1.0 },
                 terri_core::Needs::with(terri_core::NeedId::Social, 60.0),
-                terri_core::Satisfaction::default(),
+                terri_core::Satisfaction::from_value(0.0),
             ))
             .id();
 
@@ -563,8 +571,16 @@ mod tests {
             crate::test_content::disable_mood_satisfaction(&mut sim);
             sim.tick();
             if paid(&sim, lonely) > 0.0 {
-                assert_eq!(paid(&sim, lonely), 3.0, "loved 6, halved by the burden");
-                assert_eq!(paid(&sim, listener), 2.0, "the unburdened side takes base");
+                assert_eq!(
+                    paid(&sim, lonely),
+                    3.0 * terri_core::Satisfaction::REWARD_SCALE,
+                    "loved 6, halved by the burden"
+                );
+                assert_eq!(
+                    paid(&sim, listener),
+                    2.0 * terri_core::Satisfaction::REWARD_SCALE,
+                    "the unburdened side takes base"
+                );
                 return;
             }
         }
@@ -595,6 +611,7 @@ mod tests {
         );
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             traits: vec![CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "devotee".to_string(),
                 label: "Devotee".to_string(),
                 tag: "television".to_string(),
@@ -669,6 +686,7 @@ mod tests {
         );
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             traits: vec![CompiledTrait {
+                starting_satisfaction_offset: 0.0,
                 id: "gossip_hound".to_string(),
                 label: "Gossip hound".to_string(),
                 tag: "gossiping".to_string(),

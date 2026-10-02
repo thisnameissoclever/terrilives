@@ -8,7 +8,7 @@ consume idle time, the three trait mechanisms act, and a career exists.
 
 ## [E1] Satisfaction is one f32 per sim
 
-`Satisfaction(f32)`, non-negative, unbounded upward, in the world hash.
+`Satisfaction(f32)`, bounded to 0-100, in the world hash. New Sims start at 50 with small authored trait offsets. [Life satisfaction](2026-10-01-life-satisfaction.md) defines the current bounds, pacing, save restoration and display.
 Writers, exhaustively:
 
 1. **Activity completions add**, with a multiplier for hobbies.
@@ -22,11 +22,7 @@ Writers, exhaustively:
    [MW-satisfaction]. The owner's 2026-09-30 revision supersedes the earlier
    rule that healthy needs could never earn satisfaction.
 
-**Rejected: a 0-100 bar.** A bar invites reading satisfaction as an
-eighth need, which is exactly the blur [S1] forbids; an accumulator
-reads as a LIFE going well, keeps "number goes up" the player's win
-condition, and gives M2g's UI a lifetime score to draw. The cost is no
-natural "full" - accepted, lives do not fill up.
+The owner approved a bounded meter on 2026-10-01. Long-term pacing keeps satisfaction distinct from immediate needs; the ceiling lets losses matter after years of play.
 
 ## [E2] Hobbies are tags on interactions, loved by name
 
@@ -37,7 +33,7 @@ completion-only rule habituation and relationships follow, so an
 interrupted hobby pays nothing). A sim's `hobbies = ["reading", ...]`
 in household.toml multiplies a tagged activity's yield by
 `hobby_multiplier` (tuning); untagged or unloved activities pay their
-base, usually zero.
+base, usually zero. Completion and career yields are authored units; `Satisfaction::reward` converts them at 0.001 points per unit after multipliers.
 
 Idle time is consumed by construction: hobby activities are ordinary
 advertised interactions that autonomy picks when needs allow, so the
@@ -74,6 +70,8 @@ and [S2]'s habituation already forces rotation between hobbies.
   the sim completes an activity carrying the condition's tag - the
   resolving loop [S4] demands. Severity scales the condition's own
   effect, so a managed condition fades and a neglected one binds.
+
+Traits may also set `starting_satisfaction_offset`, applied only at Sim creation under [LS-score].
 
 Per-sim state is a `Traits` component - sorted `(TraitId, f32)` pairs
 (capability level or condition severity; dispositions carry no state) -

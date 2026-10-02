@@ -18,9 +18,9 @@ The waiting identity is saved and hashed in entity-index order. The score itself
 
 Once per simulation tick, after recovery, neglect and death processing, living sims' derived moods contribute to their existing satisfaction ledger. All mood sources participate, including needs, conditions, nearby relationships, grief and waiting.
 
-Scores inside `satisfaction_mood_neutral_band` contribute zero. Beyond it, contribution scales linearly to `satisfaction_mood_per_tick` at either end of the mood scale. Positive mood adds and negative mood subtracts. Satisfaction retains its zero floor. The ledger integrates duration: a brief fluctuation has a small effect, while a day at the same mood accumulates the corresponding daily change. Paused frames and read-only mood queries do not apply contributions.
+Scores inside `satisfaction_mood_neutral_band` contribute zero. Beyond it, contribution scales linearly to `satisfaction_mood_per_tick` at either end of the mood scale. Positive mood adds and negative mood subtracts. Satisfaction remains within 0-100. The ledger integrates duration: a brief fluctuation has a small effect, while a day at the same mood accumulates the corresponding daily change. Paused frames and read-only mood queries do not apply contributions.
 
-The starting rate is 0.025 at either extreme: 36 points over a 1,440-tick day. A comfortable mood of +20 earns about 2.12 per day with the neutral band at 15. Hobby and career payouts and direct neglect costs remain. This replaces the earlier rule that meeting needs could never earn satisfaction.
+The rate is 0.00038580247 at either extreme, about 0.556 points over a 1,440-tick day. A comfortable mood of +20 earns about 0.0327 per day with the neutral band at 15. The owner approved month-to-year pacing under [life satisfaction](2026-10-01-life-satisfaction.md). Hobby and career payouts and direct neglect costs remain. This replaces the earlier rule that meeting needs could never earn satisfaction.
 
 Every mood input that now affects simulation outcomes is authored in `content/tuning.toml`. The browser continues to display Rust's projection and sends serialized commands for player actions.
 

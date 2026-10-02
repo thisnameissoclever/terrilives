@@ -36,6 +36,10 @@
 // One atlas serves both layers: opaque sprites first, translucent short
 // walls second. Both draws share a bind group, render pass and submission.
 
+const SURFACE_DEPTH_PROJECTION: f32 = -2.0;
+const DINING_BACKGROUND: f32 = -3.0;
+const DINING_FOREGROUND: f32 = -4.0;
+
 struct Uniforms {
   viewport: vec2<f32>,
   // Where a sprite's bottom centre sits relative to the entity's screen
@@ -266,7 +270,7 @@ fn bedLayer(reference: u32, corner: vec2f) -> vec4f {
 fn fs(in: VertexOut) -> FragmentOut {
   // Complementary passes reconstruct the same complete occupied colour.
   // Only tabletop geometry changes depth; no meal pixels are drawn twice.
-  if (in.wall.x == -2.0 || in.wall.x == -3.0) {
+  if (in.wall.x == DINING_BACKGROUND || in.wall.x == DINING_FOREGROUND) {
     var supported = false;
     if (in.supportMask > 0u && all(in.supportUv >= vec2f(0.0)) && all(in.supportUv <= vec2f(1.0))) {
       let mask = atlas.sprites[in.supportMask - 1u];
@@ -274,7 +278,7 @@ fn fs(in: VertexOut) -> FragmentOut {
       let uv = clamp(mix(mask.uv.xy, mask.uv.zw, in.supportUv), mask.uv.xy + halfTexel, mask.uv.zw - halfTexel);
       supported = textureSampleLevel(atlasTexture, atlasSampler, uv, 0.0).a >= 0.5;
     }
-    if (supported == (in.wall.x == -2.0)) { discard; }
+    if (supported == (in.wall.x == DINING_BACKGROUND)) { discard; }
   }
   // Linear filtering must stay inside this sprite's edge texels. Sampling
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
@@ -360,6 +364,17 @@ fn fs(in: VertexOut) -> FragmentOut {
     // Coverage was tested above. Short walls blend after opaque geometry
     // without claiming depth, including when their current opacity is one.
     if (short) { out.colour.a *= in.wall.z; }
+  } else if (in.wall.x == SURFACE_DEPTH_PROJECTION) {
+    let surface = atlas.sprites[u32(in.wall.z)];
+    let depthUv = clamp(mix(surface.uv.xy, surface.uv.zw, in.corner),
+      surface.uv.xy + halfTexel, surface.uv.zw - halfTexel);
+    let sample = textureSampleLevel(atlasTexture, atlasSampler, depthUv, 0.0);
+    // Lossless RG16 encodes the model's game-space X+Y in [-2, 2].
+    let sum = dot(sample.rg, vec2f(65280.0, 255.0)) / 65535.0 * 4.0 - 2.0 - in.wall.w;
+    out.depth = clamp(in.clip.z - sum * in.wall.y, 0.0, 1.0);
+    // Flush threshold pixels share the floor's ordering convention, just
+    // ahead of the tile but behind the leaf, casing and every person's feet.
+    if (sample.b > 0.5) { out.depth = 1.0 - 1.0 / 4096.0 * 0.625; }
   } else if (in.wall.x < 0.0) {
     // Intersect the view column x-y=t with the centered rectangular
     // footprint. Its interval midpoint in x+y is this clamped slope.

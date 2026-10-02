@@ -32,13 +32,14 @@ from PIL import Image, ImageChops                              # noqa: E402
 import objects                                                  # noqa: E402
 import front_door                                               # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
-from offline_sims import load_export, runtime_tables             # noqa: E402
+from offline_sims import load_export, runtime_tables, trim_clip_envelopes  # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from offline_batches import load_batches                       # noqa: E402
 from offline_props import load_props                           # noqa: E402
 from offline_armchair import load_reviewed_armchair             # noqa: E402
 from offline_double_bed import append_layers, append_scene_records
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
+from rectangle_packing import pack_rectangles                  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 # The PNG lives under the Vite root, in `web/public/`, so the dev server,
@@ -787,14 +788,40 @@ class AtlasHeightError(ValueError):
     """The next supported atlas width may fit the same records."""
 
 
+def deduplicate_pixels(sprites):
+    """Share texture rectangles only when dimensions and decoded RGBA agree."""
+    unique = []
+    aliases = []
+    candidates = {}
+    for sprite in sprites:
+        _, image, width, height = sprite
+        pixels = image.convert('RGBA').tobytes()
+        key = (width, height, hashlib.sha256(pixels).digest())
+        canonical = next((index for index in candidates.get(key, [])
+                          if unique[index][1].convert('RGBA').tobytes() == pixels), None)
+        if canonical is None:
+            canonical = len(unique)
+            unique.append(sprite)
+            candidates.setdefault(key, []).append(canonical)
+        aliases.append(canonical)
+    return unique, aliases
+
+
 def pack_atlas(sprites):
     """Choose the smallest supported width without relaxing the 8192 ceiling."""
     for width in (2048, 4096, 8192):
+        candidates = []
         try:
-            return pack(sprites, width)
-        except AtlasHeightError:
-            if width == 8192:
-                raise
+            candidates.append(pack(sprites, width))
+        except ValueError:
+            pass
+        try:
+            candidates.append(pack_rectangles([(sprite[2], sprite[3]) for sprite in sprites], width, 8192, PADDING))
+        except ValueError:
+            pass
+        if candidates:
+            return min(candidates, key=lambda result: result[2])
+    raise AtlasHeightError('atlas height exceeds texture dimension limit')
 
 
 def pack(sprites, width=512):
@@ -1259,6 +1286,10 @@ def main():
         tops.update(more_tops)
         variants[variant].update(more_clips)
     surfaces = layouts(ROOT, sprites)
+    import door_assets
+    for sprite in door_assets.records():
+        densities[len(sprites)] = 3
+        sprites.append(sprite)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")
@@ -1272,9 +1303,11 @@ def main():
     provisional = {index: (0, 0) for index in range(len(sprites))}
     bed_catalog, bed_layers, bed_coverage = append_scene_records(
         sprites, provisional, anchors, densities, bounds, covered_bed, covered_indices)
-    for variant in ('green', 'blue', 'red'):
-        dining = load_export(os.path.join(ROOT, 'assets/models/domestic/export/dining', variant, 'manifest.json'),
-                             required_clips={'food_walk', 'food_idle', 'seated_eat', 'cook_v2'}, expected_variant=variant)
+    dining_exports = [load_export(os.path.join(ROOT, 'assets/models/domestic/export/dining', variant, 'manifest.json'),
+                     required_clips={'food_walk', 'food_idle', 'seated_eat', 'cook_v2'}, expected_variant=variant)
+                     for variant in ('green', 'blue', 'red')]
+    for dining in trim_clip_envelopes(dining_exports):
+        variant = dining.variant
         for sprite in dining.sprites:
             densities[len(sprites)] = dining.pixel_density
             sprites.append(sprite)
@@ -1308,9 +1341,9 @@ def main():
     fill_padded_bounds(sprites, densities, bounds,
                        sim_body_indices(sprites, legacy_count, variants))
     textured = [(index, sprite) for index, sprite in enumerate(sprites) if index not in bed_layers]
-    dense_sprites = [sprite for _, sprite in textured]
+    dense_sprites, texture_aliases = deduplicate_pixels([sprite for _, sprite in textured])
     packed, width, height = pack_atlas(dense_sprites)
-    placed = {index: packed[dense] for dense, (index, _) in enumerate(textured)}
+    placed = {index: packed[texture_aliases[dense]] for dense, (index, _) in enumerate(textured)}
     for alias, layers in bed_layers.items():
         placed[alias] = placed[layers[0]]
     if height > 8192:

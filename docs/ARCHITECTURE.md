@@ -854,12 +854,15 @@ with one pair of tiles and a room with its whole outline; the usability proofs
 and the loader's checks run once, on the finished room.
 
 Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
-are presentation only. `portals::interior_door_lines` derives one from every
-vertical doorway of an edge-wall house when the lot's front door has art for a
-vertical line, and `sync_portals` appends each as a row after the front door's,
-with a state worked out every frame from sims' positions and walks, which are
-already saved. Nothing is added to the save, the save digest or the world
-hash.
+are presentation only. `portals::interior_door_lines` and
+`interior_horizontal_door_lines` derive them on both axes of an edge-wall house
+with the authored front-door style. `sync_portals` appends vertical then
+horizontal rows after the front door, deriving state and openness from saved
+positions and walks. Previous openness is retained only for interpolation and
+reset on load or a changed doorway list. Nothing is added to the save, digest
+or world hash. The shell selects one of nine model poses in four orientations.
+Paired surface-depth textures sort the solid leaf and joined casing per pixel;
+the flush threshold follows floor ordering. See `assets/models/doors/README.md`.
 
 The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
@@ -964,6 +967,15 @@ requires all nine base clips and the exercise supplement for each of the three
 palettes. The generated atlas tables are authoritative for sprite counts and
 texture dimensions. Logical sprite dimensions and anchors remain independent
 of texture density; a 2x texture does not double a Sim's size in the world.
+The atlas compiler shares texture rectangles only when their dimensions and
+decoded colour and alpha bytes match. Sprite identities remain separate.
+New domestic animation clips remove empty borders using one envelope across
+every frame, facing and shirt palette. Anchors, hand positions and content
+height move with the crop so drawing, picking and activity bubbles retain
+their world positions. Source exports remain unchanged. Packing chooses the
+shorter valid result from shelf packing and maximal free-rectangle packing
+at each supported width, without rotating artwork or exceeding the portable
+texture limit. Published sprite canvases and registration remain intact.
 The old two-pose exercise supplement used a mirrored bike whose non-SE
 contacts failed review. The approved replacement bike and reading chair use
 real four-direction furniture renders and matched visible contributions;

@@ -1054,6 +1054,9 @@ impl Sim {
             .saturating_add(1);
         *self = restored;
         portals::sync_portals(&mut self.world, &mut self.portals);
+        self.portals
+            .previous_openness
+            .clone_from(&self.portals.openness);
     }
 
     /// Loads a historical V1 payload, including reviewed layout migrations.
@@ -1687,6 +1690,11 @@ impl Sim {
     }
 
     fn sync_render_buffer_inner(&mut self, advance_interpolation: bool) {
+        if advance_interpolation {
+            self.portals
+                .previous_openness
+                .clone_from(&self.portals.openness);
+        }
         portals::sync_portals(&mut self.world, &mut self.portals);
         use std::collections::{HashMap, HashSet};
 
@@ -4245,8 +4253,8 @@ mod household_tests {
         pairs.sort_by_key(|(id, ..)| *id);
         assert_eq!(
             pairs,
-            vec![(0, vec!["whittling".to_string()], 0.0), (1, vec![], 0.0),],
-            "hobbies are the member's own and every ledger opens empty"
+            vec![(0, vec!["whittling".to_string()], 50.0), (1, vec![], 50.0),],
+            "hobbies are the member's own and satisfaction starts neutral"
         );
     }
 
