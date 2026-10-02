@@ -588,7 +588,7 @@ corrections encountered, not speculative failures.
 **Consumes:** Tasks 1 through 9. **Produces:** Verified local result, owner-visible
 room evidence and an accurate implementation/delivery report.
 
-- [ ] Run these final checks serially after the last code change. Record exact
+- [x] Run these final checks serially after the last code change. Record exact
   command, relevant output, exit code and PASS/FAIL/SKIPPED in the evidence file:
 
 ```powershell
@@ -608,25 +608,25 @@ node scripts/build-changelog.mjs
 git diff --check
 ```
 
-- [ ] Use the repository's isolated proof harness for depth, blending and light
+- [x] Use the repository's isolated proof harness for depth, blending and light
   pixels. Record device/browser and proof source hashes. Inspect actual game play
   separately; a hidden page or successful import is not visual acceptance.
-- [ ] Review a furnished room containing all nine models, both axes, adjacent
+- [x] Review a furnished room containing all nine models, both axes, adjacent
   windows, a corner, T/cross junctions, front/interior doors, all floor coverings,
   a Sim behind cutaways, occupied furniture and build ghosts. Capture full/play
   walls, native/enlarged/fractional zoom, noon/dusk/midnight and Flat lighting.
-- [ ] Load historical fixtures in an isolated storage context, then perform
+- [x] Load historical fixtures in an isolated storage context, then perform
   fit/replace/remove/paint/Room operations and save/load. Inspect both successful
   changes and rejected edits. Never use the owner's actual household as a fixture.
-- [ ] Measure the same scene before/after using identical visible-browser warmup
+- [x] Measure the same scene before/after using identical visible-browser warmup
   and sampling. Record atlas and depth-texture bytes, upload/draw counts and frame
   times. Investigate more than 10% p95 frame-time growth under repeated comparable
   samples before claiming the rendering cost is acceptable. Keep architecture
   rebuilds on layout changes and per-frame fading allocation-free.
-- [ ] Obtain independent code and screenshot review, then show the final room
+- [x] Obtain independent code and screenshot review, then show the final room
   and controls to the owner. List any unobserved device coverage or visual issue
   explicitly. Do not treat source hashes or passing unit tests as owner approval.
-- [ ] Update stale art-pipeline text and remove the current placeholder-art
+- [x] Update stale art-pipeline text and remove the current placeholder-art
   descriptions only when their replacements work. Record all significant changes
   in the public changelog using the maintain-changelog skill. The plan alone does
   not justify a release note.
