@@ -62,7 +62,7 @@ export function validateArchitectureAtlas(atlas: ArchitectureAtlas): void {
 
 /** Direct callers and browser fixtures obey the same device boundary as the loader. */
 export function validateArchitectureDevice(atlas: ArchitectureAtlas, limits: Pick<GPUDevice['limits'],
-  'maxTextureDimension2D' | 'maxTextureArrayLayers' | 'maxSampledTexturesPerShaderStage' | 'maxStorageBufferBindingSize'>,
+  'maxTextureDimension2D' | 'maxTextureArrayLayers' | 'maxSampledTexturesPerShaderStage' | 'maxStorageBufferBindingSize' | 'maxStorageBuffersPerShaderStage'>,
   historicalSpriteCount: number): void {
   const images = [atlas.color, ...(atlas.carrier ? [atlas.carrier] : []), ...(atlas.patterns ?? [])];
   if (images.some(image => image.width > Math.min(8192, limits.maxTextureDimension2D)
@@ -72,6 +72,9 @@ export function validateArchitectureDevice(atlas: ArchitectureAtlas, limits: Pic
   }
   if ((atlas.patterns?.length ?? 0) + 4 > limits.maxSampledTexturesPerShaderStage) {
     throw new Error('Architecture resources exceed device sampled texture limits');
+  }
+  if (limits.maxStorageBuffersPerShaderStage < 4) {
+    throw new Error('Architecture tables exceed device storage buffer counts');
   }
   if (Math.max((historicalSpriteCount + atlas.sprites.length) * 32,
     atlas.registration?.byteLength ?? 16, atlas.finishes?.table.byteLength ?? 32) > limits.maxStorageBufferBindingSize) {

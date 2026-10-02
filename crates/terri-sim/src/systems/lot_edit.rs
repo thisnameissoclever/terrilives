@@ -55,6 +55,10 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::family::commit(world, who, to, relation);
             }
+            SimCommand::SetBedAssignment { agent, place } => {
+                flush_ordinary(world);
+                crate::beds::commit(world, agent, place);
+            }
             SimCommand::SetFloor { x, y, covering } => {
                 flush_ordinary(world);
                 crate::placement::floors::commit(

@@ -1,0 +1,12 @@
+{
+  "occupancy": 2,
+  "facing": "SW",
+  "palettes": [
+    "green",
+    "red"
+  ],
+  "sample": 0,
+  "owner": "lines",
+  "path": "double-bed-2-SW-green-red-0-lines.png",
+  "sha256": "21bfe6c84b5ab3d2793817b87048baa69f0429d3850dd788ce3e0b681e699796"
+}

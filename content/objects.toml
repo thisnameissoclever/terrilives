@@ -146,6 +146,7 @@ sprite = "offlineShower"
   # fraction of the time.
   [[object.interaction]]
   id = "take_shower"
+  tags = ["bathroom_privacy"]
   activity = "showering"
   label = "Take a shower"
   advertises = { hygiene = 70.0, energy = -12.0 }
@@ -173,6 +174,8 @@ sprite = "offlineToilet"
   # most-chosen action outright at 26.4%, ahead of the fridge.
   [[object.interaction]]
   id = "relieve_self"
+  completion_sound = "toilet_flush"
+  tags = ["bathroom_privacy"]
   activity = "using_toilet"
   label = "Use the toilet"
   advertises = { bladder = 95.0 }
@@ -391,6 +394,7 @@ sprite = "offlineBookcase"
   # The same "reading" tag as the wingback's settle_in: a hobby is an
   # ACTIVITY, not an object, so a reader loves both routes to it.
   tags = ["reading"]
+  shared_activity = "reading"
   satisfaction = 3.0
 
 # ============================================================================
@@ -716,6 +720,15 @@ price = 400
 sprite = "offlineDoubleBed"
 footprint = { width = 2, depth = 2 }
 
+  # Place order is saved. Offsets follow the base-facing footprint, not the camera.
+  [[object.sleep_place]]
+  id = "place_0"
+  approaches = [[0, -1], [1, -1]]
+
+  [[object.sleep_place]]
+  id = "place_1"
+  approaches = [[0, 2], [1, 2]]
+
   # **The only 2x2 object in the house**, and the one that most needed real
   # footprints to exist: a bed is genuinely a four-tile thing, and before [F1]
   # a sim standing "beside" one had 88% of its own sprite inside the bed's.
@@ -743,6 +756,7 @@ footprint = { width = 2, depth = 2 }
   [[object.interaction]]
   id = "sleep_properly"
   activity = "sleeping"
+  visual = { action = "sleep", anchor = "object", facing = "toward_anchor" }
   label = "Go to bed"
   advertises = { energy = 108.0, comfort = 10.0 }
   duration_ticks = 210
@@ -789,6 +803,7 @@ sprite = "offlineBike"
   duration_ticks = 83
   slots = 1
   tags = ["exercise"]
+  shared_activity = "exercise"
   satisfaction = 2.0
   visual = { action = "exercise", anchor = "object_socket", facing = "socket", socket = "saddle" }
 
@@ -893,6 +908,7 @@ sprite = "offlineChair"
   # single object forever. It is an armchair as well, so the couch_averse
   # trait covers it like the other seats ([TL-library]).
   tags = ["reading", "lounging"]
+  shared_activity = "reading"
   satisfaction = 3.0
   visual = { action = "read", anchor = "object_socket", facing = "socket", socket = "seat" }
 
@@ -914,6 +930,7 @@ sprite = "bookcaseClosedWide"
   duration_ticks = 67
   slots = 1
   tags = ["aquarium"]
+  shared_activity = "aquarium"
   satisfaction = 1.0
   visual = { action = "watch", anchor = "object", facing = "toward_anchor" }
 
@@ -958,6 +975,7 @@ footprint = { width = 1, depth = 2 }
   # wins on hygiene-plus-comfort together and never on comfort alone.
   [[object.interaction]]
   id = "soak"
+  tags = ["bathroom_privacy"]
   activity = "bathing"
   label = "Take a bath"
   advertises = { hygiene = 58.0, comfort = 31.0, energy = -3.0 }

@@ -1,0 +1,25 @@
+
+ RUN  v4.1.10 D:/VIBES/.worktrees/9fb8/terrilives/web
+
+ ❯ tests/build-context.test.ts (16 tests | 1 failed) 121ms
+   × unchanged frames neither render nor measure; camera, buffer and invalidation each place again 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/build-context.test.ts > unchanged frames neither render nor measure; camera, buffer and invalidation each place again
+AssertionError: expected "vi.fn()" to be called 1 times, but got 21 times
+ ❯ tests/build-context.test.ts:204:76
+    202|     actions.frame(camera, 800, 600);
+    203|     for (let i = 0; i < 20; i++) actions.frame(camera, 800, 600);
+    204|     expect(surface.render).toHaveBeenCalledTimes(1); expect(surface.pl…
+       |                                                                            ^
+    205|     camera.originX += 10; actions.frame(camera, 800, 600);
+    206|     expect(surface.render).toHaveBeenCalledTimes(1); expect(surface.pl…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 passed (16)
+   Start at  11:12:31
+   Duration  578ms (transform 274ms, setup 0ms, import 326ms, tests 121ms, environment 0ms)

@@ -1,0 +1,30 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.90s
+     Running unittests src\lib.rs (target\debug\deps\terri_sim-0bcea68002488dc1.exe)
+
+running 22 tests
+test domestic::tests::privacy_station_routes_preserve_owned_counter_and_unique_dining_seats ... ok
+test systems::interpersonal::integration_tests::privacy_route_uses_the_house_loop_without_changing_walkability ... ok
+test systems::interpersonal::integration_tests::privacy_diagnostics_group_victims_and_report_clamped_loss_without_changing_hash ... ok
+test systems::interpersonal::integration_tests::privacy_late_occupancy_checks_alternatives_before_an_emergency_override ... ok
+test privacy::bed_tests::privacy_bed_substitution_uses_the_authored_base_without_an_explicit_facing ... ok
+test systems::interpersonal::integration_tests::privacy_route_switches_to_available_toilet_and_preserves_reservations ... ok
+test systems::interpersonal::integration_tests::shyness_autonomous_choice_prefers_privacy_but_player_orders_still_win ... ok
+test systems::interpersonal::integration_tests::privacy_wait_can_attend_to_a_different_critical_need_without_losing_chain_progress ... ok
+test privacy::bed_tests::privacy_bed_substitution_prioritizes_survival_before_assignment ... ok
+test privacy::bed_tests::privacy_substitution_preserves_assignment_preference_across_beds_when_safe ... ok
+test systems::interpersonal::integration_tests::privacy_commutes_can_take_a_required_route_and_exiting_is_always_allowed ... ok
+test systems::interpersonal::integration_tests::privacy_guard_rechecks_room_occupancy_changed_earlier_in_the_same_tick ... ok
+test systems::interpersonal::integration_tests::privacy_wander_detours_keep_the_entire_stroll_within_its_budget ... ok
+test systems::interpersonal::integration_tests::privacy_start_waits_and_player_order_or_relevant_emergency_can_override ... ok
+test privacy::bed_tests::privacy_detours_replace_historical_endpoints_with_the_held_places_current_approach ... ok
+test systems::interpersonal::integration_tests::privacy_two_critical_needs_keep_the_chosen_goal_until_its_emergency_wait_expires ... ok
+test systems::interpersonal::integration_tests::privacy_player_chain_origin_survives_its_spent_order_and_save_load ... ok
+test systems::interpersonal::integration_tests::privacy_wait_switches_to_an_urgent_goal_even_when_its_route_is_private_or_just_cleared ... ok
+test systems::interpersonal::integration_tests::privacy_entry_waits_at_the_boundary_then_proceeds_when_the_room_clears ... ok
+test privacy::bed_tests::privacy_substitutes_claim_distinct_places_and_preserve_fractional_approaches ... ok
+test systems::interpersonal::integration_tests::privacy_mid_wait_replay_crosses_cache_expiry_and_action_completion ... ok
+test domestic::tests::privacy_substitution_suspends_collected_cleanup_and_replays ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 825 filtered out; finished in 0.29s
+

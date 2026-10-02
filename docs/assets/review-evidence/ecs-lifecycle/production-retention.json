@@ -1,0 +1,50 @@
+{
+  "scope": "Simulation ticks and render sync only; WASM capacity, not live allocation or browser/audio memory",
+  "wasmSha256": "42056e09d128cc133ba1554bc3d6270b0eab11f3d636fd8083e0f4d5b68d9f4f",
+  "spawnSourceSha256": "332a0e29f10230fb197e1d22582e2f42cd4bf98e6a039610513f5cd3b17d45ea",
+  "seed": {
+    "low": 104729,
+    "high": 130363
+  },
+  "samples": [
+    {
+      "tick": 60,
+      "entities": 1037,
+      "beforeObservationCapacityBytes": 4194304,
+      "afterObservationCapacityBytes": 4194304,
+      "worldHash": "1689968484302009063",
+      "saveBytes": 77770,
+      "saveSha256": "bf81c8f17e761e7d061e802a56b14e95c0411d3334e2e392f97f5344ce086da7"
+    },
+    {
+      "tick": 600,
+      "entities": 1037,
+      "beforeObservationCapacityBytes": 4194304,
+      "afterObservationCapacityBytes": 4587520,
+      "worldHash": "6672627640496136405",
+      "saveBytes": 79226,
+      "saveSha256": "71f891c383ae64cdedaed4f89fac7b9ff56e3aa22bbb8e8fd4268a03fe451ff7"
+    },
+    {
+      "tick": 1140,
+      "entities": 1037,
+      "beforeObservationCapacityBytes": 4849664,
+      "afterObservationCapacityBytes": 5242880,
+      "worldHash": "10010906560745498215",
+      "saveBytes": 79747,
+      "saveSha256": "fbb46feef94aba8d0023b15350a61843ab726ceb98fc89b9fe3b7c839bbd23c9"
+    },
+    {
+      "tick": 1680,
+      "entities": 1037,
+      "beforeObservationCapacityBytes": 5242880,
+      "afterObservationCapacityBytes": 5242880,
+      "worldHash": "17615774119548958193",
+      "saveBytes": 80182,
+      "saveSha256": "350e8ad280f842131b150f43e4b824a4a6ba6447fd3b79808ed93db952c2254b"
+    }
+  ],
+  "passed": true,
+  "afterSpawnCapacityBytes": 2031616,
+  "afterFreeCapacityBytes": 5242880
+}

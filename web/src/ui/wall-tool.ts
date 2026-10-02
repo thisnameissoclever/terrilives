@@ -138,13 +138,13 @@ export class WallTool {
 
   /** A click or tap at an unrounded world point. */
   choosePoint(wx: number, wy: number): void {
-    if (!this.active || this.pending !== null) return;
+    if (!this.active || this.pending !== null || this.blocked) return;
     const line = nearestLine(wx, wy, this.width, this.height);
     if (line) this.choose(line);
   }
 
   choose(line: WallLine): void {
-    if (!this.active || this.pending !== null) return;
+    if (!this.active || this.pending !== null || this.blocked) return;
     if (this.windows?.active || this.windows?.ownerAt(line)) {
       this.windows.enter();
       this.windows.choose(line);
@@ -286,7 +286,18 @@ export class WallTool {
     this.hooks.changed();
   }
 
-  private turn(axis: 0 | 1): void {
+  clearSelection(): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
+    this.clear();
+  }
+
+  rotate(): void {
+    if (!this.line) return;
+    this.turn(this.line.axis === 0 ? 1 : 0);
+  }
+
+  turn(axis: 0 | 1): void {
+    if (!this.active || this.pending !== null || this.blocked) return;
     const from = this.line ?? { axis, x: Math.floor(this.width / 2), y: Math.floor(this.height / 2) };
     this.choose(this.clamped({ ...from, axis }));
   }

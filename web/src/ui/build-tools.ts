@@ -1,5 +1,5 @@
 // Build mode's tool switch - [WT-shell], [BM-shell] and [RT-shell]. Furniture,
-// Walls, Room and Buy each keep their own controller; this decides which one
+// Walls, Room, Buy and Floors each keep their own controller; this decides which one
 // is showing and makes sure only one of them ever holds a preview.
 
 /** A Build mode tool other than Furniture. */
@@ -46,6 +46,7 @@ export function routeBuildKey(key: string, tools: readonly Pick<BuildTool, 'acti
 export class BuildToolSwitch {
   private readonly buttons: readonly HTMLElement[];
   private readonly panels: readonly HTMLElement[];
+  private shown = -1;
 
   /** `tools` are the tools beside Furniture, in the order their buttons show. */
   constructor(document: Document, private readonly tools: readonly SwitchedTool[],
@@ -81,6 +82,12 @@ export class BuildToolSwitch {
 
   render(): void {
     const chosen = this.tools.findIndex(entry => entry.tool.active) + 1;
+    if (chosen !== this.shown) {
+      this.shown = chosen;
+      for (const panel of this.panels) {
+        panel.querySelectorAll<HTMLDetailsElement>('.shortcuts').forEach(section => { section.open = false; });
+      }
+    }
     this.buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(index === chosen)));
     this.panels.forEach((panel, index) => { panel.hidden = index !== chosen; });
   }

@@ -8,7 +8,11 @@ The skill records writing direction and a proposed object-text hierarchy. It doe
 
 ## Keep the public changelog current
 
-For every significant player-facing change, read and apply [.agents/skills/maintain-changelog/SKILL.md](.agents/skills/maintain-changelog/SKILL.md). Update the source documents in `docs/changelog/` in the same branch as the implementation before finishing delivery. The [publishing guide](docs/changelog.md) defines the format and automated GitHub Pages route. Internal-only changes do not need a player-facing note.
+Before every branch push, and again before merging, read and apply [.agents/skills/maintain-changelog/SKILL.md](.agents/skills/maintain-changelog/SKILL.md). Review all significant player-facing changes being delivered, including follow-up fixes since the previous push, and ensure each has a truthful note in `docs/changelog/`. Commit and push the notes on the same branch as the implementation; do not defer them until task completion. An earlier changelog edit does not cover later changes automatically. The [authoring and publishing guide](docs/changelog.md) defines significance, writing rules, when to extend an entry, when to create one, and automated GitHub Pages publication. For internal-only work, record why no public note is needed in the delivery report or pull request.
+
+The changelog is for players. Describe what they can do or notice, in short, plain sentences. Never include PR references, commit links, test results or implementation details in public entries. Keep that evidence in internal documentation. Add same-day changes to the existing dated entry.
+
+Before merging, reconcile the intended delivery date and any same-day notes already on main. Preserve other contributors' bullets and published history. Run the changelog tests and build, and complete the pull-request changelog checklist. The tests check format and common content mistakes; the agent must still judge player impact and coverage.
 
 ## Finish delivery without waiting for duplicate CI
 

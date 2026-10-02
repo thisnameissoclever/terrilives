@@ -1,0 +1,5755 @@
+{
+  "errors": [],
+  "pass": true,
+  "records": [
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 854,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 0,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18013,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          86,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 854,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 0,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17389,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          86,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 854,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 0,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17999,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          86,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 846,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 1,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18002,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 846,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 1,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17378,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 846,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 1,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17988,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 928,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 2,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18029,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 928,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 2,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17405,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 928,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 2,
+      "max": 62,
+      "p95": 7,
+      "pixels": 18015,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 923,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 3,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18002,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 923,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 3,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17378,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 923,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 3,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17988,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 13,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 4,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18009,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contactMutation": {
+        "max": 202,
+        "p95": 106,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            36,
+            34,
+            34,
+            255
+          ],
+          "error": 202,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 166,
+          "y": 241
+        }
+      },
+      "facing": "SE",
+      "mutation": {
+        "max": 202,
+        "p95": 9,
+        "pixels": 18009,
+        "worst": {
+          "actual": [
+            36,
+            34,
+            34,
+            255
+          ],
+          "error": 202,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 166,
+          "y": 241
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "SE",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 168,
+        "p95": 106,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            80,
+            70,
+            60,
+            255
+          ],
+          "error": 168,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 165,
+          "y": 241
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "SE",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 189,
+        "p95": 188,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 189,
+          "reference": [
+            212,
+            161,
+            126,
+            255
+          ],
+          "x": 161,
+          "y": 204
+        }
+      },
+      "removed": 444
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 13,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 4,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17385,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contactMutation": {
+        "max": 199,
+        "p95": 106,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            40,
+            37,
+            37,
+            255
+          ],
+          "error": 199,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 158,
+          "y": 235
+        }
+      },
+      "facing": "SE",
+      "mutation": {
+        "max": 199,
+        "p95": 8,
+        "pixels": 17385,
+        "worst": {
+          "actual": [
+            40,
+            37,
+            37,
+            255
+          ],
+          "error": 199,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 158,
+          "y": 235
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "SE",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 164,
+        "p95": 106,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            89,
+            77,
+            64,
+            255
+          ],
+          "error": 164,
+          "reference": [
+            238,
+            236,
+            228,
+            255
+          ],
+          "x": 157,
+          "y": 235
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "SE",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 189,
+        "p95": 188,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 189,
+          "reference": [
+            212,
+            161,
+            126,
+            255
+          ],
+          "x": 161,
+          "y": 204
+        }
+      },
+      "removed": 444
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 13,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 4,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17995,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contactMutation": {
+        "max": 199,
+        "p95": 106,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            40,
+            37,
+            37,
+            255
+          ],
+          "error": 199,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 158,
+          "y": 235
+        }
+      },
+      "facing": "SE",
+      "mutation": {
+        "max": 199,
+        "p95": 9,
+        "pixels": 17995,
+        "worst": {
+          "actual": [
+            40,
+            37,
+            37,
+            255
+          ],
+          "error": 199,
+          "reference": [
+            237,
+            236,
+            228,
+            255
+          ],
+          "x": 158,
+          "y": 235
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "SE",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 165,
+        "p95": 106,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            88,
+            76,
+            63,
+            255
+          ],
+          "error": 165,
+          "reference": [
+            238,
+            236,
+            228,
+            255
+          ],
+          "x": 157,
+          "y": 235
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "SE",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 189,
+        "p95": 188,
+        "pixels": 960,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 189,
+          "reference": [
+            212,
+            161,
+            126,
+            255
+          ],
+          "x": 161,
+          "y": 204
+        }
+      },
+      "removed": 444
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 933,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 5,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18024,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 933,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 5,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17400,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 933,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 5,
+      "max": 62,
+      "p95": 7,
+      "pixels": 18010,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 930,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 6,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18058,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 930,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 6,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17434,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 930,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 6,
+      "max": 62,
+      "p95": 7,
+      "pixels": 18044,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 850,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 7,
+      "max": 62,
+      "p95": 8,
+      "pixels": 18025,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 850,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 7,
+      "max": 62,
+      "p95": 7,
+      "pixels": 17401,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 24,
+        "p95": 14,
+        "pixels": 850,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            89,
+            255
+          ],
+          "error": 24,
+          "reference": [
+            122,
+            118,
+            111,
+            255
+          ],
+          "x": 157,
+          "y": 233
+        }
+      },
+      "facing": "SE",
+      "frame": 7,
+      "max": 62,
+      "p95": 7,
+      "pixels": 18011,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 159,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 361,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 0,
+      "max": 88,
+      "p95": 6,
+      "pixels": 18078,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          40,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 165,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 361,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 0,
+      "max": 88,
+      "p95": 7,
+      "pixels": 18029,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          40,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 165,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 361,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 0,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16583,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 336,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 1,
+      "max": 83,
+      "p95": 6,
+      "pixels": 18110,
+      "worst": {
+        "actual": [
+          47,
+          43,
+          41,
+          255
+        ],
+        "error": 83,
+        "reference": [
+          130,
+          109,
+          86,
+          255
+        ],
+        "x": 168,
+        "y": 175
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 336,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 1,
+      "max": 83,
+      "p95": 7,
+      "pixels": 18058,
+      "worst": {
+        "actual": [
+          47,
+          43,
+          41,
+          255
+        ],
+        "error": 83,
+        "reference": [
+          130,
+          109,
+          86,
+          255
+        ],
+        "x": 168,
+        "y": 175
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 336,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 1,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16604,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 19,
+        "p95": 13,
+        "pixels": 324,
+        "worst": {
+          "actual": [
+            133,
+            126,
+            119,
+            255
+          ],
+          "error": 19,
+          "reference": [
+            148,
+            145,
+            138,
+            255
+          ],
+          "x": 144,
+          "y": 188
+        }
+      },
+      "facing": "SW",
+      "frame": 2,
+      "max": 88,
+      "p95": 6,
+      "pixels": 17991,
+      "worst": {
+        "actual": [
+          46,
+          41,
+          40,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          134,
+          113,
+          89,
+          255
+        ],
+        "x": 162,
+        "y": 156
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 19,
+        "p95": 13,
+        "pixels": 324,
+        "worst": {
+          "actual": [
+            133,
+            126,
+            119,
+            255
+          ],
+          "error": 19,
+          "reference": [
+            148,
+            145,
+            138,
+            255
+          ],
+          "x": 144,
+          "y": 188
+        }
+      },
+      "facing": "SW",
+      "frame": 2,
+      "max": 88,
+      "p95": 7,
+      "pixels": 17949,
+      "worst": {
+        "actual": [
+          46,
+          41,
+          40,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          134,
+          113,
+          89,
+          255
+        ],
+        "x": 162,
+        "y": 156
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 19,
+        "p95": 13,
+        "pixels": 324,
+        "worst": {
+          "actual": [
+            133,
+            126,
+            119,
+            255
+          ],
+          "error": 19,
+          "reference": [
+            148,
+            145,
+            138,
+            255
+          ],
+          "x": 144,
+          "y": 188
+        }
+      },
+      "facing": "SW",
+      "frame": 2,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16486,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 16,
+        "p95": 13,
+        "pixels": 387,
+        "worst": {
+          "actual": [
+            96,
+            88,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "x": 164,
+          "y": 177
+        }
+      },
+      "facing": "SW",
+      "frame": 3,
+      "max": 83,
+      "p95": 6,
+      "pixels": 17982,
+      "worst": {
+        "actual": [
+          47,
+          43,
+          41,
+          255
+        ],
+        "error": 83,
+        "reference": [
+          130,
+          109,
+          86,
+          255
+        ],
+        "x": 168,
+        "y": 175
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 16,
+        "p95": 13,
+        "pixels": 386,
+        "worst": {
+          "actual": [
+            96,
+            88,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "x": 164,
+          "y": 177
+        }
+      },
+      "facing": "SW",
+      "frame": 3,
+      "max": 83,
+      "p95": 7,
+      "pixels": 17943,
+      "worst": {
+        "actual": [
+          47,
+          43,
+          41,
+          255
+        ],
+        "error": 83,
+        "reference": [
+          130,
+          109,
+          86,
+          255
+        ],
+        "x": 168,
+        "y": 175
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 16,
+        "p95": 12,
+        "pixels": 387,
+        "worst": {
+          "actual": [
+            96,
+            88,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "x": 164,
+          "y": 177
+        }
+      },
+      "facing": "SW",
+      "frame": 3,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16485,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 18,
+        "p95": 13,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            144,
+            139,
+            132,
+            255
+          ],
+          "error": 18,
+          "reference": [
+            160,
+            157,
+            150,
+            255
+          ],
+          "x": 165,
+          "y": 178
+        }
+      },
+      "facing": "SW",
+      "frame": 4,
+      "max": 88,
+      "p95": 6,
+      "pixels": 17983,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          40,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 165,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "end",
+      "contactMutation": {
+        "max": 18,
+        "p95": 13,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            144,
+            139,
+            132,
+            255
+          ],
+          "error": 18,
+          "reference": [
+            160,
+            157,
+            150,
+            255
+          ],
+          "x": 165,
+          "y": 178
+        }
+      },
+      "facing": "SW",
+      "mutation": {
+        "max": 88,
+        "p95": 6,
+        "pixels": 17983,
+        "worst": {
+          "actual": [
+            47,
+            42,
+            40,
+            255
+          ],
+          "error": 88,
+          "reference": [
+            135,
+            113,
+            89,
+            255
+          ],
+          "x": 165,
+          "y": 170
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "SW",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 21,
+        "p95": 16,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            83,
+            78,
+            71,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            104,
+            99,
+            92,
+            255
+          ],
+          "x": 142,
+          "y": 183
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "SW",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 183,
+        "p95": 85,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 183,
+          "reference": [
+            206,
+            157,
+            123,
+            255
+          ],
+          "x": 157,
+          "y": 150
+        }
+      },
+      "removed": 220
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 18,
+        "p95": 13,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            144,
+            139,
+            132,
+            255
+          ],
+          "error": 18,
+          "reference": [
+            160,
+            157,
+            150,
+            255
+          ],
+          "x": 165,
+          "y": 178
+        }
+      },
+      "facing": "SW",
+      "frame": 4,
+      "max": 88,
+      "p95": 7,
+      "pixels": 17950,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          40,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 165,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contactMutation": {
+        "max": 18,
+        "p95": 13,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            144,
+            139,
+            132,
+            255
+          ],
+          "error": 18,
+          "reference": [
+            160,
+            157,
+            150,
+            255
+          ],
+          "x": 165,
+          "y": 178
+        }
+      },
+      "facing": "SW",
+      "mutation": {
+        "max": 88,
+        "p95": 7,
+        "pixels": 17950,
+        "worst": {
+          "actual": [
+            47,
+            42,
+            40,
+            255
+          ],
+          "error": 88,
+          "reference": [
+            135,
+            113,
+            89,
+            255
+          ],
+          "x": 165,
+          "y": 170
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "SW",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 21,
+        "p95": 16,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            83,
+            78,
+            71,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            104,
+            99,
+            92,
+            255
+          ],
+          "x": 142,
+          "y": 183
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "SW",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 188,
+        "p95": 92,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 188,
+          "reference": [
+            211,
+            160,
+            126,
+            255
+          ],
+          "x": 156,
+          "y": 150
+        }
+      },
+      "removed": 220
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 18,
+        "p95": 13,
+        "pixels": 389,
+        "worst": {
+          "actual": [
+            144,
+            139,
+            132,
+            255
+          ],
+          "error": 18,
+          "reference": [
+            160,
+            157,
+            150,
+            255
+          ],
+          "x": 165,
+          "y": 178
+        }
+      },
+      "facing": "SW",
+      "frame": 4,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16485,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contactMutation": {
+        "max": 18,
+        "p95": 13,
+        "pixels": 389,
+        "worst": {
+          "actual": [
+            144,
+            139,
+            132,
+            255
+          ],
+          "error": 18,
+          "reference": [
+            160,
+            157,
+            150,
+            255
+          ],
+          "x": 165,
+          "y": 178
+        }
+      },
+      "facing": "SW",
+      "mutation": {
+        "max": 116,
+        "p95": 8,
+        "pixels": 16485,
+        "worst": {
+          "actual": [
+            45,
+            41,
+            41,
+            255
+          ],
+          "error": 116,
+          "reference": [
+            161,
+            131,
+            97,
+            255
+          ],
+          "x": 141,
+          "y": 241
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "SW",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 21,
+        "p95": 16,
+        "pixels": 389,
+        "worst": {
+          "actual": [
+            83,
+            78,
+            71,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            104,
+            99,
+            92,
+            255
+          ],
+          "x": 142,
+          "y": 183
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "SW",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 103,
+        "p95": 82,
+        "pixels": 389,
+        "worst": {
+          "actual": [
+            193,
+            160,
+            122,
+            255
+          ],
+          "error": 103,
+          "reference": [
+            90,
+            100,
+            91,
+            255
+          ],
+          "x": 152,
+          "y": 171
+        }
+      },
+      "removed": 220
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 400,
+        "worst": {
+          "actual": [
+            131,
+            127,
+            118,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            148,
+            145,
+            139,
+            255
+          ],
+          "x": 163,
+          "y": 177
+        }
+      },
+      "facing": "SW",
+      "frame": 5,
+      "max": 79,
+      "p95": 6,
+      "pixels": 17957,
+      "worst": {
+        "actual": [
+          50,
+          45,
+          42,
+          255
+        ],
+        "error": 79,
+        "reference": [
+          129,
+          108,
+          85,
+          255
+        ],
+        "x": 164,
+        "y": 166
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 400,
+        "worst": {
+          "actual": [
+            131,
+            127,
+            118,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            148,
+            145,
+            139,
+            255
+          ],
+          "x": 163,
+          "y": 177
+        }
+      },
+      "facing": "SW",
+      "frame": 5,
+      "max": 79,
+      "p95": 7,
+      "pixels": 17920,
+      "worst": {
+        "actual": [
+          50,
+          45,
+          42,
+          255
+        ],
+        "error": 79,
+        "reference": [
+          129,
+          108,
+          85,
+          255
+        ],
+        "x": 164,
+        "y": 166
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 401,
+        "worst": {
+          "actual": [
+            131,
+            127,
+            118,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            148,
+            145,
+            139,
+            255
+          ],
+          "x": 163,
+          "y": 177
+        }
+      },
+      "facing": "SW",
+      "frame": 5,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16485,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 20,
+        "p95": 13,
+        "pixels": 322,
+        "worst": {
+          "actual": [
+            135,
+            130,
+            123,
+            255
+          ],
+          "error": 20,
+          "reference": [
+            152,
+            150,
+            142,
+            255
+          ],
+          "x": 149,
+          "y": 191
+        }
+      },
+      "facing": "SW",
+      "frame": 6,
+      "max": 85,
+      "p95": 6,
+      "pixels": 17943,
+      "worst": {
+        "actual": [
+          46,
+          42,
+          42,
+          255
+        ],
+        "error": 85,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 154,
+        "y": 194
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 20,
+        "p95": 13,
+        "pixels": 322,
+        "worst": {
+          "actual": [
+            135,
+            130,
+            123,
+            255
+          ],
+          "error": 20,
+          "reference": [
+            152,
+            150,
+            142,
+            255
+          ],
+          "x": 149,
+          "y": 191
+        }
+      },
+      "facing": "SW",
+      "frame": 6,
+      "max": 85,
+      "p95": 7,
+      "pixels": 17899,
+      "worst": {
+        "actual": [
+          46,
+          42,
+          42,
+          255
+        ],
+        "error": 85,
+        "reference": [
+          131,
+          110,
+          87,
+          255
+        ],
+        "x": 154,
+        "y": 194
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 20,
+        "p95": 13,
+        "pixels": 322,
+        "worst": {
+          "actual": [
+            135,
+            130,
+            123,
+            255
+          ],
+          "error": 20,
+          "reference": [
+            152,
+            150,
+            142,
+            255
+          ],
+          "x": 149,
+          "y": 191
+        }
+      },
+      "facing": "SW",
+      "frame": 6,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16486,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 335,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 7,
+      "max": 79,
+      "p95": 6,
+      "pixels": 18084,
+      "worst": {
+        "actual": [
+          50,
+          45,
+          42,
+          255
+        ],
+        "error": 79,
+        "reference": [
+          129,
+          108,
+          85,
+          255
+        ],
+        "x": 164,
+        "y": 166
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 335,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 7,
+      "max": 79,
+      "p95": 7,
+      "pixels": 18032,
+      "worst": {
+        "actual": [
+          50,
+          45,
+          42,
+          255
+        ],
+        "error": 79,
+        "reference": [
+          129,
+          108,
+          85,
+          255
+        ],
+        "x": 164,
+        "y": 166
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 335,
+        "worst": {
+          "actual": [
+            108,
+            100,
+            90,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            119,
+            114,
+            107,
+            255
+          ],
+          "x": 154,
+          "y": 175
+        }
+      },
+      "facing": "SW",
+      "frame": 7,
+      "max": 116,
+      "p95": 8,
+      "pixels": 16604,
+      "worst": {
+        "actual": [
+          45,
+          41,
+          41,
+          255
+        ],
+        "error": 116,
+        "reference": [
+          161,
+          131,
+          97,
+          255
+        ],
+        "x": 141,
+        "y": 241
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 386,
+        "worst": {
+          "actual": [
+            113,
+            106,
+            96,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 0,
+      "max": 88,
+      "p95": 8,
+      "pixels": 18060,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          41,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 234,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 386,
+        "worst": {
+          "actual": [
+            113,
+            106,
+            96,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 0,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16594,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          41,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          131,
+          97,
+          255
+        ],
+        "x": 257,
+        "y": 246
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 386,
+        "worst": {
+          "actual": [
+            94,
+            90,
+            80,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            109,
+            104,
+            97,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 0,
+      "max": 88,
+      "p95": 8,
+      "pixels": 18010,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          41,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 234,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 381,
+        "worst": {
+          "actual": [
+            113,
+            106,
+            96,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 1,
+      "max": 75,
+      "p95": 8,
+      "pixels": 17976,
+      "worst": {
+        "actual": [
+          49,
+          44,
+          41,
+          255
+        ],
+        "error": 75,
+        "reference": [
+          124,
+          105,
+          83,
+          255
+        ],
+        "x": 237,
+        "y": 159
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 381,
+        "worst": {
+          "actual": [
+            113,
+            106,
+            96,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 1,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16498,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          96,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 381,
+        "worst": {
+          "actual": [
+            173,
+            170,
+            161,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            187,
+            185,
+            178,
+            255
+          ],
+          "x": 239,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 1,
+      "max": 75,
+      "p95": 8,
+      "pixels": 17927,
+      "worst": {
+        "actual": [
+          49,
+          44,
+          41,
+          255
+        ],
+        "error": 75,
+        "reference": [
+          124,
+          105,
+          83,
+          255
+        ],
+        "x": 237,
+        "y": 159
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            93,
+            78,
+            65,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            110,
+            88,
+            72,
+            255
+          ],
+          "x": 245,
+          "y": 201
+        }
+      },
+      "facing": "NW",
+      "frame": 2,
+      "max": 91,
+      "p95": 9,
+      "pixels": 17944,
+      "worst": {
+        "actual": [
+          44,
+          41,
+          39,
+          255
+        ],
+        "error": 91,
+        "reference": [
+          135,
+          114,
+          90,
+          255
+        ],
+        "x": 237,
+        "y": 160
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            93,
+            88,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            101,
+            95,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 2,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16437,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          97,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 16,
+        "p95": 13,
+        "pixels": 388,
+        "worst": {
+          "actual": [
+            120,
+            115,
+            108,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            134,
+            131,
+            124,
+            255
+          ],
+          "x": 240,
+          "y": 186
+        }
+      },
+      "facing": "NW",
+      "frame": 2,
+      "max": 91,
+      "p95": 8,
+      "pixels": 17895,
+      "worst": {
+        "actual": [
+          44,
+          41,
+          39,
+          255
+        ],
+        "error": 91,
+        "reference": [
+          135,
+          114,
+          90,
+          255
+        ],
+        "x": 237,
+        "y": 160
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            93,
+            78,
+            65,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            110,
+            88,
+            72,
+            255
+          ],
+          "x": 245,
+          "y": 201
+        }
+      },
+      "facing": "NW",
+      "frame": 3,
+      "max": 91,
+      "p95": 9,
+      "pixels": 17955,
+      "worst": {
+        "actual": [
+          46,
+          41,
+          40,
+          255
+        ],
+        "error": 91,
+        "reference": [
+          137,
+          115,
+          90,
+          255
+        ],
+        "x": 237,
+        "y": 160
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            93,
+            88,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 3,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16432,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          97,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            87,
+            73,
+            62,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            104,
+            84,
+            70,
+            255
+          ],
+          "x": 240,
+          "y": 152
+        }
+      },
+      "facing": "NW",
+      "frame": 3,
+      "max": 91,
+      "p95": 8,
+      "pixels": 17911,
+      "worst": {
+        "actual": [
+          46,
+          41,
+          40,
+          255
+        ],
+        "error": 91,
+        "reference": [
+          137,
+          115,
+          90,
+          255
+        ],
+        "x": 237,
+        "y": 160
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            93,
+            78,
+            65,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            110,
+            88,
+            72,
+            255
+          ],
+          "x": 245,
+          "y": 201
+        }
+      },
+      "facing": "NW",
+      "frame": 4,
+      "max": 88,
+      "p95": 8,
+      "pixels": 17945,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          41,
+          255
+        ],
+        "error": 88,
+        "reference": [
+          135,
+          113,
+          89,
+          255
+        ],
+        "x": 234,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "end",
+      "contactMutation": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            93,
+            78,
+            65,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            110,
+            88,
+            72,
+            255
+          ],
+          "x": 245,
+          "y": 201
+        }
+      },
+      "facing": "NW",
+      "mutation": {
+        "max": 88,
+        "p95": 8,
+        "pixels": 17945,
+        "worst": {
+          "actual": [
+            47,
+            42,
+            41,
+            255
+          ],
+          "error": 88,
+          "reference": [
+            135,
+            113,
+            89,
+            255
+          ],
+          "x": 234,
+          "y": 170
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "NW",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 23,
+        "p95": 16,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            88,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            121,
+            117,
+            110,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "NW",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 171,
+        "p95": 107,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 171,
+          "reference": [
+            194,
+            147,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 148
+        }
+      },
+      "removed": 64
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 397,
+        "worst": {
+          "actual": [
+            111,
+            103,
+            94,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            121,
+            117,
+            110,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 4,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16431,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          97,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contactMutation": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 397,
+        "worst": {
+          "actual": [
+            111,
+            103,
+            94,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            121,
+            117,
+            110,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "mutation": {
+        "max": 113,
+        "p95": 9,
+        "pixels": 16431,
+        "worst": {
+          "actual": [
+            47,
+            44,
+            42,
+            255
+          ],
+          "error": 113,
+          "reference": [
+            160,
+            130,
+            97,
+            255
+          ],
+          "x": 258,
+          "y": 242
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "NW",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 23,
+        "p95": 16,
+        "pixels": 397,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            88,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            121,
+            117,
+            110,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "NW",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 111,
+        "p95": 101,
+        "pixels": 397,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 111,
+          "reference": [
+            111,
+            134,
+            123,
+            255
+          ],
+          "x": 236,
+          "y": 213
+        }
+      },
+      "removed": 64
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            95,
+            78,
+            66,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            111,
+            89,
+            73,
+            255
+          ],
+          "x": 240,
+          "y": 152
+        }
+      },
+      "facing": "NW",
+      "frame": 4,
+      "max": 87,
+      "p95": 8,
+      "pixels": 17899,
+      "worst": {
+        "actual": [
+          47,
+          42,
+          41,
+          255
+        ],
+        "error": 87,
+        "reference": [
+          134,
+          113,
+          89,
+          255
+        ],
+        "x": 234,
+        "y": 170
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contactMutation": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            95,
+            78,
+            66,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            111,
+            89,
+            73,
+            255
+          ],
+          "x": 240,
+          "y": 152
+        }
+      },
+      "facing": "NW",
+      "mutation": {
+        "max": 87,
+        "p95": 8,
+        "pixels": 17899,
+        "worst": {
+          "actual": [
+            47,
+            42,
+            41,
+            255
+          ],
+          "error": 87,
+          "reference": [
+            134,
+            113,
+            89,
+            255
+          ],
+          "x": 234,
+          "y": 170
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "NW",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 22,
+        "p95": 16,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            100,
+            94,
+            88,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            121,
+            116,
+            109,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "NW",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 171,
+        "p95": 107,
+        "pixels": 395,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 171,
+          "reference": [
+            194,
+            147,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 148
+        }
+      },
+      "removed": 64
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 398,
+        "worst": {
+          "actual": [
+            93,
+            78,
+            65,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            110,
+            88,
+            72,
+            255
+          ],
+          "x": 245,
+          "y": 201
+        }
+      },
+      "facing": "NW",
+      "frame": 5,
+      "max": 83,
+      "p95": 8,
+      "pixels": 17933,
+      "worst": {
+        "actual": [
+          46,
+          42,
+          41,
+          255
+        ],
+        "error": 83,
+        "reference": [
+          129,
+          109,
+          86,
+          255
+        ],
+        "x": 237,
+        "y": 155
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 400,
+        "worst": {
+          "actual": [
+            111,
+            103,
+            94,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            121,
+            116,
+            110,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 5,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16432,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          97,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 398,
+        "worst": {
+          "actual": [
+            93,
+            88,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            101,
+            95,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 5,
+      "max": 78,
+      "p95": 8,
+      "pixels": 17886,
+      "worst": {
+        "actual": [
+          50,
+          45,
+          42,
+          255
+        ],
+        "error": 78,
+        "reference": [
+          128,
+          108,
+          86,
+          255
+        ],
+        "x": 235,
+        "y": 166
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 396,
+        "worst": {
+          "actual": [
+            93,
+            78,
+            65,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            110,
+            88,
+            72,
+            255
+          ],
+          "x": 245,
+          "y": 201
+        }
+      },
+      "facing": "NW",
+      "frame": 6,
+      "max": 62,
+      "p95": 8,
+      "pixels": 17897,
+      "worst": {
+        "actual": [
+          193,
+          160,
+          122,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          86,
+          255
+        ],
+        "x": 253,
+        "y": 191
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 16,
+        "p95": 14,
+        "pixels": 396,
+        "worst": {
+          "actual": [
+            93,
+            89,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 6,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16437,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          97,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 16,
+        "p95": 13,
+        "pixels": 396,
+        "worst": {
+          "actual": [
+            93,
+            89,
+            79,
+            255
+          ],
+          "error": 16,
+          "reference": [
+            107,
+            101,
+            95,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 6,
+      "max": 62,
+      "p95": 8,
+      "pixels": 17848,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          123,
+          255
+        ],
+        "error": 62,
+        "reference": [
+          131,
+          110,
+          86,
+          255
+        ],
+        "x": 253,
+        "y": 191
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 381,
+        "worst": {
+          "actual": [
+            113,
+            106,
+            96,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 7,
+      "max": 83,
+      "p95": 8,
+      "pixels": 17950,
+      "worst": {
+        "actual": [
+          46,
+          42,
+          41,
+          255
+        ],
+        "error": 83,
+        "reference": [
+          129,
+          109,
+          86,
+          255
+        ],
+        "x": 237,
+        "y": 155
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 381,
+        "worst": {
+          "actual": [
+            113,
+            106,
+            96,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 243,
+          "y": 175
+        }
+      },
+      "facing": "NW",
+      "frame": 7,
+      "max": 113,
+      "p95": 9,
+      "pixels": 16498,
+      "worst": {
+        "actual": [
+          47,
+          44,
+          42,
+          255
+        ],
+        "error": 113,
+        "reference": [
+          160,
+          130,
+          97,
+          255
+        ],
+        "x": 258,
+        "y": 242
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 17,
+        "p95": 14,
+        "pixels": 381,
+        "worst": {
+          "actual": [
+            94,
+            90,
+            80,
+            255
+          ],
+          "error": 17,
+          "reference": [
+            109,
+            104,
+            97,
+            255
+          ],
+          "x": 245,
+          "y": 178
+        }
+      },
+      "facing": "NW",
+      "frame": 7,
+      "max": 78,
+      "p95": 8,
+      "pixels": 17899,
+      "worst": {
+        "actual": [
+          50,
+          45,
+          42,
+          255
+        ],
+        "error": 78,
+        "reference": [
+          128,
+          108,
+          86,
+          255
+        ],
+        "x": 235,
+        "y": 166
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 840,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 0,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17823,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 840,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 0,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17810,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 840,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 0,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17200,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 823,
+        "worst": {
+          "actual": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            128,
+            123,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 1,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17799,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 823,
+        "worst": {
+          "actual": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            127,
+            123,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 1,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17785,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 823,
+        "worst": {
+          "actual": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            128,
+            123,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 1,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17175,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 23,
+        "p95": 13,
+        "pixels": 912,
+        "worst": {
+          "actual": [
+            102,
+            97,
+            91,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 245,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 2,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17854,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 912,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 2,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17841,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 912,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            129,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 2,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17231,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 23,
+        "p95": 13,
+        "pixels": 932,
+        "worst": {
+          "actual": [
+            102,
+            97,
+            91,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 245,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 3,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17820,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 932,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 3,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17807,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 932,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            129,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 3,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17197,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 23,
+        "p95": 13,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            102,
+            97,
+            91,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 245,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 4,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17805,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contactMutation": {
+        "max": 202,
+        "p95": 106,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            35,
+            33,
+            34,
+            255
+          ],
+          "error": 202,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 236,
+          "y": 239
+        }
+      },
+      "facing": "NE",
+      "mutation": {
+        "max": 202,
+        "p95": 9,
+        "pixels": 17805,
+        "worst": {
+          "actual": [
+            35,
+            33,
+            34,
+            255
+          ],
+          "error": 202,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 236,
+          "y": 239
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "NE",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 167,
+        "p95": 106,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            81,
+            70,
+            60,
+            255
+          ],
+          "error": 167,
+          "reference": [
+            237,
+            236,
+            227,
+            255
+          ],
+          "x": 234,
+          "y": 241
+        }
+      }
+    },
+    {
+      "arrangement": "end",
+      "facing": "NE",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 189,
+        "p95": 187,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 189,
+          "reference": [
+            212,
+            161,
+            126,
+            255
+          ],
+          "x": 225,
+          "y": 241
+        }
+      },
+      "removed": 428
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 4,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17792,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contactMutation": {
+        "max": 196,
+        "p95": 106,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            42,
+            39,
+            38,
+            255
+          ],
+          "error": 196,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 235,
+          "y": 239
+        }
+      },
+      "facing": "NE",
+      "mutation": {
+        "max": 196,
+        "p95": 8,
+        "pixels": 17792,
+        "worst": {
+          "actual": [
+            42,
+            39,
+            38,
+            255
+          ],
+          "error": 196,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 235,
+          "y": 239
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "NE",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 162,
+        "p95": 106,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            81,
+            73,
+            66,
+            255
+          ],
+          "error": 162,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 234,
+          "y": 240
+        }
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "facing": "NE",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 189,
+        "p95": 187,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 189,
+          "reference": [
+            212,
+            161,
+            126,
+            255
+          ],
+          "x": 225,
+          "y": 241
+        }
+      },
+      "removed": 428
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            129,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 4,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17182,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contactMutation": {
+        "max": 197,
+        "p95": 106,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            41,
+            38,
+            38,
+            255
+          ],
+          "error": 197,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 235,
+          "y": 239
+        }
+      },
+      "facing": "NE",
+      "mutation": {
+        "max": 197,
+        "p95": 8,
+        "pixels": 17182,
+        "worst": {
+          "actual": [
+            41,
+            38,
+            38,
+            255
+          ],
+          "error": 197,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 235,
+          "y": 239
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "NE",
+      "kind": "missing-support-mask",
+      "mutation": {
+        "max": 162,
+        "p95": 106,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            81,
+            73,
+            66,
+            255
+          ],
+          "error": 162,
+          "reference": [
+            236,
+            235,
+            227,
+            255
+          ],
+          "x": 234,
+          "y": 240
+        }
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "facing": "NE",
+      "kind": "missing-hand-colour-contribution",
+      "mutation": {
+        "max": 189,
+        "p95": 187,
+        "pixels": 939,
+        "worst": {
+          "actual": [
+            23,
+            23,
+            28,
+            255
+          ],
+          "error": 189,
+          "reference": [
+            212,
+            161,
+            126,
+            255
+          ],
+          "x": 225,
+          "y": 241
+        }
+      },
+      "removed": 428
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 23,
+        "p95": 13,
+        "pixels": 928,
+        "worst": {
+          "actual": [
+            102,
+            97,
+            91,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 245,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 5,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17844,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 928,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 5,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17831,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 928,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            129,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 5,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17221,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 23,
+        "p95": 13,
+        "pixels": 922,
+        "worst": {
+          "actual": [
+            102,
+            97,
+            91,
+            255
+          ],
+          "error": 23,
+          "reference": [
+            124,
+            120,
+            113,
+            255
+          ],
+          "x": 245,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 6,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17892,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 922,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 6,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17879,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 922,
+        "worst": {
+          "actual": [
+            108,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            117,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 6,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17269,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "end",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 825,
+        "worst": {
+          "actual": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 7,
+      "max": 60,
+      "p95": 8,
+      "pixels": 17830,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-left",
+      "contact": {
+        "max": 21,
+        "p95": 13,
+        "pixels": 825,
+        "worst": {
+          "actual": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "error": 21,
+          "reference": [
+            128,
+            123,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 7,
+      "max": 60,
+      "p95": 7.592885375494077,
+      "pixels": 17816,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          87,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    },
+    {
+      "arrangement": "side-right",
+      "contact": {
+        "max": 22,
+        "p95": 13,
+        "pixels": 825,
+        "worst": {
+          "actual": [
+            107,
+            102,
+            95,
+            255
+          ],
+          "error": 22,
+          "reference": [
+            128,
+            124,
+            116,
+            255
+          ],
+          "x": 243,
+          "y": 233
+        }
+      },
+      "facing": "NE",
+      "frame": 7,
+      "max": 60,
+      "p95": 7,
+      "pixels": 17206,
+      "worst": {
+        "actual": [
+          193,
+          161,
+          122,
+          255
+        ],
+        "error": 60,
+        "reference": [
+          133,
+          112,
+          88,
+          255
+        ],
+        "x": 240,
+        "y": 251
+      }
+    }
+  ],
+  "validation": null
+}

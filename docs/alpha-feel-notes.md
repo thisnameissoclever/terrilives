@@ -1,5 +1,13 @@
 # Alpha Feel Notes
 
+## [A-build-context-controls] Build actions in the viewport, 2026-10-01
+
+The displayed game was exercised on desktop, phone and short landscape with all five Build tools. Contextual actions followed selection, pan and zoom. Floors selected without painting; applying a covering changed the chosen tile. Furniture sale showed the actual payout. Help and Options suspended contextual actions, and tool changes reset only the relevant shortcut disclosure.
+
+Enlarged text exposed overlapping controls and focus loss during layout changes. One grid now allocates compact controls and scrollable tool content; focus survives container moves. Other reviewed surfaces include Options, object menus, the Sim dock and its detail tabs, both housemate form pages, and confirmation dialogs.
+
+These are local browser observations and automated geometry checks. The owner accepted the displayed screenshots on 2026-10-01. Physical-phone use and spoken screen-reader output remain unverified. Commands, measurements and screenshots belong to the dated [Build controls evidence](assets/review-evidence/build-controls/README.md).
+
 ## [A-packed-floor-preview] Drawn floor selection and viewport help
 
 2026-10-01, production build on isolated port 5224. Desktop and 390x844
@@ -3931,3 +3939,21 @@ activity presentation, not a full need cycle or public deployment. The review
 receipts, limitations and local checks are in
 `docs/assets/review-evidence/activity-bubbles/README.md`. Task-owned game pages
 were closed, temporary lighting restored, and preview servers stopped.
+
+## [A-solid-door-crossings] Door model and floor joins, 2026-10-01
+
+Inspected the displayed production build with the replacement doors at play
+zoom, flat light, automatic night lighting, reduced motion and a 390px viewport.
+Both doorway axes now have leaves. Recorded native crossings include opening,
+occupied doorway, closing and closed, with no observed threshold clipping of
+feet, leaf or casing. The first replacement's heavy ink and projecting bottom
+tabs were rejected; thinner brown contours and a threshold fitted inside the
+casing correct those findings in the revised images.
+
+Fresh-context review required casing, edge-on and threshold-visibility samples
+in addition to broad leaf depth. The expanded GPU proof passes 864 cases and
+detects removal of each depth mechanism. The model, captures, executed gates,
+mutation receipts and evidence limits are recorded in
+`docs/specs/2026-10-01-solid-door-verification.md`. The owner approved the visuals
+and authorized delivery on 2026-10-01. This is a door presentation pass,
+not a full household activity playthrough or a deployment claim.

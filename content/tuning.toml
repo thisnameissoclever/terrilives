@@ -7,6 +7,16 @@ survival_risk_penalty = 2.0
 choice_probability_floor = 0.000000001
 wander_pause_variance = 0.4
 self_preservation_curve = [[0, 0.02], [5, 0.10], [30, 0.75], [50, 1.0], [70, 1.4], [100, 2.0]]
+# One directional penalty at conversation start; worst unhelped need wins.
+social_unmet_need_penalty = 0.11
+social_critical_need_penalty = 0.20
+# One penalty per private-use start or room entry.
+bathroom_privacy_penalty = 0.25
+# Mild preference costs and shyness response; these never forbid an action.
+social_boundary_avoidance_cost = 0.01
+shyness_annoyance_strength = 0.25
+boundary_wander_reconsider_chance = 0.10
+shyness_wander_reconsider_strength = 0.15
 
 # Preserves the critical need band used by the mood panel.
 mood_critical_need_level = 20.0
@@ -36,8 +46,9 @@ waiting_mood_min_penalty = 2.0
 waiting_mood_max_penalty = 30.0
 # Small mood fluctuations do not rewrite a life assessment.
 satisfaction_mood_neutral_band = 15.0
-# A full day at either mood extreme changes satisfaction by 36, making sustained mood a major contributor beside hobby rewards of 2 to 9 and a career reward of 1.
-satisfaction_mood_per_tick = 0.025
+# Extreme mood alone takes about 90 game days to move 50 points.
+# Ordinary mood changes satisfaction over months or years.
+satisfaction_mood_per_tick = 0.00038580247
 
 # Six real minutes at normal speed leaves time to recover from an empty need.
 death_after_ticks = 3600
@@ -466,22 +477,21 @@ need_bar_refresh_ms = 100
 # A's feeling about B is stored separately from B's about A, so
 # unrequited is a real state.
 
-# How much one completed social interaction raises EACH participant's
-# relationship toward the other. 0.15 means roughly seven conversations
-# take two strangers to best friends, which at measured M2c social decay
-# (a sim seeks company every 2 000-4 000 ticks) is an evening of game
-# time rather than a lifetime or an instant. Zero disables the mechanic,
-# like habituation_per_use.
-relationship_gain_per_talk = 0.15
+# Base affinity reward for each eligible participant in a completed
+# conversation. Compatibility scales the reward; poor hygiene and unhelped
+# critical needs can block it. Calibrated with ordinary privacy incidents
+# and shared activities; see the relationship-development evidence.
+# Zero disables this completion reward.
+relationship_gain_per_talk = 0.17
 
 # How much every relationship drifts toward zero each tick - toward
 # zero, not downward: a grudge fades on the same clock a friendship
-# does. 0.00001 costs a full friendship about a third of its warmth
+# does. 0.000005 costs a full friendship about 0.18 of its warmth
 # over 36 000 unattended ticks (one long measured session), so
 # maintenance matters at the pace sessions are actually played. Must be
 # strictly positive, or a relationship is a one-way ratchet - the same
 # rule habituation_decay_per_tick carries.
-relationship_decay_per_tick = 0.00001
+relationship_decay_per_tick = 0.000005
 
 # How strongly the initiator's relationship toward the target scales a
 # social advert's BENEFIT: the multiplier is 1 + relationship * scale.
@@ -497,13 +507,13 @@ relationship_delta_scale = 0.5
 # ============================================================================
 # The satisfaction axis - M2e, [E1]/[E2] in
 # docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
-# Satisfaction is the SECOND axis: a per-sim accumulator the player
-# watches, produced by hobbies and reduced by neglect, never derived
-# from need levels ([S1]).
+# Life satisfaction stays within 0-100 and changes over months or years.
+# Sustained mood, completed activities, careers and neglect contribute.
+# See docs/specs/2026-10-01-life-satisfaction.md for units and pacing.
 
 # What completing a LOVED activity's satisfaction is multiplied by. At
 # 3.0, a hobby completion is worth triple a merely-pleasant one: a
-# loved read pays 9 against its base 3, so a sim with idle time and a
+# loved read pays 0.009 points against its base 0.003, so a sim with idle time and a
 # hobby visibly out-earns one with idle time alone - which is the whole
 # claim of [S1], that idle time must be SPENT to convert. Must be at
 # least 1 (below 1 inverts the mechanic; exactly 1 disables it).
@@ -527,12 +537,10 @@ neglect_floor = 15.0
 day_ticks = 1440
 
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
-# 0.002/tick is 24 per simulated hour per crisis. Against a dedicated
-# hobbyist's rough 100-200/hour accrual that is a bruise rather than a
-# knockout for one neglected need, and a compounding indictment for
-# three - each need below the floor bleeds separately, because three
-# crises are worse than one. Non-negative; 0 disables.
-neglect_bleed_per_tick = 0.002
+# One crisis costs about 0.0144 points per game day, alongside its mood
+# effect. This exceeds the score's floating-point precision even near 100.
+# Each neglected need contributes separately. Non-negative; 0 disables.
+neglect_bleed_per_tick = 0.00001
 
 # What every need's decay rate is multiplied by while a sim is AT WORK
 # - [X2] in docs/specs/2026-08-01-alpha-acceptance-findings.md, and the
@@ -836,14 +844,27 @@ exhaustion_ramp_ticks = 240
 #
 # Exactly 1 disables the ramp, which is how to measure its effect again.
 exhaustion_bonus = 2.5
+
+# Ordinary relationship development and privacy decisions.
+[relationships]
+proximity_per_hour = 0.062
+shared_activity_multiplier = 10.0
+friction_per_hour = 0.0075
+incompatible_below = -0.2
+contact_radius = 4.0
+privacy_respect_chance = 0.65
+shyness_respect_strength = 0.08
+privacy_decision_ticks = 30
+privacy_critical_wait_ticks = 10
+privacy_desperate_need_level = 5.0
 # Meals, cleanliness and household mess. Scores are 0..1; need levels 0..100.
 [domestic]
 own_cleanup_min = 0.01
-own_cleanup_bonus = 0.89
-visitor_cleanup_fraction = 0.20
+own_cleanup_bonus = 0.97
+visitor_cleanup_fraction = 0.35
 critical_cleanup_scale = 0.005
-ready_need_level = 55.0
-other_need_floor = 0.35
+ready_need_level = 45.0
+other_need_floor = 0.65
 other_need_level = 50.0
 invite_hunger_level = 40.0
 accept_hunger_level = 55.0
@@ -852,6 +873,6 @@ mood_penalty_min = 2.0
 mood_penalty_bonus = 8.0
 mood_units = 4.0
 mood_max_load = 1.5
-affinity_penalty_min = 0.003
-affinity_penalty_bonus = 0.027
+affinity_penalty_min = 0.0003
+affinity_penalty_bonus = 0.0027
 wash_ticks_per_unit = 8

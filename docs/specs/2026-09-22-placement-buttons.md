@@ -1,21 +1,23 @@
-# Confirm and Cancel over the piece being placed
+# Contextual actions around the build selection
 
-Status: shipped in PR 113 at merge `5b124bc`; its played check is [A-placement-buttons].
+The original Confirm / Cancel pair shipped in PR 113 at merge `5b124bc`, with played check [A-placement-buttons]. The owner-approved [build controls revision](2026-10-01-build-context-controls.md) extends it to all five tools and replaces duplicate panel action rows.
 
-This is [B-placement-buttons] in `docs/FEATURES.md`, asked for by the owner on 2026-09-22. Moving a piece of furniture put its ghost in the game view but its Confirm and Cancel in the Build panel, so nothing near the piece said the move waited on the player.
+## [PA-show] Active selection and controller capabilities
 
-## [PA-show] When the buttons show, and what they do
+Furniture, Buy, Walls, Room and Floors share one typed presentation model. Only the active selection has actions. Commands, supported facings, actual prices and payouts, affordability, placement validation, pending state and refusal messages remain owned by existing controllers.
 
-While the Furniture tool has a piece lifted, or the Buy tool has something chosen and pointed at the floor, two buttons float in the game view just above the ghost: Confirm and Cancel for a move, Buy and Cancel for a purchase. They are the Build panel's own pair in a second place. Each calls the same tool method as the panel's button, and each is enabled exactly when the panel's is, so the two pairs cannot disagree. The panel keeps its pair, and on a phone the dock's footer still holds it ([PD-tall] in `docs/specs/2026-09-22-phone-build-dock.md`).
+Before hiding or disabling a focused action, the surface focuses the game view. Rotation SVGs have accessible direction names. Modal dialogs suspend the surface; its hidden rule outranks compact layout rules.
 
-They hide when the piece is put down or cancelled, when the tool changes, and when Build ends. A focused button that is about to hide or turn off, as Confirm does while its move is on its way, hands focus to the game view first, so the arrow keys, R and the list keys keep working. The Walls and Room tools have no ghost and show nothing here; their edits apply when pressed ([WT-shell]).
+## [PA-place] Projection, bounds and unchanged frames
 
-## [PA-place] Where they go
+The anchor uses world projection and the furniture art framing and side offsets used for drawing. Drawing-buffer coordinates convert to client pixels through canvas bounds at the current device pixel ratio.
 
-The anchor is the top of the ghost's visible art, with the projection, half-tile drop and side offset picking in `input.ts` uses: the body's centre tile projected through the camera, the half tile the shader drops each sprite's base below its point, the art's height above its base from the atlas's content bounds (the taller of the body and its foreground layer), and the sprite's side offset, all scaled with the camera. That drawing-buffer point becomes client pixels through the canvas's size on the page, since the buffer is that size times the device pixel ratio. The pair is centred over the anchor, 8 pixels above it, and kept inside the window. On a desktop it stays right of the sidebar, so it never covers the Build panel. Where it would slide under the Options gear it moves left of the gear, or below it when there is no room to the left. On a phone with the Build dock showing it is kept above the dock's top edge, and a change in either tool places it again, since the dock's height can change with its status line.
+Buttons follow selection, pan, zoom, resize and content changes. Bounds keep them clear of the desktop panel, phone dock, world controls, zoom and open Options. Arcs become compact rows where space requires it. Empty space passes input through; button presses do not select or paint tiles beneath them.
 
-The buttons follow every pan, zoom and resize. Each frame compares the ghost's tile and size, the camera, and the drawing buffer's size with the last frame's as plain numbers. The page is measured and written only when one of them changes, so a steady frame does no layout work and allocates nothing ([D11]). The box lets clicks through to the floor; only the buttons take them.
+Compact rows allocate space with world controls and the tool dock in one grid. Their height comes from actual buttons; it is never clamped below that content. The camera keeps the selection in the remaining game area. Options suspends contextual actions while open. Reparenting preserves focused visible controls.
 
-## [PA-evidence] Evidence
+Dirty callbacks update the model; camera and buffer comparisons update positioning. Resize observers invalidate after panel dimensions change. Steady frames neither measure nor rewrite contextual DOM.
 
-Tests pin the buffer-to-client mapping at device pixel ratios of 1, 2 and 3 and its round trip; the anchor at two zooms; the clamping at the window's edge and above a phone's dock; the labels and enablement for a move and a purchase; that a steady frame writes nothing and each kind of movement places the pair once; the keep-out from the sidebar and the gear; when focus leaves the pair; and the markup and wiring. The played check lifts and moves a chair and points a purchase; the household could not afford it, so nothing was bought.
+## [PA-evidence] Verification boundary
+
+Projection tests retain device pixel ratios 1, 2 and 3 and art-anchor scaling. Controller and presentation tests cover all five action sets, supported directions, actual prices and payouts, refusal and pending guards, and unchanged frames. Browser checks exercise the actual game, bounds, hit testing and focus restoration. Current commands and screenshots are in [build controls evidence](../assets/review-evidence/build-controls/README.md). Local checks do not constitute owner visual acceptance.

@@ -1,0 +1,119 @@
+[
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/domestic"
+    ],
+    "exit_code": 0,
+    "output": ".\n----------------------------------------------------------------------\nRan 1 test in 0.394s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/sims/sim-01"
+    ],
+    "exit_code": 0,
+    "output": ".............................\n----------------------------------------------------------------------\nRan 29 tests in 0.844s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/furniture"
+    ],
+    "exit_code": 0,
+    "output": "......D:\\VIBES\\.worktrees\\1dc2\\terrilives\\assets\\models\\furniture\\layer_partition.py:22: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for sim, prop, ink in zip(body.getdata(), furniture.getdata(), outline.getdata()):\nD:\\VIBES\\.worktrees\\1dc2\\terrilives\\assets\\models\\furniture\\export_contributions.py:54: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for left,right in zip(actual.getdata(),reference.getdata()) if left[3] or right[3])\n........................\n----------------------------------------------------------------------\nRan 30 tests in 0.741s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/kitchen"
+    ],
+    "exit_code": 0,
+    "output": "PASS: four hashed, padded source views; review sheet uses only resampling and layout.\nPASS: four hashed, padded source views; review sheet uses only resampling and layout.\n...............\n----------------------------------------------------------------------\nRan 15 tests in 0.298s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bathroom"
+    ],
+    "exit_code": 0,
+    "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.006s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/bedroom"
+    ],
+    "exit_code": 0,
+    "output": "..............D:\\VIBES\\.worktrees\\1dc2\\terrilives\\assets\\models\\bedroom\\double_bed_linear.py:32: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for parts in zip(*(image.getdata() for image in layers)):\n..D:\\VIBES\\.worktrees\\1dc2\\terrilives\\assets\\models\\bedroom\\double_bed_layers.py:9: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for values in zip(*(layer.getdata() for layer in layers), outline.getdata()):\n............\n----------------------------------------------------------------------\nRan 28 tests in 0.067s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/office"
+    ],
+    "exit_code": 0,
+    "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/dining"
+    ],
+    "exit_code": 0,
+    "output": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "assets/models/living"
+    ],
+    "exit_code": 0,
+    "output": ".................................\n----------------------------------------------------------------------\nRan 33 tests in 0.075s\n\nOK\n"
+  }
+]

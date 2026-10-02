@@ -22,7 +22,7 @@ test('real household crossings emit physical door events after WASM growth witho
     endPortalFrame: () => scheduler.endFrame(),
   };
   try {
-    expect(sim.portalCount).toBe(4);
+    expect(sim.portalCount).toBe(6);
     const before = sim.saveBytes();
     samplePortalAudioAfterTick(sim, sink);
     expect(sim.saveBytes()).toEqual(before);
@@ -40,8 +40,10 @@ test('real household crossings emit physical door events after WASM growth witho
       'door.opened', 'door.closed', 'door.opened', 'door.closed',
     ]);
     expect(events.some(event => 'doorId' in event && event.doorId === '5:9:6:9')).toBe(true);
-    expect(scheduler.activeTrackCount()).toBe(4);
-    expect(scheduler.trackCapacity()).toBe(4);
+    expect(events.some(event => 'doorId' in event && event.doorId === '3:5:3:6')).toBe(true);
+    expect(events.some(event => 'doorId' in event && event.doorId === '13:5:13:6')).toBe(true);
+    expect(scheduler.activeTrackCount()).toBe(6);
+    expect(scheduler.trackCapacity()).toBe(6);
     scheduler.reset();
     const countBeforeLoad = events.length;
     expect(sim.loadBytes(sim.saveBytes())).toBe(true);

@@ -1,0 +1,34 @@
+[
+  {
+    "name": "surface",
+    "pass": false,
+    "failures": 628,
+    "total": 864,
+    "error": null,
+    "restored_sha256": "a9b2121978e79584502fe0ac1f1a6e7c0b73ddc60e733995012bfa6ebe8235c3"
+  },
+  {
+    "name": "threshold",
+    "pass": false,
+    "failures": 216,
+    "total": 864,
+    "error": null,
+    "restored_sha256": "a9b2121978e79584502fe0ac1f1a6e7c0b73ddc60e733995012bfa6ebe8235c3"
+  },
+  {
+    "name": "threshold-coverage",
+    "pass": false,
+    "failures": 216,
+    "total": 864,
+    "error": null,
+    "restored_sha256": "a9b2121978e79584502fe0ac1f1a6e7c0b73ddc60e733995012bfa6ebe8235c3"
+  },
+  {
+    "name": "baseline",
+    "pass": true,
+    "failures": 0,
+    "total": 864,
+    "error": null,
+    "restored_sha256": "a9b2121978e79584502fe0ac1f1a6e7c0b73ddc60e733995012bfa6ebe8235c3"
+  }
+]

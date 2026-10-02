@@ -1,0 +1,19 @@
+{
+  "ContentSha256": "877d70d252854617ced7c0a903e9f2a39e4eb3ce5169e117383f1711eeab3bb0",
+  "NativeExecutableSha256": "E5C1F33E76BE1C3A4AD82A76365D3DB0D2BB73D84865370917AABD2031F1E1B3",
+  "PrivacyRespect": 0.65,
+  "ProximityPerHour": 0.062,
+  "FrictionPerHour": 0.0075,
+  "TalkGain": 0.17,
+  "MessMin": 0.0003,
+  "MessBonus": 0.0027,
+  "PrivacyPenalty": 0.25,
+  "CommandOverrides": "--proximity=.062 --decay=.000005",
+  "SettlingDays": 7,
+  "MeasuredDays": 56,
+  "RelationshipDecayPerTick": 5e-06,
+  "IntegratedMain": "39bfa599",
+  "CalibrationSeeds": "1-16",
+  "ReusedValidationSeeds": "17-24",
+  "ConfirmationSeeds": "25-32"
+}

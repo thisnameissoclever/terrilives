@@ -689,11 +689,11 @@
 
       .builder-help { order: 1; }
       .builder-actions { display: grid; gap: 8px; }
-      /* Let the labels set each tab's width, including with enlarged text. */
-      #build-tools { display: flex; flex-wrap: wrap; gap: 8px; }
-      #build-tools > * { flex: 1 1 auto; min-width: 0; }
-      .builder-row > * { flex: 1 1 auto; min-width: 0; }
-      #builder-controls .hud-button { min-height: 44px; max-width: 100%; font-size: 14px; white-space: normal; overflow-wrap: anywhere; }
+      /* Tool navigation uses equal columns in the side panel. */
+      #build-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      #build-tools > * { min-width: 0; }
+      .builder-row > * { flex: 1; min-width: 0; }
+      #builder-controls .hud-button { min-height: 44px; font-size: 14px; }
       #builder-controls .hud-button:disabled { opacity: 0.5; cursor: default; }
       #builder-status { color: var(--need-fill); }
       #builder-status[data-valid='false'] { color: var(--hud-danger); }
@@ -704,38 +704,6 @@
       body[data-building='true'] #time-controls,
       body[data-building='true'] #sim-dock { display: none; }
       @media (max-width: 600px), (max-height: 480px) {
-        #builder-dock {
-          position: fixed;
-          bottom: max(8px, env(safe-area-inset-bottom));
-          left: max(8px, env(safe-area-inset-left));
-          right: max(8px, env(safe-area-inset-right));
-          z-index: 2;
-        }
-        #builder-dock #builder-controls {
-          /* The whole panel, border and padding included, stays at 45%. */
-          box-sizing: border-box; max-height: 45dvh; overflow-y: auto;
-          padding: 10px; border: 1px solid var(--hud-edge);
-          border-radius: 6px; background: var(--hud-bg);
-        }
-        /* [B-phone-build-dock]: rows the capped panel can spare. The
-           heading and the paused note leave the view, not the page, so
-           the panel keeps its name for screen readers. */
-        #builder-dock #builder-name, #builder-dock #builder-paused {
-          position: absolute; width: 1px; height: 1px; overflow: hidden;
-          clip-path: inset(50%); white-space: nowrap;
-        }
-        /* Trim padding while retaining wrapping at the labels' actual widths. */
-        #builder-dock #build-tools .hud-button { padding-inline: 2px; }
-        /* Each list's label sits beside it. */
-        #builder-dock .builder-choices {
-          display: grid; gap: 8px;
-          grid-template-columns: auto minmax(0, 1fr); align-items: center;
-        }
-        #builder-dock .builder-choices > :not(label):not(select) { grid-column: 1 / -1; }
-        /* Sell joins Confirm and Cancel. */
-        #builder-dock #furniture-tool .builder-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        #builder-dock #furniture-tool .builder-actions > .builder-row { display: contents; }
-        #builder-dock #furniture-tool .builder-actions > p { grid-column: 1 / -1; }
         /* The person's name and "How <name> feels" toggles, on every
            compact screen: a phone held sideways is wider than 600 pixels,
            so the rules cannot live in the phone-only block below. A flex
@@ -768,32 +736,6 @@
         .needs-caption:focus-visible {
           outline: 2px solid var(--need-fill);
           outline-offset: -2px;
-        }
-      }
-      /* [B-phone-build-dock]: where the panel is tall enough, only a tool's
-         choices scroll, so its status and buttons are always in view and
-         nothing sits behind them. Below 481 pixels of height the panel can
-         be 144 pixels tall, too short for both, and scrolls whole. */
-      @media (max-width: 600px) and (min-height: 481px) {
-        #builder-dock #builder-controls:not([hidden]) {
-          display: flex; flex-direction: column; overflow-y: auto;
-        }
-        #builder-dock #builder-controls > * { flex: none; }
-        #builder-dock #builder-controls > .builder-tool:not([hidden]) {
-          flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
-        }
-        /* The padding keeps focus outlines inside the scrolling region; the
-           margin keeps the edges where they were. */
-        #builder-dock .builder-choices {
-          box-sizing: border-box; flex: 1 1 auto; min-height: 0; overflow-y: auto;
-          margin: -4px; padding: 4px;
-        }
-        /* Where a tool has a list, its choices keep one whole list row and
-           its outline; where the footer and that floor do not fit, the panel
-           scrolls whole. */
-        #builder-dock #furniture-tool .builder-choices, #builder-dock #buy-tool .builder-choices, #builder-dock #wall-tool.window-editing .builder-choices { min-height: 52px; }
-        #builder-dock .builder-actions {
-          flex: none; padding-top: 8px; border-top: 1px solid var(--hud-edge);
         }
       }
       /* The right-click flyout. `fixed` rather than `absolute`, because
@@ -973,6 +915,7 @@
       }
     </style>
     <link rel="stylesheet" href="/src/ui/compact-hud.css" />
+    <link rel="stylesheet" href="/src/ui/build-controls.css" />
   </head>
   <body>
     <canvas
@@ -1085,7 +1028,7 @@
     </div>
     <section id="sim-dock" aria-label="Selected Sim and household">
       <div id="sim-dock-header">
-        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span id="dock-activity"></span></div>
+        <div id="sim-identity"><strong id="needs-caption">Select a person</strong><span id="dock-activity"></span><span id="dock-critical"></span></div>
         <div id="dock-wellbeing">
           <section id="mood-block" aria-label="Mood">
             <p id="mood-empty">Select a person to see their mood.</p>
@@ -1100,8 +1043,14 @@
             </div>
           </section>
           <div id="dock-satisfaction">
+            <div id="satisfaction-summary" tabindex="0" role="group" aria-label="Life satisfaction unavailable">
+            <div class="summary-row">
             <span class="summary-label">Life satisfaction</span>
-            <strong id="satisfaction-value" class="summary-value">unavailable</strong>
+            <strong id="satisfaction-label" class="summary-value">Unavailable</strong>
+            </div>
+            <meter id="satisfaction-meter" min="0" max="100" low="40" high="80" optimum="100" value="0" aria-label="Life satisfaction" hidden></meter>
+            <span id="satisfaction-score" role="tooltip"><span id="satisfaction-value">unavailable</span> / 100</span>
+            </div>
           </div>
         </div>
         <button id="sim-details" class="hud-button" type="button" data-open-sim-panel="overview" aria-controls="sim-sheet" aria-expanded="false">Sim details</button>
@@ -1139,7 +1088,7 @@
             <span id="orders-value" class="summary-value">0</span>
           </div>
         </div><details id="personal-details">
-          <summary>Personality and habits</summary>
+          <summary>Personality, habits and bed</summary>
           <p id="personal-details-empty">Select a person to see their personality and habits.</p>
           <div id="personal-details-content" hidden></div>
         </details></section>
@@ -1148,8 +1097,8 @@
           id="queue-mode"
           class="hud-button"
           type="button"
-          aria-pressed="false"
-        >Queue</button><button id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
+          aria-pressed="true"
+        >Queue mode</button><button id="stop-orders" class="hud-button" type="button">Clear orders</button></div>
             <p id="queue-preview-note">Upcoming actions. The preview shows as many as fit; all waiting orders remain queued.</p>
             <p id="queue-empty" hidden>No actions queued.</p>
             <aside id="action-queue" aria-label="Selected person actions" hidden></aside>
@@ -1169,14 +1118,15 @@
     </section>
     <div id="builder-dock">
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
-        <h2 id="builder-name">Build mode</h2>
+        <div class="build-navigation"><div class="build-heading"><h2 id="builder-name">Build mode</h2><button id="builder-exit" class="hud-button" type="button">Exit build</button></div>
         <p id="builder-paused" class="builder-note">Household paused</p>
         <div id="build-tools" role="group" aria-label="Build tool">
-          <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true">Furniture</button>
-          <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
-          <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false">Room</button>
-          <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false">Buy</button>
-          <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false">Floors</button>
+          <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true" aria-controls="furniture-tool">Furniture</button>
+          <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false" aria-controls="wall-tool">Walls</button>
+          <button id="build-tool-room" class="hud-button" type="button" aria-pressed="false" aria-controls="room-tool">Room</button>
+          <button id="build-tool-buy" class="hud-button" type="button" aria-pressed="false" aria-controls="buy-tool">Buy</button>
+          <button id="build-tool-floors" class="hud-button" type="button" aria-pressed="false" aria-controls="floor-tool">Floors</button>
+        </div>
         </div>
         <div id="furniture-tool" class="builder-tool">
         <div class="builder-choices">
@@ -1184,28 +1134,25 @@
           <select id="builder-object"><option value="">Choose furniture</option></select>
           <div class="builder-row">
             <span id="builder-facing"></span>
-            <button id="builder-rotate" class="hud-button" type="button">Rotate</button>
+
           </div>
           <p id="builder-rotation-note" class="builder-note" hidden></p>
           <label for="builder-colour">Colour</label>
           <select id="builder-colour" disabled></select>
-          <p id="builder-keyboard-help" class="builder-note builder-help">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Delete or Backspace sells; Escape cancels.</p>
-          <p id="builder-touch-help" class="builder-note builder-help" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
+          <details id="builder-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="builder-shortcut-content"></div></details>
+          <p id="builder-touch-help" class="builder-note builder-help" hidden>Select furniture, then a destination tile. Use the nearby buttons to turn or place it.</p>
         </div>
         <div class="builder-actions">
           <p id="builder-status" role="status" aria-live="polite">Choose furniture to move or rotate.</p>
-          <div class="builder-row">
-            <button id="builder-confirm" class="hud-button" type="button">Confirm</button>
-            <button id="builder-cancel" class="hud-button" type="button">Cancel</button>
-          </div>
-          <button id="builder-sell" class="hud-button" type="button" disabled>Sell</button>
+
+
           <p id="builder-sale-note" class="builder-note" hidden></p>
         </div>
         </div>
         <div id="wall-tool" class="builder-tool" hidden>
           <div class="builder-choices">
-            <p id="wall-keyboard-help" class="builder-note builder-help">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; N opens Windows; Backspace removes a wall; Escape clears the choice.</p>
-            <p id="wall-touch-help" class="builder-note builder-help" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
+            <details id="wall-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="wall-shortcut-content"></div></details>
+            <p id="wall-touch-help" class="builder-note builder-help" hidden>Select an edge between two tiles, then choose an action beside it.</p>
             <div id="window-choices" hidden>
               <div class="builder-row"><strong>Windows</strong><button id="window-back" class="hud-button" type="button">Wall controls</button></div>
               <div id="window-models"></div>
@@ -1215,12 +1162,6 @@
           </div>
           <div id="wall-actions" class="builder-actions">
             <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
-            <div class="builder-row">
-              <button id="wall-build" class="hud-button" type="button">Wall</button>
-              <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
-              <button id="wall-window" class="hud-button" type="button">Windows</button>
-              <button id="wall-remove" class="hud-button" type="button">Remove wall</button>
-            </div>
           </div>
           <div id="window-actions" class="builder-actions" hidden>
             <p id="window-status" role="status" aria-live="polite">Choose a wall line for the window.</p>
@@ -1235,9 +1176,11 @@
              this holds only what does not depend on it. -->
         <div id="floor-tool" class="builder-tool" hidden>
           <div class="builder-choices">
-            <p id="floor-keyboard-help" class="builder-note builder-help">Choose a floor, then click a tile to lay it. With the game view focused: 1 upward chooses a floor, 0 chooses Remove, Escape clears the choice.</p>
-            <p id="floor-touch-help" class="builder-note builder-help" hidden>Choose a floor, then tap a tile to lay it. Drag to pan; pinch to zoom.</p>
-            <div id="floor-coverings" class="builder-row" role="group" aria-label="Floor"></div>
+            <details id="floor-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="floor-shortcut-content"></div></details>
+            <div id="floor-material-samples" aria-label="Floor materials"></div>
+            <button id="floor-material-retry" class="hud-button" type="button" hidden>Retry</button>
+            <p id="floor-touch-help" class="builder-note builder-help" hidden>Select a tile, then choose its floor covering from the nearby buttons.</p>
+
           </div>
           <div class="builder-actions">
             <p id="floor-status" role="status" aria-live="polite">Choose a tile.</p>
@@ -1245,15 +1188,12 @@
         </div>
         <div id="room-tool" class="builder-tool" hidden>
           <div class="builder-choices">
-            <p id="room-keyboard-help" class="builder-note builder-help">Click one corner tile, then the opposite one; click a line of the outline for a doorway. With the game view focused: arrows move a corner; Enter fixes the first corner, then builds; D steps the doorway along the outline; Escape clears.</p>
-            <p id="room-touch-help" class="builder-note builder-help" hidden>Tap one corner tile, then the opposite one; tap a line of the outline for a doorway. Drag to pan; pinch to zoom.</p>
+            <details id="room-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="room-shortcut-content"></div></details>
+            <p id="room-touch-help" class="builder-note builder-help" hidden>Select two opposite corner tiles. Use Doorway to select an outline edge, then Build room. Drag to pan; pinch to zoom.</p>
           </div>
           <div class="builder-actions">
             <p id="room-status" role="status" aria-live="polite">Choose a corner tile of the room.</p>
-            <div class="builder-row">
-              <button id="room-build" class="hud-button" type="button">Build room</button>
-              <button id="room-cancel" class="hud-button" type="button">Cancel</button>
-            </div>
+
           </div>
         </div>
         <div id="buy-tool" class="builder-tool" hidden>
@@ -1267,19 +1207,16 @@
             <select id="buy-colour"></select>
             <div class="builder-row">
               <span id="buy-facing"></span>
-              <button id="buy-rotate" class="hud-button" type="button">Rotate</button>
+
             </div>
             <p id="buy-price"></p>
             <p id="buy-serves"></p>
-            <p id="buy-keyboard-help" class="builder-note builder-help">Choose something, then click where it goes. With the game view focused: [ and ] choose; arrows move; R rotates; Enter buys; Escape cancels.</p>
-            <p id="buy-touch-help" class="builder-note builder-help" hidden>Choose something, then tap a tile. Drag to pan; pinch to zoom.</p>
+            <details id="buy-keyboard-help" class="shortcuts builder-help"><summary>Shortcuts</summary><p class="builder-note">While the game view is focused</p><div id="buy-shortcut-content"></div></details>
+            <p id="buy-touch-help" class="builder-note builder-help" hidden>Choose an item, then its destination tile. Use the nearby buttons to turn or buy it.</p>
           </div>
           <div class="builder-actions">
             <p id="buy-status" role="status" aria-live="polite">Choose something to buy.</p>
-            <div class="builder-row">
-              <button id="buy-confirm" class="hud-button" type="button">Buy</button>
-              <button id="buy-cancel" class="hud-button" type="button">Cancel</button>
-            </div>
+
           </div>
         </div>
       </section>
@@ -1291,23 +1228,7 @@
       <h2 id="help-title" tabindex="-1">How to play</h2>
       <div id="help-body">
         <p class="dialog-note">Game time is paused while this guide is open.</p>
-        <ol>
-          <li>Choose a person under Household to select them and see their needs.</li>
-          <li>Tap or click an object to give the selected person its default action.</li>
-          <li>Long-press or right-click for more actions, including talking to another person.</li>
-          <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
-            <li>Build in the upper-left world controls pauses the household. Move or rotate furniture, then Confirm or choose another item. Choosing another item commits a valid move and cancels an invalid one. Cancel leaves it unchanged; Exit build returns to play.</li>
-          <li>In Build, Walls turns the line between two floor tiles into a wall, a doorway, a window or nothing. A window stops people and lets the daylight through. Remove clears the line; the status line says why when a change is not allowed.</li>
-          <li>In Build, Room builds a whole room at once: choose two opposite corner tiles, then a line of the outline for its doorway, and press Build room.</li>
-            <li>In Build, Buy lists everything for sale with its price. Choose something, point at the floor, turn it with Rotate, and press Buy; the price comes out of Funds. Items the household cannot afford are greyed out.</li>
-            <li>In Build, Floors lays a floor: choose Boards, Tiles or Carpet, then click a tile. Remove puts the tile back to how the house came.</li>
-          <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
-          <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>
-          <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
-          <li>The dock shows mood and life satisfaction. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li>
-          <li>Choose People inside Sim details to see how the selected person feels about everyone else.</li>
-          <li>Open Options in the upper-left world controls for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li>
-        </ol>
+<details class="help-topic" open><summary>Build &amp; place</summary><ol><li>Build pauses the household. Select furniture and a destination, turn it with the curved arrows, then Confirm. Choosing another item commits a valid move and cancels an invalid one. Cancel leaves the furniture unchanged; Exit build returns to play.</li><li>Walls selects the edge between two floor tiles. Choose Wall, Doorway, Window or Remove beside the edge. Rotation turns the selection without changing the house. A window stops people and lets daylight through. The status explains refused edits.</li><li>Room builds a whole room at once. Select two opposite corner tiles. Doorway lets you choose an edge of the outline; Corners restarts the outline. Build room applies the entire edit, and Cancel clears the selection.</li><li>Buy lists everything for sale with its price. Choose something, select its destination, use the curved arrows to turn it, and press Buy. The price comes out of Funds. Unaffordable items are disabled.</li><li>Floors selects a tile without changing it. Choose Boards, Tiles or Carpet beside the tile to apply a covering. Remove restores its original floor; Clear removes the selection.</li></ol></details><details class="help-topic"><summary>People &amp; actions</summary><ol><li>Choose a person under Household to select them and see their needs.</li><li>Tap or click an object to give the selected person its default action.</li><li>Long-press or right-click for more actions, including talking to another person.</li><li>Queue mode starts on: new actions go after the waiting ones. Turn it off to put a new action first, keeping the waiting actions after it. Holding Ctrl or Cmd also adds an action after the waiting ones.</li><li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li><li>The dock shows mood and life satisfaction. Life satisfaction ranges from 0 to 100 and changes over months or years. Hover or focus its meter for the exact score. Open Sim details for needs, moodlets and career. Choose Traits to see their traits; Close returns to the compact dock.</li><li>Choose People inside Sim details to see how the selected person feels about everyone else.</li></ol></details><details class="help-topic"><summary>Camera</summary><ol><li>Drag to move the camera. Pinch, use the mouse wheel, or use the zoom buttons to move closer or farther away.</li></ol></details><details class="help-topic"><summary>Options &amp; saves</summary><ol><li>Open Options for Light, Sound, Death, Save, Load, New game, New housemate, Help and Changelog. Changelog opens the game's update history in a new tab. Open Sim details, then Queue, for Queue mode and Clear orders. Light: flat gives neutral daylight without the automatic lighting cycle; Sound mutes everything; Effects sets all sound volume; Voices adjusts conversations within that mix.</li></ol></details><details class="shortcuts" id="help-shortcuts"><summary>Shortcuts</summary><p class="dialog-note">While the game view is focused</p><div id="help-shortcut-content"></div></details>
       </div>
       <div id="help-actions">
         <button id="close-help" class="hud-button" type="button">Got it</button>
@@ -1388,13 +1309,16 @@
         <pre id="debug-report"></pre>
       </details>
     </section>
-    <!-- Confirm and Cancel over the piece being placed - [PA-show] in
-         docs/specs/2026-09-22-placement-buttons.md. Fixed and positioned in
-         client pixels by main.ts, outside #hud and #builder-dock like the
-         right-click flyout. The box lets clicks through; its buttons do not. -->
-    <div id="placement-actions" hidden>
-      <button id="placement-confirm" class="hud-button" type="button">Confirm</button>
-      <button id="placement-cancel" class="hud-button" type="button">Cancel</button>
+    <!-- Contextual Build actions follow the active selection in client pixels.
+         Short screens can place them in a grid beside a bounded tool panel.
+         Empty space passes input to the game; only buttons consume it. -->
+    <div id="build-camera" aria-label="Camera zoom"><button id="build-zoom-out" class="hud-button" type="button" aria-label="Zoom out">−</button><button id="build-zoom-in" class="hud-button" type="button" aria-label="Zoom in">+</button></div>
+    <div id="placement-actions" hidden aria-label="Build actions for the current selection">
+
+    </div>
+    <div id="build-context-layout" hidden>
+      <div id="build-context-header"></div>
+      <div id="build-free-space"></div>
     </div>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the

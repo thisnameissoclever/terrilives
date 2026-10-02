@@ -1,0 +1,300 @@
+{
+  "state": "complete",
+  "model_sha256": "614e25602e46d82e8f895062eabde80847642980898eb22b3d1fe92da049c22e",
+  "inputs": {
+    "domestic\\verify_cooking_contact.py": "f8e4b7b12acd4841a406daf68f7da0cccc621b8867cebd63ee36b81415f30a13",
+    "domestic\\cooking-contact.json": "c02f2d31ac9b54865db6ecb22865b14bd694fa9a1e961504546ebfee41b1ce39",
+    "kitchen\\stove_model.py": "5193bf278a0e2407171c51faf26794c75b3161f0e9a2e624b89dd03a4d7a9642",
+    "domestic\\render_pot.py": "ba80c8c77abf3f1dcffc2d1d663b55416aa433ac7e6a6f959b4492a345c9fd2a"
+  },
+  "samples": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "grip_error": 2.5288109106536417e-07,
+      "bowl_radius": 0.024999618540083517,
+      "bowl_height": 0.09000033140182495,
+      "path": "SE-0.png",
+      "sha256": "ad8293bcc1628ae313d4a3ab1ba539081bb36fa2ac4605aee9817ac1dfc57a45"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "grip_error": 1.4975481660844222e-07,
+      "bowl_radius": 0.024999287290423375,
+      "bowl_height": 0.09000033140182495,
+      "path": "SE-1.png",
+      "sha256": "c9d8685f5d38da75167eccbeddfb5507467390cdc58829f694666b34a0abf543"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "grip_error": 1.228781230931777e-07,
+      "bowl_radius": 0.024999514224703083,
+      "bowl_height": 0.09000009298324585,
+      "path": "SE-2.png",
+      "sha256": "96119d2a80ae4804c87eb5a671910ce1497172e96395d819533ebf6e0398dd72"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "grip_error": 1.55572690202453e-07,
+      "bowl_radius": 0.02499991949650836,
+      "bowl_height": 0.08999991416931152,
+      "path": "SE-3.png",
+      "sha256": "780cbe048bfbb7b9490eccd517ef7f0166ce560946d5570a476267e1ef896ab8"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "grip_error": 5.3726900748371916e-08,
+      "bowl_radius": 0.024999976161379504,
+      "bowl_height": 0.08999985456466675,
+      "path": "SE-4.png",
+      "sha256": "3269eb94421dc60e9b78457f80f37428faffbdf58afdc96a60b2658ffbcf7c53"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "grip_error": 9.541398640621973e-08,
+      "bowl_radius": 0.025000288282354257,
+      "bowl_height": 0.08999985456466675,
+      "path": "SE-5.png",
+      "sha256": "269b0ce5a527278971c41ba16b26372e11da43d9d2a5a2a61290ba0a4ffe3b9c"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "grip_error": 2.9802322387695312e-08,
+      "bowl_radius": 0.02500063180987409,
+      "bowl_height": 0.08999991416931152,
+      "path": "SE-6.png",
+      "sha256": "e67fdc97d1b4c2d40ce953b91a1c3ec9fe2047f607ebdb0857622a7d1e312370"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "grip_error": 1.55572690202453e-07,
+      "bowl_radius": 0.025000340970997417,
+      "bowl_height": 0.09000015258789062,
+      "path": "SE-7.png",
+      "sha256": "e929a6f8e7fd34990811b8a6f3f92c17d99b5815fc8bee817b6ade82f8114e69"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "grip_error": 2.568019619526578e-07,
+      "bowl_radius": 0.024999618540936182,
+      "bowl_height": 0.09000033140182495,
+      "path": "NW-0.png",
+      "sha256": "7234d727408cec07efe8149fc5ce8027fa4559777bae880ca03d2a25f647c067"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "grip_error": 1.4901161193847656e-07,
+      "bowl_radius": 0.024999287290423375,
+      "bowl_height": 0.09000033140182495,
+      "path": "NW-1.png",
+      "sha256": "ff83a2276fbab4dc0225cbe803a255dc10c10c52bc398c37ba51d2789457bd0d"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "grip_error": 1.228781230931777e-07,
+      "bowl_radius": 0.0249994844223807,
+      "bowl_height": 0.09000009298324585,
+      "path": "NW-2.png",
+      "sha256": "2f12a833fb88031cc741411511540b74eb3db17c68f2a5e1043f99710ffb782a"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "grip_error": 1.4600096599955427e-07,
+      "bowl_radius": 0.024999898423439384,
+      "bowl_height": 0.08999991416931152,
+      "path": "NW-3.png",
+      "sha256": "87533a266b85ef7801be9532ad862e194ded96949a757ba4f0fc482f4ee27c22"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "grip_error": 4.2146848510894035e-08,
+      "bowl_radius": 0.024999976161876884,
+      "bowl_height": 0.08999985456466675,
+      "path": "NW-4.png",
+      "sha256": "06e7cf155320bda12e7855817a8d1cad0884f404e9e907d37c0b893d6855c0ab"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "grip_error": 9.541398640621973e-08,
+      "bowl_radius": 0.025000298819264,
+      "bowl_height": 0.08999985456466675,
+      "path": "NW-5.png",
+      "sha256": "8a86254374e75c5b72bfd9de0b69b374e5e674926c476dbf9edd5cf66001928b"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "grip_error": 1.4901161193847656e-08,
+      "bowl_radius": 0.025000646711035284,
+      "bowl_height": 0.08999991416931152,
+      "path": "NW-6.png",
+      "sha256": "b10c3eb297d72bfa90635a87c5d904d6ac9532eda54ff645aaefefca98d8de68"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "grip_error": 1.4057727354849284e-07,
+      "bowl_radius": 0.025000362045007857,
+      "bowl_height": 0.09000015258789062,
+      "path": "NW-7.png",
+      "sha256": "0a0e9ae2e1e77bc1c2262d518a5864f22f7ed4ce81163d21161ed352688c89fe"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "grip_error": 2.515605541487654e-07,
+      "bowl_radius": 0.024999618540936182,
+      "bowl_height": 0.09000033140182495,
+      "path": "SW-0.png",
+      "sha256": "56115cfeace8fd5017fc266065864e62b52d584ae055409f2df8fbd1e5532a0c"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "grip_error": 1.6858739404357614e-07,
+      "bowl_radius": 0.024999287290423375,
+      "bowl_height": 0.09000033140182495,
+      "path": "SW-1.png",
+      "sha256": "f4c1ee763d7daf77e572ce26434500f0603259352f06c8e48f44a6cf7203f96e"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "grip_error": 1.228781230931777e-07,
+      "bowl_radius": 0.0249994844223807,
+      "bowl_height": 0.09000009298324585,
+      "path": "SW-2.png",
+      "sha256": "d32f6700b96e77f18728a5c7a81c2a5ba70ae96cea1407e251d6b02adf5191af"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "grip_error": 1.4600096599955427e-07,
+      "bowl_radius": 0.024999898423439384,
+      "bowl_height": 0.08999991416931152,
+      "path": "SW-3.png",
+      "sha256": "266c397a2d2afad1d3f142473b54af84bf919a04c39e730af77412adf988111f"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "grip_error": 4.2146848510894035e-08,
+      "bowl_radius": 0.024999976161876884,
+      "bowl_height": 0.08999985456466675,
+      "path": "SW-4.png",
+      "sha256": "7e549fddd71f7506cccc7e23f79561443b351117514d7785d403f56d8965f078"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "grip_error": 9.541398640621973e-08,
+      "bowl_radius": 0.025000298819264,
+      "bowl_height": 0.08999985456466675,
+      "path": "SW-5.png",
+      "sha256": "0a862ed1350cab060c168ff89a04b79aa9a77ef83ea7ae0f86daccdd83c8d3aa"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "grip_error": 3.332000937312528e-08,
+      "bowl_radius": 0.025000646711035284,
+      "bowl_height": 0.08999991416931152,
+      "path": "SW-6.png",
+      "sha256": "b44ee5177affd4af459068d6ffb3d5bf3a5b4dc9ce6ef892ea9b71214558ecf3"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "grip_error": 1.4057727354849284e-07,
+      "bowl_radius": 0.025000362045007857,
+      "bowl_height": 0.09000015258789062,
+      "path": "SW-7.png",
+      "sha256": "c0bc03bd021288f3babc1ae0382d448df90f5462590127a0444773d57dfe963f"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "grip_error": 2.4755668231600746e-07,
+      "bowl_radius": 0.02499967814351589,
+      "bowl_height": 0.09000033140182495,
+      "path": "NE-0.png",
+      "sha256": "7c1f532e2fc2ac3eed4ec9909883c7fb39727207959b18fd5df354dbfe46ce23"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "grip_error": 1.7120130796843852e-07,
+      "bowl_radius": 0.024999413731057726,
+      "bowl_height": 0.09000033140182495,
+      "path": "NE-1.png",
+      "sha256": "f7a0e8da800827d80f2125705c10e318114500f7247e58faf421dedde1042b96"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "grip_error": 1.2377834115800373e-07,
+      "bowl_radius": 0.024999544025604357,
+      "bowl_height": 0.09000009298324585,
+      "path": "NE-2.png",
+      "sha256": "4fc00cdb1ea2aa650a3ebbb172aaeae7ca66c5abf74b31b3c4ed48a34e736edf"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "grip_error": 1.55572690202453e-07,
+      "bowl_radius": 0.024999961642699613,
+      "bowl_height": 0.08999991416931152,
+      "path": "NE-3.png",
+      "sha256": "74da1d07d99612c8a41e553336438bfc0df8b27fab4809761f1d9dcba001591f"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "grip_error": 7.450580596923828e-08,
+      "bowl_radius": 0.02499997616091765,
+      "bowl_height": 0.08999985456466675,
+      "path": "NE-4.png",
+      "sha256": "1e922da85609e078560b559e520b20cb4e8a459cee6ab3042d6d311e0e49eb8e"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "grip_error": 1.2644054553268208e-07,
+      "bowl_radius": 0.025000256671651674,
+      "bowl_height": 0.08999985456466675,
+      "path": "NE-5.png",
+      "sha256": "7aa4e70512685d505bb65c39cdd69c66ffe6c328e828482369c85bbcff25fcbd"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "grip_error": 3.332000937312528e-08,
+      "bowl_radius": 0.025000587106035248,
+      "bowl_height": 0.08999991416931152,
+      "path": "NE-6.png",
+      "sha256": "e80cc222c2501b8bb914e9ee91f40a03497b8047a4bf86629b7a4e87dd83ff29"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "grip_error": 1.3657139822709083e-07,
+      "bowl_radius": 0.025000319897004745,
+      "bowl_height": 0.09000015258789062,
+      "path": "NE-7.png",
+      "sha256": "8c8802647feed2bc6a3ef1e7edc4cf3c900b2a1f879da90678e706e013fee240"
+    }
+  ]
+}

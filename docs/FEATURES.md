@@ -13,11 +13,16 @@ name, personality, traits and family ties, including the starting household.
 The trait-progress rule must be designed before implementation. This slice does
 not depend on new appearance art, gender, or the advanced-controls system.
 
+**Soon after Edit Sims: communal activities and activity-specific seating.**
+Requested by the owner on 2026-10-01. Prioritise [S-communal-activities] and
+[S-activity-seating], including their missing sitting poses, before the later
+proposed priorities. Their scope is in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
+
 | Area | Completed and shipped | Still open |
 |---|---|---|
 | Core household | Seven needs, autonomy, six-member capacity, orders, time controls, save/load and the normal HUD | Larger households, moving out, visitors and births |
 | Traits and creation | Fifteen traits, Traits panel, plain affinity wording, New housemate with name, personality, traits and family tie | Edit Sims next; appearance and gender choices, random generation and deeper traits later |
-| Building and buying | Furniture movement and supported rotation, walls, rooms, vertical hinged doors, purchases, sales, recolour controls, floor painting, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
+| Building and buying | Furniture movement and supported rotation, walls, rooms, hinged doors on both wall axes, purchases, sales, recolour controls, floor selection and covering, window lighting, reachability checks and compact controls | Roofs, stairs, wall finishes, other lot sizes, undo/redo; remaining art and palettes |
 | Outside | 20 by 16 lot with yard, street commute and daylight reaching indoors | Exterior presentation, outdoor objects and activities, further lighting and ambience |
 | Relationships and family | Directional affinity, chat, People panel, saved partner/parent/child/sibling ties keyed by SimId | Family tree, relatives outside the household, family-specific behaviour, romance and additional social dynamics |
 | Mood and death | Deprivation deaths and warnings, saved setting and death records, cleanup, affinity-based grief, occupied-item frustration and sustained mood affecting life satisfaction | Aging, other causes, bodies, memorials, ghosts, inheritance and further mood effects on behaviour |
@@ -424,7 +429,14 @@ an unchanged design target is not an unchanged measurement.
    rule for progressed traits, then implement editing through a validated simulation
    command, save/load, and the existing two-page form. Preserving progress for
    retained traits is the recommendation, pending that design decision.
-2. **Later priorities remain proposals.** Object affinities [B-object-affinities]
+2. **Communal activities and seating [S-communal-activities], [S-activity-seating]:
+   soon, owner-requested.** Sims who like each other should prefer sharing
+   compatible activities, including watching TV, listening to the radio and
+   reading together. Prefer suitable available seats for eating, reading, TV
+   and listening. Preserve activity-specific locations: watching fish stays
+   near the tank. Reuse existing sitting and seated-reading art, and deliver
+   missing sitting poses and animations with this slice [A-animations].
+3. **Later priorities remain proposals.** Object affinities [B-object-affinities]
    are the recommended follow-up, alongside the colour-preference design
    [B-colour-preferences]. Aging [DE-slice-age] is the next death slice, but needs
    an age and lifespan design. Neither is selected ahead of Edit Sims.
@@ -450,11 +462,15 @@ including New housemate even without a selected person; Queue mode and Clear ord
 tools and restores the dock on exit. See [CUI-world]-[CUI-build].
 [CH1]-[CH4], [MH1]-[MH5] and [A-mobile-hud-reflow] are historical layouts.
 
-Overview also has a collapsed Personality and habits section: personal drain
+Overview also has a collapsed Personality, habits and bed section: personal drain
 and refill factors, sleep timing, and recent activity repetition. Its meters
 have text values, and it uses the sheet's existing scrolling area. Opening it
 does not enlarge the closed dock. See [S-sim-details] in `GAME-SYSTEMS.md` and
 `docs/specs/2026-09-30-sim-details.md` for the projection and verification.
+The bed-assignment extension is implemented locally within that disclosure,
+with explicit Assign and Clear controls. It remains unpublished until the
+occupied-bed visual checks pass. Place-specific routing is implemented locally; see
+`docs/specs/2026-10-01-bed-assignment.md`.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -835,7 +851,7 @@ from outside and outdoor objects remain.
 
 **Status: Per-tile painting and authored materials implemented; room painting and floor effects remain extensions.**
 
-Build > Floors offers Boards, Tiles and Carpet. Choose a covering and click a tile, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. All loaded layouts use distinct authored boards, tile and carpet. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
+Build > Floors offers Boards, Tiles and Carpet. Select a tile and choose a covering, or Remove to restore its default. Stable covering IDs and sparse saved tiles preserve historical saves. All loaded layouts use distinct authored boards, tile and carpet. Unpainted house floors use pale tile, yard uses grass and street uses asphalt. Shared tile corners and world-aligned phases keep material seams consistent through pan and zoom.
 
 Room-wide painting and floor-dependent gameplay remain future work. See `docs/specs/2026-09-22-floors.md` for storage and `docs/assets/review-evidence/architecture/verification.md` for current local evidence and acceptance limits.
 
@@ -867,11 +883,11 @@ Asked for by the owner on 2026-09-22. Light, Build, the sound controls, and Save
 
 Asked for by the owner on 2026-09-22. During play the house's east and south walls are cut away so the rooms can be seen ([OS-walls]). While the Walls or Room tool is in use they are drawn, so the player sees every wall they can edit. Done in PR 112 at merge `c88ca76`; main's CI (run 35758153571) and the Pages deployment (run 35758330774) both passed. The design is `docs/specs/2026-09-22-walls-in-build.md` and the played check is [A-walls-in-build].
 
-### [B-placement-buttons] Confirm and Cancel sit over the moved object
+### [B-placement-buttons] Contextual actions surround the build selection
 
 **Status: Complete.**
 
-Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The Build panel keeps its own pair. Done in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The design is `docs/specs/2026-09-22-placement-buttons.md` and the played check is [A-placement-buttons].
+Asked for by the owner on 2026-09-22. While a piece of furniture is being moved or bought, Confirm (or Buy) and Cancel appear in the game view just above the piece, following it as the view pans and zooms, so the player can see the placement waits on them. The original pair shipped in PR 113 at merge `5b124bc`; main's CI (run 35758711529) and the Pages deployment (run 35759050320) both passed. The current revision shares contextual actions across all five tools, preserves the catalogue and prices, uses a fixed desktop width and groups optional shortcuts. See `docs/specs/2026-10-01-build-context-controls.md` for the approved implementation and current verification boundary. The original played check is [A-placement-buttons].
 
 ### [A-front-door-animation] The front door opens when Sims come and go
 
@@ -989,16 +1005,22 @@ also remains owner-listening evidence rather than accepted sound design.
 This is not the complete audio feature. Front and interior doors open silently
 and play only a filtered closing thunk, keyed by physical portal geometry with
 silent initial anchoring and no replay after audio lifecycle resets. See
-`specs/2026-10-01-door-audio.md`. Routine controls
-are silent by design rather than waiting for blanket click sounds. Room and
-outdoor ambience, alarms, music, and non-conversation Sim voices remain unbuilt.
+`specs/2026-10-01-door-audio.md`. Toilet audio plays a
+recorded flush from a separate exact-target completion event rather than an
+action stopping. Cancellation and Load never fabricate a completion. The cue
+stops on pause and cannot replay after late decoding; technical and listening
+status are in `specs/2026-10-01-toilet-completion-audio.md`. Routine controls
+are silent by design rather than waiting for blanket click sounds. Footsteps use
+a quieter peak amplitude without changing pitch or cadence. Continuous indoor
+background noise is excluded from the sound design. Outdoor ambience, alarms,
+music, and non-conversation Sim voices remain unbuilt.
 Object-loop playback exists; its audible content still needs selection and
 listening acceptance. Recorded conversation gain is 0.224 after owner listening;
 Effects still controls it alongside procedural cues. A saved Voices multiplier
 now lowers conversations separately without restarting other sounds; its 100%
 default preserves the current mix and existing stored preferences. Music and
 ambience controls remain future work. The approved four-pack CC0 intake is
-downloaded and inventoried; selected water recordings and a filtered closing-door
+downloaded and inventoried; selected water and toilet recordings and a filtered closing-door
 thunk are now integrated. Door opening is silent; the original door recordings
 remain preserved but are not fetched by gameplay.
 The detailed contract is
@@ -1128,7 +1150,8 @@ Every vertical doorway now holds a hinged door that swings open as a sim walks
 through it, drawn with the front door's art, shipped in PR 98 at merge
 `2534ec5`; its design is
 `docs/specs/2026-09-22-interior-doors.md` and its played checks are
-[A-interior-doors] and [A-door-steps]. Doors on horizontal doorways wait on their art
+[A-interior-doors] and [A-door-steps]. The current implementation adds solid
+models, surface depth and horizontal doors; the owner approved these on 2026-10-01
 ([T-interior-door-art]). Floors and windows are their own entries,
 [B-floors] and [B-windows]. The larger lot is the yard, the first slice of
 [B-outside]. For PRs 97 and 98, main's CI (run 35747234064) and the Pages deployment (run 35753693759) both passed for main at `0b0f5b5`, which holds PRs 97 to 108. With rooms, walls,
@@ -1306,6 +1329,11 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 
 **Status: Partial: listed rigged actions shipped; remaining action categories are unbuilt.**
 
+The owner requested missing sitting poses and animations soon on 2026-10-01.
+Deliver seating for meals, reading, TV and listening with the early
+[S-activity-seating] slice. Reuse the existing armchair sitting and seated-reading
+poses where they fit, and add the remaining seat and activity combinations.
+
 The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
 reading, and watching fish. The approved replacement bike has eight cycling
@@ -1385,7 +1413,7 @@ Tone should be locked before serious content authoring begins in M1.
 
 Requested 2026-09-30; implemented locally, verification recorded in [the meal spec](specs/2026-09-30-meals-and-cleanup.md). Meals have six stages totaling 500 base work ticks, snacks three totaling 85. New prepare, cook and wash clips cover all four directions and three household shirt colors. Preparation and eating leave visible, attributed dishes. Kitchen-sink cleanup collects each dirty surface before washing.
 
-Cleanliness is a separate personality value. Needs reduce autonomous cleanup willingness; critical energy, hunger or bladder almost always wins. Foreign dishes lower mood and directional affinity once per room visit, and allow one visitor-cleanup roll at 20% of own willingness. A cook can provide real portions for up to three strongly liked hungry friends; all four can eat at the dining table. Time-of-day fridge labels read breakfast, lunch or dinner. Save/load preserves claims, responsibility and visit memory, and reads earlier meal bytes through a reviewed bridge.
+Cleanliness is a separate personality value. Needs reduce autonomous cleanup willingness; critical energy, hunger or bladder almost always wins. Visible dishes lower mood, including one's own old mess. Foreign dishes also lower directional affinity once per room visit. Entry or a new pile arms one deferred cleanup roll at 35% of own willingness. A cook can provide real portions for up to three strongly liked hungry friends; all four can eat together. Diners use real clean chair settings or stand near a full or dirty table; a missing table sends them to a counter. Dirty settings that force standing add a complaint and a separate post-meal cleanup chance of 30% at average cleanliness. Time-of-day fridge labels read breakfast, lunch or dinner. Save/load preserves claims, responsibility and visit memory, and reads earlier meal bytes through a reviewed bridge.
 
 [Sim interpersonal relations](SIM-RELATIONSHIPS.md) is the dedicated account of support, resentment, needs, personality, mood and satisfaction. This local implementation is not a claim of merged or deployed delivery.
 ## Gameplay UI corrections (2026-09-30)
@@ -1403,3 +1431,21 @@ The follow-up makes action cards about 20% smaller, allows unlimited waiting
 orders and lets the player sell the last appliance. Build's left control becomes
 Exit build during editing. Historical saves predating per-entity conversation
 voices load through their frozen wire shape and normal simulation validation.
+
+### [A-needs-social-privacy] Inconvenient conversations and bathroom privacy
+
+Implemented locally, 2026-09-30; not committed, merged or deployed. A low or critical unhelped need makes a conversation recipient lose affinity toward the initiator. Private toilet, shower and bath use distinguishes who arrived first: the user resents later entrants; existing occupants resent someone who begins using the furniture beside them. The actual room containing the furniture controls the result, including living-room toilets. Remaining in the room never charges a penalty every tick.
+
+Each Sim also has shyness from 1 to 100: higher values amplify their annoyance and strengthen deliberate privacy avoidance. [Relationship development](specs/2026-09-30-relationship-development.md) adds cached boundary decisions, safe alternatives, pleasant-company and shared-activity gains, and directional personality friction. Player orders remain available.
+
+The [behavior specification](specs/2026-09-30-need-social-privacy.md) documents the approved balance and needs/social/mood/satisfaction interactions. Focused tests prove directionality, same-tick order, save/load replay, missing-component accumulation and existing mood integration. Validation evidence and its limits are recorded with the specification.
+
+### [B-hostility-expression] Make interpersonal hostility visible
+
+Status: planned. Relationship calculations can produce dislike, but the player needs to see who dislikes whom and how that affects ordinary life. This builds on [relationship dynamics](GAME-SYSTEMS.md#s-relationship-dynamics-relationship-causes-and-consequences).
+
+1. Distinguish one-sided hostility from mutual hostility, and identify both people. Give visual indicators a readable text equivalent; color alone cannot carry the meaning.
+2. Add reactions and activity feedback that convey discomfort or dislike. Consider glances, recoil, turning away and other new animations, with accessible text and reduced-motion behavior. Animation work and final player-facing wording need their normal review.
+3. Mildly lower the appeal of otherwise attractive activities when a disliked person occupies the room containing the relevant item, including a television or fridge. Evaluate the acting person's opinion, not the other person's opinion of them.
+4. Let urgent needs and player orders override this preference. Essential furniture must remain usable, and avoidance must not trap people, starve them or strand a multi-step activity.
+5. Revalidate relationship pacing when avoidance reduces contact between hostile Sims. Fewer encounters also mean fewer opportunities for friction and reconciliation; the existing balance measurements must cover both.

@@ -7,6 +7,7 @@ import { DOORWAY, OPEN, WALL, WallTool, stateOf } from '../src/ui/wall-tool.js';
 import { coveredWindowLines } from '../src/architecture/windows.js';
 import { WallToolControls } from '../src/ui/wall-tool-controls.js';
 import { WindowToolControls, drawWindowThumbnails } from '../src/ui/window-tool-controls.js';
+import { contextModel } from '../src/ui/placement-actions.js';
 import { BuildToolSwitch } from '../src/ui/build-tools.js';
 import { architectureSprite } from '../src/render/architecture.js';
 
@@ -24,6 +25,7 @@ class Element {
   click() { if (!this.disabled) this.events.get('click')?.forEach(listener => listener()); }
   focus() { this.focused = true; }
   closest() { return this; }
+  querySelectorAll() { return []; }
 }
 function fixture() {
   const handle = SimHandle.from_lot(), bridge = new SimBridge(handle, memory), elements = new Map<string, Element>();
@@ -55,7 +57,9 @@ describe('window chooser', () => {
           f.element('#window-back').click(); f.controls.render(); wallControls.render();
           expect(f.bridge.saveBytes()).toEqual(before); expect(f.walls.line).toEqual(lines.at(-1));
           expect(f.element('#window-choices').hidden).toBe(true); expect(f.element('#wall-actions').hidden).toBe(false);
-          expect(f.element(button).disabled).toBe(false); f.element(button).click();
+          const contextual = contextModel({ furniture: { active: true, blocked: false }, walls: f.walls } as never)!;
+          const action = contextual.actions.find(a => a.id === (target === WALL ? 'wall' : target === DOORWAY ? 'doorway' : 'remove'))!;
+          expect(action.enabled).toBe(true); action.invoke();
           expect(f.walls.pending).toBe(target);
           f.bridge.flushCommands(); f.walls.afterCommands(); f.tool.afterCommands();
           expect(f.bridge.windowPlacements()).toHaveLength(0);
@@ -102,8 +106,8 @@ describe('window chooser', () => {
     const f = fixture();
     try {
       f.walls.enter(); new WallToolControls(f.document, f.walls);
-      f.element('#wall-window').click();
-      expect(f.element('#window-models button[aria-pressed="true"]').focused).toBe(true);
+      f.walls.selectWindows();
+      expect(f.tool.active).toBe(true);
       f.tool.chooseModel(8); f.tool.choosePoint(10, -.5);
       const candidate = f.tool.preview();
       for (const compact of [true, false, true]) {
@@ -152,8 +156,9 @@ describe('window chooser', () => {
     expect(keyboard).toContain("toolSwitch?.select('build-tool-walls')");
     expect(keyboard).toContain('!event.ctrlKey && !event.metaKey && !event.altKey');
     const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-    expect(html).toContain('#wall-tool.window-editing .builder-choices { min-height: 52px; }');
-    expect(html).toContain('id="wall-remove" class="hud-button" type="button">Remove wall');
+    const css = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
+    expect(css).toContain('#builder-dock .builder-tool { flex: 1 1 auto; overflow-y: auto;');
+    expect(html).toContain('id="placement-actions"');
     expect(html).toContain('id="window-remove" class="hud-button" type="button" hidden>Remove window');
     expect(html).toContain('grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.625rem), 1fr))');
     expect(html).toContain('height: 80px; object-fit: contain');

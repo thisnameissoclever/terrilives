@@ -1,0 +1,25 @@
+{
+  "defaultWidth": 360,
+  "expandedWidth": 540,
+  "personal": "Personality, habits and bed\nShyness\n89\nPersonality factors\nNeed\tDrain\tRefill\nHunger\t100%\t100%\nEnergy\t100%\t115%\nHygiene\t100%\t100%\nBladder\t100%\t100%\nSocial\t100%\t100%\nFun\t130%\t85%\nComfort\t70%\t100%\n\n100% is the normal personality factor. Sleep, work and traits also affect needs.\n\nSleep rhythm: 90 game min earlier\n\nSleep timing depends on needs and available beds.\n\nRepeated activities\n\nRecent repetition reduces an activity's appeal. It fades with time and is shared across objects of the same type.\n\nNo repeated activities recorded.\n\nSleeping place\n\nNo assigned sleeping place.\n\nChoose a place\nChoose a place\nBed at (0, 8), place 1: The Restorative Unit (unassigned)\nBed at (0, 8), place 2: The Restorative Unit (unassigned)\nBed at (9, 6), place 1: Sleepeazy Deluxe (unassigned)\nAssign\nClear assignment",
+  "phones": [
+    {
+      "width": 320,
+      "height": 568,
+      "overflow": false,
+      "close": 44
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "close": 44
+    },
+    {
+      "width": 640,
+      "height": 400,
+      "overflow": false,
+      "close": 44
+    }
+  ]
+}

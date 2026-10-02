@@ -57,6 +57,12 @@ pub enum CompiledSoundAction {
     SinkWater,
 }
 
+/// One-shot presentation category emitted only by actual completion.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledCompletionSound {
+    ToiletFlush,
+}
+
 /// Authored activity identity for a bubble and its text label. Presentation
 /// only: it neither changes gameplay tags nor selects body animation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -215,10 +221,33 @@ pub struct CompiledInteraction {
     /// Save V1's compatibility digest.
     /// Activity metadata was appended after this field.
     pub sound_action: Option<CompiledSoundAction>,
+    pub shared_activity: Option<String>,
     /// Optional authored activity indicator; excluded from save compatibility.
     /// Appended after sound to preserve the preceding interaction fields.
     /// The embedded pack has no cross-build decoding contract.
     pub activity: Option<CompiledActivity>,
+    /// One-shot presentation metadata, excluded from save compatibility.
+    /// Appended after activity to preserve preceding compiled fields.
+    pub completion_sound: Option<CompiledCompletionSound>,
+}
+
+#[cfg(test)]
+#[test]
+fn shipped_shared_activity_metadata_covers_parallel_reading_and_exercise() {
+    let pack = crate::pack();
+    for (object, group) in [
+        ("bookshelf", "reading"),
+        ("reading_chair", "reading"),
+        ("reference_shelf", "aquarium"),
+        ("moving_box", "exercise"),
+    ] {
+        let act = &pack.object(pack.find(object).unwrap()).interactions[0];
+        assert_eq!(act.shared_activity.as_deref(), Some(group), "{object}");
+    }
+    assert_eq!(
+        pack.object(pack.find("television").unwrap()).interactions[0].shared_activity,
+        None
+    );
 }
 
 /// Optional object identity copy. It never changes saved simulation state.
@@ -288,9 +317,51 @@ pub struct CompiledObject {
     pub price: Option<u32>,
     /// Appended presentation data; absent retains the existing name-only display.
     pub presentation: Option<ObjectPresentation>,
+    /// Ordered physical sleeping places. Saved ordinals follow this order.
+    pub sleep_places: Vec<SleepPlaceAccess>,
+}
+
+/// Navigation offsets from the base-facing footprint, independent of art sockets.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SleepPlaceAccess {
+    pub id: String,
+    pub approaches: Vec<(i32, i32)>,
 }
 
 impl CompiledObject {
+    /// Alternate sleep interactions share physical capacity rather than adding it.
+    pub fn sleep_capacity(&self, sleep_tag: &str) -> u8 {
+        if sleep_tag.is_empty() {
+            return 0;
+        }
+        self.interactions
+            .iter()
+            .filter(|interaction| interaction.tags.iter().any(|tag| tag == sleep_tag))
+            .map(|interaction| interaction.slots)
+            .max()
+            .unwrap_or(0)
+    }
+
+    /// Rotated perimeter offsets. An unauthored single place uses legacy adjacency.
+    pub fn sleep_approaches_at(&self, ordinal: u8, facing: Facing) -> Option<Vec<(i32, i32)>> {
+        let place = self.sleep_places.get(ordinal as usize)?;
+        let width = self.footprint.width as i32;
+        let depth = self.footprint.depth as i32;
+        let turn = self.relative_turn(facing);
+        Some(
+            place
+                .approaches
+                .iter()
+                .map(|&(x, y)| match turn {
+                    Facing::SouthEast => (x, y),
+                    Facing::SouthWest => (depth - 1 - y, x),
+                    Facing::NorthWest => (width - 1 - x, depth - 1 - y),
+                    Facing::NorthEast => (y, width - 1 - x),
+                })
+                .collect(),
+        )
+    }
+
     /// Primary identification for controls and accessible labels.
     pub fn display_name(&self) -> &str {
         self.presentation
@@ -699,6 +770,14 @@ pub struct Tuning {
     pub choice_probability_floor: f32,
     pub wander_pause_variance: f32,
     pub self_preservation_curve: [(u8, f32); 6],
+    pub social_unmet_need_penalty: f32,
+    pub social_critical_need_penalty: f32,
+    pub bathroom_privacy_penalty: f32,
+    pub social_boundary_avoidance_cost: f32,
+    pub shyness_annoyance_strength: f32,
+    pub boundary_wander_reconsider_chance: f32,
+    pub shyness_wander_reconsider_strength: f32,
+    pub relationships: crate::RelationshipTuning,
     /// Domestic systems are disabled in custom packs without this table.
     pub domestic: Option<DomesticTuning>,
 }
@@ -810,10 +889,13 @@ pub struct CompiledTrait {
     pub label: String,
     pub tag: String,
     pub kind: CompiledTraitKind,
-    /// One plain sentence for the Traits panel - [TL-description]. Last,
-    /// because it was appended; it is in no save and not in the
+    /// One plain sentence for the Traits panel - [TL-description].
+    /// It is in no save and not in the
     /// compatibility digest, so rewording it costs nothing.
     pub description: String,
+    /// Initial satisfaction bias, applied only when a Sim is created.
+    /// Appended for the compiled pack's field order; absent TOML values are zero.
+    pub starting_satisfaction_offset: f32,
 }
 
 /// One member of the authored household - [H2].
@@ -1182,6 +1264,7 @@ mod tests {
 
     fn interaction(id: &str) -> CompiledInteraction {
         CompiledInteraction {
+            completion_sound: None,
             id: id.to_string(),
             advertises: vec![(0, 35.0), (6, 5.0)],
             duration_ticks: 15,
@@ -1196,6 +1279,7 @@ mod tests {
             satisfaction: 2.25,
             visual: None,
             sound_action: Some(CompiledSoundAction::ShowerWater),
+            shared_activity: None,
             activity: None,
         }
     }
@@ -1336,6 +1420,14 @@ mod tests {
             waiting_mood_max_penalty: 30.0,
             satisfaction_mood_neutral_band: 15.0,
             satisfaction_mood_per_tick: 0.025,
+            social_unmet_need_penalty: 0.20,
+            social_critical_need_penalty: 0.35,
+            bathroom_privacy_penalty: 0.45,
+            social_boundary_avoidance_cost: 0.01,
+            shyness_annoyance_strength: 0.25,
+            boundary_wander_reconsider_chance: 0.10,
+            shyness_wander_reconsider_strength: 0.15,
+            relationships: crate::RelationshipTuning::default(),
         }
     }
 
@@ -1368,6 +1460,7 @@ mod tests {
                         });
                     }
                     CompiledObject {
+                        sleep_places: Vec::new(),
                         id: (*id).to_string(),
                         name: id.to_uppercase(),
                         presentation: None,
@@ -1463,6 +1556,7 @@ mod tests {
             // interaction above, so the round trip can see the social
             // list written into the objects' slot or vice versa.
             social: vec![CompiledInteraction {
+                completion_sound: None,
                 id: "chat".to_string(),
                 advertises: vec![(4, 30.0), (5, 6.0)],
                 duration_ticks: 40,
@@ -1479,6 +1573,7 @@ mod tests {
                     socket: None,
                 }),
                 sound_action: None,
+                shared_activity: None,
                 activity: None,
             }],
             // Three traits, one of each kind with pairwise-distinct
@@ -1489,6 +1584,7 @@ mod tests {
             // being re-derived.
             traits: vec![
                 CompiledTrait {
+                    starting_satisfaction_offset: 0.0,
                     id: "gossip_hound".to_string(),
                     label: "Gossip hound".to_string(),
                     tag: "gossip".to_string(),
@@ -1498,6 +1594,7 @@ mod tests {
                     description: String::new(),
                 },
                 CompiledTrait {
+                    starting_satisfaction_offset: 0.0,
                     id: "all_thumbs".to_string(),
                     label: "All thumbs".to_string(),
                     tag: "tinkering".to_string(),
@@ -1509,6 +1606,7 @@ mod tests {
                     description: String::new(),
                 },
                 CompiledTrait {
+                    starting_satisfaction_offset: 0.0,
                     id: "weary".to_string(),
                     label: "Weary".to_string(),
                     tag: "puttering".to_string(),
@@ -1677,6 +1775,7 @@ mod tests {
         facing_foreground_sprites: FacingSprites,
     ) -> CompiledObject {
         CompiledObject {
+            sleep_places: Vec::new(),
             id: "thing".to_string(),
             name: "Thing".to_string(),
             presentation: None,
@@ -1949,6 +2048,7 @@ mod tests {
     #[test]
     fn the_appended_tuning_knobs_keep_their_slots() {
         let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
+        let old_end = before.len() - 35;
         let changed = |after: Tuning| -> Vec<usize> {
             let after = postcard::to_allocvec(&after).expect("tuning must serialise");
             assert_eq!(before.len(), after.len());
@@ -1969,10 +2069,13 @@ mod tests {
         .into_iter()
         .flat_map(f32::to_le_bytes)
         .collect();
-        // Seven f32 controls and six (u8, f32) anchors append 58 bytes.
-        let old_end = before.len() - 59;
-        assert_eq!(&before[old_end - 60..old_end], mood_bytes);
-        let len = old_end - 20 - 60;
+        assert_eq!(&before[old_end - 146..old_end - 86], mood_bytes);
+        let penalty_bytes: Vec<_> = [0.20_f32, 0.35, 0.45]
+            .into_iter()
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        assert_eq!(&before[old_end - 28..old_end - 16], penalty_bytes);
+        let len = old_end - 20 - 60 - 28 - 58;
         assert_eq!(
             before[len..len + 20],
             [144, 28, 216, 4, 224, 93, 0, 0, 160, 64, 0, 0, 240, 65, 216, 4, 0, 0, 0, 191]

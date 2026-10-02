@@ -198,7 +198,7 @@ repetition and mix acceptance remain unverified.
 The reproducible editor, measured signal and verification limits are in
 `docs/specs/2026-10-01-shower-water-recording.md`. The complete downloaded packs
 remain outside the repository. Conversation recordings above are first-party;
-short cues other than the door recordings below remain synthesized.
+short cues other than the door and toilet recordings below remain synthesized.
 
 Bathroom handwashing and kitchen washing-up reuse this exact WAV and decoded
 buffer at gain 0.35, below the unchanged shower gain of 0.6. No duplicate asset
@@ -241,6 +241,27 @@ from 0.898499 to 0.440674. A 2.5 kHz high-pass energy comparison over the same
 window falls from 36.79813 to 0.40876. This measures reduced sharp content,
 not subjective listening acceptance. Runtime gain remains 0.05 before Effects.
 See `docs/specs/2026-10-01-door-audio.md` for timing and verification.
+
+## Toilet flush recording
+
+One provisional completion cue uses `toilet_02.ogg` from rubberduck's
+[100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx), CC0 1.0. The source
+page identifies two toilet-flushing recordings. Archive SHA-256 is
+`a5c135878c132f1c59cca54e60061c296cd0ac27ad031ca2c41b8cd5cab3c706`.
+
+1. Retained original: `assets/audio/toilet/toilet_02.ogg`, 168,727 bytes,
+   SHA-256 `9e4a1824ac584bb65ba32406155d37861df7e11b95ef62493246dd2da17f8dbc`.
+2. Runtime: `web/public/audio/toilet/flush.wav`, 791,988 bytes,
+   SHA-256 `b0e3384721432cb34733619b6e415c1de78f06f4b5f11bb0486f863088d4fbb5`.
+3. Chromium decode and stereo PCM16 export at 48 kHz preserve all 197,986 frames
+   (4.124708 seconds). No trim, filtering, normalization or dithering. Runtime
+   gain is 0.08 before Effects; edge fades are applied during playback.
+
+`scripts/prepare-toilet-audio.ps1` reproduces the export and refuses existing
+outputs. The shorter of two candidates was selected to limit overlap, not on
+claimed listening evidence. Technical contract and measurements are in
+`docs/specs/2026-10-01-toilet-completion-audio.md`. The owner accepted the source
+recording; separate in-game mix listening remains unverified.
 
 ## Paper recordings for review only
 

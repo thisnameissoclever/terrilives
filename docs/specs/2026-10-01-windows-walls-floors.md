@@ -196,7 +196,8 @@ identically. Canonical ownership means one starting line per window; it does not
 require sorted storage.
 
 New FitWindow and RemoveWindow commands append to both live and saved command
-enums. Keep the existing command codes and `window_lines` WASM shape unchanged.
+enums. The released SetBedAssignment remains tag 19; FitWindow and RemoveWindow
+use tags 20 and 21 after integration with current main. Keep the existing command codes and `window_lines` WASM shape unchanged.
 Its triples become an expanded projection of canonical windows. Add a distinct
 descriptor getter containing starting line and model ID. Internal readers move
 to explicit projections rather than discarding model ownership during wall,
@@ -259,3 +260,26 @@ Read the current window, floor and cutaway specs together with
 `docs/testing-protocol.md`. The shipped-art summary in `docs/TECH_STACK.md` is
 stale: it says all visible sprites are produced by the old Python/Pillow drawing
 code despite the integrated Blender exports. Correct it with implementation.
+
+## Combined renderer contract, 2026-10-02
+
+The merged renderer retains 16 floats per instance. Door surface depth uses -2;
+dining background and foreground use -3 and -4. Architecture wall and floor modes
+start at -6 and -7, then subtract four per finish slot. CPU and GPU decoders exclude
+all released door/dining modes, nonfinite values, fractions and out-of-range slots.
+
+Bindings 9 and 10 hold the covered-bed and dining support tables. Architecture
+patterns start at binding 11. The combined vertex stage needs four storage buffers;
+the fragment stage needs two. Four shared sampled textures leave at most twelve
+active pattern textures on the portable sixteen-texture device, with the actual
+device limit checked before upload. Beds and dining reuse the historical atlas;
+they do not consume additional sampled textures. The complete published historical
+table now has 2,445 records; the 472 architecture records follow it in a separate
+texture set. The original 1,700-record pixel digest remains unchanged.
+
+Floors selects a tile before a contextual covering action applies it. Its dock
+shows content-ordered material samples and any resource retry. Contextual Windows
+opens the nine-model chooser; fitting, replacing and removing operates on the whole
+canonical owner. Window changes invalidate the cached contextual controls. Hinged
+door frames own both wall orientations, and room regions expand every typed window
+span when partitioning the house.

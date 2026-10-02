@@ -1,4 +1,6 @@
 /// <reference types="vite/client" />
+import { packBedLayers } from './bed-sprites.js';
+import { packDiningSupport } from './dining-support.js';
 
 import {
   ATLAS_FILE_NAME,
@@ -7,6 +9,8 @@ import {
   SPRITES,
   SPRITE_PAIRS,
   SPRITE_ANCHORS,
+  BED_LAYERS,
+  SPRITE_DINING_SUPPORT,
   type AtlasSprite,
 } from './atlas.js';
 import type { GpuContext } from './device.js';
@@ -191,6 +195,8 @@ export class SpriteRenderer {
   private readonly uniformBuffer: GPUBuffer;
   /** The atlas rect table, uploaded once; the atlas cannot change. */
   private readonly spriteBuffer: GPUBuffer;
+  private readonly bedBuffer: GPUBuffer;
+  private readonly diningBuffer: GPUBuffer;
   private readonly bindGroup: GPUBindGroup;
   private capacity = INITIAL_CAPACITY;
   private instanceBuffer: GPUBuffer;
@@ -311,8 +317,10 @@ export class SpriteRenderer {
       { binding: 7, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
       { binding: 8, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'read-only-storage' } },
       ...Array.from({ length: patternCount }, (_, index): GPUBindGroupLayoutEntry => ({
-        binding: 9 + index, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' },
+        binding: 11 + index, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' },
       })),
+      { binding: 9, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+      { binding: 10, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
     ] });
     const layout = gpu.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] });
 
@@ -452,6 +460,16 @@ export class SpriteRenderer {
         { width: bitmap.width, height: bitmap.height });
       return texture;
     });
+    const bedTable = packBedLayers(SPRITES.length + (architecture?.sprites.length ?? 0), BED_LAYERS);
+    this.bedBuffer = gpu.device.createBuffer({ size: bedTable.byteLength,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    buffers.push(this.bedBuffer);
+    gpu.device.queue.writeBuffer(this.bedBuffer, 0, bedTable);
+    const diningTable = packDiningSupport(SPRITES.length + (architecture?.sprites.length ?? 0), SPRITE_DINING_SUPPORT);
+    this.diningBuffer = gpu.device.createBuffer({ size: diningTable.byteLength,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    buffers.push(this.diningBuffer);
+    gpu.device.queue.writeBuffer(this.diningBuffer, 0, diningTable);
     this.bindGroup = gpu.device.createBindGroup({
       layout: this.pipeline.getBindGroupLayout(0),
       entries: [
@@ -477,7 +495,9 @@ export class SpriteRenderer {
         { binding: 6, resource: roles.createView() },
         { binding: 7, resource: { buffer: registration } },
         { binding: 8, resource: { buffer: finishes } },
-        ...patternTextures.map((texture, index) => ({ binding: 9 + index, resource: texture.createView() })),
+        ...patternTextures.map((texture, index) => ({ binding: 11 + index, resource: texture.createView() })),
+        { binding: 9, resource: { buffer: this.bedBuffer } },
+        { binding: 10, resource: { buffer: this.diningBuffer } },
       ],
     });
   }

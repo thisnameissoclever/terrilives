@@ -1,0 +1,62 @@
+[
+  {
+    "name": "pending-floor-clear",
+    "file": "web/src/ui/floor-tool.ts",
+    "command": [
+      "node",
+      "D:\\VIBES\\.worktrees\\9fb8\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+      "run",
+      "--maxWorkers=1",
+      "tests/build-context.test.ts"
+    ],
+    "exit": 1,
+    "verdict": "DETECTED",
+    "before": "2ffe522230d166eeadf7b6b74fb24190b981155b40433181e44d4bd1d8186ac4",
+    "after": "2ffe522230d166eeadf7b6b74fb24190b981155b40433181e44d4bd1d8186ac4",
+    "restoration": "BYTE-IDENTICAL"
+  },
+  {
+    "name": "unchanged-frame",
+    "file": "web/src/ui/placement-actions.ts",
+    "command": [
+      "node",
+      "D:\\VIBES\\.worktrees\\9fb8\\terrilives\\web\\node_modules\\vitest\\vitest.mjs",
+      "run",
+      "--maxWorkers=1",
+      "tests/build-context.test.ts"
+    ],
+    "exit": 1,
+    "verdict": "DETECTED",
+    "before": "84c06828311513e46c09ac08928a300869510ec036840cb9265f0bf3b921e5ee",
+    "after": "84c06828311513e46c09ac08928a300869510ec036840cb9265f0bf3b921e5ee",
+    "restoration": "BYTE-IDENTICAL"
+  },
+  {
+    "name": "pointer-ownership",
+    "file": "web/src/ui/placement-actions.ts",
+    "command": [
+      "node",
+      "scripts/verify-build-controls.cjs",
+      "C:\\Users\\myema\\.codex\\visualizations\\2026\\10\\01\\01a0f829-0992-7362-8f7d-9481810ffedc\\mutant-pointer-ownership"
+    ],
+    "exit": 1,
+    "verdict": "DETECTED",
+    "before": "84c06828311513e46c09ac08928a300869510ec036840cb9265f0bf3b921e5ee",
+    "after": "84c06828311513e46c09ac08928a300869510ec036840cb9265f0bf3b921e5ee",
+    "restoration": "BYTE-IDENTICAL"
+  },
+  {
+    "name": "hidden-controls",
+    "file": "web/src/ui/placement-actions.ts",
+    "command": [
+      "node",
+      "scripts/verify-build-controls.cjs",
+      "C:\\Users\\myema\\.codex\\visualizations\\2026\\10\\01\\01a0f829-0992-7362-8f7d-9481810ffedc\\mutant-hidden-controls"
+    ],
+    "exit": 1,
+    "verdict": "DETECTED",
+    "before": "84c06828311513e46c09ac08928a300869510ec036840cb9265f0bf3b921e5ee",
+    "after": "84c06828311513e46c09ac08928a300869510ec036840cb9265f0bf3b921e5ee",
+    "restoration": "BYTE-IDENTICAL"
+  }
+]

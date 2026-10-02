@@ -16,6 +16,7 @@ export interface ArchitectureWalls {
   readonly windows: readonly WindowPlacement[];
   readonly catalogue: readonly WindowDefinition[];
   readonly hinged?: ArrayLike<number>;
+  readonly horizontalHinged?: ArrayLike<number>;
   readonly cutaway: boolean;
   /** Both source faces are available without mirroring or stretching. */
   readonly side?: ArchitectureSide;
@@ -36,7 +37,10 @@ export function buildArchitectureWallGeometry(lot: ArchitectureWalls): EdgeWallP
     : y === 0 && x >= 0 && x < Math.min(lot.width, lot.house[0]);
   const hinged = new Set<string>();
   for (let i = 0; i + 1 < (lot.hinged?.length ?? 0); i += 2) {
-    hinged.add(`${lot.hinged![i]},${lot.hinged![i + 1]}`);
+    hinged.add(lineKey(0, lot.hinged![i], lot.hinged![i + 1]));
+  }
+  for (let i = 0; i + 1 < (lot.horizontalHinged?.length ?? 0); i += 2) {
+    hinged.add(lineKey(1, lot.horizontalHinged![i], lot.horizontalHinged![i + 1]));
   }
   const emit = (sprite: ArchitectureSprite, x: number, y: number, low: boolean,
     cells: readonly Cell[], farTiles: readonly Cell[], fadeKey: string, window = false): void => {
@@ -72,7 +76,7 @@ export function buildArchitectureWallGeometry(lot: ArchitectureWalls): EdgeWallP
     segments.add(key);
     const cells = cellsFor(axis, x, y);
     if (door) {
-      if (axis === 0 && hinged.has(`${x},${y}`)) return;
+      if (hinged.has(key)) return;
       const pieces = architecturePieces(`doorway.${architectureDirection(axis, side)}.${low ? 'cut' : 'full'}`);
       for (const piece of pieces) emit(piece, x - (axis === 0 ? .5 : 0),
         y - (axis === 1 ? .5 : 0), low, cells, [cells[0]], `door/${key}`);

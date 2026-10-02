@@ -592,7 +592,7 @@ mod tests {
     #[test]
     fn waiting_reduces_satisfaction_through_mood_above_neglect_floor() {
         let mut sim = Sim::new();
-        let mut ledger = Satisfaction::default();
+        let mut ledger = Satisfaction::from_value(0.0);
         ledger.add(10.0);
         let item = sim
             .world_mut()

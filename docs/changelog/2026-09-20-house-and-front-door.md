@@ -1,10 +1,10 @@
-# Room boundaries and the front door
+# A working front door
 
-The house has corrected room boundaries, furniture fit and an animated front door.
+The house has a moving front door and a tidier room layout.
 
-## Art & sound
-- **The front door opens during arrivals and departures.** Its animation follows housemates crossing the threshold. [PR #84](https://github.com/thisnameissoclever/terrilives/pull/84)
-- **The bedroom and bathroom layout is adjusted.** The lower-bunk ladder has clearance, the bathtub is turned, and interior boundaries align with the furniture. Existing households remain loadable. [PR #83](https://github.com/thisnameissoclever/terrilives/pull/83)
+## Art
+- The front door opens when people arrive or leave.
+- The bedroom and bathroom layout gives furniture more room, including the lower-bunk ladder. Existing households still load.
 
-## Bug fixes
-- **Walls no longer cut through nearby wide furniture.** Interior joins and boundary clipping received corrections alongside the builder. [PR #85](https://github.com/thisnameissoclever/terrilives/pull/85)
+## Fixed
+- Walls no longer cut through nearby wide furniture.

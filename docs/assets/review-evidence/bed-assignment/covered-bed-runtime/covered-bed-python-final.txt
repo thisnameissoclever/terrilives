@@ -1,0 +1,35 @@
+......................FF..........................................................................................................
+======================================================================
+FAIL: test_every_shipped_box_starts_at_its_sprite_s_art_top (test_content_bounds.ShippedAtlasTests.test_every_shipped_box_starts_at_its_sprite_s_art_top)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\2301\terrilives\assets\sprites\gen\test_content_bounds.py", line 84, in test_every_shipped_box_starts_at_its_sprite_s_art_top
+    self.assertEqual(wrong, [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^
+AssertionError: Lists differ: ['coveredBedScene_NE_0', 'coveredBedScene_[1545 chars]_35'] != []
+
+First list contains 64 additional elements.
+First extra element 0:
+'coveredBedScene_NE_0'
+
+Diff is 1789 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_every_sprite_whose_art_misses_the_canvas_top_has_bounds (test_content_bounds.ShippedAtlasTests.test_every_sprite_whose_art_misses_the_canvas_top_has_bounds)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\VIBES\.worktrees\2301\terrilives\assets\sprites\gen\test_content_bounds.py", line 62, in test_every_sprite_whose_art_misses_the_canvas_top_has_bounds
+    self.assertEqual(missing, [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+AssertionError: Lists differ: ['coveredBedLayer_07857df19fe4dd390e25cdd4[5749 chars]7f4'] != []
+
+First list contains 69 additional elements.
+First extra element 0:
+'coveredBedLayer_07857df19fe4dd390e25cdd48211a79ba7ff29cdabfc5522d2b39ed3fef3eb2b'
+
+Diff is 6008 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 130 tests in 38.951s
+
+FAILED (failures=2)

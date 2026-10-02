@@ -46,7 +46,8 @@ export type InstanceArray = Float32Array<ArrayBuffer>;
  * recolours draws exactly as before; `writeInstance` resets them.
  *
  * Positive projection modes are historical wall arm masks; -1 projects a
- * rectangular footprint. Zero retains flat depth. Architecture modes encode
+ * rectangular footprint; -2 samples door surface depth, -3/-4 split dining
+ * support layers. Zero retains flat depth. Architecture modes encode
  * wall/floor kind and finish slot through architectureMode. For positive
  * modes, fields 10/11 are opacity and raster height; architecture walls use
  * opacity and a cutaway flag. Height zero retains full-height opaque art.
@@ -92,11 +93,11 @@ export const COLOURWAY_ATTRIBUTE_OFFSET =
   OFFSET_COLOURWAY_HUE * Float32Array.BYTES_PER_ELEMENT;
 export const FOOTPRINT_PROJECTION = -1;
 /** Opt-in local X + Y texture; never interpreted as a furniture footprint. */
-export const ARCHITECTURE_DEPTH = -2;
+export const ARCHITECTURE_DEPTH = -6;
 /** Exact physical tile coverage with historical fixed floor depth. */
-export const ARCHITECTURE_FLOOR = -3;
+export const ARCHITECTURE_FLOOR = -7;
 export const MAX_ARCHITECTURE_FINISH_SLOT = 0xfffff;
-/** Four integers per finish reserve the historical -1 footprint mode. */
+/** Four integers per finish reserve footprint, door and dining modes. */
 export function architectureMode(floor: boolean, finishSlot = 0): number {
   if (!Number.isInteger(finishSlot) || finishSlot < 0 || finishSlot > MAX_ARCHITECTURE_FINISH_SLOT) {
     throw new Error('Invalid architecture finish slot');
@@ -105,11 +106,12 @@ export function architectureMode(floor: boolean, finishSlot = 0): number {
 }
 
 export function decodeArchitectureMode(mode: number): { floor: boolean; finishSlot: number } | null {
-  if (!Number.isInteger(mode) || mode > -2 || mode < ARCHITECTURE_FLOOR - 4 * MAX_ARCHITECTURE_FINISH_SLOT) return null;
+  if (!Number.isInteger(mode) || mode > ARCHITECTURE_DEPTH || mode < ARCHITECTURE_FLOOR - 4 * MAX_ARCHITECTURE_FINISH_SLOT) return null;
   const value = -mode;
   if (value % 4 !== 2 && value % 4 !== 3) return null;
-  return { floor: value % 4 === 3, finishSlot: Math.floor(value / 4) };
+  return { floor: value % 4 === 3, finishSlot: Math.floor(value / 4) - 1 };
 }
+export const SURFACE_DEPTH_PROJECTION = -2;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */

@@ -1,0 +1,276 @@
+{
+  "state": "complete",
+  "inputs": {
+    "render_dining_hands.py": "9222f7b5023df5366543e325ba7b4554cf4314be627ba534804458d8fbfe9cc0",
+    "seated-dining.blend": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+    "seated-dining/proof.json": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-0-meal.png",
+      "sha256": "29b9779cc4f77880125999349a2b776f4234ab639c4a229bb9755282972a85f6"
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-1-meal.png",
+      "sha256": "1ffccecc595b45de3571c544accf1fb31f1b4b481491d8bfef6c7a79da3e8570"
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-2-meal.png",
+      "sha256": "c0e8b521980505b7a62912c400c40c4cf9cc8b6babc37aed63ff86fc592525d4"
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-3-meal.png",
+      "sha256": "1ef3df786b0228c9f456ba3cf73b8184561fcc9170475269dbdb937f9ffaf661"
+    },
+    {
+      "facing": "SE",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-4-meal.png",
+      "sha256": "dd5a5f4797c17c3457336b8f5cc4cd2022ca38b5afb7acde8ee42584dee316bf"
+    },
+    {
+      "facing": "SE",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-5-meal.png",
+      "sha256": "266390921ba752a954c06addb862e408d98a643761582a31ebe2d3214d08cd60"
+    },
+    {
+      "facing": "SE",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-6-meal.png",
+      "sha256": "6ff9f1d77887f4fb8abe6ace33390cbfbb9c6a3cd353d4078eba8c5aacce6bed"
+    },
+    {
+      "facing": "SE",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SE-7-meal.png",
+      "sha256": "81f58cafbbe8470b8fe503f1cde10e8057107e5379549d56725efe561b63bc18"
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-0-meal.png",
+      "sha256": "ab12b0d294a5d0af3a866d303238ab880fce1146d36ff90ee9585da2d1cabf03"
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-1-meal.png",
+      "sha256": "a25ec43c4f16ea768e1321aa9588fd8fb389998eba0acf5aeb41176da90e22ae"
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-2-meal.png",
+      "sha256": "463a3df69e11adfbf29723827848bb252da908ea440a9ed60c536a7f60e82caf"
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-3-meal.png",
+      "sha256": "68fe573b4e3c4e1546e11d9191929d01cf2f38f64d52747efc31c3c104d60ab4"
+    },
+    {
+      "facing": "SW",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-4-meal.png",
+      "sha256": "9cbba6322dc9c10fd3513d89e64a2e755e09afb7214158e5d04cb12b7aa54109"
+    },
+    {
+      "facing": "SW",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-5-meal.png",
+      "sha256": "ab504056d67b20cca8dff921f09d7aaf6538b8bddb475f51308b1b817f3031dc"
+    },
+    {
+      "facing": "SW",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-6-meal.png",
+      "sha256": "1e5dc617fdac7f0bef0332ebf54915797955655fe67270ceafd4335222dcba79"
+    },
+    {
+      "facing": "SW",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-SW-7-meal.png",
+      "sha256": "348506c40e892f48419cb4d48d974c5cd8744a598e48d01cbfee979c5a26b064"
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-0-meal.png",
+      "sha256": "6b3c2d1d95355dcd4b9d384f2d3a423cebf4ef14cc72d9ac3ee4956d94097552"
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-1-meal.png",
+      "sha256": "fb4ecc751c22fb29dbe3b4d58079dc4be9de61f45b73a1927dabdb875e066b94"
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-2-meal.png",
+      "sha256": "d28704c594c4cf63e6e0654d52e6e1bcc56bc92eeefe78f4a904322775727b14"
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-3-meal.png",
+      "sha256": "d7a90fbaee7ba6c3c991feb379d71483c49f557bad9be6a75cc861207e8c8df4"
+    },
+    {
+      "facing": "NW",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-4-meal.png",
+      "sha256": "3652eafc51d4166a3ade99e5361bec3031be79022ad9e399bcbf7a215d630345"
+    },
+    {
+      "facing": "NW",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-5-meal.png",
+      "sha256": "e0cfd3b82a56b65aac1efa6854ad2357062b5a7e8bc3d8028465518d1df3f94f"
+    },
+    {
+      "facing": "NW",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-6-meal.png",
+      "sha256": "4c8c9b7810b23226fd61e95f9ae43a668fd3ed31d36d22142743e42985dd3301"
+    },
+    {
+      "facing": "NW",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NW-7-meal.png",
+      "sha256": "cb0a5c11a6439e68341159cfccb5167143873c81e992e58637e4f64c4daf1c40"
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-0-meal.png",
+      "sha256": "00f61525712af5ba47048669a1fab8925ef830526d706765b4900301621b2568"
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-1-meal.png",
+      "sha256": "1b1aa8479fc457f848d00b90261664f4b6a3e7a16afbf84f045ed84fa397fbf4"
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-2-meal.png",
+      "sha256": "3e78fae0560cb10f6060d8ff2a6caf67906eb15da8d3f478428e2998ca871452"
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-3-meal.png",
+      "sha256": "2c181126b7d7f55ba588ad5a396c2351ce7c96cf60bfd1dae9fb9a6d0898494c"
+    },
+    {
+      "facing": "NE",
+      "frame": 4,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-4-meal.png",
+      "sha256": "b7dee46d5f763e0f4fc5b1277113f0d8c4e4c4cd43753a1fe63b282c23807d46"
+    },
+    {
+      "facing": "NE",
+      "frame": 5,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-5-meal.png",
+      "sha256": "4765c0c83b2286dc7b0ba902f20eef34677a9b029383603157ef206af26474b0"
+    },
+    {
+      "facing": "NE",
+      "frame": 6,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-6-meal.png",
+      "sha256": "95b817a6edd81c9903533be1d883987be64ff198e76030ceb222864f22be20af"
+    },
+    {
+      "facing": "NE",
+      "frame": 7,
+      "variant": "green",
+      "owner": "meal",
+      "path": "green-NE-7-meal.png",
+      "sha256": "2301762e2716283525d0873527d6ac36a07e1040e17618dedbe83328fcfe4394"
+    }
+  ],
+  "support_objects": [
+    "Forearm with elbow and wrist sections",
+    "Forearm with elbow and wrist sections.001",
+    "Relaxed palm",
+    "Relaxed palm.001",
+    "Resting thumb",
+    "Resting thumb.001",
+    "Turned sleeve cuff",
+    "Turned sleeve cuff.001"
+  ]
+}

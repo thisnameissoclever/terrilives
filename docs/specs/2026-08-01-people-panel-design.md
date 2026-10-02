@@ -59,9 +59,11 @@ conversation visible:
 | `< 0.60` | Friendly |
 | otherwise | Close |
 
-One completed Chat adds `0.15`, so a stranger becomes Warm and the marker moves
-from the midpoint. The labels describe one person's feeling and make no claim
-about romance or reciprocity.
+At neutral compatibility, one eligible completed Chat now adds `0.17`, so a
+stranger becomes Warm and the marker moves from the midpoint. Compatibility,
+hygiene and critical needs affect that reward; see
+[relationship development](2026-09-30-relationship-development.md). The labels
+describe one person's feeling and make no claim about romance or reciprocity.
 
 ## Acceptance
 

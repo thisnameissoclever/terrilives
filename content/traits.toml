@@ -55,8 +55,9 @@ learn_per_attempt = 0.015
 # framing note). Starting severity 0.6: present, not crushing.
 [[trait_def]]
 id = "low_spirits"
+starting_satisfaction_offset = -6.0
 label = "Low spirits"
-description = "Gets less out of everything; attending to correspondence eases it."
+description = "Less activity satisfaction; correspondence helps; starts 6 points lower."
 kind = "condition"
 tag = "correspondence"
 accrual_scale = 0.4
@@ -77,9 +78,10 @@ start_severity = 0.6
 # trait inserted above would renumber state that already exists. New
 # traits go at the END of this file.
 #
-# Every number in this file is pairwise distinct ([L26], [L29]): a
+# The mechanism numbers are pairwise distinct ([L26], [L29]): a
 # multiplier pasted into a learning rate must change a test's answer.
 # `the_trait_library_numbers_are_pairwise_distinct` enforces it.
+# Starting satisfaction offsets may repeat and are checked separately.
 #
 # Adding a trait moves the save compatibility digest, which hashes every
 # trait id with its kind. Read [TL-old-saves] before adding one: without
@@ -88,8 +90,9 @@ start_severity = 0.6
 
 [[trait_def]]
 id = "bookworm"
+starting_satisfaction_offset = 2.0
 label = "Bookworm"
-description = "Likes reading."
+description = "Likes reading; starts life satisfaction 2 points higher."
 kind = "disposition"
 tag = "reading"
 score_multiplier = 1.35
@@ -120,8 +123,9 @@ score_multiplier = 1.45
 
 [[trait_def]]
 id = "chatterbox"
+starting_satisfaction_offset = 2.0
 label = "Chatterbox"
-description = "Likes a chat."
+description = "Likes a chat; starts life satisfaction 2 points higher."
 kind = "disposition"
 tag = "socialising"
 score_multiplier = 1.3
@@ -186,8 +190,9 @@ learn_per_attempt = 0.012
 # the first rule.
 [[trait_def]]
 id = "isolated"
+starting_satisfaction_offset = -4.0
 label = "Isolated"
-description = "Gets less out of everything; a chat eases it."
+description = "Less activity satisfaction; chat helps; starts 4 points lower."
 kind = "condition"
 tag = "socialising"
 accrual_scale = 0.7
@@ -196,8 +201,9 @@ start_severity = 0.48
 
 [[trait_def]]
 id = "cooped_up"
+starting_satisfaction_offset = -3.0
 label = "Cooped up"
-description = "Gets less out of everything; exercise eases it."
+description = "Less activity satisfaction; exercise helps; starts 3 points lower."
 kind = "condition"
 tag = "exercise"
 accrual_scale = 0.75

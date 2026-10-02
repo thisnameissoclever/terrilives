@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 
 const limits = { maxTextureDimension2D: 8192, maxTextureArrayLayers: 256,
-  maxSampledTexturesPerShaderStage: 16, maxStorageBufferBindingSize: 128 * 1024 * 1024 } as GPUDevice['limits'];
+  maxSampledTexturesPerShaderStage: 16, maxStorageBuffersPerShaderStage: 8, maxStorageBufferBindingSize: 128 * 1024 * 1024 } as GPUDevice['limits'];
 afterEach(() => vi.unstubAllGlobals());
 
 it('checks direct caller texture, array, sampling and storage limits before GPU allocation', () => {
@@ -14,6 +14,8 @@ it('checks direct caller texture, array, sampling and storage limits before GPU 
     sprites: ARCHITECTURE.sprites, registration: new Float32Array(472 * 4),
     patterns: [{ width: 256, height: 256 }] } as unknown as ArchitectureAtlas;
   expect(() => validateArchitectureDevice(atlas, limits, 1700)).not.toThrow();
+  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBuffersPerShaderStage: 3 }, 1700)).toThrow(/buffer counts/);
+  expect(() => validateArchitectureDevice(atlas, { ...limits, maxStorageBuffersPerShaderStage: 4 }, 1700)).not.toThrow();
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxTextureDimension2D: 2048 }, 1700)).toThrow(/dimensions/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxTextureArrayLayers: 1 }, 1700)).toThrow(/layer/);
   expect(() => validateArchitectureDevice(atlas, { ...limits, maxSampledTexturesPerShaderStage: 4 }, 1700)).toThrow(/sampled/);

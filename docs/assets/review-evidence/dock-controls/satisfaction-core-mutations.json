@@ -1,0 +1,41 @@
+[
+  {
+    "name": "neutral-start",
+    "exit": 101,
+    "failures": [
+      "starts_neutral"
+    ],
+    "restored": [
+      {
+        "file": "crates/terri-core/src/components.rs",
+        "sha256": "76f125f998ac80fde06de31f8cbd046a13341c7fd443e1b4cbe5202baae1695d"
+      }
+    ]
+  },
+  {
+    "name": "upper-and-lower-bounds",
+    "exit": 101,
+    "failures": [
+      "clamps_both_ends"
+    ],
+    "restored": [
+      {
+        "file": "crates/terri-core/src/components.rs",
+        "sha256": "76f125f998ac80fde06de31f8cbd046a13341c7fd443e1b4cbe5202baae1695d"
+      }
+    ]
+  },
+  {
+    "name": "reward-conversion",
+    "exit": 101,
+    "failures": [
+      "converts_authored_reward_units"
+    ],
+    "restored": [
+      {
+        "file": "crates/terri-core/src/components.rs",
+        "sha256": "76f125f998ac80fde06de31f8cbd046a13341c7fd443e1b4cbe5202baae1695d"
+      }
+    ]
+  }
+]

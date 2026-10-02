@@ -1,0 +1,20 @@
+[
+  {
+    "name": "month-pacing-and-small-neglect",
+    "exit": 101,
+    "failures": [
+      "shipped_rates_move_extreme_mood_over_months_and_ordinary_mood_over_years",
+      "shipped_neglect_rate_still_costs_points_at_the_ceiling"
+    ],
+    "restored": [
+      {
+        "file": "content/tuning.toml",
+        "sha256": "42b7e05939814a7991b4496f8748ad7145da2df30d18cde8636e3f454ec0b61b"
+      },
+      {
+        "file": "content/tuning.toml",
+        "sha256": "42b7e05939814a7991b4496f8748ad7145da2df30d18cde8636e3f454ec0b61b"
+      }
+    ]
+  }
+]

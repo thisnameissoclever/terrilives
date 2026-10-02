@@ -1,0 +1,25 @@
+{
+  "cohorts": [
+    {
+      "file": "calibration.txt",
+      "unique_scenarios": 112,
+      "settings_match": true,
+      "all_residents_alive": true
+    },
+    {
+      "file": "validation.txt",
+      "unique_scenarios": 56,
+      "settings_match": true,
+      "all_residents_alive": true
+    },
+    {
+      "file": "supplemental.txt",
+      "unique_scenarios": 112,
+      "settings_match": true,
+      "all_residents_alive": true
+    }
+  ],
+  "aggregate_targets_pass": true,
+  "browser_cases": 5,
+  "mutations_detected": 7
+}

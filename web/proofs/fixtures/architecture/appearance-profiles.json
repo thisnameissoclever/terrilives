@@ -2,7 +2,7 @@
   "schema": 1,
   "source": {
     "path": "content/lot.toml",
-    "sha256": "d74c671ed346f398f036a569ca50b591ebaf342d3fd59174576d4cbc02f05840",
+    "sha256": "44d7c6a648a770721ebc3c58841fb0fe32ee266a9d8cfcaca75055024aa865c9",
     "fields": "covering[].hue,strength,lightness in content order"
   },
   "coveringNames": [

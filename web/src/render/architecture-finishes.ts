@@ -75,7 +75,7 @@ export function architectureFinishSlot(active: ActiveFinishes, key: string): num
 export function architecturePatternShader(count: number): string {
   if (!Number.isInteger(count) || count < 0 || count > 12) throw new Error('Invalid pattern binding count');
   const declarations = Array.from({ length: count }, (_, index) =>
-    `@group(0) @binding(${9 + index}) var architecturePattern${index}: texture_2d<f32>;`).join('\n');
+    `@group(0) @binding(${11 + index}) var architecturePattern${index}: texture_2d<f32>;`).join('\n');
   const cases = Array.from({ length: count }, (_, index) =>
     `case ${index}u: { let size = textureDimensions(architecturePattern${index});
       return textureLoad(architecturePattern${index}, vec2i(fract(uv) * vec2f(size)), 0).rgb; }`).join('\n');

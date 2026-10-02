@@ -1,13 +1,12 @@
 // The Walls tool's buttons - [WT-shell]. Which tool is showing is the build
 // tool switch's job, in build-tools.ts.
 
-import { DOORWAY, OPEN, WALL, WINDOW, type WallStateCode, type WallTool } from './wall-tool.js';
+import type { WallTool } from './wall-tool.js';
 
 export class WallToolControls {
   private readonly status: HTMLElement;
   private readonly keyboardHelp: HTMLElement;
   private readonly touchHelp: HTMLElement;
-  private readonly buttons: ReadonlyArray<readonly [HTMLButtonElement, WallStateCode]>;
 
   constructor(document: Document, private readonly tool: WallTool) {
     const required = <T extends HTMLElement>(id: string): T => {
@@ -18,39 +17,16 @@ export class WallToolControls {
     this.status = required('wall-status');
     this.keyboardHelp = required('wall-keyboard-help');
     this.touchHelp = required('wall-touch-help');
-    this.buttons = [
-      [required<HTMLButtonElement>('wall-build'), WALL],
-      [required<HTMLButtonElement>('wall-doorway'), DOORWAY],
-      [required<HTMLButtonElement>('wall-remove'), OPEN],
-    ];
-    const windows = required<HTMLButtonElement>('wall-window');
-    windows.addEventListener('click', () => {
-      if (!tool.windows) { tool.apply(WINDOW); return; }
-      tool.selectWindows();
-      if (tool.windows.active) document.querySelector<HTMLElement>('#window-models button[aria-pressed="true"]')?.focus();
-    });
-    this.windowButton = windows;
-    for (const [button, state] of this.buttons) {
-      button.addEventListener('click', () => tool.apply(state));
-    }
     this.render();
   }
 
-  private readonly windowButton: HTMLButtonElement;
-
-  /** The phone layout reads the touch help, as the furniture tool's does. */
-  setCompact(compact: boolean): void {
-    this.keyboardHelp.hidden = compact;
-    this.touchHelp.hidden = !compact;
+  /** CSS chooses the pointer hint; Shortcuts remains available in either layout. */
+  setCompact(_compact: boolean): void {
+    this.keyboardHelp.hidden = false;
+    this.touchHelp.hidden = false;
   }
 
   render(): void {
     this.status.textContent = this.tool.status;
-    this.windowButton.disabled = this.tool.windows
-      ? !this.tool.active || this.tool.blocked || this.tool.pending !== null || this.tool.windows.pending !== null
-      : !this.tool.canApply(WINDOW);
-    for (const [button, state] of this.buttons) {
-      button.disabled = !this.tool.canApply(state);
-    }
   }
 }

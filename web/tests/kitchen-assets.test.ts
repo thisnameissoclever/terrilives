@@ -92,7 +92,7 @@ describe('reviewed kitchen sprites', () => {
       'SPRITE_PAIRS', 'INTERACTION_SPRITES', 'SPRITE_HAND_ANCHORS',
       'SPRITE_HAND_FOREGROUND', 'RIGGED_SIM_CLIPS', 'RIGGED_SIM_VARIANTS'] as const;
     const oldClips = (clips: Record<string, unknown>) => Object.fromEntries(Object.entries(clips)
-      .filter(([name]) => !['prepare', 'cook', 'wash', 'carry_walk', 'carry_idle'].includes(name)));
+      .filter(([name]) => !['prepare', 'cook', 'wash', 'carry_walk', 'carry_idle', 'food_walk', 'food_idle', 'seated_eat', 'cook_v2'].includes(name)));
     const data = keys.map((key) => [key, key === 'RIGGED_SIM_CLIPS' ? oldClips(atlas[key]) :
       key === 'RIGGED_SIM_VARIANTS' ? Object.fromEntries(Object.entries(atlas[key]).map(([name, clips]) => [name, oldClips(clips)])) :
       Object.fromEntries(Object.entries(atlas[key]).filter(([index]) => Number(index) < 1089))]);

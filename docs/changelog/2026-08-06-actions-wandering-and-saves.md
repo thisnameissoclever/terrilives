@@ -1,12 +1,13 @@
-# Animated actions and preserved saves
+# A little more life around the house
 
-Conversation and eating have their own animations, idle housemates wander locally, and public saves survive the household rename.
+Housemates move around between activities and show more of what they are doing.
 
-## Features & changes
-- **Idle housemates wander nearby.** Local strolling adds movement between need-driven activities. [PR #43](https://github.com/thisnameissoclever/terrilives/pull/43)
+## New
+- Idle housemates take short walks nearby.
 
-## Art & sound
-- **Talking and eating show action-specific motion.** Conversation has authored body language, and snack and dinner actions have eating animation. [PR #41](https://github.com/thisnameissoclever/terrilives/pull/41) and [PR #42](https://github.com/thisnameissoclever/terrilives/pull/42)
+## Art
+- Talking and eating have their own animations.
 
-## Bug fixes
-- **Existing saves survive renamed household content.** Progress remains loadable after the starting household's name changes. Startup also reports missing artwork files accurately. [PR #39](https://github.com/thisnameissoclever/terrilives/pull/39) and [PR #40](https://github.com/thisnameissoclever/terrilives/pull/40)
+## Fixed
+- Existing saves still load after the starting household's name changes.
+- Startup messages identify missing artwork more clearly.

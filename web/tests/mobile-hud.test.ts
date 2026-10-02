@@ -19,134 +19,26 @@ function mediaBlock(condition: RegExp, source = INDEX_HTML): string {
   return '';
 }
 
-// [B-phone-build-dock] in docs/FEATURES.md: each Build tool holds a region of
-// choices and a footer of its status and the buttons that act on it. On a
-// phone at least 481 pixels tall only the choices scroll, so the footer is
-// always in view and nothing ever sits behind it.
-describe('the phone Build dock', () => {
-  /** The markup of the `<div class="{kind}">` holding `#id`, or '' when none does. */
-  function groupOf(kind: string, id: string): string {
-    const at = INDEX_HTML.indexOf(`id="${id}"`);
-    const matches = [...INDEX_HTML.slice(0, at).matchAll(new RegExp(`<div\\b[^>]*class="${kind}"[^>]*>`, 'g'))];
-    const open = matches.at(-1)?.index ?? -1;
-    if (at < 0 || open < 0) return '';
-    const tags = /<\/?div\b/g;
-    tags.lastIndex = open;
-    let depth = 0;
-    for (let tag = tags.exec(INDEX_HTML); tag; tag = tags.exec(INDEX_HTML)) {
-      depth += tag[0] === '<div' ? 1 : -1;
-      if (depth === 0) return at < tag.index ? INDEX_HTML.slice(open, tag.index) : '';
-    }
-    return '';
-  }
-
-  const COMPACT = /@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/;
-  const TALL = /@media\s*\(max-width:\s*600px\)\s*and\s*\(min-height:\s*481px\)/;
-
-  it.each([
-    ['builder-status', ['builder-confirm', 'builder-cancel', 'builder-sell', 'builder-sale-note']],
-    ['wall-status', ['wall-build', 'wall-doorway', 'wall-window', 'wall-remove']],
-    ['window-status', ['window-fit', 'window-remove']],
-    ['room-status', ['room-build', 'room-cancel']],
-    ['buy-status', ['buy-confirm', 'buy-cancel']],
-  ])('puts %s in one footer with the buttons that act on it', (status, buttons) => {
-    const footer = groupOf('builder-actions', status);
-    expect(footer).toContain(`id="${status}"`);
-    for (const button of buttons) expect(footer).toContain(`id="${button}"`);
+const BUILD_CSS = readFileSync(new URL('../src/ui/build-controls.css', import.meta.url), 'utf8');
+describe('the compact build layout', () => {
+  it('uses its own 700px breakpoint without changing the Sim dock breakpoint', () => {
+    expect(BUILD_CSS).toContain('@media (max-width: 700px), (max-height: 480px)');
+    expect(DOCK_CSS).toContain('@media (max-width: 600px), (max-height: 480px)');
   });
-
-  it.each([
-    ['builder-object', ['builder-rotate', 'builder-rotation-note', 'builder-keyboard-help', 'builder-touch-help']],
-    ['buy-object', ['buy-filter', 'buy-rotate', 'buy-price', 'buy-serves', 'buy-keyboard-help', 'buy-touch-help']],
-    ['wall-keyboard-help', ['wall-touch-help']],
-    ['window-models', ['window-keyboard-help', 'window-touch-help', 'window-back']],
-    ['room-keyboard-help', ['room-touch-help']],
-  ])('puts %s in the choices above that footer', (first, rest) => {
-    const choices = groupOf('builder-choices', first);
-    for (const id of [first, ...rest]) expect(choices).toContain(`id="${id}"`);
-    expect(choices).not.toContain('builder-actions');
-  });
-
-  it('trims the panel on every compact screen', () => {
-    const compact = mediaBlock(COMPACT);
-    // The whole panel, border included, stays at 45% of the screen.
-    expect(compact).toMatch(/#builder-dock #builder-controls\s*\{[^}]*box-sizing:\s*border-box;[^}]*max-height:\s*45dvh;[^}]*overflow-y:\s*auto/);
-    // The heading and the paused note leave the view but not the page.
-    expect(compact).toMatch(/#builder-dock #builder-name,\s*#builder-dock #builder-paused\s*\{[^}]*position:\s*absolute;[^}]*clip-path:\s*inset\(50%\)/);
-    // Tabs wrap at their label widths; phone padding leaves more room for choices.
-    expect(compact).toMatch(/#builder-dock #build-tools \.hud-button\s*\{\s*padding-inline:\s*2px;/);
-    // Each list's label sits beside it.
-    expect(compact).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\);/);
-    expect(compact).toMatch(/#builder-dock \.builder-choices > :not\(label\):not\(select\)\s*\{\s*grid-column:\s*1 \/ -1;/);
-    // Sell joins Confirm and Cancel.
-    expect(compact).toMatch(/#builder-dock #furniture-tool \.builder-actions\s*\{\s*grid-template-columns:\s*repeat\(3,/);
-    expect(compact).toMatch(/#builder-dock #furniture-tool \.builder-actions > \.builder-row\s*\{\s*display:\s*contents;/);
-    expect(compact).toMatch(/#builder-dock #furniture-tool \.builder-actions > p\s*\{\s*grid-column:\s*1 \/ -1;/);
-  });
-
-  it('scrolls only the choices where the panel is tall enough', () => {
-    const tall = mediaBlock(TALL);
-    // The panel scrolls whole only when the footer and the choices' floor
-    // do not fit, as on a 320 by 481 screen with a long status.
-    expect(tall).toMatch(/#builder-dock #builder-controls:not\(\[hidden\]\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*overflow-y:\s*auto;/);
-    expect(tall).toMatch(/#builder-dock #builder-controls > \.builder-tool:not\(\[hidden\]\)\s*\{[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/);
-    expect(tall).toMatch(/#builder-dock \.builder-choices\s*\{[^}]*box-sizing:\s*border-box;[^}]*flex:\s*1 1 auto;[^}]*min-height:\s*0;[^}]*overflow-y:\s*auto;/);
-    // Where a tool has a list, its choices never shrink below one whole list
-    // row and its outline, including Walls when its Windows chooser is open.
-    expect(tall).toMatch(/#builder-dock #furniture-tool \.builder-choices,\s*#builder-dock #buy-tool \.builder-choices,\s*#builder-dock #wall-tool\.window-editing \.builder-choices\s*\{\s*min-height:\s*52px;\s*\}/);
-    expect(tall).toMatch(/#builder-dock \.builder-actions\s*\{[^}]*flex:\s*none;/);
-    // Nothing is pinned over content anywhere, so focus is never hidden.
-    expect(INDEX_HTML).not.toContain('sticky');
-  });
-
-  // Below 481 pixels of height the panel can be 144 pixels tall, too short
-  // for a fixed footer and a region above it, so the whole panel scrolls.
-  // The person and How they feel toggles share this block and are flex
-  // boxes by design, so their rules are set aside before the check.
-  it('leaves the short panel to scroll whole', () => {
-    const matches = [...ALL_STYLES.matchAll(new RegExp(COMPACT.source, 'g'))];
-    expect(matches.length).toBeGreaterThanOrEqual(2);
-    for (const match of matches) {
-      const block = mediaBlock(COMPACT, ALL_STYLES.slice(match.index));
-      const withoutToggles = block.replace(/\.needs-caption[^{}]*\{[^}]*\}/g, '');
-      expect(withoutToggles).not.toMatch(/display:\s*flex/);
-    }
-  });
-
-  // On a desktop the choices join the tool's own grid and the help lines
-  // follow the footer, so the side panel reads as it did before.
-  it('keeps the desktop order: choices, footer, then help', () => {
-    expect(INDEX_HTML).toMatch(/\n      \.builder-choices\s*\{\s*display:\s*contents;\s*\}/);
-    expect(INDEX_HTML).toMatch(/\n      \.builder-help\s*\{\s*order:\s*1;\s*\}/);
-    for (const id of ['builder-keyboard-help', 'builder-touch-help', 'buy-keyboard-help', 'buy-touch-help',
-      'wall-keyboard-help', 'wall-touch-help', 'room-keyboard-help', 'room-touch-help']) {
-      expect(INDEX_HTML).toMatch(new RegExp(`id="${id}" class="builder-note builder-help"`));
-    }
-  });
-
-  // The phone layout gives the panel and the tools displays with selectors
-  // that could outrank a plain hiding rule, which once showed the Build panel
-  // outside Build. Hiding is marked important, so only another important
-  // display could show a hidden panel or tool, and there is none.
-  it('never shows the panel or a tool the game has hidden', () => {
+  it('keeps all five tools, Exit build and shortcuts reachable', () => {
+    for (const tool of ['furniture','walls','room','buy','floors']) expect(INDEX_HTML).toContain(`id="build-tool-${tool}"`);
+    expect(INDEX_HTML).toContain('class="build-navigation"');
+    expect(BUILD_CSS).toContain('overflow-y: auto');
+    expect(BUILD_CSS).toContain('min-height: 44px');
     expect(INDEX_HTML).toContain('#builder-controls[hidden], .builder-tool[hidden] { display: none !important; }');
-    for (const tool of ['furniture', 'wall', 'room', 'buy']) {
-      expect(INDEX_HTML).toContain(`<div id="${tool}-tool" class="builder-tool"`);
+    for (const prefix of ['builder','wall','room','buy','floor']) {
+      expect(INDEX_HTML).toContain(`<details id="${prefix}-keyboard-help" class="shortcuts builder-help">`);
     }
-    const uncommented = ALL_STYLES.replace(/\/\*[\s\S]*?\*\//g, '');
-    const important = [...uncommented.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-      .filter(([, , body]) => /display:[^;}]*!important/.test(body))
-      .map(([, selector]) => selector.trim());
-    expect(important).toEqual(['#builder-controls[hidden], .builder-tool[hidden]', '#sim-dock [hidden], #sim-dock[hidden]']);
   });
-
-  it('wraps Build tabs at their text widths and bounds enlarged control labels', () => {
-    expect(INDEX_HTML).toMatch(/#build-tools\s*\{\s*display:\s*flex;\s*flex-wrap:\s*wrap;\s*gap:\s*8px;/);
-    expect(INDEX_HTML).toMatch(/#build-tools > \*\s*\{\s*flex:\s*1 1 auto;\s*min-width:\s*0;/);
-    expect(INDEX_HTML).toMatch(/#builder-controls \.hud-button\s*\{[^}]*max-width:\s*100%;[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/);
-    expect(INDEX_HTML).toMatch(/\.builder-row\s*\{\s*display:\s*flex;\s*flex-wrap:\s*wrap;/);
-    expect(INDEX_HTML).toMatch(/\.builder-row > \*\s*\{\s*flex:\s*1 1 auto;\s*min-width:\s*0;/);
-    expect(INDEX_HTML).not.toMatch(/#(?:builder-dock #)?build-tools\s*\{[^}]*grid-template-columns/);
+  it('reserves a fixed outer desktop width including padding and scrollbars', () => {
+    expect(BUILD_CSS).toContain("body[data-building='true'] #hud { width: 304px; }");
+    expect(BUILD_CSS).toContain('scrollbar-gutter: stable');
+    expect(BUILD_CSS).toContain('box-sizing: border-box');
   });
 });
 

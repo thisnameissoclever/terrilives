@@ -27,7 +27,8 @@ pub use components::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice, Eating,
     Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position,
     Relationships, Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName,
-    SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
+    SleepPlace, SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits,
+    Wander,
 };
 pub use components::{Colourway, SelfPreservation};
 pub use facing::Facing;
@@ -36,6 +37,7 @@ pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};
 pub use rng::SimRng;
+mod shyness;
 pub use save::{
     SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SaveSnapshotV4, SaveSnapshotV5,
     SavedChainState, SavedCommand, SavedConversationVoice, SavedEating, SavedEntity,
@@ -45,3 +47,4 @@ pub use save::{
 
 pub use save_before_voice::SaveSnapshotV1BeforeVoice;
 pub use windows::{WindowModel, WindowPlacement};
+pub use shyness::Shyness;

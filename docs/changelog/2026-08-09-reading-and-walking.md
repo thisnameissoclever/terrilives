@@ -1,10 +1,11 @@
-# Reading poses and directional walking
+# Reading, walking and clearer actions
 
-Reading has distinct seated and standing poses, and walking uses directional limb animation.
+People carry books, sit to read and move more naturally around the house.
 
-## Art & sound
-- **Read while seated or standing.** The reading chair and bookshelf show the appropriate posture and book position. [PR #48](https://github.com/thisnameissoclever/terrilives/pull/48) and [PR #49](https://github.com/thisnameissoclever/terrilives/pull/49)
-- **Walking follows the direction of travel.** Directional animation replaces the earlier movement effect. Character hair and the object-menu title also receive corrections. [PR #50](https://github.com/thisnameissoclever/terrilives/pull/50) and [PR #51](https://github.com/thisnameissoclever/terrilives/pull/51)
+## Art
+- Reading has seated and standing poses, with the book in the person's hands.
+- Walking animations follow the direction of travel. Character hair has also been corrected.
 
-## Bug fixes
-- **Full queues report a refusal.** Attempts to add too many orders produce feedback without being overwritten by saving status. Activity labels also distinguish generic object use from named actions. [PR #46](https://github.com/thisnameissoclever/terrilives/pull/46) and [PR #47](https://github.com/thisnameissoclever/terrilives/pull/47)
+## Fixed
+- A full action queue tells you why another order cannot be added.
+- Activity labels and object-menu titles describe their actions more clearly.

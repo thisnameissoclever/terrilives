@@ -190,11 +190,11 @@ export async function createArchitectureDepthProof() {
         const windows = geometry.filter(panel => panel.window), panel = windows[0];
         let point;
         for (const part of windows) {
-          try { point = sample(ARCHITECTURE.sprites[part.architectureId - 1700], 4, scale, part.x, part.y); break; }
+          try { point = sample(ARCHITECTURE.sprites[part.architectureId - ARCHITECTURE.baseSpriteId], 4, scale, part.x, part.y); break; }
           catch { /* A source owner can contain only a pier; try its sibling glazing. */ }
         }
         assert(point, 'Window has sampled glazing', { axis, model });
-        const panelRow = part => row(ARCHITECTURE.sprites[part.architectureId - 1700], part.x, part.y, scale);
+        const panelRow = part => row(ARCHITECTURE.sprites[part.architectureId - ARCHITECTURE.baseSpriteId], part.x, part.y, scale);
         const reference = at(await capture(join(windows.map(panelRow)), empty, scale), point.px, point.py);
         assert(same(reference, point.expected), 'Glazing witness matches accepted source texel', { reference, expected: point.expected, point });
         const actual = at(await capture(join(geometry.map(panelRow)), empty, scale), point.px, point.py);
@@ -509,7 +509,7 @@ export async function createArchitectureDepthProof() {
           edges: Uint32Array.from([1, 1, 4, 0, 1, 5, 4, 0, 0, 3, 0, 0, 0, 3, 1, 0, 0, 3, 2, 0]), windows, cutaway });
         const opaque = [], low = [];
         for (let y = 0; y < 6; y++) for (let x = 0; x < 6; x++) opaque.push(row(architectureFloor('floor.boards', x, y), x, y, scale));
-        for (const panel of panels) (panel.low ? low : opaque).push(row(ARCHITECTURE.sprites[panel.architectureId - 1700], panel.x, panel.y, scale, panel.low));
+        for (const panel of panels) (panel.low ? low : opaque).push(row(ARCHITECTURE.sprites[panel.architectureId - ARCHITECTURE.baseSpriteId], panel.x, panel.y, scale, panel.low));
         await capture(join(opaque), join(low), scale);
         return { pass: true, scale, cutaway, panels: panels.length };
       },

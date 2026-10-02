@@ -1,0 +1,374 @@
+{
+  "date": "2026-10-01",
+  "baseline": "1d23f18018df26c3351cdba346f4851ff8ba2ca0",
+  "source_sha256": {
+    "crates/terri-sim/src/dining.rs": "bbb7f4c7a84f76459b08b1a2e41ad4d9e5a901a2aef342e1251a9e2933c63b55",
+    "crates/terri-sim/src/lib.rs": "52c618636e67b8631c7f535ffe06d1fd5877398dff044fb04f456e527fe7ef0b",
+    "crates/terri-sim/src/render_buffer.rs": "914fe2b4a5f53e89f050182c2cbafcfdbf73469dd2fe7ba7bdf46abab2dfdb97",
+    "crates/terri-wasm/src/lib.rs": "ff3dcb5a6906fe00315cc553b173a00c2db5e0e6151a95e99ca80a87d5abb0e9",
+    "web/src/bridge.ts": "e89fcccec08cdd3a29d4a2b7559e19293255781cd59d069535b57283a23e15ba",
+    "web/src/frame.ts": "a554ff47bc9e582c31a0ea5687b21cf8b03acd50a3aabd19ff8099f7b0170598",
+    "web/src/input.ts": "b89c3443826736b8f47d33b4db1b1b2226309465513a29e0d8b0a339d5a9f3c0",
+    "web/src/render/sprites.ts": "babdbc9b5a4b9ff9f01eacee6d177daf546737712dae25f9ac29c1b869919128",
+    "web/src/render/sprites.wgsl": "869ca68c8b93618692553d09da37b5e28a98db2dd6f1fab077591fb90ae323e5",
+    "web/src/render/dining-support.ts": "5742d29279843e6e1756eab71913290930343734692e13551c169e9f98f57d31",
+    "assets/models/domestic/seated-dining.blend": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+    "assets/models/domestic/render_seated_dining.py": "0555befd67afd0dcb59921d3edc40fab29a037ae131972d3478bfcb9b1109b2e",
+    "assets/models/domestic/render_dining_meal.py": "aedb23404fd5509d2f11e85f844b01b7cc85af3acbc5a372758fa5c4862d466e",
+    "assets/models/domestic/render_dining_table_proof.py": "5a664f99af4989a999f37b6eb8675120ce99ec9aa62afb4fd8f4de63c3012fb1",
+    "assets/models/domestic/export_seated_dining.py": "8213d0f2e9ab12be29bf8ee3af38fa6ee60cf100a4bf40995be16951f7b21e7a",
+    "assets/models/domestic/export_dining_table_proof.py": "a256bf26c985272bfb7d9da76f25a71d83be6e5fc74de8efb40fe2de02c06ac0",
+    "assets/models/domestic/seated-dining/proof.json": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6",
+    "assets/models/domestic/seated-meal/proof.json": "f4dde42f14de8580b9e5bbd660d6b2534c5fd944eb88c3834e1cb1f7928b1e45",
+    "assets/models/domestic/seated-table/proof.json": "354f14d6bb315f3b9a5e2a6b3408e0bbedae49ab3fd59538ed47086e46366bbd",
+    "assets/models/domestic/export/seated-dining/manifest.json": "cd850c38d3b2e6921fcdab84f081101a27015ecb6736c8f12a23bb43a9030940",
+    "assets/models/domestic/export/seated-table-proof/manifest.json": "aeb5cf56843996643fecbd8b24cb9c8efcd334da8ce8d12052775bfe96465610",
+    "web/public/atlas.png": "9442d428e1191e31518d52fcae2d52d2e0f8767a0183fde2b7d64799056df8fa",
+    "web/proofs/dining-fitted.js": "27fab74da786d91c6441611ff6cb841a9099af3ec05bdd7097496334d3d52a26",
+    "web/proofs/dining-table-contact.js": "0ed8bf53af7fff0cc60ac2071c063d8e3aa4a8e01d3b56c53c6a5df8a8c474c3",
+    "assets/models/domestic/render_dining_hands.py": "9222f7b5023df5366543e325ba7b4554cf4314be627ba534804458d8fbfe9cc0",
+    "assets/models/domestic/export_dining_hands.py": "53a7eb85aa19564171fa428dcc7aadd1d5e7fe38ad006644639140624ccfd114",
+    "assets/models/domestic/seated-hands/proof.json": "0a1ca91e95785683c485856c85190aeffb37f349c68c803290bfea01831e93eb",
+    "assets/models/domestic/export/seated-hands-proof/manifest.json": "9e457abea5e43cf664aeff07b7c548a527905f97c5234f3bb559e2436be9a315"
+  },
+  "checks": [
+    {
+      "command": "cargo test --workspace -- --test-threads=1",
+      "exit_code": 0,
+      "result": "1425 passed",
+      "log": ".tmp/dining-support-native-workspace.log",
+      "log_sha256": "8c1b061c82e5899766b369bdc4f8717ae5091529cbfea38e8bce5dcb5478a4e6",
+      "output": "st save_v3_tests::shyness_length_and_record_truncations_cannot_invent_stats ... ok\ntest save_v3_tests::v3_bad_facing_rows_and_layout_are_refused_before_live_replacement ... ok\ntest save_v3_tests::v3_required_tail_rejects_every_truncation_trailing_data_and_a_v2_body ... ok\ntest save_v3_tests::v3_rotated_geometry_and_ordered_pending_commands_survive_the_public_envelope ... ok\ntest save_v3_tests::v4_required_tail_rejects_every_truncation_and_trailing_data ... ok\ntest save_v3_tests::v5_required_tail_rejects_every_truncation_and_trailing_data ... ok\ntest save_v3_tests::waiting_length_truncation_cannot_invent_an_empty_list ... ok\ntest sim_details_tests::details_exports_reject_invalid_numbers_and_do_not_coerce_them_to_a_person ... ok\ntest sim_details_tests::personal_details_wire_layout_keeps_exact_offsets_and_aligned_repetition_labels ... ok\ntest spawn_boundary_tests::spawn_object_accepts_solid_edges_on_each_perimeter_side ... ok\ntest spawn_boundary_tests::spawn_object_refuses_each_internal_wall_without_changing_world_or_render_buffers ... ok\ntest unlimited_queue_tests::hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load ... ok\n\ntest result: ok. 166 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.69s\n\n   Doc-tests terri_core\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests terri_data\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests terri_sim\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests terri_wasm\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": ".tmp/dining-support-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": ".tmp/dining-support-clippy.log",
+      "log_sha256": "67aede5e5539909560683e95b7312119365ddd4205fbe371b50f87b458d31892",
+      "output": "   Compiling terri-data v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-data)\n    Checking terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-sim)\n    Checking terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-wasm)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.04s\n"
+    },
+    {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "exit_code": 0,
+      "result": "1794 passed",
+      "log": ".tmp/dining-support-web-final.log",
+      "log_sha256": "979504f2a846f4ea00f55d57a8a8982f31c07621f6eb2ecb4db307536cbbbb3c",
+      "output": "\n> test\n> vitest run --maxWorkers=1\n\n\n RUN  v4.1.10 D:/VIBES/.worktrees/1dc2/terrilives/web\n\n\n Test Files  126 passed (126)\n      Tests  1794 passed (1794)\n   Start at  14:53:13\n   Duration  34.18s (transform 2.23s, setup 0ms, import 8.10s, tests 12.26s, environment 7ms)\n\n"
+    },
+    {
+      "command": "npm --prefix web run typecheck",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": ".tmp/dining-support-typecheck-final.log",
+      "log_sha256": "e5046545a3a9fcc0cf6950c9402c78a2b227f07a6a658d2a0c1fbc5f4a194da0",
+      "output": "\n> typecheck\n> tsc --noEmit\n\n"
+    },
+    {
+      "command": "npm --prefix web run build",
+      "exit_code": 0,
+      "result": "PASS; existing large-chunk advisory",
+      "log": ".tmp/dining-support-build-final.log",
+      "log_sha256": "cfe621ed5d8706b9edf92444e5bf40867c5260eb29e9d28aa8f951deacf307fe",
+      "output": "\n> build\n> vite build\n\nvite v8.1.5 building client environment for production...\n\u001b[2K\ntransforming...\u00e2\u0153\u201c 93 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/assets/save-worker-Cb-g-Su5.js          2.08 kB\ndist/changelog/index.html                   43.74 kB \u00e2\u201d\u201a gzip:  10.53 kB\ndist/index.html                             54.61 kB \u00e2\u201d\u201a gzip:  12.88 kB\ndist/assets/terri_wasm_bg-JCPdMeIO.wasm  2,888.08 kB \u00e2\u201d\u201a gzip: 940.05 kB\ndist/assets/index-BRWiJRiB.css              17.94 kB \u00e2\u201d\u201a gzip:   3.93 kB\ndist/assets/index-Bm5A8xxT.js            4,437.42 kB \u00e2\u201d\u201a gzip: 488.24 kB\n\n\u00e2\u0153\u201c built in 7.23s\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+    },
+    {
+      "command": "python -m unittest discover -s assets/sprites/gen",
+      "exit_code": 0,
+      "result": "136 passed",
+      "log": ".tmp/dining-support-sprite-tests.log",
+      "log_sha256": "e61d34b7af7b3071aa0096a218b40956842d22dc31b59d3fb70007b148360e53",
+      "output": "........................................................................................................................................\n----------------------------------------------------------------------\nRan 136 tests in 26.915s\n\nOK\n"
+    },
+    {
+      "command": "python assets/sprites/gen/build.py --check",
+      "exit_code": 0,
+      "result": "2365 sprites, 8192x8162; PASS",
+      "log": ".tmp/dining-support-atlas-check.log",
+      "log_sha256": "f5b8ee863deab10c4e4f49d84965c68eea740a5f20a118aa531b644dd5c5438e",
+      "output": "atlas is up to date: 2365 sprites, 8192x8162\n"
+    },
+    {
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "exit_code": 0,
+      "result": "12 passed",
+      "log": ".tmp/dining-support-changelog-tests.log",
+      "log_sha256": "3145843b878f9d86b6a863642dce79ad5b05c32a413c88a0972068f525aa2626",
+      "output": "\u00e2\u0153\u201d newest notes come first and only the latest date starts open (20.2447ms)\n\u00e2\u0153\u201d legacy anchors reject malformed collections and unsafe identifiers (5.9437ms)\n\u00e2\u0153\u201d editing, adding and deleting source notes changes the generated page (5.9997ms)\n\u00e2\u0153\u201d HTML is escaped while bold, code and HTTPS links remain usable (5.2827ms)\n\u00e2\u0153\u201d literal template markers in a note cannot expand into presentation code (4.0737ms)\n\u00e2\u0153\u201d invalid notes and empty collections fail instead of silently dropping content (4.1974ms)\n\u00e2\u0153\u201d wrapped summaries and continued list items preserve their meaning (0.1444ms)\n\u00e2\u0153\u201d public notes reject development references instead of publishing them (0.3292ms)\n\u00e2\u0153\u201d same-day notes must be consolidated and former links reach the dated update (4.2663ms)\n\u00e2\u0153\u201d dark is the default even on a light system; theme choices persist and blocked storage stays usable (1.9673ms)\n\u00e2\u0153\u201d expand and collapse switch controls and keep keyboard focus; old links open the right update (1.4607ms)\n\u00e2\u0153\u201d the repository history renders and the CLI writes the same standalone page (63.1521ms)\n\u00e2\u201e\u00b9 tests 12\n\u00e2\u201e\u00b9 suites 0\n\u00e2\u201e\u00b9 pass 12\n\u00e2\u201e\u00b9 fail 0\n\u00e2\u201e\u00b9 cancelled 0\n\u00e2\u201e\u00b9 skipped 0\n\u00e2\u201e\u00b9 todo 0\n\u00e2\u201e\u00b9 duration_ms 181.1672\n"
+    },
+    {
+      "command": "node scripts/build-changelog.mjs",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": ".tmp/dining-support-changelog-build.log",
+      "log_sha256": "1b667fb1cce9867e63b0445472d34a63b430a32150fc25f73931f1b0f948da3d",
+      "output": "Built changelog: D:\\VIBES\\.worktrees\\1dc2\\terrilives\\web\\dist\\changelog\\index.html\n"
+    },
+    {
+      "command": "python assets/models/domestic/export_dining_table_proof.py",
+      "exit_code": 0,
+      "result": "96 hashed independent full-table references; complete alpha borders"
+    },
+    {
+      "command": "python assets/models/domestic/export_dining_hands.py",
+      "exit_code": 0,
+      "result": "32 hashed named-hand masks; plate, food and spoon use reciprocal holdouts"
+    }
+  ],
+  "physical": {
+    "state": "complete",
+    "cases": 96,
+    "regressions": 3
+  },
+  "graphics": {
+    "chair_cases": 96,
+    "missing_chair_mutations": 4,
+    "table_contact_cases": 96,
+    "table_contact_max": 24,
+    "table_contact_limit": 32,
+    "whole_p95_max": 9,
+    "whole_p95_limit": 12,
+    "whole_max_equivalence": "FAIL",
+    "whole_max_failures": 46,
+    "whole_max": 116,
+    "whole_max_limit": 64,
+    "mutation_records": 36,
+    "errors": [],
+    "hand_mutation": "Remove drawn hand fill using named geometry ownership; all twelve facing/arrangement cases reject.",
+    "hand_mutation_min_error": 103
+  },
+  "browser": {
+    "fixture": "review-dining.sav",
+    "ticks": [
+      558,
+      562,
+      566,
+      570,
+      574,
+      578,
+      582,
+      586
+    ],
+    "seated": 2,
+    "standing": 2,
+    "cleanup": "Both task-owned tabs closed; preview server stopped."
+  },
+  "limits": [
+    "Local verification, not deployment acceptance.",
+    "Whole-scene outline equivalence remains failed; every differing pixel has not been classified.",
+    "Standing diners retain the older whole-plate eating animation.",
+    "Full remote mutation sweep not run."
+  ],
+  "git_index_sha256": {
+    "crates/terri-sim/src/dining.rs": "bbb7f4c7a84f76459b08b1a2e41ad4d9e5a901a2aef342e1251a9e2933c63b55",
+    "crates/terri-sim/src/lib.rs": "52c618636e67b8631c7f535ffe06d1fd5877398dff044fb04f456e527fe7ef0b",
+    "crates/terri-sim/src/render_buffer.rs": "914fe2b4a5f53e89f050182c2cbafcfdbf73469dd2fe7ba7bdf46abab2dfdb97",
+    "crates/terri-wasm/src/lib.rs": "ff3dcb5a6906fe00315cc553b173a00c2db5e0e6151a95e99ca80a87d5abb0e9",
+    "web/src/bridge.ts": "e89fcccec08cdd3a29d4a2b7559e19293255781cd59d069535b57283a23e15ba",
+    "web/src/frame.ts": "a554ff47bc9e582c31a0ea5687b21cf8b03acd50a3aabd19ff8099f7b0170598",
+    "web/src/input.ts": "b89c3443826736b8f47d33b4db1b1b2226309465513a29e0d8b0a339d5a9f3c0",
+    "web/src/render/sprites.ts": "babdbc9b5a4b9ff9f01eacee6d177daf546737712dae25f9ac29c1b869919128",
+    "web/src/render/sprites.wgsl": "869ca68c8b93618692553d09da37b5e28a98db2dd6f1fab077591fb90ae323e5",
+    "web/src/render/dining-support.ts": "5742d29279843e6e1756eab71913290930343734692e13551c169e9f98f57d31",
+    "assets/models/domestic/seated-dining.blend": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+    "assets/models/domestic/render_seated_dining.py": "0555befd67afd0dcb59921d3edc40fab29a037ae131972d3478bfcb9b1109b2e",
+    "assets/models/domestic/render_dining_meal.py": "aedb23404fd5509d2f11e85f844b01b7cc85af3acbc5a372758fa5c4862d466e",
+    "assets/models/domestic/render_dining_table_proof.py": "5a664f99af4989a999f37b6eb8675120ce99ec9aa62afb4fd8f4de63c3012fb1",
+    "assets/models/domestic/export_seated_dining.py": "8213d0f2e9ab12be29bf8ee3af38fa6ee60cf100a4bf40995be16951f7b21e7a",
+    "assets/models/domestic/export_dining_table_proof.py": "a256bf26c985272bfb7d9da76f25a71d83be6e5fc74de8efb40fe2de02c06ac0",
+    "assets/models/domestic/seated-dining/proof.json": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6",
+    "assets/models/domestic/seated-meal/proof.json": "f4dde42f14de8580b9e5bbd660d6b2534c5fd944eb88c3834e1cb1f7928b1e45",
+    "assets/models/domestic/seated-table/proof.json": "354f14d6bb315f3b9a5e2a6b3408e0bbedae49ab3fd59538ed47086e46366bbd",
+    "assets/models/domestic/export/seated-dining/manifest.json": "cd850c38d3b2e6921fcdab84f081101a27015ecb6736c8f12a23bb43a9030940",
+    "assets/models/domestic/export/seated-table-proof/manifest.json": "aeb5cf56843996643fecbd8b24cb9c8efcd334da8ce8d12052775bfe96465610",
+    "web/public/atlas.png": "9442d428e1191e31518d52fcae2d52d2e0f8767a0183fde2b7d64799056df8fa",
+    "web/proofs/dining-fitted.js": "27fab74da786d91c6441611ff6cb841a9099af3ec05bdd7097496334d3d52a26",
+    "web/proofs/dining-table-contact.js": "0ed8bf53af7fff0cc60ac2071c063d8e3aa4a8e01d3b56c53c6a5df8a8c474c3",
+    "assets/models/domestic/render_dining_hands.py": "9222f7b5023df5366543e325ba7b4554cf4314be627ba534804458d8fbfe9cc0",
+    "assets/models/domestic/export_dining_hands.py": "53a7eb85aa19564171fa428dcc7aadd1d5e7fe38ad006644639140624ccfd114",
+    "assets/models/domestic/seated-hands/proof.json": "0a1ca91e95785683c485856c85190aeffb37f349c68c803290bfea01831e93eb",
+    "assets/models/domestic/export/seated-hands-proof/manifest.json": "9e457abea5e43cf664aeff07b7c548a527905f97c5234f3bb559e2436be9a315"
+  },
+  "receipt_inputs_checked_in_index": [
+    {
+      "path": "assets/models/domestic/render_seated_dining.py",
+      "sha256": "0555befd67afd0dcb59921d3edc40fab29a037ae131972d3478bfcb9b1109b2e"
+    },
+    {
+      "path": "assets/models/domestic/dining_pose.py",
+      "sha256": "eb6bcdf8210c9fa67e675ff0cecfe49329731b67c211c076566b49fdf470ea5c"
+    },
+    {
+      "path": "assets/models/domestic/dining_contact.py",
+      "sha256": "3ff4297a5ed18ba6509b5ad30fc04184e765e2fb0aa724319f772afe4b179f49"
+    },
+    {
+      "path": "assets/models/domestic/render_dining.py",
+      "sha256": "e1638d27547f029c997f24d16eb7f46f4b4be2805b6b3ea9811bf73fe5db175e"
+    },
+    {
+      "path": "assets/models/domestic/dining.blend",
+      "sha256": "614e25602e46d82e8f895062eabde80847642980898eb22b3d1fe92da049c22e"
+    },
+    {
+      "path": "assets/models/dining/chair_model.py",
+      "sha256": "98b3ec064aa7e1fdd4336ec3d31f0dac40602444c4a30b97e3281ddb96832591"
+    },
+    {
+      "path": "assets/models/dining/chair_layout.py",
+      "sha256": "93837c31a59a87d3f68e667dd717199dcc44435b3647188d24918e5cf3f18c61"
+    },
+    {
+      "path": "assets/models/dining/table_model.py",
+      "sha256": "23ae75e0c4e0c6ea4c3de4a3e0af3fcfaedcc9228532e0ef5424d781ca10bcb7"
+    },
+    {
+      "path": "assets/models/dining/table_layout.py",
+      "sha256": "80a6f0e540c2749ef405930d6e96ea69a448c578ca81c083ba63608f1cb4f97e"
+    },
+    {
+      "path": "assets/models/furniture/build_parts.py",
+      "sha256": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28"
+    },
+    {
+      "path": "assets/models/furniture/animation_export.py",
+      "sha256": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30"
+    },
+    {
+      "path": "assets/models/living/armchair_contact.py",
+      "sha256": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab"
+    },
+    {
+      "path": "assets/models/living/armchair_support.py",
+      "sha256": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40"
+    },
+    {
+      "path": "assets/models/sims/sim-01/build_rig.py",
+      "sha256": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55"
+    },
+    {
+      "path": "assets/models/sims/sim-01/rig_math.py",
+      "sha256": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68"
+    },
+    {
+      "path": "assets/models/sims/sim-01/render_shirt_variants.py",
+      "sha256": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b"
+    },
+    {
+      "path": "assets/models/sims/sim-01/registered-canvas-proof.json",
+      "sha256": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+    },
+    {
+      "path": "assets/models/domestic/render_seated_dining.py",
+      "sha256": "0555befd67afd0dcb59921d3edc40fab29a037ae131972d3478bfcb9b1109b2e"
+    },
+    {
+      "path": "assets/models/domestic/dining_pose.py",
+      "sha256": "eb6bcdf8210c9fa67e675ff0cecfe49329731b67c211c076566b49fdf470ea5c"
+    },
+    {
+      "path": "assets/models/domestic/dining_contact.py",
+      "sha256": "3ff4297a5ed18ba6509b5ad30fc04184e765e2fb0aa724319f772afe4b179f49"
+    },
+    {
+      "path": "assets/models/domestic/render_dining.py",
+      "sha256": "e1638d27547f029c997f24d16eb7f46f4b4be2805b6b3ea9811bf73fe5db175e"
+    },
+    {
+      "path": "assets/models/domestic/dining.blend",
+      "sha256": "614e25602e46d82e8f895062eabde80847642980898eb22b3d1fe92da049c22e"
+    },
+    {
+      "path": "assets/models/dining/chair_model.py",
+      "sha256": "98b3ec064aa7e1fdd4336ec3d31f0dac40602444c4a30b97e3281ddb96832591"
+    },
+    {
+      "path": "assets/models/dining/chair_layout.py",
+      "sha256": "93837c31a59a87d3f68e667dd717199dcc44435b3647188d24918e5cf3f18c61"
+    },
+    {
+      "path": "assets/models/dining/table_model.py",
+      "sha256": "23ae75e0c4e0c6ea4c3de4a3e0af3fcfaedcc9228532e0ef5424d781ca10bcb7"
+    },
+    {
+      "path": "assets/models/dining/table_layout.py",
+      "sha256": "80a6f0e540c2749ef405930d6e96ea69a448c578ca81c083ba63608f1cb4f97e"
+    },
+    {
+      "path": "assets/models/furniture/build_parts.py",
+      "sha256": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28"
+    },
+    {
+      "path": "assets/models/furniture/animation_export.py",
+      "sha256": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30"
+    },
+    {
+      "path": "assets/models/living/armchair_contact.py",
+      "sha256": "3c351c55026ec9c74f9f40ba353e864f6504faebd46774379c4948e18427a2ab"
+    },
+    {
+      "path": "assets/models/living/armchair_support.py",
+      "sha256": "472f50948889647165f1254e40b89d221a29aae7593717069546bc1b83e06f40"
+    },
+    {
+      "path": "assets/models/sims/sim-01/build_rig.py",
+      "sha256": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55"
+    },
+    {
+      "path": "assets/models/sims/sim-01/rig_math.py",
+      "sha256": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68"
+    },
+    {
+      "path": "assets/models/sims/sim-01/render_shirt_variants.py",
+      "sha256": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b"
+    },
+    {
+      "path": "assets/models/sims/sim-01/registered-canvas-proof.json",
+      "sha256": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+    },
+    {
+      "path": "assets/models/domestic/render_dining_meal.py",
+      "sha256": "aedb23404fd5509d2f11e85f844b01b7cc85af3acbc5a372758fa5c4862d466e"
+    },
+    {
+      "path": "assets/models/domestic/seated-dining.blend",
+      "sha256": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09"
+    },
+    {
+      "path": "assets/models/domestic/seated-dining/proof.json",
+      "sha256": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6"
+    },
+    {
+      "path": "assets/models/domestic/render_dining_table_proof.py",
+      "sha256": "5a664f99af4989a999f37b6eb8675120ce99ec9aa62afb4fd8f4de63c3012fb1"
+    },
+    {
+      "path": "assets/models/domestic/seated-dining.blend",
+      "sha256": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09"
+    },
+    {
+      "path": "assets/models/domestic/seated-dining/proof.json",
+      "sha256": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6"
+    },
+    {
+      "path": "assets/models/domestic/render_dining_hands.py",
+      "sha256": "9222f7b5023df5366543e325ba7b4554cf4314be627ba534804458d8fbfe9cc0"
+    },
+    {
+      "path": "assets/models/domestic/seated-dining.blend",
+      "sha256": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09"
+    },
+    {
+      "path": "assets/models/domestic/seated-dining/proof.json",
+      "sha256": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6"
+    }
+  ]
+}

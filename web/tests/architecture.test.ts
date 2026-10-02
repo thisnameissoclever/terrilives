@@ -115,7 +115,7 @@ describe('authored wall geometry', () => {
     const sprite = architectureSprite(1, 1, 'front', false)[0].id;
     const modes = Array.from({ length: result.count }, (_, i) => result.instances.subarray(i * 16, i * 16 + 16))
       .filter(row => row[3] === sprite).map(row => row[8]);
-    expect(modes).toEqual([-6, -10]);
+    expect(modes).toEqual([-10, -14]);
   });
 
   it('joins a cut interior divider to full rear shell in a single mixed-height source', () => {
@@ -140,7 +140,7 @@ describe('authored wall geometry', () => {
         expect(row[0]).toBeCloseTo(200.37 + (3 - 1.5) * 32 * scale, 4);
         expect(row[1]).toBeCloseTo(100.19 + (3 + 1.5) * 21 * scale, 4);
         expect([...row.slice(4, 7)]).toEqual([1, 1, 1]);
-        expect(row[8]).toBe(-2);
+        expect(row[8]).toBe(-6);
       }
     }
   });
@@ -180,7 +180,7 @@ describe('finish catalogue and registered source coordinates', () => {
       expect(decodeArchitectureMode(mode)).toEqual({ floor, finishSlot: slot });
     }
     for (const value of [NaN, Infinity, -.5, 1048576]) expect(() => architectureMode(false, value)).toThrow();
-    for (const mode of [-1, 0, 15, -4, -5, NaN, -2.5]) expect(decodeArchitectureMode(mode)).toBeNull();
+    for (const mode of [-1, 0, 15, -2, -3, -4, -5, NaN, -2.5]) expect(decodeArchitectureMode(mode)).toBeNull();
   });
 
   it('loads only active patterns for1000 extra palettes and enforces actual binding limits', () => {
@@ -223,4 +223,14 @@ describe('finish catalogue and registered source coordinates', () => {
     expect(samples).toBeGreaterThan(10000); expect(negative).toBeGreaterThan(1000);
     expect(architectureFloor('floor.boards', -1, -1)).toBe(architectureFloor('floor.boards', 3, 3));
   });
+});
+
+it.each([false, true])('hinged frames own both doorway orientations with cutaway %s', cutaway => {
+  const edges = Uint32Array.from([0, 3, 3, 1, 1, 3, 3, 1]);
+  for (const axis of [0, 1]) {
+    const panels = buildArchitectureWallGeometry({ ...base, edges, cutaway,
+      hinged: axis === 0 ? [3, 3] : [], horizontalHinged: axis === 1 ? [3, 3] : [] });
+    expect(panels.some(panel => panel.fadeKey === `door/${axis}/3/3`)).toBe(false);
+    expect(panels.some(panel => panel.fadeKey === `door/${1 - axis}/3/3`)).toBe(true);
+  }
 });

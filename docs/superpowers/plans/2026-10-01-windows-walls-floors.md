@@ -394,7 +394,7 @@ and `web/proofs/architecture-depth.js`; modify `render/architecture-atlas.ts`, `
   zero and an optional neutral carrier in layer one, with roles and shared depth.
   Keep finish slots per instance, so identical geometry can have different
   appearances. Preserve the 16-float instance layout with bounded architecture
-  mode encoding: wall `-2 - 4 * slot`, floor `-3 - 4 * slot`; slot zero is accepted
+  mode encoding after 2026-10-02 integration: wall `-6 - 4 * slot`, floor `-7 - 4 * slot`; slot zero is accepted
   art. Test matching TypeScript/shader decoding and every mode-dependent path.
 - [x] Join opaque wall half-segments with windows at exact endpoints. Suppress
   rear-shell solid arms covered by apertures. Add joining arms only outside an

@@ -64,6 +64,16 @@ actually won or lost.
 
 ## [D1] Repository layout
 
+The relationship extension uses `interpersonal` for ordered start/entry consequences,
+`privacy` for cached decisions and derived routes, `compatibility` for authored
+preference comparison, and `relationship_dynamics` for minute-by-minute contact.
+Movement checks current room occupancy before crossing a boundary or starting
+private use. Contact then runs before interaction completion, so a final minute
+of shared activity counts once and a conversation receives only its completion
+reward. `relationship_effects` exposes a read-only causal journal for native
+traces. Boundary decisions are saved and hashed; diagnostics and derived
+compatibility are not. See the [relationship specification](specs/2026-09-30-relationship-development.md).
+
 The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
 `cargo test` at full speed. The CI job of the same name checks all three
@@ -248,7 +258,7 @@ full ticks can miss removals after multiple paused drains.
     intent **preempts** a running interaction rather than queueing behind it,
     since a sim asleep for 24 seconds would otherwise leave a click with no
     visible response for the whole of it.
-5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and draw one needs-adjusted visitor-cleanup decision per entry. Player intents already have priority.
+5. `domestic::tick` - initialize saved cleanliness, attribute newly noticed foreign dishes once per room visit, claim prepared meals for idle hungry friends, and retain one pending needs-adjusted cleanup decision per room entry or genuinely new pile, including own old dishes. Player intents already have priority.
 6. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
 7. `advance_chains` - resume or begin the next station in a multi-step action.
@@ -436,7 +446,12 @@ mappings, footprints, trait state kind, and the current-content front door a
 restored career still follows. Missing object, career, trait, chain, and
 carried-item ids are validated directly. Known fingerprints from the retired
 full-pack algorithm map only to the exact reviewed replacement shape; they do
-not bypass normal snapshot validation. The one shipped household rename is
+not bypass normal snapshot validation. The local, unpublished bed-assignment
+extension also hashes ordered sleep-place IDs and canonical approach tiles.
+Only its pinned live and reconstructed pre-rotation shapes inherit the prior
+bridges. Access rules apply to newly selected routes; valid saved paths retain
+their geometry across migration and subsequent re-save/load cycles.
+The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
@@ -827,12 +842,15 @@ with one pair of tiles and a room with its whole outline; the usability proofs
 and the loader's checks run once, on the finished room.
 
 Interior doors ([DR-derived] in `docs/specs/2026-09-22-interior-doors.md`)
-are presentation only. `portals::interior_door_lines` derives one from every
-vertical doorway of an edge-wall house when the lot's front door has art for a
-vertical line, and `sync_portals` appends each as a row after the front door's,
-with a state worked out every frame from sims' positions and walks, which are
-already saved. Nothing is added to the save, the save digest or the world
-hash.
+are presentation only. `portals::interior_door_lines` and
+`interior_horizontal_door_lines` derive them on both axes of an edge-wall house
+with the authored front-door style. `sync_portals` appends vertical then
+horizontal rows after the front door, deriving state and openness from saved
+positions and walks. Previous openness is retained only for interpolation and
+reset on load or a changed doorway list. Nothing is added to the save, digest
+or world hash. The shell selects one of nine model poses in four orientations.
+Paired surface-depth textures sort the solid leaf and joined casing per pixel;
+the flush threshold follows floor ordering. See `assets/models/doors/README.md`.
 
 The lot has a house and a yard ([OS-grow] in
 `docs/specs/2026-09-22-the-outside.md`). `CompiledLot::house` is the house's
@@ -937,6 +955,15 @@ requires all nine base clips and the exercise supplement for each of the three
 palettes. The generated atlas tables are authoritative for sprite counts and
 texture dimensions. Logical sprite dimensions and anchors remain independent
 of texture density; a 2x texture does not double a Sim's size in the world.
+The atlas compiler shares texture rectangles only when their dimensions and
+decoded colour and alpha bytes match. Sprite identities remain separate.
+New domestic animation clips remove empty borders using one envelope across
+every frame, facing and shirt palette. Anchors, hand positions and content
+height move with the crop so drawing, picking and activity bubbles retain
+their world positions. Source exports remain unchanged. Packing chooses the
+shorter valid result from shelf packing and maximal free-rectangle packing
+at each supported width, without rotating artwork or exceeding the portable
+texture limit. Published sprite canvases and registration remain intact.
 The old two-pose exercise supplement used a mirrored bike whose non-SE
 contacts failed review. The approved replacement bike and reading chair use
 real four-direction furniture renders and matched visible contributions;
@@ -1097,16 +1124,20 @@ trusted gesture remains armed in case an automatic foreground resume is denied.
 While globally inaudible, fixed-tick audio frames still begin and end, but no
 observations reach their schedulers. Their normal absence handling releases
 object/conversation ownership and drops activity, stride and door history.
-An unavailable frame boundary also disposes unfinished procedural and door
+An unavailable frame boundary also disposes unfinished procedural, door and toilet
 cues if they still have active sources, without resetting any open frame.
 Recording cleanup uses retained counts so object and conversation releases
 whose active owners already ended cannot survive the unavailable interval.
 Automatic return to running therefore starts only current actions, without
-requiring another gesture or replaying old motion. This samples availability
-at fixed ticks; it is not an operating-system interruption listener. See
+requiring another gesture or replaying old motion. Fixed-tick boundaries sample
+availability. A browser audio-context state event also stops every player and
+resets schedulers immediately when the context stops running, including while
+the world is paused. This observes browser state, not operating-system events
+directly. See
 `docs/specs/2026-10-01-automatic-audio-recovery.md`.
-Pause stops fixed ticks and fades object loops, but does not suspend the context
-or stop an already-playing short cue or conversation. A successful Load reads
+Pause stops fixed ticks, fades object loops and stops an active toilet flush.
+It does not suspend the context or stop an already-playing short cue or
+conversation. A successful Load reads
 identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually
 replaced.
@@ -1160,14 +1191,45 @@ Late completion reconciles only still-owned sources. Every effective pause stops
 including blocking overlays; resume waits for a new fixed-tick observation.
 Short cues and conversations retain their existing finish-on-pause behavior.
 
+Ordinary interaction completion uses a separate transient presentation buffer.
+Authored `completion_sound` metadata currently selects only toilet flushing.
+`tick_interactions` emits on a positive-to-zero timer transition after validating
+the exact live target and active interaction, before action state is removed.
+An ordinary toilet action can interrupt a recipe. Retained `ChainState` stores
+the suspended recipe and does not suppress its completion sound. Active
+`StepWork` and the chain-step target sentinel remain ineligible.
+Cancellation and active-sound disappearance cannot emit completion. The buffer
+holds at most 64 packed action/source pairs, deduplicates within one tick and is
+excluded from saves, hashes and RNG. Tick start, paused commands and world
+replacement clear it. The browser drains it after every fixed tick and clears it
+in `finally`, even when audio sampling is disabled. Missing or inaudible clips
+drop that event; finishing a decode never replays it.
+
+One cached flush recording preloads after an unmuted unlock gesture, including
+while Help or Options still pauses the simulation, with
+in-flight deduplication and five-second, demand-driven failure recovery. Flushes
+run at their original rate, gain 0.08 before Effects, with four voices maximum
+and one voice per physical source. Unlike the shorter door cues, an active flush
+stops on effective pause as well as Load, mute, Effects zero and backgrounding.
+See `docs/specs/2026-10-01-toilet-completion-audio.md` for verification status.
+
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after
 warm-up. Three alternating enabled/disabled memory pairs compare quiescent
-paused endpoints after explicit garbage collection. The median audio-enabled
+paused endpoints after explicit garbage collection. Preparation exercises flush
+playback, waits for expiry and verifies pause cleanup, then restores a shared
+measurement fixture before the baseline. Matching baseline world hashes, ticks and loaded JS/WASM
+response hashes are required. No world reset occurs during measurement; heap
+snapshot callbacks mark a run diagnostic-only. The median audio-enabled
 retained-JavaScript differential must stay within a predeclared 64 KiB allowance
 while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
 page and WASM growth is reported separately. A production 40-walker, 600-tick
 scheduler run exercises retained audio state directly.
+
+The voice-count getter can sweep expired records. Its zero result proves an
+empty observed player, not natural `onended` cleanup without assistance. That
+narrower claim requires passive inspection before a getter, pause, stop or later
+play can release the record.
 
 The stress-only browser handle exposes cumulative successful cue starts by
 semantic cue name. The ordinary-Chrome listening harness pairs that counter
@@ -1355,10 +1417,19 @@ entity order; zero-only historical worlds retain their previous hash layout.
 See `docs/specs/2026-09-30-sleep-schedules.md` for the verification contract.
 ## Domestic state and presentation
 
-[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Meal tables permit up to four terminal meal occupants, with separate adjacent endpoints and ownership-aware reservation release. Other uses remain exclusive.
+[Meals and cleanup](specs/2026-09-30-meals-and-cleanup.md) uses the ordinary chain counter, pathing, station work, terminal payoff, capability learning and seeded RNG. Preparation excludes dish sinks; `meal_table` identifies dining tables and `dish_sink` identifies washing stations. Dining claims resolve exact physical chairs, clean settings and approach endpoints before generic chain targeting. Other diners stand near the table, or a preparation counter when no table is reachable. Claims publish synchronously, with ownership-aware reservation release. Other uses remain exclusive.
 
 `SavedDomestic` is the appended optional V5 tail. It records cleanliness profiles, monotonically issued dish identities and their surfaces and responsible SimIds, canonical room-visit memory, exclusive cleanup claims, and shared-meal invite/claim/collection/completion state. Cancellation, chain replacement, washing, furniture sales and death maintain those references at their own transition. Loading validates both directions between claims and chains before adoption, then refreshes the render projection. Older bytes default the tail to absent. The exact structural bridge reconstructs the old four-step recipe and roles, validates the source, maps its terminal step 3 to 5, and preserves prior geometry migrations. Unreviewed structural destinations close the bridge.
 
 Room membership is a flood fill across open saved wall edges; doorways separate rooms while furniture never does. Annoyance is a derived moodlet, and existing sustained mood integrates its effect into satisfaction. Directional resentment is charged once per creator newly noticed during a visit. [Sim interpersonal relations](SIM-RELATIONSHIPS.md) documents the composition with other social effects.
 
 The render bridge adds aligned `dirty_dishes` and `meal_portions` columns. Surface stacks and up to three prepared plate sprites disappear on actual collection, rather than on a reservation. Visual action codes 10, 11 and 12 append prepare, cook and wash; four rig frames per facing and shirt color use a ten-tick phase. Reduced motion holds frame zero. Existing action codes, sprite-name prefix order and approved rig source stay stable.
+
+
+`SavedDining` appends a separate optional V5 tail after the published domestic, sleeping-place, shyness and boundary fields; published
+nested domestic records remain unchanged. It saves exact seats and settings,
+stand locations, deferred cleanup opportunities, episode complaints and tableless
+gathering decisions. The loader validates permitted contacts through these claims,
+then validates every claim transactionally. Rendering exposes four dirty-setting
+nibbles and a seated-eating action; the cooking prop follows the exact sound-source
+station rather than the logical carried item. See [MC-dining](specs/2026-09-30-meals-and-cleanup.md#mc-dining-physical-chairs-and-dirty-settings).

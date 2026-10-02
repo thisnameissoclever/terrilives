@@ -1,0 +1,2 @@
+   Compiling terri-sim v0.1.0 (D:\VIBES\.worktrees\b770\terrilives\crates\terri-sim)
+    Finished `release` profile [optimized] target(s) in 2.34s

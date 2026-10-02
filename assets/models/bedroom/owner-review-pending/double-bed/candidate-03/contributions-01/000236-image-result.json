@@ -1,0 +1,12 @@
+{
+  "occupancy": 1,
+  "facing": "NE",
+  "palettes": [
+    "green",
+    "green"
+  ],
+  "sample": 0,
+  "owner": "furniture",
+  "path": "double-bed-1-NE-green-green-0-furniture.png",
+  "sha256": "0081bdd84c31c2ef941685a824b732cea22b7279e737e71ddba1e0cdc7fbe8c2"
+}

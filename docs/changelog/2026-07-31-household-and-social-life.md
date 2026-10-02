@@ -1,9 +1,9 @@
-# A furnished house and a social household
+# A house full of people
 
-The game expands from a room to a five-room house with three housemates, object footprints, directional relationships and conversation.
+Three housemates move into a furnished, five-room home.
 
-## Features & changes
-- **Explore a five-room house.** The house has 33 objects, visible floors and doorways, and input for selecting people and using objects. [House expansion](https://github.com/thisnameissoclever/terrilives/commit/578370c8)
-- **Housemates have their own personalities.** Three starting people have distinct appearances and need behavior. [Household update](https://github.com/thisnameissoclever/terrilives/commit/5ce9b516)
-- **Housemates satisfy one another's Social need.** Conversations affect directional relationships, and Chat is available from the action menu. Activity indicators show what someone is doing. [Relationships update](https://github.com/thisnameissoclever/terrilives/commit/f3ba4149) and [Activity indicators](https://github.com/thisnameissoclever/terrilives/commit/c705f2af)
-- **Wait for occupied objects.** A person can wait for an item another person is using instead of treating it as unavailable forever. [PR #11](https://github.com/thisnameissoclever/terrilives/pull/11)
+## New
+- Explore a larger house with 33 objects, floors and doorways.
+- Each housemate has a distinct appearance and different needs.
+- Start conversations from the action menu. Talking satisfies Social and changes how people feel about one another.
+- Activity indicators show what people are doing. Housemates can wait for objects already in use.

@@ -32,6 +32,9 @@ impl ActivePortals {
 #[derive(Debug, Default)]
 pub struct PortalBuffer {
     pub positions: Vec<f32>,
+    previous_positions: Vec<f32>,
+    pub openness: Vec<f32>,
+    pub previous_openness: Vec<f32>,
     pub depth_offsets: Vec<f32>,
     pub frames: Vec<u32>,
     pub leaves: Vec<u32>,
@@ -46,7 +49,9 @@ pub struct PortalBuffer {
 
 /// Rebuilds the complete portal presentation projection from simulation state.
 pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
+    std::mem::swap(&mut buffer.positions, &mut buffer.previous_positions);
     buffer.positions.clear();
+    buffer.openness.clear();
     buffer.depth_offsets.clear();
     buffer.frames.clear();
     buffer.leaves.clear();
@@ -55,10 +60,12 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
     buffer.far_sides.clear();
 
     let Some(portals) = world.get_resource::<ActivePortals>().map(|active| active.0) else {
+        buffer.previous_openness.clear();
         return;
     };
     let content: &'static terri_data::ContentPack = world.resource::<Content>().0;
     let doors = interior_door_lines(world);
+    let horizontal_doors = interior_horizontal_door_lines(world);
     let width = lot_width(world);
 
     let mut people = world.query_filtered::<(
@@ -112,22 +119,56 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
             portal.open_sprite
         });
         buffer.states.push(state);
+        let amount = people
+            .iter(world)
+            .map(|(position, path, commuting, at_work, career)| {
+                let commute = project_person(
+                    position,
+                    path,
+                    commuting,
+                    at_work,
+                    career.and_then(|career| content.careers.get(career.0 as usize)),
+                    portal.position,
+                    portal.inward,
+                );
+                let through = line.map_or(CLOSED, |line| project_through(position, path, line));
+                let person_state = strongest([commute, through].into_iter());
+                if person_state != state {
+                    return 0.0;
+                }
+                line.map_or(state_amount(state), |line| {
+                    if at_work.is_some() {
+                        state_amount(state)
+                    } else {
+                        through_amount(position, state, line, false)
+                    }
+                })
+            })
+            .fold(0.0_f32, f32::max);
+        buffer.openness.push(amount);
     }
 
-    // [DR-derived]: a hinged door in every vertical doorway, drawn with the
-    // front door's art, after the front door so its row keeps index 0.
+    // [DR-derived]: doors on both axes follow the front door's row, keeping
+    // its index stable. The renderer selects the model's matching orientation.
     let Some(art) = door_art(portals) else {
+        buffer.previous_openness.clone_from(&buffer.openness);
         return;
     };
-    for (x, y) in doors {
-        let state = strongest(
-            people
-                .iter(world)
-                .map(|(position, path, ..)| project_through(position, path, (x, y))),
-        );
-        // The door stands on the +X edge of the tile left of its line, where
-        // the front door's art stands on its own tile.
-        buffer.positions.extend([(x - 1) as f32, y as f32]);
+    for (horizontal, (x, y)) in doors
+        .into_iter()
+        .map(|line| (false, line))
+        .chain(horizontal_doors.into_iter().map(|line| (true, line)))
+    {
+        let state =
+            strongest(people.iter(world).map(|(position, path, ..)| {
+                project_through_axis(position, path, (x, y), horizontal)
+            }));
+        // Anchor on the near tile's +X or +Y edge, halfway to the far tile.
+        buffer.positions.extend(if horizontal {
+            [x as f32, (y - 1) as f32]
+        } else {
+            [(x - 1) as f32, y as f32]
+        });
         buffer.depth_offsets.push(0.5);
         buffer.far_sides.extend([x as f32, y as f32]);
         buffer.frames.push(art.frame_sprite);
@@ -143,7 +184,44 @@ pub fn sync_portals(world: &mut World, buffer: &mut PortalBuffer) {
             art.open_sprite
         });
         buffer.states.push(state);
+        let amount = people
+            .iter(world)
+            .map(|(position, path, ..)| {
+                let person_state = project_through_axis(position, path, (x, y), horizontal);
+                if person_state == state {
+                    through_amount(position, state, (x, y), horizontal)
+                } else {
+                    0.0
+                }
+            })
+            .fold(0.0_f32, f32::max);
+        buffer.openness.push(amount);
     }
+    if buffer.positions != buffer.previous_positions
+        || buffer.previous_openness.len() != buffer.openness.len()
+    {
+        buffer.previous_openness.clone_from(&buffer.openness);
+    }
+}
+
+fn state_amount(state: u32) -> f32 {
+    match state {
+        CLOSED => 0.0,
+        OPEN => 1.0,
+        _ => 0.5,
+    }
+}
+
+fn through_amount(position: &Position, state: u32, (x, y): (u32, u32), horizontal: bool) -> f32 {
+    if state == CLOSED || state == OPEN {
+        return state_amount(state);
+    }
+    let distance = if horizontal {
+        (position.y - (y as f32 - 0.5)).abs()
+    } else {
+        (position.x - (x as f32 - 0.5)).abs()
+    };
+    (1.5 - distance).clamp(0.0, 1.0)
 }
 
 /// The width of the lot this world loaded, or 0 when it has no grid.
@@ -210,20 +288,28 @@ pub fn street_exit(content: &terri_data::ContentPack, width: u32) -> Option<(u32
     front_door_line(content, width).map(|(_, y)| (width - 1, y))
 }
 
-/// The front door whose art fits a vertical line, the only art a door has:
-/// it faces +X, standing on its tile's +X edge.
+/// The authored +X front door supplies the interior door style. The renderer
+/// selects the corresponding solid model orientation on each doorway axis.
 fn door_art(portals: &[terri_data::CompiledPortal]) -> Option<&terri_data::CompiledPortal> {
     portals
         .iter()
         .find(|portal| portal.facing == terri_data::CompiledSocketFacing::PositiveX)
 }
 
-/// The doorway lines that hold an interior door - [DR-derived]: every vertical
-/// doorway of an edge-wall house, as `(x, y)`, sorted, when the lot's front
-/// door has art for a vertical line. None for a horizontal doorway, which has
-/// no art yet, none for a lot with no front door to take the art from, and
-/// none on a front door's own line, which has its door ([OS-door]).
+/// Vertical interior doorway lines, sorted as `(x, y)` pairs. The horizontal
+/// lines have a separate accessor to preserve this boundary's existing shape.
+/// A lot without the authored door style has none. The front door's own line
+/// already has its door and is excluded ([OS-door]).
 pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
+    interior_lines_on_axis(world, terri_core::layout::EdgeAxis::Vertical)
+}
+
+/// Horizontal doorway lines, kept separate so the existing vertical-pair API stays valid.
+pub fn interior_horizontal_door_lines(world: &World) -> Vec<(u32, u32)> {
+    interior_lines_on_axis(world, terri_core::layout::EdgeAxis::Horizontal)
+}
+
+fn interior_lines_on_axis(world: &World, axis: terri_core::layout::EdgeAxis) -> Vec<(u32, u32)> {
     use terri_core::layout::{EdgeAxis, SavedLayout};
     let has_art = world
         .get_resource::<ActivePortals>()
@@ -241,9 +327,9 @@ pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
     let mut lines: Vec<(u32, u32)> = layout
         .edges()
         .iter()
-        .filter(|edge| edge.doorway && edge.axis == EdgeAxis::Vertical)
+        .filter(|edge| edge.doorway && edge.axis == axis)
         .map(|edge| (edge.x, edge.y))
-        .filter(|line| !front.contains(line))
+        .filter(|line| axis != EdgeAxis::Vertical || !front.contains(line))
         .collect();
     lines.sort_unstable();
     lines
@@ -273,22 +359,37 @@ pub fn interior_door_lines(world: &World) -> Vec<(u32, u32)> {
 /// tick, so the door swings shut in one tick rather than over the whole next
 /// step.
 fn project_through(position: &Position, path: Option<&Path>, (x, y): (u32, u32)) -> u32 {
+    project_through_axis(position, path, (x, y), false)
+}
+
+fn project_through_axis(
+    position: &Position,
+    path: Option<&Path>,
+    (x, y): (u32, u32),
+    horizontal: bool,
+) -> u32 {
+    let orient = |(x, y)| if horizontal { (y, x) } else { (x, y) };
+    let (px, py) = if horizontal {
+        (position.y, position.x)
+    } else {
+        (position.x, position.y)
+    };
+    let (x, y) = orient((x as i32, y as i32));
     let (line_x, row) = (x as f32 - 0.5, y as f32);
-    if (position.y - row).abs() < 0.5 && (position.x - line_x).abs() < 0.5 {
+    if (py - row).abs() < 0.5 && (px - line_x).abs() < 0.5 {
         return OPEN;
     }
     let Some(path) = path else {
         return CLOSED;
     };
-    let (x, y) = (x as i32, y as i32);
     // A step crosses the line when both its ends are on the door's row, one
     // either side of the line.
     let crosses = |from: Option<(i32, i32)>, to: Option<(i32, i32)>| match (from, to) {
         (Some(a), Some(b)) => a.1 == y && b.1 == y && (a.0 < x) != (b.0 < x),
         _ => false,
     };
-    let step = |index: usize| path.steps.get(index).copied();
-    let here = Some((position.x.round() as i32, position.y.round() as i32));
+    let step = |index: usize| path.steps.get(index).copied().map(orient);
+    let here = Some((px.round() as i32, py.round() as i32));
     let cursor = path.cursor;
     if crosses(here, step(cursor)) || crosses(step(cursor), step(cursor + 1)) {
         return OPENING;
@@ -453,6 +554,36 @@ fn project_outward(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn prior_openness_advances_only_on_ticks_and_resets_on_load() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        sim.sync_render_buffer();
+        let mut restored = crate::Sim::new_from_shipped_lot();
+        let mut transitions = 0;
+        for _ in 0..300 {
+            let before = sim.portal_buffer().openness.clone();
+            sim.tick();
+            sim.sync_render_buffer();
+            assert_eq!(sim.portal_buffer().previous_openness, before);
+            if before != sim.portal_buffer().openness {
+                transitions += 1;
+                restored.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+                assert_eq!(
+                    restored.portal_buffer().openness,
+                    sim.portal_buffer().openness
+                );
+                assert_eq!(
+                    restored.portal_buffer().previous_openness,
+                    restored.portal_buffer().openness
+                );
+            }
+            sim.flush_commands();
+            sim.sync_render_buffer_after_commands();
+            assert_eq!(sim.portal_buffer().previous_openness, before);
+        }
+        assert!(transitions > 20);
+    }
+
     use super::*;
     use crate::{test_content, Content, Sim};
     use terri_core::{Agent, Commuting, Path, Position};
@@ -537,20 +668,44 @@ mod tests {
     }
 
     #[test]
-    fn every_vertical_doorway_gets_a_door_after_the_front_door() {
+    fn every_doorway_axis_gets_a_door_after_the_front_door() {
         let world = doorway_world();
         assert_eq!(interior_door_lines(&world), [(1, 2), (3, 4)]);
+        assert_eq!(interior_horizontal_door_lines(&world), [(2, 6)]);
         let buffer = doors_with(&[]);
         // The front door, then the two doors, each on the +X edge of the
         // tile left of its line, with the front door's art.
-        assert_eq!(buffer.positions, [5.0, 2.0, 0.0, 2.0, 2.0, 4.0]);
+        assert_eq!(buffer.positions, [5.0, 2.0, 0.0, 2.0, 2.0, 4.0, 2.0, 5.0]);
         // Across each line: outside the front door, and the tile right of
         // each door's line.
-        assert_eq!(buffer.far_sides, [6.0, 2.0, 1.0, 2.0, 3.0, 4.0]);
-        assert_eq!(buffer.depth_offsets, [0.5, 0.5, 0.5]);
-        assert_eq!(buffer.frames, [41, 41, 41]);
-        assert_eq!(buffer.states, [CLOSED, CLOSED, CLOSED]);
-        assert_eq!(buffer.leaves, [42, 42, 42]);
+        assert_eq!(buffer.far_sides, [6.0, 2.0, 1.0, 2.0, 3.0, 4.0, 2.0, 6.0]);
+        assert_eq!(buffer.depth_offsets, [0.5, 0.5, 0.5, 0.5]);
+        assert_eq!(buffer.frames, [41, 41, 41, 41]);
+        assert_eq!(buffer.states, [CLOSED, CLOSED, CLOSED, CLOSED]);
+        assert_eq!(buffer.leaves, [42, 42, 42, 42]);
+    }
+
+    #[test]
+    fn horizontal_crossings_and_swing_amounts_follow_both_directions() {
+        for (y, steps, cursor, state, amount) in [
+            (4.25, vec![(2, 5), (2, 6)], 0, OPENING, 0.25),
+            (4.75, vec![(2, 5), (2, 6)], 0, OPENING, 0.75),
+            (5.25, vec![(2, 5), (2, 6)], 1, OPEN, 1.0),
+            (6.25, vec![(2, 5), (2, 6), (2, 7)], 2, CLOSING, 0.75),
+            (6.75, vec![(2, 6), (2, 5)], 0, OPENING, 0.25),
+            (5.75, vec![(2, 6), (2, 5)], 1, OPEN, 1.0),
+            (4.25, vec![(2, 6), (2, 5), (2, 4)], 2, CLOSING, 0.25),
+        ] {
+            let buffer = doors_with(&[(2.0, y, steps, cursor)]);
+            assert_eq!(buffer.states[3], state);
+            assert!((buffer.openness[3] - amount).abs() < 0.001);
+            assert_eq!(buffer.previous_openness, buffer.openness);
+        }
+        assert_eq!(doors_with(&[(2.0, 5.0, vec![(3, 5)], 0)]).states[3], CLOSED);
+        assert_eq!(
+            doors_with(&[(3.0, 5.25, vec![(3, 6)], 0)]).states[3],
+            CLOSED
+        );
     }
 
     #[test]
@@ -665,10 +820,10 @@ mod tests {
         let rows = |sim: &Sim| sim.portal_buffer().states.len();
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.load_snapshot_v3(sim.save_snapshot_v3()).unwrap();
-        assert_eq!(rows(&loaded), 4, "the front door and three doors");
+        assert_eq!(rows(&loaded), 6, "the front door and five interior doors");
         let mut loaded = Sim::new_from_shipped_lot();
         loaded.load_snapshot_v2(sim.save_snapshot_v2()).unwrap();
-        assert_eq!(rows(&loaded), 4, "after a V2 load");
+        assert_eq!(rows(&loaded), 6, "after a V2 load");
     }
 
     /// [OS-door] in `docs/specs/2026-09-22-the-outside.md`: with a yard beyond

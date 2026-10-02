@@ -63,6 +63,15 @@ it('retains the exterior on the half-tile planes even for an empty edge layout',
   ]);
 });
 
+it('omits a horizontal door frame without suppressing a vertical doorway at the same coordinates', () => {
+  const edges = Uint32Array.from([0, 2, 2, 1, 1, 2, 2, 1]);
+  for (const short of [false, true]) {
+    const panels = buildEdgeWallGeometry(4, 4, edges, [], [4, 4], true, [], short, [2, 2]);
+    expect(panels.filter(p => p.mask === 0).map(p => p.spriteName))
+      .toEqual([short ? 'doorwayLowNS' : 'doorwayJoinedNS']);
+  }
+});
+
 it('is independent of authored edge ordering and samples integer cells on both sides', () => {
   const a = [0, 2, 0, 0];
   const b = [1, 2, 1, 0];

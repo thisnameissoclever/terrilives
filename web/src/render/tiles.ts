@@ -84,6 +84,7 @@ export interface Lot {
    * frame is drawn there, so the empty doorway panel is left out.
    */
   readonly doors?: Uint32Array | null;
+  readonly horizontalDoors?: Uint32Array | null;
   /**
    * Historical window lines, three words each ([WN-state]), drawn as tinted
    * wall art. The architecture path uses typed span placements instead.
@@ -217,12 +218,12 @@ export function buildStaticInstances(
   const edgePanels = lot.edges == null ? null : lot.architecture
     ? buildArchitectureWallGeometry({ width: lot.width, height: lot.height, house, edges: windowLayout!.edges,
       windows: windowLayout!.windows, catalogue: lot.architecture.catalogue,
-      hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], cutaway: lot.showCutAwayWalls !== true })
+      hinged: [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], horizontalHinged: lot.horizontalDoors ?? [], cutaway: lot.showCutAwayWalls !== true })
     : lot.showCutAwayWalls === true
       ? buildEdgeWallGeometry(lot.width, lot.height, lot.edges,
-        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [])
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, true, lot.windows ?? [], false, lot.horizontalDoors ?? [])
       : buildShortEdgeWallGeometry(lot.width, lot.height, lot.edges,
-        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? []);
+        [...(lot.doors ?? []), ...(lot.frontDoors ?? [])], house, lot.windows ?? [], lot.horizontalDoors ?? []);
   // Only the small wall batch needs painter ordering. Entities retain depth ordering.
   edgePanels?.sort((a, b) => Number(a.low === true) - Number(b.low === true)
     || (a.x + a.y) - (b.x + b.y) || a.y - b.y);

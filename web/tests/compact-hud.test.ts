@@ -176,6 +176,47 @@ it('closes Options on Sim activation without relying on pointerdown', () => {
   expect(p.node('sim-sheet').hidden).toBe(false);
 });
 
+it.each(['sim-details', 'dock-queue'])('toggles %s closed and returns focus to that dock button', id => {
+  const p = page();
+  p.node(id).click();
+  expect(p.node('sim-sheet').hidden).toBe(false);
+  expect(p.node(id).attributes.get('aria-expanded')).toBe('true');
+  p.node(id).click();
+  expect(p.node('sim-sheet').hidden).toBe(true);
+  expect(p.node(id).attributes.get('aria-expanded')).toBe('false');
+  expect(p.focus()).toBe(id);
+  p.node(id).click();
+  expect(p.node('sim-sheet').hidden).toBe(false);
+});
+
+it('highlights the matching dock opener across tab switches and clears it on every close route', () => {
+  const p = page();
+  p.node('sim-details').click();
+  p.node('tab-queue').click();
+  expect(p.node('sim-details').attributes.get('aria-expanded')).toBe('true');
+  expect(p.node('dock-queue').attributes.get('aria-expanded')).toBe('true');
+  // Re-selecting a navigation tab leaves its section available.
+  p.node('tab-queue').click();
+  expect(p.node('sim-queue').hidden).toBe(false);
+  p.node('tab-people').click();
+  expect(p.node('dock-queue').attributes.get('aria-expanded')).toBe('false');
+  expect(p.node('sim-details').attributes.get('aria-expanded')).toBe('true');
+  p.node('sim-details').click();
+  expect(p.node('sim-sheet').hidden).toBe(true);
+  expect(p.node('sim-details').attributes.get('aria-expanded')).toBe('false');
+  for (const close of [() => p.node('sim-sheet-close').click(), () => p.escape(),
+    () => p.hud.toggleCollapsed(), () => p.hud.close(), () => p.hud.beginEditing()]) {
+    p.node('dock-queue').click();
+    close();
+    expect(p.node('sim-sheet').hidden).toBe(true);
+    expect(p.node('dock-queue').attributes.get('aria-expanded')).toBe('false');
+    expect(p.node('sim-details').attributes.get('aria-expanded')).toBe('false');
+  }
+  p.hud.endEditing();
+  expect(p.node('dock-queue').attributes.get('aria-expanded')).toBe('true');
+  expect(css).toContain("#sim-dock-header [data-open-sim-panel][aria-expanded='true']");
+});
+
 it('keeps non-selected household death warnings outside the collapsed roster', () => {
   const members = [
     { textContent: 'Tim', getAttribute: () => 'false' },
@@ -188,6 +229,14 @@ it('keeps non-selected household death warnings outside the collapsed roster', (
   expect(alert).toBeGreaterThan(html.indexOf('id="sim-dock"'));
   expect(alert).toBeLessThan(html.indexOf('id="sim-dock-body"'));
   expect(html.slice(alert, alert + 80)).toContain('aria-live="polite"');
+});
+
+it('keeps the current activity on the dock and lists critical needs on their own line', () => {
+  const main = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  expect(html).toContain('<span id="dock-activity"></span><span id="dock-critical"></span>');
+  expect(main).toContain("const activity = activityValue.textContent ?? '';");
+  expect(main).toContain('dockCritical.textContent = urgent');
+  expect(main).toContain('dockActivity.textContent = activity');
 });
 
 it('wires household warnings into the frame refresh outside the selected-person projection', () => {
