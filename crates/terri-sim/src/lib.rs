@@ -5,6 +5,9 @@ mod action_queue;
 mod activity_tests;
 pub mod beds;
 mod compatibility;
+#[cfg(test)]
+mod completion_sound_tests;
+pub mod completion_sounds;
 pub mod details;
 mod dining;
 pub mod domestic;
@@ -1085,6 +1088,7 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+        world.insert_resource(completion_sounds::CompletionSounds::default());
         world.insert_resource(relationship_effects::RelationshipDiagnostics::default());
         world.insert_resource(relationship_dynamics::RelationshipContext::default());
         world.insert_resource(privacy::BoundaryDecisions::default());
@@ -1596,6 +1600,7 @@ impl Sim {
     }
 
     pub fn tick(&mut self) {
+        self.clear_completion_sounds();
         self.schedule.run(&mut self.world);
         // Standalone ECS needs explicit update boundaries to retire removal history.
         self.world.clear_trackers();
@@ -1608,10 +1613,25 @@ impl Sim {
     /// replay ordering does not acquire a second implementation. Nothing
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
+        self.clear_completion_sounds();
         self.command_schedule.run(&mut self.world);
         privacy::maintain(&mut self.world);
         // Paused frames can remove components too; keep the same observation window.
         self.world.clear_trackers();
+    }
+
+    pub fn completion_sounds(&self) -> &[u32] {
+        &self
+            .world
+            .resource::<completion_sounds::CompletionSounds>()
+            .0
+    }
+
+    pub fn clear_completion_sounds(&mut self) {
+        self.world
+            .resource_mut::<completion_sounds::CompletionSounds>()
+            .0
+            .clear();
     }
 
     /// Returns and clears the number of object or social orders refused

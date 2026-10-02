@@ -32,6 +32,11 @@ The initial seated review missed chair penetration and incorrect rail occlusion.
 
 ## Checks and limits
 
+The final combined-main validation is recorded in
+[merge-verification.md](merge-verification.md), including preserved published
+pixels, combined door and dining graphics checks, and interrupted recipe
+completion after save/load.
+
 The initial full native run passed the core, data and simulation suites but failed a historical WebAssembly byte-tail fixture. The fixture now measures the actual serialized suffix. The complete WebAssembly rerun passed. The combined native suites cover 1,423 tests; the final dining-only run passes sixteen tests after deliberate regressions were restored.
 
 [mutations.json](mutations.json) records seven deliberate native regressions caught by assertions: seat arbitration, chair direction, dirty-setting exclusion, state hashing, exact privacy endpoints, legacy adoption and deferred cleanup. [picking-mutation.json](picking-mutation.json) records the carried-food picking regression. Each mutation was restored byte-for-byte. These targeted checks are separate from a full remote mutation sweep, which was not run.

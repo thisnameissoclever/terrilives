@@ -110,6 +110,19 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
+    mut completion_sounds: Option<ResMut<crate::completion_sounds::CompletionSounds>>,
+    objects: Query<(&terri_core::SmartObject, &terri_core::Position)>,
+    eligible: Query<
+        Entity,
+        (
+            With<terri_core::Agent>,
+            With<terri_core::Position>,
+            Without<terri_core::AtWork>,
+            Without<terri_core::Socialising>,
+            Without<terri_core::StepWork>,
+        ),
+    >,
+    conversations: Query<&terri_core::Socialising>,
     mut agents: Query<(
         Entity,
         &mut Eating,
@@ -167,9 +180,41 @@ pub fn tick_interactions(
             let delta = super::advertise::scaled_delta(*delta, satisfaction * fumble);
             needs.fill(NeedId::ALL[*need_index as usize], delta / duration);
         }
+        let was_positive = eating.remaining_ticks > 0;
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // Validate presentation independently; gameplay cleanup still runs.
+            if was_positive
+                && eligible.contains(entity)
+                && !conversations.iter().any(|talk| talk.partner == entity)
+                && target.interaction != super::chain::CHAIN_STEP
+                && target.interaction == eating.interaction
+            {
+                if let Ok((object, _position)) = objects.get(target.object) {
+                    if object.0 == eating.object {
+                        if let Some(interaction) = content
+                            .0
+                            .objects
+                            .get(object.0 .0 as usize)
+                            .and_then(|definition| {
+                                definition.interactions.get(target.interaction as usize)
+                            })
+                        {
+                            if interaction.completion_sound
+                                == Some(terri_data::pack::CompiledCompletionSound::ToiletFlush)
+                            {
+                                if let Some(events) = completion_sounds.as_mut() {
+                                    events.push(
+                                        crate::completion_sounds::TOILET_FLUSH,
+                                        target.object.index_u32(),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             // **Habituation rises on COMPLETION, not per tick** - [S2]. The sim
             // is tired of the activity, not of the minutes, so a 180-tick sleep
             // and a 21-tick hand-wash habituate by the same amount. Per-tick

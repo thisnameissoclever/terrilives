@@ -40,6 +40,117 @@ fn household() -> (Sim, Vec<Entity>, Entity, Entity, Entity) {
 }
 
 #[test]
+fn toilet_completion_survives_suspended_meal_and_cleanup_including_save_load() {
+    for cleanup in [false, true] {
+        let (mut sim, people, fridge, counter, _) = household();
+        let actor = people[0];
+        for person in &people {
+            *sim.world_mut().get_mut::<Needs>(*person).unwrap() = Needs::all_at(100.0);
+        }
+        let toilet = sim
+            .world_mut()
+            .query::<(Entity, &SmartObject)>()
+            .iter(sim.world())
+            .find(|(_, object)| sim.world().resource::<Content>().0.object(object.0).id == "toilet")
+            .unwrap()
+            .0;
+        if cleanup {
+            add_dishes(sim.world_mut(), counter.index_u32(), 0, 2);
+            assert!(start_cleanup(sim.world_mut(), actor, vec![0], true));
+        } else {
+            sim.world_mut()
+                .resource_mut::<CommandQueue>()
+                .push(SimCommand::UseObject {
+                    agent: actor.index_u32(),
+                    object: fridge.index_u32(),
+                    interaction: 1,
+                });
+        }
+        for _ in 0..10 {
+            sim.tick();
+        }
+        let recipe = sim.world().get::<ChainState>(actor).unwrap().chain;
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(SimCommand::UseObjectFirst {
+                agent: actor.index_u32(),
+                object: toilet.index_u32(),
+                interaction: 0,
+            });
+        let mut restored = None;
+        let mut completions = 0;
+        let mut resumed = false;
+        let mut toilet_finished = false;
+        for _ in 0..1800 {
+            sim.tick();
+            if let Some(loaded) = restored.as_mut() {
+                let loaded: &mut Sim = loaded;
+                loaded.tick();
+                assert_eq!(sim.world_hash(), loaded.world_hash());
+                assert_eq!(sim.completion_sounds(), loaded.completion_sounds());
+            }
+            if restored.is_none()
+                && sim
+                    .world()
+                    .get::<Eating>(actor)
+                    .is_some_and(|e| e.object == terri_data::pack().find("toilet").unwrap())
+            {
+                assert_eq!(sim.world().get::<ChainState>(actor).unwrap().chain, recipe);
+                assert!(sim.world().get::<StepWork>(actor).is_none());
+                let mut loaded = Sim::new_from_shipped_lot();
+                loaded.load_snapshot_v5(sim.save_snapshot_v5()).unwrap();
+                assert_eq!(loaded.world_hash(), sim.world_hash());
+                restored = Some(loaded);
+            }
+            completions += sim
+                .completion_sounds()
+                .chunks_exact(2)
+                .filter(|pair| pair[1] == toilet.index_u32())
+                .count();
+            if restored.is_some()
+                && !toilet_finished
+                && sim
+                    .world()
+                    .get::<Eating>(actor)
+                    .is_none_or(|e| e.object != terri_data::pack().find("toilet").unwrap())
+            {
+                assert_eq!(completions, 1, "one real toilet completion");
+                toilet_finished = true;
+            }
+            if completions > 0
+                && sim.world().get::<StepWork>(actor).is_some()
+                && sim
+                    .world()
+                    .get::<ChainState>(actor)
+                    .is_some_and(|chain| chain.chain == recipe)
+            {
+                resumed = true;
+            }
+            if resumed
+                && sim
+                    .world()
+                    .get::<ChainState>(actor)
+                    .is_none_or(|chain| chain.chain != recipe)
+            {
+                break;
+            }
+        }
+        assert!(restored.is_some(), "interrupted action must save and load");
+        assert_eq!(completions, 1, "one real toilet completion");
+        assert!(resumed, "the suspended work must resume");
+        assert!(
+            sim.world()
+                .get::<ChainState>(actor)
+                .is_none_or(|chain| chain.chain != recipe),
+            "the resumed work must finish"
+        );
+        if cleanup {
+            assert!(sim.world().resource::<SavedDomestic>().dishes.is_empty());
+        }
+    }
+}
+
+#[test]
 fn needs_override_tidiness_and_slobs_rarely_clean() {
     let full = Needs::all_at(100.0);
     assert!(

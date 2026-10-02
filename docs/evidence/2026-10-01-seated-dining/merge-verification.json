@@ -1,0 +1,194 @@
+{
+  "date": "2026-10-01",
+  "base_main": "75e766c7",
+  "graphics_integration_commit": "e989faf7",
+  "checks": [
+    {
+      "command": "cargo test --workspace -- --test-threads=1",
+      "phase": "graphics integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "1440 tests passed",
+      "log_sha256": "0b090c833950710ff4353db1a9d772e8064eeb0a7e7e4a0f15330cf51a5fc7c9",
+      "output_tail": "running 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests terri_wasm\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n"
+    },
+    {
+      "command": "python -B -m unittest discover -s assets/sprites/gen -p test_*.py",
+      "phase": "graphics integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "149 tests passed",
+      "log_sha256": "a10521bc81af98cf6232612a5a707944ef2bb8ce4b6e7cee65cb0b5a7526be16",
+      "output_tail": "  covered = [(c, d) for c, d in zip(colour.getdata(), depth.getdata()) if c[3] >= 128]\n...D:\\VIBES\\.worktrees\\1dc2\\terrilives\\assets\\sprites\\gen\\test_door_assets.py:39: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  covered = [(i, d) for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())) if c[3] >= 128]\n.D:\\VIBES\\.worktrees\\1dc2\\terrilives\\assets\\sprites\\gen\\test_door_assets.py:50: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n  for i, (c, d) in enumerate(zip(colour.getdata(), depth.getdata())):\n....................................................................................................\n----------------------------------------------------------------------\nRan 149 tests in 28.263s\n\nOK"
+    },
+    {
+      "command": "python -B assets/sprites/gen/build.py --check",
+      "phase": "graphics integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "2445 sprites;8192x8192",
+      "log_sha256": "cbf907630fc344dc74420867ca5218eac00b2dd2cb5a47752e33edc2a77956be",
+      "output_tail": "atlas is up to date: 2445 sprites, 8192x8192"
+    },
+    {
+      "command": "cargo test -p terri-data -- --test-threads=1",
+      "phase": "audio integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "281 unit tests and1 snapshot test passed",
+      "log_sha256": "df92460d7ccf205eb24e956c39335532397506f5a39e7ec350be2fbc4b804077",
+      "output_tail": "test bathtub_quarter_turn_matches_its_collision_rectangle ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests terri_data\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n"
+    },
+    {
+      "command": "cargo test -p terri-sim dining -- --test-threads=1",
+      "phase": "audio integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "18 tests passed",
+      "log_sha256": "20cbf1a65ec1c14fde0b16fabf76800d0270ba3c9a59d149606b2b52ca17c631",
+      "output_tail": "test dining::tests::paused_cancel_clears_complaints_and_round_trips_before_another_tick ... ok\ntest dining::tests::privacy_routes_preserve_exact_seated_and_standing_claims_and_reload ... ok\ntest dining::tests::seated_art_targets_the_claimed_chair_while_food_keeps_the_table_target ... ok\ntest dining::tests::simultaneous_diners_claim_two_real_chairs_and_the_third_stands ... ok\ntest dining::tests::tableless_shared_diners_finish_together_and_every_transition_loads ... ok\ntest dining::tests::washing_a_blocking_pile_while_someone_dines_clears_annoyance_and_remains_loadable ... ok\ntest domestic::tests::privacy_station_routes_preserve_owned_counter_and_unique_dining_seats ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 867 filtered out; finished in 1.53s\n"
+    },
+    {
+      "command": "cargo test -p terri-sim domestic::tests -- --test-threads=1",
+      "phase": "audio guard fix",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "28 tests passed",
+      "log_sha256": "a629b52c4fca899db1b27f2ad139b48a3bd3ba3760f77152cf0f38cfafca91cd",
+      "output_tail": "test domestic::tests::privacy_station_routes_preserve_owned_counter_and_unique_dining_seats ... ok\ntest domestic::tests::privacy_substitution_suspends_collected_cleanup_and_replays ... ok\ntest domestic::tests::selling_the_unused_last_sink_releases_pending_cleanup_and_keeps_attributed_mess ... ok\ntest domestic::tests::snack_and_meal_leave_real_dishes_and_every_work_stage_round_trips ... ok\ntest domestic::tests::table_binding_changes_only_the_current_cooks_batch_or_active_guests_plate ... ok\ntest domestic::tests::the_hash_observes_domestic_identity_memory_claims_and_quality ... ok\ntest domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load ... ok\n\ntest result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 858 filtered out; finished in 24.90s\n"
+    },
+    {
+      "command": "cargo test -p terri-sim completion_sound_tests -- --test-threads=1",
+      "phase": "audio guard fix",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "7 tests passed",
+      "log_sha256": "37eddab832196bab1ccfe278bf518936fd58d73608003dc86ac01679ffa1ad51",
+      "output_tail": "test completion_sound_tests::completion_sound_deduplicates_sources_caps_tick_and_retains_storage ... ok\ntest completion_sound_tests::completion_sound_is_unsaved_unhashed_and_world_replacement_drops_it ... ok\ntest completion_sound_tests::completion_sound_metadata_and_drain_preserve_save_hash_and_rng_continuation ... ok\ntest completion_sound_tests::completion_sound_occurs_on_positive_final_tick_only ... ok\ntest completion_sound_tests::completion_sound_repeats_real_uses_but_not_cancellation_or_unrelated_objects ... ok\ntest completion_sound_tests::completion_sound_requires_each_exact_target_and_actor_identity ... ok\ntest completion_sound_tests::world_replacement_discards_an_undrained_completion ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 879 filtered out; finished in 0.20s\n"
+    },
+    {
+      "command": "cargo test -p terri-sim toilet_completion_survives -- --test-threads=1",
+      "phase": "final interruption assertions",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "1 test passed after mutation restoration",
+      "log_sha256": "a6bcf9ed686381a577bb0e8c6fe1aaee3181267d38dfc4a5d543dedd70e81ec4",
+      "output_tail": "   Compiling terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-sim)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.25s\n     Running unittests src\\lib.rs (target\\debug\\deps\\terri_sim-0bcea68002488dc1.exe)\n\nrunning 1 test\ntest domestic::tests::toilet_completion_survives_suspended_meal_and_cleanup_including_save_load ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 885 filtered out; finished in 3.45s\n"
+    },
+    {
+      "command": "cargo test -p terri-wasm -- --test-threads=1",
+      "phase": "final integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "all native browser-interface tests passed",
+      "log_sha256": "7dc707d8b4dbebdf4f623ef4f79bb6d6dbbfe013f6b6d89e17282f3d5a5e9923",
+      "output_tail": "test unlimited_queue_tests::hundreds_of_waiting_orders_and_a_front_order_all_survive_save_load ... ok\n\ntest result: ok. 166 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 42.08s\n\n   Doc-tests terri_wasm\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n"
+    },
+    {
+      "command": "wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm",
+      "phase": "final production code",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "rebuilt browser binary",
+      "log_sha256": "c4ffaba3403e81ef9a52fe33ee8f7c76f10b8659ac950a00f475866dfe0f106d",
+      "output_tail": "[INFO]: Checking for the Wasm target...\n[INFO]: Compiling to Wasm...\n   Compiling terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-sim)\n   Compiling terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-wasm)\n    Finished `release` profile [optimized] target(s) in 15.40s\n[INFO]: Installing wasm-bindgen...\n[INFO]: Optimizing wasm binaries with `wasm-opt`...\n[INFO]: Optional fields missing from Cargo.toml: 'description', 'repository', and 'license'. These are not necessary, but recommended\n[INFO]: :-) Done in 23.54s\n[INFO]: :-) Your wasm pkg is ready to publish at web\\src\\wasm."
+    },
+    {
+      "command": "npm --prefix web test -- --maxWorkers=1",
+      "phase": "final integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "1865 tests passed",
+      "log_sha256": "c22292d1ec58e7ae554b280ad9f775047bbfe0a3b8715867a257c40845dddde2",
+      "output_tail": "\n\n RUN  v4.1.10 D:/VIBES/.worktrees/1dc2/terrilives/web\n\n\n Test Files  131 passed (131)\n      Tests  1865 passed (1865)\n   Start at  17:16:11\n   Duration  32.22s (transform 1.54s, setup 0ms, import 7.21s, tests 12.04s, environment 7ms)\n"
+    },
+    {
+      "command": "npm --prefix web run typecheck",
+      "phase": "final integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "passed",
+      "log_sha256": "e5046545a3a9fcc0cf6950c9402c78a2b227f07a6a658d2a0c1fbc5f4a194da0",
+      "output_tail": "\n> typecheck\n> tsc --noEmit\n"
+    },
+    {
+      "command": "npm --prefix web run build",
+      "phase": "final integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "passed;existing chunk-size advisory",
+      "log_sha256": "96bdd03fe920aced517f20877df45b7ed404864abae29b8df3a5d18561057425",
+      "output_tail": "dist/assets/terri_wasm_bg-CDFRPiE4.wasm  2,911.34 kB \u2502 gzip: 941.82 kB\ndist/assets/index-DCiEGXKL.css              18.68 kB \u2502 gzip:   4.03 kB\ndist/assets/index-z68V9xwz.js            4,451.23 kB \u2502 gzip: 492.57 kB\n\n\u2713 built in 211ms\n[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit."
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "phase": "final integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "warning-free",
+      "log_sha256": "31006392c7e026601487506a5ffdcd16a585eb3dbc5041c95561d081b94576a7",
+      "output_tail": "   Compiling terri-data v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-data)\n    Checking terri-sim v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-sim)\n    Checking terri-wasm v0.1.0 (D:\\VIBES\\.worktrees\\1dc2\\terrilives\\crates\\terri-wasm)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.13s"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "phase": "final integration",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "passed",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output_tail": ""
+    },
+    {
+      "command": "node --test scripts/build-changelog.test.mjs",
+      "phase": "final notes",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "12 tests passed",
+      "log_sha256": "5a1f51d7c85ead0566f8df5f59e830326b7b6f728b0874b0136c85d21030b821",
+      "output_tail": "\u2714 expand and collapse switch controls and keep keyboard focus; old links open the right update (1.2274ms)\n\u2714 the repository history renders and the CLI writes the same standalone page (61.6548ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 164.2544"
+    },
+    {
+      "command": "node scripts/build-changelog.mjs",
+      "phase": "final notes",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "summary": "published notes generated",
+      "log_sha256": "1b667fb1cce9867e63b0445472d34a63b430a32150fc25f73931f1b0f948da3d",
+      "output_tail": "Built changelog: D:\\VIBES\\.worktrees\\1dc2\\terrilives\\web\\dist\\changelog\\index.html"
+    }
+  ],
+  "inputs_sha256": {
+    "assets/sprites/atlas.toml": "2bdb7751e20e7c422df058a0a004b5a803eb5a51441d06a59a58e35c894b7bbe",
+    "web/public/atlas.png": "127977fc70bb0b0eb15ff43ea515dce5fe31dbc6f5aa00652d2a3ab08ddf9605",
+    "web/src/render/atlas.ts": "04a5b9b8d41ceb0464b23d6689021d22ad8f38da4867d6d6974c0e9eb87ec418",
+    "assets/sprites/gen/build.py": "d73e8a2dbe047ae546a353b78c8547bca7bded7632a8a1fc86cd6071ff0dca42",
+    "assets/sprites/gen/offline_sims.py": "9af0a98764fff2a673d4ff234bbed7831586f189fa54023a7287131612edfb56",
+    "assets/sprites/gen/rectangle_packing.py": "0abe39c85b8410d036c795714f80503ab1e4e55a41b097bcb808ef2858b93602",
+    "web/src/render/sprites.wgsl": "cc43b8ad76f725d1af37a25766b2caa019a40d07294e7acabdf07d329ae2cc90",
+    "web/src/render/dining-support.ts": "bbed389ef0b812b6bf1eb3bb25455fc5c192136ee6a32f3d07c5debd2717ae38",
+    "crates/terri-sim/src/systems/interact.rs": "4ddc7fe17122d3d5cde96eb1f246eff397954c9fccdd64707cd84267ce0d9978",
+    "crates/terri-sim/src/domestic/tests.rs": "6d82b6e525299e9ac610535039852e71334f0e389752d628c5695648de05eb60",
+    "web/tests/completion-audio-bridge.test.ts": "a0196797ba10b162d2c42e44cc739322d06c26ad8a71915a12bdcbdb77247502",
+    "assets/models/domestic/seated-dining.blend": "3ec93e4b1ba955bb1897470d838166bf2df0084bf9a50fe4921cd854d851cd09",
+    "assets/models/domestic/seated-dining/proof.json": "74565d23ac3079877fbace241a8993c571acd46bc8161f340ca4da1297f296c6",
+    "assets/models/domestic/seated-dining/contact-proof.json": "98a1ec112e118420f05625ae9a470465a3dec74ed4a8a869bb27e38ad4fb37d3",
+    "web/src/wasm/terri_wasm_bg.wasm": "11865a579dd53856be6271406e7797918fc645d0b01966e35bc7d18d242574d4"
+  },
+  "gpu_evidence": "merge-gpu-comparisons.json",
+  "prefix_evidence": "merge-main-prefix.json",
+  "mutation_evidence": [
+    "merge-mutations.json",
+    "merge-interruption-mutation.json"
+  ],
+  "review": "Fresh independent review;production guard and successful-load/resumption findings fixed.",
+  "skipped": [
+    "Remote CI and GitHub review:explicit owner authorization",
+    "Full remote mutation sweep",
+    "Unchanged model exporter suites:source inputs unchanged"
+  ],
+  "limits": [
+    "Earlier strict whole-scene colour maximum remains failed;physical and local contact comparisons pass separately",
+    "No live deployment asserted",
+    "Graphics shader final EOF whitespace edit changes no tokens"
+  ]
+}

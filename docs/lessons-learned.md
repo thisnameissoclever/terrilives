@@ -1,5 +1,85 @@
 # Lessons Learned
 
+## [L-audio-observer-can-clean-up] A cleanup counter is not a passive observer
+
+**What happened.** Memory-proof wording treated a zero voice count after playback
+as proof that the natural `onended` handler had released ownership.
+
+**Root cause.** The count getter calls expiry cleanup. Pause also stops voices.
+Either operation can clear the records before the assertion observes them.
+
+**Prevention rule.** Trace the observation path as well as the playback path.
+Label getter-assisted and pause-assisted cleanup accurately. To prove natural
+cleanup, wait for native ended events and inspect ownership directly before
+calling a cleanup getter, pause, stop or another play operation. Do not use a
+passing narrow lifecycle proof to override a failed whole-page memory budget.
+
+**How to verify.** Check one real decoded voice and a four-source batch. After
+their native ended events, require an empty ownership Map, cleared handlers and
+disconnected nodes without invoking a cleanup helper. Preserve raw memory
+failures separately from this lifecycle evidence.
+
+## [L-audio-memory-matched-baseline] Match the measured world after audio preparation
+
+**What happened.** The audio memory check warmed random worlds for a fixed time
+without proving that new playback paths had run. A replacement lifecycle
+warmup started both controls from one save, but waiting for natural audio to
+end could still leave the measured worlds at different ticks.
+
+**Root cause.** Shared starting data was mistaken for equivalent measurement
+conditions. Audio completion uses real time while the simulation continues.
+Another autonomous action can extend only the sound-enabled preparation.
+
+**Prevention rule.** Exercise the required playback and cleanup paths, then
+restore a shared measurement fixture before collecting the baseline. Require
+matching baseline world hashes and ticks. Never reload during the measured
+interval. Fingerprint the JS and WASM response bodies actually loaded, not a
+later refetch. Mark heap-snapshot callback runs diagnostic-only and reject
+them from acceptance.
+
+**How to verify.** Keep failed reports. Negative report tests must reject
+mismatched worlds, builds, incomplete lifecycle preparation and instrumented
+runs. Preserve the original 540-tick measured window and 65,536-byte raw JS
+growth allowance. A smaller second window or V8 compiler-category growth is
+diagnostic evidence, not permission to replace or subtract from that gate.
+
+## [L-audio-timer-covers-completion] Measure every fixed-tick audio path
+
+**What happened.** Review found completion-event draining before the audio
+sampler's timer started. Overall frame timing included it, but the dedicated
+audio budget did not.
+
+**Root cause.** The new completion path was added beside the existing Sim and
+portal samplers without extending their measurement boundary.
+
+**Prevention rule.** A fixed-tick audio budget must include completion transport,
+dispatch and playback setup, not just the older observation paths. Disabled
+audio still drains transient events without emitting sound.
+
+**How to verify.** Assert the ordering of the timing boundary and all audio
+paths, including disabled sampling. Run the production timing proof and report
+unavailable refresh-rate coverage separately from measured audio work.
+
+## [L-preload-is-not-playback] Paused overlays can supply the first audio gesture
+
+**What happened.** The first toilet completion reached the browser but stayed
+silent; the second played. Unit playback and decoded-signal checks had passed.
+
+**Root cause.** The recording loader reused the playback gate, which rejects
+simulation pause. Trusted input is handled in capture phase, before Help or
+Options closes. That gesture unlocked audio while the overlay still paused the
+game, so it did not preload. The first completion started a fetch and was
+correctly discarded rather than replayed late.
+
+**Prevention rule.** Separate permission to prepare a recording from permission
+to play it. A running, unmuted context with nonzero Effects may preload while
+the simulation is paused. Actual playback must still honor pause and all other
+silence boundaries. Do not patch a proof by adding an unrelated extra gesture.
+
+**How to verify.** Unlock while paused, await exactly one decode, and require
+zero played voices. Resume and complete actual toilet use; require its exact
+source event and a played cue on that first completion. Keep cancellation,
+late-decode and paused-playback rejection tests.
 ## [L-build-controls-intrinsic-space-and-focus] Allocate actual control space and retain focus
 
 **What happened.** Compact Build controls overlapped the panel with enlarged text. Container moves lost keyboard focus in Options, zoom controls and Build-panel descendants.
@@ -8472,6 +8552,26 @@ unready. Reject each other incomplete panel and missing required node. Retained
 node, document and listener changes in either direction must still fail the
 unchanged acceptance calculation. Then exercise the actual browser transition.
 
+## [L-audio-player-merge-interruption-coverage] Reconcile new players with newer lifecycle fixes
+
+**What happened.** Refreshing the held toilet-flush branch brought in main's
+automatic audio-recovery fixes, but unavailable-frame cleanup omitted the new
+toilet player. Its active recording could resume a frozen tail after recovery.
+
+**Root cause.** Git merged the files without a textual conflict at this method.
+The old branch tested explicit gesture recovery, while main's newer cleanup
+handled browser-driven recovery. Neither branch had tested the combined player
+set through that boundary.
+
+**Prevention.** During integration, compare every player against every lifecycle
+boundary. Automatic recovery without a gesture needs its own test. Keep
+unrelated recording preload out of category-specific fetch/decode test gates.
+
+**Verify.** Deleting toilet cleanup fails eight public-controller cases across
+four frame entry points and two hardware states. Native offline rendering also
+rejects the retained flush; the restored code produces zero post-cancellation
+output. Keep modeled interruption evidence distinct from real OS interruption,
+and do not use this repair to clear unrelated retained-memory acceptance.
 The ECS lifecycle browser check repeated this timing mistake with the selected
 name: one frame applied the command before the throttled panel refreshed. Wait
 for the displayed name to match the clicked person before asserting the panel,
@@ -9368,9 +9468,9 @@ writer cannot replace an existing terminal result.
 
 **Root cause.** Updating the sound contract did not update every maintained description of the same behavior.
 
-**Prevention.** Search maintained documentation when changing sound timing, source or gain. Check each claim against the actual playback transition. Keep proposed sound content distinct from released behavior.
+**Prevention.** Search maintained documentation when changing sound timing, source or gain. Check each claim against the actual playback transition. Compare fixed-tick availability checks with browser audio-context state-event cleanup, including while paused. Keep proposed sound content distinct from released behavior.
 
-**Verify.** Search for the old behavior and inspect each remaining reference. Historical evidence may retain its original claim; maintained task and feature descriptions must match current playback.
+**Verify.** Search for the old behavior and inspect each remaining reference. Historical evidence may retain its original claim; maintained task and feature descriptions must match current playback. Exercise browser state changes while paused before claiming interruption cleanup; preserve the distinction from directly verified operating-system events.
 
 ## [L-calibration-load-and-rate-composition] Verify timed checks without unrelated simulation load
 
@@ -9413,6 +9513,25 @@ The supporting table must also appear in the rendered test scene. A chair-only c
 
 **Verify.** Project the same world origin and unit vectors through the original and expanded cameras. Require matching pixel scale and complete raw and encoded alpha borders. A completed file count does not replace those checks.
 
+## [L-audio-memory-matched-endpoints] Compare memory at identical simulation endpoints
+
+**What happened.** Paired audio memory runs matched their initial world but sometimes ended on different game ticks. Remote polling paused the game only after the requested interval had elapsed.
+
+**Root cause.** The harness validated the initial tick and world hash but omitted the same checks at the final endpoint. Different final game state can retain different interface data even when audio ownership is bounded.
+
+**Prevention.** Pause through the existing speed control from a page-local frame observer. Require the exact measured tick interval and matching final world hashes. Reject overshoot as an invalid run. Keep the raw memory limit unchanged; do not reload state or subtract allocations to manufacture a passing comparison.
+
+**Verify.** The report tests reject a missing endpoint, a changed final tick and a changed final world hash. Use a frozen production build for the predefined paired assessment. Preserve earlier failed results separately from any corrected measurement.
+
+## [L-memory-diagnostics-must-isolate-observer-changes] Keep measurement changes separate from runtime attribution
+
+**What happened.** A smaller audio memory result came from a diagnostic that omitted intermediate observations and changed endpoint waiting. The result could not explain a failure measured under the original protocol. A later comparison changed only intermediate explicit garbage collection, the browser's reclamation of unused objects, while preserving observations and endpoint collection.
+
+**Root cause.** The first diagnostic changed several measurement conditions at once. Equal game states did not remove browser history, elapsed-time or pending measurement-request differences. The runtime cause of the memory failure remains unknown.
+
+**Prevention.** Predeclare finite conditions before running a diagnostic. Change one measurement intervention at a time. Assert the retained observations and endpoint collection calls. Inspect enabled and disabled growth separately before interpreting their difference. Record timed-out measurement requests and differing initial memory capacities. Keep diagnostic results separate from acceptance results; do not relax a limit or retry for a favorable sample.
+
+**Verify.** Require matching initial and final game ticks, world hashes and loaded build hashes. Require unchanged within-run structural bounds. Preserve raw enabled and disabled values. Report whether a lower difference came from lower enabled growth or movement in the disabled control. Do not claim causation from one observation per condition. Dated evidence: [audio memory protocol diagnostic](assets/review-evidence/audio/toilet/2026-10-01-protocol-diagnostic.md).
 ## [L-causal-evidence-must-survive-capture] Record each invariant independently
 
 A review found that a combined bound mutation stopped at its first assertion, leaving the second bound without observed failure evidence. Some dock failures lacked committed excerpts, and one browser result capture wrote `undefined` instead of the returned measurements. The checks had run, but the records overstated what they retained. Mutate independent guards separately, preserve failure output with source restoration digests, and parse generated evidence before claiming its contents. Verify each claimed invariant has an observed failure and every result file contains the expected non-empty structure.
@@ -9426,3 +9545,13 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Name renderer modes and check their distinct values against shader declarations. Preserve published sprite identities and decoded pixels during integration. Share exact duplicate texture rectangles, trim new animation envelopes with matching registration, and use a rectangle packer that can reclaim vertical gaps. Measure capacity before producing the atlas. Do not raise the portable texture limit or discard accepted artwork to make a merge pass.
 
 **Verify.** Reconstruct trimmed frames in their original canvases byte-for-byte. Check padded rectangles for overlap. Compare published sprite pixels and registration with the remote base. Execute door and dining graphics proofs against the same combined shader. Deliberately collide the modes and remove carried-food selection to verify that the regression tests reject both defects.
+
+## [L-suspended-work-is-not-the-active-action] Validate completion against the executing action
+
+**What happened.** Real toilet uses emitted no completion sound when they interrupted cooking or dish cleanup.
+
+**Root cause.** Audio eligibility rejected every actor with `ChainState`. The ordinary interruption contract retains that component so the recipe can resume; `Eating` and an ordinary `Target` describe the action currently executing.
+
+**Prevention.** Validate current action identity and active work separately from suspended commitments. Keep active `StepWork` and chain-step targets ineligible. Do not reject a saved recipe counter merely because it is present.
+
+**Verify.** Interrupt cooking and dish cleanup with a toilet order. Save and load during that toilet use. Require one completion event, matching continuation hashes, and resumed work that finishes. Restore the old blanket guard temporarily and require the interruption regression to fail.

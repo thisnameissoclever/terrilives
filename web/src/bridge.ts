@@ -732,6 +732,14 @@ export class SimBridge {
     );
   }
 
+  get completionSoundCount(): number { return this.handle.completion_sound_count(); }
+
+  completionSounds(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.completion_sounds_ptr(), this.completionSoundCount * 2);
+  }
+
+  clearCompletionSounds(): void { this.handle.clear_completion_sounds(); }
+
   /**
    * Exact placed-object entity index that owns each sound action, or u32::MAX.
    * Multiple Sims may therefore observe one source without starting duplicate

@@ -90,7 +90,7 @@ default Voices to 100%. An invalid Voices field defaults only that field.
     prove those nodes are disconnected. Normal audible fades remain unchanged;
     see `2026-10-01-interrupted-release-cleanup.md`.
 14. The controller owns its context's `onstatechange` handler. A non-running
-    event immediately clears all four player families, including release-only
+    event immediately clears every player family, including release-only
     recordings, pending ownership and every scheduler, even while simulation
     ticks are paused. Returning to running starts nothing by itself; fresh
     observations may restart current actions. Abandoned graph construction
@@ -750,7 +750,15 @@ Restored SHA-256 values were:
 
 ## Open work
 
-1. Complete subjective listening review for provisional shower and door recordings.
+Toilet audio has a separate authored completion event and
+a recorded flush. It does not infer success from disappearance of the
+active action. The bounded transient buffer is drained once per fixed tick;
+cancellation, Load and late decoding stay silent. Unlike sub-second door cues,
+the four-second flush stops on effective pause. See
+`2026-10-01-toilet-completion-audio.md` for the source, contract and evidence.
+
+1. Complete in-game listening review for shower, sink, door and toilet mixing.
+   The owner accepted the selected toilet recording independently of the game mix.
 2. Select and accept recordings for the object-loop player. Add outdoor ambience,
    alarms, music, and non-conversation Sim voices.
 3. Add music and ambience controls when those categories have playable content.

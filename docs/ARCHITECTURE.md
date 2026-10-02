@@ -1136,16 +1136,20 @@ trusted gesture remains armed in case an automatic foreground resume is denied.
 While globally inaudible, fixed-tick audio frames still begin and end, but no
 observations reach their schedulers. Their normal absence handling releases
 object/conversation ownership and drops activity, stride and door history.
-An unavailable frame boundary also disposes unfinished procedural and door
+An unavailable frame boundary also disposes unfinished procedural, door and toilet
 cues if they still have active sources, without resetting any open frame.
 Recording cleanup uses retained counts so object and conversation releases
 whose active owners already ended cannot survive the unavailable interval.
 Automatic return to running therefore starts only current actions, without
-requiring another gesture or replaying old motion. This samples availability
-at fixed ticks; it is not an operating-system interruption listener. See
+requiring another gesture or replaying old motion. Fixed-tick boundaries sample
+availability. A browser audio-context state event also stops every player and
+resets schedulers immediately when the context stops running, including while
+the world is paused. This observes browser state, not operating-system events
+directly. See
 `docs/specs/2026-10-01-automatic-audio-recovery.md`.
-Pause stops fixed ticks and fades object loops, but does not suspend the context
-or stop an already-playing short cue or conversation. A successful Load reads
+Pause stops fixed ticks, fades object loops and stops an active toilet flush.
+It does not suspend the context or stop an already-playing short cue or
+conversation. A successful Load reads
 identity from the replacement world's aligned
 render rows and clears transient audio only after the world was actually
 replaced.
@@ -1199,14 +1203,45 @@ Late completion reconciles only still-owned sources. Every effective pause stops
 including blocking overlays; resume waits for a new fixed-tick observation.
 Short cues and conversations retain their existing finish-on-pause behavior.
 
+Ordinary interaction completion uses a separate transient presentation buffer.
+Authored `completion_sound` metadata currently selects only toilet flushing.
+`tick_interactions` emits on a positive-to-zero timer transition after validating
+the exact live target and active interaction, before action state is removed.
+An ordinary toilet action can interrupt a recipe. Retained `ChainState` stores
+the suspended recipe and does not suppress its completion sound. Active
+`StepWork` and the chain-step target sentinel remain ineligible.
+Cancellation and active-sound disappearance cannot emit completion. The buffer
+holds at most 64 packed action/source pairs, deduplicates within one tick and is
+excluded from saves, hashes and RNG. Tick start, paused commands and world
+replacement clear it. The browser drains it after every fixed tick and clears it
+in `finally`, even when audio sampling is disabled. Missing or inaudible clips
+drop that event; finishing a decode never replays it.
+
+One cached flush recording preloads after an unmuted unlock gesture, including
+while Help or Options still pauses the simulation, with
+in-flight deduplication and five-second, demand-driven failure recovery. Flushes
+run at their original rate, gain 0.08 before Effects, with four voices maximum
+and one voice per physical source. Unlike the shorter door cues, an active flush
+stops on effective pause as well as Load, mute, Effects zero and backgrounding.
+See `docs/specs/2026-10-01-toilet-completion-audio.md` for verification status.
+
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after
 warm-up. Three alternating enabled/disabled memory pairs compare quiescent
-paused endpoints after explicit garbage collection. The median audio-enabled
+paused endpoints after explicit garbage collection. Preparation exercises flush
+playback, waits for expiry and verifies pause cleanup, then restores a shared
+measurement fixture before the baseline. Matching baseline world hashes, ticks and loaded JS/WASM
+response hashes are required. No world reset occurs during measurement; heap
+snapshot callbacks mark a run diagnostic-only. The median audio-enabled
 retained-JavaScript differential must stay within a predeclared 64 KiB allowance
 while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
 page and WASM growth is reported separately. A production 40-walker, 600-tick
 scheduler run exercises retained audio state directly.
+
+The voice-count getter can sweep expired records. Its zero result proves an
+empty observed player, not natural `onended` cleanup without assistance. That
+narrower claim requires passive inspection before a getter, pause, stop or later
+play can release the record.
 
 The stress-only browser handle exposes cumulative successful cue starts by
 semantic cue name. The ordinary-Chrome listening harness pairs that counter

@@ -60,6 +60,8 @@ Build actions beside your selection, shared meals, bathroom boundaries, developi
 - All four double-bed facings show either sleeper or both beneath one duvet. Select each visible Sim separately; furniture colour changes preserve shirt colours. Sleeping poses are static.
 
 ## Sound
+- Finishing a toilet visit plays its flush even when it interrupts cooking or dish cleanup; the suspended work resumes afterward.
 - Doors open silently and close with a softer thud.
 - Running sinks and cooking have their own recorded sounds.
 - Footsteps are quieter.
+- Toilets play a recorded flush after completed use. Cancelling use does not play it; pausing stops an active flush.
