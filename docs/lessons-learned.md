@@ -9990,3 +9990,13 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Read the current transition handlers before automating them. Use the actual Pause control for browser time. Split operation and presentation acceptance into independent cases. Check every fixture command's queue acceptance. Preserve partial assertions and overall failures accurately. Treat a canvas copy as diagnostic when the requested screenshot has its own capture path.
 
 **Verify.** Record current state, clock and resource readiness before and after capture. Inspect the saved screenshot and its nonbackground pixels outside controls. Each deliberate mechanism mutation must fail its intended assertion, restore exact source bytes and pass the restored control. See the October 2 architecture publication evidence.
+
+### [L-proof-paths-have-serialization-semantics] Decode recorded paths before joining them
+
+**What happened.** A cooking-art proof recorded Windows relative paths. Its Linux verification test treated each backslash as part of a filename, failing publication even though the immutable art and hashes were correct.
+
+**Root cause.** A recorded path was treated as a native filesystem path without decoding its separator convention. Local Windows tests concealed the difference.
+
+**Prevention.** Emit forward-slash relative references for new portable receipts. Decode supported legacy separator conventions at the reader boundary. Preserve accepted producer and artifact hashes; reject absolute paths and parent traversal rather than bypassing provenance checks.
+
+**Verify.** Exercise both separator forms with PurePosixPath even on Windows. Removing separator decoding must fail those tests and the actual recorded-input witness. Restore exact source bytes and require the full importer suite and generator check to pass.
