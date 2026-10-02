@@ -131,8 +131,33 @@ Vitest does not collect them. The second failed full run began before the
 search-and-rename command returned; it had already discovered the old filename.
 That was a command-sequencing mistake. The final Node and web runs started only
 after the preceding process had returned an actual exit code. Earlier recorded
-commands retain their original filenames as historical evidence. Typecheck and
-production build for this final batch remain pending with the coordinating agent.
+commands retain their original filenames as historical evidence.
+
+The coordinating agent completed the remaining checks at revision
+`0dbd65c30a4d413dfae821ac1a956a0352a03da9`, observing each exit before starting the
+next command. [Final check receipt](final/final-fix-checks.json) records exact
+commands and output: typecheck, production build, documentation ids, changelog
+tests/build, appearance-profile identity and whitespace checks all passed with
+exit 0. The final full web run above passed 1854 tests; its passing result was
+retained without a duplicate run.
+
+[Final browser receipt](final/final-fix-browser.json) records eight passing cases
+against the production build: Back then Doorway on a middle segment, D on an end
+segment, whole-span wall removal, W from a two-unit window, rear-boundary
+restrictions, selection after a narrower replacement, Room refusal text and
+narrow-screen/help layout. The checks used actual buttons, pointer input and
+keyboard shortcuts after fixture setup through the public simulation bridge.
+There were no browser errors. Pending-command guards are covered by composed
+controller tests, not a browser timing race.
+
+The screenshots show [rear controls](final/final-fix-rear-controls.png),
+[Room refusal](final/final-fix-room-refusal.png),
+[390-pixel Room layout](final/final-fix-room-narrow.png) and
+[window keyboard help](final/final-fix-window-help.png). Initial automation setup
+encountered first-run help, an outside-lot pointer coordinate and an incorrect
+Room outline; the receipt preserves those corrections. All task-owned browser
+contexts closed, and the production preview process stopped after its command
+identity was verified.
 
 Current documentation now distinguishes preserved historical sprite data from
 the game's active floor routing: all loaded layouts use authored floor materials,
@@ -151,6 +176,6 @@ performance improvement claim.
 
 ## Review and delivery boundaries
 
-Independent final code/screenshot review and owner review remain pending. Desktop browser evidence does not establish physical phone or other GPU/browser coverage. A local production build does not establish deployment. The final build retains Vite's 500 kB chunk-size advisory (701.84 kB main JS, 128.75 kB gzip). WASM packaging recommends optional Cargo `description`, `repository` and `license` fields. Neither is a runtime failure; neither was suppressed or used to justify an unrequested dependency/build-system change. Cold-start download/parse cost remains separate from warmed frame timing.
+Whole-branch review identified unreachable ordinary wall actions from the window chooser and two documentation/message corrections. Revision `0dbd65c3` addresses those findings; scoped re-review remains pending. Owner review and publication approval remain separate. Desktop browser evidence does not establish physical phone or other GPU/browser coverage. A local production build does not establish deployment. The final build retains Vite's 500 kB chunk-size advisory (702.40 kB main JS, 128.87 kB gzip). WASM packaging recommends optional Cargo `description`, `repository` and `license` fields. Neither is a runtime failure; neither was suppressed or used to justify an unrequested dependency/build-system change. Cold-start download/parse cost remains separate from warmed frame timing.
 
 The public source note is `docs/changelog/2026-10-01-windows-walls-floors.md`. It describes implemented behavior only. If delivery occurs on another date, update the intended-delivery filename before publication. Extra finish patterns, wall-painting controls, room-wide floor painting and looking-out interactions remain outside this change.

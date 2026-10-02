@@ -1,5 +1,54 @@
 # Lessons Learned
 
+## [L-proof-test-discovery] Check runner discovery when adding standalone proof tests
+
+**What happened.** A proof helper's Node test passed when run directly, but its
+`.test.mjs` filename also matched the web suite's Vitest discovery. Vitest ran
+the file and then failed because it contained no Vitest suite.
+
+**Root cause.** Proof-only changes were assumed to be isolated from production
+checks without inspecting the existing test runner's file discovery.
+
+**Prevention.** Give standalone tests a name outside other runners' discovery
+patterns and document their explicit command. Treat new test files as relevant
+to any suite that might discover them.
+
+**Verify.** Run the standalone command and the affected suite after adding or
+renaming a test file. Record runner failures even when individual tests pass.
+
+## [L-nested-build-actions] Test action reachability across nested build controls
+
+**What happened.** Selecting a window opened its nested chooser, hid ordinary
+wall actions and diverted their shortcuts. Returning to wall controls cleared
+the selection, so supported whole-window conversions could not be invoked.
+
+**Root cause.** Controller tests covered each tool's actions independently but
+did not follow selection, nested entry, return and the next ordinary edit.
+
+**Prevention.** Preserve the selected boundary separately from a multi-unit
+object's canonical anchor. Test the complete transition between related tools,
+including pending commands and selection changes after replacement.
+
+**Verify.** Select middle and end segments on both axes. Return to wall controls
+and convert or remove the whole window, placing a doorway on the chosen segment.
+Confirm pending commands and refused rear-shell edits cannot change ownership.
+
+## [L-preserved-art-routing] Verify active rendering before describing compatibility
+
+**What happened.** Documentation claimed old floor artwork remained active for
+yard, street and historical layouts, although the game selected authored floor
+materials in those locations. The historical sprite data was preserved.
+
+**Root cause.** Asset preservation and renderer tests with architecture disabled
+were mistaken for the routing used by the running game after Load.
+
+**Prevention.** Distinguish preserved asset data from active appearance. Trace
+the game setup and Load paths through material selection before documenting
+which art a saved layout displays.
+
+**Verify.** Check both the caller's architecture options and each zone's material
+mapping. Compare the resulting behavior with the approved visual requirements.
+
 ## [L-benchmark-appearance-identity] Derive benchmark appearance from shipped content
 
 **What happened.** A rendering stress fixture supplied zero-filled floor colour
@@ -107,14 +156,18 @@ self-comparison must fail those assertions.
 ## [L-test-session-exit-before-build] Wait for the active check to finish
 
 **What happened.** A production build started while the full web test session
-was still running, despite the requirement to run heavy checks serially.
+was still running, despite the requirement to run heavy checks serially. A later
+test-file rename also remained pending when dependent tests started, producing
+file-not-found and obsolete-file discovery failures.
 
 **Root cause.** A yielded command was treated as ready for the next check before
 its session returned an exit code. An existing atlas test also timed out earlier
 in that run; its timing does not establish that the later overlap caused it.
 
 **Prevention rule.** Keep the current heavy command's session ID until it returns
-an exit code. Start the next heavy check only after that completion is observed.
+an exit code. Apply the same rule to mutations that subsequent checks depend on.
+Use one command per execution call and one validation owner after edits freeze.
+Start the next command only after the current session's completion is observed.
 
 **How to verify.** Record the full run's actual failed result and the unchanged
 isolated test's result separately. Confirm that the final serial suite passes;
