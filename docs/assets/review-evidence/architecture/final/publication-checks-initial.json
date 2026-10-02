@@ -1,0 +1,29 @@
+{
+  "revision": "73b155db8121f4a3702b2acb6e578b6615aedbe1",
+  "main": "310ea16a982e7999023dcc9ad18e8f98bf4b221c",
+  "execution": "Commands run serially; each actual exit is observed before the next command. No remote CI or review is a merge gate under owner authorization.",
+  "checks": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 1,
+      "seconds": 1.733,
+      "log": "publication-format.log",
+      "tail": [
+        "Diff in \\\\?\\D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-sim\\src\\room_regions.rs:245:",
+        "-            sim.world_mut().insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });",
+        "+            sim.world_mut()",
+        "+                .insert_resource(SavedLayout::EdgeWallsV1 { edges: vec![] });",
+        "             let open = RoomRegions::from_world(sim.world());",
+        "             assert_eq!(open.at((2, 2)), open.at((3, 3)));",
+        "         }",
+        "Diff in \\\\?\\D:\\VIBES\\.worktrees\\fe58\\terrilives\\crates\\terri-sim\\src\\room_regions.rs:249:",
+        "     }",
+        "-",
+        " }",
+        " "
+      ]
+    }
+  ],
+  "logs_archive": "publication-logs.zip",
+  "log_hashes": "publication-log-hashes.json"
+}

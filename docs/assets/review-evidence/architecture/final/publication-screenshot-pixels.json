@@ -1,0 +1,13 @@
+{
+  "image": "publication-game-desktop.png",
+  "sha256": "aed58061145347fb2004f9e17d1c735bac4f78009f0eefcf6f1288d33b542cf8",
+  "roi": [
+    320,
+    180,
+    1450,
+    1040
+  ],
+  "nonbackground_pixels": 493817,
+  "minimum": 10000,
+  "pass": true
+}

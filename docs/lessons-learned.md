@@ -9980,3 +9980,13 @@ A review found that a combined bound mutation stopped at its first assertion, le
 **Prevention.** Preserve published bed/dining locations 8 through 10 and place architecture registration/ground origin at 11 and 12. Check every output field for uniqueness and portable location/component budgets after combining renderer branches. Actual pipeline compilation remains necessary.
 
 **Verify.** The shared-output regression checks all thirteen fields, verifies unique locations and budgets, and rejects both original duplicate-location faults. Run the actual combined GPU pipeline before accepting any rendering case; a compilation failure means zero accepted GPU cases.
+
+### [L-ui-proof-transitions-and-capture] Verify each UI state and inspect the requested artifact
+
+**What happened.** A release walkthrough waited for the wrong Save text, then tried to close Options after Load had already closed it. A visual fixture also treated a serialized speed command and a transient canvas copy as screenshot readiness.
+
+**Root cause.** The harness inferred UI transitions and browser scheduling from simulation commands. Independent operation, rendering and screenshot claims were tied to one long sequence, so a later harness error obscured earlier passing assertions.
+
+**Prevention.** Read the current transition handlers before automating them. Use the actual Pause control for browser time. Split operation and presentation acceptance into independent cases. Check every fixture command's queue acceptance. Preserve partial assertions and overall failures accurately. Treat a canvas copy as diagnostic when the requested screenshot has its own capture path.
+
+**Verify.** Record current state, clock and resource readiness before and after capture. Inspect the saved screenshot and its nonbackground pixels outside controls. Each deliberate mechanism mutation must fail its intended assertion, restore exact source bytes and pass the restored control. See the October 2 architecture publication evidence.

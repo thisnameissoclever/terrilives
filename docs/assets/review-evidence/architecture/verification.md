@@ -176,6 +176,71 @@ performance improvement claim.
 
 ## Review and delivery boundaries
 
-Whole-branch review identified unreachable ordinary wall actions from the window chooser and two documentation/message corrections. Revision `0dbd65c3` addresses those findings. Independent scoped re-review of `8c3fceca..cd06d901` approved all three corrections with no material regression found, after inspecting the code, recorded checks, browser cases and all four correction screenshots. The implementation is ready for local handoff. Owner review and publication approval remain separate. Desktop browser evidence does not establish physical phone or other GPU/browser coverage. A local production build does not establish deployment. The final build retains Vite's 500 kB chunk-size advisory (702.40 kB main JS, 128.87 kB gzip). WASM packaging recommends optional Cargo `description`, `repository` and `license` fields. Neither is a runtime failure; neither was suppressed or used to justify an unrequested dependency/build-system change. Cold-start download/parse cost remains separate from warmed frame timing.
+### Authorized delivery on 2026-10-02
+
+The owner authorized creating and merging a pull request using local checks and
+fresh adversarial review, without waiting for GitHub CI or review. Current main
+`310ea16a` was integrated before delivery. Released bed command tag 19 is retained;
+FitWindow and RemoveWindow append tags 20/21 in serialization and queued hashes.
+Architecture modes move to -6/-7, preserving door, dining and bed modes. Bed and
+dining bindings occupy 9/10; architecture pattern bindings start at 11. The shared
+shader's architecture outputs use locations 11/12, preserving bed/dining 8-10.
+The original 1700 sprite pixel digest remains identical; the merged historical
+prefix has 2445 records before 472 architecture records.
+
+Fresh adversarial review found contextual-control invalidation, horizontal-door
+frame ownership, queued hash tags and V3 room partitioning defects in the merged
+tree. All four are corrected and have [causal mutation receipts](final/integration-mutations/README.md):
+controls passed, deliberate mutants failed, exact source bytes were restored and
+restored controls passed. Actual GPU creation then exposed duplicated shader
+output locations. The [initial failure](final/publication-gpu-initial-error.json)
+accepted no cases; revision `aa5dfa1d` corrects it and adds a uniqueness/budget
+regression. Its focused 42-test renderer run and production build passed, exit 0.
+
+[Local check receipt](final/publication-checks.json) records 17 serial gates,
+including 1485 Rust tests, lint, release WebAssembly packaging, type checking,
+1950 web tests, asset generators, proof arithmetic/profile checks, changelog and
+documentation checks. Native passes at `4550ba2` remain valid after test-only
+repairs; the later shader-only correction changes no Rust, Python or asset input.
+Initial formatting and stale-test failures remain in separate receipts. Exact raw
+logs are preserved in [publication-logs.zip](final/publication-logs.zip), with
+[SHA-256 values](final/publication-log-hashes.json). The full automated mutation
+sweep was not run; targeted causal checks are separate evidence.
+
+[Current GPU receipt](final/publication-gpu.json) passes architecture mode/depth,
+aperture, blending, alternate patterns/palettes, floor preview/commit and cutaway
+composition, plus 864 door cases, dining contact and 256 covered-bed cases.
+[Browser receipt](final/publication-browser.json) includes current noon/dusk/night,
+Flat, reduced-motion and interior-window GPU controls. Noon windows brighten room
+pixels; midnight window pixels equal closed-room pixels exactly.
+
+Current production screenshots show [the noon room](final/publication-game-desktop.png),
+[390-pixel controls](final/publication-game-phone.png) and
+[doubled text](final/publication-game-phone-200.png). The scene uses all nine
+models and 192 applied floor records. Its clock remains 720 before and after
+capture. Materials are ready, the canvas is visible and there are no browser
+errors. All nine model buttons were reached at 390 pixels and measured 28-pixel
+text, without horizontal page overflow. [Saved-image analysis](final/publication-screenshot-pixels.json)
+counts 493817 nonbackground pixels outside the HUD, exceeding the unchanged
+10000-pixel acceptance threshold. A transient canvas copy returned zero pixels
+and remains diagnostic only.
+
+The [operation walkthrough](final/publication-ui-attempts.json) verified all nine
+choices, contextual replacement, the clicked doorway segment, and actual Save
+and confirmed Load restoring the exact world hash. Its later hidden Close
+Options click failed because Load had already closed Options. The hash value was
+not returned before that error; no value is claimed. Fresh reviews of both failed
+automation approaches led to independent screenshot cases, UI-owned Pause and
+source-valid fixture coordinates. Queue acceptance is checked for every painted
+tile. All task-owned browser contexts and preview servers are closed.
+
+The earlier approximately 3 ms GPU timing remains dated evidence from its
+original revision, not a new measurement of this merged build. Other graphics
+hardware, physical phones and JavaScript heap allocation remain unobserved.
+The current build retains the chunk-size advisory; it was not suppressed.
+Fresh adversarial source, mutation, GPU and screenshot review approved release
+source `aa5dfa1d` with no unresolved Critical, Important or Minor findings.
+
+Whole-branch review identified unreachable ordinary wall actions from the window chooser and two documentation/message corrections. Revision `0dbd65c3` addresses those findings. Independent scoped re-review of `8c3fceca..cd06d901` approved all three corrections with no material regression found, after inspecting the code, recorded checks, browser cases and all four correction screenshots. Desktop browser evidence does not establish physical phone or other GPU/browser coverage. A local production build does not establish deployment. The pre-integration build retained Vite's 500 kB chunk-size advisory (702.40 kB main JS, 128.87 kB gzip); the October 2 build is recorded in the publication receipts. WASM packaging recommends optional Cargo `description`, `repository` and `license` fields. Neither is a runtime failure; neither was suppressed or used to justify an unrequested dependency/build-system change. Cold-start download/parse cost remains separate from warmed frame timing.
 
 The public source note is `docs/changelog/2026-10-02-windows-walls-floors.md`. It describes implemented behavior only and uses the authorized delivery date. Extra finish patterns, wall-painting controls, room-wide floor painting and looking-out interactions remain outside this change.
