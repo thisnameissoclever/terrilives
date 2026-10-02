@@ -1,0 +1,43 @@
+{
+  "sharedDepth": 0.14,
+  "door": {
+    "casingDepth": 0.14,
+    "casingFaces": [
+      0.43,
+      0.5700000000000001
+    ],
+    "leafHingeX": 0.4650000035762787,
+    "leafFrontSeating": 0.035,
+    "openingWidth": 0.78,
+    "openingHeight": 1.8,
+    "slabWidth": 0.73,
+    "thresholdDepth": 0.14,
+    "thresholdFloor": true
+  },
+  "doorRecords": 40,
+  "doorManifestSha256": "550ce5bde659969e3497589632c70632f2b0e3d93e4069a503474955eab3b840",
+  "doorInputsVerified": {
+    "doors/render_doors.py": true,
+    "furniture/build_parts.py": true,
+    "furniture/geometry.py": true,
+    "sims/sim-01/sim-01-rigged.blend": true,
+    "architecture_dimensions.py": true,
+    "architecture-depth.json": true
+  },
+  "architectureRecords": 8,
+  "architectureProofSha256": "9c07f453c316437dd9f1863d712b0dc826c3445a0f26b6946a88164cc8907e0d",
+  "architectureInputsVerified": {
+    "assets/models/architecture/geometry.py": true,
+    "assets/models/architecture/render_review.py": true,
+    "assets/models/architecture/windows.py": true,
+    "assets/models/architecture/walls.py": true,
+    "assets/models/architecture/floors.py": true,
+    "assets/models/architecture/materials.py": true,
+    "assets/models/architecture/render_batch.py": true,
+    "assets/models/architecture/check_scene.py": true,
+    "assets/models/sims/sim-01/sim-01-rigged.blend": true,
+    "assets/models/sims/sim-01/registered-canvas-proof.json": true,
+    "assets/models/architecture_dimensions.py": true,
+    "assets/models/architecture-depth.json": true
+  }
+}

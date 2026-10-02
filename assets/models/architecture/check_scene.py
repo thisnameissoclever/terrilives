@@ -1,6 +1,6 @@
 """Physical authoring checks run before rendering and again by the importer."""
 from windows import MODELS, DIRECTIONS, Prism, model_parts
-from geometry import CUT_HEIGHT
+from geometry import CUT_HEIGHT, WALL_THICKNESS
 
 
 def bounds(parts):
@@ -27,7 +27,7 @@ def validate_window_geometry(model_id, records):
     assert len(sills)==1, 'missing sill'
     sill=sills[0]
     assert abs(sill['lower'][2]-(z0-.055))<1e-8 and abs(sill['upper'][2]-(z0+.01))<1e-8, 'detached sill'
-    assert sill['lower'][1]<-.06 and sill['upper'][1]>.06, 'sill does not bridge both wall faces'
+    assert sill['lower'][1]<-WALL_THICKNESS/2 and sill['upper'][1]>WALL_THICKNESS/2, 'sill does not bridge both wall faces'
     plaster=[p for p in records if p['material']=='plaster']
     assert any(abs(p['upper'][2]-z0)<1e-8 and p['lower'][0]<=0<=p['upper'][0] for p in plaster), 'unsupported sill'
     assert any(abs(p['lower'][2]-z1)<1e-8 and p['lower'][0]<=0<=p['upper'][0] for p in plaster), 'unsupported lintel'

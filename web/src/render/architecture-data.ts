@@ -4,18 +4,18 @@ export const ARCHITECTURE = {
   "schema": 1,
   "baseSpriteId": 2445,
   "width": 2048,
-  "height": 2926,
+  "height": 3037,
   "resources": {
-    "color": "architecture-609120f44b7afacfc9abb27a54b8d58bc96d3c3313bd440fb1cc6f9275362f9b.png",
-    "carrier": "architecture-9a28f5c6fd16a55d089e9404333e87bef918f5ead098f0350ca3ab0f6f70dbcb.png",
-    "depth": "architecture-0afaf80f77d3aa08f6f119e4d9a4c720d6f8feddec9f0aff3385908b4d70aa7d.r16f",
-    "roles": "architecture-a72b12eb9ffc5bc6801c653cf6415345d1446e62354e9a57a3f19b6659159cc9.r8"
+    "color": "architecture-2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c.png",
+    "carrier": "architecture-c3652fb09fa8789244b03c088705e1cfa623d50fe4035a21965d6a04710a6966.png",
+    "depth": "architecture-19b7bdacf59abb549d92546679f67755418a9ecb9c43eb7e56fd39753ea6616d.r16f",
+    "roles": "architecture-f0491b56478b6dacaa14d3c70e016e77b9372fdefac4cec817e661cd89cd45e6.r8"
   },
   "hashes": {
-    "color": "609120f44b7afacfc9abb27a54b8d58bc96d3c3313bd440fb1cc6f9275362f9b",
-    "carrier": "9a28f5c6fd16a55d089e9404333e87bef918f5ead098f0350ca3ab0f6f70dbcb",
-    "depth": "0afaf80f77d3aa08f6f119e4d9a4c720d6f8feddec9f0aff3385908b4d70aa7d",
-    "roles": "a72b12eb9ffc5bc6801c653cf6415345d1446e62354e9a57a3f19b6659159cc9"
+    "color": "2599e89005fabbe3a83b16794e9ced181215829c765bf2195721245d666e4e5c",
+    "carrier": "c3652fb09fa8789244b03c088705e1cfa623d50fe4035a21965d6a04710a6966",
+    "depth": "19b7bdacf59abb549d92546679f67755418a9ecb9c43eb7e56fd39753ea6616d",
+    "roles": "f0491b56478b6dacaa14d3c70e016e77b9372fdefac4cec817e661cd89cd45e6"
   },
   "patterns": {
     "plaster": {
@@ -224,14 +224,14 @@ export const ARCHITECTURE = {
   },
   "budgets": {
     "starter": {
-      "accepted_bytes": 35954688,
-      "active_finish_bytes": 43782144,
+      "accepted_bytes": 37318656,
+      "active_finish_bytes": 45373440,
       "active_pattern_count": 7,
       "catalogue_finish_count": 7
     },
     "expanded": {
-      "accepted_bytes": 35954688,
-      "active_finish_bytes": 42471424,
+      "accepted_bytes": 37318656,
+      "active_finish_bytes": 44062720,
       "active_pattern_count": 2,
       "catalogue_finish_count": 1007
     }
@@ -278,26 +278,26 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.x-front.full",
       "source": "window.sash.x-front.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
@@ -306,11 +306,11 @@ export const ARCHITECTURE = {
       "depthRegistration": {
         "x": 0,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -338,38 +338,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.x-front.cut",
       "source": "window.sash.x-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 82,
+      "x": 83,
       "y": 0,
       "depthRegistration": {
-        "x": 82,
+        "x": 83,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -398,39 +398,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.y-front.full",
       "source": "window.sash.y-front.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 164,
+      "x": 166,
       "y": 0,
       "depthRegistration": {
-        "x": 164,
+        "x": 166,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -458,38 +458,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.y-front.cut",
       "source": "window.sash.y-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 246,
+      "x": 249,
       "y": 0,
       "depthRegistration": {
-        "x": 246,
+        "x": 249,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -518,39 +518,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.x-back.full",
       "source": "window.sash.x-back.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 328,
+      "x": 332,
       "y": 0,
       "depthRegistration": {
-        "x": 328,
+        "x": 332,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -578,38 +578,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.x-back.cut",
       "source": "window.sash.x-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 410,
+      "x": 415,
       "y": 0,
       "depthRegistration": {
-        "x": 410,
+        "x": 415,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -638,39 +638,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.y-back.full",
       "source": "window.sash.y-back.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 492,
+      "x": 498,
       "y": 0,
       "depthRegistration": {
-        "x": 492,
+        "x": 498,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -698,38 +698,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sash.y-back.cut",
       "source": "window.sash.y-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 574,
+      "x": 581,
       "y": 0,
       "depthRegistration": {
-        "x": 574,
+        "x": 581,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -758,39 +758,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.x-front.full",
       "source": "window.cottage.x-front.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 656,
+      "x": 664,
       "y": 0,
       "depthRegistration": {
-        "x": 656,
+        "x": 664,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -818,38 +818,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.x-front.cut",
       "source": "window.cottage.x-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 738,
+      "x": 747,
       "y": 0,
       "depthRegistration": {
-        "x": 738,
+        "x": 747,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -878,39 +878,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.y-front.full",
       "source": "window.cottage.y-front.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 820,
+      "x": 830,
       "y": 0,
       "depthRegistration": {
-        "x": 820,
+        "x": 830,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -938,38 +938,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.y-front.cut",
       "source": "window.cottage.y-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 902,
+      "x": 913,
       "y": 0,
       "depthRegistration": {
-        "x": 902,
+        "x": 913,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -998,39 +998,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.x-back.full",
       "source": "window.cottage.x-back.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 984,
+      "x": 996,
       "y": 0,
       "depthRegistration": {
-        "x": 984,
+        "x": 996,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -1058,38 +1058,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.x-back.cut",
       "source": "window.cottage.x-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 1066,
+      "x": 1079,
       "y": 0,
       "depthRegistration": {
-        "x": 1066,
+        "x": 1079,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -1118,39 +1118,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.y-back.full",
       "source": "window.cottage.y-back.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 1148,
+      "x": 1162,
       "y": 0,
       "depthRegistration": {
-        "x": 1148,
+        "x": 1162,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -1178,38 +1178,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.cottage.y-back.cut",
       "source": "window.cottage.y-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 1230,
+      "x": 1245,
       "y": 0,
       "depthRegistration": {
-        "x": 1230,
+        "x": 1245,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -1238,39 +1238,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.x-front.full",
       "source": "window.arched.x-front.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 1312,
+      "x": 1328,
       "y": 0,
       "depthRegistration": {
-        "x": 1312,
+        "x": 1328,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -1298,38 +1298,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.x-front.cut",
       "source": "window.arched.x-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 1394,
+      "x": 1411,
       "y": 0,
       "depthRegistration": {
-        "x": 1394,
+        "x": 1411,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -1358,39 +1358,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.y-front.full",
       "source": "window.arched.y-front.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 1476,
+      "x": 1494,
       "y": 0,
       "depthRegistration": {
-        "x": 1476,
+        "x": 1494,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -1418,38 +1418,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.y-front.cut",
       "source": "window.arched.y-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 1558,
+      "x": 1577,
       "y": 0,
       "depthRegistration": {
-        "x": 1558,
+        "x": 1577,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -1478,39 +1478,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.x-back.full",
       "source": "window.arched.x-back.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 1640,
+      "x": 1660,
       "y": 0,
       "depthRegistration": {
-        "x": 1640,
+        "x": 1660,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -1538,38 +1538,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.x-back.cut",
       "source": "window.arched.x-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 1722,
+      "x": 1743,
       "y": 0,
       "depthRegistration": {
-        "x": 1722,
+        "x": 1743,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -1598,39 +1598,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.y-back.full",
       "source": "window.arched.y-back.full",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         200,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 81,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         20.0,
         13.5
       ],
-      "x": 1804,
+      "x": 1826,
       "y": 0,
       "depthRegistration": {
-        "x": 1804,
+        "x": 1826,
         "y": 0,
-        "w": 80,
-        "h": 205,
+        "w": 81,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -1658,38 +1658,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.arched.y-back.cut",
       "source": "window.arched.y-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
         200,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 81,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         20.0,
         13.5
       ],
-      "x": 1886,
+      "x": 1909,
       "y": 0,
       "depthRegistration": {
-        "x": 1886,
+        "x": 1909,
         "y": 0,
-        "w": 80,
+        "w": 81,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -1718,39 +1718,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.x-front.full",
       "source": "window.sliding.x-front.full",
       "sourceCrop": [
-        88,
-        57,
+        87,
+        56,
         166,
         262
       ],
       "origin": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
       "anchor": [
-        36.0,
-        120.5
+        36.5,
+        121.0
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
-        -99.5,
+        -36.5,
+        -100.0,
         3.0,
         3.0
       ],
-      "x": 1968,
-      "y": 0,
+      "x": 0,
+      "y": 208,
       "depthRegistration": {
-        "x": 1968,
-        "y": 0,
-        "w": 78,
-        "h": 205,
+        "x": 0,
+        "y": 208,
+        "w": 79,
+        "h": 206,
         "origin": [
-          36.0,
-          99.5
+          36.5,
+          100.0
         ],
         "pixel_density": 2
       },
@@ -1779,38 +1779,38 @@ export const ARCHITECTURE = {
       "source": "window.sliding.x-front.full",
       "sourceCrop": [
         150,
-        99,
+        98,
         232,
         304
       ],
       "origin": [
         5.0,
-        78.5
+        79.0
       ],
       "anchor": [
         5.0,
-        99.5
+        100.0
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -5.0,
-        -78.5,
+        -79.0,
         36.0,
         24.0
       ],
-      "x": 0,
-      "y": 207,
+      "x": 81,
+      "y": 208,
       "depthRegistration": {
-        "x": 0,
-        "y": 207,
+        "x": 81,
+        "y": 208,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           5.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -1838,38 +1838,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.x-front.cut",
       "source": "window.sliding.x-front.cut",
       "sourceCrop": [
-        88,
+        87,
         158,
         170,
         262
       ],
       "origin": [
-        36.0,
+        36.5,
         49.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         70.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -49.0,
         5.0,
         3.0
       ],
-      "x": 84,
-      "y": 207,
+      "x": 165,
+      "y": 208,
       "depthRegistration": {
-        "x": 84,
-        "y": 207,
-        "w": 82,
+        "x": 165,
+        "y": 208,
+        "w": 83,
         "h": 104,
         "origin": [
-          36.0,
+          36.5,
           49.0
         ],
         "pixel_density": 2
@@ -1921,11 +1921,11 @@ export const ARCHITECTURE = {
         36.0,
         24.0
       ],
-      "x": 168,
-      "y": 207,
+      "x": 250,
+      "y": 208,
       "depthRegistration": {
-        "x": 168,
-        "y": 207,
+        "x": 250,
+        "y": 208,
         "w": 82,
         "h": 106,
         "origin": [
@@ -1959,38 +1959,38 @@ export const ARCHITECTURE = {
       "source": "window.sliding.y-front.full",
       "sourceCrop": [
         154,
-        57,
+        56,
         232,
         262
       ],
       "origin": [
         3.0,
-        99.5
+        100.0
       ],
       "anchor": [
         3.0,
-        120.5
+        121.0
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -3.0,
-        -99.5,
+        -100.0,
         36.0,
         3.0
       ],
-      "x": 252,
-      "y": 207,
+      "x": 334,
+      "y": 208,
       "depthRegistration": {
-        "x": 252,
-        "y": 207,
+        "x": 334,
+        "y": 208,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           3.0,
-          99.5
+          100.0
         ],
         "pixel_density": 2
       },
@@ -2018,39 +2018,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.y-front.full",
       "source": "window.sliding.y-front.full",
       "sourceCrop": [
-        88,
-        99,
+        87,
+        98,
         170,
         304
       ],
       "origin": [
-        36.0,
-        78.5
+        36.5,
+        79.0
       ],
       "anchor": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
-        -78.5,
+        -36.5,
+        -79.0,
         5.0,
         24.0
       ],
-      "x": 332,
-      "y": 207,
+      "x": 414,
+      "y": 208,
       "depthRegistration": {
-        "x": 332,
-        "y": 207,
-        "w": 82,
-        "h": 205,
+        "x": 414,
+        "y": 208,
+        "w": 83,
+        "h": 206,
         "origin": [
-          36.0,
-          78.5
+          36.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -2101,11 +2101,11 @@ export const ARCHITECTURE = {
         36.0,
         3.0
       ],
-      "x": 416,
-      "y": 207,
+      "x": 499,
+      "y": 208,
       "depthRegistration": {
-        "x": 416,
-        "y": 207,
+        "x": 499,
+        "y": 208,
         "w": 82,
         "h": 104,
         "origin": [
@@ -2138,38 +2138,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.y-front.cut",
       "source": "window.sliding.y-front.cut",
       "sourceCrop": [
-        88,
+        87,
         198,
         170,
         304
       ],
       "origin": [
-        36.0,
+        36.5,
         29.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         50.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -29.0,
         5.0,
         24.0
       ],
-      "x": 500,
-      "y": 207,
+      "x": 583,
+      "y": 208,
       "depthRegistration": {
-        "x": 500,
-        "y": 207,
-        "w": 82,
+        "x": 583,
+        "y": 208,
+        "w": 83,
         "h": 106,
         "origin": [
-          36.0,
+          36.5,
           29.0
         ],
         "pixel_density": 2
@@ -2198,39 +2198,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.x-back.full",
       "source": "window.sliding.x-back.full",
       "sourceCrop": [
-        88,
-        57,
+        87,
+        56,
         166,
         262
       ],
       "origin": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
       "anchor": [
-        36.0,
-        120.5
+        36.5,
+        121.0
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
-        -99.5,
+        -36.5,
+        -100.0,
         3.0,
         3.0
       ],
-      "x": 584,
-      "y": 207,
+      "x": 668,
+      "y": 208,
       "depthRegistration": {
-        "x": 584,
-        "y": 207,
-        "w": 78,
-        "h": 205,
+        "x": 668,
+        "y": 208,
+        "w": 79,
+        "h": 206,
         "origin": [
-          36.0,
-          99.5
+          36.5,
+          100.0
         ],
         "pixel_density": 2
       },
@@ -2259,38 +2259,38 @@ export const ARCHITECTURE = {
       "source": "window.sliding.x-back.full",
       "sourceCrop": [
         150,
-        99,
+        98,
         232,
         304
       ],
       "origin": [
         5.0,
-        78.5
+        79.0
       ],
       "anchor": [
         5.0,
-        99.5
+        100.0
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -5.0,
-        -78.5,
+        -79.0,
         36.0,
         24.0
       ],
-      "x": 664,
-      "y": 207,
+      "x": 749,
+      "y": 208,
       "depthRegistration": {
-        "x": 664,
-        "y": 207,
+        "x": 749,
+        "y": 208,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           5.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -2318,38 +2318,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.x-back.cut",
       "source": "window.sliding.x-back.cut",
       "sourceCrop": [
-        88,
+        87,
         158,
         170,
         262
       ],
       "origin": [
-        36.0,
+        36.5,
         49.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         70.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -49.0,
         5.0,
         3.0
       ],
-      "x": 748,
-      "y": 207,
+      "x": 833,
+      "y": 208,
       "depthRegistration": {
-        "x": 748,
-        "y": 207,
-        "w": 82,
+        "x": 833,
+        "y": 208,
+        "w": 83,
         "h": 104,
         "origin": [
-          36.0,
+          36.5,
           49.0
         ],
         "pixel_density": 2
@@ -2401,11 +2401,11 @@ export const ARCHITECTURE = {
         36.0,
         24.0
       ],
-      "x": 832,
-      "y": 207,
+      "x": 918,
+      "y": 208,
       "depthRegistration": {
-        "x": 832,
-        "y": 207,
+        "x": 918,
+        "y": 208,
         "w": 82,
         "h": 106,
         "origin": [
@@ -2439,38 +2439,38 @@ export const ARCHITECTURE = {
       "source": "window.sliding.y-back.full",
       "sourceCrop": [
         154,
-        57,
+        56,
         232,
         262
       ],
       "origin": [
         3.0,
-        99.5
+        100.0
       ],
       "anchor": [
         3.0,
-        120.5
+        121.0
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -3.0,
-        -99.5,
+        -100.0,
         36.0,
         3.0
       ],
-      "x": 916,
-      "y": 207,
+      "x": 1002,
+      "y": 208,
       "depthRegistration": {
-        "x": 916,
-        "y": 207,
+        "x": 1002,
+        "y": 208,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           3.0,
-          99.5
+          100.0
         ],
         "pixel_density": 2
       },
@@ -2498,39 +2498,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.y-back.full",
       "source": "window.sliding.y-back.full",
       "sourceCrop": [
-        88,
-        99,
+        87,
+        98,
         170,
         304
       ],
       "origin": [
-        36.0,
-        78.5
+        36.5,
+        79.0
       ],
       "anchor": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
-        -78.5,
+        -36.5,
+        -79.0,
         5.0,
         24.0
       ],
-      "x": 996,
-      "y": 207,
+      "x": 1082,
+      "y": 208,
       "depthRegistration": {
-        "x": 996,
-        "y": 207,
-        "w": 82,
-        "h": 205,
+        "x": 1082,
+        "y": 208,
+        "w": 83,
+        "h": 206,
         "origin": [
-          36.0,
-          78.5
+          36.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -2581,11 +2581,11 @@ export const ARCHITECTURE = {
         36.0,
         3.0
       ],
-      "x": 1080,
-      "y": 207,
+      "x": 1167,
+      "y": 208,
       "depthRegistration": {
-        "x": 1080,
-        "y": 207,
+        "x": 1167,
+        "y": 208,
         "w": 82,
         "h": 104,
         "origin": [
@@ -2618,38 +2618,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.sliding.y-back.cut",
       "source": "window.sliding.y-back.cut",
       "sourceCrop": [
-        88,
+        87,
         198,
         170,
         304
       ],
       "origin": [
-        36.0,
+        36.5,
         29.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         50.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -29.0,
         5.0,
         24.0
       ],
-      "x": 1164,
-      "y": 207,
+      "x": 1251,
+      "y": 208,
       "depthRegistration": {
-        "x": 1164,
-        "y": 207,
-        "w": 82,
+        "x": 1251,
+        "y": 208,
+        "w": 83,
         "h": 106,
         "origin": [
-          36.0,
+          36.5,
           29.0
         ],
         "pixel_density": 2
@@ -2678,39 +2678,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.x-front.full",
       "source": "window.steel-grid.x-front.full",
       "sourceCrop": [
-        88,
-        57,
+        87,
+        56,
         166,
         262
       ],
       "origin": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
       "anchor": [
-        36.0,
-        120.5
+        36.5,
+        121.0
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
-        -99.5,
+        -36.5,
+        -100.0,
         3.0,
         3.0
       ],
-      "x": 1248,
-      "y": 207,
+      "x": 1336,
+      "y": 208,
       "depthRegistration": {
-        "x": 1248,
-        "y": 207,
-        "w": 78,
-        "h": 205,
+        "x": 1336,
+        "y": 208,
+        "w": 79,
+        "h": 206,
         "origin": [
-          36.0,
-          99.5
+          36.5,
+          100.0
         ],
         "pixel_density": 2
       },
@@ -2739,38 +2739,38 @@ export const ARCHITECTURE = {
       "source": "window.steel-grid.x-front.full",
       "sourceCrop": [
         150,
-        99,
+        98,
         232,
         304
       ],
       "origin": [
         5.0,
-        78.5
+        79.0
       ],
       "anchor": [
         5.0,
-        99.5
+        100.0
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -5.0,
-        -78.5,
+        -79.0,
         36.0,
         24.0
       ],
-      "x": 1328,
-      "y": 207,
+      "x": 1417,
+      "y": 208,
       "depthRegistration": {
-        "x": 1328,
-        "y": 207,
+        "x": 1417,
+        "y": 208,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           5.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -2798,38 +2798,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.x-front.cut",
       "source": "window.steel-grid.x-front.cut",
       "sourceCrop": [
-        88,
+        87,
         158,
         170,
         262
       ],
       "origin": [
-        36.0,
+        36.5,
         49.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         70.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -49.0,
         5.0,
         3.0
       ],
-      "x": 1412,
-      "y": 207,
+      "x": 1501,
+      "y": 208,
       "depthRegistration": {
-        "x": 1412,
-        "y": 207,
-        "w": 82,
+        "x": 1501,
+        "y": 208,
+        "w": 83,
         "h": 104,
         "origin": [
-          36.0,
+          36.5,
           49.0
         ],
         "pixel_density": 2
@@ -2881,11 +2881,11 @@ export const ARCHITECTURE = {
         36.0,
         24.0
       ],
-      "x": 1496,
-      "y": 207,
+      "x": 1586,
+      "y": 208,
       "depthRegistration": {
-        "x": 1496,
-        "y": 207,
+        "x": 1586,
+        "y": 208,
         "w": 82,
         "h": 106,
         "origin": [
@@ -2919,38 +2919,38 @@ export const ARCHITECTURE = {
       "source": "window.steel-grid.y-front.full",
       "sourceCrop": [
         154,
-        57,
+        56,
         232,
         262
       ],
       "origin": [
         3.0,
-        99.5
+        100.0
       ],
       "anchor": [
         3.0,
-        120.5
+        121.0
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -3.0,
-        -99.5,
+        -100.0,
         36.0,
         3.0
       ],
-      "x": 1580,
-      "y": 207,
+      "x": 1670,
+      "y": 208,
       "depthRegistration": {
-        "x": 1580,
-        "y": 207,
+        "x": 1670,
+        "y": 208,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           3.0,
-          99.5
+          100.0
         ],
         "pixel_density": 2
       },
@@ -2978,39 +2978,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.y-front.full",
       "source": "window.steel-grid.y-front.full",
       "sourceCrop": [
-        88,
-        99,
+        87,
+        98,
         170,
         304
       ],
       "origin": [
-        36.0,
-        78.5
+        36.5,
+        79.0
       ],
       "anchor": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
-        -78.5,
+        -36.5,
+        -79.0,
         5.0,
         24.0
       ],
-      "x": 1660,
-      "y": 207,
+      "x": 1750,
+      "y": 208,
       "depthRegistration": {
-        "x": 1660,
-        "y": 207,
-        "w": 82,
-        "h": 205,
+        "x": 1750,
+        "y": 208,
+        "w": 83,
+        "h": 206,
         "origin": [
-          36.0,
-          78.5
+          36.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -3061,11 +3061,11 @@ export const ARCHITECTURE = {
         36.0,
         3.0
       ],
-      "x": 1744,
-      "y": 207,
+      "x": 1835,
+      "y": 208,
       "depthRegistration": {
-        "x": 1744,
-        "y": 207,
+        "x": 1835,
+        "y": 208,
         "w": 82,
         "h": 104,
         "origin": [
@@ -3098,38 +3098,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.y-front.cut",
       "source": "window.steel-grid.y-front.cut",
       "sourceCrop": [
-        88,
+        87,
         198,
         170,
         304
       ],
       "origin": [
-        36.0,
+        36.5,
         29.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         50.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -29.0,
         5.0,
         24.0
       ],
-      "x": 1828,
-      "y": 207,
+      "x": 1919,
+      "y": 208,
       "depthRegistration": {
-        "x": 1828,
-        "y": 207,
-        "w": 82,
+        "x": 1919,
+        "y": 208,
+        "w": 83,
         "h": 106,
         "origin": [
-          36.0,
+          36.5,
           29.0
         ],
         "pixel_density": 2
@@ -3158,39 +3158,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.x-back.full",
       "source": "window.steel-grid.x-back.full",
       "sourceCrop": [
-        88,
-        57,
+        87,
+        56,
         166,
         262
       ],
       "origin": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
       "anchor": [
-        36.0,
-        120.5
+        36.5,
+        121.0
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
-        -99.5,
+        -36.5,
+        -100.0,
         3.0,
         3.0
       ],
-      "x": 1912,
-      "y": 207,
+      "x": 0,
+      "y": 416,
       "depthRegistration": {
-        "x": 1912,
-        "y": 207,
-        "w": 78,
-        "h": 205,
+        "x": 0,
+        "y": 416,
+        "w": 79,
+        "h": 206,
         "origin": [
-          36.0,
-          99.5
+          36.5,
+          100.0
         ],
         "pixel_density": 2
       },
@@ -3219,38 +3219,38 @@ export const ARCHITECTURE = {
       "source": "window.steel-grid.x-back.full",
       "sourceCrop": [
         150,
-        99,
+        98,
         232,
         304
       ],
       "origin": [
         5.0,
-        78.5
+        79.0
       ],
       "anchor": [
         5.0,
-        99.5
+        100.0
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -5.0,
-        -78.5,
+        -79.0,
         36.0,
         24.0
       ],
-      "x": 0,
-      "y": 414,
+      "x": 81,
+      "y": 416,
       "depthRegistration": {
-        "x": 0,
-        "y": 414,
+        "x": 81,
+        "y": 416,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           5.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -3278,38 +3278,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.x-back.cut",
       "source": "window.steel-grid.x-back.cut",
       "sourceCrop": [
-        88,
+        87,
         158,
         170,
         262
       ],
       "origin": [
-        36.0,
+        36.5,
         49.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         70.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -49.0,
         5.0,
         3.0
       ],
-      "x": 84,
-      "y": 414,
+      "x": 165,
+      "y": 416,
       "depthRegistration": {
-        "x": 84,
-        "y": 414,
-        "w": 82,
+        "x": 165,
+        "y": 416,
+        "w": 83,
         "h": 104,
         "origin": [
-          36.0,
+          36.5,
           49.0
         ],
         "pixel_density": 2
@@ -3361,11 +3361,11 @@ export const ARCHITECTURE = {
         36.0,
         24.0
       ],
-      "x": 168,
-      "y": 414,
+      "x": 250,
+      "y": 416,
       "depthRegistration": {
-        "x": 168,
-        "y": 414,
+        "x": 250,
+        "y": 416,
         "w": 82,
         "h": 106,
         "origin": [
@@ -3399,38 +3399,38 @@ export const ARCHITECTURE = {
       "source": "window.steel-grid.y-back.full",
       "sourceCrop": [
         154,
-        57,
+        56,
         232,
         262
       ],
       "origin": [
         3.0,
-        99.5
+        100.0
       ],
       "anchor": [
         3.0,
-        120.5
+        121.0
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -3.0,
-        -99.5,
+        -100.0,
         36.0,
         3.0
       ],
-      "x": 252,
-      "y": 414,
+      "x": 334,
+      "y": 416,
       "depthRegistration": {
-        "x": 252,
-        "y": 414,
+        "x": 334,
+        "y": 416,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           3.0,
-          99.5
+          100.0
         ],
         "pixel_density": 2
       },
@@ -3458,39 +3458,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.y-back.full",
       "source": "window.steel-grid.y-back.full",
       "sourceCrop": [
-        88,
-        99,
+        87,
+        98,
         170,
         304
       ],
       "origin": [
-        36.0,
-        78.5
+        36.5,
+        79.0
       ],
       "anchor": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
-        -78.5,
+        -36.5,
+        -79.0,
         5.0,
         24.0
       ],
-      "x": 332,
-      "y": 414,
+      "x": 414,
+      "y": 416,
       "depthRegistration": {
-        "x": 332,
-        "y": 414,
-        "w": 82,
-        "h": 205,
+        "x": 414,
+        "y": 416,
+        "w": 83,
+        "h": 206,
         "origin": [
-          36.0,
-          78.5
+          36.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -3541,11 +3541,11 @@ export const ARCHITECTURE = {
         36.0,
         3.0
       ],
-      "x": 416,
-      "y": 414,
+      "x": 499,
+      "y": 416,
       "depthRegistration": {
-        "x": 416,
-        "y": 414,
+        "x": 499,
+        "y": 416,
         "w": 82,
         "h": 104,
         "origin": [
@@ -3578,38 +3578,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.steel-grid.y-back.cut",
       "source": "window.steel-grid.y-back.cut",
       "sourceCrop": [
-        88,
+        87,
         198,
         170,
         304
       ],
       "origin": [
-        36.0,
+        36.5,
         29.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         50.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -29.0,
         5.0,
         24.0
       ],
-      "x": 500,
-      "y": 414,
+      "x": 583,
+      "y": 416,
       "depthRegistration": {
-        "x": 500,
-        "y": 414,
-        "w": 82,
+        "x": 583,
+        "y": 416,
+        "w": 83,
         "h": 106,
         "origin": [
-          36.0,
+          36.5,
           29.0
         ],
         "pixel_density": 2
@@ -3638,39 +3638,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.x-front.full",
       "source": "window.twin-casement.x-front.full",
       "sourceCrop": [
-        88,
-        57,
+        87,
+        56,
         166,
         262
       ],
       "origin": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
       "anchor": [
-        36.0,
-        120.5
+        36.5,
+        121.0
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
-        -99.5,
+        -36.5,
+        -100.0,
         3.0,
         3.0
       ],
-      "x": 584,
-      "y": 414,
+      "x": 668,
+      "y": 416,
       "depthRegistration": {
-        "x": 584,
-        "y": 414,
-        "w": 78,
-        "h": 205,
+        "x": 668,
+        "y": 416,
+        "w": 79,
+        "h": 206,
         "origin": [
-          36.0,
-          99.5
+          36.5,
+          100.0
         ],
         "pixel_density": 2
       },
@@ -3699,38 +3699,38 @@ export const ARCHITECTURE = {
       "source": "window.twin-casement.x-front.full",
       "sourceCrop": [
         150,
-        99,
+        98,
         232,
         304
       ],
       "origin": [
         5.0,
-        78.5
+        79.0
       ],
       "anchor": [
         5.0,
-        99.5
+        100.0
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -5.0,
-        -78.5,
+        -79.0,
         36.0,
         24.0
       ],
-      "x": 664,
-      "y": 414,
+      "x": 749,
+      "y": 416,
       "depthRegistration": {
-        "x": 664,
-        "y": 414,
+        "x": 749,
+        "y": 416,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           5.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -3758,38 +3758,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.x-front.cut",
       "source": "window.twin-casement.x-front.cut",
       "sourceCrop": [
-        88,
+        87,
         158,
         170,
         262
       ],
       "origin": [
-        36.0,
+        36.5,
         49.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         70.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -49.0,
         5.0,
         3.0
       ],
-      "x": 748,
-      "y": 414,
+      "x": 833,
+      "y": 416,
       "depthRegistration": {
-        "x": 748,
-        "y": 414,
-        "w": 82,
+        "x": 833,
+        "y": 416,
+        "w": 83,
         "h": 104,
         "origin": [
-          36.0,
+          36.5,
           49.0
         ],
         "pixel_density": 2
@@ -3841,11 +3841,11 @@ export const ARCHITECTURE = {
         36.0,
         24.0
       ],
-      "x": 832,
-      "y": 414,
+      "x": 918,
+      "y": 416,
       "depthRegistration": {
-        "x": 832,
-        "y": 414,
+        "x": 918,
+        "y": 416,
         "w": 82,
         "h": 106,
         "origin": [
@@ -3879,38 +3879,38 @@ export const ARCHITECTURE = {
       "source": "window.twin-casement.y-front.full",
       "sourceCrop": [
         154,
-        57,
+        56,
         232,
         262
       ],
       "origin": [
         3.0,
-        99.5
+        100.0
       ],
       "anchor": [
         3.0,
-        120.5
+        121.0
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -3.0,
-        -99.5,
+        -100.0,
         36.0,
         3.0
       ],
-      "x": 916,
-      "y": 414,
+      "x": 1002,
+      "y": 416,
       "depthRegistration": {
-        "x": 916,
-        "y": 414,
+        "x": 1002,
+        "y": 416,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           3.0,
-          99.5
+          100.0
         ],
         "pixel_density": 2
       },
@@ -3938,39 +3938,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.y-front.full",
       "source": "window.twin-casement.y-front.full",
       "sourceCrop": [
-        88,
-        99,
+        87,
+        98,
         170,
         304
       ],
       "origin": [
-        36.0,
-        78.5
+        36.5,
+        79.0
       ],
       "anchor": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
-        -78.5,
+        -36.5,
+        -79.0,
         5.0,
         24.0
       ],
-      "x": 996,
-      "y": 414,
+      "x": 1082,
+      "y": 416,
       "depthRegistration": {
-        "x": 996,
-        "y": 414,
-        "w": 82,
-        "h": 205,
+        "x": 1082,
+        "y": 416,
+        "w": 83,
+        "h": 206,
         "origin": [
-          36.0,
-          78.5
+          36.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -4021,11 +4021,11 @@ export const ARCHITECTURE = {
         36.0,
         3.0
       ],
-      "x": 1080,
-      "y": 414,
+      "x": 1167,
+      "y": 416,
       "depthRegistration": {
-        "x": 1080,
-        "y": 414,
+        "x": 1167,
+        "y": 416,
         "w": 82,
         "h": 104,
         "origin": [
@@ -4058,38 +4058,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.y-front.cut",
       "source": "window.twin-casement.y-front.cut",
       "sourceCrop": [
-        88,
+        87,
         198,
         170,
         304
       ],
       "origin": [
-        36.0,
+        36.5,
         29.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         50.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -29.0,
         5.0,
         24.0
       ],
-      "x": 1164,
-      "y": 414,
+      "x": 1251,
+      "y": 416,
       "depthRegistration": {
-        "x": 1164,
-        "y": 414,
-        "w": 82,
+        "x": 1251,
+        "y": 416,
+        "w": 83,
         "h": 106,
         "origin": [
-          36.0,
+          36.5,
           29.0
         ],
         "pixel_density": 2
@@ -4118,39 +4118,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.x-back.full",
       "source": "window.twin-casement.x-back.full",
       "sourceCrop": [
-        88,
-        57,
+        87,
+        56,
         166,
         262
       ],
       "origin": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
       "anchor": [
-        36.0,
-        120.5
+        36.5,
+        121.0
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
-        -99.5,
+        -36.5,
+        -100.0,
         3.0,
         3.0
       ],
-      "x": 1248,
-      "y": 414,
+      "x": 1336,
+      "y": 416,
       "depthRegistration": {
-        "x": 1248,
-        "y": 414,
-        "w": 78,
-        "h": 205,
+        "x": 1336,
+        "y": 416,
+        "w": 79,
+        "h": 206,
         "origin": [
-          36.0,
-          99.5
+          36.5,
+          100.0
         ],
         "pixel_density": 2
       },
@@ -4179,38 +4179,38 @@ export const ARCHITECTURE = {
       "source": "window.twin-casement.x-back.full",
       "sourceCrop": [
         150,
-        99,
+        98,
         232,
         304
       ],
       "origin": [
         5.0,
-        78.5
+        79.0
       ],
       "anchor": [
         5.0,
-        99.5
+        100.0
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -5.0,
-        -78.5,
+        -79.0,
         36.0,
         24.0
       ],
-      "x": 1328,
-      "y": 414,
+      "x": 1417,
+      "y": 416,
       "depthRegistration": {
-        "x": 1328,
-        "y": 414,
+        "x": 1417,
+        "y": 416,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           5.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -4238,38 +4238,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.x-back.cut",
       "source": "window.twin-casement.x-back.cut",
       "sourceCrop": [
-        88,
+        87,
         158,
         170,
         262
       ],
       "origin": [
-        36.0,
+        36.5,
         49.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         70.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -49.0,
         5.0,
         3.0
       ],
-      "x": 1412,
-      "y": 414,
+      "x": 1501,
+      "y": 416,
       "depthRegistration": {
-        "x": 1412,
-        "y": 414,
-        "w": 82,
+        "x": 1501,
+        "y": 416,
+        "w": 83,
         "h": 104,
         "origin": [
-          36.0,
+          36.5,
           49.0
         ],
         "pixel_density": 2
@@ -4321,11 +4321,11 @@ export const ARCHITECTURE = {
         36.0,
         24.0
       ],
-      "x": 1496,
-      "y": 414,
+      "x": 1586,
+      "y": 416,
       "depthRegistration": {
-        "x": 1496,
-        "y": 414,
+        "x": 1586,
+        "y": 416,
         "w": 82,
         "h": 106,
         "origin": [
@@ -4359,38 +4359,38 @@ export const ARCHITECTURE = {
       "source": "window.twin-casement.y-back.full",
       "sourceCrop": [
         154,
-        57,
+        56,
         232,
         262
       ],
       "origin": [
         3.0,
-        99.5
+        100.0
       ],
       "anchor": [
         3.0,
-        120.5
+        121.0
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -3.0,
-        -99.5,
+        -100.0,
         36.0,
         3.0
       ],
-      "x": 1580,
-      "y": 414,
+      "x": 1670,
+      "y": 416,
       "depthRegistration": {
-        "x": 1580,
-        "y": 414,
+        "x": 1670,
+        "y": 416,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           3.0,
-          99.5
+          100.0
         ],
         "pixel_density": 2
       },
@@ -4418,39 +4418,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.y-back.full",
       "source": "window.twin-casement.y-back.full",
       "sourceCrop": [
-        88,
-        99,
+        87,
+        98,
         170,
         304
       ],
       "origin": [
-        36.0,
-        78.5
+        36.5,
+        79.0
       ],
       "anchor": [
-        36.0,
-        99.5
+        36.5,
+        100.0
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
-        -78.5,
+        -36.5,
+        -79.0,
         5.0,
         24.0
       ],
-      "x": 1660,
-      "y": 414,
+      "x": 1750,
+      "y": 416,
       "depthRegistration": {
-        "x": 1660,
-        "y": 414,
-        "w": 82,
-        "h": 205,
+        "x": 1750,
+        "y": 416,
+        "w": 83,
+        "h": 206,
         "origin": [
-          36.0,
-          78.5
+          36.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -4501,11 +4501,11 @@ export const ARCHITECTURE = {
         36.0,
         3.0
       ],
-      "x": 1744,
-      "y": 414,
+      "x": 1835,
+      "y": 416,
       "depthRegistration": {
-        "x": 1744,
-        "y": 414,
+        "x": 1835,
+        "y": 416,
         "w": 82,
         "h": 104,
         "origin": [
@@ -4538,38 +4538,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.twin-casement.y-back.cut",
       "source": "window.twin-casement.y-back.cut",
       "sourceCrop": [
-        88,
+        87,
         198,
         170,
         304
       ],
       "origin": [
-        36.0,
+        36.5,
         29.0
       ],
       "anchor": [
-        36.0,
+        36.5,
         50.0
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -36.0,
+        -36.5,
         -29.0,
         5.0,
         24.0
       ],
-      "x": 1828,
-      "y": 414,
+      "x": 1919,
+      "y": 416,
       "depthRegistration": {
-        "x": 1828,
-        "y": 414,
-        "w": 82,
+        "x": 1919,
+        "y": 416,
+        "w": 83,
         "h": 106,
         "origin": [
-          36.0,
+          36.5,
           29.0
         ],
         "pixel_density": 2
@@ -4598,39 +4598,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.x-front.full",
       "source": "window.picture.x-front.full",
       "sourceCrop": [
-        56,
-        36,
+        55,
+        35,
         134,
         241
       ],
       "origin": [
-        52.0,
-        110.0
+        52.5,
+        110.5
       ],
       "anchor": [
-        52.0,
-        131.0
+        52.5,
+        131.5
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
-        -110.0,
+        -52.5,
+        -110.5,
         -13.0,
         -7.5
       ],
-      "x": 1912,
-      "y": 414,
+      "x": 0,
+      "y": 624,
       "depthRegistration": {
-        "x": 1912,
-        "y": 414,
-        "w": 78,
-        "h": 205,
+        "x": 0,
+        "y": 624,
+        "w": 79,
+        "h": 206,
         "origin": [
-          52.0,
-          110.0
+          52.5,
+          110.5
         ],
         "pixel_density": 2
       },
@@ -4659,38 +4659,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.x-front.full",
       "sourceCrop": [
         118,
-        78,
+        77,
         198,
         283
       ],
       "origin": [
         21.0,
-        89.0
+        89.5
       ],
       "anchor": [
         21.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -21.0,
-        -89.0,
+        -89.5,
         19.0,
         13.5
       ],
-      "x": 0,
-      "y": 621,
+      "x": 81,
+      "y": 624,
       "depthRegistration": {
-        "x": 0,
-        "y": 621,
+        "x": 81,
+        "y": 624,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           21.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -4719,38 +4719,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.x-front.full",
       "sourceCrop": [
         182,
-        120,
+        119,
         264,
         325
       ],
       "origin": [
         -11.0,
-        68.0
+        68.5
       ],
       "anchor": [
         -11.0,
-        89.0
+        89.5
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
         11.0,
-        -68.0,
+        -68.5,
         52.0,
         34.5
       ],
-      "x": 82,
-      "y": 621,
+      "x": 163,
+      "y": 624,
       "depthRegistration": {
-        "x": 82,
-        "y": 621,
+        "x": 163,
+        "y": 624,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           -11.0,
-          68.0
+          68.5
         ],
         "pixel_density": 2
       },
@@ -4778,38 +4778,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.x-front.cut",
       "source": "window.picture.x-front.cut",
       "sourceCrop": [
-        56,
+        55,
         137,
         138,
         241
       ],
       "origin": [
-        52.0,
+        52.5,
         59.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         80.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -59.5,
         -11.0,
         -7.5
       ],
-      "x": 166,
-      "y": 621,
+      "x": 247,
+      "y": 624,
       "depthRegistration": {
-        "x": 166,
-        "y": 621,
-        "w": 82,
+        "x": 247,
+        "y": 624,
+        "w": 83,
         "h": 104,
         "origin": [
-          52.0,
+          52.5,
           59.5
         ],
         "pixel_density": 2
@@ -4861,11 +4861,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 250,
-      "y": 621,
+      "x": 332,
+      "y": 624,
       "depthRegistration": {
-        "x": 250,
-        "y": 621,
+        "x": 332,
+        "y": 624,
         "w": 84,
         "h": 106,
         "origin": [
@@ -4921,11 +4921,11 @@ export const ARCHITECTURE = {
         52.0,
         34.5
       ],
-      "x": 336,
-      "y": 621,
+      "x": 418,
+      "y": 624,
       "depthRegistration": {
-        "x": 336,
-        "y": 621,
+        "x": 418,
+        "y": 624,
         "w": 82,
         "h": 106,
         "origin": [
@@ -4959,38 +4959,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.y-front.full",
       "sourceCrop": [
         186,
-        36,
+        35,
         264,
         241
       ],
       "origin": [
         -13.0,
-        110.0
+        110.5
       ],
       "anchor": [
         -13.0,
-        131.0
+        131.5
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         13.0,
-        -110.0,
+        -110.5,
         52.0,
         -7.5
       ],
-      "x": 420,
-      "y": 621,
+      "x": 502,
+      "y": 624,
       "depthRegistration": {
-        "x": 420,
-        "y": 621,
+        "x": 502,
+        "y": 624,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           -13.0,
-          110.0
+          110.5
         ],
         "pixel_density": 2
       },
@@ -5019,38 +5019,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.y-front.full",
       "sourceCrop": [
         122,
-        78,
+        77,
         202,
         283
       ],
       "origin": [
         19.0,
-        89.0
+        89.5
       ],
       "anchor": [
         19.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -19.0,
-        -89.0,
+        -89.5,
         21.0,
         13.5
       ],
-      "x": 500,
-      "y": 621,
+      "x": 582,
+      "y": 624,
       "depthRegistration": {
-        "x": 500,
-        "y": 621,
+        "x": 582,
+        "y": 624,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           19.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -5078,39 +5078,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.y-front.full",
       "source": "window.picture.y-front.full",
       "sourceCrop": [
-        56,
-        120,
+        55,
+        119,
         138,
         325
       ],
       "origin": [
-        52.0,
-        68.0
+        52.5,
+        68.5
       ],
       "anchor": [
-        52.0,
-        89.0
+        52.5,
+        89.5
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
-        -68.0,
+        -52.5,
+        -68.5,
         -11.0,
         34.5
       ],
-      "x": 582,
-      "y": 621,
+      "x": 664,
+      "y": 624,
       "depthRegistration": {
-        "x": 582,
-        "y": 621,
-        "w": 82,
-        "h": 205,
+        "x": 664,
+        "y": 624,
+        "w": 83,
+        "h": 206,
         "origin": [
-          52.0,
-          68.0
+          52.5,
+          68.5
         ],
         "pixel_density": 2
       },
@@ -5161,11 +5161,11 @@ export const ARCHITECTURE = {
         52.0,
         -7.5
       ],
-      "x": 666,
-      "y": 621,
+      "x": 749,
+      "y": 624,
       "depthRegistration": {
-        "x": 666,
-        "y": 621,
+        "x": 749,
+        "y": 624,
         "w": 82,
         "h": 104,
         "origin": [
@@ -5221,11 +5221,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 750,
-      "y": 621,
+      "x": 833,
+      "y": 624,
       "depthRegistration": {
-        "x": 750,
-        "y": 621,
+        "x": 833,
+        "y": 624,
         "w": 84,
         "h": 106,
         "origin": [
@@ -5258,38 +5258,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.y-front.cut",
       "source": "window.picture.y-front.cut",
       "sourceCrop": [
-        56,
+        55,
         219,
         138,
         325
       ],
       "origin": [
-        52.0,
+        52.5,
         18.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         39.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -18.5,
         -11.0,
         34.5
       ],
-      "x": 836,
-      "y": 621,
+      "x": 919,
+      "y": 624,
       "depthRegistration": {
-        "x": 836,
-        "y": 621,
-        "w": 82,
+        "x": 919,
+        "y": 624,
+        "w": 83,
         "h": 106,
         "origin": [
-          52.0,
+          52.5,
           18.5
         ],
         "pixel_density": 2
@@ -5318,39 +5318,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.x-back.full",
       "source": "window.picture.x-back.full",
       "sourceCrop": [
-        56,
-        36,
+        55,
+        35,
         134,
         241
       ],
       "origin": [
-        52.0,
-        110.0
+        52.5,
+        110.5
       ],
       "anchor": [
-        52.0,
-        131.0
+        52.5,
+        131.5
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
-        -110.0,
+        -52.5,
+        -110.5,
         -13.0,
         -7.5
       ],
-      "x": 920,
-      "y": 621,
+      "x": 1004,
+      "y": 624,
       "depthRegistration": {
-        "x": 920,
-        "y": 621,
-        "w": 78,
-        "h": 205,
+        "x": 1004,
+        "y": 624,
+        "w": 79,
+        "h": 206,
         "origin": [
-          52.0,
-          110.0
+          52.5,
+          110.5
         ],
         "pixel_density": 2
       },
@@ -5379,38 +5379,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.x-back.full",
       "sourceCrop": [
         118,
-        78,
+        77,
         198,
         283
       ],
       "origin": [
         21.0,
-        89.0
+        89.5
       ],
       "anchor": [
         21.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -21.0,
-        -89.0,
+        -89.5,
         19.0,
         13.5
       ],
-      "x": 1000,
-      "y": 621,
+      "x": 1085,
+      "y": 624,
       "depthRegistration": {
-        "x": 1000,
-        "y": 621,
+        "x": 1085,
+        "y": 624,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           21.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -5439,38 +5439,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.x-back.full",
       "sourceCrop": [
         182,
-        120,
+        119,
         264,
         325
       ],
       "origin": [
         -11.0,
-        68.0
+        68.5
       ],
       "anchor": [
         -11.0,
-        89.0
+        89.5
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
         11.0,
-        -68.0,
+        -68.5,
         52.0,
         34.5
       ],
-      "x": 1082,
-      "y": 621,
+      "x": 1167,
+      "y": 624,
       "depthRegistration": {
-        "x": 1082,
-        "y": 621,
+        "x": 1167,
+        "y": 624,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           -11.0,
-          68.0
+          68.5
         ],
         "pixel_density": 2
       },
@@ -5498,38 +5498,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.x-back.cut",
       "source": "window.picture.x-back.cut",
       "sourceCrop": [
-        56,
+        55,
         137,
         138,
         241
       ],
       "origin": [
-        52.0,
+        52.5,
         59.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         80.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -59.5,
         -11.0,
         -7.5
       ],
-      "x": 1166,
-      "y": 621,
+      "x": 1251,
+      "y": 624,
       "depthRegistration": {
-        "x": 1166,
-        "y": 621,
-        "w": 82,
+        "x": 1251,
+        "y": 624,
+        "w": 83,
         "h": 104,
         "origin": [
-          52.0,
+          52.5,
           59.5
         ],
         "pixel_density": 2
@@ -5581,11 +5581,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 1250,
-      "y": 621,
+      "x": 1336,
+      "y": 624,
       "depthRegistration": {
-        "x": 1250,
-        "y": 621,
+        "x": 1336,
+        "y": 624,
         "w": 84,
         "h": 106,
         "origin": [
@@ -5641,11 +5641,11 @@ export const ARCHITECTURE = {
         52.0,
         34.5
       ],
-      "x": 1336,
-      "y": 621,
+      "x": 1422,
+      "y": 624,
       "depthRegistration": {
-        "x": 1336,
-        "y": 621,
+        "x": 1422,
+        "y": 624,
         "w": 82,
         "h": 106,
         "origin": [
@@ -5679,38 +5679,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.y-back.full",
       "sourceCrop": [
         186,
-        36,
+        35,
         264,
         241
       ],
       "origin": [
         -13.0,
-        110.0
+        110.5
       ],
       "anchor": [
         -13.0,
-        131.0
+        131.5
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         13.0,
-        -110.0,
+        -110.5,
         52.0,
         -7.5
       ],
-      "x": 1420,
-      "y": 621,
+      "x": 1506,
+      "y": 624,
       "depthRegistration": {
-        "x": 1420,
-        "y": 621,
+        "x": 1506,
+        "y": 624,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           -13.0,
-          110.0
+          110.5
         ],
         "pixel_density": 2
       },
@@ -5739,38 +5739,38 @@ export const ARCHITECTURE = {
       "source": "window.picture.y-back.full",
       "sourceCrop": [
         122,
-        78,
+        77,
         202,
         283
       ],
       "origin": [
         19.0,
-        89.0
+        89.5
       ],
       "anchor": [
         19.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -19.0,
-        -89.0,
+        -89.5,
         21.0,
         13.5
       ],
-      "x": 1500,
-      "y": 621,
+      "x": 1586,
+      "y": 624,
       "depthRegistration": {
-        "x": 1500,
-        "y": 621,
+        "x": 1586,
+        "y": 624,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           19.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -5798,39 +5798,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.y-back.full",
       "source": "window.picture.y-back.full",
       "sourceCrop": [
-        56,
-        120,
+        55,
+        119,
         138,
         325
       ],
       "origin": [
-        52.0,
-        68.0
+        52.5,
+        68.5
       ],
       "anchor": [
-        52.0,
-        89.0
+        52.5,
+        89.5
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
-        -68.0,
+        -52.5,
+        -68.5,
         -11.0,
         34.5
       ],
-      "x": 1582,
-      "y": 621,
+      "x": 1668,
+      "y": 624,
       "depthRegistration": {
-        "x": 1582,
-        "y": 621,
-        "w": 82,
-        "h": 205,
+        "x": 1668,
+        "y": 624,
+        "w": 83,
+        "h": 206,
         "origin": [
-          52.0,
-          68.0
+          52.5,
+          68.5
         ],
         "pixel_density": 2
       },
@@ -5881,11 +5881,11 @@ export const ARCHITECTURE = {
         52.0,
         -7.5
       ],
-      "x": 1666,
-      "y": 621,
+      "x": 1753,
+      "y": 624,
       "depthRegistration": {
-        "x": 1666,
-        "y": 621,
+        "x": 1753,
+        "y": 624,
         "w": 82,
         "h": 104,
         "origin": [
@@ -5941,11 +5941,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 1750,
-      "y": 621,
+      "x": 1837,
+      "y": 624,
       "depthRegistration": {
-        "x": 1750,
-        "y": 621,
+        "x": 1837,
+        "y": 624,
         "w": 84,
         "h": 106,
         "origin": [
@@ -5978,38 +5978,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.picture.y-back.cut",
       "source": "window.picture.y-back.cut",
       "sourceCrop": [
-        56,
+        55,
         219,
         138,
         325
       ],
       "origin": [
-        52.0,
+        52.5,
         18.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         39.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -18.5,
         -11.0,
         34.5
       ],
-      "x": 1836,
-      "y": 621,
+      "x": 1923,
+      "y": 624,
       "depthRegistration": {
-        "x": 1836,
-        "y": 621,
-        "w": 82,
+        "x": 1923,
+        "y": 624,
+        "w": 83,
         "h": 106,
         "origin": [
-          52.0,
+          52.5,
           18.5
         ],
         "pixel_density": 2
@@ -6038,39 +6038,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.x-front.full",
       "source": "window.craftsman.x-front.full",
       "sourceCrop": [
-        56,
-        36,
+        55,
+        35,
         134,
         241
       ],
       "origin": [
-        52.0,
-        110.0
+        52.5,
+        110.5
       ],
       "anchor": [
-        52.0,
-        131.0
+        52.5,
+        131.5
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
-        -110.0,
+        -52.5,
+        -110.5,
         -13.0,
         -7.5
       ],
-      "x": 1920,
-      "y": 621,
+      "x": 0,
+      "y": 832,
       "depthRegistration": {
-        "x": 1920,
-        "y": 621,
-        "w": 78,
-        "h": 205,
+        "x": 0,
+        "y": 832,
+        "w": 79,
+        "h": 206,
         "origin": [
-          52.0,
-          110.0
+          52.5,
+          110.5
         ],
         "pixel_density": 2
       },
@@ -6099,38 +6099,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.x-front.full",
       "sourceCrop": [
         118,
-        78,
+        77,
         198,
         283
       ],
       "origin": [
         21.0,
-        89.0
+        89.5
       ],
       "anchor": [
         21.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -21.0,
-        -89.0,
+        -89.5,
         19.0,
         13.5
       ],
-      "x": 0,
-      "y": 828,
+      "x": 81,
+      "y": 832,
       "depthRegistration": {
-        "x": 0,
-        "y": 828,
+        "x": 81,
+        "y": 832,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           21.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -6159,38 +6159,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.x-front.full",
       "sourceCrop": [
         182,
-        120,
+        119,
         264,
         325
       ],
       "origin": [
         -11.0,
-        68.0
+        68.5
       ],
       "anchor": [
         -11.0,
-        89.0
+        89.5
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
         11.0,
-        -68.0,
+        -68.5,
         52.0,
         34.5
       ],
-      "x": 82,
-      "y": 828,
+      "x": 163,
+      "y": 832,
       "depthRegistration": {
-        "x": 82,
-        "y": 828,
+        "x": 163,
+        "y": 832,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           -11.0,
-          68.0
+          68.5
         ],
         "pixel_density": 2
       },
@@ -6218,38 +6218,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.x-front.cut",
       "source": "window.craftsman.x-front.cut",
       "sourceCrop": [
-        56,
+        55,
         137,
         138,
         241
       ],
       "origin": [
-        52.0,
+        52.5,
         59.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         80.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -59.5,
         -11.0,
         -7.5
       ],
-      "x": 166,
-      "y": 828,
+      "x": 247,
+      "y": 832,
       "depthRegistration": {
-        "x": 166,
-        "y": 828,
-        "w": 82,
+        "x": 247,
+        "y": 832,
+        "w": 83,
         "h": 104,
         "origin": [
-          52.0,
+          52.5,
           59.5
         ],
         "pixel_density": 2
@@ -6301,11 +6301,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 250,
-      "y": 828,
+      "x": 332,
+      "y": 832,
       "depthRegistration": {
-        "x": 250,
-        "y": 828,
+        "x": 332,
+        "y": 832,
         "w": 84,
         "h": 106,
         "origin": [
@@ -6361,11 +6361,11 @@ export const ARCHITECTURE = {
         52.0,
         34.5
       ],
-      "x": 336,
-      "y": 828,
+      "x": 418,
+      "y": 832,
       "depthRegistration": {
-        "x": 336,
-        "y": 828,
+        "x": 418,
+        "y": 832,
         "w": 82,
         "h": 106,
         "origin": [
@@ -6399,38 +6399,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.y-front.full",
       "sourceCrop": [
         186,
-        36,
+        35,
         264,
         241
       ],
       "origin": [
         -13.0,
-        110.0
+        110.5
       ],
       "anchor": [
         -13.0,
-        131.0
+        131.5
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         13.0,
-        -110.0,
+        -110.5,
         52.0,
         -7.5
       ],
-      "x": 420,
-      "y": 828,
+      "x": 502,
+      "y": 832,
       "depthRegistration": {
-        "x": 420,
-        "y": 828,
+        "x": 502,
+        "y": 832,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           -13.0,
-          110.0
+          110.5
         ],
         "pixel_density": 2
       },
@@ -6459,38 +6459,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.y-front.full",
       "sourceCrop": [
         122,
-        78,
+        77,
         202,
         283
       ],
       "origin": [
         19.0,
-        89.0
+        89.5
       ],
       "anchor": [
         19.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -19.0,
-        -89.0,
+        -89.5,
         21.0,
         13.5
       ],
-      "x": 500,
-      "y": 828,
+      "x": 582,
+      "y": 832,
       "depthRegistration": {
-        "x": 500,
-        "y": 828,
+        "x": 582,
+        "y": 832,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           19.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -6518,39 +6518,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.y-front.full",
       "source": "window.craftsman.y-front.full",
       "sourceCrop": [
-        56,
-        120,
+        55,
+        119,
         138,
         325
       ],
       "origin": [
-        52.0,
-        68.0
+        52.5,
+        68.5
       ],
       "anchor": [
-        52.0,
-        89.0
+        52.5,
+        89.5
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
-        -68.0,
+        -52.5,
+        -68.5,
         -11.0,
         34.5
       ],
-      "x": 582,
-      "y": 828,
+      "x": 664,
+      "y": 832,
       "depthRegistration": {
-        "x": 582,
-        "y": 828,
-        "w": 82,
-        "h": 205,
+        "x": 664,
+        "y": 832,
+        "w": 83,
+        "h": 206,
         "origin": [
-          52.0,
-          68.0
+          52.5,
+          68.5
         ],
         "pixel_density": 2
       },
@@ -6601,11 +6601,11 @@ export const ARCHITECTURE = {
         52.0,
         -7.5
       ],
-      "x": 666,
-      "y": 828,
+      "x": 749,
+      "y": 832,
       "depthRegistration": {
-        "x": 666,
-        "y": 828,
+        "x": 749,
+        "y": 832,
         "w": 82,
         "h": 104,
         "origin": [
@@ -6661,11 +6661,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 750,
-      "y": 828,
+      "x": 833,
+      "y": 832,
       "depthRegistration": {
-        "x": 750,
-        "y": 828,
+        "x": 833,
+        "y": 832,
         "w": 84,
         "h": 106,
         "origin": [
@@ -6698,38 +6698,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.y-front.cut",
       "source": "window.craftsman.y-front.cut",
       "sourceCrop": [
-        56,
+        55,
         219,
         138,
         325
       ],
       "origin": [
-        52.0,
+        52.5,
         18.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         39.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -18.5,
         -11.0,
         34.5
       ],
-      "x": 836,
-      "y": 828,
+      "x": 919,
+      "y": 832,
       "depthRegistration": {
-        "x": 836,
-        "y": 828,
-        "w": 82,
+        "x": 919,
+        "y": 832,
+        "w": 83,
         "h": 106,
         "origin": [
-          52.0,
+          52.5,
           18.5
         ],
         "pixel_density": 2
@@ -6758,39 +6758,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.x-back.full",
       "source": "window.craftsman.x-back.full",
       "sourceCrop": [
-        56,
-        36,
+        55,
+        35,
         134,
         241
       ],
       "origin": [
-        52.0,
-        110.0
+        52.5,
+        110.5
       ],
       "anchor": [
-        52.0,
-        131.0
+        52.5,
+        131.5
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
-        -110.0,
+        -52.5,
+        -110.5,
         -13.0,
         -7.5
       ],
-      "x": 920,
-      "y": 828,
+      "x": 1004,
+      "y": 832,
       "depthRegistration": {
-        "x": 920,
-        "y": 828,
-        "w": 78,
-        "h": 205,
+        "x": 1004,
+        "y": 832,
+        "w": 79,
+        "h": 206,
         "origin": [
-          52.0,
-          110.0
+          52.5,
+          110.5
         ],
         "pixel_density": 2
       },
@@ -6819,38 +6819,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.x-back.full",
       "sourceCrop": [
         118,
-        78,
+        77,
         198,
         283
       ],
       "origin": [
         21.0,
-        89.0
+        89.5
       ],
       "anchor": [
         21.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -21.0,
-        -89.0,
+        -89.5,
         19.0,
         13.5
       ],
-      "x": 1000,
-      "y": 828,
+      "x": 1085,
+      "y": 832,
       "depthRegistration": {
-        "x": 1000,
-        "y": 828,
+        "x": 1085,
+        "y": 832,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           21.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -6879,38 +6879,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.x-back.full",
       "sourceCrop": [
         182,
-        120,
+        119,
         264,
         325
       ],
       "origin": [
         -11.0,
-        68.0
+        68.5
       ],
       "anchor": [
         -11.0,
-        89.0
+        89.5
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
         11.0,
-        -68.0,
+        -68.5,
         52.0,
         34.5
       ],
-      "x": 1082,
-      "y": 828,
+      "x": 1167,
+      "y": 832,
       "depthRegistration": {
-        "x": 1082,
-        "y": 828,
+        "x": 1167,
+        "y": 832,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           -11.0,
-          68.0
+          68.5
         ],
         "pixel_density": 2
       },
@@ -6938,38 +6938,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.x-back.cut",
       "source": "window.craftsman.x-back.cut",
       "sourceCrop": [
-        56,
+        55,
         137,
         138,
         241
       ],
       "origin": [
-        52.0,
+        52.5,
         59.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         80.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -59.5,
         -11.0,
         -7.5
       ],
-      "x": 1166,
-      "y": 828,
+      "x": 1251,
+      "y": 832,
       "depthRegistration": {
-        "x": 1166,
-        "y": 828,
-        "w": 82,
+        "x": 1251,
+        "y": 832,
+        "w": 83,
         "h": 104,
         "origin": [
-          52.0,
+          52.5,
           59.5
         ],
         "pixel_density": 2
@@ -7021,11 +7021,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 1250,
-      "y": 828,
+      "x": 1336,
+      "y": 832,
       "depthRegistration": {
-        "x": 1250,
-        "y": 828,
+        "x": 1336,
+        "y": 832,
         "w": 84,
         "h": 106,
         "origin": [
@@ -7081,11 +7081,11 @@ export const ARCHITECTURE = {
         52.0,
         34.5
       ],
-      "x": 1336,
-      "y": 828,
+      "x": 1422,
+      "y": 832,
       "depthRegistration": {
-        "x": 1336,
-        "y": 828,
+        "x": 1422,
+        "y": 832,
         "w": 82,
         "h": 106,
         "origin": [
@@ -7119,38 +7119,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.y-back.full",
       "sourceCrop": [
         186,
-        36,
+        35,
         264,
         241
       ],
       "origin": [
         -13.0,
-        110.0
+        110.5
       ],
       "anchor": [
         -13.0,
-        131.0
+        131.5
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         13.0,
-        -110.0,
+        -110.5,
         52.0,
         -7.5
       ],
-      "x": 1420,
-      "y": 828,
+      "x": 1506,
+      "y": 832,
       "depthRegistration": {
-        "x": 1420,
-        "y": 828,
+        "x": 1506,
+        "y": 832,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           -13.0,
-          110.0
+          110.5
         ],
         "pixel_density": 2
       },
@@ -7179,38 +7179,38 @@ export const ARCHITECTURE = {
       "source": "window.craftsman.y-back.full",
       "sourceCrop": [
         122,
-        78,
+        77,
         202,
         283
       ],
       "origin": [
         19.0,
-        89.0
+        89.5
       ],
       "anchor": [
         19.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -19.0,
-        -89.0,
+        -89.5,
         21.0,
         13.5
       ],
-      "x": 1500,
-      "y": 828,
+      "x": 1586,
+      "y": 832,
       "depthRegistration": {
-        "x": 1500,
-        "y": 828,
+        "x": 1586,
+        "y": 832,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           19.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -7238,39 +7238,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.y-back.full",
       "source": "window.craftsman.y-back.full",
       "sourceCrop": [
-        56,
-        120,
+        55,
+        119,
         138,
         325
       ],
       "origin": [
-        52.0,
-        68.0
+        52.5,
+        68.5
       ],
       "anchor": [
-        52.0,
-        89.0
+        52.5,
+        89.5
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
-        -68.0,
+        -52.5,
+        -68.5,
         -11.0,
         34.5
       ],
-      "x": 1582,
-      "y": 828,
+      "x": 1668,
+      "y": 832,
       "depthRegistration": {
-        "x": 1582,
-        "y": 828,
-        "w": 82,
-        "h": 205,
+        "x": 1668,
+        "y": 832,
+        "w": 83,
+        "h": 206,
         "origin": [
-          52.0,
-          68.0
+          52.5,
+          68.5
         ],
         "pixel_density": 2
       },
@@ -7321,11 +7321,11 @@ export const ARCHITECTURE = {
         52.0,
         -7.5
       ],
-      "x": 1666,
-      "y": 828,
+      "x": 1753,
+      "y": 832,
       "depthRegistration": {
-        "x": 1666,
-        "y": 828,
+        "x": 1753,
+        "y": 832,
         "w": 82,
         "h": 104,
         "origin": [
@@ -7381,11 +7381,11 @@ export const ARCHITECTURE = {
         21.0,
         13.5
       ],
-      "x": 1750,
-      "y": 828,
+      "x": 1837,
+      "y": 832,
       "depthRegistration": {
-        "x": 1750,
-        "y": 828,
+        "x": 1837,
+        "y": 832,
         "w": 84,
         "h": 106,
         "origin": [
@@ -7418,38 +7418,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.craftsman.y-back.cut",
       "source": "window.craftsman.y-back.cut",
       "sourceCrop": [
-        56,
+        55,
         219,
         138,
         325
       ],
       "origin": [
-        52.0,
+        52.5,
         18.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         39.5
       ],
-      "w": 82,
+      "w": 83,
       "h": 106,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -18.5,
         -11.0,
         34.5
       ],
-      "x": 1836,
-      "y": 828,
+      "x": 1923,
+      "y": 832,
       "depthRegistration": {
-        "x": 1836,
-        "y": 828,
-        "w": 82,
+        "x": 1923,
+        "y": 832,
+        "w": 83,
         "h": 106,
         "origin": [
-          52.0,
+          52.5,
           18.5
         ],
         "pixel_density": 2
@@ -7478,39 +7478,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-front.full",
       "source": "window.clerestory.x-front.full",
       "sourceCrop": [
-        56,
-        36,
+        55,
+        35,
         134,
         241
       ],
       "origin": [
-        52.0,
-        110.0
+        52.5,
+        110.5
       ],
       "anchor": [
-        52.0,
-        131.0
+        52.5,
+        131.5
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
-        -110.0,
+        -52.5,
+        -110.5,
         -13.0,
         -7.5
       ],
-      "x": 1920,
-      "y": 828,
+      "x": 0,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1920,
-        "y": 828,
-        "w": 78,
-        "h": 205,
+        "x": 0,
+        "y": 1040,
+        "w": 79,
+        "h": 206,
         "origin": [
-          52.0,
-          110.0
+          52.5,
+          110.5
         ],
         "pixel_density": 2
       },
@@ -7539,38 +7539,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.x-front.full",
       "sourceCrop": [
         118,
-        78,
+        77,
         198,
         283
       ],
       "origin": [
         21.0,
-        89.0
+        89.5
       ],
       "anchor": [
         21.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -21.0,
-        -89.0,
+        -89.5,
         19.0,
         13.5
       ],
-      "x": 0,
-      "y": 1035,
+      "x": 81,
+      "y": 1040,
       "depthRegistration": {
-        "x": 0,
-        "y": 1035,
+        "x": 81,
+        "y": 1040,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           21.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -7599,38 +7599,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.x-front.full",
       "sourceCrop": [
         182,
-        120,
+        119,
         264,
         325
       ],
       "origin": [
         -11.0,
-        68.0
+        68.5
       ],
       "anchor": [
         -11.0,
-        89.0
+        89.5
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
         11.0,
-        -68.0,
+        -68.5,
         52.0,
         34.5
       ],
-      "x": 82,
-      "y": 1035,
+      "x": 163,
+      "y": 1040,
       "depthRegistration": {
-        "x": 82,
-        "y": 1035,
+        "x": 163,
+        "y": 1040,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           -11.0,
-          68.0
+          68.5
         ],
         "pixel_density": 2
       },
@@ -7645,12 +7645,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -1.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           1.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -7658,38 +7658,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-front.cut",
       "source": "window.clerestory.x-front.cut",
       "sourceCrop": [
-        56,
+        55,
         137,
-        134,
+        135,
         241
       ],
       "origin": [
-        52.0,
+        52.5,
         59.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         80.5
       ],
-      "w": 78,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -59.5,
-        -13.0,
+        -12.5,
         -7.5
       ],
-      "x": 166,
-      "y": 1035,
+      "x": 247,
+      "y": 1040,
       "depthRegistration": {
-        "x": 166,
-        "y": 1035,
-        "w": 78,
+        "x": 247,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          52.0,
+          52.5,
           59.5
         ],
         "pixel_density": 2
@@ -7705,12 +7705,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -1.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           1.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -7718,38 +7718,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-front.cut",
       "source": "window.clerestory.x-front.cut",
       "sourceCrop": [
-        121,
+        119,
         179,
-        198,
+        199,
         283
       ],
       "origin": [
-        19.5,
+        20.5,
         38.5
       ],
       "anchor": [
-        19.5,
+        20.5,
         59.5
       ],
-      "w": 77,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -19.5,
+        -20.5,
         -38.5,
-        19.0,
+        19.5,
         13.5
       ],
-      "x": 246,
-      "y": 1035,
+      "x": 329,
+      "y": 1040,
       "depthRegistration": {
-        "x": 246,
-        "y": 1035,
-        "w": 77,
+        "x": 329,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          19.5,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -7765,12 +7765,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -1.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           1.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -7778,38 +7778,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-front.cut",
       "source": "window.clerestory.x-front.cut",
       "sourceCrop": [
-        185,
+        183,
         221,
-        264,
-        325
+        265,
+        326
       ],
       "origin": [
-        -12.5,
+        -11.5,
         17.5
       ],
       "anchor": [
-        -12.5,
+        -11.5,
         38.5
       ],
-      "w": 79,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        12.5,
+        11.5,
         -17.5,
-        52.0,
-        34.5
+        52.5,
+        35.0
       ],
-      "x": 325,
-      "y": 1035,
+      "x": 411,
+      "y": 1040,
       "depthRegistration": {
-        "x": 325,
-        "y": 1035,
-        "w": 79,
-        "h": 104,
+        "x": 411,
+        "y": 1040,
+        "w": 82,
+        "h": 105,
         "origin": [
-          -12.5,
+          -11.5,
           17.5
         ],
         "pixel_density": 2
@@ -7839,38 +7839,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.y-front.full",
       "sourceCrop": [
         186,
-        36,
+        35,
         264,
         241
       ],
       "origin": [
         -13.0,
-        110.0
+        110.5
       ],
       "anchor": [
         -13.0,
-        131.0
+        131.5
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         13.0,
-        -110.0,
+        -110.5,
         52.0,
         -7.5
       ],
-      "x": 406,
-      "y": 1035,
+      "x": 495,
+      "y": 1040,
       "depthRegistration": {
-        "x": 406,
-        "y": 1035,
+        "x": 495,
+        "y": 1040,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           -13.0,
-          110.0
+          110.5
         ],
         "pixel_density": 2
       },
@@ -7899,38 +7899,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.y-front.full",
       "sourceCrop": [
         122,
-        78,
+        77,
         202,
         283
       ],
       "origin": [
         19.0,
-        89.0
+        89.5
       ],
       "anchor": [
         19.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -19.0,
-        -89.0,
+        -89.5,
         21.0,
         13.5
       ],
-      "x": 486,
-      "y": 1035,
+      "x": 575,
+      "y": 1040,
       "depthRegistration": {
-        "x": 486,
-        "y": 1035,
+        "x": 575,
+        "y": 1040,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           19.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -7958,39 +7958,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-front.full",
       "source": "window.clerestory.y-front.full",
       "sourceCrop": [
-        56,
-        120,
+        55,
+        119,
         138,
         325
       ],
       "origin": [
-        52.0,
-        68.0
+        52.5,
+        68.5
       ],
       "anchor": [
-        52.0,
-        89.0
+        52.5,
+        89.5
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
-        -68.0,
+        -52.5,
+        -68.5,
         -11.0,
         34.5
       ],
-      "x": 568,
-      "y": 1035,
+      "x": 657,
+      "y": 1040,
       "depthRegistration": {
-        "x": 568,
-        "y": 1035,
-        "w": 82,
-        "h": 205,
+        "x": 657,
+        "y": 1040,
+        "w": 83,
+        "h": 206,
         "origin": [
-          52.0,
-          68.0
+          52.5,
+          68.5
         ],
         "pixel_density": 2
       },
@@ -8004,12 +8004,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -1.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           1.5,
           0.6666666666666666
         ]
@@ -8018,38 +8018,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-front.cut",
       "source": "window.clerestory.y-front.cut",
       "sourceCrop": [
-        186,
+        185,
         137,
-        264,
+        265,
         241
       ],
       "origin": [
-        -13.0,
+        -12.5,
         59.5
       ],
       "anchor": [
-        -13.0,
+        -12.5,
         80.5
       ],
-      "w": 78,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        13.0,
+        12.5,
         -59.5,
-        52.0,
+        52.5,
         -7.5
       ],
-      "x": 652,
-      "y": 1035,
+      "x": 742,
+      "y": 1040,
       "depthRegistration": {
-        "x": 652,
-        "y": 1035,
-        "w": 78,
+        "x": 742,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          -13.0,
+          -12.5,
           59.5
         ],
         "pixel_density": 2
@@ -8064,12 +8064,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -1.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           1.5,
           0.6666666666666666
         ]
@@ -8078,38 +8078,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-front.cut",
       "source": "window.clerestory.y-front.cut",
       "sourceCrop": [
-        122,
+        121,
         179,
-        199,
+        201,
         283
       ],
       "origin": [
-        19.0,
+        19.5,
         38.5
       ],
       "anchor": [
-        19.0,
+        19.5,
         59.5
       ],
-      "w": 77,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -19.0,
+        -19.5,
         -38.5,
-        19.5,
+        20.5,
         13.5
       ],
-      "x": 732,
-      "y": 1035,
+      "x": 824,
+      "y": 1040,
       "depthRegistration": {
-        "x": 732,
-        "y": 1035,
-        "w": 77,
+        "x": 824,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          19.0,
+          19.5,
           38.5
         ],
         "pixel_density": 2
@@ -8124,12 +8124,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -1.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           1.5,
           0.6666666666666666
         ]
@@ -8138,38 +8138,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-front.cut",
       "source": "window.clerestory.y-front.cut",
       "sourceCrop": [
-        56,
+        55,
         221,
-        135,
-        325
+        137,
+        326
       ],
       "origin": [
-        52.0,
+        52.5,
         17.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         38.5
       ],
-      "w": 79,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -17.5,
-        -12.5,
-        34.5
+        -11.5,
+        35.0
       ],
-      "x": 811,
-      "y": 1035,
+      "x": 906,
+      "y": 1040,
       "depthRegistration": {
-        "x": 811,
-        "y": 1035,
-        "w": 79,
-        "h": 104,
+        "x": 906,
+        "y": 1040,
+        "w": 82,
+        "h": 105,
         "origin": [
-          52.0,
+          52.5,
           17.5
         ],
         "pixel_density": 2
@@ -8198,39 +8198,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-back.full",
       "source": "window.clerestory.x-back.full",
       "sourceCrop": [
-        56,
-        36,
+        55,
+        35,
         134,
         241
       ],
       "origin": [
-        52.0,
-        110.0
+        52.5,
+        110.5
       ],
       "anchor": [
-        52.0,
-        131.0
+        52.5,
+        131.5
       ],
-      "w": 78,
-      "h": 205,
+      "w": 79,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
-        -110.0,
+        -52.5,
+        -110.5,
         -13.0,
         -7.5
       ],
-      "x": 892,
-      "y": 1035,
+      "x": 990,
+      "y": 1040,
       "depthRegistration": {
-        "x": 892,
-        "y": 1035,
-        "w": 78,
-        "h": 205,
+        "x": 990,
+        "y": 1040,
+        "w": 79,
+        "h": 206,
         "origin": [
-          52.0,
-          110.0
+          52.5,
+          110.5
         ],
         "pixel_density": 2
       },
@@ -8259,38 +8259,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.x-back.full",
       "sourceCrop": [
         118,
-        78,
+        77,
         198,
         283
       ],
       "origin": [
         21.0,
-        89.0
+        89.5
       ],
       "anchor": [
         21.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -21.0,
-        -89.0,
+        -89.5,
         19.0,
         13.5
       ],
-      "x": 972,
-      "y": 1035,
+      "x": 1071,
+      "y": 1040,
       "depthRegistration": {
-        "x": 972,
-        "y": 1035,
+        "x": 1071,
+        "y": 1040,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           21.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -8319,38 +8319,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.x-back.full",
       "sourceCrop": [
         182,
-        120,
+        119,
         264,
         325
       ],
       "origin": [
         -11.0,
-        68.0
+        68.5
       ],
       "anchor": [
         -11.0,
-        89.0
+        89.5
       ],
       "w": 82,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
         11.0,
-        -68.0,
+        -68.5,
         52.0,
         34.5
       ],
-      "x": 1054,
-      "y": 1035,
+      "x": 1153,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1054,
-        "y": 1035,
+        "x": 1153,
+        "y": 1040,
         "w": 82,
-        "h": 205,
+        "h": 206,
         "origin": [
           -11.0,
-          68.0
+          68.5
         ],
         "pixel_density": 2
       },
@@ -8365,12 +8365,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -1.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           1.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -8378,38 +8378,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-back.cut",
       "source": "window.clerestory.x-back.cut",
       "sourceCrop": [
-        56,
+        55,
         137,
-        134,
+        135,
         241
       ],
       "origin": [
-        52.0,
+        52.5,
         59.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         80.5
       ],
-      "w": 78,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -59.5,
-        -13.0,
+        -12.5,
         -7.5
       ],
-      "x": 1138,
-      "y": 1035,
+      "x": 1237,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1138,
-        "y": 1035,
-        "w": 78,
+        "x": 1237,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          52.0,
+          52.5,
           59.5
         ],
         "pixel_density": 2
@@ -8425,12 +8425,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -1.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           1.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -8438,38 +8438,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-back.cut",
       "source": "window.clerestory.x-back.cut",
       "sourceCrop": [
-        121,
+        119,
         179,
-        198,
+        199,
         283
       ],
       "origin": [
-        19.5,
+        20.5,
         38.5
       ],
       "anchor": [
-        19.5,
+        20.5,
         59.5
       ],
-      "w": 77,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -19.5,
+        -20.5,
         -38.5,
-        19.0,
+        19.5,
         13.5
       ],
-      "x": 1218,
-      "y": 1035,
+      "x": 1319,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1218,
-        "y": 1035,
-        "w": 77,
+        "x": 1319,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          19.5,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -8485,12 +8485,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -1.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           1.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -8498,38 +8498,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.x-back.cut",
       "source": "window.clerestory.x-back.cut",
       "sourceCrop": [
-        185,
+        183,
         221,
-        264,
-        325
+        265,
+        326
       ],
       "origin": [
-        -12.5,
+        -11.5,
         17.5
       ],
       "anchor": [
-        -12.5,
+        -11.5,
         38.5
       ],
-      "w": 79,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        12.5,
+        11.5,
         -17.5,
-        52.0,
-        34.5
+        52.5,
+        35.0
       ],
-      "x": 1297,
-      "y": 1035,
+      "x": 1401,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1297,
-        "y": 1035,
-        "w": 79,
-        "h": 104,
+        "x": 1401,
+        "y": 1040,
+        "w": 82,
+        "h": 105,
         "origin": [
-          -12.5,
+          -11.5,
           17.5
         ],
         "pixel_density": 2
@@ -8559,38 +8559,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.y-back.full",
       "sourceCrop": [
         186,
-        36,
+        35,
         264,
         241
       ],
       "origin": [
         -13.0,
-        110.0
+        110.5
       ],
       "anchor": [
         -13.0,
-        131.0
+        131.5
       ],
       "w": 78,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         13.0,
-        -110.0,
+        -110.5,
         52.0,
         -7.5
       ],
-      "x": 1378,
-      "y": 1035,
+      "x": 1485,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1378,
-        "y": 1035,
+        "x": 1485,
+        "y": 1040,
         "w": 78,
-        "h": 205,
+        "h": 206,
         "origin": [
           -13.0,
-          110.0
+          110.5
         ],
         "pixel_density": 2
       },
@@ -8619,38 +8619,38 @@ export const ARCHITECTURE = {
       "source": "window.clerestory.y-back.full",
       "sourceCrop": [
         122,
-        78,
+        77,
         202,
         283
       ],
       "origin": [
         19.0,
-        89.0
+        89.5
       ],
       "anchor": [
         19.0,
-        110.0
+        110.5
       ],
       "w": 80,
-      "h": 205,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
         -19.0,
-        -89.0,
+        -89.5,
         21.0,
         13.5
       ],
-      "x": 1458,
-      "y": 1035,
+      "x": 1565,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1458,
-        "y": 1035,
+        "x": 1565,
+        "y": 1040,
         "w": 80,
-        "h": 205,
+        "h": 206,
         "origin": [
           19.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -8678,39 +8678,39 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-back.full",
       "source": "window.clerestory.y-back.full",
       "sourceCrop": [
-        56,
-        120,
+        55,
+        119,
         138,
         325
       ],
       "origin": [
-        52.0,
-        68.0
+        52.5,
+        68.5
       ],
       "anchor": [
-        52.0,
-        89.0
+        52.5,
+        89.5
       ],
-      "w": 82,
-      "h": 205,
+      "w": 83,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
-        -68.0,
+        -52.5,
+        -68.5,
         -11.0,
         34.5
       ],
-      "x": 1540,
-      "y": 1035,
+      "x": 1647,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1540,
-        "y": 1035,
-        "w": 82,
-        "h": 205,
+        "x": 1647,
+        "y": 1040,
+        "w": 83,
+        "h": 206,
         "origin": [
-          52.0,
-          68.0
+          52.5,
+          68.5
         ],
         "pixel_density": 2
       },
@@ -8724,12 +8724,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -1.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           1.5,
           0.6666666666666666
         ]
@@ -8738,38 +8738,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-back.cut",
       "source": "window.clerestory.y-back.cut",
       "sourceCrop": [
-        186,
+        185,
         137,
-        264,
+        265,
         241
       ],
       "origin": [
-        -13.0,
+        -12.5,
         59.5
       ],
       "anchor": [
-        -13.0,
+        -12.5,
         80.5
       ],
-      "w": 78,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        13.0,
+        12.5,
         -59.5,
-        52.0,
+        52.5,
         -7.5
       ],
-      "x": 1624,
-      "y": 1035,
+      "x": 1732,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1624,
-        "y": 1035,
-        "w": 78,
+        "x": 1732,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          -13.0,
+          -12.5,
           59.5
         ],
         "pixel_density": 2
@@ -8784,12 +8784,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -1.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           1.5,
           0.6666666666666666
         ]
@@ -8798,38 +8798,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-back.cut",
       "source": "window.clerestory.y-back.cut",
       "sourceCrop": [
-        122,
+        121,
         179,
-        199,
+        201,
         283
       ],
       "origin": [
-        19.0,
+        19.5,
         38.5
       ],
       "anchor": [
-        19.0,
+        19.5,
         59.5
       ],
-      "w": 77,
+      "w": 80,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -19.0,
+        -19.5,
         -38.5,
-        19.5,
+        20.5,
         13.5
       ],
-      "x": 1704,
-      "y": 1035,
+      "x": 1814,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1704,
-        "y": 1035,
-        "w": 77,
+        "x": 1814,
+        "y": 1040,
+        "w": 80,
         "h": 104,
         "origin": [
-          19.0,
+          19.5,
           38.5
         ],
         "pixel_density": 2
@@ -8844,12 +8844,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -1.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           1.5,
           0.6666666666666666
         ]
@@ -8858,38 +8858,38 @@ export const ARCHITECTURE = {
       "geometryKey": "window.clerestory.y-back.cut",
       "source": "window.clerestory.y-back.cut",
       "sourceCrop": [
-        56,
+        55,
         221,
-        135,
-        325
+        137,
+        326
       ],
       "origin": [
-        52.0,
+        52.5,
         17.5
       ],
       "anchor": [
-        52.0,
+        52.5,
         38.5
       ],
-      "w": 79,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -52.0,
+        -52.5,
         -17.5,
-        -12.5,
-        34.5
+        -11.5,
+        35.0
       ],
-      "x": 1783,
-      "y": 1035,
+      "x": 1896,
+      "y": 1040,
       "depthRegistration": {
-        "x": 1783,
-        "y": 1035,
-        "w": 79,
-        "h": 104,
+        "x": 1896,
+        "y": 1040,
+        "w": 82,
+        "h": 105,
         "origin": [
-          52.0,
+          52.5,
           17.5
         ],
         "pixel_density": 2
@@ -8904,12 +8904,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2.0
         ]
       ],
@@ -8917,39 +8917,39 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.x-front.full",
       "source": "straight.x-front.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
-        283
+        119,
+        77,
+        201,
+        284
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 207,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
-        13.5
+        -20.5,
+        -89.5,
+        20.5,
+        14.0
       ],
-      "x": 1864,
-      "y": 1035,
+      "x": 0,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1864,
-        "y": 1035,
-        "w": 80,
-        "h": 205,
+        "x": 0,
+        "y": 1248,
+        "w": 82,
+        "h": 207,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -8963,12 +8963,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -8976,38 +8976,38 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.x-front.cut",
       "source": "straight.x-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1946,
-      "y": 1035,
+      "x": 84,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1946,
-        "y": 1035,
-        "w": 80,
-        "h": 104,
+        "x": 84,
+        "y": 1248,
+        "w": 82,
+        "h": 105,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9021,12 +9021,12 @@ export const ARCHITECTURE = {
       "heightMode": "full",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2.0
         ]
@@ -9035,39 +9035,39 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.y-front.full",
       "source": "straight.y-front.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
-        283
+        119,
+        77,
+        201,
+        284
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 207,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
-        13.5
+        -20.5,
+        -89.5,
+        20.5,
+        14.0
       ],
-      "x": 0,
-      "y": 1242,
+      "x": 168,
+      "y": 1248,
       "depthRegistration": {
-        "x": 0,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 168,
+        "y": 1248,
+        "w": 82,
+        "h": 207,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9080,12 +9080,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -9094,38 +9094,38 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.y-front.cut",
       "source": "straight.y-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 82,
-      "y": 1242,
+      "x": 252,
+      "y": 1248,
       "depthRegistration": {
-        "x": 82,
-        "y": 1242,
-        "w": 80,
-        "h": 104,
+        "x": 252,
+        "y": 1248,
+        "w": 82,
+        "h": 105,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9140,12 +9140,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2.0
         ]
       ],
@@ -9153,39 +9153,39 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.x-back.full",
       "source": "straight.x-back.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
-        283
+        119,
+        77,
+        201,
+        284
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 207,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
-        13.5
+        -20.5,
+        -89.5,
+        20.5,
+        14.0
       ],
-      "x": 164,
-      "y": 1242,
+      "x": 336,
+      "y": 1248,
       "depthRegistration": {
-        "x": 164,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 336,
+        "y": 1248,
+        "w": 82,
+        "h": 207,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9199,12 +9199,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -9212,38 +9212,38 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.x-back.cut",
       "source": "straight.x-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 246,
-      "y": 1242,
+      "x": 420,
+      "y": 1248,
       "depthRegistration": {
-        "x": 246,
-        "y": 1242,
-        "w": 80,
-        "h": 104,
+        "x": 420,
+        "y": 1248,
+        "w": 82,
+        "h": 105,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9257,12 +9257,12 @@ export const ARCHITECTURE = {
       "heightMode": "full",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2.0
         ]
@@ -9271,39 +9271,39 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.y-back.full",
       "source": "straight.y-back.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
-        283
+        119,
+        77,
+        201,
+        284
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 207,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
-        13.5
+        -20.5,
+        -89.5,
+        20.5,
+        14.0
       ],
-      "x": 328,
-      "y": 1242,
+      "x": 504,
+      "y": 1248,
       "depthRegistration": {
-        "x": 328,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 504,
+        "y": 1248,
+        "w": 82,
+        "h": 207,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9316,12 +9316,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -9330,38 +9330,38 @@ export const ARCHITECTURE = {
       "geometryKey": "straight.y-back.cut",
       "source": "straight.y-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
-      "h": 104,
+      "w": 82,
+      "h": 105,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 410,
-      "y": 1242,
+      "x": 588,
+      "y": 1248,
       "depthRegistration": {
-        "x": 410,
-        "y": 1242,
-        "w": 80,
-        "h": 104,
+        "x": 588,
+        "y": 1248,
+        "w": 82,
+        "h": 105,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9376,12 +9376,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.08,
+          -0.09000000000000001,
           0
         ],
         [
           0.5,
-          0.08,
+          0.09000000000000001,
           2.0
         ]
       ],
@@ -9389,39 +9389,39 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.x-front.full",
       "source": "doorway.x-front.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
+        119,
+        77,
+        201,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
+        -20.5,
+        -89.5,
+        20.5,
         13.5
       ],
-      "x": 492,
-      "y": 1242,
+      "x": 672,
+      "y": 1248,
       "depthRegistration": {
-        "x": 492,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 672,
+        "y": 1248,
+        "w": 82,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9435,12 +9435,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.08,
+          -0.09000000000000001,
           0
         ],
         [
           0.5,
-          0.08,
+          0.09000000000000001,
           0.6666666666666666
         ]
       ],
@@ -9448,38 +9448,38 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.x-front.cut",
       "source": "doorway.x-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
+        201,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 82,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
+        20.5,
         13.5
       ],
-      "x": 574,
-      "y": 1242,
+      "x": 756,
+      "y": 1248,
       "depthRegistration": {
-        "x": 574,
-        "y": 1242,
-        "w": 80,
+        "x": 756,
+        "y": 1248,
+        "w": 82,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9493,12 +9493,12 @@ export const ARCHITECTURE = {
       "heightMode": "full",
       "physicalBounds": [
         [
-          -0.08,
+          -0.09000000000000001,
           -0.5,
           0
         ],
         [
-          0.08,
+          0.09000000000000001,
           0.5,
           2.0
         ]
@@ -9507,39 +9507,39 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.y-front.full",
       "source": "doorway.y-front.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
+        119,
+        77,
+        201,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
+        -20.5,
+        -89.5,
+        20.5,
         13.5
       ],
-      "x": 656,
-      "y": 1242,
+      "x": 840,
+      "y": 1248,
       "depthRegistration": {
-        "x": 656,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 840,
+        "y": 1248,
+        "w": 82,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9552,12 +9552,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.08,
+          -0.09000000000000001,
           -0.5,
           0
         ],
         [
-          0.08,
+          0.09000000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -9566,38 +9566,38 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.y-front.cut",
       "source": "doorway.y-front.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
+        201,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 82,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
+        20.5,
         13.5
       ],
-      "x": 738,
-      "y": 1242,
+      "x": 924,
+      "y": 1248,
       "depthRegistration": {
-        "x": 738,
-        "y": 1242,
-        "w": 80,
+        "x": 924,
+        "y": 1248,
+        "w": 82,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9612,12 +9612,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.08,
+          -0.09000000000000001,
           0
         ],
         [
           0.5,
-          0.08,
+          0.09000000000000001,
           2.0
         ]
       ],
@@ -9625,39 +9625,39 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.x-back.full",
       "source": "doorway.x-back.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
+        119,
+        77,
+        201,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
+        -20.5,
+        -89.5,
+        20.5,
         13.5
       ],
-      "x": 820,
-      "y": 1242,
+      "x": 1008,
+      "y": 1248,
       "depthRegistration": {
-        "x": 820,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 1008,
+        "y": 1248,
+        "w": 82,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9671,12 +9671,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.08,
+          -0.09000000000000001,
           0
         ],
         [
           0.5,
-          0.08,
+          0.09000000000000001,
           0.6666666666666666
         ]
       ],
@@ -9684,38 +9684,38 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.x-back.cut",
       "source": "doorway.x-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
+        201,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 82,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
+        20.5,
         13.5
       ],
-      "x": 902,
-      "y": 1242,
+      "x": 1092,
+      "y": 1248,
       "depthRegistration": {
-        "x": 902,
-        "y": 1242,
-        "w": 80,
+        "x": 1092,
+        "y": 1248,
+        "w": 82,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9729,12 +9729,12 @@ export const ARCHITECTURE = {
       "heightMode": "full",
       "physicalBounds": [
         [
-          -0.08,
+          -0.09000000000000001,
           -0.5,
           0
         ],
         [
-          0.08,
+          0.09000000000000001,
           0.5,
           2.0
         ]
@@ -9743,39 +9743,39 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.y-back.full",
       "source": "doorway.y-back.full",
       "sourceCrop": [
-        120,
-        78,
-        200,
+        119,
+        77,
+        201,
         283
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 80,
-      "h": 205,
+      "w": 82,
+      "h": 206,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        20.0,
+        -20.5,
+        -89.5,
+        20.5,
         13.5
       ],
-      "x": 984,
-      "y": 1242,
+      "x": 1176,
+      "y": 1248,
       "depthRegistration": {
-        "x": 984,
-        "y": 1242,
-        "w": 80,
-        "h": 205,
+        "x": 1176,
+        "y": 1248,
+        "w": 82,
+        "h": 206,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9788,12 +9788,12 @@ export const ARCHITECTURE = {
       "heightMode": "cut",
       "physicalBounds": [
         [
-          -0.08,
+          -0.09000000000000001,
           -0.5,
           0
         ],
         [
-          0.08,
+          0.09000000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -9802,38 +9802,38 @@ export const ARCHITECTURE = {
       "geometryKey": "doorway.y-back.cut",
       "source": "doorway.y-back.cut",
       "sourceCrop": [
-        120,
+        119,
         179,
-        200,
+        201,
         283
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 80,
+      "w": 82,
       "h": 104,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        20.0,
+        20.5,
         13.5
       ],
-      "x": 1066,
-      "y": 1242,
+      "x": 1260,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1066,
-        "y": 1242,
-        "w": 80,
+        "x": 1260,
+        "y": 1248,
+        "w": 82,
         "h": 104,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -9853,13 +9853,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
-          0.06,
+          0.08800000000000001,
+          0.07,
           0.6666666666666666
         ]
       ],
@@ -9867,38 +9867,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0001",
       "source": "junction.0001",
       "sourceCrop": [
-        148,
+        147,
         179,
-        200,
+        201,
         265
       ],
       "origin": [
-        6.0,
+        6.5,
         38.5
       ],
       "anchor": [
-        6.0,
+        6.5,
         59.5
       ],
-      "w": 52,
+      "w": 54,
       "h": 86,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -6.0,
+        -6.5,
         -38.5,
-        20.0,
+        20.5,
         4.5
       ],
-      "x": 1148,
-      "y": 1242,
+      "x": 1344,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1148,
-        "y": 1242,
-        "w": 52,
+        "x": 1344,
+        "y": 1248,
+        "w": 54,
         "h": 86,
         "origin": [
-          6.0,
+          6.5,
           38.5
         ],
         "pixel_density": 2
@@ -9918,13 +9918,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
-          0.06,
+          0.08800000000000001,
+          0.07,
           2
         ]
       ],
@@ -9932,39 +9932,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0002",
       "source": "junction.0002",
       "sourceCrop": [
-        148,
-        78,
-        200,
+        147,
+        77,
+        201,
         265
       ],
       "origin": [
-        6.0,
-        89.0
+        6.5,
+        89.5
       ],
       "anchor": [
-        6.0,
-        110.0
+        6.5,
+        110.5
       ],
-      "w": 52,
-      "h": 187,
+      "w": 54,
+      "h": 188,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -6.0,
-        -89.0,
-        20.0,
+        -6.5,
+        -89.5,
+        20.5,
         4.5
       ],
-      "x": 1202,
-      "y": 1242,
+      "x": 1400,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1202,
-        "y": 1242,
-        "w": 52,
-        "h": 187,
+        "x": 1400,
+        "y": 1248,
+        "w": 54,
+        "h": 188,
         "origin": [
-          6.0,
-          89.0
+          6.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -9984,12 +9984,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.06,
-          0.078,
+          0.07,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -9997,38 +9997,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0010",
       "source": "junction.0010",
       "sourceCrop": [
-        120,
+        119,
         179,
-        172,
-        265
+        173,
+        266
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 52,
-      "h": 86,
+      "w": 54,
+      "h": 87,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        6.0,
-        4.5
+        6.5,
+        5.0
       ],
-      "x": 1256,
-      "y": 1242,
+      "x": 1456,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1256,
-        "y": 1242,
-        "w": 52,
-        "h": 86,
+        "x": 1456,
+        "y": 1248,
+        "w": 54,
+        "h": 87,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -10053,8 +10053,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -10062,38 +10062,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0011",
       "source": "junction.0011",
       "sourceCrop": [
-        120,
+        119,
         179,
         162,
-        265
+        266
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 42,
-      "h": 86,
+      "w": 43,
+      "h": 87,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         1.0,
-        4.5
+        5.0
       ],
-      "x": 1310,
-      "y": 1242,
+      "x": 1512,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1310,
-        "y": 1242,
-        "w": 42,
-        "h": 86,
+        "x": 1512,
+        "y": 1248,
+        "w": 43,
+        "h": 87,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -10118,8 +10118,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -10129,7 +10129,7 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         179,
-        200,
+        201,
         265
       ],
       "origin": [
@@ -10140,22 +10140,22 @@ export const ARCHITECTURE = {
         1.0,
         59.5
       ],
-      "w": 42,
+      "w": 43,
       "h": 86,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
         -38.5,
-        20.0,
+        20.5,
         4.5
       ],
-      "x": 1354,
-      "y": 1242,
+      "x": 1557,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1354,
-        "y": 1242,
-        "w": 42,
+        "x": 1557,
+        "y": 1248,
+        "w": 43,
         "h": 86,
         "origin": [
           1.0,
@@ -10183,8 +10183,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10192,39 +10192,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0012",
       "source": "junction.0012",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        265
+        266
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 168,
+      "w": 43,
+      "h": 170,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        4.5
+        5.0
       ],
-      "x": 1398,
-      "y": 1242,
+      "x": 1602,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1398,
-        "y": 1242,
-        "w": 42,
-        "h": 168,
+        "x": 1602,
+        "y": 1248,
+        "w": 43,
+        "h": 170,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -10248,8 +10248,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10258,38 +10258,38 @@ export const ARCHITECTURE = {
       "source": "junction.0012",
       "sourceCrop": [
         157,
-        78,
-        200,
+        77,
+        201,
         265
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 187,
+      "w": 44,
+      "h": 188,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         4.5
       ],
-      "x": 1442,
-      "y": 1242,
+      "x": 1647,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1442,
-        "y": 1242,
-        "w": 43,
-        "h": 187,
+        "x": 1647,
+        "y": 1248,
+        "w": 44,
+        "h": 188,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -10309,12 +10309,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.06,
-          0.078,
+          0.07,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10322,39 +10322,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0020",
       "source": "junction.0020",
       "sourceCrop": [
-        120,
-        78,
-        172,
-        265
+        119,
+        77,
+        173,
+        266
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 52,
-      "h": 187,
+      "w": 54,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        6.0,
-        4.5
+        -20.5,
+        -89.5,
+        6.5,
+        5.0
       ],
-      "x": 1487,
-      "y": 1242,
+      "x": 1693,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1487,
-        "y": 1242,
-        "w": 52,
-        "h": 187,
+        "x": 1693,
+        "y": 1248,
+        "w": 54,
+        "h": 189,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -10378,8 +10378,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10387,39 +10387,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0021",
       "source": "junction.0021",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        265
+        266
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 187,
+      "w": 44,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        4.5
+        5.0
       ],
-      "x": 1541,
-      "y": 1242,
+      "x": 1749,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1541,
-        "y": 1242,
-        "w": 43,
-        "h": 187,
+        "x": 1749,
+        "y": 1248,
+        "w": 44,
+        "h": 189,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -10443,8 +10443,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10453,38 +10453,38 @@ export const ARCHITECTURE = {
       "source": "junction.0021",
       "sourceCrop": [
         158,
-        97,
-        200,
+        96,
+        201,
         265
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 168,
+      "w": 43,
+      "h": 169,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
+        -80.0,
+        20.5,
         4.5
       ],
-      "x": 1586,
-      "y": 1242,
+      "x": 1795,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1586,
-        "y": 1242,
-        "w": 42,
-        "h": 168,
+        "x": 1795,
+        "y": 1248,
+        "w": 43,
+        "h": 169,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -10508,8 +10508,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10517,39 +10517,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0022",
       "source": "junction.0022",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        265
+        266
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        4.5
+        5.0
       ],
-      "x": 1630,
-      "y": 1242,
+      "x": 1840,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1630,
-        "y": 1242,
-        "w": 42,
-        "h": 187,
+        "x": 1840,
+        "y": 1248,
+        "w": 43,
+        "h": 189,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -10573,8 +10573,8 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
-          0.078,
+          0.08800000000000001,
+          0.08800000000000001,
           2
         ]
       ],
@@ -10583,38 +10583,38 @@ export const ARCHITECTURE = {
       "source": "junction.0022",
       "sourceCrop": [
         158,
-        78,
-        200,
+        77,
+        201,
         265
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 188,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         4.5
       ],
-      "x": 1674,
-      "y": 1242,
+      "x": 1885,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1674,
-        "y": 1242,
-        "w": 42,
-        "h": 187,
+        "x": 1885,
+        "y": 1248,
+        "w": 43,
+        "h": 188,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -10633,12 +10633,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.06,
+          -0.08800000000000001,
+          -0.07,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -10647,39 +10647,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0100",
       "source": "junction.0100",
       "sourceCrop": [
-        120,
-        198,
-        172,
-        283
+        119,
+        197,
+        173,
+        284
       ],
       "origin": [
-        20.0,
-        29.0
+        20.5,
+        29.5
       ],
       "anchor": [
-        20.0,
-        50.0
+        20.5,
+        50.5
       ],
-      "w": 52,
-      "h": 85,
+      "w": 54,
+      "h": 87,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -29.0,
-        6.0,
-        13.5
+        -20.5,
+        -29.5,
+        6.5,
+        14.0
       ],
-      "x": 1718,
-      "y": 1242,
+      "x": 1930,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1718,
-        "y": 1242,
-        "w": 52,
-        "h": 85,
+        "x": 1930,
+        "y": 1248,
+        "w": 54,
+        "h": 87,
         "origin": [
-          20.0,
-          29.0
+          20.5,
+          29.5
         ],
         "pixel_density": 2
       },
@@ -10698,12 +10698,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -10712,38 +10712,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0101",
       "source": "junction.0101",
       "sourceCrop": [
-        120,
+        119,
         200,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         28.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         49.0
       ],
-      "w": 47,
-      "h": 83,
+      "w": 50,
+      "h": 84,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -28.0,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 1772,
-      "y": 1242,
+      "x": 1986,
+      "y": 1248,
       "depthRegistration": {
-        "x": 1772,
-        "y": 1242,
-        "w": 47,
-        "h": 83,
+        "x": 1986,
+        "y": 1248,
+        "w": 50,
+        "h": 84,
         "origin": [
-          20.0,
+          20.5,
           28.0
         ],
         "pixel_density": 2
@@ -10763,12 +10763,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -10777,38 +10777,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0101",
       "source": "junction.0101",
       "sourceCrop": [
-        154,
+        153,
         179,
-        200,
+        201,
         262
       ],
       "origin": [
-        3.0,
+        3.5,
         38.5
       ],
       "anchor": [
-        3.0,
+        3.5,
         59.5
       ],
-      "w": 46,
+      "w": 48,
       "h": 83,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -3.0,
+        -3.5,
         -38.5,
-        20.0,
+        20.5,
         3.0
       ],
-      "x": 1821,
-      "y": 1242,
+      "x": 0,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1821,
-        "y": 1242,
-        "w": 46,
+        "x": 0,
+        "y": 1457,
+        "w": 48,
         "h": 83,
         "origin": [
-          3.0,
+          3.5,
           38.5
         ],
         "pixel_density": 2
@@ -10828,12 +10828,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -10842,39 +10842,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0102",
       "source": "junction.0102",
       "sourceCrop": [
-        120,
-        99,
-        167,
-        283
+        119,
+        98,
+        169,
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 47,
-      "h": 184,
+      "w": 50,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
-        3.5,
-        13.5
+        -20.5,
+        -79.0,
+        4.5,
+        14.0
       ],
-      "x": 1869,
-      "y": 1242,
+      "x": 50,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1869,
-        "y": 1242,
-        "w": 47,
-        "h": 184,
+        "x": 50,
+        "y": 1457,
+        "w": 50,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -10893,12 +10893,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -10908,38 +10908,38 @@ export const ARCHITECTURE = {
       "source": "junction.0102",
       "sourceCrop": [
         154,
-        78,
-        200,
+        77,
+        201,
         262
       ],
       "origin": [
         3.0,
-        89.0
+        89.5
       ],
       "anchor": [
         3.0,
-        110.0
+        110.5
       ],
-      "w": 46,
-      "h": 184,
+      "w": 47,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         3.0
       ],
-      "x": 1918,
-      "y": 1242,
+      "x": 102,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1918,
-        "y": 1242,
-        "w": 46,
-        "h": 184,
+        "x": 102,
+        "y": 1457,
+        "w": 47,
+        "h": 185,
         "origin": [
           3.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -10959,11 +10959,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -10972,39 +10972,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0110",
       "source": "junction.0110",
       "sourceCrop": [
-        120,
-        202,
-        172,
-        283
+        119,
+        203,
+        173,
+        284
       ],
       "origin": [
-        20.0,
-        27.0
+        20.5,
+        26.5
       ],
       "anchor": [
-        20.0,
-        48.0
+        20.5,
+        47.5
       ],
-      "w": 52,
+      "w": 54,
       "h": 81,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -27.0,
-        6.0,
-        13.5
+        -20.5,
+        -26.5,
+        6.5,
+        14.0
       ],
-      "x": 1966,
-      "y": 1242,
+      "x": 151,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1966,
-        "y": 1242,
-        "w": 52,
+        "x": 151,
+        "y": 1457,
+        "w": 54,
         "h": 81,
         "origin": [
-          20.0,
-          27.0
+          20.5,
+          26.5
         ],
         "pixel_density": 2
       },
@@ -11024,11 +11024,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -11037,38 +11037,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0110",
       "source": "junction.0110",
       "sourceCrop": [
-        120,
+        119,
         179,
-        172,
+        173,
         248
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 52,
+      "w": 54,
       "h": 69,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        6.0,
+        6.5,
         -4.0
       ],
-      "x": 0,
-      "y": 1449,
+      "x": 207,
+      "y": 1457,
       "depthRegistration": {
-        "x": 0,
-        "y": 1449,
-        "w": 52,
+        "x": 207,
+        "y": 1457,
+        "w": 54,
         "h": 69,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -11093,7 +11093,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -11102,38 +11102,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0111",
       "source": "junction.0111",
       "sourceCrop": [
-        120,
+        119,
         203,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         26.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         47.5
       ],
-      "w": 47,
-      "h": 80,
+      "w": 50,
+      "h": 81,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -26.5,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 54,
-      "y": 1449,
+      "x": 263,
+      "y": 1457,
       "depthRegistration": {
-        "x": 54,
-        "y": 1449,
-        "w": 47,
-        "h": 80,
+        "x": 263,
+        "y": 1457,
+        "w": 50,
+        "h": 81,
         "origin": [
-          20.0,
+          20.5,
           26.5
         ],
         "pixel_density": 2
@@ -11158,7 +11158,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -11167,38 +11167,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0111",
       "source": "junction.0111",
       "sourceCrop": [
-        120,
+        119,
         179,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 42,
-      "h": 62,
+      "w": 43,
+      "h": 63,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 103,
-      "y": 1449,
+      "x": 315,
+      "y": 1457,
       "depthRegistration": {
-        "x": 103,
-        "y": 1449,
-        "w": 42,
-        "h": 62,
+        "x": 315,
+        "y": 1457,
+        "w": 43,
+        "h": 63,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -11223,7 +11223,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           0.6666666666666666
         ]
@@ -11234,7 +11234,7 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         179,
-        200,
+        201,
         262
       ],
       "origin": [
@@ -11245,22 +11245,22 @@ export const ARCHITECTURE = {
         1.0,
         59.5
       ],
-      "w": 42,
+      "w": 43,
       "h": 83,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
         -38.5,
-        20.0,
+        20.5,
         3.0
       ],
-      "x": 147,
-      "y": 1449,
+      "x": 360,
+      "y": 1457,
       "depthRegistration": {
-        "x": 147,
-        "y": 1449,
-        "w": 42,
+        "x": 360,
+        "y": 1457,
+        "w": 43,
         "h": 83,
         "origin": [
           1.0,
@@ -11288,7 +11288,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11297,38 +11297,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0112",
       "source": "junction.0112",
       "sourceCrop": [
-        120,
+        119,
         101,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 47,
-      "h": 182,
+      "w": 50,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 191,
-      "y": 1449,
+      "x": 405,
+      "y": 1457,
       "depthRegistration": {
-        "x": 191,
-        "y": 1449,
-        "w": 47,
-        "h": 182,
+        "x": 405,
+        "y": 1457,
+        "w": 50,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -11353,7 +11353,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11362,39 +11362,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0112",
       "source": "junction.0112",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 240,
-      "y": 1449,
+      "x": 457,
+      "y": 1457,
       "depthRegistration": {
-        "x": 240,
-        "y": 1449,
-        "w": 42,
-        "h": 144,
+        "x": 457,
+        "y": 1457,
+        "w": 43,
+        "h": 146,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -11418,7 +11418,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11428,38 +11428,38 @@ export const ARCHITECTURE = {
       "source": "junction.0112",
       "sourceCrop": [
         157,
-        78,
-        200,
+        77,
+        201,
         262
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 184,
+      "w": 44,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         3.0
       ],
-      "x": 284,
-      "y": 1449,
+      "x": 502,
+      "y": 1457,
       "depthRegistration": {
-        "x": 284,
-        "y": 1449,
-        "w": 43,
-        "h": 184,
+        "x": 502,
+        "y": 1457,
+        "w": 44,
+        "h": 185,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -11479,11 +11479,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11492,39 +11492,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0120",
       "source": "junction.0120",
       "sourceCrop": [
-        120,
-        101,
-        172,
-        283
+        119,
+        102,
+        173,
+        284
       ],
       "origin": [
-        20.0,
-        77.5
+        20.5,
+        77.0
       ],
       "anchor": [
-        20.0,
-        98.5
+        20.5,
+        98.0
       ],
-      "w": 52,
+      "w": 54,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -77.5,
-        6.0,
-        13.5
+        -20.5,
+        -77.0,
+        6.5,
+        14.0
       ],
-      "x": 329,
-      "y": 1449,
+      "x": 548,
+      "y": 1457,
       "depthRegistration": {
-        "x": 329,
-        "y": 1449,
-        "w": 52,
+        "x": 548,
+        "y": 1457,
+        "w": 54,
         "h": 182,
         "origin": [
-          20.0,
-          77.5
+          20.5,
+          77.0
         ],
         "pixel_density": 2
       },
@@ -11544,11 +11544,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11557,39 +11557,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0120",
       "source": "junction.0120",
       "sourceCrop": [
-        120,
-        78,
-        172,
+        119,
+        77,
+        173,
         248
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 52,
-      "h": 170,
+      "w": 54,
+      "h": 171,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        6.0,
+        -20.5,
+        -89.5,
+        6.5,
         -4.0
       ],
-      "x": 383,
-      "y": 1449,
+      "x": 604,
+      "y": 1457,
       "depthRegistration": {
-        "x": 383,
-        "y": 1449,
-        "w": 52,
-        "h": 170,
+        "x": 604,
+        "y": 1457,
+        "w": 54,
+        "h": 171,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -11613,7 +11613,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11622,38 +11622,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0121",
       "source": "junction.0121",
       "sourceCrop": [
-        120,
+        119,
         102,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 437,
-      "y": 1449,
+      "x": 660,
+      "y": 1457,
       "depthRegistration": {
-        "x": 437,
-        "y": 1449,
-        "w": 47,
-        "h": 181,
+        "x": 660,
+        "y": 1457,
+        "w": 50,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -11678,7 +11678,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11687,39 +11687,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0121",
       "source": "junction.0121",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        -7.5
+        -7.0
       ],
-      "x": 486,
-      "y": 1449,
+      "x": 712,
+      "y": 1457,
       "depthRegistration": {
-        "x": 486,
-        "y": 1449,
-        "w": 43,
-        "h": 163,
+        "x": 712,
+        "y": 1457,
+        "w": 44,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -11743,7 +11743,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11753,38 +11753,38 @@ export const ARCHITECTURE = {
       "source": "junction.0121",
       "sourceCrop": [
         158,
-        97,
-        200,
+        96,
+        201,
         262
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 165,
+      "w": 43,
+      "h": 166,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
+        -80.0,
+        20.5,
         3.0
       ],
-      "x": 531,
-      "y": 1449,
+      "x": 758,
+      "y": 1457,
       "depthRegistration": {
-        "x": 531,
-        "y": 1449,
-        "w": 42,
-        "h": 165,
+        "x": 758,
+        "y": 1457,
+        "w": 43,
+        "h": 166,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -11808,7 +11808,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11817,38 +11817,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0122",
       "source": "junction.0122",
       "sourceCrop": [
-        120,
+        119,
         102,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 575,
-      "y": 1449,
+      "x": 803,
+      "y": 1457,
       "depthRegistration": {
-        "x": 575,
-        "y": 1449,
-        "w": 47,
-        "h": 181,
+        "x": 803,
+        "y": 1457,
+        "w": 50,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -11873,7 +11873,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11882,39 +11882,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0122",
       "source": "junction.0122",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 624,
-      "y": 1449,
+      "x": 855,
+      "y": 1457,
       "depthRegistration": {
-        "x": 624,
-        "y": 1449,
-        "w": 42,
-        "h": 163,
+        "x": 855,
+        "y": 1457,
+        "w": 43,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -11938,7 +11938,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -11948,38 +11948,38 @@ export const ARCHITECTURE = {
       "source": "junction.0122",
       "sourceCrop": [
         158,
-        78,
-        200,
+        77,
+        201,
         262
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         3.0
       ],
-      "x": 668,
-      "y": 1449,
+      "x": 900,
+      "y": 1457,
       "depthRegistration": {
-        "x": 668,
-        "y": 1449,
-        "w": 42,
-        "h": 184,
+        "x": 900,
+        "y": 1457,
+        "w": 43,
+        "h": 185,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -11998,12 +11998,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.06,
+          -0.08800000000000001,
+          -0.07,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12012,39 +12012,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0200",
       "source": "junction.0200",
       "sourceCrop": [
-        120,
-        96,
-        172,
-        283
+        119,
+        95,
+        173,
+        284
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 52,
-      "h": 187,
+      "w": 54,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -80.0,
-        6.0,
-        13.5
+        -20.5,
+        -80.5,
+        6.5,
+        14.0
       ],
-      "x": 712,
-      "y": 1449,
+      "x": 945,
+      "y": 1457,
       "depthRegistration": {
-        "x": 712,
-        "y": 1449,
-        "w": 52,
-        "h": 187,
+        "x": 945,
+        "y": 1457,
+        "w": 54,
+        "h": 189,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -12063,12 +12063,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12077,39 +12077,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0201",
       "source": "junction.0201",
       "sourceCrop": [
-        120,
-        99,
-        167,
-        283
+        119,
+        98,
+        169,
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 47,
-      "h": 184,
+      "w": 50,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
-        3.5,
-        13.5
+        -20.5,
+        -79.0,
+        4.5,
+        14.0
       ],
-      "x": 766,
-      "y": 1449,
+      "x": 1001,
+      "y": 1457,
       "depthRegistration": {
-        "x": 766,
-        "y": 1449,
-        "w": 47,
-        "h": 184,
+        "x": 1001,
+        "y": 1457,
+        "w": 50,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -12128,12 +12128,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12143,38 +12143,38 @@ export const ARCHITECTURE = {
       "source": "junction.0201",
       "sourceCrop": [
         154,
-        96,
-        200,
+        95,
+        201,
         262
       ],
       "origin": [
         3.0,
-        80.0
+        80.5
       ],
       "anchor": [
         3.0,
-        101.0
+        101.5
       ],
-      "w": 46,
-      "h": 166,
+      "w": 47,
+      "h": 167,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -80.0,
-        20.0,
+        -80.5,
+        20.5,
         3.0
       ],
-      "x": 815,
-      "y": 1449,
+      "x": 1053,
+      "y": 1457,
       "depthRegistration": {
-        "x": 815,
-        "y": 1449,
-        "w": 46,
-        "h": 166,
+        "x": 1053,
+        "y": 1457,
+        "w": 47,
+        "h": 167,
         "origin": [
           3.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -12193,12 +12193,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12207,39 +12207,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0202",
       "source": "junction.0202",
       "sourceCrop": [
-        120,
-        99,
-        167,
-        283
+        119,
+        98,
+        169,
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 47,
-      "h": 184,
+      "w": 50,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
-        3.5,
-        13.5
+        -20.5,
+        -79.0,
+        4.5,
+        14.0
       ],
-      "x": 863,
-      "y": 1449,
+      "x": 1102,
+      "y": 1457,
       "depthRegistration": {
-        "x": 863,
-        "y": 1449,
-        "w": 47,
-        "h": 184,
+        "x": 1102,
+        "y": 1457,
+        "w": 50,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -12258,12 +12258,12 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12273,38 +12273,38 @@ export const ARCHITECTURE = {
       "source": "junction.0202",
       "sourceCrop": [
         154,
-        78,
-        200,
+        77,
+        201,
         262
       ],
       "origin": [
         3.0,
-        89.0
+        89.5
       ],
       "anchor": [
         3.0,
-        110.0
+        110.5
       ],
-      "w": 46,
-      "h": 184,
+      "w": 47,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         3.0
       ],
-      "x": 912,
-      "y": 1449,
+      "x": 1154,
+      "y": 1457,
       "depthRegistration": {
-        "x": 912,
-        "y": 1449,
-        "w": 46,
-        "h": 184,
+        "x": 1154,
+        "y": 1457,
+        "w": 47,
+        "h": 185,
         "origin": [
           3.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -12324,11 +12324,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12337,38 +12337,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0210",
       "source": "junction.0210",
       "sourceCrop": [
-        120,
+        119,
         101,
-        172,
-        283
+        173,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 52,
-      "h": 182,
+      "w": 54,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
-        6.0,
-        13.5
+        6.5,
+        14.0
       ],
-      "x": 960,
-      "y": 1449,
+      "x": 1203,
+      "y": 1457,
       "depthRegistration": {
-        "x": 960,
-        "y": 1449,
-        "w": 52,
-        "h": 182,
+        "x": 1203,
+        "y": 1457,
+        "w": 54,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -12389,11 +12389,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12402,39 +12402,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0210",
       "source": "junction.0210",
       "sourceCrop": [
-        120,
-        96,
-        172,
+        119,
+        95,
+        173,
         248
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 52,
-      "h": 152,
+      "w": 54,
+      "h": 153,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
-        6.0,
+        -20.5,
+        -80.5,
+        6.5,
         -4.0
       ],
-      "x": 1014,
-      "y": 1449,
+      "x": 1259,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1014,
-        "y": 1449,
-        "w": 52,
-        "h": 152,
+        "x": 1259,
+        "y": 1457,
+        "w": 54,
+        "h": 153,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -12458,7 +12458,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12467,38 +12467,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0211",
       "source": "junction.0211",
       "sourceCrop": [
-        120,
+        119,
         101,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 47,
-      "h": 182,
+      "w": 50,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 1068,
-      "y": 1449,
+      "x": 1315,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1068,
-        "y": 1449,
-        "w": 47,
-        "h": 182,
+        "x": 1315,
+        "y": 1457,
+        "w": 50,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -12523,7 +12523,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12532,39 +12532,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0211",
       "source": "junction.0211",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1117,
-      "y": 1449,
+      "x": 1367,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1117,
-        "y": 1449,
-        "w": 42,
-        "h": 145,
+        "x": 1367,
+        "y": 1457,
+        "w": 43,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -12588,7 +12588,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12598,38 +12598,38 @@ export const ARCHITECTURE = {
       "source": "junction.0211",
       "sourceCrop": [
         158,
-        96,
-        200,
+        95,
+        201,
         262
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 166,
+      "w": 43,
+      "h": 167,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
+        -80.5,
+        20.5,
         3.0
       ],
-      "x": 1161,
-      "y": 1449,
+      "x": 1412,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1161,
-        "y": 1449,
-        "w": 42,
-        "h": 166,
+        "x": 1412,
+        "y": 1457,
+        "w": 43,
+        "h": 167,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -12653,7 +12653,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12662,38 +12662,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0212",
       "source": "junction.0212",
       "sourceCrop": [
-        120,
+        119,
         101,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 47,
-      "h": 182,
+      "w": 50,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 1205,
-      "y": 1449,
+      "x": 1457,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1205,
-        "y": 1449,
-        "w": 47,
-        "h": 182,
+        "x": 1457,
+        "y": 1457,
+        "w": 50,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -12718,7 +12718,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12727,39 +12727,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0212",
       "source": "junction.0212",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1254,
-      "y": 1449,
+      "x": 1509,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1254,
-        "y": 1449,
-        "w": 42,
-        "h": 144,
+        "x": 1509,
+        "y": 1457,
+        "w": 43,
+        "h": 146,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -12783,7 +12783,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12793,38 +12793,38 @@ export const ARCHITECTURE = {
       "source": "junction.0212",
       "sourceCrop": [
         157,
-        78,
-        200,
+        77,
+        201,
         262
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 184,
+      "w": 44,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         3.0
       ],
-      "x": 1298,
-      "y": 1449,
+      "x": 1554,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1298,
-        "y": 1449,
-        "w": 43,
-        "h": 184,
+        "x": 1554,
+        "y": 1457,
+        "w": 44,
+        "h": 185,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -12844,11 +12844,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12857,39 +12857,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0220",
       "source": "junction.0220",
       "sourceCrop": [
-        120,
-        101,
-        172,
-        283
+        119,
+        102,
+        173,
+        284
       ],
       "origin": [
-        20.0,
-        77.5
+        20.5,
+        77.0
       ],
       "anchor": [
-        20.0,
-        98.5
+        20.5,
+        98.0
       ],
-      "w": 52,
+      "w": 54,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -77.5,
-        6.0,
-        13.5
+        -20.5,
+        -77.0,
+        6.5,
+        14.0
       ],
-      "x": 1343,
-      "y": 1449,
+      "x": 1600,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1343,
-        "y": 1449,
-        "w": 52,
+        "x": 1600,
+        "y": 1457,
+        "w": 54,
         "h": 182,
         "origin": [
-          20.0,
-          77.5
+          20.5,
+          77.0
         ],
         "pixel_density": 2
       },
@@ -12909,11 +12909,11 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12922,39 +12922,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0220",
       "source": "junction.0220",
       "sourceCrop": [
-        120,
-        78,
-        172,
+        119,
+        77,
+        173,
         248
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 52,
-      "h": 170,
+      "w": 54,
+      "h": 171,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
-        6.0,
+        -20.5,
+        -89.5,
+        6.5,
         -4.0
       ],
-      "x": 1397,
-      "y": 1449,
+      "x": 1656,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1397,
-        "y": 1449,
-        "w": 52,
-        "h": 170,
+        "x": 1656,
+        "y": 1457,
+        "w": 54,
+        "h": 171,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -12978,7 +12978,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -12987,38 +12987,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0221",
       "source": "junction.0221",
       "sourceCrop": [
-        120,
+        119,
         102,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 1451,
-      "y": 1449,
+      "x": 1712,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1451,
-        "y": 1449,
-        "w": 47,
-        "h": 181,
+        "x": 1712,
+        "y": 1457,
+        "w": 50,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -13043,7 +13043,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -13052,39 +13052,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0221",
       "source": "junction.0221",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        -7.5
+        -7.0
       ],
-      "x": 1500,
-      "y": 1449,
+      "x": 1764,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1500,
-        "y": 1449,
-        "w": 43,
-        "h": 163,
+        "x": 1764,
+        "y": 1457,
+        "w": 44,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -13108,7 +13108,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -13118,38 +13118,38 @@ export const ARCHITECTURE = {
       "source": "junction.0221",
       "sourceCrop": [
         158,
-        97,
-        200,
+        96,
+        201,
         262
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 165,
+      "w": 43,
+      "h": 166,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
+        -80.0,
+        20.5,
         3.0
       ],
-      "x": 1545,
-      "y": 1449,
+      "x": 1810,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1545,
-        "y": 1449,
-        "w": 42,
-        "h": 165,
+        "x": 1810,
+        "y": 1457,
+        "w": 43,
+        "h": 166,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -13173,7 +13173,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -13182,38 +13182,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0222",
       "source": "junction.0222",
       "sourceCrop": [
-        120,
+        119,
         102,
-        167,
-        283
+        169,
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
-        3.5,
-        13.5
+        4.5,
+        14.0
       ],
-      "x": 1589,
-      "y": 1449,
+      "x": 1855,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1589,
-        "y": 1449,
-        "w": 47,
-        "h": 181,
+        "x": 1855,
+        "y": 1457,
+        "w": 50,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -13238,7 +13238,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -13247,39 +13247,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.0222",
       "source": "junction.0222",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1638,
-      "y": 1449,
+      "x": 1907,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1638,
-        "y": 1449,
-        "w": 42,
-        "h": 163,
+        "x": 1907,
+        "y": 1457,
+        "w": 43,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -13303,7 +13303,7 @@ export const ARCHITECTURE = {
           0
         ],
         [
-          0.078,
+          0.08800000000000001,
           0.5,
           2
         ]
@@ -13313,38 +13313,38 @@ export const ARCHITECTURE = {
       "source": "junction.0222",
       "sourceCrop": [
         158,
-        78,
-        200,
+        77,
+        201,
         262
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
+        -89.5,
+        20.5,
         3.0
       ],
-      "x": 1682,
-      "y": 1449,
+      "x": 1952,
+      "y": 1457,
       "depthRegistration": {
-        "x": 1682,
-        "y": 1449,
-        "w": 42,
-        "h": 184,
+        "x": 1952,
+        "y": 1457,
+        "w": 43,
+        "h": 185,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -13363,13 +13363,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.06,
-          -0.078,
+          -0.07,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13377,39 +13377,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1000",
       "source": "junction.1000",
       "sourceCrop": [
-        148,
-        198,
-        200,
-        283
+        147,
+        197,
+        201,
+        284
       ],
       "origin": [
-        6.0,
-        29.0
+        6.5,
+        29.5
       ],
       "anchor": [
-        6.0,
-        50.0
+        6.5,
+        50.5
       ],
-      "w": 52,
-      "h": 85,
+      "w": 54,
+      "h": 87,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -6.0,
-        -29.0,
-        20.0,
-        13.5
+        -6.5,
+        -29.5,
+        20.5,
+        14.0
       ],
-      "x": 1726,
-      "y": 1449,
+      "x": 0,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1726,
-        "y": 1449,
-        "w": 52,
-        "h": 85,
+        "x": 0,
+        "y": 1648,
+        "w": 54,
+        "h": 87,
         "origin": [
-          6.0,
-          29.0
+          6.5,
+          29.5
         ],
         "pixel_density": 2
       },
@@ -13428,13 +13428,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13442,39 +13442,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1001",
       "source": "junction.1001",
       "sourceCrop": [
-        148,
-        202,
-        200,
-        283
+        147,
+        203,
+        201,
+        284
       ],
       "origin": [
-        6.0,
-        27.0
+        6.5,
+        26.5
       ],
       "anchor": [
-        6.0,
-        48.0
+        6.5,
+        47.5
       ],
-      "w": 52,
+      "w": 54,
       "h": 81,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -6.0,
-        -27.0,
-        20.0,
-        13.5
+        -6.5,
+        -26.5,
+        20.5,
+        14.0
       ],
-      "x": 1780,
-      "y": 1449,
+      "x": 56,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1780,
-        "y": 1449,
-        "w": 52,
+        "x": 56,
+        "y": 1648,
+        "w": 54,
         "h": 81,
         "origin": [
-          6.0,
-          27.0
+          6.5,
+          26.5
         ],
         "pixel_density": 2
       },
@@ -13493,13 +13493,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13507,38 +13507,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1001",
       "source": "junction.1001",
       "sourceCrop": [
-        148,
+        147,
         179,
-        200,
+        201,
         248
       ],
       "origin": [
-        6.0,
+        6.5,
         38.5
       ],
       "anchor": [
-        6.0,
+        6.5,
         59.5
       ],
-      "w": 52,
+      "w": 54,
       "h": 69,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -6.0,
+        -6.5,
         -38.5,
-        20.0,
+        20.5,
         -4.0
       ],
-      "x": 1834,
-      "y": 1449,
+      "x": 112,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1834,
-        "y": 1449,
-        "w": 52,
+        "x": 112,
+        "y": 1648,
+        "w": 54,
         "h": 69,
         "origin": [
-          6.0,
+          6.5,
           38.5
         ],
         "pixel_density": 2
@@ -13558,13 +13558,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -13572,38 +13572,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1002",
       "source": "junction.1002",
       "sourceCrop": [
-        148,
+        147,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        6.0,
+        6.5,
         77.5
       ],
       "anchor": [
-        6.0,
+        6.5,
         98.5
       ],
-      "w": 52,
-      "h": 182,
+      "w": 54,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -6.0,
+        -6.5,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1888,
-      "y": 1449,
+      "x": 168,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1888,
-        "y": 1449,
-        "w": 52,
-        "h": 182,
+        "x": 168,
+        "y": 1648,
+        "w": 54,
+        "h": 183,
         "origin": [
-          6.0,
+          6.5,
           77.5
         ],
         "pixel_density": 2
@@ -13623,13 +13623,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -13637,39 +13637,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1002",
       "source": "junction.1002",
       "sourceCrop": [
-        148,
-        78,
-        200,
+        147,
+        77,
+        201,
         248
       ],
       "origin": [
-        6.0,
-        89.0
+        6.5,
+        89.5
       ],
       "anchor": [
-        6.0,
-        110.0
+        6.5,
+        110.5
       ],
-      "w": 52,
-      "h": 170,
+      "w": 54,
+      "h": 171,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -6.0,
-        -89.0,
-        20.0,
+        -6.5,
+        -89.5,
+        20.5,
         -4.0
       ],
-      "x": 1942,
-      "y": 1449,
+      "x": 224,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1942,
-        "y": 1449,
-        "w": 52,
-        "h": 170,
+        "x": 224,
+        "y": 1648,
+        "w": 54,
+        "h": 171,
         "origin": [
-          6.0,
-          89.0
+          6.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -13689,12 +13689,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13702,38 +13702,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1010",
       "source": "junction.1010",
       "sourceCrop": [
-        153,
+        151,
         200,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         28.0
       ],
       "anchor": [
-        3.5,
+        4.5,
         49.0
       ],
-      "w": 47,
-      "h": 83,
+      "w": 50,
+      "h": 84,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -28.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1996,
-      "y": 1449,
+      "x": 280,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1996,
-        "y": 1449,
-        "w": 47,
-        "h": 83,
+        "x": 280,
+        "y": 1648,
+        "w": 50,
+        "h": 84,
         "origin": [
-          3.5,
+          4.5,
           28.0
         ],
         "pixel_density": 2
@@ -13754,12 +13754,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13767,38 +13767,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1010",
       "source": "junction.1010",
       "sourceCrop": [
-        120,
+        119,
         179,
-        166,
+        167,
         262
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 46,
+      "w": 48,
       "h": 83,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        3.0,
+        3.5,
         3.0
       ],
-      "x": 0,
-      "y": 1638,
+      "x": 332,
+      "y": 1648,
       "depthRegistration": {
-        "x": 0,
-        "y": 1638,
-        "w": 46,
+        "x": 332,
+        "y": 1648,
+        "w": 48,
         "h": 83,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -13824,7 +13824,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13832,38 +13832,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1011",
       "source": "junction.1011",
       "sourceCrop": [
-        153,
+        151,
         203,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         26.5
       ],
       "anchor": [
-        3.5,
+        4.5,
         47.5
       ],
-      "w": 47,
-      "h": 80,
+      "w": 50,
+      "h": 81,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -26.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 48,
-      "y": 1638,
+      "x": 382,
+      "y": 1648,
       "depthRegistration": {
-        "x": 48,
-        "y": 1638,
-        "w": 47,
-        "h": 80,
+        "x": 382,
+        "y": 1648,
+        "w": 50,
+        "h": 81,
         "origin": [
-          3.5,
+          4.5,
           26.5
         ],
         "pixel_density": 2
@@ -13889,7 +13889,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13897,38 +13897,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1011",
       "source": "junction.1011",
       "sourceCrop": [
-        120,
+        119,
         179,
         162,
         262
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 42,
+      "w": 43,
       "h": 83,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         1.0,
         3.0
       ],
-      "x": 97,
-      "y": 1638,
+      "x": 434,
+      "y": 1648,
       "depthRegistration": {
-        "x": 97,
-        "y": 1638,
-        "w": 42,
+        "x": 434,
+        "y": 1648,
+        "w": 43,
         "h": 83,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -13954,7 +13954,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           0.6666666666666666
         ]
       ],
@@ -13964,8 +13964,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         179,
-        200,
-        241
+        201,
+        242
       ],
       "origin": [
         1.0,
@@ -13975,23 +13975,23 @@ export const ARCHITECTURE = {
         1.0,
         59.5
       ],
-      "w": 42,
-      "h": 62,
+      "w": 43,
+      "h": 63,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
         -38.5,
-        20.0,
-        -7.5
+        20.5,
+        -7.0
       ],
-      "x": 141,
-      "y": 1638,
+      "x": 479,
+      "y": 1648,
       "depthRegistration": {
-        "x": 141,
-        "y": 1638,
-        "w": 42,
-        "h": 62,
+        "x": 479,
+        "y": 1648,
+        "w": 43,
+        "h": 63,
         "origin": [
           1.0,
           38.5
@@ -14019,7 +14019,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14027,38 +14027,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1012",
       "source": "junction.1012",
       "sourceCrop": [
-        153,
+        151,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         77.0
       ],
       "anchor": [
-        3.5,
+        4.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 185,
-      "y": 1638,
+      "x": 524,
+      "y": 1648,
       "depthRegistration": {
-        "x": 185,
-        "y": 1638,
-        "w": 47,
-        "h": 181,
+        "x": 524,
+        "y": 1648,
+        "w": 50,
+        "h": 182,
         "origin": [
-          3.5,
+          4.5,
           77.0
         ],
         "pixel_density": 2
@@ -14084,7 +14084,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14092,39 +14092,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1012",
       "source": "junction.1012",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
         262
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 165,
+      "w": 43,
+      "h": 166,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
         3.0
       ],
-      "x": 234,
-      "y": 1638,
+      "x": 576,
+      "y": 1648,
       "depthRegistration": {
-        "x": 234,
-        "y": 1638,
-        "w": 42,
-        "h": 165,
+        "x": 576,
+        "y": 1648,
+        "w": 43,
+        "h": 166,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -14149,7 +14149,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14158,38 +14158,38 @@ export const ARCHITECTURE = {
       "source": "junction.1012",
       "sourceCrop": [
         157,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 278,
-      "y": 1638,
+      "x": 621,
+      "y": 1648,
       "depthRegistration": {
-        "x": 278,
-        "y": 1638,
-        "w": 43,
-        "h": 163,
+        "x": 621,
+        "y": 1648,
+        "w": 44,
+        "h": 165,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -14209,12 +14209,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14222,39 +14222,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1020",
       "source": "junction.1020",
       "sourceCrop": [
-        153,
-        99,
-        200,
-        283
+        151,
+        98,
+        201,
+        284
       ],
       "origin": [
-        3.5,
-        78.5
+        4.5,
+        79.0
       ],
       "anchor": [
-        3.5,
-        99.5
+        4.5,
+        100.0
       ],
-      "w": 47,
-      "h": 184,
+      "w": 50,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
-        -78.5,
-        20.0,
-        13.5
+        -4.5,
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 323,
-      "y": 1638,
+      "x": 667,
+      "y": 1648,
       "depthRegistration": {
-        "x": 323,
-        "y": 1638,
-        "w": 47,
-        "h": 184,
+        "x": 667,
+        "y": 1648,
+        "w": 50,
+        "h": 186,
         "origin": [
-          3.5,
-          78.5
+          4.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -14274,12 +14274,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14287,39 +14287,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1020",
       "source": "junction.1020",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         166,
         262
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 46,
-      "h": 184,
+      "w": 47,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         3.0,
         3.0
       ],
-      "x": 372,
-      "y": 1638,
+      "x": 719,
+      "y": 1648,
       "depthRegistration": {
-        "x": 372,
-        "y": 1638,
-        "w": 46,
-        "h": 184,
+        "x": 719,
+        "y": 1648,
+        "w": 47,
+        "h": 185,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -14344,7 +14344,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14352,39 +14352,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1021",
       "source": "junction.1021",
       "sourceCrop": [
-        153,
-        101,
-        200,
-        283
+        151,
+        102,
+        201,
+        284
       ],
       "origin": [
-        3.5,
-        77.5
+        4.5,
+        77.0
       ],
       "anchor": [
-        3.5,
-        98.5
+        4.5,
+        98.0
       ],
-      "w": 47,
+      "w": 50,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
-        -77.5,
-        20.0,
-        13.5
+        -4.5,
+        -77.0,
+        20.5,
+        14.0
       ],
-      "x": 420,
-      "y": 1638,
+      "x": 768,
+      "y": 1648,
       "depthRegistration": {
-        "x": 420,
-        "y": 1638,
-        "w": 47,
+        "x": 768,
+        "y": 1648,
+        "w": 50,
         "h": 182,
         "origin": [
-          3.5,
-          77.5
+          4.5,
+          77.0
         ],
         "pixel_density": 2
       },
@@ -14409,7 +14409,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14417,39 +14417,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1021",
       "source": "junction.1021",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
         262
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 184,
+      "w": 44,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
         3.0
       ],
-      "x": 469,
-      "y": 1638,
+      "x": 820,
+      "y": 1648,
       "depthRegistration": {
-        "x": 469,
-        "y": 1638,
-        "w": 43,
-        "h": 184,
+        "x": 820,
+        "y": 1648,
+        "w": 44,
+        "h": 185,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -14474,7 +14474,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14483,38 +14483,38 @@ export const ARCHITECTURE = {
       "source": "junction.1021",
       "sourceCrop": [
         158,
-        97,
-        200,
-        241
+        96,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
-        -7.5
+        -80.0,
+        20.5,
+        -7.0
       ],
-      "x": 514,
-      "y": 1638,
+      "x": 866,
+      "y": 1648,
       "depthRegistration": {
-        "x": 514,
-        "y": 1638,
-        "w": 42,
-        "h": 144,
+        "x": 866,
+        "y": 1648,
+        "w": 43,
+        "h": 146,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -14539,7 +14539,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14547,38 +14547,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1022",
       "source": "junction.1022",
       "sourceCrop": [
-        153,
+        151,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         77.0
       ],
       "anchor": [
-        3.5,
+        4.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 558,
-      "y": 1638,
+      "x": 911,
+      "y": 1648,
       "depthRegistration": {
-        "x": 558,
-        "y": 1638,
-        "w": 47,
-        "h": 181,
+        "x": 911,
+        "y": 1648,
+        "w": 50,
+        "h": 182,
         "origin": [
-          3.5,
+          4.5,
           77.0
         ],
         "pixel_density": 2
@@ -14604,7 +14604,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14612,39 +14612,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1022",
       "source": "junction.1022",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
         262
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
         3.0
       ],
-      "x": 607,
-      "y": 1638,
+      "x": 963,
+      "y": 1648,
       "depthRegistration": {
-        "x": 607,
-        "y": 1638,
-        "w": 42,
-        "h": 184,
+        "x": 963,
+        "y": 1648,
+        "w": 43,
+        "h": 185,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -14669,7 +14669,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -14678,38 +14678,38 @@ export const ARCHITECTURE = {
       "source": "junction.1022",
       "sourceCrop": [
         158,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 651,
-      "y": 1638,
+      "x": 1008,
+      "y": 1648,
       "depthRegistration": {
-        "x": 651,
-        "y": 1638,
-        "w": 42,
-        "h": 163,
+        "x": 1008,
+        "y": 1648,
+        "w": 43,
+        "h": 165,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -14728,8 +14728,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -14743,38 +14743,38 @@ export const ARCHITECTURE = {
       "source": "junction.1100",
       "sourceCrop": [
         158,
-        198,
-        200,
-        283
+        197,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        29.0
+        29.5
       ],
       "anchor": [
         1.0,
-        50.0
+        50.5
       ],
-      "w": 42,
-      "h": 85,
+      "w": 43,
+      "h": 87,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -29.0,
-        20.0,
-        13.5
+        -29.5,
+        20.5,
+        14.0
       ],
-      "x": 695,
-      "y": 1638,
+      "x": 1053,
+      "y": 1648,
       "depthRegistration": {
-        "x": 695,
-        "y": 1638,
-        "w": 42,
-        "h": 85,
+        "x": 1053,
+        "y": 1648,
+        "w": 43,
+        "h": 87,
         "origin": [
           1.0,
-          29.0
+          29.5
         ],
         "pixel_density": 2
       },
@@ -14793,8 +14793,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -14807,39 +14807,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1100",
       "source": "junction.1100",
       "sourceCrop": [
-        120,
-        198,
+        119,
+        197,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        29.0
+        20.5,
+        29.5
       ],
       "anchor": [
-        20.0,
-        50.0
+        20.5,
+        50.5
       ],
-      "w": 42,
-      "h": 85,
+      "w": 43,
+      "h": 87,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -29.0,
+        -20.5,
+        -29.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 739,
-      "y": 1638,
+      "x": 1098,
+      "y": 1648,
       "depthRegistration": {
-        "x": 739,
-        "y": 1638,
-        "w": 42,
-        "h": 85,
+        "x": 1098,
+        "y": 1648,
+        "w": 43,
+        "h": 87,
         "origin": [
-          20.0,
-          29.0
+          20.5,
+          29.5
         ],
         "pixel_density": 2
       },
@@ -14858,7 +14858,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -14874,8 +14874,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         203,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -14885,23 +14885,23 @@ export const ARCHITECTURE = {
         1.0,
         47.5
       ],
-      "w": 42,
-      "h": 80,
+      "w": 43,
+      "h": 81,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -26.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 783,
-      "y": 1638,
+      "x": 1143,
+      "y": 1648,
       "depthRegistration": {
-        "x": 783,
-        "y": 1638,
-        "w": 42,
-        "h": 80,
+        "x": 1143,
+        "y": 1648,
+        "w": 43,
+        "h": 81,
         "origin": [
           1.0,
           26.5
@@ -14923,7 +14923,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -14937,38 +14937,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1101",
       "source": "junction.1101",
       "sourceCrop": [
-        120,
+        119,
         200,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         28.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         49.0
       ],
-      "w": 42,
-      "h": 83,
+      "w": 43,
+      "h": 84,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -28.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 827,
-      "y": 1638,
+      "x": 1188,
+      "y": 1648,
       "depthRegistration": {
-        "x": 827,
-        "y": 1638,
-        "w": 42,
-        "h": 83,
+        "x": 1188,
+        "y": 1648,
+        "w": 43,
+        "h": 84,
         "origin": [
-          20.0,
+          20.5,
           28.0
         ],
         "pixel_density": 2
@@ -14988,7 +14988,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -15002,38 +15002,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1101",
       "source": "junction.1101",
       "sourceCrop": [
-        154,
+        153,
         179,
-        200,
-        241
+        201,
+        242
       ],
       "origin": [
-        3.0,
+        3.5,
         38.5
       ],
       "anchor": [
-        3.0,
+        3.5,
         59.5
       ],
-      "w": 46,
-      "h": 62,
+      "w": 48,
+      "h": 63,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -3.0,
+        -3.5,
         -38.5,
-        20.0,
-        -7.5
+        20.5,
+        -7.0
       ],
-      "x": 871,
-      "y": 1638,
+      "x": 1233,
+      "y": 1648,
       "depthRegistration": {
-        "x": 871,
-        "y": 1638,
-        "w": 46,
-        "h": 62,
+        "x": 1233,
+        "y": 1648,
+        "w": 48,
+        "h": 63,
         "origin": [
-          3.0,
+          3.5,
           38.5
         ],
         "pixel_density": 2
@@ -15053,7 +15053,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -15069,8 +15069,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -15080,23 +15080,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 919,
-      "y": 1638,
+      "x": 1283,
+      "y": 1648,
       "depthRegistration": {
-        "x": 919,
-        "y": 1638,
-        "w": 42,
-        "h": 181,
+        "x": 1283,
+        "y": 1648,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -15118,7 +15118,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -15132,39 +15132,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1102",
       "source": "junction.1102",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 963,
-      "y": 1638,
+      "x": 1328,
+      "y": 1648,
       "depthRegistration": {
-        "x": 963,
-        "y": 1638,
-        "w": 42,
-        "h": 184,
+        "x": 1328,
+        "y": 1648,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -15183,7 +15183,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -15198,38 +15198,38 @@ export const ARCHITECTURE = {
       "source": "junction.1102",
       "sourceCrop": [
         154,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        89.0
+        89.5
       ],
       "anchor": [
         3.0,
-        110.0
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1007,
-      "y": 1638,
+      "x": 1373,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1007,
-        "y": 1638,
-        "w": 46,
-        "h": 163,
+        "x": 1373,
+        "y": 1648,
+        "w": 47,
+        "h": 165,
         "origin": [
           3.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -15249,7 +15249,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -15264,8 +15264,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         200,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -15275,23 +15275,23 @@ export const ARCHITECTURE = {
         1.0,
         49.0
       ],
-      "w": 42,
-      "h": 83,
+      "w": 43,
+      "h": 84,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -28.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1055,
-      "y": 1638,
+      "x": 1422,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1055,
-        "y": 1638,
-        "w": 42,
-        "h": 83,
+        "x": 1422,
+        "y": 1648,
+        "w": 43,
+        "h": 84,
         "origin": [
           1.0,
           28.0
@@ -15314,7 +15314,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -15327,38 +15327,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1110",
       "source": "junction.1110",
       "sourceCrop": [
-        120,
+        119,
         203,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         26.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         47.5
       ],
-      "w": 42,
-      "h": 80,
+      "w": 43,
+      "h": 81,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -26.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1099,
-      "y": 1638,
+      "x": 1467,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1099,
-        "y": 1638,
-        "w": 42,
-        "h": 80,
+        "x": 1467,
+        "y": 1648,
+        "w": 43,
+        "h": 81,
         "origin": [
-          20.0,
+          20.5,
           26.5
         ],
         "pixel_density": 2
@@ -15379,7 +15379,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -15392,38 +15392,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1110",
       "source": "junction.1110",
       "sourceCrop": [
-        120,
+        119,
         179,
-        166,
-        241
+        167,
+        242
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 46,
-      "h": 62,
+      "w": 48,
+      "h": 63,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
-        3.0,
-        -7.5
+        3.5,
+        -7.0
       ],
-      "x": 1143,
-      "y": 1638,
+      "x": 1512,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1143,
-        "y": 1638,
-        "w": 46,
-        "h": 62,
+        "x": 1512,
+        "y": 1648,
+        "w": 48,
+        "h": 63,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -15459,8 +15459,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         203,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -15470,23 +15470,23 @@ export const ARCHITECTURE = {
         1.0,
         47.5
       ],
-      "w": 42,
-      "h": 80,
+      "w": 43,
+      "h": 81,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -26.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1191,
-      "y": 1638,
+      "x": 1562,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1191,
-        "y": 1638,
-        "w": 42,
-        "h": 80,
+        "x": 1562,
+        "y": 1648,
+        "w": 43,
+        "h": 81,
         "origin": [
           1.0,
           26.5
@@ -15522,38 +15522,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1111",
       "source": "junction.1111",
       "sourceCrop": [
-        120,
+        119,
         203,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         26.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         47.5
       ],
-      "w": 42,
-      "h": 80,
+      "w": 43,
+      "h": 81,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -26.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1235,
-      "y": 1638,
+      "x": 1607,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1235,
-        "y": 1638,
-        "w": 42,
-        "h": 80,
+        "x": 1607,
+        "y": 1648,
+        "w": 43,
+        "h": 81,
         "origin": [
-          20.0,
+          20.5,
           26.5
         ],
         "pixel_density": 2
@@ -15587,38 +15587,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1111",
       "source": "junction.1111",
       "sourceCrop": [
-        120,
+        119,
         179,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
+        20.5,
         38.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         59.5
       ],
-      "w": 42,
-      "h": 62,
+      "w": 43,
+      "h": 63,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -38.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1279,
-      "y": 1638,
+      "x": 1652,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1279,
-        "y": 1638,
-        "w": 42,
-        "h": 62,
+        "x": 1652,
+        "y": 1648,
+        "w": 43,
+        "h": 63,
         "origin": [
-          20.0,
+          20.5,
           38.5
         ],
         "pixel_density": 2
@@ -15654,8 +15654,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         179,
-        200,
-        241
+        201,
+        242
       ],
       "origin": [
         1.0,
@@ -15665,23 +15665,23 @@ export const ARCHITECTURE = {
         1.0,
         59.5
       ],
-      "w": 42,
-      "h": 62,
+      "w": 43,
+      "h": 63,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
         -38.5,
-        20.0,
-        -7.5
+        20.5,
+        -7.0
       ],
-      "x": 1323,
-      "y": 1638,
+      "x": 1697,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1323,
-        "y": 1638,
-        "w": 42,
-        "h": 62,
+        "x": 1697,
+        "y": 1648,
+        "w": 43,
+        "h": 63,
         "origin": [
           1.0,
           38.5
@@ -15719,8 +15719,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -15730,23 +15730,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1367,
-      "y": 1638,
+      "x": 1742,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1367,
-        "y": 1638,
-        "w": 42,
-        "h": 181,
+        "x": 1742,
+        "y": 1648,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -15782,38 +15782,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1112",
       "source": "junction.1112",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1411,
-      "y": 1638,
+      "x": 1787,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1411,
-        "y": 1638,
-        "w": 42,
-        "h": 182,
+        "x": 1787,
+        "y": 1648,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -15847,39 +15847,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1112",
       "source": "junction.1112",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1455,
-      "y": 1638,
+      "x": 1832,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1455,
-        "y": 1638,
-        "w": 42,
-        "h": 144,
+        "x": 1832,
+        "y": 1648,
+        "w": 43,
+        "h": 146,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -15913,38 +15913,38 @@ export const ARCHITECTURE = {
       "source": "junction.1112",
       "sourceCrop": [
         157,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1499,
-      "y": 1638,
+      "x": 1877,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1499,
-        "y": 1638,
-        "w": 43,
-        "h": 163,
+        "x": 1877,
+        "y": 1648,
+        "w": 44,
+        "h": 165,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -15964,7 +15964,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -15978,38 +15978,38 @@ export const ARCHITECTURE = {
       "source": "junction.1120",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 1544,
-      "y": 1638,
+      "x": 1923,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1544,
-        "y": 1638,
-        "w": 42,
-        "h": 184,
+        "x": 1923,
+        "y": 1648,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -16029,7 +16029,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -16042,38 +16042,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1120",
       "source": "junction.1120",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1588,
-      "y": 1638,
+      "x": 1968,
+      "y": 1648,
       "depthRegistration": {
-        "x": 1588,
-        "y": 1638,
-        "w": 42,
-        "h": 181,
+        "x": 1968,
+        "y": 1648,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -16094,7 +16094,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -16107,39 +16107,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1120",
       "source": "junction.1120",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 1632,
-      "y": 1638,
+      "x": 0,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1632,
-        "y": 1638,
-        "w": 46,
-        "h": 163,
+        "x": 0,
+        "y": 1836,
+        "w": 47,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -16173,38 +16173,38 @@ export const ARCHITECTURE = {
       "source": "junction.1121",
       "sourceCrop": [
         158,
-        101,
-        200,
-        283
+        102,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        77.5
+        77.0
       ],
       "anchor": [
         1.0,
-        98.5
+        98.0
       ],
-      "w": 42,
+      "w": 43,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -77.5,
-        20.0,
-        13.5
+        -77.0,
+        20.5,
+        14.0
       ],
-      "x": 1680,
-      "y": 1638,
+      "x": 49,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1680,
-        "y": 1638,
-        "w": 42,
+        "x": 49,
+        "y": 1836,
+        "w": 43,
         "h": 182,
         "origin": [
           1.0,
-          77.5
+          77.0
         ],
         "pixel_density": 2
       },
@@ -16237,38 +16237,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1121",
       "source": "junction.1121",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1724,
-      "y": 1638,
+      "x": 94,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1724,
-        "y": 1638,
-        "w": 42,
-        "h": 181,
+        "x": 94,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -16302,39 +16302,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1121",
       "source": "junction.1121",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        -7.5
+        -7.0
       ],
-      "x": 1768,
-      "y": 1638,
+      "x": 139,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1768,
-        "y": 1638,
-        "w": 43,
-        "h": 163,
+        "x": 139,
+        "y": 1836,
+        "w": 44,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -16368,38 +16368,38 @@ export const ARCHITECTURE = {
       "source": "junction.1121",
       "sourceCrop": [
         158,
-        97,
-        200,
-        241
+        96,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
-        -7.5
+        -80.0,
+        20.5,
+        -7.0
       ],
-      "x": 1813,
-      "y": 1638,
+      "x": 185,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1813,
-        "y": 1638,
-        "w": 42,
-        "h": 144,
+        "x": 185,
+        "y": 1836,
+        "w": 43,
+        "h": 146,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -16434,8 +16434,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -16445,23 +16445,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1857,
-      "y": 1638,
+      "x": 230,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1857,
-        "y": 1638,
-        "w": 42,
-        "h": 181,
+        "x": 230,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -16497,38 +16497,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1122",
       "source": "junction.1122",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1901,
-      "y": 1638,
+      "x": 275,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1901,
-        "y": 1638,
-        "w": 42,
-        "h": 181,
+        "x": 275,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -16562,39 +16562,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1122",
       "source": "junction.1122",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1945,
-      "y": 1638,
+      "x": 320,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1945,
-        "y": 1638,
-        "w": 42,
-        "h": 163,
+        "x": 320,
+        "y": 1836,
+        "w": 43,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -16628,38 +16628,38 @@ export const ARCHITECTURE = {
       "source": "junction.1122",
       "sourceCrop": [
         158,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1989,
-      "y": 1638,
+      "x": 365,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1989,
-        "y": 1638,
-        "w": 42,
-        "h": 163,
+        "x": 365,
+        "y": 1836,
+        "w": 43,
+        "h": 165,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -16678,8 +16678,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -16693,38 +16693,38 @@ export const ARCHITECTURE = {
       "source": "junction.1200",
       "sourceCrop": [
         158,
-        96,
-        200,
-        283
+        95,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        13.5
+        -80.5,
+        20.5,
+        14.0
       ],
-      "x": 0,
-      "y": 1824,
+      "x": 410,
+      "y": 1836,
       "depthRegistration": {
-        "x": 0,
-        "y": 1824,
-        "w": 42,
-        "h": 187,
+        "x": 410,
+        "y": 1836,
+        "w": 43,
+        "h": 189,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -16743,8 +16743,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -16757,39 +16757,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1200",
       "source": "junction.1200",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 44,
-      "y": 1824,
+      "x": 455,
+      "y": 1836,
       "depthRegistration": {
-        "x": 44,
-        "y": 1824,
-        "w": 42,
-        "h": 187,
+        "x": 455,
+        "y": 1836,
+        "w": 43,
+        "h": 189,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -16808,7 +16808,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -16823,38 +16823,38 @@ export const ARCHITECTURE = {
       "source": "junction.1201",
       "sourceCrop": [
         158,
-        101,
-        200,
-        283
+        102,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        77.5
+        77.0
       ],
       "anchor": [
         1.0,
-        98.5
+        98.0
       ],
-      "w": 42,
+      "w": 43,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -77.5,
-        20.0,
-        13.5
+        -77.0,
+        20.5,
+        14.0
       ],
-      "x": 88,
-      "y": 1824,
+      "x": 500,
+      "y": 1836,
       "depthRegistration": {
-        "x": 88,
-        "y": 1824,
-        "w": 42,
+        "x": 500,
+        "y": 1836,
+        "w": 43,
         "h": 182,
         "origin": [
           1.0,
-          77.5
+          77.0
         ],
         "pixel_density": 2
       },
@@ -16873,7 +16873,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -16887,39 +16887,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1201",
       "source": "junction.1201",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 132,
-      "y": 1824,
+      "x": 545,
+      "y": 1836,
       "depthRegistration": {
-        "x": 132,
-        "y": 1824,
-        "w": 42,
-        "h": 184,
+        "x": 545,
+        "y": 1836,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -16938,7 +16938,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -16953,38 +16953,38 @@ export const ARCHITECTURE = {
       "source": "junction.1201",
       "sourceCrop": [
         154,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        80.0
+        80.5
       ],
       "anchor": [
         3.0,
-        101.0
+        101.5
       ],
-      "w": 46,
-      "h": 145,
+      "w": 47,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 176,
-      "y": 1824,
+      "x": 590,
+      "y": 1836,
       "depthRegistration": {
-        "x": 176,
-        "y": 1824,
-        "w": 46,
-        "h": 145,
+        "x": 590,
+        "y": 1836,
+        "w": 47,
+        "h": 147,
         "origin": [
           3.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -17003,7 +17003,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -17019,8 +17019,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -17030,23 +17030,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 224,
-      "y": 1824,
+      "x": 639,
+      "y": 1836,
       "depthRegistration": {
-        "x": 224,
-        "y": 1824,
-        "w": 42,
-        "h": 181,
+        "x": 639,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -17068,7 +17068,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -17082,39 +17082,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1202",
       "source": "junction.1202",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 268,
-      "y": 1824,
+      "x": 684,
+      "y": 1836,
       "depthRegistration": {
-        "x": 268,
-        "y": 1824,
-        "w": 42,
-        "h": 184,
+        "x": 684,
+        "y": 1836,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -17133,7 +17133,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -17148,38 +17148,38 @@ export const ARCHITECTURE = {
       "source": "junction.1202",
       "sourceCrop": [
         154,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        89.0
+        89.5
       ],
       "anchor": [
         3.0,
-        110.0
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 312,
-      "y": 1824,
+      "x": 729,
+      "y": 1836,
       "depthRegistration": {
-        "x": 312,
-        "y": 1824,
-        "w": 46,
-        "h": 163,
+        "x": 729,
+        "y": 1836,
+        "w": 47,
+        "h": 165,
         "origin": [
           3.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -17199,7 +17199,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -17213,38 +17213,38 @@ export const ARCHITECTURE = {
       "source": "junction.1210",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 360,
-      "y": 1824,
+      "x": 778,
+      "y": 1836,
       "depthRegistration": {
-        "x": 360,
-        "y": 1824,
-        "w": 42,
-        "h": 184,
+        "x": 778,
+        "y": 1836,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -17264,7 +17264,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -17277,38 +17277,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1210",
       "source": "junction.1210",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 404,
-      "y": 1824,
+      "x": 823,
+      "y": 1836,
       "depthRegistration": {
-        "x": 404,
-        "y": 1824,
-        "w": 42,
-        "h": 182,
+        "x": 823,
+        "y": 1836,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -17329,7 +17329,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -17342,39 +17342,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1210",
       "source": "junction.1210",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 46,
-      "h": 145,
+      "w": 47,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 448,
-      "y": 1824,
+      "x": 868,
+      "y": 1836,
       "depthRegistration": {
-        "x": 448,
-        "y": 1824,
-        "w": 46,
-        "h": 145,
+        "x": 868,
+        "y": 1836,
+        "w": 47,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -17408,38 +17408,38 @@ export const ARCHITECTURE = {
       "source": "junction.1211",
       "sourceCrop": [
         158,
-        101,
-        200,
-        283
+        102,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        77.5
+        77.0
       ],
       "anchor": [
         1.0,
-        98.5
+        98.0
       ],
-      "w": 42,
+      "w": 43,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -77.5,
-        20.0,
-        13.5
+        -77.0,
+        20.5,
+        14.0
       ],
-      "x": 496,
-      "y": 1824,
+      "x": 917,
+      "y": 1836,
       "depthRegistration": {
-        "x": 496,
-        "y": 1824,
-        "w": 42,
+        "x": 917,
+        "y": 1836,
+        "w": 43,
         "h": 182,
         "origin": [
           1.0,
-          77.5
+          77.0
         ],
         "pixel_density": 2
       },
@@ -17472,38 +17472,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1211",
       "source": "junction.1211",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 540,
-      "y": 1824,
+      "x": 962,
+      "y": 1836,
       "depthRegistration": {
-        "x": 540,
-        "y": 1824,
-        "w": 42,
-        "h": 182,
+        "x": 962,
+        "y": 1836,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -17537,39 +17537,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1211",
       "source": "junction.1211",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 584,
-      "y": 1824,
+      "x": 1007,
+      "y": 1836,
       "depthRegistration": {
-        "x": 584,
-        "y": 1824,
-        "w": 42,
-        "h": 145,
+        "x": 1007,
+        "y": 1836,
+        "w": 43,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -17603,38 +17603,38 @@ export const ARCHITECTURE = {
       "source": "junction.1211",
       "sourceCrop": [
         158,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 628,
-      "y": 1824,
+      "x": 1052,
+      "y": 1836,
       "depthRegistration": {
-        "x": 628,
-        "y": 1824,
-        "w": 42,
-        "h": 145,
+        "x": 1052,
+        "y": 1836,
+        "w": 43,
+        "h": 147,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -17669,8 +17669,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -17680,23 +17680,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 672,
-      "y": 1824,
+      "x": 1097,
+      "y": 1836,
       "depthRegistration": {
-        "x": 672,
-        "y": 1824,
-        "w": 42,
-        "h": 181,
+        "x": 1097,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -17732,38 +17732,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1212",
       "source": "junction.1212",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 716,
-      "y": 1824,
+      "x": 1142,
+      "y": 1836,
       "depthRegistration": {
-        "x": 716,
-        "y": 1824,
-        "w": 42,
-        "h": 182,
+        "x": 1142,
+        "y": 1836,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -17797,39 +17797,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1212",
       "source": "junction.1212",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 760,
-      "y": 1824,
+      "x": 1187,
+      "y": 1836,
       "depthRegistration": {
-        "x": 760,
-        "y": 1824,
-        "w": 42,
-        "h": 144,
+        "x": 1187,
+        "y": 1836,
+        "w": 43,
+        "h": 146,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -17863,38 +17863,38 @@ export const ARCHITECTURE = {
       "source": "junction.1212",
       "sourceCrop": [
         157,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 804,
-      "y": 1824,
+      "x": 1232,
+      "y": 1836,
       "depthRegistration": {
-        "x": 804,
-        "y": 1824,
-        "w": 43,
-        "h": 163,
+        "x": 1232,
+        "y": 1836,
+        "w": 44,
+        "h": 165,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -17914,7 +17914,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -17928,38 +17928,38 @@ export const ARCHITECTURE = {
       "source": "junction.1220",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 849,
-      "y": 1824,
+      "x": 1278,
+      "y": 1836,
       "depthRegistration": {
-        "x": 849,
-        "y": 1824,
-        "w": 42,
-        "h": 184,
+        "x": 1278,
+        "y": 1836,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -17979,7 +17979,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -17992,38 +17992,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1220",
       "source": "junction.1220",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 893,
-      "y": 1824,
+      "x": 1323,
+      "y": 1836,
       "depthRegistration": {
-        "x": 893,
-        "y": 1824,
-        "w": 42,
-        "h": 181,
+        "x": 1323,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -18044,7 +18044,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -18057,39 +18057,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1220",
       "source": "junction.1220",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 937,
-      "y": 1824,
+      "x": 1368,
+      "y": 1836,
       "depthRegistration": {
-        "x": 937,
-        "y": 1824,
-        "w": 46,
-        "h": 163,
+        "x": 1368,
+        "y": 1836,
+        "w": 47,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -18123,38 +18123,38 @@ export const ARCHITECTURE = {
       "source": "junction.1221",
       "sourceCrop": [
         158,
-        101,
-        200,
-        283
+        102,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        77.5
+        77.0
       ],
       "anchor": [
         1.0,
-        98.5
+        98.0
       ],
-      "w": 42,
+      "w": 43,
       "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -77.5,
-        20.0,
-        13.5
+        -77.0,
+        20.5,
+        14.0
       ],
-      "x": 985,
-      "y": 1824,
+      "x": 1417,
+      "y": 1836,
       "depthRegistration": {
-        "x": 985,
-        "y": 1824,
-        "w": 42,
+        "x": 1417,
+        "y": 1836,
+        "w": 43,
         "h": 182,
         "origin": [
           1.0,
-          77.5
+          77.0
         ],
         "pixel_density": 2
       },
@@ -18187,38 +18187,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1221",
       "source": "junction.1221",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1029,
-      "y": 1824,
+      "x": 1462,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1029,
-        "y": 1824,
-        "w": 42,
-        "h": 181,
+        "x": 1462,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -18252,39 +18252,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1221",
       "source": "junction.1221",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        -7.5
+        -7.0
       ],
-      "x": 1073,
-      "y": 1824,
+      "x": 1507,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1073,
-        "y": 1824,
-        "w": 43,
-        "h": 163,
+        "x": 1507,
+        "y": 1836,
+        "w": 44,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -18318,38 +18318,38 @@ export const ARCHITECTURE = {
       "source": "junction.1221",
       "sourceCrop": [
         158,
-        97,
-        200,
-        241
+        96,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
-        -7.5
+        -80.0,
+        20.5,
+        -7.0
       ],
-      "x": 1118,
-      "y": 1824,
+      "x": 1553,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1118,
-        "y": 1824,
-        "w": 42,
-        "h": 144,
+        "x": 1553,
+        "y": 1836,
+        "w": 43,
+        "h": 146,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -18384,8 +18384,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -18395,23 +18395,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1162,
-      "y": 1824,
+      "x": 1598,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1162,
-        "y": 1824,
-        "w": 42,
-        "h": 181,
+        "x": 1598,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -18447,38 +18447,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1222",
       "source": "junction.1222",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1206,
-      "y": 1824,
+      "x": 1643,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1206,
-        "y": 1824,
-        "w": 42,
-        "h": 181,
+        "x": 1643,
+        "y": 1836,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -18512,39 +18512,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.1222",
       "source": "junction.1222",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1250,
-      "y": 1824,
+      "x": 1688,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1250,
-        "y": 1824,
-        "w": 42,
-        "h": 163,
+        "x": 1688,
+        "y": 1836,
+        "w": 43,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -18578,38 +18578,38 @@ export const ARCHITECTURE = {
       "source": "junction.1222",
       "sourceCrop": [
         158,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1294,
-      "y": 1824,
+      "x": 1733,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1294,
-        "y": 1824,
-        "w": 42,
-        "h": 163,
+        "x": 1733,
+        "y": 1836,
+        "w": 43,
+        "h": 165,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -18628,13 +18628,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.06,
-          -0.078,
+          -0.07,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -18642,39 +18642,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2000",
       "source": "junction.2000",
       "sourceCrop": [
-        148,
-        96,
-        200,
-        283
+        147,
+        95,
+        201,
+        284
       ],
       "origin": [
-        6.0,
-        80.0
+        6.5,
+        80.5
       ],
       "anchor": [
-        6.0,
-        101.0
+        6.5,
+        101.5
       ],
-      "w": 52,
-      "h": 187,
+      "w": 54,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -6.0,
-        -80.0,
-        20.0,
-        13.5
+        -6.5,
+        -80.5,
+        20.5,
+        14.0
       ],
-      "x": 1338,
-      "y": 1824,
+      "x": 1778,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1338,
-        "y": 1824,
-        "w": 52,
-        "h": 187,
+        "x": 1778,
+        "y": 1836,
+        "w": 54,
+        "h": 189,
         "origin": [
-          6.0,
-          80.0
+          6.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -18693,13 +18693,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -18707,38 +18707,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2001",
       "source": "junction.2001",
       "sourceCrop": [
-        148,
+        147,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        6.0,
+        6.5,
         77.5
       ],
       "anchor": [
-        6.0,
+        6.5,
         98.5
       ],
-      "w": 52,
-      "h": 182,
+      "w": 54,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -6.0,
+        -6.5,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1392,
-      "y": 1824,
+      "x": 1834,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1392,
-        "y": 1824,
-        "w": 52,
-        "h": 182,
+        "x": 1834,
+        "y": 1836,
+        "w": 54,
+        "h": 183,
         "origin": [
-          6.0,
+          6.5,
           77.5
         ],
         "pixel_density": 2
@@ -18758,13 +18758,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -18772,39 +18772,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2001",
       "source": "junction.2001",
       "sourceCrop": [
-        148,
-        96,
-        200,
+        147,
+        95,
+        201,
         248
       ],
       "origin": [
-        6.0,
-        80.0
+        6.5,
+        80.5
       ],
       "anchor": [
-        6.0,
-        101.0
+        6.5,
+        101.5
       ],
-      "w": 52,
-      "h": 152,
+      "w": 54,
+      "h": 153,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -6.0,
-        -80.0,
-        20.0,
+        -6.5,
+        -80.5,
+        20.5,
         -4.0
       ],
-      "x": 1446,
-      "y": 1824,
+      "x": 1890,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1446,
-        "y": 1824,
-        "w": 52,
-        "h": 152,
+        "x": 1890,
+        "y": 1836,
+        "w": 54,
+        "h": 153,
         "origin": [
-          6.0,
-          80.0
+          6.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -18823,13 +18823,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -18837,38 +18837,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2002",
       "source": "junction.2002",
       "sourceCrop": [
-        148,
+        147,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        6.0,
+        6.5,
         77.5
       ],
       "anchor": [
-        6.0,
+        6.5,
         98.5
       ],
-      "w": 52,
-      "h": 182,
+      "w": 54,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -6.0,
+        -6.5,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1500,
-      "y": 1824,
+      "x": 1946,
+      "y": 1836,
       "depthRegistration": {
-        "x": 1500,
-        "y": 1824,
-        "w": 52,
-        "h": 182,
+        "x": 1946,
+        "y": 1836,
+        "w": 54,
+        "h": 183,
         "origin": [
-          6.0,
+          6.5,
           77.5
         ],
         "pixel_density": 2
@@ -18888,13 +18888,13 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -18902,39 +18902,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2002",
       "source": "junction.2002",
       "sourceCrop": [
-        148,
-        78,
-        200,
+        147,
+        77,
+        201,
         248
       ],
       "origin": [
-        6.0,
-        89.0
+        6.5,
+        89.5
       ],
       "anchor": [
-        6.0,
-        110.0
+        6.5,
+        110.5
       ],
-      "w": 52,
-      "h": 170,
+      "w": 54,
+      "h": 171,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
-        -6.0,
-        -89.0,
-        20.0,
+        -6.5,
+        -89.5,
+        20.5,
         -4.0
       ],
-      "x": 1554,
-      "y": 1824,
+      "x": 0,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1554,
-        "y": 1824,
-        "w": 52,
-        "h": 170,
+        "x": 0,
+        "y": 2027,
+        "w": 54,
+        "h": 171,
         "origin": [
-          6.0,
-          89.0
+          6.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -18954,12 +18954,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -18967,39 +18967,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2010",
       "source": "junction.2010",
       "sourceCrop": [
-        153,
-        99,
-        200,
-        283
+        151,
+        98,
+        201,
+        284
       ],
       "origin": [
-        3.5,
-        78.5
+        4.5,
+        79.0
       ],
       "anchor": [
-        3.5,
-        99.5
+        4.5,
+        100.0
       ],
-      "w": 47,
-      "h": 184,
+      "w": 50,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
-        -78.5,
-        20.0,
-        13.5
+        -4.5,
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 1608,
-      "y": 1824,
+      "x": 56,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1608,
-        "y": 1824,
-        "w": 47,
-        "h": 184,
+        "x": 56,
+        "y": 2027,
+        "w": 50,
+        "h": 186,
         "origin": [
-          3.5,
-          78.5
+          4.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -19019,12 +19019,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19032,39 +19032,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2010",
       "source": "junction.2010",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         166,
         262
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 46,
-      "h": 166,
+      "w": 47,
+      "h": 167,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         3.0,
         3.0
       ],
-      "x": 1657,
-      "y": 1824,
+      "x": 108,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1657,
-        "y": 1824,
-        "w": 46,
-        "h": 166,
+        "x": 108,
+        "y": 2027,
+        "w": 47,
+        "h": 167,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -19089,7 +19089,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19097,38 +19097,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2011",
       "source": "junction.2011",
       "sourceCrop": [
-        153,
+        151,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         77.5
       ],
       "anchor": [
-        3.5,
+        4.5,
         98.5
       ],
-      "w": 47,
-      "h": 182,
+      "w": 50,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1705,
-      "y": 1824,
+      "x": 157,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1705,
-        "y": 1824,
-        "w": 47,
-        "h": 182,
+        "x": 157,
+        "y": 2027,
+        "w": 50,
+        "h": 183,
         "origin": [
-          3.5,
+          4.5,
           77.5
         ],
         "pixel_density": 2
@@ -19154,7 +19154,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19162,39 +19162,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2011",
       "source": "junction.2011",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
         262
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 166,
+      "w": 43,
+      "h": 167,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
         3.0
       ],
-      "x": 1754,
-      "y": 1824,
+      "x": 209,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1754,
-        "y": 1824,
-        "w": 42,
-        "h": 166,
+        "x": 209,
+        "y": 2027,
+        "w": 43,
+        "h": 167,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -19219,7 +19219,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19228,38 +19228,38 @@ export const ARCHITECTURE = {
       "source": "junction.2011",
       "sourceCrop": [
         158,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 1798,
-      "y": 1824,
+      "x": 254,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1798,
-        "y": 1824,
-        "w": 42,
-        "h": 145,
+        "x": 254,
+        "y": 2027,
+        "w": 43,
+        "h": 147,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -19284,7 +19284,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19292,38 +19292,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2012",
       "source": "junction.2012",
       "sourceCrop": [
-        153,
+        151,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         77.0
       ],
       "anchor": [
-        3.5,
+        4.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1842,
-      "y": 1824,
+      "x": 299,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1842,
-        "y": 1824,
-        "w": 47,
-        "h": 181,
+        "x": 299,
+        "y": 2027,
+        "w": 50,
+        "h": 182,
         "origin": [
-          3.5,
+          4.5,
           77.0
         ],
         "pixel_density": 2
@@ -19349,7 +19349,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19357,39 +19357,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2012",
       "source": "junction.2012",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
         262
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 165,
+      "w": 43,
+      "h": 166,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
         3.0
       ],
-      "x": 1891,
-      "y": 1824,
+      "x": 351,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1891,
-        "y": 1824,
-        "w": 42,
-        "h": 165,
+        "x": 351,
+        "y": 2027,
+        "w": 43,
+        "h": 166,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -19414,7 +19414,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19423,38 +19423,38 @@ export const ARCHITECTURE = {
       "source": "junction.2012",
       "sourceCrop": [
         157,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1935,
-      "y": 1824,
+      "x": 396,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1935,
-        "y": 1824,
-        "w": 43,
-        "h": 163,
+        "x": 396,
+        "y": 2027,
+        "w": 44,
+        "h": 165,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -19474,12 +19474,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19487,39 +19487,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2020",
       "source": "junction.2020",
       "sourceCrop": [
-        153,
-        99,
-        200,
-        283
+        151,
+        98,
+        201,
+        284
       ],
       "origin": [
-        3.5,
-        78.5
+        4.5,
+        79.0
       ],
       "anchor": [
-        3.5,
-        99.5
+        4.5,
+        100.0
       ],
-      "w": 47,
-      "h": 184,
+      "w": 50,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
-        -78.5,
-        20.0,
-        13.5
+        -4.5,
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 1980,
-      "y": 1824,
+      "x": 442,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1980,
-        "y": 1824,
-        "w": 47,
-        "h": 184,
+        "x": 442,
+        "y": 2027,
+        "w": 50,
+        "h": 186,
         "origin": [
-          3.5,
-          78.5
+          4.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -19539,12 +19539,12 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19552,39 +19552,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2020",
       "source": "junction.2020",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         166,
         262
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 46,
-      "h": 184,
+      "w": 47,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         3.0,
         3.0
       ],
-      "x": 0,
-      "y": 2013,
+      "x": 494,
+      "y": 2027,
       "depthRegistration": {
-        "x": 0,
-        "y": 2013,
-        "w": 46,
-        "h": 184,
+        "x": 494,
+        "y": 2027,
+        "w": 47,
+        "h": 185,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -19609,7 +19609,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19617,38 +19617,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2021",
       "source": "junction.2021",
       "sourceCrop": [
-        153,
+        151,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         77.5
       ],
       "anchor": [
-        3.5,
+        4.5,
         98.5
       ],
-      "w": 47,
-      "h": 182,
+      "w": 50,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 48,
-      "y": 2013,
+      "x": 543,
+      "y": 2027,
       "depthRegistration": {
-        "x": 48,
-        "y": 2013,
-        "w": 47,
-        "h": 182,
+        "x": 543,
+        "y": 2027,
+        "w": 50,
+        "h": 183,
         "origin": [
-          3.5,
+          4.5,
           77.5
         ],
         "pixel_density": 2
@@ -19674,7 +19674,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19682,39 +19682,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2021",
       "source": "junction.2021",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
         262
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 184,
+      "w": 44,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
         3.0
       ],
-      "x": 97,
-      "y": 2013,
+      "x": 595,
+      "y": 2027,
       "depthRegistration": {
-        "x": 97,
-        "y": 2013,
-        "w": 43,
-        "h": 184,
+        "x": 595,
+        "y": 2027,
+        "w": 44,
+        "h": 185,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -19739,7 +19739,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19748,38 +19748,38 @@ export const ARCHITECTURE = {
       "source": "junction.2021",
       "sourceCrop": [
         158,
-        97,
-        200,
-        241
+        96,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
-        -7.5
+        -80.0,
+        20.5,
+        -7.0
       ],
-      "x": 142,
-      "y": 2013,
+      "x": 641,
+      "y": 2027,
       "depthRegistration": {
-        "x": 142,
-        "y": 2013,
-        "w": 42,
-        "h": 144,
+        "x": 641,
+        "y": 2027,
+        "w": 43,
+        "h": 146,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -19804,7 +19804,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19812,38 +19812,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2022",
       "source": "junction.2022",
       "sourceCrop": [
-        153,
+        151,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
-        3.5,
+        4.5,
         77.0
       ],
       "anchor": [
-        3.5,
+        4.5,
         98.0
       ],
-      "w": 47,
-      "h": 181,
+      "w": 50,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
-        -3.5,
+        -4.5,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 186,
-      "y": 2013,
+      "x": 686,
+      "y": 2027,
       "depthRegistration": {
-        "x": 186,
-        "y": 2013,
-        "w": 47,
-        "h": 181,
+        "x": 686,
+        "y": 2027,
+        "w": 50,
+        "h": 182,
         "origin": [
-          3.5,
+          4.5,
           77.0
         ],
         "pixel_density": 2
@@ -19869,7 +19869,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19877,39 +19877,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2022",
       "source": "junction.2022",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
         262
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 185,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
         3.0
       ],
-      "x": 235,
-      "y": 2013,
+      "x": 738,
+      "y": 2027,
       "depthRegistration": {
-        "x": 235,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 738,
+        "y": 2027,
+        "w": 43,
+        "h": 185,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -19934,7 +19934,7 @@ export const ARCHITECTURE = {
         ],
         [
           0.5,
-          0.078,
+          0.08800000000000001,
           2
         ]
       ],
@@ -19943,38 +19943,38 @@ export const ARCHITECTURE = {
       "source": "junction.2022",
       "sourceCrop": [
         158,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 279,
-      "y": 2013,
+      "x": 783,
+      "y": 2027,
       "depthRegistration": {
-        "x": 279,
-        "y": 2013,
-        "w": 42,
-        "h": 163,
+        "x": 783,
+        "y": 2027,
+        "w": 43,
+        "h": 165,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -19993,8 +19993,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -20008,38 +20008,38 @@ export const ARCHITECTURE = {
       "source": "junction.2100",
       "sourceCrop": [
         158,
-        96,
-        200,
-        283
+        95,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        13.5
+        -80.5,
+        20.5,
+        14.0
       ],
-      "x": 323,
-      "y": 2013,
+      "x": 828,
+      "y": 2027,
       "depthRegistration": {
-        "x": 323,
-        "y": 2013,
-        "w": 42,
-        "h": 187,
+        "x": 828,
+        "y": 2027,
+        "w": 43,
+        "h": 189,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -20058,8 +20058,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -20072,39 +20072,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2100",
       "source": "junction.2100",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 367,
-      "y": 2013,
+      "x": 873,
+      "y": 2027,
       "depthRegistration": {
-        "x": 367,
-        "y": 2013,
-        "w": 42,
-        "h": 187,
+        "x": 873,
+        "y": 2027,
+        "w": 43,
+        "h": 189,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -20123,7 +20123,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -20139,8 +20139,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -20150,23 +20150,23 @@ export const ARCHITECTURE = {
         1.0,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 411,
-      "y": 2013,
+      "x": 918,
+      "y": 2027,
       "depthRegistration": {
-        "x": 411,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 918,
+        "y": 2027,
+        "w": 43,
+        "h": 183,
         "origin": [
           1.0,
           77.5
@@ -20188,7 +20188,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -20202,39 +20202,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2101",
       "source": "junction.2101",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 455,
-      "y": 2013,
+      "x": 963,
+      "y": 2027,
       "depthRegistration": {
-        "x": 455,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 963,
+        "y": 2027,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -20253,7 +20253,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -20268,38 +20268,38 @@ export const ARCHITECTURE = {
       "source": "junction.2101",
       "sourceCrop": [
         154,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        80.0
+        80.5
       ],
       "anchor": [
         3.0,
-        101.0
+        101.5
       ],
-      "w": 46,
-      "h": 145,
+      "w": 47,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 499,
-      "y": 2013,
+      "x": 1008,
+      "y": 2027,
       "depthRegistration": {
-        "x": 499,
-        "y": 2013,
-        "w": 46,
-        "h": 145,
+        "x": 1008,
+        "y": 2027,
+        "w": 47,
+        "h": 147,
         "origin": [
           3.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -20318,7 +20318,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -20334,8 +20334,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -20345,23 +20345,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 547,
-      "y": 2013,
+      "x": 1057,
+      "y": 2027,
       "depthRegistration": {
-        "x": 547,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 1057,
+        "y": 2027,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -20383,7 +20383,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -20397,39 +20397,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2102",
       "source": "junction.2102",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 591,
-      "y": 2013,
+      "x": 1102,
+      "y": 2027,
       "depthRegistration": {
-        "x": 591,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 1102,
+        "y": 2027,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -20448,7 +20448,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -20463,38 +20463,38 @@ export const ARCHITECTURE = {
       "source": "junction.2102",
       "sourceCrop": [
         154,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        89.0
+        89.5
       ],
       "anchor": [
         3.0,
-        110.0
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 635,
-      "y": 2013,
+      "x": 1147,
+      "y": 2027,
       "depthRegistration": {
-        "x": 635,
-        "y": 2013,
-        "w": 46,
-        "h": 163,
+        "x": 1147,
+        "y": 2027,
+        "w": 47,
+        "h": 165,
         "origin": [
           3.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -20514,7 +20514,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -20528,38 +20528,38 @@ export const ARCHITECTURE = {
       "source": "junction.2110",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 683,
-      "y": 2013,
+      "x": 1196,
+      "y": 2027,
       "depthRegistration": {
-        "x": 683,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 1196,
+        "y": 2027,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -20579,7 +20579,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -20592,38 +20592,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2110",
       "source": "junction.2110",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 727,
-      "y": 2013,
+      "x": 1241,
+      "y": 2027,
       "depthRegistration": {
-        "x": 727,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 1241,
+        "y": 2027,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -20644,7 +20644,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -20657,39 +20657,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2110",
       "source": "junction.2110",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 46,
-      "h": 145,
+      "w": 47,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 771,
-      "y": 2013,
+      "x": 1286,
+      "y": 2027,
       "depthRegistration": {
-        "x": 771,
-        "y": 2013,
-        "w": 46,
-        "h": 145,
+        "x": 1286,
+        "y": 2027,
+        "w": 47,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -20724,8 +20724,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -20735,23 +20735,23 @@ export const ARCHITECTURE = {
         1.0,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 819,
-      "y": 2013,
+      "x": 1335,
+      "y": 2027,
       "depthRegistration": {
-        "x": 819,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 1335,
+        "y": 2027,
+        "w": 43,
+        "h": 183,
         "origin": [
           1.0,
           77.5
@@ -20787,38 +20787,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2111",
       "source": "junction.2111",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 863,
-      "y": 2013,
+      "x": 1380,
+      "y": 2027,
       "depthRegistration": {
-        "x": 863,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 1380,
+        "y": 2027,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -20852,39 +20852,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2111",
       "source": "junction.2111",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 907,
-      "y": 2013,
+      "x": 1425,
+      "y": 2027,
       "depthRegistration": {
-        "x": 907,
-        "y": 2013,
-        "w": 42,
-        "h": 145,
+        "x": 1425,
+        "y": 2027,
+        "w": 43,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -20918,38 +20918,38 @@ export const ARCHITECTURE = {
       "source": "junction.2111",
       "sourceCrop": [
         158,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 951,
-      "y": 2013,
+      "x": 1470,
+      "y": 2027,
       "depthRegistration": {
-        "x": 951,
-        "y": 2013,
-        "w": 42,
-        "h": 145,
+        "x": 1470,
+        "y": 2027,
+        "w": 43,
+        "h": 147,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -20984,8 +20984,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -20995,23 +20995,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 995,
-      "y": 2013,
+      "x": 1515,
+      "y": 2027,
       "depthRegistration": {
-        "x": 995,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 1515,
+        "y": 2027,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -21047,38 +21047,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2112",
       "source": "junction.2112",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1039,
-      "y": 2013,
+      "x": 1560,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1039,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 1560,
+        "y": 2027,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -21112,39 +21112,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2112",
       "source": "junction.2112",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1083,
-      "y": 2013,
+      "x": 1605,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1083,
-        "y": 2013,
-        "w": 42,
-        "h": 144,
+        "x": 1605,
+        "y": 2027,
+        "w": 43,
+        "h": 146,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -21178,38 +21178,38 @@ export const ARCHITECTURE = {
       "source": "junction.2112",
       "sourceCrop": [
         157,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1127,
-      "y": 2013,
+      "x": 1650,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1127,
-        "y": 2013,
-        "w": 43,
-        "h": 163,
+        "x": 1650,
+        "y": 2027,
+        "w": 44,
+        "h": 165,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -21229,7 +21229,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -21243,38 +21243,38 @@ export const ARCHITECTURE = {
       "source": "junction.2120",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 1172,
-      "y": 2013,
+      "x": 1696,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1172,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 1696,
+        "y": 2027,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -21294,7 +21294,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -21307,38 +21307,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2120",
       "source": "junction.2120",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1216,
-      "y": 2013,
+      "x": 1741,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1216,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 1741,
+        "y": 2027,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -21359,7 +21359,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -21372,39 +21372,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2120",
       "source": "junction.2120",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 1260,
-      "y": 2013,
+      "x": 1786,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1260,
-        "y": 2013,
-        "w": 46,
-        "h": 163,
+        "x": 1786,
+        "y": 2027,
+        "w": 47,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -21439,8 +21439,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -21450,23 +21450,23 @@ export const ARCHITECTURE = {
         1.0,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1308,
-      "y": 2013,
+      "x": 1835,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1308,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 1835,
+        "y": 2027,
+        "w": 43,
+        "h": 183,
         "origin": [
           1.0,
           77.5
@@ -21502,38 +21502,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2121",
       "source": "junction.2121",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1352,
-      "y": 2013,
+      "x": 1880,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1352,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 1880,
+        "y": 2027,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -21567,39 +21567,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2121",
       "source": "junction.2121",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        -7.5
+        -7.0
       ],
-      "x": 1396,
-      "y": 2013,
+      "x": 1925,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1396,
-        "y": 2013,
-        "w": 43,
-        "h": 163,
+        "x": 1925,
+        "y": 2027,
+        "w": 44,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -21633,38 +21633,38 @@ export const ARCHITECTURE = {
       "source": "junction.2121",
       "sourceCrop": [
         158,
-        97,
-        200,
-        241
+        96,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
-        -7.5
+        -80.0,
+        20.5,
+        -7.0
       ],
-      "x": 1441,
-      "y": 2013,
+      "x": 1971,
+      "y": 2027,
       "depthRegistration": {
-        "x": 1441,
-        "y": 2013,
-        "w": 42,
-        "h": 144,
+        "x": 1971,
+        "y": 2027,
+        "w": 43,
+        "h": 146,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -21699,8 +21699,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -21710,23 +21710,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1485,
-      "y": 2013,
+      "x": 0,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1485,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 0,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -21762,38 +21762,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2122",
       "source": "junction.2122",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1529,
-      "y": 2013,
+      "x": 45,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1529,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 45,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -21827,39 +21827,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2122",
       "source": "junction.2122",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 1573,
-      "y": 2013,
+      "x": 90,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1573,
-        "y": 2013,
-        "w": 42,
-        "h": 163,
+        "x": 90,
+        "y": 2218,
+        "w": 43,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -21893,38 +21893,38 @@ export const ARCHITECTURE = {
       "source": "junction.2122",
       "sourceCrop": [
         158,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1617,
-      "y": 2013,
+      "x": 135,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1617,
-        "y": 2013,
-        "w": 42,
-        "h": 163,
+        "x": 135,
+        "y": 2218,
+        "w": 43,
+        "h": 165,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -21943,8 +21943,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -21958,38 +21958,38 @@ export const ARCHITECTURE = {
       "source": "junction.2200",
       "sourceCrop": [
         158,
-        96,
-        200,
-        283
+        95,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        13.5
+        -80.5,
+        20.5,
+        14.0
       ],
-      "x": 1661,
-      "y": 2013,
+      "x": 180,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1661,
-        "y": 2013,
-        "w": 42,
-        "h": 187,
+        "x": 180,
+        "y": 2218,
+        "w": 43,
+        "h": 189,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -22008,8 +22008,8 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
-          -0.078,
+          -0.08800000000000001,
+          -0.08800000000000001,
           0
         ],
         [
@@ -22022,39 +22022,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2200",
       "source": "junction.2200",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 187,
+      "w": 43,
+      "h": 189,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1705,
-      "y": 2013,
+      "x": 225,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1705,
-        "y": 2013,
-        "w": 42,
-        "h": 187,
+        "x": 225,
+        "y": 2218,
+        "w": 43,
+        "h": 189,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -22073,7 +22073,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -22089,8 +22089,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -22100,23 +22100,23 @@ export const ARCHITECTURE = {
         1.0,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1749,
-      "y": 2013,
+      "x": 270,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1749,
-        "y": 2013,
-        "w": 42,
-        "h": 182,
+        "x": 270,
+        "y": 2218,
+        "w": 43,
+        "h": 183,
         "origin": [
           1.0,
           77.5
@@ -22138,7 +22138,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -22152,39 +22152,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2201",
       "source": "junction.2201",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1793,
-      "y": 2013,
+      "x": 315,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1793,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 315,
+        "y": 2218,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -22203,7 +22203,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -22218,38 +22218,38 @@ export const ARCHITECTURE = {
       "source": "junction.2201",
       "sourceCrop": [
         154,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        80.0
+        80.5
       ],
       "anchor": [
         3.0,
-        101.0
+        101.5
       ],
-      "w": 46,
-      "h": 145,
+      "w": 47,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 1837,
-      "y": 2013,
+      "x": 360,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1837,
-        "y": 2013,
-        "w": 46,
-        "h": 145,
+        "x": 360,
+        "y": 2218,
+        "w": 47,
+        "h": 147,
         "origin": [
           3.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -22268,7 +22268,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -22284,8 +22284,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -22295,23 +22295,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 1885,
-      "y": 2013,
+      "x": 409,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1885,
-        "y": 2013,
-        "w": 42,
-        "h": 181,
+        "x": 409,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -22333,7 +22333,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -22347,39 +22347,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2202",
       "source": "junction.2202",
       "sourceCrop": [
-        120,
-        99,
+        119,
+        98,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
-        78.5
+        20.5,
+        79.0
       ],
       "anchor": [
-        20.0,
-        99.5
+        20.5,
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
-        -78.5,
+        -20.5,
+        -79.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 1929,
-      "y": 2013,
+      "x": 454,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1929,
-        "y": 2013,
-        "w": 42,
-        "h": 184,
+        "x": 454,
+        "y": 2218,
+        "w": 43,
+        "h": 186,
         "origin": [
-          20.0,
-          78.5
+          20.5,
+          79.0
         ],
         "pixel_density": 2
       },
@@ -22398,7 +22398,7 @@ export const ARCHITECTURE = {
       ],
       "physicalBounds": [
         [
-          -0.078,
+          -0.08800000000000001,
           -0.5,
           0
         ],
@@ -22413,38 +22413,38 @@ export const ARCHITECTURE = {
       "source": "junction.2202",
       "sourceCrop": [
         154,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         3.0,
-        89.0
+        89.5
       ],
       "anchor": [
         3.0,
-        110.0
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -3.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 1973,
-      "y": 2013,
+      "x": 499,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1973,
-        "y": 2013,
-        "w": 46,
-        "h": 163,
+        "x": 499,
+        "y": 2218,
+        "w": 47,
+        "h": 165,
         "origin": [
           3.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -22464,7 +22464,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -22478,38 +22478,38 @@ export const ARCHITECTURE = {
       "source": "junction.2210",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 0,
-      "y": 2202,
+      "x": 548,
+      "y": 2218,
       "depthRegistration": {
-        "x": 0,
-        "y": 2202,
-        "w": 42,
-        "h": 184,
+        "x": 548,
+        "y": 2218,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -22529,7 +22529,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -22542,38 +22542,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2210",
       "source": "junction.2210",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 44,
-      "y": 2202,
+      "x": 593,
+      "y": 2218,
       "depthRegistration": {
-        "x": 44,
-        "y": 2202,
-        "w": 42,
-        "h": 182,
+        "x": 593,
+        "y": 2218,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -22594,7 +22594,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -22607,39 +22607,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2210",
       "source": "junction.2210",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 46,
-      "h": 145,
+      "w": 47,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 88,
-      "y": 2202,
+      "x": 638,
+      "y": 2218,
       "depthRegistration": {
-        "x": 88,
-        "y": 2202,
-        "w": 46,
-        "h": 145,
+        "x": 638,
+        "y": 2218,
+        "w": 47,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -22674,8 +22674,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -22685,23 +22685,23 @@ export const ARCHITECTURE = {
         1.0,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 136,
-      "y": 2202,
+      "x": 687,
+      "y": 2218,
       "depthRegistration": {
-        "x": 136,
-        "y": 2202,
-        "w": 42,
-        "h": 182,
+        "x": 687,
+        "y": 2218,
+        "w": 43,
+        "h": 183,
         "origin": [
           1.0,
           77.5
@@ -22737,38 +22737,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2211",
       "source": "junction.2211",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 180,
-      "y": 2202,
+      "x": 732,
+      "y": 2218,
       "depthRegistration": {
-        "x": 180,
-        "y": 2202,
-        "w": 42,
-        "h": 182,
+        "x": 732,
+        "y": 2218,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -22802,39 +22802,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2211",
       "source": "junction.2211",
       "sourceCrop": [
-        120,
-        96,
+        119,
+        95,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        80.0
+        20.5,
+        80.5
       ],
       "anchor": [
-        20.0,
-        101.0
+        20.5,
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -80.0,
+        -20.5,
+        -80.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 224,
-      "y": 2202,
+      "x": 777,
+      "y": 2218,
       "depthRegistration": {
-        "x": 224,
-        "y": 2202,
-        "w": 42,
-        "h": 145,
+        "x": 777,
+        "y": 2218,
+        "w": 43,
+        "h": 147,
         "origin": [
-          20.0,
-          80.0
+          20.5,
+          80.5
         ],
         "pixel_density": 2
       },
@@ -22868,38 +22868,38 @@ export const ARCHITECTURE = {
       "source": "junction.2211",
       "sourceCrop": [
         158,
-        96,
-        200,
-        241
+        95,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        80.0
+        80.5
       ],
       "anchor": [
         1.0,
-        101.0
+        101.5
       ],
-      "w": 42,
-      "h": 145,
+      "w": 43,
+      "h": 147,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -80.0,
-        20.0,
-        -7.5
+        -80.5,
+        20.5,
+        -7.0
       ],
-      "x": 268,
-      "y": 2202,
+      "x": 822,
+      "y": 2218,
       "depthRegistration": {
-        "x": 268,
-        "y": 2202,
-        "w": 42,
-        "h": 145,
+        "x": 822,
+        "y": 2218,
+        "w": 43,
+        "h": 147,
         "origin": [
           1.0,
-          80.0
+          80.5
         ],
         "pixel_density": 2
       },
@@ -22934,8 +22934,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -22945,23 +22945,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 312,
-      "y": 2202,
+      "x": 867,
+      "y": 2218,
       "depthRegistration": {
-        "x": 312,
-        "y": 2202,
-        "w": 42,
-        "h": 181,
+        "x": 867,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -22997,38 +22997,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2212",
       "source": "junction.2212",
       "sourceCrop": [
-        120,
+        119,
         101,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.5
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.5,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 356,
-      "y": 2202,
+      "x": 912,
+      "y": 2218,
       "depthRegistration": {
-        "x": 356,
-        "y": 2202,
-        "w": 42,
-        "h": 182,
+        "x": 912,
+        "y": 2218,
+        "w": 43,
+        "h": 183,
         "origin": [
-          20.0,
+          20.5,
           77.5
         ],
         "pixel_density": 2
@@ -23062,39 +23062,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2212",
       "source": "junction.2212",
       "sourceCrop": [
-        120,
-        97,
+        119,
+        96,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        79.5
+        20.5,
+        80.0
       ],
       "anchor": [
-        20.0,
-        100.5
+        20.5,
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -79.5,
+        -20.5,
+        -80.0,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 400,
-      "y": 2202,
+      "x": 957,
+      "y": 2218,
       "depthRegistration": {
-        "x": 400,
-        "y": 2202,
-        "w": 42,
-        "h": 144,
+        "x": 957,
+        "y": 2218,
+        "w": 43,
+        "h": 146,
         "origin": [
-          20.0,
-          79.5
+          20.5,
+          80.0
         ],
         "pixel_density": 2
       },
@@ -23128,38 +23128,38 @@ export const ARCHITECTURE = {
       "source": "junction.2212",
       "sourceCrop": [
         157,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.5,
-        89.0
+        89.5
       ],
       "anchor": [
         1.5,
-        110.0
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.5,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 444,
-      "y": 2202,
+      "x": 1002,
+      "y": 2218,
       "depthRegistration": {
-        "x": 444,
-        "y": 2202,
-        "w": 43,
-        "h": 163,
+        "x": 1002,
+        "y": 2218,
+        "w": 44,
+        "h": 165,
         "origin": [
           1.5,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -23179,7 +23179,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -23193,38 +23193,38 @@ export const ARCHITECTURE = {
       "source": "junction.2220",
       "sourceCrop": [
         158,
-        99,
-        200,
-        283
+        98,
+        201,
+        284
       ],
       "origin": [
         1.0,
-        78.5
+        79.0
       ],
       "anchor": [
         1.0,
-        99.5
+        100.0
       ],
-      "w": 42,
-      "h": 184,
+      "w": 43,
+      "h": 186,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
-        -78.5,
-        20.0,
-        13.5
+        -79.0,
+        20.5,
+        14.0
       ],
-      "x": 489,
-      "y": 2202,
+      "x": 1048,
+      "y": 2218,
       "depthRegistration": {
-        "x": 489,
-        "y": 2202,
-        "w": 42,
-        "h": 184,
+        "x": 1048,
+        "y": 2218,
+        "w": 43,
+        "h": 186,
         "origin": [
           1.0,
-          78.5
+          79.0
         ],
         "pixel_density": 2
       },
@@ -23244,7 +23244,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -23257,38 +23257,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2220",
       "source": "junction.2220",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 533,
-      "y": 2202,
+      "x": 1093,
+      "y": 2218,
       "depthRegistration": {
-        "x": 533,
-        "y": 2202,
-        "w": 42,
-        "h": 181,
+        "x": 1093,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -23309,7 +23309,7 @@ export const ARCHITECTURE = {
       "physicalBounds": [
         [
           -0.5,
-          -0.078,
+          -0.08800000000000001,
           0
         ],
         [
@@ -23322,39 +23322,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2220",
       "source": "junction.2220",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         166,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 46,
-      "h": 163,
+      "w": 47,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         3.0,
-        -7.5
+        -7.0
       ],
-      "x": 577,
-      "y": 2202,
+      "x": 1138,
+      "y": 2218,
       "depthRegistration": {
-        "x": 577,
-        "y": 2202,
-        "w": 46,
-        "h": 163,
+        "x": 1138,
+        "y": 2218,
+        "w": 47,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -23389,8 +23389,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         101,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -23400,23 +23400,23 @@ export const ARCHITECTURE = {
         1.0,
         98.5
       ],
-      "w": 42,
-      "h": 182,
+      "w": 43,
+      "h": 183,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.5,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 625,
-      "y": 2202,
+      "x": 1187,
+      "y": 2218,
       "depthRegistration": {
-        "x": 625,
-        "y": 2202,
-        "w": 42,
-        "h": 182,
+        "x": 1187,
+        "y": 2218,
+        "w": 43,
+        "h": 183,
         "origin": [
           1.0,
           77.5
@@ -23452,38 +23452,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2221",
       "source": "junction.2221",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 669,
-      "y": 2202,
+      "x": 1232,
+      "y": 2218,
       "depthRegistration": {
-        "x": 669,
-        "y": 2202,
-        "w": 42,
-        "h": 181,
+        "x": 1232,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -23517,39 +23517,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2221",
       "source": "junction.2221",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         163,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 43,
-      "h": 163,
+      "w": 44,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.5,
-        -7.5
+        -7.0
       ],
-      "x": 713,
-      "y": 2202,
+      "x": 1277,
+      "y": 2218,
       "depthRegistration": {
-        "x": 713,
-        "y": 2202,
-        "w": 43,
-        "h": 163,
+        "x": 1277,
+        "y": 2218,
+        "w": 44,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -23583,38 +23583,38 @@ export const ARCHITECTURE = {
       "source": "junction.2221",
       "sourceCrop": [
         158,
-        97,
-        200,
-        241
+        96,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        79.5
+        80.0
       ],
       "anchor": [
         1.0,
-        100.5
+        101.0
       ],
-      "w": 42,
-      "h": 144,
+      "w": 43,
+      "h": 146,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -79.5,
-        20.0,
-        -7.5
+        -80.0,
+        20.5,
+        -7.0
       ],
-      "x": 758,
-      "y": 2202,
+      "x": 1323,
+      "y": 2218,
       "depthRegistration": {
-        "x": 758,
-        "y": 2202,
-        "w": 42,
-        "h": 144,
+        "x": 1323,
+        "y": 2218,
+        "w": 43,
+        "h": 146,
         "origin": [
           1.0,
-          79.5
+          80.0
         ],
         "pixel_density": 2
       },
@@ -23649,8 +23649,8 @@ export const ARCHITECTURE = {
       "sourceCrop": [
         158,
         102,
-        200,
-        283
+        201,
+        284
       ],
       "origin": [
         1.0,
@@ -23660,23 +23660,23 @@ export const ARCHITECTURE = {
         1.0,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 0,
       "logicalBounds": [
         -1.0,
         -77.0,
-        20.0,
-        13.5
+        20.5,
+        14.0
       ],
-      "x": 802,
-      "y": 2202,
+      "x": 1368,
+      "y": 2218,
       "depthRegistration": {
-        "x": 802,
-        "y": 2202,
-        "w": 42,
-        "h": 181,
+        "x": 1368,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
           1.0,
           77.0
@@ -23712,38 +23712,38 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2222",
       "source": "junction.2222",
       "sourceCrop": [
-        120,
+        119,
         102,
         162,
-        283
+        284
       ],
       "origin": [
-        20.0,
+        20.5,
         77.0
       ],
       "anchor": [
-        20.0,
+        20.5,
         98.0
       ],
-      "w": 42,
-      "h": 181,
+      "w": 43,
+      "h": 182,
       "pixel_density": 2,
       "ownedSpan": 1,
       "logicalBounds": [
-        -20.0,
+        -20.5,
         -77.0,
         1.0,
-        13.5
+        14.0
       ],
-      "x": 846,
-      "y": 2202,
+      "x": 1413,
+      "y": 2218,
       "depthRegistration": {
-        "x": 846,
-        "y": 2202,
-        "w": 42,
-        "h": 181,
+        "x": 1413,
+        "y": 2218,
+        "w": 43,
+        "h": 182,
         "origin": [
-          20.0,
+          20.5,
           77.0
         ],
         "pixel_density": 2
@@ -23777,39 +23777,39 @@ export const ARCHITECTURE = {
       "geometryKey": "junction.2222",
       "source": "junction.2222",
       "sourceCrop": [
-        120,
-        78,
+        119,
+        77,
         162,
-        241
+        242
       ],
       "origin": [
-        20.0,
-        89.0
+        20.5,
+        89.5
       ],
       "anchor": [
-        20.0,
-        110.0
+        20.5,
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 2,
       "logicalBounds": [
-        -20.0,
-        -89.0,
+        -20.5,
+        -89.5,
         1.0,
-        -7.5
+        -7.0
       ],
-      "x": 890,
-      "y": 2202,
+      "x": 1458,
+      "y": 2218,
       "depthRegistration": {
-        "x": 890,
-        "y": 2202,
-        "w": 42,
-        "h": 163,
+        "x": 1458,
+        "y": 2218,
+        "w": 43,
+        "h": 165,
         "origin": [
-          20.0,
-          89.0
+          20.5,
+          89.5
         ],
         "pixel_density": 2
       },
@@ -23843,38 +23843,38 @@ export const ARCHITECTURE = {
       "source": "junction.2222",
       "sourceCrop": [
         158,
-        78,
-        200,
-        241
+        77,
+        201,
+        242
       ],
       "origin": [
         1.0,
-        89.0
+        89.5
       ],
       "anchor": [
         1.0,
-        110.0
+        110.5
       ],
-      "w": 42,
-      "h": 163,
+      "w": 43,
+      "h": 165,
       "pixel_density": 2,
       "ownedSpan": 3,
       "logicalBounds": [
         -1.0,
-        -89.0,
-        20.0,
-        -7.5
+        -89.5,
+        20.5,
+        -7.0
       ],
-      "x": 934,
-      "y": 2202,
+      "x": 1503,
+      "y": 2218,
       "depthRegistration": {
-        "x": 934,
-        "y": 2202,
-        "w": 42,
-        "h": 163,
+        "x": 1503,
+        "y": 2218,
+        "w": 43,
+        "h": 165,
         "origin": [
           1.0,
-          89.0
+          89.5
         ],
         "pixel_density": 2
       },
@@ -23932,11 +23932,11 @@ export const ARCHITECTURE = {
         0,
         0
       ],
-      "x": 978,
-      "y": 2202,
+      "x": 1548,
+      "y": 2218,
       "depthRegistration": {
-        "x": 978,
-        "y": 2202,
+        "x": 1548,
+        "y": 2218,
         "w": 132,
         "h": 88,
         "origin": [
@@ -23999,11 +23999,11 @@ export const ARCHITECTURE = {
         1,
         0
       ],
-      "x": 1112,
-      "y": 2202,
+      "x": 1682,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1112,
-        "y": 2202,
+        "x": 1682,
+        "y": 2218,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24066,11 +24066,11 @@ export const ARCHITECTURE = {
         2,
         0
       ],
-      "x": 1246,
-      "y": 2202,
+      "x": 1816,
+      "y": 2218,
       "depthRegistration": {
-        "x": 1246,
-        "y": 2202,
+        "x": 1816,
+        "y": 2218,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24133,11 +24133,11 @@ export const ARCHITECTURE = {
         3,
         0
       ],
-      "x": 1380,
-      "y": 2202,
+      "x": 0,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1380,
-        "y": 2202,
+        "x": 0,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24200,11 +24200,11 @@ export const ARCHITECTURE = {
         0,
         1
       ],
-      "x": 1514,
-      "y": 2202,
+      "x": 134,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1514,
-        "y": 2202,
+        "x": 134,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24267,11 +24267,11 @@ export const ARCHITECTURE = {
         1,
         1
       ],
-      "x": 1648,
-      "y": 2202,
+      "x": 268,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1648,
-        "y": 2202,
+        "x": 268,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24334,11 +24334,11 @@ export const ARCHITECTURE = {
         2,
         1
       ],
-      "x": 1782,
-      "y": 2202,
+      "x": 402,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1782,
-        "y": 2202,
+        "x": 402,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24401,11 +24401,11 @@ export const ARCHITECTURE = {
         3,
         1
       ],
-      "x": 0,
-      "y": 2388,
+      "x": 536,
+      "y": 2409,
       "depthRegistration": {
-        "x": 0,
-        "y": 2388,
+        "x": 536,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24468,11 +24468,11 @@ export const ARCHITECTURE = {
         0,
         2
       ],
-      "x": 134,
-      "y": 2388,
+      "x": 670,
+      "y": 2409,
       "depthRegistration": {
-        "x": 134,
-        "y": 2388,
+        "x": 670,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24535,11 +24535,11 @@ export const ARCHITECTURE = {
         1,
         2
       ],
-      "x": 268,
-      "y": 2388,
+      "x": 804,
+      "y": 2409,
       "depthRegistration": {
-        "x": 268,
-        "y": 2388,
+        "x": 804,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24602,11 +24602,11 @@ export const ARCHITECTURE = {
         2,
         2
       ],
-      "x": 402,
-      "y": 2388,
+      "x": 938,
+      "y": 2409,
       "depthRegistration": {
-        "x": 402,
-        "y": 2388,
+        "x": 938,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24669,11 +24669,11 @@ export const ARCHITECTURE = {
         3,
         2
       ],
-      "x": 536,
-      "y": 2388,
+      "x": 1072,
+      "y": 2409,
       "depthRegistration": {
-        "x": 536,
-        "y": 2388,
+        "x": 1072,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24736,11 +24736,11 @@ export const ARCHITECTURE = {
         0,
         3
       ],
-      "x": 670,
-      "y": 2388,
+      "x": 1206,
+      "y": 2409,
       "depthRegistration": {
-        "x": 670,
-        "y": 2388,
+        "x": 1206,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24803,11 +24803,11 @@ export const ARCHITECTURE = {
         1,
         3
       ],
-      "x": 804,
-      "y": 2388,
+      "x": 1340,
+      "y": 2409,
       "depthRegistration": {
-        "x": 804,
-        "y": 2388,
+        "x": 1340,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24870,11 +24870,11 @@ export const ARCHITECTURE = {
         2,
         3
       ],
-      "x": 938,
-      "y": 2388,
+      "x": 1474,
+      "y": 2409,
       "depthRegistration": {
-        "x": 938,
-        "y": 2388,
+        "x": 1474,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -24937,11 +24937,11 @@ export const ARCHITECTURE = {
         3,
         3
       ],
-      "x": 1072,
-      "y": 2388,
+      "x": 1608,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1072,
-        "y": 2388,
+        "x": 1608,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25004,11 +25004,11 @@ export const ARCHITECTURE = {
         0,
         0
       ],
-      "x": 1206,
-      "y": 2388,
+      "x": 1742,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1206,
-        "y": 2388,
+        "x": 1742,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25071,11 +25071,11 @@ export const ARCHITECTURE = {
         1,
         0
       ],
-      "x": 1340,
-      "y": 2388,
+      "x": 1876,
+      "y": 2409,
       "depthRegistration": {
-        "x": 1340,
-        "y": 2388,
+        "x": 1876,
+        "y": 2409,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25138,11 +25138,11 @@ export const ARCHITECTURE = {
         2,
         0
       ],
-      "x": 1474,
-      "y": 2388,
+      "x": 0,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1474,
-        "y": 2388,
+        "x": 0,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25205,11 +25205,11 @@ export const ARCHITECTURE = {
         3,
         0
       ],
-      "x": 1608,
-      "y": 2388,
+      "x": 134,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1608,
-        "y": 2388,
+        "x": 134,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25272,11 +25272,11 @@ export const ARCHITECTURE = {
         0,
         1
       ],
-      "x": 1742,
-      "y": 2388,
+      "x": 268,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1742,
-        "y": 2388,
+        "x": 268,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25339,11 +25339,11 @@ export const ARCHITECTURE = {
         1,
         1
       ],
-      "x": 1876,
-      "y": 2388,
+      "x": 402,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1876,
-        "y": 2388,
+        "x": 402,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25406,11 +25406,11 @@ export const ARCHITECTURE = {
         2,
         1
       ],
-      "x": 0,
-      "y": 2478,
+      "x": 536,
+      "y": 2499,
       "depthRegistration": {
-        "x": 0,
-        "y": 2478,
+        "x": 536,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25473,11 +25473,11 @@ export const ARCHITECTURE = {
         3,
         1
       ],
-      "x": 134,
-      "y": 2478,
+      "x": 670,
+      "y": 2499,
       "depthRegistration": {
-        "x": 134,
-        "y": 2478,
+        "x": 670,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25540,11 +25540,11 @@ export const ARCHITECTURE = {
         0,
         2
       ],
-      "x": 268,
-      "y": 2478,
+      "x": 804,
+      "y": 2499,
       "depthRegistration": {
-        "x": 268,
-        "y": 2478,
+        "x": 804,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25607,11 +25607,11 @@ export const ARCHITECTURE = {
         1,
         2
       ],
-      "x": 402,
-      "y": 2478,
+      "x": 938,
+      "y": 2499,
       "depthRegistration": {
-        "x": 402,
-        "y": 2478,
+        "x": 938,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25674,11 +25674,11 @@ export const ARCHITECTURE = {
         2,
         2
       ],
-      "x": 536,
-      "y": 2478,
+      "x": 1072,
+      "y": 2499,
       "depthRegistration": {
-        "x": 536,
-        "y": 2478,
+        "x": 1072,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25741,11 +25741,11 @@ export const ARCHITECTURE = {
         3,
         2
       ],
-      "x": 670,
-      "y": 2478,
+      "x": 1206,
+      "y": 2499,
       "depthRegistration": {
-        "x": 670,
-        "y": 2478,
+        "x": 1206,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25808,11 +25808,11 @@ export const ARCHITECTURE = {
         0,
         3
       ],
-      "x": 804,
-      "y": 2478,
+      "x": 1340,
+      "y": 2499,
       "depthRegistration": {
-        "x": 804,
-        "y": 2478,
+        "x": 1340,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25875,11 +25875,11 @@ export const ARCHITECTURE = {
         1,
         3
       ],
-      "x": 938,
-      "y": 2478,
+      "x": 1474,
+      "y": 2499,
       "depthRegistration": {
-        "x": 938,
-        "y": 2478,
+        "x": 1474,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -25942,11 +25942,11 @@ export const ARCHITECTURE = {
         2,
         3
       ],
-      "x": 1072,
-      "y": 2478,
+      "x": 1608,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1072,
-        "y": 2478,
+        "x": 1608,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26009,11 +26009,11 @@ export const ARCHITECTURE = {
         3,
         3
       ],
-      "x": 1206,
-      "y": 2478,
+      "x": 1742,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1206,
-        "y": 2478,
+        "x": 1742,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26076,11 +26076,11 @@ export const ARCHITECTURE = {
         0,
         0
       ],
-      "x": 1340,
-      "y": 2478,
+      "x": 1876,
+      "y": 2499,
       "depthRegistration": {
-        "x": 1340,
-        "y": 2478,
+        "x": 1876,
+        "y": 2499,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26143,11 +26143,11 @@ export const ARCHITECTURE = {
         1,
         0
       ],
-      "x": 1474,
-      "y": 2478,
+      "x": 0,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1474,
-        "y": 2478,
+        "x": 0,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26210,11 +26210,11 @@ export const ARCHITECTURE = {
         2,
         0
       ],
-      "x": 1608,
-      "y": 2478,
+      "x": 134,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1608,
-        "y": 2478,
+        "x": 134,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26277,11 +26277,11 @@ export const ARCHITECTURE = {
         3,
         0
       ],
-      "x": 1742,
-      "y": 2478,
+      "x": 268,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1742,
-        "y": 2478,
+        "x": 268,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26344,11 +26344,11 @@ export const ARCHITECTURE = {
         0,
         1
       ],
-      "x": 1876,
-      "y": 2478,
+      "x": 402,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1876,
-        "y": 2478,
+        "x": 402,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26411,11 +26411,11 @@ export const ARCHITECTURE = {
         1,
         1
       ],
-      "x": 0,
-      "y": 2568,
+      "x": 536,
+      "y": 2589,
       "depthRegistration": {
-        "x": 0,
-        "y": 2568,
+        "x": 536,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26478,11 +26478,11 @@ export const ARCHITECTURE = {
         2,
         1
       ],
-      "x": 134,
-      "y": 2568,
+      "x": 670,
+      "y": 2589,
       "depthRegistration": {
-        "x": 134,
-        "y": 2568,
+        "x": 670,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26545,11 +26545,11 @@ export const ARCHITECTURE = {
         3,
         1
       ],
-      "x": 268,
-      "y": 2568,
+      "x": 804,
+      "y": 2589,
       "depthRegistration": {
-        "x": 268,
-        "y": 2568,
+        "x": 804,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26612,11 +26612,11 @@ export const ARCHITECTURE = {
         0,
         2
       ],
-      "x": 402,
-      "y": 2568,
+      "x": 938,
+      "y": 2589,
       "depthRegistration": {
-        "x": 402,
-        "y": 2568,
+        "x": 938,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26679,11 +26679,11 @@ export const ARCHITECTURE = {
         1,
         2
       ],
-      "x": 536,
-      "y": 2568,
+      "x": 1072,
+      "y": 2589,
       "depthRegistration": {
-        "x": 536,
-        "y": 2568,
+        "x": 1072,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26746,11 +26746,11 @@ export const ARCHITECTURE = {
         2,
         2
       ],
-      "x": 670,
-      "y": 2568,
+      "x": 1206,
+      "y": 2589,
       "depthRegistration": {
-        "x": 670,
-        "y": 2568,
+        "x": 1206,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26813,11 +26813,11 @@ export const ARCHITECTURE = {
         3,
         2
       ],
-      "x": 804,
-      "y": 2568,
+      "x": 1340,
+      "y": 2589,
       "depthRegistration": {
-        "x": 804,
-        "y": 2568,
+        "x": 1340,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26880,11 +26880,11 @@ export const ARCHITECTURE = {
         0,
         3
       ],
-      "x": 938,
-      "y": 2568,
+      "x": 1474,
+      "y": 2589,
       "depthRegistration": {
-        "x": 938,
-        "y": 2568,
+        "x": 1474,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -26947,11 +26947,11 @@ export const ARCHITECTURE = {
         1,
         3
       ],
-      "x": 1072,
-      "y": 2568,
+      "x": 1608,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1072,
-        "y": 2568,
+        "x": 1608,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27014,11 +27014,11 @@ export const ARCHITECTURE = {
         2,
         3
       ],
-      "x": 1206,
-      "y": 2568,
+      "x": 1742,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1206,
-        "y": 2568,
+        "x": 1742,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27081,11 +27081,11 @@ export const ARCHITECTURE = {
         3,
         3
       ],
-      "x": 1340,
-      "y": 2568,
+      "x": 1876,
+      "y": 2589,
       "depthRegistration": {
-        "x": 1340,
-        "y": 2568,
+        "x": 1876,
+        "y": 2589,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27148,11 +27148,11 @@ export const ARCHITECTURE = {
         0,
         0
       ],
-      "x": 1474,
-      "y": 2568,
+      "x": 0,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1474,
-        "y": 2568,
+        "x": 0,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27215,11 +27215,11 @@ export const ARCHITECTURE = {
         1,
         0
       ],
-      "x": 1608,
-      "y": 2568,
+      "x": 134,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1608,
-        "y": 2568,
+        "x": 134,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27282,11 +27282,11 @@ export const ARCHITECTURE = {
         2,
         0
       ],
-      "x": 1742,
-      "y": 2568,
+      "x": 268,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1742,
-        "y": 2568,
+        "x": 268,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27349,11 +27349,11 @@ export const ARCHITECTURE = {
         3,
         0
       ],
-      "x": 1876,
-      "y": 2568,
+      "x": 402,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1876,
-        "y": 2568,
+        "x": 402,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27416,11 +27416,11 @@ export const ARCHITECTURE = {
         0,
         1
       ],
-      "x": 0,
-      "y": 2658,
+      "x": 536,
+      "y": 2679,
       "depthRegistration": {
-        "x": 0,
-        "y": 2658,
+        "x": 536,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27483,11 +27483,11 @@ export const ARCHITECTURE = {
         1,
         1
       ],
-      "x": 134,
-      "y": 2658,
+      "x": 670,
+      "y": 2679,
       "depthRegistration": {
-        "x": 134,
-        "y": 2658,
+        "x": 670,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27550,11 +27550,11 @@ export const ARCHITECTURE = {
         2,
         1
       ],
-      "x": 268,
-      "y": 2658,
+      "x": 804,
+      "y": 2679,
       "depthRegistration": {
-        "x": 268,
-        "y": 2658,
+        "x": 804,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27617,11 +27617,11 @@ export const ARCHITECTURE = {
         3,
         1
       ],
-      "x": 402,
-      "y": 2658,
+      "x": 938,
+      "y": 2679,
       "depthRegistration": {
-        "x": 402,
-        "y": 2658,
+        "x": 938,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27684,11 +27684,11 @@ export const ARCHITECTURE = {
         0,
         2
       ],
-      "x": 536,
-      "y": 2658,
+      "x": 1072,
+      "y": 2679,
       "depthRegistration": {
-        "x": 536,
-        "y": 2658,
+        "x": 1072,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27751,11 +27751,11 @@ export const ARCHITECTURE = {
         1,
         2
       ],
-      "x": 670,
-      "y": 2658,
+      "x": 1206,
+      "y": 2679,
       "depthRegistration": {
-        "x": 670,
-        "y": 2658,
+        "x": 1206,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27818,11 +27818,11 @@ export const ARCHITECTURE = {
         2,
         2
       ],
-      "x": 804,
-      "y": 2658,
+      "x": 1340,
+      "y": 2679,
       "depthRegistration": {
-        "x": 804,
-        "y": 2658,
+        "x": 1340,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27885,11 +27885,11 @@ export const ARCHITECTURE = {
         3,
         2
       ],
-      "x": 938,
-      "y": 2658,
+      "x": 1474,
+      "y": 2679,
       "depthRegistration": {
-        "x": 938,
-        "y": 2658,
+        "x": 1474,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -27952,11 +27952,11 @@ export const ARCHITECTURE = {
         0,
         3
       ],
-      "x": 1072,
-      "y": 2658,
+      "x": 1608,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1072,
-        "y": 2658,
+        "x": 1608,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28019,11 +28019,11 @@ export const ARCHITECTURE = {
         1,
         3
       ],
-      "x": 1206,
-      "y": 2658,
+      "x": 1742,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1206,
-        "y": 2658,
+        "x": 1742,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28086,11 +28086,11 @@ export const ARCHITECTURE = {
         2,
         3
       ],
-      "x": 1340,
-      "y": 2658,
+      "x": 1876,
+      "y": 2679,
       "depthRegistration": {
-        "x": 1340,
-        "y": 2658,
+        "x": 1876,
+        "y": 2679,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28153,11 +28153,11 @@ export const ARCHITECTURE = {
         3,
         3
       ],
-      "x": 1474,
-      "y": 2658,
+      "x": 0,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1474,
-        "y": 2658,
+        "x": 0,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28220,11 +28220,11 @@ export const ARCHITECTURE = {
         0,
         0
       ],
-      "x": 1608,
-      "y": 2658,
+      "x": 134,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1608,
-        "y": 2658,
+        "x": 134,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28287,11 +28287,11 @@ export const ARCHITECTURE = {
         1,
         0
       ],
-      "x": 1742,
-      "y": 2658,
+      "x": 268,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1742,
-        "y": 2658,
+        "x": 268,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28354,11 +28354,11 @@ export const ARCHITECTURE = {
         2,
         0
       ],
-      "x": 1876,
-      "y": 2658,
+      "x": 402,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1876,
-        "y": 2658,
+        "x": 402,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28421,11 +28421,11 @@ export const ARCHITECTURE = {
         3,
         0
       ],
-      "x": 0,
-      "y": 2748,
+      "x": 536,
+      "y": 2769,
       "depthRegistration": {
-        "x": 0,
-        "y": 2748,
+        "x": 536,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28488,11 +28488,11 @@ export const ARCHITECTURE = {
         0,
         1
       ],
-      "x": 134,
-      "y": 2748,
+      "x": 670,
+      "y": 2769,
       "depthRegistration": {
-        "x": 134,
-        "y": 2748,
+        "x": 670,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28555,11 +28555,11 @@ export const ARCHITECTURE = {
         1,
         1
       ],
-      "x": 268,
-      "y": 2748,
+      "x": 804,
+      "y": 2769,
       "depthRegistration": {
-        "x": 268,
-        "y": 2748,
+        "x": 804,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28622,11 +28622,11 @@ export const ARCHITECTURE = {
         2,
         1
       ],
-      "x": 402,
-      "y": 2748,
+      "x": 938,
+      "y": 2769,
       "depthRegistration": {
-        "x": 402,
-        "y": 2748,
+        "x": 938,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28689,11 +28689,11 @@ export const ARCHITECTURE = {
         3,
         1
       ],
-      "x": 536,
-      "y": 2748,
+      "x": 1072,
+      "y": 2769,
       "depthRegistration": {
-        "x": 536,
-        "y": 2748,
+        "x": 1072,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28756,11 +28756,11 @@ export const ARCHITECTURE = {
         0,
         2
       ],
-      "x": 670,
-      "y": 2748,
+      "x": 1206,
+      "y": 2769,
       "depthRegistration": {
-        "x": 670,
-        "y": 2748,
+        "x": 1206,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28823,11 +28823,11 @@ export const ARCHITECTURE = {
         1,
         2
       ],
-      "x": 804,
-      "y": 2748,
+      "x": 1340,
+      "y": 2769,
       "depthRegistration": {
-        "x": 804,
-        "y": 2748,
+        "x": 1340,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28890,11 +28890,11 @@ export const ARCHITECTURE = {
         2,
         2
       ],
-      "x": 938,
-      "y": 2748,
+      "x": 1474,
+      "y": 2769,
       "depthRegistration": {
-        "x": 938,
-        "y": 2748,
+        "x": 1474,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -28957,11 +28957,11 @@ export const ARCHITECTURE = {
         3,
         2
       ],
-      "x": 1072,
-      "y": 2748,
+      "x": 1608,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1072,
-        "y": 2748,
+        "x": 1608,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29024,11 +29024,11 @@ export const ARCHITECTURE = {
         0,
         3
       ],
-      "x": 1206,
-      "y": 2748,
+      "x": 1742,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1206,
-        "y": 2748,
+        "x": 1742,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29091,11 +29091,11 @@ export const ARCHITECTURE = {
         1,
         3
       ],
-      "x": 1340,
-      "y": 2748,
+      "x": 1876,
+      "y": 2769,
       "depthRegistration": {
-        "x": 1340,
-        "y": 2748,
+        "x": 1876,
+        "y": 2769,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29158,11 +29158,11 @@ export const ARCHITECTURE = {
         2,
         3
       ],
-      "x": 1474,
-      "y": 2748,
+      "x": 0,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1474,
-        "y": 2748,
+        "x": 0,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29225,11 +29225,11 @@ export const ARCHITECTURE = {
         3,
         3
       ],
-      "x": 1608,
-      "y": 2748,
+      "x": 134,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1608,
-        "y": 2748,
+        "x": 134,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29292,11 +29292,11 @@ export const ARCHITECTURE = {
         0,
         0
       ],
-      "x": 1742,
-      "y": 2748,
+      "x": 268,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1742,
-        "y": 2748,
+        "x": 268,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29359,11 +29359,11 @@ export const ARCHITECTURE = {
         1,
         0
       ],
-      "x": 1876,
-      "y": 2748,
+      "x": 402,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1876,
-        "y": 2748,
+        "x": 402,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29426,11 +29426,11 @@ export const ARCHITECTURE = {
         2,
         0
       ],
-      "x": 0,
-      "y": 2838,
+      "x": 536,
+      "y": 2859,
       "depthRegistration": {
-        "x": 0,
-        "y": 2838,
+        "x": 536,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29493,11 +29493,11 @@ export const ARCHITECTURE = {
         3,
         0
       ],
-      "x": 134,
-      "y": 2838,
+      "x": 670,
+      "y": 2859,
       "depthRegistration": {
-        "x": 134,
-        "y": 2838,
+        "x": 670,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29560,11 +29560,11 @@ export const ARCHITECTURE = {
         0,
         1
       ],
-      "x": 268,
-      "y": 2838,
+      "x": 804,
+      "y": 2859,
       "depthRegistration": {
-        "x": 268,
-        "y": 2838,
+        "x": 804,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29627,11 +29627,11 @@ export const ARCHITECTURE = {
         1,
         1
       ],
-      "x": 402,
-      "y": 2838,
+      "x": 938,
+      "y": 2859,
       "depthRegistration": {
-        "x": 402,
-        "y": 2838,
+        "x": 938,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29694,11 +29694,11 @@ export const ARCHITECTURE = {
         2,
         1
       ],
-      "x": 536,
-      "y": 2838,
+      "x": 1072,
+      "y": 2859,
       "depthRegistration": {
-        "x": 536,
-        "y": 2838,
+        "x": 1072,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29761,11 +29761,11 @@ export const ARCHITECTURE = {
         3,
         1
       ],
-      "x": 670,
-      "y": 2838,
+      "x": 1206,
+      "y": 2859,
       "depthRegistration": {
-        "x": 670,
-        "y": 2838,
+        "x": 1206,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29828,11 +29828,11 @@ export const ARCHITECTURE = {
         0,
         2
       ],
-      "x": 804,
-      "y": 2838,
+      "x": 1340,
+      "y": 2859,
       "depthRegistration": {
-        "x": 804,
-        "y": 2838,
+        "x": 1340,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29895,11 +29895,11 @@ export const ARCHITECTURE = {
         1,
         2
       ],
-      "x": 938,
-      "y": 2838,
+      "x": 1474,
+      "y": 2859,
       "depthRegistration": {
-        "x": 938,
-        "y": 2838,
+        "x": 1474,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -29962,11 +29962,11 @@ export const ARCHITECTURE = {
         2,
         2
       ],
-      "x": 1072,
-      "y": 2838,
+      "x": 1608,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1072,
-        "y": 2838,
+        "x": 1608,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -30029,11 +30029,11 @@ export const ARCHITECTURE = {
         3,
         2
       ],
-      "x": 1206,
-      "y": 2838,
+      "x": 1742,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1206,
-        "y": 2838,
+        "x": 1742,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -30096,11 +30096,11 @@ export const ARCHITECTURE = {
         0,
         3
       ],
-      "x": 1340,
-      "y": 2838,
+      "x": 1876,
+      "y": 2859,
       "depthRegistration": {
-        "x": 1340,
-        "y": 2838,
+        "x": 1876,
+        "y": 2859,
         "w": 132,
         "h": 88,
         "origin": [
@@ -30163,11 +30163,11 @@ export const ARCHITECTURE = {
         1,
         3
       ],
-      "x": 1474,
-      "y": 2838,
+      "x": 0,
+      "y": 2949,
       "depthRegistration": {
-        "x": 1474,
-        "y": 2838,
+        "x": 0,
+        "y": 2949,
         "w": 132,
         "h": 88,
         "origin": [
@@ -30230,11 +30230,11 @@ export const ARCHITECTURE = {
         2,
         3
       ],
-      "x": 1608,
-      "y": 2838,
+      "x": 134,
+      "y": 2949,
       "depthRegistration": {
-        "x": 1608,
-        "y": 2838,
+        "x": 134,
+        "y": 2949,
         "w": 132,
         "h": 88,
         "origin": [
@@ -30297,11 +30297,11 @@ export const ARCHITECTURE = {
         3,
         3
       ],
-      "x": 1742,
-      "y": 2838,
+      "x": 268,
+      "y": 2949,
       "depthRegistration": {
-        "x": 1742,
-        "y": 2838,
+        "x": 268,
+        "y": 2949,
         "w": 132,
         "h": 88,
         "origin": [

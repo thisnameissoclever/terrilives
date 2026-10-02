@@ -1,0 +1,14 @@
+{
+  "command": "python -B assets/sprites/gen/check_architecture_mutations.py docs/assets/review-evidence/architecture/depth-full-01/mutations.json",
+  "exitCode": 1,
+  "state": "failed during exact source restoration",
+  "interruptedMutation": [
+    "shipped resource"
+  ],
+  "residualSha256": "594819449823a43542e34ad3def78cdcd236109aaeb0805925b38a53d55da84b",
+  "acceptedRestoredSha256": "2d276a8be0b542aa922d84ce5120a17488e7f099df0af86d51e62155a3b7b706",
+  "restoreMethod": "a1941ee3 Git blob verified against completed render receipt before writing; all12 accepted source hashes then verified",
+  "cause": "Unproven single Windows OSError22 during Path.write_bytes; no source guard or error was suppressed.",
+  "partialOutcomes": "The original command writes evidence only after all11steps. Individual successful partial results were not saved; this failed run does not prove11complete.",
+  "traceback": "Traceback (most recent call last):\n  File \"assets/sprites/gen/check_architecture_mutations.py\", line 98, in <module>\n    run(Path(sys.argv[1]))\n  File \"assets/sprites/gen/check_architecture_mutations.py\", line 88, in run\n    path.write_bytes(before)\n  File \"C:/Users/myema/AppData/Local/Programs/Python/Python314/Lib/pathlib/__init__.py\", line 796, in write_bytes\n    with self.open(mode='wb') as f:\n  File \"C:/Users/myema/AppData/Local/Programs/Python/Python314/Lib/pathlib/__init__.py\", line 771, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\nOSError: [Errno 22] Invalid argument: 'D:/VIBES/.worktrees/fe58/terrilives/assets/models/architecture/materials.py'\n"
+}

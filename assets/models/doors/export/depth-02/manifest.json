@@ -1,0 +1,396 @@
+{
+  "records": [
+    {
+      "name": "doorFrame0",
+      "facing": 0,
+      "phase": -1,
+      "sha256": {
+        "": "e19d4e4179345a35c3ec42e7bbe33c1f502a8a5654f612edca52fcb977bed4db",
+        "Depth": "af70ec70e07da8d1b57708fb5ce6ace24e7947fb0cc5c020dcb5462993d37b6e"
+      }
+    },
+    {
+      "name": "doorLeaf0_0",
+      "facing": 0,
+      "phase": 0,
+      "sha256": {
+        "": "33ea825328925226ed1e34bb93aedf4a54478ac532ec15c7c377712393902f98",
+        "Depth": "753a605c453c4d2b627fa361ef67e58ad1071644f300a76f11f9231834638a98"
+      }
+    },
+    {
+      "name": "doorLeaf0_1",
+      "facing": 0,
+      "phase": 1,
+      "sha256": {
+        "": "707aacc0d081069d7fc09c5172d1e6b0510d5677d0ed9c389e5877171338a519",
+        "Depth": "e5d6af6c41154f64c783055379fbf7c3a680bcde120db5d3d13c36365cb1340f"
+      }
+    },
+    {
+      "name": "doorLeaf0_2",
+      "facing": 0,
+      "phase": 2,
+      "sha256": {
+        "": "b55d80d57a097cdd2681d842f396e92c17a99cf1e2c26d2c49ddc85196b75767",
+        "Depth": "674ef9a5e6fafd2213663b424fa9511c90dfe7ef7fbf02a8210b2999850ea71d"
+      }
+    },
+    {
+      "name": "doorLeaf0_3",
+      "facing": 0,
+      "phase": 3,
+      "sha256": {
+        "": "73b8f19f8f1633f4c8a0ff5c000ef6a6eb7b9e42a184b971e7339b6abb389fc9",
+        "Depth": "a7879614855056b00ee6378a8aed377ffd66ae3e100a6dee78d7faecfb0a84dc"
+      }
+    },
+    {
+      "name": "doorLeaf0_4",
+      "facing": 0,
+      "phase": 4,
+      "sha256": {
+        "": "f17b891bd390ade711cec3a1d8f707414b2b1e92366b35f87cf872b398ae2dab",
+        "Depth": "6972ee500e04683cdc88f70e497b1c4ceebf407765bc40b75b6da10d88d8f995"
+      }
+    },
+    {
+      "name": "doorLeaf0_5",
+      "facing": 0,
+      "phase": 5,
+      "sha256": {
+        "": "645c3617085bd71e0bbbc7bc02be98feac74a6bd126676bce66ce52931aa72ac",
+        "Depth": "a4e12148e55320252455e8a417184c3794e707396dd3b0380bfd1cf70d4ef549"
+      }
+    },
+    {
+      "name": "doorLeaf0_6",
+      "facing": 0,
+      "phase": 6,
+      "sha256": {
+        "": "52e53044c598886bcea4960dd56d45a54e9ff40ba6dbe2a2b077b94b66d2d8b6",
+        "Depth": "471291c6eecc3dbfcca40fc0e74035965ff2907ef2c265a43d9085cd2a681a1d"
+      }
+    },
+    {
+      "name": "doorLeaf0_7",
+      "facing": 0,
+      "phase": 7,
+      "sha256": {
+        "": "b529838744123fc5e07848b8258e253bda030e62c3d3451b1a0ac18ed64c2c7b",
+        "Depth": "e6d7efbf7abda81ff4d0da75cf779304c662238a84daec6d81c77d18e4b84481"
+      }
+    },
+    {
+      "name": "doorLeaf0_8",
+      "facing": 0,
+      "phase": 8,
+      "sha256": {
+        "": "c5dd9a91b59079dbfa47d6cfe70b6aa15c5ec1e50a7aac5bf3e3b3ed110d7c50",
+        "Depth": "c9a2aa09483f2e61c3acf9c519316a4d5f54c60b0dcfe3613bf4ce7222607bd5"
+      }
+    },
+    {
+      "name": "doorFrame1",
+      "facing": 1,
+      "phase": -1,
+      "sha256": {
+        "": "453dff74aecf3f549bcd488f540c5bfc3137ccd0dfc913b120bbf38d29ec1ca2",
+        "Depth": "06ac9527a256c5df474196ef5219a4ab8e94eea9b862d2b190a711a817e89d0b"
+      }
+    },
+    {
+      "name": "doorLeaf1_0",
+      "facing": 1,
+      "phase": 0,
+      "sha256": {
+        "": "2690f6791a11f3ee777c7d78d199373e739c5c92ab8c3a32de4cc5a900b53076",
+        "Depth": "df96002447c3d5bee5908eb57541846969861f9e0099697da72b70d14601481a"
+      }
+    },
+    {
+      "name": "doorLeaf1_1",
+      "facing": 1,
+      "phase": 1,
+      "sha256": {
+        "": "0622f7bcc6702ddb4102f966f156112aacbd5547f8c68ae8d69a01d44252285e",
+        "Depth": "89a7b4b867ef5ed3341f58a4ae0dcffad2807116dd3182caa1af61cd5132fdda"
+      }
+    },
+    {
+      "name": "doorLeaf1_2",
+      "facing": 1,
+      "phase": 2,
+      "sha256": {
+        "": "ed19d285b18f8cf6420a0bf4795e10c065e8d3da4a2feebb275d9878f9aec03d",
+        "Depth": "711f965af7ba505d40bf708ae14a7e392781363556f26cec0d6da7e359b8f83e"
+      }
+    },
+    {
+      "name": "doorLeaf1_3",
+      "facing": 1,
+      "phase": 3,
+      "sha256": {
+        "": "9031e8573882bb1bd9d5b057a3e6d5b1b60fccb769a885f97ec606a67cb3f0a3",
+        "Depth": "9da6260ff21487a82c4bc98f518a5234edf4ce200899dc30a6169d2f25bb3736"
+      }
+    },
+    {
+      "name": "doorLeaf1_4",
+      "facing": 1,
+      "phase": 4,
+      "sha256": {
+        "": "b12c5f481cbd98ce58fb64cada34cc9aa50626fa92f919540291eefe690da2db",
+        "Depth": "c7fc16617113fd253f2595de9e65ce37ec59d2dcf5dc30a3d75910f84698d211"
+      }
+    },
+    {
+      "name": "doorLeaf1_5",
+      "facing": 1,
+      "phase": 5,
+      "sha256": {
+        "": "9c96c06c930e5c9ea2ab6bf3853bd4a61470ee7cd5ff2e08c621410a088baf82",
+        "Depth": "14edf2f939c0a8256d10184dd074072ce9e91ee820d8f050e015bdd54c9907d5"
+      }
+    },
+    {
+      "name": "doorLeaf1_6",
+      "facing": 1,
+      "phase": 6,
+      "sha256": {
+        "": "e43761fd71131616ebb274b3d90e7e6eb19b1e2574b059ce1f310f68cf8eb2d4",
+        "Depth": "6758944d4bcd250c0de9bfc3c31d4b30cc00aeb50eee1ba55e6666203d4c4835"
+      }
+    },
+    {
+      "name": "doorLeaf1_7",
+      "facing": 1,
+      "phase": 7,
+      "sha256": {
+        "": "373e1da6a567bd6d3e404e61de4a19839a11d1e8b5ab3a918f103eb5bb4b78f1",
+        "Depth": "ef607d6aff557cc08dfaee976356a3fc865528230589cb3bbf24e91647b073ca"
+      }
+    },
+    {
+      "name": "doorLeaf1_8",
+      "facing": 1,
+      "phase": 8,
+      "sha256": {
+        "": "749079ef11825ebb22fc033dce7613eaf7dd697946ba5d7091363b110a3ffd70",
+        "Depth": "1170f6b7406bfff32cfc921034938e548ac82fffabe462a22a30692ddc8c730f"
+      }
+    },
+    {
+      "name": "doorFrame2",
+      "facing": 2,
+      "phase": -1,
+      "sha256": {
+        "": "975a7536c29f748a23c116c8510419aab4323540114893b3eb65d29e063774de",
+        "Depth": "3e5823833ba1506c116e85615ec7536ff547a718c290c09e7bb11e5ae20649ad"
+      }
+    },
+    {
+      "name": "doorLeaf2_0",
+      "facing": 2,
+      "phase": 0,
+      "sha256": {
+        "": "5179f1ac217c93088654f5f035dec3e3afd34e961a3468ba51166f43eacc49d3",
+        "Depth": "5ae3cfa296139be733fb17fe0270d8a56b159bc9e535d8b6bb0ca0d813689f2c"
+      }
+    },
+    {
+      "name": "doorLeaf2_1",
+      "facing": 2,
+      "phase": 1,
+      "sha256": {
+        "": "d49c93752920fe8793eccf81439009dd1f4039a2d76718f5a429c1a557c36d14",
+        "Depth": "ad72789d25fea3ef8282c19bfefbedd2aa81f41207f5988b84d090d9f7a4dbaf"
+      }
+    },
+    {
+      "name": "doorLeaf2_2",
+      "facing": 2,
+      "phase": 2,
+      "sha256": {
+        "": "a8cedabfed7e52b4d528a33caa47ddf6f411a4fd63f9a6c69c408b223e54e877",
+        "Depth": "74113a9296de1279d01401a1ecac70d2f4ba7bd490bb8d152849b56a9bcf643e"
+      }
+    },
+    {
+      "name": "doorLeaf2_3",
+      "facing": 2,
+      "phase": 3,
+      "sha256": {
+        "": "7aaf8680c9d9a9bcda96dcfe0aa3409c3035355bac64b2ddce73586a42894a4d",
+        "Depth": "b19b035cf21a441a8873cec064295e4157202bdb5a77cca11affbffdfab35fb1"
+      }
+    },
+    {
+      "name": "doorLeaf2_4",
+      "facing": 2,
+      "phase": 4,
+      "sha256": {
+        "": "8bd087a487be0021e653837b1bf7d2cd04ccf3dcff31238c46e02529d44b8070",
+        "Depth": "52d6e38e2468cc482f69e45b6182e549f0599e8641aa2b711d5bd4f660416589"
+      }
+    },
+    {
+      "name": "doorLeaf2_5",
+      "facing": 2,
+      "phase": 5,
+      "sha256": {
+        "": "81625c13af1c283fbb54b3d36a777f32b87be09b77b2e56d7f024a59f9c6c2bc",
+        "Depth": "b491bb9908607bfdc8b5ef9d0ffea5fa45596475ea1543322a7715ac39c40c6c"
+      }
+    },
+    {
+      "name": "doorLeaf2_6",
+      "facing": 2,
+      "phase": 6,
+      "sha256": {
+        "": "d22e124252fa7b9d60c7379364b07f1b8d3d80369e70905f10fd9b5a46e4222f",
+        "Depth": "a221975f2d300b6c59c64c84cbf2774488b6b0de305a7a0c0af947ed256d0a04"
+      }
+    },
+    {
+      "name": "doorLeaf2_7",
+      "facing": 2,
+      "phase": 7,
+      "sha256": {
+        "": "9b82fadfba047067795cdce6618be64b6a2ad2526feff93e344d39f7fe8638ba",
+        "Depth": "575387141a1925afe5328b9fee26a27039907079e9eaa51cff30f5c645ee3b5e"
+      }
+    },
+    {
+      "name": "doorLeaf2_8",
+      "facing": 2,
+      "phase": 8,
+      "sha256": {
+        "": "4d01b59275f93a435e4a0672c020c10636863df92c5a797c2f3f9dda85e344d3",
+        "Depth": "84b2b747c2b0d5d797450447746e493ac58cd36c43d19d2db564d584d081336b"
+      }
+    },
+    {
+      "name": "doorFrame3",
+      "facing": 3,
+      "phase": -1,
+      "sha256": {
+        "": "147f3e9eba3da8d95d71a145eb091edd9deb6d54a10ca565a0bb7313372d671e",
+        "Depth": "9ad3c583f96104a6aca1af0816ab3b075f2856eb47470ea4c1c878bb169a369e"
+      }
+    },
+    {
+      "name": "doorLeaf3_0",
+      "facing": 3,
+      "phase": 0,
+      "sha256": {
+        "": "2ae1fdf27700ecfa68e14908fa6623ac5e77756a0d49e8938d8fccfbfd7d0033",
+        "Depth": "5200ba949850d9b51abba42800fc8cde8040b42402486ecaa0093d8ad3d31437"
+      }
+    },
+    {
+      "name": "doorLeaf3_1",
+      "facing": 3,
+      "phase": 1,
+      "sha256": {
+        "": "040ee2bdcb169c895ac8c9fa782b737c954cf3e694956923fbdfb10ebe9339ee",
+        "Depth": "30fd604e490da2bb8477217d30cc19331b0fb2aef17c3484e6c1d9cd6df55e3f"
+      }
+    },
+    {
+      "name": "doorLeaf3_2",
+      "facing": 3,
+      "phase": 2,
+      "sha256": {
+        "": "93337dd2a858bb41eb5266d6c1b50c50f68b11269ae8611517357679b5523dbd",
+        "Depth": "d36dbbd1da45fbd101252909780684d6132647a6c1f962b7c97cf7b9836199be"
+      }
+    },
+    {
+      "name": "doorLeaf3_3",
+      "facing": 3,
+      "phase": 3,
+      "sha256": {
+        "": "0e0cd0a3317d96017ddb2454af9b8d27dc902293ca6b4aedff60ed1ee14677c5",
+        "Depth": "3ab0add60217a07a5ce1c7a7d806c86c434efa68110c9588c29b22634f871c49"
+      }
+    },
+    {
+      "name": "doorLeaf3_4",
+      "facing": 3,
+      "phase": 4,
+      "sha256": {
+        "": "3fc2b29d17e7d6a6c6766adb182fa47778ceca84845153e4cf81c9fde7016df9",
+        "Depth": "5c54746281a61d6251db024ad3b4f1a74f0500b00ceeb64cf8f8472dce3bd988"
+      }
+    },
+    {
+      "name": "doorLeaf3_5",
+      "facing": 3,
+      "phase": 5,
+      "sha256": {
+        "": "a75348a93a0fec4c8ce52aacb016fe537c6085dbbaa0545a4f1a6d5580275770",
+        "Depth": "1e9abfd260c6c9691e2a07831864c5a82791087badf73d34a09e2dedb5b3ff34"
+      }
+    },
+    {
+      "name": "doorLeaf3_6",
+      "facing": 3,
+      "phase": 6,
+      "sha256": {
+        "": "9cb19ea734697410b53fe274e9197cbbed9c5afb5ace99be3f9a74f48a3f97d5",
+        "Depth": "92df02f8002103be8dbd9d8c4200380184ade83b81a499885a5f99218acacdae"
+      }
+    },
+    {
+      "name": "doorLeaf3_7",
+      "facing": 3,
+      "phase": 7,
+      "sha256": {
+        "": "41cfa4c9e8f12d1391e4246fd0fca670fb5ad4d4d13ab6b5605d0f08d422f039",
+        "Depth": "fc4c0dfff2664700724b130e8bc67a5fbf559fd2595d947bc2e157dfcefd5284"
+      }
+    },
+    {
+      "name": "doorLeaf3_8",
+      "facing": 3,
+      "phase": 8,
+      "sha256": {
+        "": "8ab9d533af643f73a6e4d6d1691138f8e7d72f3c22834abfcc4f5497e1e3c19e",
+        "Depth": "c3d28d32dd9f050fa8401094e941e95487f5fe2cd1903b1a5591298c8ac8ff42"
+      }
+    }
+  ],
+  "density": 3,
+  "canvas": [
+    112,
+    120
+  ],
+  "inputs": {
+    "doors/render_doors.py": "3b89115a651bf4d5bc20cc43c4979ed4cd5b4fe66d98e453fda063757a1f9912",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "architecture_dimensions.py": "156992e51649d4c6c646acf6bc19f541f7940930631bddb1d4c6053e1fd2567a",
+    "architecture-depth.json": "22b959c181ee72a4ac9aa26675fbf30aa3e31a1f482438c887609e07bcdb45b0"
+  },
+  "authoredDimensions": {
+    "casingDepth": 0.14,
+    "measuredMeshFaces": [
+      0.4300000071525574,
+      0.5699999928474426
+    ],
+    "measuredMeshDepth": 0.13999998569488525,
+    "casingFaces": [
+      0.43,
+      0.5700000000000001
+    ],
+    "leafHingeX": 0.4650000035762787,
+    "leafFrontSeating": 0.035,
+    "openingWidth": 0.78,
+    "openingHeight": 1.8,
+    "slabWidth": 0.73,
+    "thresholdDepth": 0.14,
+    "thresholdFloor": true
+  }
+}

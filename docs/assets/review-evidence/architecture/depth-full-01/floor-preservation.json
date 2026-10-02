@@ -1,0 +1,65 @@
+{
+  "sources": [
+    {
+      "geometryKey": "floor-patch.boards",
+      "unchanged": {
+        "color": true,
+        "carrier": true,
+        "depth": true,
+        "roles": true,
+        "owners": true
+      }
+    },
+    {
+      "geometryKey": "floor-patch.tiles",
+      "unchanged": {
+        "color": true,
+        "carrier": true,
+        "depth": true,
+        "roles": true,
+        "owners": true
+      }
+    },
+    {
+      "geometryKey": "floor-patch.carpet",
+      "unchanged": {
+        "color": true,
+        "carrier": true,
+        "depth": true,
+        "roles": true,
+        "owners": true
+      }
+    },
+    {
+      "geometryKey": "floor-patch.neutral",
+      "unchanged": {
+        "color": true,
+        "carrier": true,
+        "depth": true,
+        "roles": true,
+        "owners": true
+      }
+    },
+    {
+      "geometryKey": "floor-patch.grass",
+      "unchanged": {
+        "color": true,
+        "carrier": true,
+        "depth": true,
+        "roles": true,
+        "owners": true
+      }
+    },
+    {
+      "geometryKey": "floor-patch.street",
+      "unchanged": {
+        "color": true,
+        "carrier": true,
+        "depth": true,
+        "roles": true,
+        "owners": true
+      }
+    }
+  ],
+  "count": 6
+}

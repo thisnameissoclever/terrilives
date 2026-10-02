@@ -1,0 +1,57 @@
+{
+  "manifestSha256": "ba66ad35bcefd23bb8b75401c4342d4fda9bb5a7912990054f817291ca676d22",
+  "statusSha256": "5a22d14140b4b609e63da475ec0c422e268f166846445e2f820c8a8f1fe216e5",
+  "sheets": [
+    {
+      "file": "orientation-0-native.png",
+      "sha256": "39f2c7cdeb4f86b1ab4e0b90df5bddff9eadf4b3389c8d39f2d4e64f77d8b4c3"
+    },
+    {
+      "file": "orientation-0-original.png",
+      "sha256": "f518338f41d8af8edfed578155a2dda296174630a7aee7981a2aa4be715faf97"
+    },
+    {
+      "file": "orientation-1-native.png",
+      "sha256": "3420df19999e0162e83f4a07539ff5e9434b090e3c95f8012f1fa8b3fd8dbe6e"
+    },
+    {
+      "file": "orientation-1-original.png",
+      "sha256": "815de4cfe2cce4fa8cc8e8c8dfdfca4c05003f0a720bb284fa8066c65140d03b"
+    },
+    {
+      "file": "orientation-2-native.png",
+      "sha256": "d6feaa0bf1f47153b5dec239594591c55505750fa3ee3cffce1473509fbe5766"
+    },
+    {
+      "file": "orientation-2-original.png",
+      "sha256": "fd22ae510fef7fa99a8a0091acd7bb8d6b0ab1ece711e935f4a6e3b6e62eb1e7"
+    },
+    {
+      "file": "orientation-3-native.png",
+      "sha256": "798d0b30c962b5fe4ed6a89ab22906f309b8f4ae31806a3c94c72089969dd2f7"
+    },
+    {
+      "file": "orientation-3-original.png",
+      "sha256": "e1babcf932d2b7a4983730a4e7364a14141ba1a81b621d178ceb9c7cd5fd5c72"
+    }
+  ],
+  "dimensions": {
+    "casingDepth": 0.14,
+    "measuredMeshFaces": [
+      0.4300000071525574,
+      0.5699999928474426
+    ],
+    "measuredMeshDepth": 0.13999998569488525,
+    "casingFaces": [
+      0.43,
+      0.5700000000000001
+    ],
+    "leafHingeX": 0.4650000035762787,
+    "leafFrontSeating": 0.035,
+    "openingWidth": 0.78,
+    "openingHeight": 1.8,
+    "slabWidth": 0.73,
+    "thresholdDepth": 0.14,
+    "thresholdFloor": true
+  }
+}

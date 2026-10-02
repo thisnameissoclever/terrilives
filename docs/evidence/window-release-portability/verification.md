@@ -35,4 +35,14 @@ decoder and were not repeated. The public October 2 note already describes the
 window release; this internal publication fix adds no player behavior or new
 public bullet. Fresh adversarial review approved `59072eef` with no actionable
 findings after checking path semantics, immutable evidence and unchanged
-assertions. Publication is verified separately.
+assertions.
+
+## Publication
+
+PR #207 merged as `a1941ee3fbcb17b70ac899a4d09581df3715d445`. Main CI
+`37060172496` and Pages run `37060998697` succeeded, including the deploy job.
+GitHub deployment `6817693201` records that exact SHA. The public game serves
+`index-CaloQlji.js`. An isolated live-browser check found the enabled Windows
+control, all nine choices and successfully fitted a Sash window on the rear
+wall at `(axis 0, x 0, y 3)`, with no browser errors. See [live.json](live.json).
+The task-owned context closed in `finally`; no owner save was accessed.

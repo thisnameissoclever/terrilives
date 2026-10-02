@@ -19,7 +19,21 @@ class DoorAssetTests(unittest.TestCase):
                 self.assertFalse(path.is_absolute())
                 self.assertNotIn('..', path.parts)
                 self.assertEqual(path.as_posix(), relative)
-                self.assertTrue(door_assets.BASE.parent.parent.joinpath(*path.parts).is_file())
+                self.assertTrue(door_assets.MODEL_ROOT.joinpath(*path.parts).is_file())
+
+    def test_authored_casing_and_leaf_seating_match_shared_wall_depth(self):
+        manifest = json.loads((door_assets.BASE / 'manifest.json').read_text())
+        dimensions = manifest['authoredDimensions']
+        shared = json.loads((door_assets.MODEL_ROOT / 'architecture-depth.json').read_text())['wallAndDoorDepth']
+        self.assertEqual(shared, .14)
+        self.assertEqual(dimensions['casingDepth'], shared)
+        self.assertAlmostEqual(dimensions['measuredMeshDepth'], shared, places=6)
+        self.assertAlmostEqual(dimensions['measuredMeshFaces'][0], .5 - shared/2, places=6)
+        self.assertAlmostEqual(dimensions['measuredMeshFaces'][1], .5 + shared/2, places=6)
+        self.assertAlmostEqual(dimensions['leafHingeX'] - dimensions['casingFaces'][0], .035, places=6)
+        self.assertEqual(dimensions['thresholdDepth'], shared)
+        self.assertTrue(dimensions['thresholdFloor'])
+        self.assertEqual((dimensions['openingWidth'], dimensions['openingHeight'], dimensions['slabWidth']), (.78, 1.8, .73))
 
     def test_every_colour_sample_has_surface_depth(self):
         for name, colour in self.images.items():
@@ -55,7 +69,7 @@ class DoorAssetTests(unittest.TestCase):
                 x, y = (total + column) / 2, (total - column) / 2
                 x, y = [(x, y), (y, -x), (-x, -y), (-y, x)][facing]
                 # One filtered contour texel may fall just outside the mesh.
-                self.assertTrue(.408 <= x <= .592 and abs(y) <= .402, (facing, x, y))
+                self.assertTrue(.418 <= x <= .582 and abs(y) <= .402, (facing, x, y))
                 checked += 1
             self.assertGreater(checked, 100)
 
@@ -71,8 +85,8 @@ class DoorAssetTests(unittest.TestCase):
         image = self.images['doorFrame0']
         for y in (-.445, .445):
             for z in (1.78, 1.8, 1.82):
-                col = round((56 + (.58 - y) * 32) * 3)
-                row = round((99 + (.58 + y) * 21 - z * 38) * 3)
+                col = round((56 + (.57 - y) * 32) * 3)
+                row = round((99 + (.57 + y) * 21 - z * 38) * 3)
                 self.assertGreater(min(image.getpixel((col, row))[:3]), 120, (y, z))
 
 

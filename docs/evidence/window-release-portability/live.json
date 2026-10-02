@@ -1,0 +1,32 @@
+{
+  "deployment": {
+    "commit": "a1941ee3fbcb17b70ac899a4d09581df3715d445",
+    "ciRun": 37060172496,
+    "ciConclusion": "success",
+    "pagesRun": 37060998697,
+    "pagesConclusion": "success",
+    "deploymentId": 6817693201,
+    "environment": "github-pages"
+  },
+  "browser": {
+    "pass": true,
+    "deployedCommit": "a1941ee3fbcb17b70ac899a4d09581df3715d445",
+    "control": {
+      "label": "Windows",
+      "enabled": true
+    },
+    "choices": 9,
+    "window": [
+      0,
+      0,
+      3,
+      1
+    ],
+    "errors": [],
+    "scripts": [
+      "https://thisnameissoclever.github.io/terrilives/assets/index-CaloQlji.js"
+    ],
+    "scope": "Live rear-wall placement in isolated disposable context; no owner save accessed"
+  },
+  "cleanup": "Owned isolated context closed in finally. No owner storage accessed."
+}

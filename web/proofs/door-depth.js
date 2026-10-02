@@ -48,13 +48,15 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
         const theta = phase / 8 * Math.PI / 2;
         const normal = Math.cos(theta + facing * Math.PI / 2) + Math.sin(theta + facing * Math.PI / 2);
         const points = [{ part: 0, xyz: [...rotate(.5, 0, facing), 0], kind: 'threshold' }];
-        const [hx, hy] = rotate(.455, -.365, facing);
+        const [hx, hy] = rotate(.465, -.365, facing);
         const nx = Math.cos(theta + facing * Math.PI / 2), ny = Math.sin(theta + facing * Math.PI / 2);
         if (Math.abs(normal) > .2) {
           const side = Math.sign(normal);
-          const x = .455 + side * .042 * Math.cos(theta) - .365 * Math.sin(theta);
+          const x = .465 + side * .042 * Math.cos(theta) - .365 * Math.sin(theta);
           const y = -.365 + side * .042 * Math.sin(theta) + .365 * Math.cos(theta);
-          points.push({ part: 1, xyz: [...rotate(x, y, facing), .65], kind: 'leaf',
+          // Use the authored recessed panel's center. Near-parallel native
+          // views can project a higher witness onto the raised moulding.
+          points.push({ part: 1, xyz: [...rotate(x, y, facing), .445], kind: 'leaf',
             plane: [nx, ny, nx * hx + ny * hy + side * .042] });
         } else {
           // Look straight onto the slab's hinge or latch edge, using its
@@ -64,10 +66,10 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
             plane: [ex, ey, ex * hx + ey * hy + end] });
         }
         for (const [kind, y0, y1, z] of [['post', .39, .5, .9], ['header', -.5, .5, 1.9]]) {
-          const corners = [[.42,y0],[.58,y0],[.42,y1],[.58,y1]].map(([x,y])=>rotate(x,y,facing));
+          const corners = [[.43,y0],[.57,y0],[.43,y1],[.57,y1]].map(([x,y])=>rotate(x,y,facing));
           // The frontmost intersection of the screen column and this solid
           // rectangle is independent of the exporter's ray-cast depth map.
-          points.push({ part: 0, xyz: [...rotate(facing < 2 ? .58 : .42, (y0+y1)/2, facing), z], kind,
+          points.push({ part: 0, xyz: [...rotate(facing < 2 ? .57 : .43, (y0+y1)/2, facing), z], kind,
             bounds: [Math.max(...corners.map(p=>p[0])), Math.max(...corners.map(p=>p[1]))] });
         }
         for (const { part, xyz: [x, y, z], kind, plane, bounds } of points) for (const reverse of [false, true]) {
@@ -78,6 +80,7 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
           const pixelSum = floor ? 0 : bounds ? Math.min(2*bounds[0]-column, 2*bounds[1]+column)
             : (2*plane[2]-(plane[0]-plane[1])*column)/(plane[0]+plane[1]);
           let pass = true;
+          const observations = [];
           for (const [delta, wins] of floor ? [[.97, true], [FLOOR_DEPTH, false]] : [[.065, true], [-.065, false]]) {
             const marker = new Float32Array(STRIDE);
             writeInstance(marker, 0, px + .5, py + .5,
@@ -87,9 +90,12 @@ export async function doorDepthProof({ show = false, progress = () => {} } = {})
             trial.set(rows.subarray(part * STRIDE, (part + 1) * STRIDE), reverse ? STRIDE : 0);
             trial.set(marker, reverse ? 0 : STRIDE);
             const actual = await sample(trial, 2, scale, px, py);
-            pass &&= actual.every((v, c) => v === expected[c]) === wins;
+            const observed = actual.every((v, c) => v === expected[c]);
+            pass &&= observed === wins;
+            observations.push({ delta, wins, observed, actual, expected });
           }
-          results.push({ scale, facing, phase, part, kind, reverse, pass });
+          results.push({ scale, facing, phase, part, kind, reverse, pass,
+            ...(!pass ? { px, py, pixelSum, xyz: [x, y, z], plane, bounds, observations } : {}) });
         }
       }
     }

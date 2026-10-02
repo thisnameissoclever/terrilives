@@ -13,6 +13,8 @@ from mathutils.bvhtree import BVHTree
 
 BASE = Path(__file__).resolve().parent
 SIM = BASE.parent / 'sims/sim-01'
+sys.path.insert(0, str(BASE.parent))
+from architecture_dimensions import WALL_AND_DOOR_DEPTH
 sys.path.insert(0, str(BASE.parent / 'furniture'))
 from build_parts import box, cylinder, material, mesh
 
@@ -45,7 +47,7 @@ def build():
     leaf = bpy.data.objects.new('HINGED_LEAF', None)
     scene.collection.objects.link(leaf)
     leaf.parent = root
-    leaf.location = point(.455, -.365, 0)
+    leaf.location = point(.5 - WALL_AND_DOOR_DEPTH/2 + .035, -.365, 0)
     frame = bpy.data.objects.new('FIXED_CASING', None)
     scene.collection.objects.link(frame)
     frame.parent = root
@@ -56,7 +58,7 @@ def build():
     stone = material('Flush threshold', (.39, .37, .33))
     profile = [(-.5, 0), (-.5, 2), (.5, 2), (.5, 0),
                (.39, 0), (.39, 1.8), (-.39, 1.8), (-.39, 0)]
-    vertices = [point(x, y, z) for x in (.42, .58) for y, z in profile]
+    vertices = [point(x, y, z) for x in (.5-WALL_AND_DOOR_DEPTH/2, .5+WALL_AND_DOOR_DEPTH/2) for y, z in profile]
     faces = [tuple(reversed(range(8))), tuple(range(8, 16))]
     faces += [(i, (i + 1) % 8, (i + 1) % 8 + 8, i + 8) for i in range(8)]
     casing_mesh = mesh('Continuous joined casing', vertices, faces, casing, frame)
@@ -64,7 +66,7 @@ def build():
     bevel.width, bevel.segments = .006, 3
     casing_mesh.modifiers.new('Weighted casing normals', 'WEIGHTED_NORMAL')
     # The threshold is a floor surface, not a raised strip across the feet.
-    sill = part('Flush floor threshold', (.5, 0, -.003), (.16, .78, .006), stone, frame, 0)
+    sill = part('Flush floor threshold', (.5, 0, -.003), (WALL_AND_DOOR_DEPTH, .78, .006), stone, frame, 0)
     sill['floor_surface'] = True
     part('Solid door slab', (0, .365, .905), (.075, .73, 1.76), wood, leaf)
     for side in (-1, 1):
@@ -133,12 +135,17 @@ def run():
     assert bpy.app.background
     args = sys.argv[sys.argv.index('--') + 1:]
     output = Path(args[0]).resolve()
+    assert not (output / 'manifest.json').exists(), 'Never overwrite an existing door candidate'
     output.mkdir(parents=True, exist_ok=True)
     inputs = [Path(__file__), BASE.parent/'furniture/build_parts.py',
-              BASE.parent/'furniture/geometry.py', SIM/'sim-01-rigged.blend']
+              BASE.parent/'furniture/geometry.py', SIM/'sim-01-rigged.blend',
+              BASE.parent/'architecture_dimensions.py', BASE.parent/'architecture-depth.json']
     hashes = {path.relative_to(BASE.parent).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
     bpy.ops.wm.open_mainfile(filepath=str(SIM / 'sim-01-rigged.blend'))
     root, frame, leaf = build()
+    casing_mesh = next(obj for obj in frame.children_recursive if obj.name.startswith('Continuous joined casing'))
+    casing_faces = [min(v.co.x for v in casing_mesh.data.vertices), max(v.co.x for v in casing_mesh.data.vertices)]
+    assert abs(casing_faces[1]-casing_faces[0]-WALL_AND_DOOR_DEPTH) < 1e-6
     scene = bpy.context.scene
     # The character reference's 4 px ink is too heavy at this smaller canvas.
     # Match the thin brown contour of the room's furniture and wall art.
@@ -182,7 +189,12 @@ def run():
             depth_image(scene, frame.children_recursive if phase < 0 else leaf.children_recursive, output / f'{name}-depth.npy')
             records.append({'name': name, 'facing': facing, 'phase': phase})
             (output / 'manifest.json').write_text(json.dumps({'records': records, 'density': DENSITY,
-                'canvas': [WIDTH, HEIGHT], 'inputs': hashes}, indent=2))
+                'canvas': [WIDTH, HEIGHT], 'inputs': hashes, 'authoredDimensions': {
+                    'casingDepth': WALL_AND_DOOR_DEPTH, 'measuredMeshFaces': casing_faces,
+                    'measuredMeshDepth': casing_faces[1]-casing_faces[0], 'casingFaces': [.5-WALL_AND_DOOR_DEPTH/2,.5+WALL_AND_DOOR_DEPTH/2],
+                    'leafHingeX': leaf.location.x, 'leafFrontSeating': .035,
+                    'openingWidth': .78, 'openingHeight': 1.8, 'slabWidth': .73,
+                    'thresholdDepth': WALL_AND_DOOR_DEPTH, 'thresholdFloor': True}}, indent=2))
             if len(records) >= limit:
                 assert hashes == {path.relative_to(BASE.parent).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs}
                 return
@@ -190,7 +202,10 @@ def run():
 
 
 if __name__ == '__main__':
-    status_path = Path(sys.argv[sys.argv.index('--') + 1]) / 'status.json'
+    output = Path(sys.argv[sys.argv.index('--') + 1]).resolve()
+    assert not (output / 'manifest.json').exists(), 'Never overwrite an existing door candidate'
+    assert not (output / 'status.json').exists(), 'Never overwrite an existing door receipt'
+    status_path = output / 'status.json'
     status_path.parent.mkdir(parents=True, exist_ok=True)
     status = {'state': 'running', 'background': bpy.app.background, 'version': bpy.app.version_string}
     status_path.write_text(json.dumps(status))

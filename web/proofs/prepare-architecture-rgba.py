@@ -8,12 +8,19 @@ import sys
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / 'assets/models/architecture/export/reviewed-04'
+AUTHORING = ROOT / 'assets/models/architecture'
+CONFIG = json.loads((AUTHORING / 'architecture.json').read_text())
+SOURCE = (AUTHORING / CONFIG['batch']).resolve()
+assert SOURCE.is_relative_to(AUTHORING.resolve()), 'Proof source escapes architecture exports'
 DESTINATION = Path(__file__).resolve().parent / 'fixtures/architecture'
 
 
 def prepare(check=False):
-    manifest = json.loads((SOURCE / 'manifest.json').read_text())
+    manifest_bytes = (SOURCE / 'manifest.json').read_bytes()
+    manifest = json.loads(manifest_bytes)
+    review = json.loads((SOURCE / 'review.json').read_text())
+    assert review['status'] == 'accepted' and review['independent'] is True, 'Proof source review pending'
+    assert review['manifestSha256'] == hashlib.sha256(manifest_bytes).hexdigest(), 'Reviewed proof source changed'
     png = (SOURCE / manifest['resources']['color']).read_bytes()
     png_hash = hashlib.sha256(png).hexdigest()
     assert png_hash == manifest['hashes']['color'], 'Accepted PNG bytes changed'
